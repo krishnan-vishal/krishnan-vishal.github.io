@@ -1,0 +1,157 @@
+/*=====================================================
+  RESPONSIVE.CSS
+  FINTECH OASIS | GPIR
+  Global Responsive Layer
+======================================================*/
+/*=====================================================
+  LARGE DESKTOP
+======================================================*/
+
+@media (min-width:1600px){
+
+    .container,
+    .hero-container,
+    .knowledge-container,
+    .research-container,
+    .market-container,
+    .dashboard-container,
+    .executive-container,
+    .global-container,
+    .observatory-container,
+    .footer-container{
+        max-width:1500px;
+    }
+
+}
+
+
+/*=====================================================
+  LAPTOP
+======================================================*/
+
+@media (max-width:1400px){
+
+    section{
+
+        padding:95px 0;
+    }
+
+}
+
+/*=====================================================
+  TABLET
+======================================================*/
+
+@media (max-width:992px){
+
+    section{
+
+        padding:var(--section-tablet) 0;
+    }
+
+}
+
+/*=====================================================
+  MOBILE
+======================================================*/
+
+@media (max-width:768px){
+
+    section{
+
+        padding:var(--section-mobile) 0;
+    }
+
+}
+
+/*=====================================================
+  SMALL MOBILE
+======================================================*/
+
+@media (max-width:576px){
+
+    section{
+
+        padding:65px 0;
+    }
+
+}
+
+/*=====================================================
+  RESPONSIVE TYPOGRAPHY
+======================================================*/
+
+@media (max-width:768px){
+
+    h1{
+
+        font-size:2.4rem;
+    }
+
+    h2{
+
+        font-size:2rem;
+    }
+
+    h3{
+
+        font-size:1.5rem;
+    }
+
+    p{
+
+        font-size:.98rem;
+
+        line-height:1.75;
+    }
+
+}
+
+/*=====================================================
+  BUTTONS
+======================================================*/
+
+@media (max-width:768px){
+
+    .btn,
+    .hero-btn,
+    .global-btn{
+
+        width:100%;
+
+        justify-content:center;
+    }
+
+}
+
+/*=====================================================
+  IMAGES
+======================================================*/
+
+img{
+
+    max-width:100%;
+
+    height:auto;
+
+    display:block;
+}
+/*=====================================================
+  GLOBAL
+======================================================*/
+
+html{
+
+    scroll-behavior:smooth;
+}
+body{
+
+    overflow-x:hidden;
+}
+
+*,
+*::before,
+*::after{
+
+    box-sizing:border-box;
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <rect x="0" y="0" width="640" height="420" rx="18" fill="#0B1D3A"></rect>
+  <g transform="translate(220,10) scale(1)">
+    <circle cx="118" cy="100" r="54" fill="none" stroke="#F5F7FA" stroke-width="20"></circle>
+    <path d="M60 38 H132 V60 H82 V88 H124 V110 H82 V162 H60 Z" fill="#F5F7FA"></path>
+    <path d="M52 148 A94 94 0 0 0 150 44" fill="none" stroke="#D4AF37" stroke-width="9" stroke-linecap="round"></path>
+    <circle cx="52" cy="148" r="9" fill="#D4AF37"></circle>
+  </g>
+  <text x="320" y="270" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="52" fill="#F5F7FA">FINTECH <tspan fill="#D4AF37">OASIS</tspan></text>
+  <text x="320" y="300" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="15" letter-spacing="2" fill="#9AA5B1">GLOBAL PAYMENTS INTELLIGENCE REPOSITORY</text>
+</svg>

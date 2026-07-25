@@ -1,0 +1,3 @@
+# MP-023
+Theme: STABLECOIN ADOPTION
+Template v1.0

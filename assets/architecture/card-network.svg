@@ -1,0 +1,74 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+.t{font:700 34px Arial;fill:#0F2747}
+.s{font:18px Arial;fill:#666}
+.h{font:700 24px Arial;fill:white}
+.l{font:700 18px Arial;fill:#0F2747}
+.n{font:15px Arial;fill:#333}
+.box{fill:#fff;stroke:#60758a;stroke-width:2;rx:12}
+</style>
+
+<rect width="1920" height="1080" fill="#F8F9FB"/>
+<rect width="1920" height="90" fill="#0F2747"/>
+<text x="50" y="56" class="h">GPIR • Global Payments Intelligence Repository</text>
+
+<text x="50" y="145" class="t">Global Card Network Architecture</text>
+<text x="50" y="175" class="s">Visa • Mastercard • UnionPay • Amex • Discover</text>
+
+<rect x="80" y="300" width="180" height="70" class="box"/>
+<text x="125" y="340" class="l">Cardholder</text>
+
+<rect x="360" y="300" width="180" height="70" class="box"/>
+<text x="420" y="340" class="l">Merchant</text>
+
+<rect x="640" y="300" width="180" height="70" class="box"/>
+<text x="680" y="340" class="l">Acquirer</text>
+
+<rect x="930" y="260" width="240" height="150" fill="#D4AF37" stroke="#8c6b00" stroke-width="2" rx="14"/>
+<text x="980" y="315" class="l">Card Network</text>
+<text x="980" y="345" class="n">Visa</text>
+<text x="980" y="370" class="n">Mastercard</text>
+
+<rect x="1290" y="300" width="180" height="70" class="box"/>
+<text x="1350" y="340" class="l">Issuer</text>
+
+<rect x="1600" y="300" width="180" height="70" class="box"/>
+<text x="1645" y="340" class="l">Customer</text>
+
+<g stroke="#4f6275" stroke-width="3">
+<line x1="260" y1="335" x2="360" y2="335"/>
+<line x1="540" y1="335" x2="640" y2="335"/>
+<line x1="820" y1="335" x2="930" y2="335"/>
+<line x1="1170" y1="335" x2="1290" y2="335"/>
+<line x1="1470" y1="335" x2="1600" y2="335"/>
+</g>
+
+<rect x="80" y="520" width="1760" height="70" fill="#E8EEF7" stroke="#60758a"/>
+<text x="120" y="563" class="l">Authorization → Authentication → Risk → Approval</text>
+
+<rect x="80" y="630" width="1760" height="70" fill="#EEF8EA" stroke="#60758a"/>
+<text x="120" y="673" class="l">Clearing → Interchange → Settlement</text>
+
+<rect x="80" y="740" width="560" height="220" class="box"/>
+<text x="100" y="780" class="l">Security</text>
+<text x="100" y="815" class="n">• EMV</text>
+<text x="100" y="845" class="n">• Tokenization</text>
+<text x="100" y="875" class="n">• 3-D Secure</text>
+<text x="100" y="905" class="n">• PCI DSS</text>
+
+<rect x="690" y="740" width="560" height="220" class="box"/>
+<text x="710" y="780" class="l">Transaction Types</text>
+<text x="710" y="815" class="n">• POS</text>
+<text x="710" y="845" class="n">• ATM</text>
+<text x="710" y="875" class="n">• eCommerce</text>
+<text x="710" y="905" class="n">• Contactless</text>
+
+<rect x="1300" y="740" width="540" height="220" class="box"/>
+<text x="1320" y="780" class="l">Global Networks</text>
+<text x="1320" y="815" class="n">Visa • Mastercard</text>
+<text x="1320" y="845" class="n">UnionPay • Amex</text>
+<text x="1320" y="875" class="n">Discover • JCB</text>
+
+<text x="50" y="1045" font-size="14" fill="#666">Sources: Visa • Mastercard • EMVCo • PCI SSC • BIS • GPIR</text>
+</svg>

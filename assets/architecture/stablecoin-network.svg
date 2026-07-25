@@ -1,0 +1,74 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+.title{font:700 34px Arial;fill:#0F2747}
+.sub{font:18px Arial;fill:#666}
+.head{font:700 24px Arial;fill:#fff}
+.lbl{font:700 18px Arial;fill:#0F2747}
+.txt{font:15px Arial;fill:#333}
+.box{fill:#fff;stroke:#60758a;stroke-width:2;rx:12}
+</style>
+<rect width="1920" height="1080" fill="#F8F9FB"/>
+<rect width="1920" height="90" fill="#0F2747"/>
+<text x="50" y="56" class="head">GPIR • Global Payments Intelligence Repository</text>
+
+<text x="50" y="145" class="title">Stablecoin & Digital Asset Network Architecture</text>
+<text x="50" y="175" class="sub">Blockchain Settlement • Tokenized Money • Cross-border Transfers</text>
+
+<rect x="70" y="300" width="180" height="70" class="box"/>
+<text x="120" y="342" class="lbl">Wallet</text>
+
+<rect x="360" y="300" width="200" height="70" class="box"/>
+<text x="398" y="342" class="lbl">Exchange</text>
+
+<rect x="690" y="260" width="280" height="150" fill="#D4AF37" stroke="#8c6b00" stroke-width="2" rx="12"/>
+<text x="760" y="315" class="lbl">Stablecoin Rail</text>
+<text x="740" y="345" class="txt">USDC • USDT • EURC</text>
+<text x="720" y="372" class="txt">Tokenized Deposits</text>
+
+<rect x="1110" y="300" width="230" height="70" class="box"/>
+<text x="1168" y="342" class="lbl">Custodian</text>
+
+<rect x="1470" y="300" width="180" height="70" class="box"/>
+<text x="1518" y="342" class="lbl">Bank</text>
+
+<rect x="1740" y="300" width="130" height="70" class="box"/>
+<text x="1750" y="342" class="lbl">Receiver</text>
+
+<g stroke="#4F6275" stroke-width="3">
+<line x1="250" y1="335" x2="360" y2="335"/>
+<line x1="560" y1="335" x2="690" y2="335"/>
+<line x1="970" y1="335" x2="1110" y2="335"/>
+<line x1="1340" y1="335" x2="1470" y2="335"/>
+<line x1="1650" y1="335" x2="1740" y2="335"/>
+</g>
+
+<rect x="70" y="500" width="1770" height="70" fill="#EAF6EE" stroke="#60758a"/>
+<text x="110" y="542" class="lbl">Mint → Transfer → Validate → Redeem → Fiat Settlement</text>
+
+<rect x="70" y="620" width="560" height="300" class="box"/>
+<text x="90" y="660" class="lbl">Blockchain Networks</text>
+<text x="90" y="700" class="txt">• Ethereum</text>
+<text x="90" y="730" class="txt">• Solana</text>
+<text x="90" y="760" class="txt">• Stellar</text>
+<text x="90" y="790" class="txt">• Polygon</text>
+<text x="90" y="820" class="txt">• Avalanche</text>
+
+<rect x="680" y="620" width="560" height="300" class="box"/>
+<text x="700" y="660" class="lbl">Infrastructure</text>
+<text x="700" y="700" class="txt">• Smart Contracts</text>
+<text x="700" y="730" class="txt">• Cross-chain Bridges</text>
+<text x="700" y="760" class="txt">• Oracles</text>
+<text x="700" y="790" class="txt">• Custody</text>
+<text x="700" y="820" class="txt">• Private Keys</text>
+
+<rect x="1290" y="620" width="560" height="300" class="box"/>
+<text x="1310" y="660" class="lbl">Compliance & Integration</text>
+<text x="1310" y="700" class="txt">• AML / KYC</text>
+<text x="1310" y="730" class="txt">• Travel Rule</text>
+<text x="1310" y="760" class="txt">• On/Off Ramp</text>
+<text x="1310" y="790" class="txt">• Bank APIs</text>
+<text x="1310" y="820" class="txt">• ISO 20022 Interoperability</text>
+
+<text x="50" y="1045" font-size="14" fill="#666">Sources: BIS • IMF • Circle • Stellar • Ethereum Foundation • GPIR</text>
+</svg>

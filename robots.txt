@@ -1,0 +1,5 @@
+User-agent: *
+
+Allow: /
+
+Sitemap: https://krishnan-vishal.github.io/sitemap.xml

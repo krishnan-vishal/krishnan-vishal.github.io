@@ -1,0 +1,23 @@
+{
+  "name": "GPIR | Global Payments Intelligence Repository",
+  "short_name": "GPIR",
+  "description": "Executive intelligence platform for global payments, cross-border money movement, fintech, banking and regulatory intelligence.",
+  "icons": [
+    {
+      "src": "/assets/favicon/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/favicon/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#0B1120",
+  "background_color": "#0B1120",
+  "display": "standalone",
+  "start_url": "/"
+}

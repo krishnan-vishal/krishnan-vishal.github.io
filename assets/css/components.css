@@ -1,0 +1,429 @@
+/* ==========================================================
+   FINTECH OASIS | GPIR
+   Components Design System
+   Version : 1.0
+========================================================== */
+
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.btn{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:14px 32px;
+
+    border:none;
+
+    border-radius:var(--radius-pill);
+
+    cursor:pointer;
+
+    font-size:1rem;
+
+    font-weight:600;
+
+    transition:var(--transition-normal);
+
+    text-decoration:none;
+
+}
+
+
+/* Primary */
+
+.btn-primary{
+
+    background:var(--color-primary);
+
+    color:var(--color-white);
+
+    box-shadow:var(--shadow-soft);
+
+}
+
+.btn-primary:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:var(--shadow-hover);
+
+}
+
+
+/* Secondary */
+
+.btn-secondary{
+
+    background:transparent;
+
+    color:var(--color-white);
+
+    border:1px solid var(--border-medium);
+
+    backdrop-filter:var(--glass-blur);
+
+}
+
+.btn-secondary:hover{
+
+    background:var(--bg-glass);
+
+}
+
+
+/* Outline */
+
+.btn-outline{
+
+    background:none;
+
+    color:var(--color-primary);
+
+    border:2px solid var(--color-primary);
+
+}
+
+.btn-outline:hover{
+
+    background:var(--color-primary);
+
+    color:var(--color-white);
+
+}
+
+
+/* ==========================================================
+   CARDS
+========================================================== */
+
+.card{
+
+    background:var(--bg-card);
+
+    border:1px solid var(--border-light);
+
+    border-radius:var(--radius-lg);
+
+    padding:32px;
+
+    backdrop-filter:var(--glass-blur);
+
+    box-shadow:var(--shadow-card);
+
+    transition:var(--transition-normal);
+
+}
+
+.card:hover{
+
+    transform:translateY(-8px);
+
+    background:var(--bg-card-hover);
+
+    box-shadow:var(--shadow-hover);
+
+}
+
+
+/* ==========================================================
+   GLASS PANEL
+========================================================== */
+
+.glass{
+
+    background:var(--bg-glass);
+
+    border:1px solid var(--border-light);
+
+    backdrop-filter:var(--glass-blur);
+
+    border-radius:var(--radius-xl);
+
+}
+
+
+/* ==========================================================
+   BADGES
+========================================================== */
+
+.badge{
+
+    display:inline-block;
+
+    padding:8px 18px;
+
+    border-radius:var(--radius-pill);
+
+    background:rgba(184,134,59,.15);
+
+    color:var(--color-primary);
+
+    font-size:.8rem;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+}
+
+
+/* ==========================================================
+   SECTION TITLE
+========================================================== */
+
+.section-heading{
+
+    max-width:850px;
+
+    margin:0 auto 60px;
+
+    text-align:center;
+
+}
+
+.section-heading h2{
+
+    margin-bottom:18px;
+
+}
+
+.section-heading p{
+
+    color:var(--text-muted);
+
+}
+
+
+/* ==========================================================
+   ICON CONTAINER
+========================================================== */
+
+.icon-circle{
+
+    width:64px;
+
+    height:64px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(184,134,59,.12);
+
+    color:var(--color-primary);
+
+    font-size:1.5rem;
+
+}
+
+
+/* ==========================================================
+   DIVIDER
+========================================================== */
+
+.divider{
+
+    width:80px;
+
+    height:4px;
+
+    background:var(--color-primary);
+
+    border-radius:10px;
+
+    margin:20px auto;
+
+}
+
+
+/* ==========================================================
+   TAG
+========================================================== */
+
+.tag{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    padding:8px 16px;
+
+    border-radius:var(--radius-pill);
+
+    background:rgba(255,255,255,.06);
+
+    color:var(--text-muted);
+
+    font-size:.85rem;
+
+}
+
+
+/* ==========================================================
+   FEATURE LIST
+========================================================== */
+
+.feature-list{
+
+    list-style:none;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:16px;
+
+}
+
+.feature-list li{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+}
+
+.feature-list li::before{
+
+    content:"✓";
+
+    color:var(--color-primary);
+
+    font-weight:700;
+
+}
+
+
+/* ==========================================================
+   IMAGE FRAME
+========================================================== */
+
+.image-frame{
+
+    overflow:hidden;
+
+    border-radius:var(--radius-lg);
+
+    box-shadow:var(--shadow-card);
+
+}
+
+.image-frame img{
+
+    transition:var(--transition-slow);
+
+}
+
+.image-frame:hover img{
+
+    transform:scale(1.05);
+
+}
+
+
+/* ==========================================================
+   TABLE
+========================================================== */
+
+.table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.table th{
+
+    text-align:left;
+
+    padding:16px;
+
+    background:rgba(255,255,255,.05);
+
+    color:var(--color-primary);
+
+}
+
+.table td{
+
+    padding:16px;
+
+    border-bottom:1px solid var(--border-light);
+
+}
+
+
+/* ==========================================================
+   ANIMATIONS
+========================================================== */
+
+.fade-up{
+
+    animation:fadeUp .7s ease forwards;
+
+}
+
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(40px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:768px){
+
+    .btn{
+
+        width:100%;
+
+    }
+
+    .card{
+
+        padding:24px;
+
+    }
+
+    .section-heading{
+
+        margin-bottom:40px;
+
+    }
+
+}

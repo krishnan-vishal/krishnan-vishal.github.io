@@ -1,0 +1,669 @@
+/*=====================================================
+  ABOUT.CSS
+  FINTECH OASIS | GPIR
+  About the Repository
+======================================================*/
+
+
+/*=====================================================
+  SECTION
+======================================================*/
+
+#about{
+
+    position:relative;
+
+    padding:110px 0;
+
+    background:
+    linear-gradient(
+        180deg,
+        #ffffff 0%,
+        var(--color-surface) 100%
+    );
+
+    overflow:hidden;
+}
+
+#about::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+    radial-gradient(
+        circle at right top,
+        rgba(184,134,59,.08),
+        transparent 45%
+    );
+
+    pointer-events:none;
+}
+
+/*=====================================================
+  CONTAINER
+======================================================*/
+
+.about-container{
+
+    width:min(92%,1400px);
+
+    margin:auto;
+
+    position:relative;
+
+    z-index:2;
+}
+
+/*=====================================================
+  GRID
+======================================================*/
+
+.about-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        1.2fr .8fr;
+
+    gap:60px;
+
+    align-items:start;
+}
+
+/*=====================================================
+  LEFT CONTENT
+======================================================*/
+
+.about-content{
+
+    display:flex;
+
+    flex-direction:column;
+}
+
+/*=====================================================
+  LABEL
+======================================================*/
+
+.about-content span{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    width:max-content;
+
+    padding:10px 20px;
+
+    border-radius:999px;
+
+    background:
+    rgba(184,134,59,.12);
+
+    color:var(--color-primary);
+
+    font-size:.78rem;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.12em;
+
+    margin-bottom:24px;
+}
+
+/*=====================================================
+  TITLE
+======================================================*/
+
+.about-content h2{
+
+    font-size:
+    clamp(2rem,4vw,3rem);
+
+    line-height:1.15;
+
+    color:var(--text-heading);
+
+    margin-bottom:26px;
+}
+
+/*=====================================================
+  PARAGRAPHS
+======================================================*/
+
+.about-content p{
+
+    color:var(--text-body);
+
+    line-height:1.9;
+
+    margin-bottom:22px;
+
+    font-size:1.02rem;
+}
+
+/*=====================================================
+  LIST
+======================================================*/
+
+.about-list{
+
+    list-style:none;
+
+    padding:0;
+
+    margin:20px 0 36px;
+}
+
+.about-list li{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:12px;
+
+    padding:10px 0;
+
+    color:var(--text-body);
+
+    line-height:1.7;
+}
+
+.about-list li::before{
+
+    content:"";
+
+    width:8px;
+
+    height:8px;
+
+    margin-top:10px;
+
+    border-radius:50%;
+
+    background:var(--color-primary);
+
+    flex-shrink:0;
+}
+
+/*=====================================================
+  BUTTON
+======================================================*/
+
+.about-button{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:12px;
+
+    width:max-content;
+
+    padding:16px 34px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    color:#ffffff;
+
+    background:
+    linear-gradient(
+        135deg,
+        var(--color-primary),
+        #d4a64f
+    );
+
+    box-shadow:
+    0 14px 30px
+    rgba(184,134,59,.28);
+
+    transition:
+    transform .3s ease,
+    box-shadow .3s ease;
+}
+
+.about-button:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:
+    0 20px 40px
+    rgba(184,134,59,.34);
+}
+
+/*=====================================================
+  RIGHT CARD
+======================================================*/
+
+.about-card{
+
+    position:relative;
+
+    padding:38px;
+
+    border-radius:28px;
+
+    background:
+    rgba(255,255,255,.92);
+
+    backdrop-filter:blur(14px);
+
+    -webkit-backdrop-filter:blur(14px);
+
+    border:1px solid
+    rgba(184,134,59,.15);
+
+    box-shadow:var(--shadow-lg);
+
+    transition:
+    transform .35s ease,
+    box-shadow .35s ease;
+}
+
+.about-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:var(--shadow-xl);
+}
+
+/*=====================================================
+  CARD TITLE
+======================================================*/
+
+.about-card h3{
+
+    font-size:1.55rem;
+
+    color:var(--text-heading);
+
+    margin-bottom:28px;
+}
+
+/*=====================================================
+  RESEARCH ITEMS
+======================================================*/
+
+.about-item{
+
+    padding:22px 0;
+
+    border-bottom:
+    1px solid
+    rgba(0,0,0,.08);
+}
+
+.about-item:last-child{
+
+    border-bottom:none;
+
+    padding-bottom:0;
+}
+
+.about-item h4{
+
+    font-size:1.08rem;
+
+    color:var(--text-heading);
+
+    margin-bottom:12px;
+}
+
+.about-item p{
+
+    color:var(--text-body);
+
+    line-height:1.8;
+
+    font-size:.96rem;
+}
+
+/*=====================================================
+  LEFT BORDER ACCENT
+======================================================*/
+
+.about-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:4px;
+
+    height:100%;
+
+    border-radius:10px;
+
+    background:
+    linear-gradient(
+        to bottom,
+        var(--color-primary),
+        #E8D98A
+    );
+}
+
+/*=====================================================
+  ENTRANCE
+======================================================*/
+
+.about-content{
+
+    animation:fadeLeft .8s ease both;
+}
+
+.about-card{
+
+    animation:fadeRight .8s ease both;
+}
+
+@keyframes fadeLeft{
+
+    from{
+
+        opacity:0;
+
+        transform:
+        translateX(-40px);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+        translateX(0);
+    }
+}
+
+@keyframes fadeRight{
+
+    from{
+
+        opacity:0;
+
+        transform:
+        translateX(40px);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+        translateX(0);
+    }
+}
+
+/*=====================================================
+  RESPONSIVE LAYOUT
+======================================================*/
+
+@media (max-width:1200px){
+
+    .about-grid{
+
+        grid-template-columns:1fr;
+
+        gap:50px;
+    }
+
+    .about-card{
+
+        max-width:850px;
+
+        margin:0 auto;
+    }
+
+}
+
+@media (max-width:992px){
+
+    #about{
+
+        padding:90px 0;
+    }
+
+    .about-grid{
+
+        gap:45px;
+    }
+
+    .about-content h2{
+
+        font-size:2.35rem;
+    }
+
+    .about-content p{
+
+        font-size:1rem;
+    }
+
+    .about-card{
+
+        padding:34px;
+    }
+
+}
+
+@media (max-width:768px){
+
+    #about{
+
+        padding:80px 0;
+    }
+
+    .about-content span{
+
+        margin-bottom:20px;
+    }
+
+    .about-content h2{
+
+        font-size:2rem;
+    }
+
+    .about-content p{
+
+        line-height:1.8;
+    }
+
+    .about-list{
+
+        margin:18px 0 30px;
+    }
+
+    .about-button{
+
+        width:100%;
+
+        justify-content:center;
+    }
+
+    .about-card{
+
+        padding:30px;
+    }
+
+}
+
+@media (max-width:576px){
+
+    #about{
+
+        padding:70px 0;
+    }
+
+    .about-content span{
+
+        font-size:.72rem;
+
+        padding:8px 18px;
+    }
+
+    .about-content h2{
+
+        font-size:1.7rem;
+    }
+
+    .about-content p{
+
+        font-size:.96rem;
+    }
+
+    .about-list li{
+
+        font-size:.94rem;
+    }
+
+    .about-button{
+
+        padding:15px 24px;
+    }
+
+    .about-card{
+
+        padding:24px;
+
+        border-radius:22px;
+    }
+
+    .about-card h3{
+
+        font-size:1.35rem;
+    }
+
+    .about-item{
+
+        padding:18px 0;
+    }
+
+    .about-item h4{
+
+        font-size:1rem;
+    }
+
+    .about-item p{
+
+        font-size:.92rem;
+    }
+
+}
+
+/*=====================================================
+  ACCESSIBILITY
+======================================================*/
+
+.about-button:focus-visible{
+
+    outline:3px solid var(--color-primary);
+
+    outline-offset:5px;
+}
+
+@media (prefers-reduced-motion:reduce){
+
+    .about-content,
+    .about-card,
+    .about-button{
+
+        animation:none;
+
+        transition:none;
+
+        transform:none;
+    }
+
+}
+
+/*=====================================================
+  POLISH
+======================================================*/
+
+.about-content > *:last-child{
+
+    margin-bottom:0;
+}
+
+.about-card{
+
+    overflow:hidden;
+}
+
+.about-item:last-child{
+
+    margin-bottom:0;
+}
+
+/*=====================================================
+  FUTURE SUPPORT
+======================================================*/
+
+.about-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    background:rgba(184,134,59,.10);
+
+    color:var(--color-primary);
+
+    font-size:.72rem;
+
+    font-weight:700;
+
+    letter-spacing:.08em;
+
+    text-transform:uppercase;
+}
+
+.about-meta{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-top:24px;
+}
+
+.about-meta span{
+
+    padding:6px 12px;
+
+    border-radius:999px;
+
+    background:rgba(184,134,59,.08);
+
+    color:var(--text-body);
+
+    font-size:.78rem;
+}
+
+/*=====================================================
+  END OF ABOUT.CSS
+======================================================*/

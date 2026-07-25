@@ -1,0 +1,482 @@
+/* =====================================================
+   FEATURED RESEARCH CENTER
+   FINTECH OASIS
+===================================================== */
+
+#research {
+    padding:var(--space-xxl) 0;
+    background:var(--bg-surface);
+}
+
+.research-container {
+
+    width:100%;
+
+    max-width:var(--container-width);
+
+    margin:0 auto;
+
+    padding-left:var(--container-padding);
+
+    padding-right:var(--container-padding);
+
+    
+}
+
+/* ==========================================
+   SECTION HEADER
+========================================== */
+
+.research-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.research-header span {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 30px;
+    background:var(--glass-bg);
+    border:1px solid var(--border-light);
+    color:var(--color-primary);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.research-header h2 {
+    margin-top: 18px;
+    font-size: 42px;
+    font-weight: 700;
+    color:var(--text-heading);
+}
+
+.research-header p {
+    margin-top: 18px;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    color:var(--text-body);
+    line-height: 1.8;
+    font-size: 17px;
+}
+
+/* ==========================================
+   FEATURED REPORT
+========================================== */
+
+.featured-report {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 50px;
+    align-items: center;
+
+    background: var(--gradient-primary);
+
+    border-radius: 22px;
+    padding: 55px;
+
+    color: white;
+
+    margin-bottom: 70px;
+
+    overflow: hidden;
+
+    position: relative;
+}
+
+.featured-report::before{
+    content:"";
+    position:absolute;
+    width:350px;
+    height:350px;
+    background:rgba(255,255,255,.05);
+    border-radius:50%;
+    right:-120px;
+    top:-120px;
+}
+
+.report-tag{
+
+    display:inline-block;
+
+    background:var(--color-primary);
+
+    color:#12263f;
+
+    padding:8px 18px;
+
+    border-radius:30px;
+
+    font-weight:700;
+
+    font-size:13px;
+
+    margin-bottom:25px;
+
+    text-transform:uppercase;
+}
+
+.featured-report h3{
+
+    font-size:42px;
+
+    margin-bottom:25px;
+
+    line-height:1.25;
+}
+
+.featured-report p{
+
+    font-size:17px;
+
+    line-height:1.9;
+
+    color:rgba(255,255,255,.90);
+
+    margin-bottom:35px;
+}
+
+.btn{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:14px 32px;
+
+    border:none;
+
+    border-radius:var(--radius-pill);
+
+    cursor:pointer;
+
+    font-size:1rem;
+
+    font-weight:600;
+
+    transition:var(--transition-normal);
+
+    text-decoration:none;
+
+}
+
+
+/* Primary */
+
+.btn-primary{
+
+    background:var(--color-primary);
+
+    color:var(--color-white);
+
+    box-shadow:var(--shadow-soft);
+
+}
+
+.btn-primary:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:var(--shadow-hover);
+
+}
+
+
+/* Secondary */
+
+.btn-secondary{
+
+    background:transparent;
+
+    color:var(--color-white);
+
+    border:1px solid var(--border-medium);
+
+    backdrop-filter:var(--glass-blur);
+
+}
+
+.btn-secondary:hover{
+
+    background:var(--bg-glass);
+
+}
+
+
+/* Outline */
+
+.btn-outline{
+
+    background:none;
+
+    color:var(--color-primary);
+
+    border:2px solid var(--color-primary);
+
+}
+
+.btn-outline:hover{
+
+    background:var(--color-primary);
+
+    color:var(--color-white);
+
+}
+
+
+/* ==========================================
+   REPORT METRICS
+========================================== */
+
+.report-stats{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:20px;
+}
+
+.stat-box{
+
+    background:rgba(255,255,255,.10);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    backdrop-filter:var(--glass-blur);
+
+    border-radius:var(--radius-lg);
+
+    padding:25px;
+
+    text-align:center;
+}
+
+.stat-box h4{
+
+    font-size:34px;
+
+    margin-bottom:8px;
+
+    color:#FFD54F;
+}
+
+.stat-box p{
+
+    margin:0;
+
+    color:white;
+
+    font-size:15px;
+}
+
+/* ==========================================
+   RESEARCH GRID
+========================================== */
+
+.research-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+
+    gap:30px;
+}
+
+.research-card{
+
+    background:var(--bg-card);
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    transition:var(--transition-normal);
+
+    border:1px solid var(--border-light);
+
+    position:relative;
+}
+.research-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:100%;
+
+    height:4px;
+
+    background:#D4AF37;
+
+}
+.research-card:hover{
+
+    transform:translateY(-12px);
+
+    box-shadow:
+
+        0 24px 50px rgba(18,50,91,.16);
+
+}
+
+.card-top{
+
+    height:6px;
+
+    background:linear-gradient(90deg,#0d47a1,#FFD54F);
+}
+
+.card-content{
+
+    padding:32px;
+}
+
+.category{
+
+    display:inline-block;
+
+    background:var(--glass-bg);
+
+    color:var(--color-primary);
+
+    padding:7px 14px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    margin-bottom:18px;
+
+    text-transform:uppercase;
+}
+
+.research-card h4{
+
+    color:#12263f;
+
+    font-size:23px;
+
+    line-height:1.4;
+
+    margin-bottom:18px;
+}
+
+.research-card p{
+
+    color:#667085;
+
+    line-height:1.8;
+
+    margin-bottom:28px;
+
+    font-size:15px;
+
+    
+}
+
+.read-link{
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    color:var(--color-primary);
+
+    transition:.30s;
+}
+
+.read-link:hover{
+
+    letter-spacing:.5px;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media(max-width:992px){
+
+.featured-report{
+
+grid-template-columns:1fr;
+
+padding:40px;
+
+}
+
+.featured-report h3{
+
+font-size:34px;
+
+}
+
+.report-stats{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:768px){
+
+#research{
+
+padding:70px 0;
+
+}
+
+.research-header h2{
+
+font-size:32px;
+
+}
+
+.report-stats{
+
+grid-template-columns:1fr;
+
+}
+
+.research-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
+
+.publication-meta{
+
+    display:flex;
+
+    gap:18px;
+
+    margin-bottom:18px;
+
+    font-size:13px;
+
+    color:#98A2B3;
+
+}
+
+.publication-meta span{
+
+    display:flex;
+
+    align-items:center;
+
+}

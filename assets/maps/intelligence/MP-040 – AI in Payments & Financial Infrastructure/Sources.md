@@ -1,0 +1,6 @@
+BIS
+IMF
+OECD
+NIST AI RMF
+ISO/IEC 42001
+World Bank

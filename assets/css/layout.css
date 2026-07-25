@@ -1,0 +1,353 @@
+/* ==========================================================
+   FINTECH OASIS | GPIR
+   Layout System
+   Version : 1.0
+========================================================== */
+
+
+/* ==========================================================
+   RESET
+========================================================== */
+
+*,
+*::before,
+*::after{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+
+/* ==========================================================
+   HTML / BODY
+========================================================== */
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+body{
+
+    min-height:100vh;
+
+    overflow-x:hidden;
+
+    background:var(--bg-page);
+
+}
+
+
+/* ==========================================================
+   IMAGES
+========================================================== */
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+    height:auto;
+
+}
+
+
+/* ==========================================================
+   CONTAINER
+========================================================== */
+
+.container{
+
+    width:100%;
+
+    max-width:var(--container-width);
+
+    margin:0 auto;
+
+    padding-left:var(--container-padding);
+
+    padding-right:var(--container-padding);
+
+}
+
+
+/* ==========================================================
+   SECTION
+========================================================== */
+
+section{
+
+    position:relative;
+
+    width:100%;
+
+    padding:var(--space-2xl) 0;
+
+}
+
+
+/* ==========================================================
+   GRID SYSTEM
+========================================================== */
+
+.grid-2{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:var(--space-xl);
+
+    align-items:center;
+
+}
+
+.grid-3{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:var(--space-lg);
+
+}
+
+.grid-4{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:var(--space-lg);
+
+}
+
+
+/* ==========================================================
+   FLEX HELPERS
+========================================================== */
+
+.flex{
+
+    display:flex;
+
+}
+
+.flex-center{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.flex-between{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.flex-column{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+
+/* ==========================================================
+   WIDTH HELPERS
+========================================================== */
+
+.w-100{
+
+    width:100%;
+
+}
+
+.w-50{
+
+    width:50%;
+
+}
+
+.text-center{
+
+    text-align:center;
+
+}
+
+.text-left{
+
+    text-align:left;
+
+}
+
+.text-right{
+
+    text-align:right;
+
+}
+
+
+/* ==========================================================
+   SECTION HEADERS
+========================================================== */
+
+.section-header{
+
+    text-align:center;
+
+    max-width:900px;
+
+    margin:0 auto var(--space-xl);
+
+}
+
+.section-header h2{
+
+    margin-bottom:var(--space-md);
+
+}
+
+.section-header p{
+
+    color:var(--text-muted);
+
+}
+
+
+/* ==========================================================
+   SPACING HELPERS
+========================================================== */
+
+.mt-sm{
+
+    margin-top:var(--space-sm);
+
+}
+
+.mt-md{
+
+    margin-top:var(--space-md);
+
+}
+
+.mt-lg{
+
+    margin-top:var(--space-lg);
+
+}
+
+.mt-xl{
+
+    margin-top:var(--space-xl);
+
+}
+
+.mb-sm{
+
+    margin-bottom:var(--space-sm);
+
+}
+
+.mb-md{
+
+    margin-bottom:var(--space-md);
+
+}
+
+.mb-lg{
+
+    margin-bottom:var(--space-lg);
+
+}
+
+.mb-xl{
+
+    margin-bottom:var(--space-xl);
+
+}
+
+
+/* ==========================================================
+   DISPLAY HELPERS
+========================================================== */
+
+.hidden{
+
+    display:none;
+
+}
+
+.visible{
+
+    display:block;
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:1024px){
+
+    .grid-4{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    section{
+
+        padding:var(--space-xl) 0;
+
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .container{
+
+        padding-left:20px;
+
+        padding-right:20px;
+
+    }
+
+}
+
+@media(max-width:480px){
+
+    .container{
+
+        padding-left:16px;
+
+        padding-right:16px;
+
+    }
+
+}

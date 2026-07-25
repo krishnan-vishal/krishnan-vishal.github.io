@@ -1,0 +1,227 @@
+/*=====================================================
+EXECUTIVE KPI DASHBOARD
+FINTECH OASIS
+======================================================*/
+
+#statistics{
+
+    padding:100px 0;
+
+    background:#F5F7FA;
+
+}
+
+.stats-header{
+
+    text-align:center;
+
+    margin-bottom:70px;
+
+}
+
+.stats-header h2{
+
+    font-size:42px;
+
+    color:#071A2F;
+
+    margin-bottom:18px;
+
+    font-weight:700;
+
+}
+
+.stats-header p{
+
+    max-width:760px;
+
+    margin:auto;
+
+    color:#6B7280;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}
+
+/*=====================================================
+GRID
+======================================================*/
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:35px;
+
+}
+
+/*=====================================================
+CARD
+======================================================*/
+
+.stat-card{
+
+    position:relative;
+
+    background:#FFFFFF;
+
+    border-radius:20px;
+
+    padding:40px 35px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+
+    transition:.35s;
+
+    overflow:hidden;
+
+}
+
+.stat-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:100%;
+
+    height:5px;
+
+    background:#D4AF37;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,.12);
+
+}
+
+/*=====================================================
+ICON
+======================================================*/
+
+.stat-icon{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:50%;
+
+    background:rgba(212,175,55,.12);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:32px;
+
+    margin-bottom:28px;
+
+}
+
+/*=====================================================
+NUMBER
+======================================================*/
+
+.stat-number{
+
+    font-size:52px;
+
+    font-weight:700;
+
+    color:#071A2F;
+
+    margin-bottom:10px;
+
+}
+
+.stat-title{
+
+    font-size:22px;
+
+    font-weight:600;
+
+    color:#071A2F;
+
+    margin-bottom:12px;
+
+}
+
+.stat-description{
+
+    color:#6B7280;
+
+    line-height:1.8;
+
+    font-size:15px;
+
+}
+
+/*=====================================================
+HOVER
+======================================================*/
+
+.stat-card:hover .stat-number{
+
+    color:#D4AF37;
+
+}
+
+.stat-card:hover .stat-icon{
+
+    transform:rotate(8deg) scale(1.08);
+
+    transition:.35s;
+
+}
+
+/*=====================================================
+RESPONSIVE
+======================================================*/
+
+@media(max-width:1100px){
+
+.stats-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:768px){
+
+.stats-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.stats-header h2{
+
+font-size:34px;
+
+}
+
+.stat-number{
+
+font-size:42px;
+
+}
+
+}
+

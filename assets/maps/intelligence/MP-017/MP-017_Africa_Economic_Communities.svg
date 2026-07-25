@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160">
+<rect width="3840" height="2160" fill="#F7F4EF"/>
+<rect width="3840" height="180" fill="#0F2747"/>
+<text x="90" y="90" font-size="56" fill="white" font-family="Arial">FINTECH OASIS | GPIR</text>
+<text x="90" y="150" font-size="82" fill="#B8863B" font-family="Arial">MP-017 AFRICA ECONOMIC COMMUNITIES</text>
+<rect x="90" y="250" width="2350" height="1500" fill="white" stroke="#CCCCCC"/>
+<text x="850" y="1000" font-size="54" fill="#888888" font-family="Arial">Africa Vector Map Placeholder</text>
+<rect x="2500" y="250" width="1250" height="1500" fill="white" stroke="#CCCCCC"/>
+<text x="2540" y="330" font-size="42" fill="#0F2747">Executive Insights</text>
+<text x="2540" y="400" font-size="28" fill="#555">AU • AfCFTA • PAPSS • ECOWAS • SADC • COMESA</text>
+<rect x="90" y="1820" width="3660" height="220" fill="#0F2747"/>
+<text x="120" y="1910" font-size="28" fill="white">Sources: African Union • World Bank • IMF • BIS • GSMA</text>
+</svg>

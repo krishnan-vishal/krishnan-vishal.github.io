@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160">
+<rect width="3840" height="2160" fill="#F7F4EF"/>
+<rect width="3840" height="180" fill="#0F2747"/>
+<text x="80" y="70" font-size="46" fill="white">FINTECH OASIS | GPIR Intelligence Series</text>
+<text x="80" y="145" font-size="62" fill="#D4AF37">MP-038 • DIGITAL ASSET & TOKENIZED PAYMENTS</text>
+<rect x="80" y="240" width="2400" height="1500" fill="white" stroke="#888"/>
+<text x="220" y="980" font-size="54" fill="gray">Digital Asset & Tokenized Payments Template</text>
+<rect x="2520" y="240" width="1220" height="1500" fill="white" stroke="#888"/>
+<text x="2550" y="330" font-size="38">Coverage</text>
+<text x="2550" y="390" font-size="28">• Stablecoins</text>
+<text x="2550" y="440" font-size="28">• Tokenized Deposits</text>
+<text x="2550" y="490" font-size="28">• CBDC Interoperability</text>
+</svg>

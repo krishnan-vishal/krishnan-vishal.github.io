@@ -1,0 +1,91 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+body{font-family:Arial}
+.h{fill:#0F2747}
+.gold{fill:#D4AF37}
+.title{font:700 34px Arial;fill:#0F2747}
+.sub{font:18px Arial;fill:#666}
+.box{fill:#fff;stroke:#58708a;stroke-width:2;rx:12}
+.rail{stroke-width:5;fill:none}
+.lbl{font:700 18px Arial;fill:#0F2747}
+.txt{font:15px Arial;fill:#333}
+.small{font:14px Arial;fill:#666}
+</style>
+
+<rect width="1920" height="1080" fill="#F7F8FA"/>
+<rect width="1920" height="90" class="h"/>
+<text x="50" y="55" fill="white" font-size="24" font-family="Arial" font-weight="700">
+GPIR • Global Payments Intelligence Repository
+</text>
+
+<text x="50" y="145" class="title">Cross-Border Payments Network Architecture</text>
+<text x="50" y="175" class="sub">Version 1.0 • Executive Reference Diagram</text>
+
+<!-- simplified world -->
+<g opacity="0.08" fill="#0F2747">
+<ellipse cx="420" cy="300" rx="170" ry="90"/>
+<ellipse cx="900" cy="280" rx="230" ry="95"/>
+<ellipse cx="1500" cy="340" rx="170" ry="100"/>
+</g>
+
+<rect x="70" y="300" width="220" height="70" class="box"/>
+<text x="118" y="342" class="lbl">Sender</text>
+
+<rect x="370" y="300" width="220" height="70" class="box"/>
+<text x="390" y="342" class="lbl">Originating Bank</text>
+
+<rect x="700" y="300" width="240" height="70" class="box"/>
+<text x="722" y="342" class="lbl">Correspondent</text>
+
+<rect x="1060" y="300" width="220" height="70" class="box"/>
+<text x="1092" y="342" class="lbl">Settlement Bank</text>
+
+<rect x="1400" y="300" width="220" height="70" class="box"/>
+<text x="1422" y="342" class="lbl">Receiving Bank</text>
+
+<rect x="1700" y="300" width="160" height="70" class="box"/>
+<text x="1715" y="342" class="lbl">Beneficiary</text>
+
+<line x1="290" y1="335" x2="370" y2="335" stroke="#444" stroke-width="3"/>
+<line x1="590" y1="335" x2="700" y2="335" stroke="#444" stroke-width="3"/>
+<line x1="940" y1="335" x2="1060" y2="335" stroke="#444" stroke-width="3"/>
+<line x1="1280" y1="335" x2="1400" y2="335" stroke="#444" stroke-width="3"/>
+<line x1="1620" y1="335" x2="1700" y2="335" stroke="#444" stroke-width="3"/>
+
+<text x="60" y="470" class="lbl">Payment Rails</text>
+
+<line x1="140" y1="520" x2="1780" y2="520" class="rail" stroke="#0F2747"/>
+<text x="70" y="525" class="txt">SWIFT</text>
+
+<line x1="140" y1="580" x2="1780" y2="580" class="rail" stroke="#D4AF37"/>
+<text x="70" y="585" class="txt">Card Networks</text>
+
+<line x1="140" y1="640" x2="1780" y2="640" class="rail" stroke="#00A6A6"/>
+<text x="70" y="645" class="txt">Wallets</text>
+
+<line x1="140" y1="700" x2="1780" y2="700" class="rail" stroke="#3A8E3A"/>
+<text x="70" y="705" class="txt">RTGS / Instant Payments</text>
+
+<line x1="140" y1="760" x2="1780" y2="760" class="rail" stroke="#7B4CC2"/>
+<text x="70" y="765" class="txt">Stablecoins / Digital Assets</text>
+
+<rect x="70" y="840" width="550" height="170" class="box"/>
+<text x="90" y="875" class="lbl">Compliance Layer</text>
+<text x="90" y="910" class="txt">• AML Screening</text>
+<text x="90" y="940" class="txt">• Sanctions</text>
+<text x="90" y="970" class="txt">• KYC / KYB</text>
+
+<rect x="685" y="840" width="550" height="170" class="box"/>
+<text x="705" y="875" class="lbl">Treasury Layer</text>
+<text x="705" y="910" class="txt">• FX</text>
+<text x="705" y="940" class="txt">• Liquidity</text>
+<text x="705" y="970" class="txt">• Nostro / Vostro</text>
+
+<rect x="1300" y="840" width="550" height="170" class="box"/>
+<text x="1320" y="875" class="lbl">Supported Networks</text>
+<text x="1320" y="910" class="txt">SWIFT • Visa Direct • Mastercard Move</text>
+<text x="1320" y="940" class="txt">RTP • UPI • PIX • PayNow • USDC</text>
+
+<text x="50" y="1055" class="small">Sources: BIS • World Bank • SWIFT • ISO 20022 • GPIR</text>
+</svg>

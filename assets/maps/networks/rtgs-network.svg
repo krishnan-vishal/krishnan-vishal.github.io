@@ -1,0 +1,73 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+.title{font:700 34px Arial;fill:#0F2747}
+.sub{font:18px Arial;fill:#666}
+.head{font:700 24px Arial;fill:#fff}
+.lbl{font:700 18px Arial;fill:#0F2747}
+.txt{font:15px Arial;fill:#333}
+.box{fill:#fff;stroke:#60758a;stroke-width:2;rx:12}
+</style>
+
+<rect width="1920" height="1080" fill="#F7F9FB"/>
+<rect width="1920" height="90" fill="#0F2747"/>
+<text x="50" y="56" class="head">GPIR • Global Payments Intelligence Repository</text>
+
+<text x="50" y="145" class="title">RTGS & Instant Payment Network Architecture</text>
+<text x="50" y="175" class="sub">Real-Time Gross Settlement • Fast Payment Systems</text>
+
+<rect x="80" y="300" width="220" height="70" class="box"/>
+<text x="120" y="342" class="lbl">Participant Bank</text>
+
+<rect x="430" y="300" width="220" height="70" class="box"/>
+<text x="485" y="342" class="lbl">RTGS Gateway</text>
+
+<rect x="790" y="260" width="340" height="150" fill="#D4AF37" stroke="#8c6b00" stroke-width="2" rx="12"/>
+<text x="865" y="315" class="lbl">Central Bank RTGS</text>
+<text x="850" y="345" class="txt">Settlement Engine</text>
+<text x="860" y="370" class="txt">Liquidity Queue</text>
+
+<rect x="1270" y="300" width="220" height="70" class="box"/>
+<text x="1325" y="342" class="lbl">Receiving Bank</text>
+
+<rect x="1620" y="300" width="220" height="70" class="box"/>
+<text x="1682" y="342" class="lbl">Beneficiary</text>
+
+<g stroke="#4F6275" stroke-width="3">
+<line x1="300" y1="335" x2="430" y2="335"/>
+<line x1="650" y1="335" x2="790" y2="335"/>
+<line x1="1130" y1="335" x2="1270" y2="335"/>
+<line x1="1490" y1="335" x2="1620" y2="335"/>
+</g>
+
+<rect x="70" y="500" width="1770" height="70" fill="#E7F4FF" stroke="#60758a"/>
+<text x="110" y="542" class="lbl">Payment Initiation → Validation → Settlement → Finality</text>
+
+<rect x="70" y="620" width="560" height="300" class="box"/>
+<text x="90" y="660" class="lbl">Major RTGS Systems</text>
+<text x="90" y="700" class="txt">• Fedwire</text>
+<text x="90" y="730" class="txt">• TARGET</text>
+<text x="90" y="760" class="txt">• CHAPS</text>
+<text x="90" y="790" class="txt">• BOJ-NET</text>
+<text x="90" y="820" class="txt">• MEPS+</text>
+<text x="90" y="850" class="txt">• RITS</text>
+
+<rect x="680" y="620" width="560" height="300" class="box"/>
+<text x="700" y="660" class="lbl">Instant Payment Systems</text>
+<text x="700" y="700" class="txt">• UPI</text>
+<text x="700" y="730" class="txt">• RTP</text>
+<text x="700" y="760" class="txt">• PIX</text>
+<text x="700" y="790" class="txt">• PayNow</text>
+<text x="700" y="820" class="txt">• PromptPay</text>
+<text x="700" y="850" class="txt">• FAST</text>
+
+<rect x="1290" y="620" width="560" height="300" class="box"/>
+<text x="1310" y="660" class="lbl">Core Functions</text>
+<text x="1310" y="700" class="txt">• Gross Settlement</text>
+<text x="1310" y="730" class="txt">• Liquidity Management</text>
+<text x="1310" y="760" class="txt">• Queue Management</text>
+<text x="1310" y="790" class="txt">• Settlement Finality</text>
+<text x="1310" y="820" class="txt">• ISO 20022 Messaging</text>
+
+<text x="50" y="1045" font-size="14" fill="#666">Sources: BIS • CPMI • Central Banks • ISO 20022 • GPIR</text>
+</svg>

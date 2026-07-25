@@ -1,0 +1,248 @@
+/*=====================================================
+MARKET INTELLIGENCE RIBBON
+FINTECH OASIS
+======================================================*/
+
+#market-ribbon{
+
+    position:relative;
+
+    width:100%;
+
+    background:#071A2F;
+
+    border-top:1px solid rgba(255,255,255,.08);
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+
+    overflow:hidden;
+
+    height:64px;
+
+    display:flex;
+
+    align-items:center;
+
+    z-index:20;
+
+}
+
+/*=====================================================
+LEFT TITLE
+======================================================*/
+
+.market-title{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#D4AF37;
+
+    color:#071A2F;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+    text-transform:uppercase;
+
+    padding:0 28px;
+
+    height:64px;
+
+    white-space:nowrap;
+
+    flex-shrink:0;
+
+}
+
+/*=====================================================
+TICKER AREA
+======================================================*/
+
+.ticker-wrapper{
+
+    flex:1;
+
+    overflow:hidden;
+
+    position:relative;
+
+    height:64px;
+
+    display:flex;
+
+    align-items:center;
+
+}
+
+.ticker-track{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    white-space:nowrap;
+
+    animation:tickerMove 80s linear infinite;
+
+}
+
+.ticker-track:hover{
+
+    animation-play-state:paused;
+
+}
+
+/*=====================================================
+ITEM
+======================================================*/
+
+.ticker-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:0 28px;
+
+    font-size:15px;
+
+    color:#ffffff;
+
+}
+
+.pair{
+
+    color:#9CA3AF;
+
+    font-weight:600;
+
+}
+
+.rate{
+
+    color:#D4AF37;
+
+    font-weight:700;
+
+    font-size:15px;
+
+}
+
+.separator{
+
+    color:rgba(255,255,255,.25);
+
+    font-size:18px;
+
+}
+
+/*=====================================================
+LAST UPDATED
+======================================================*/
+
+.market-time{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#B8C5D6;
+
+    font-size:12px;
+
+    min-width:170px;
+
+    padding:0 18px;
+
+    border-left:1px solid rgba(255,255,255,.08);
+
+}
+
+/*=====================================================
+ANIMATION
+======================================================*/
+
+@keyframes tickerMove{
+
+    0%{
+
+        transform:translateX(0);
+
+    }
+
+    100%{
+
+        transform:translateX(-50%);
+
+    }
+
+}
+
+/*=====================================================
+RESPONSIVE
+======================================================*/
+
+@media(max-width:992px){
+
+.market-title{
+
+display:none;
+
+}
+
+.market-time{
+
+display:none;
+
+}
+
+.ticker-item{
+
+padding:0 18px;
+
+font-size:14px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+#market-ribbon{
+
+height:54px;
+
+}
+
+.ticker-wrapper{
+
+height:54px;
+
+}
+
+.ticker-item{
+
+font-size:13px;
+
+gap:8px;
+
+}
+
+.rate{
+
+font-size:13px;
+
+}
+
+}

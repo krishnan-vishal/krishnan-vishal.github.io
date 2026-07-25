@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160">
+<rect width="3840" height="2160" fill="#F7F4EF"/>
+<rect width="3840" height="180" fill="#0F2747"/>
+<text x="80" y="70" font-size="46" fill="white">FINTECH OASIS | GPIR Intelligence Series</text>
+<text x="80" y="145" font-size="62" fill="#D4AF37">MP-045 • GLOBAL PAYMENT OBSERVABILITY & OPERATIONAL INTELLIGENCE</text>
+<rect x="80" y="240" width="2400" height="1500" fill="white" stroke="#888"/>
+<text x="180" y="980" font-size="54" fill="gray">Payment Observability & Operational Intelligence</text>
+</svg>

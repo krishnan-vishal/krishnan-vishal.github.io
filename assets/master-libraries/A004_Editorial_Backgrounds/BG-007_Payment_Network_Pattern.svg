@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#F8F5EE"/>
+<rect x="80" y="80" width="1440" height="740" rx="18" fill="none" stroke="#C8A24A" stroke-width="2"/>
+<text x="120" y="170" font-size="42" font-family="Arial" fill="#0F2747">BG-007 Payment Network Pattern</text>
+<text x="120" y="220" font-size="22" font-family="Arial" fill="#555">Payment network pattern.</text>
+<line x1="120" y1="260" x2="1480" y2="260" stroke="#C8A24A" stroke-width="2"/>
+<text x="120" y="320" font-size="18" font-family="Arial" fill="#777">Production design placeholder for FINTECH OASIS A-004 Editorial Background Library.</text>
+</svg>

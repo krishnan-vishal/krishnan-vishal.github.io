@@ -1,0 +1,72 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+.h{fill:#0F2747}.g{fill:#D4AF37}
+.t{font:700 34px Arial;fill:#0F2747}
+.s{font:18px Arial;fill:#666}
+.w{font:700 24px Arial;fill:#fff}
+.l{font:700 18px Arial;fill:#0F2747}
+.n{font:15px Arial;fill:#333}
+.b{fill:#fff;stroke:#60758a;stroke-width:2;rx:12}
+</style>
+
+<rect width="1920" height="1080" fill="#F8F9FB"/>
+<rect width="1920" height="90" class="h"/>
+<text x="50" y="56" class="w">GPIR • Global Payments Intelligence Repository</text>
+
+<text x="50" y="145" class="t">Treasury & Liquidity Management Architecture</text>
+<text x="50" y="178" class="s">Global Cash Positioning • FX • Liquidity • Settlement</text>
+
+<rect x="80" y="300" width="220" height="70" class="b"/>
+<text x="120" y="342" class="l">Business Units</text>
+
+<rect x="420" y="300" width="220" height="70" class="b"/>
+<text x="472" y="342" class="l">Treasury Hub</text>
+
+<rect x="760" y="260" width="360" height="150" class="g" stroke="#8c6b00" stroke-width="2" rx="12"/>
+<text x="835" y="315" class="l">Global Liquidity Pool</text>
+<text x="835" y="345" class="n">Cash • FX • Funding</text>
+<text x="835" y="372" class="n">Risk & Limits</text>
+
+<rect x="1260" y="300" width="220" height="70" class="b"/>
+<text x="1315" y="342" class="l">Settlement Bank</text>
+
+<rect x="1610" y="300" width="220" height="70" class="b"/>
+<text x="1670" y="342" class="l">Markets</text>
+
+<g stroke="#4F6275" stroke-width="3">
+<line x1="300" y1="335" x2="420" y2="335"/>
+<line x1="640" y1="335" x2="760" y2="335"/>
+<line x1="1120" y1="335" x2="1260" y2="335"/>
+<line x1="1480" y1="335" x2="1610" y2="335"/>
+</g>
+
+<rect x="70" y="480" width="1770" height="70" fill="#EAF3FF" stroke="#60758a"/>
+<text x="110" y="522" class="l">Cash Forecast → Funding → FX Execution → Settlement → Reconciliation</text>
+
+<rect x="70" y="620" width="560" height="300" class="b"/>
+<text x="90" y="660" class="l">Liquidity Management</text>
+<text x="90" y="700" class="n">• Intraday Liquidity</text>
+<text x="90" y="730" class="n">• Cash Pooling</text>
+<text x="90" y="760" class="n">• Notional Pooling</text>
+<text x="90" y="790" class="n">• Nostro/Vostro</text>
+<text x="90" y="820" class="n">• Prefunding</text>
+
+<rect x="680" y="620" width="560" height="300" class="b"/>
+<text x="700" y="660" class="l">Treasury Operations</text>
+<text x="700" y="700" class="n">• FX Dealing</text>
+<text x="700" y="730" class="n">• Hedging</text>
+<text x="700" y="760" class="n">• Cash Positioning</text>
+<text x="700" y="790" class="n">• Reconciliation</text>
+<text x="700" y="820" class="n">• ISO 20022 Reporting</text>
+
+<rect x="1290" y="620" width="560" height="300" class="b"/>
+<text x="1310" y="660" class="l">Risk & Controls</text>
+<text x="1310" y="700" class="n">• Counterparty Limits</text>
+<text x="1310" y="730" class="n">• Market Risk</text>
+<text x="1310" y="760" class="n">• Liquidity Risk</text>
+<text x="1310" y="790" class="n">• Compliance</text>
+<text x="1310" y="820" class="n">• Audit Trail</text>
+
+<text x="50" y="1045" font-size="14" fill="#666">Sources: BIS • IMF • ISO 20022 • Treasury Best Practices • GPIR</text>
+</svg>

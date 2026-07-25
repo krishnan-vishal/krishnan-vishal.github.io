@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<style>
+.title{font:700 34px Arial;fill:#0F2747}
+.sub{font:18px Arial;fill:#555}
+.hdr{font:700 22px Arial;fill:white}
+.lbl{font:600 18px Arial;fill:#0F2747}
+.txt{font:16px Arial;fill:#333}
+.small{font:14px Arial;fill:#555}
+.box{fill:white;stroke:#6f7b8a;stroke-width:2;rx:12}
+.line{stroke:#73808f;stroke-width:3;fill:none}
+.gold{fill:#D4AF37;stroke:#8c6b00;stroke-width:2}
+.blue{fill:#dceeff;stroke:#2c5c85;stroke-width:2}
+.green{fill:#e5f6e9;stroke:#3c8c57;stroke-width:2}
+.red{fill:#fde8e8;stroke:#b44;stroke-width:2}
+.purple{fill:#efe7fb;stroke:#6c49a8;stroke-width:2}
+</style>
+
+<rect width="1920" height="1080" fill="#F8F9FB"/>
+<rect width="1920" height="90" fill="#0F2747"/>
+<text x="50" y="55" class="hdr">GPIR • Global Payments Intelligence Repository</text>
+
+<text x="50" y="140" class="title">SWIFT Global Financial Messaging Network</text>
+<text x="50" y="170" class="sub">Executive Architecture • ISO 20022 • CBPR+ • Correspondent Banking</text>
+
+<rect x="760" y="220" width="400" height="90" class="gold"/>
+<text x="875" y="260" class="lbl">SWIFT Network</text>
+<text x="810" y="287" class="txt">FIN • FINplus • ISO 20022 • gpi</text>
+
+<rect x="180" y="430" width="250" height="80" class="blue"/>
+<text x="235" y="475" class="lbl">Originating Bank</text>
+
+<rect x="835" y="430" width="250" height="80" class="green"/>
+<text x="872" y="475" class="lbl">Correspondent Bank</text>
+
+<rect x="1490" y="430" width="250" height="80" class="blue"/>
+<text x="1545" y="475" class="lbl">Beneficiary Bank</text>
+
+<line x1="960" y1="310" x2="305" y2="430" class="line"/>
+<line x1="960" y1="310" x2="960" y2="430" class="line"/>
+<line x1="960" y1="310" x2="1615" y2="430" class="line"/>
+
+<rect x="180" y="650" width="250" height="70" class="box"/>
+<text x="238" y="692" class="txt">Corporate / Sender</text>
+
+<rect x="835" y="650" width="250" height="70" class="purple"/>
+<text x="905" y="692" class="txt">Nostro / Vostro</text>
+
+<rect x="1490" y="650" width="250" height="70" class="box"/>
+<text x="1542" y="692" class="txt">Beneficiary</text>
+
+<line x1="305" y1="510" x2="305" y2="650" class="line"/>
+<line x1="960" y1="510" x2="960" y2="650" class="line"/>
+<line x1="1615" y1="510" x2="1615" y2="650" class="line"/>
+
+<rect x="70" y="830" width="560" height="180" class="red"/>
+<text x="95" y="865" class="lbl">Compliance Layer</text>
+<text x="95" y="900" class="txt">• AML Screening</text>
+<text x="95" y="930" class="txt">• Sanctions Filtering</text>
+<text x="95" y="960" class="txt">• KYC / KYB</text>
+<text x="95" y="990" class="txt">• Fraud Monitoring</text>
+
+<rect x="680" y="830" width="560" height="180" class="purple"/>
+<text x="705" y="865" class="lbl">Treasury Layer</text>
+<text x="705" y="900" class="txt">• Liquidity</text>
+<text x="705" y="930" class="txt">• FX Management</text>
+<text x="705" y="960" class="txt">• Reconciliation</text>
+<text x="705" y="990" class="txt">• Settlement</text>
+
+<rect x="1290" y="830" width="560" height="180" class="green"/>
+<text x="1315" y="865" class="lbl">Messaging Standards</text>
+<text x="1315" y="900" class="txt">• MT103 • MT202</text>
+<text x="1315" y="930" class="txt">• MT940 • MT199</text>
+<text x="1315" y="960" class="txt">• ISO 20022 CBPR+</text>
+
+<text x="50" y="1055" class="small">Sources: SWIFT • BIS • ISO 20022 • GPIR | Version 1.0</text>
+</svg>
