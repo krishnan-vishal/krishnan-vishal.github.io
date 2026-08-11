@@ -378,7 +378,7 @@
 
 .research-card h4{
 
-    color:#12263f;
+    color:var(--text-heading);
 
     font-size:23px;
 
@@ -389,7 +389,7 @@
 
 .research-card p{
 
-    color:#667085;
+    color:var(--text-muted);
 
     line-height:1.8;
 
@@ -495,5 +495,7 @@ grid-template-columns:1fr;
     display:flex;
 
     align-items:center;
+
+    color:var(--text-muted);
 
 }

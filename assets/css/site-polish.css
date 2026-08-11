@@ -411,3 +411,102 @@ section {
 
     line-height:1;
 }
+
+
+/* =========================================================
+   14. HERO HEADING GUARD
+   (typography safety in section 2 targets bare h1-h6 for the
+   light-card sections; this restores the intended white
+   heading colour specifically for the dark hero section)
+========================================================= */
+
+.hero h1,
+.hero h2,
+.hero .hero-brand{
+    color:#ffffff;
+}
+
+
+/* =========================================================
+   15. ACCESSIBILITY & MOTION
+========================================================= */
+
+.skip-link{
+    position:absolute;
+    top:-60px;
+    left:16px;
+    z-index:3000;
+
+    background:#12325B;
+    color:#ffffff;
+
+    padding:12px 22px;
+    border-radius:8px;
+
+    font-weight:700;
+    text-decoration:none;
+
+    transition:top .25s ease;
+}
+
+.skip-link:focus{
+    top:16px;
+}
+
+a:focus-visible,
+button:focus-visible{
+    outline:3px solid #b8863b;
+    outline-offset:3px;
+    border-radius:4px;
+}
+
+::selection{
+    background:rgba(184,134,59,.32);
+    color:inherit;
+}
+
+html{
+    scrollbar-color:#b8863b transparent;
+    scrollbar-width:thin;
+}
+
+::-webkit-scrollbar{
+    width:10px;
+}
+
+::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#b8863b;
+    border-radius:10px;
+}
+
+
+/* =========================================================
+   16. SCROLL-REVEAL ANIMATION
+========================================================= */
+
+.reveal-on-scroll{
+    opacity:0;
+    transform:translateY(28px);
+    transition:
+        opacity .7s ease,
+        transform .7s ease;
+}
+
+.reveal-on-scroll.is-visible{
+    opacity:1;
+    transform:translateY(0);
+}
+
+@media (prefers-reduced-motion:reduce){
+
+    .reveal-on-scroll{
+        opacity:1;
+        transform:none;
+        transition:none;
+    }
+
+}

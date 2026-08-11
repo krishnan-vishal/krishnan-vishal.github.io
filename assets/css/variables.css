@@ -208,5 +208,38 @@
 --section-mobile:75px;
 
 
+/* ==========================================================
+   ALIASES & MISSING TOKENS
+   (referenced across the codebase under shorthand names —
+   defined here so every consumer resolves to a real value)
+========================================================== */
+
+--transition: var(--transition-normal);
+
+--primary: var(--color-primary);
+
+--border: var(--border-light);
+--color-border: var(--border-light);
+
+--surface: var(--bg-section);
+--bg-surface: var(--bg-section);
+--color-surface: var(--bg-section);
+--color-surface-alt: var(--bg-card);
+--glass-bg: var(--bg-glass);
+
+--color-heading: var(--text-heading);
+--color-text: var(--text-body);
+
+--radius-xl: 32px;
+--shadow-xl: 0 30px 70px rgba(0,0,0,.24);
+
+--space-xxl: 140px;
+
+--icon-lg: 56px;
+
+--gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+
+--font-heading: var(--font-editorial);
+
 }
 

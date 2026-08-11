@@ -777,7 +777,9 @@
 
 .intelligence-tile{
 
-    background:var(--bg-card);
+    background:
+        linear-gradient(var(--bg-card), var(--bg-card)),
+        linear-gradient(160deg, var(--bg-page), var(--color-dark-2));
 
     border:1px solid var(--border-light);
 
@@ -1055,7 +1057,7 @@
 
     padding:10px 0;
 
-    border-bottom:1px solid #EEF2F7;
+    border-bottom:1px solid var(--border-light);
 
 }
 
@@ -1144,7 +1146,7 @@ all .35s ease;
 
     line-height:1.25;
 
-    color:#0B2242;
+    color:var(--text-heading);
 
     margin-bottom:18px;
 

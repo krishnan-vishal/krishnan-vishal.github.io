@@ -149,7 +149,9 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    background: rgba(255,255,255,0.03);
+    background:
+        linear-gradient(rgba(255,255,255,0.03), rgba(255,255,255,0.03)),
+        linear-gradient(135deg, var(--bg-page), var(--color-dark-2));
     border:1px solid rgba(255,255,255,0.08);
     box-shadow:var(--shadow-lg);
 }

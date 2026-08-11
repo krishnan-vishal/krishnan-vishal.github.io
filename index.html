@@ -232,11 +232,13 @@ content="Global Payments Intelligence Repository">
 <link rel="stylesheet" href="assets/css/footer.css">
 
 <!-- LAST -->
-<link rel="stylesheet" href="css/site-polish.css">
+<link rel="stylesheet" href="assets/css/site-polish.css">
 
 </head>
 
 <body>
+
+    <a href="#home" class="skip-link">Skip to main content</a>
 
     <header class="header">
 
@@ -276,7 +278,7 @@ content="Global Payments Intelligence Repository">
 
 </div>
         
- <nav class="main-nav">
+ <nav class="main-nav" id="main-nav">
 
 <ul>
 
@@ -298,8 +300,6 @@ content="Global Payments Intelligence Repository">
 
 </ul>
 
-</nav>
-
 <div class="header-tools">
 
     <a href="#research"
@@ -311,6 +311,20 @@ content="Global Payments Intelligence Repository">
 
 </div>
 
+</nav>
+
+<button
+    type="button"
+    class="nav-toggle"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="main-nav">
+
+    <span></span>
+    <span></span>
+    <span></span>
+
+</button>
 
 <div class="header-actions">
 
@@ -2412,8 +2426,9 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
        
         <!-- Dashboard cards will be added here -->
 
-        STANDARD COUNTRY CARD STRUCTURE
-     ===================================================== -->
+        <!-- =====================================================
+             STANDARD COUNTRY CARD STRUCTURE
+             ===================================================== -->
 
 
 <!-- =========================
