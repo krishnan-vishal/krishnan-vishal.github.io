@@ -11,7 +11,9 @@ HERO
     display:flex;
     align-items:center;
 
-    background:var(--bg-page);
+    background:
+        var(--gradient-rich-dark-radial),
+        var(--gradient-rich-dark);
 
     color:var(--text-heading);
 
@@ -28,9 +30,9 @@ HERO
 
     linear-gradient(
         90deg,
-        rgba(7,18,34,.92) 0%,
-        rgba(15,39,71,.86) 45%,
-        rgba(18,50,91,.55) 100%
+        rgba(12,15,25,.72) 0%,
+        rgba(24,20,40,.55) 45%,
+        rgba(30,22,30,.28) 100%
     );
 
     z-index:1;

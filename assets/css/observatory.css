@@ -8,7 +8,9 @@
 
     padding:var(--section-desktop) 0;
 
-    background:#0F172A;
+    background:
+        var(--gradient-rich-dark-radial),
+        var(--gradient-rich-dark);
 
     overflow:hidden;
 }

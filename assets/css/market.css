@@ -15,7 +15,9 @@ FINTECH OASIS
 
     width:100%;
 
-    background:#071A2F;
+    background:
+        var(--gradient-rich-dark-radial),
+        var(--gradient-rich-dark);
 
     border-top:1px solid rgba(255,255,255,.08);
 
@@ -23,7 +25,7 @@ FINTECH OASIS
 
     overflow:hidden;
 
-    height:64px;
+    height:88px;
 
     display:flex;
 
@@ -179,7 +181,7 @@ LEFT TITLE
 
     padding:0 28px;
 
-    height:64px;
+    height:88px;
 
     white-space:nowrap;
 
@@ -200,7 +202,7 @@ TICKER AREA
 
     position:relative;
 
-    height:64px;
+    height:88px;
 
     display:flex;
 
@@ -214,9 +216,13 @@ TICKER AREA
 
     align-items:center;
 
+    gap:18px;
+
+    padding:0 18px;
+
     white-space:nowrap;
 
-    animation:tickerMove 80s linear infinite;
+    animation:tickerMove 60s linear infinite;
 
 }
 
@@ -224,6 +230,124 @@ TICKER AREA
 
     animation-play-state:paused;
 
+}
+
+/*=====================================================
+ANNOUNCEMENT CARDS
+======================================================*/
+
+.ticker-card{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:10px 20px;
+
+    border-radius:14px;
+
+    background:rgba(255,255,255,.06);
+
+    border:1px solid rgba(255,255,255,.10);
+
+    text-decoration:none;
+
+    white-space:nowrap;
+
+    transition:
+        transform .3s ease,
+        background .3s ease,
+        border-color .3s ease;
+}
+
+.ticker-card:hover{
+
+    transform:translateY(-2px);
+
+    background:rgba(184,134,59,.14);
+
+    border-color:rgba(184,134,59,.4);
+}
+
+.ticker-flag{
+
+    font-size:22px;
+
+    line-height:1;
+
+    flex-shrink:0;
+}
+
+.ticker-body{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:3px;
+}
+
+.ticker-meta{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+}
+
+.ticker-country{
+
+    color:#ffffff;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    letter-spacing:.04em;
+}
+
+.ticker-tag{
+
+    padding:2px 9px;
+
+    border-radius:999px;
+
+    background:rgba(184,134,59,.18);
+
+    color:var(--color-primary);
+
+    font-size:10px;
+
+    font-weight:700;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+}
+
+.ticker-headline{
+
+    display:-webkit-box;
+
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+
+    overflow:hidden;
+
+    color:rgba(255,255,255,.82);
+
+    font-size:13px;
+
+    font-weight:500;
+
+    white-space:normal;
+
+    width:280px;
+
+    line-height:1.35;
 }
 
 /*=====================================================
@@ -349,6 +473,32 @@ display:none;
 padding:0 18px;
 
 font-size:14px;
+
+}
+
+#market-ribbon{
+
+height:76px;
+
+}
+
+.ticker-wrapper{
+
+height:76px;
+
+}
+
+.ticker-card{
+
+padding:8px 16px;
+
+}
+
+.ticker-headline{
+
+width:220px;
+
+font-size:12px;
 
 }
 

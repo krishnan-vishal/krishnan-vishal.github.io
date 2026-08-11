@@ -6,7 +6,9 @@
 
 #command-centre{
 
-    background:var(--color-dark);
+    background:
+        var(--gradient-rich-dark-radial),
+        var(--gradient-rich-dark);
 
     padding:80px 0;
 

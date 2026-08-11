@@ -241,5 +241,29 @@
 
 --font-heading: var(--font-editorial);
 
+
+/* ==========================================================
+   RICH GRADIENT SURFACES
+   A warmer, less flat-black alternative to solid --bg-page /
+   --color-dark for hero-weight sections — blends the brand
+   gold and magenta into the graphite base so dark sections
+   read as premium rather than heavy.
+========================================================== */
+
+--gradient-rich-dark:
+    linear-gradient(
+        135deg,
+        #0C1220 0%,
+        #16182C 28%,
+        #241B36 52%,
+        #2E1F33 72%,
+        #1A1512 100%
+    );
+
+--gradient-rich-dark-radial:
+    radial-gradient(circle at 15% 15%, rgba(184,134,59,.16), transparent 45%),
+    radial-gradient(circle at 85% 30%, rgba(139,77,109,.20), transparent 50%),
+    radial-gradient(circle at 60% 90%, rgba(184,134,59,.10), transparent 55%);
+
 }
 
