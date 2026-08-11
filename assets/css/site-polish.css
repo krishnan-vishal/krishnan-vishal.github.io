@@ -1,0 +1,413 @@
+/* =========================================================
+   GPIR — SITE POLISH / PRODUCTION VISUAL LAYER
+   P1.0 HOMEPAGE STABILISATION
+========================================================= */
+
+
+/* =========================================================
+   1. GLOBAL PAGE
+========================================================= */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: #f7f5ef;
+    color: #142b4a;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   2. TYPOGRAPHY SAFETY
+========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #142b4a;
+}
+
+p {
+    color: #536174;
+}
+
+a {
+    color: inherit;
+}
+
+
+/* =========================================================
+   3. SECTION SYSTEM
+========================================================= */
+
+section {
+    position: relative;
+    width: 100%;
+}
+
+.container,
+.global-container,
+.research-container,
+.about-container {
+    width: min(1200px, calc(100% - 48px));
+    margin-inline: auto;
+}
+
+
+/* =========================================================
+   4. EXECUTIVE SECTION HEADER
+========================================================= */
+
+.section-header,
+.global-header,
+.research-header,
+.about-header {
+    max-width: 860px;
+    margin-inline: auto;
+}
+
+.section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 7px 14px;
+
+    border-radius: 999px;
+
+    background: rgba(212, 175, 55, 0.12);
+    color: #b8863b;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   5. GLOBAL COVERAGE
+========================================================= */
+
+#global,
+#coverage {
+    background: #f7f5ef;
+    color: #142b4a;
+}
+
+.global-header {
+    text-align: center;
+    padding: 90px 0 55px;
+}
+
+.global-header span {
+    color: #b8863b;
+}
+
+.global-header h2 {
+    color: #142b4a;
+}
+
+.global-header p {
+    color: #536174;
+}
+
+
+/* =========================================================
+   6. REGION CARDS
+========================================================= */
+
+.region-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.region-card {
+    background: #ffffff;
+    color: #142b4a;
+
+    border: 1px solid rgba(20, 43, 74, 0.08);
+    border-radius: 24px;
+
+    padding: 32px;
+
+    box-shadow:
+        0 10px 30px rgba(20, 43, 74, 0.07);
+
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.region-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 18px 42px rgba(20, 43, 74, 0.12);
+}
+
+.region-card h4 {
+    color: #142b4a;
+}
+
+.region-card p {
+    color: #536174;
+}
+
+.region-card li {
+    color: #536174;
+}
+
+.region-card li::marker {
+    color: #b8863b;
+}
+
+
+/* =========================================================
+   7. GLOBAL METRIC CARDS
+========================================================= */
+
+.global-box {
+    background: #ffffff;
+    color: #142b4a;
+
+    border: 1px solid rgba(20, 43, 74, 0.08);
+    border-radius: 28px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    box-shadow:
+        0 10px 30px rgba(20, 43, 74, 0.06);
+}
+
+.global-box h3 {
+    color: #b8863b;
+}
+
+.global-box p {
+    color: #536174;
+}
+
+
+/* =========================================================
+   8. DASHBOARD GALLERY
+========================================================= */
+
+#dashboard-gallery,
+#dashboard {
+    background: #f7f5ef;
+    color: #142b4a;
+}
+
+.dashboard-card {
+    position: relative;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid rgba(20, 43, 74, 0.08);
+    border-radius: 28px;
+
+    box-shadow:
+        0 12px 36px rgba(20, 43, 74, 0.08);
+}
+
+.dashboard-card h3,
+.dashboard-card h4 {
+    color: #142b4a;
+}
+
+.dashboard-card p {
+    color: #536174;
+}
+
+
+/* =========================================================
+   9. DASHBOARD IMAGE SAFETY
+========================================================= */
+
+.dashboard-card img {
+    display: block;
+
+    width: 100%;
+    height: auto;
+
+    object-fit: cover;
+}
+
+.dashboard-card img:not([src]),
+.dashboard-card img[src=""] {
+    display: none;
+}
+
+
+/* =========================================================
+   10. DASHBOARD CTA
+========================================================= */
+
+.dashboard-card a,
+.global-btn,
+.about-button,
+.read-link {
+    color: #a97920;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.dashboard-card a:hover,
+.global-btn:hover,
+.about-button:hover,
+.read-link:hover {
+    color: #8d6418;
+}
+
+
+/* =========================================================
+   11. GOLD CTA
+========================================================= */
+
+.btn-primary,
+.global-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 48px;
+
+    padding: 0 24px;
+
+    border-radius: 999px;
+
+    background: #c99a3d;
+    color: #ffffff;
+
+    font-weight: 700;
+
+    box-shadow:
+        0 10px 24px rgba(201, 154, 61, 0.22);
+
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.btn-primary:hover,
+.global-btn:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 14px 30px rgba(201, 154, 61, 0.28);
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   12. REMOVE UNINTENTIONAL DARK SECTION OVERRIDES
+========================================================= */
+
+.region-card,
+.global-box,
+.dashboard-card,
+.research-card,
+.about-card,
+.command-card,
+.architecture-card {
+    color: #142b4a;
+}
+
+.region-card *,
+.global-box *,
+.dashboard-card *,
+.research-card *,
+.about-card *,
+.command-card *,
+.architecture-card * {
+    color: inherit;
+}
+
+
+/* Restore paragraph hierarchy */
+
+.region-card p,
+.global-box p,
+.dashboard-card p,
+.research-card p,
+.about-card p,
+.command-card p,
+.architecture-card p {
+    color: #536174;
+}
+
+
+/* =========================================================
+   13. MOBILE
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .region-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .container,
+    .global-container,
+    .research-container,
+    .about-container {
+        width: min(100% - 32px, 720px);
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .global-header {
+        padding: 65px 0 40px;
+    }
+
+    .region-card,
+    .global-box,
+    .dashboard-card {
+        border-radius: 20px;
+        padding: 24px;
+    }
+
+}
+
+.evidence-label{
+    display:inline-flex;
+    align-items:center;
+    width:max-content;
+
+    padding:6px 10px;
+
+    border:1px solid rgba(184,134,59,.30);
+    border-radius:999px;
+
+    background:rgba(184,134,59,.06);
+
+    color:var(--color-primary);
+
+    font-size:.68rem;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+
+    line-height:1;
+}

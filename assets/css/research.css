@@ -291,6 +291,10 @@
 
 .research-card{
 
+    display:flex;
+
+    flex-direction:column;
+
     background:var(--bg-card);
 
     border-radius:18px;
@@ -302,7 +306,9 @@
     border:1px solid var(--border-light);
 
     position:relative;
+
 }
+
 .research-card::before{
 
     content:"";
@@ -317,7 +323,7 @@
 
     height:4px;
 
-    background:#D4AF37;
+    background:var(--color-primary);
 
 }
 .research-card:hover{
@@ -339,7 +345,14 @@
 
 .card-content{
 
+    display:flex;
+
+    flex-direction:column;
+
+    flex:1;
+
     padding:32px;
+
 }
 
 .category{
@@ -389,14 +402,18 @@
 
 .read-link{
 
+    margin-top:auto;
+
     text-decoration:none;
 
     font-weight:700;
 
     color:var(--color-primary);
 
-    transition:.30s;
+    transition:var(--transition-normal);
+
 }
+
 
 .read-link:hover{
 

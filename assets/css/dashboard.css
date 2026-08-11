@@ -25,6 +25,25 @@
         transparent 42%);
     pointer-events:none;
 }
+/*=====================================================
+  DASHBOARD INTRODUCTION
+======================================================*/
+
+.dashboard-intro{
+
+    padding:40px 0 20px;
+
+    text-align:center;
+
+}
+
+.dashboard-intro .section-header{
+
+    max-width:820px;
+
+    margin:0 auto;
+
+}
 
 /*=====================================================
   SECTION HEADER
@@ -90,27 +109,44 @@
 ======================================================*/
 
 .dashboard-card{
+    position:relative;
+}
 
-    display:flex;
+.dashboard-card::before{
 
-    flex-direction:column;
+    content:"";
 
-    padding:34px;
+    position:absolute;
 
-    border-radius:var(--radius-lg);
+    left:0;
+    top:0;
 
-    background:rgba(255,255,255,.88);
+    width:4px;
+    height:0;
 
-    backdrop-filter:blur(12px);
+    background:linear-gradient(
+        to bottom,
+        var(--color-primary),
+        #E8D98A
+    );
 
-    border:1px solid rgba(184,134,59,.18);
+    transition:height .35s ease;
 
-    box-shadow:var(--shadow-sm);
+    border-radius:10px;
 
-    transition:
-        transform .35s ease,
-        box-shadow .35s ease,
-        border-color .35s ease;
+    pointer-events:none;
+}
+
+.dashboard-card:hover::before{
+    height:100%;
+}
+
+.dashboard-image a{
+    display:block;
+}
+
+.dashboard-image a img{
+    display:block;
 }
 
 .dashboard-card:hover{
@@ -220,6 +256,80 @@
 
     color:var(--color-primary);
 }
+/*=====================================================
+  DASHBOARD IMAGE
+======================================================*/
+
+.dashboard-image{
+
+    margin:-34px -34px 24px;
+
+    overflow:hidden;
+
+    border-radius:
+        var(--radius-lg)
+        var(--radius-lg)
+        0
+        0;
+
+}
+
+.dashboard-image img{
+
+    width:100%;
+
+    aspect-ratio:16/9;
+
+    object-fit:cover;
+
+    display:block;
+
+    transition:transform .35s ease;
+
+}
+
+.dashboard-card:hover .dashboard-image img{
+
+    transform:scale(1.03);
+
+}
+
+/*=====================================================
+  REGION BADGE
+======================================================*/
+
+.dashboard-region{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:6px 14px;
+
+    margin-bottom:18px;
+
+    border-radius:999px;
+
+    background:rgba(184,134,59,.10);
+
+    color:var(--color-primary);
+
+    font-size:.75rem;
+
+    font-weight:700;
+
+    letter-spacing:.08em;
+
+    text-transform:uppercase;
+
+    width:fit-content;
+
+}
+
+
+
 
 /*=====================================================
   TITLE
@@ -270,7 +380,7 @@
 
     align-items:center;
 
-    gap:10px;
+    gap:12px;
 
     padding:8px 0;
 
@@ -309,7 +419,7 @@
 
     align-items:center;
 
-    gap:10px;
+    gap:12px;
 
     margin-top:auto;
 
@@ -550,6 +660,8 @@
 
 .dashboard-card::before{
 
+    pointer-events:none;
+
     content:"";
 
     position:absolute;
@@ -642,7 +754,7 @@
 
     flex-wrap:wrap;
 
-    gap:10px;
+    gap:12px;
 
     margin-top:22px;
 }
@@ -701,9 +813,9 @@
 
     width:100%;
 
-    height:5px;
+    height:4px;
 
-    background:var(--color-primary);
+    background:#D4AF37;
 
 }
 
@@ -775,11 +887,26 @@
     margin:0;
 
 }
+
+.intelligence-tile>*{
+
+    position:relative;
+
+    z-index:2;
+
+}
+
 .tile-summary{
 
-    color:var(--text-body);
+    color:#526176;
 
-    line-height:1.9;
+    line-height:1.8;
+
+    font-size:15px;
+
+    margin-bottom:26px;
+
+    flex-grow:1;
 
 }
 
@@ -821,27 +948,53 @@
 
 }
 
+.tile-image{
+
+    width:100%;
+
+    overflow:hidden;
+
+    border-radius:16px;
+
+    margin-bottom:24px;
+
+    background:#F8FAFC;
+    aspect-ratio:16/9;
+
+    object-fit:cover;
+
+    display:block;
+
+    transition:.35s ease;
+
+}
+
+
 .tile-coverage{
 
     display:flex;
 
     flex-wrap:wrap;
 
-    gap:10px;
+    gap:12px;
 
 }
 
 .tile-coverage span{
 
-    padding:8px 16px;
+    background:#F4F7FB;
 
-    border-radius:30px;
+    border:1px solid #E2E8F0;
 
-    background:var(--glass-bg);
+    padding:7px 14px;
 
-    color:var(--text-body);
+    border-radius:40px;
 
-    font-size:13px;
+    font-size:12px;
+
+    font-weight:600;
+
+    color:#23406B;
 
 }
 
@@ -849,11 +1002,22 @@
 
     margin-top:auto;
 
-    text-decoration:none;
+    display:inline-flex;
 
-    color:var(--color-primary);
+    align-items:center;
+
+    gap:8px;
 
     font-weight:700;
+
+    color:#0B2242;
+
+    text-decoration:none;
+
+}
+.tile-link:hover{
+
+    color:#D4AF37;
 
 }
 
@@ -891,7 +1055,7 @@
 
     padding:10px 0;
 
-    border-bottom:1px solid var(--border-light);
+    border-bottom:1px solid #EEF2F7;
 
 }
 
@@ -924,6 +1088,123 @@
     height:100%;
 
 }
+
+/* ======================================================
+   GPIR MARKET INTELLIGENCE GALLERY
+   Sprint 5.4B
+====================================================== */
+
+#market-gallery{
+
+    padding:120px 0;
+
+    background:#F8FAFC;
+
+}
+
+.market-gallery-container{
+
+    width:100%;
+
+    max-width:1280px;
+
+    margin:0 auto;
+
+    padding:0 30px;
+
+}
+
+.market-gallery-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:34px;
+
+    align-items:stretch;
+
+    margin-top:60px;
+
+}
+
+.intelligence-tile:hover{
+
+    transform:translateY(-10px);
+    transition:
+all .35s ease;
+
+    box-shadow:0 18px 40px rgba(0,0,0,.10);
+
+}
+
+.intelligence-tile h3{
+
+    font-size:28px;
+
+    line-height:1.25;
+
+    color:#0B2242;
+
+    margin-bottom:18px;
+
+}
+
+
+
+/* ======================================================
+   Intelligence Tile Header
+====================================================== */
+
+.tile-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+
+}
+
+.tile-domain{
+
+    font-size:12px;
+
+    font-weight:700;
+
+    color:#D4AF37;
+
+    letter-spacing:.8px;
+
+    text-transform:uppercase;
+
+}
+.tile-status{
+
+    background:#E8F7EE;
+
+    color:#0F8A45;
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:.5px;
+
+}
+
+/* ==========================================================
+   SPRINT 5.5
+   GLOBAL DASHBOARD GALLERY
+========================================================== */
+
+
 /*=====================================================
   END OF DASHBOARD
 ======================================================*/

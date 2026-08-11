@@ -10,6 +10,19 @@ Global Payments Intelligence Repository
     background: var(--bg-surface);
 
 }
+/*=====================================================
+PURPOSE HEADER
+======================================================*/
+
+.purpose-header{
+
+    max-width:820px;
+
+    margin:0 auto 70px;
+
+    text-align:center;
+
+}
 
 .purpose-grid{
 
@@ -20,30 +33,12 @@ Global Payments Intelligence Repository
     gap:80px;
 
     align-items:center;
-
 }
 
-.purpose-content{
+
+.purpose-left{
 
     max-width:720px;
-
-}
-
-.purpose-label{
-
-    display:inline-block;
-
-    margin-bottom:18px;
-
-    color:var(--color-primary);
-
-    text-transform:uppercase;
-
-    letter-spacing:3px;
-
-    font-size:14px;
-
-    font-weight:700;
 
 }
 

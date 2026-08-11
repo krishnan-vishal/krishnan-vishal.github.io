@@ -51,6 +51,48 @@
 
 }
 
+/* ----------------------------------------------------------
+   TOOL BUTTONS
+---------------------------------------------------------- */
+
+.repository-btn{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:13px 24px;
+
+    border-radius:30px;
+
+    background:#0F294D;
+
+    color:#FFFFFF;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    font-size:14px;
+
+    transition:all .35s ease;
+
+}
+
+.repository-btn:hover{
+
+    background:#D4AF37;
+
+    color:#071A2F;
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 24px rgba(0,0,0,.15);
+
+}
+
 
 /* ----------------------------------------------------------
    CONTAINER
@@ -64,7 +106,7 @@
 
     justify-content:space-between;
 
-    gap:42px;
+    gap:36px;
 
     min-height:82px;
 
@@ -118,6 +160,21 @@
 
 }
 
+.brand-link:focus-visible .brand-logo{
+    transform:scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce){
+
+    .brand-logo{
+
+        transition:none;
+
+    }
+
+}
+
+
 
 /* ----------------------------------------------------------
    BRAND TEXT
@@ -165,18 +222,85 @@
 
 }
 
+/* ==========================================
+   Executive Brand Identity
+========================================== */
+
+.brand-label{
+
+    display:block;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+    color:#8A94A6;
+
+    margin-bottom:6px;
+
+}
+
+.brand-repository{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-top:8px;
+
+}
+
+.repository-pill{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:5px 12px;
+
+    border-radius:999px;
+
+    background:#D4AF37;
+
+    color:#071A2F;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    letter-spacing:1px;
+
+}
+
+.repository-text{
+
+    font-size:13px;
+
+    color:#6E7785;
+
+    font-weight:500;
+
+}
 
 /* ----------------------------------------------------------
    NAVIGATION
 ---------------------------------------------------------- */
 
-nav{
+.main-nav{
 
     margin-left:auto;
 
 }
 
-nav ul{
+.main-nav ul{
 
     list-style:none;
 
@@ -184,7 +308,7 @@ nav ul{
 
     align-items:center;
 
-    gap:26px;
+    gap:34px;
 
     margin:0;
 
@@ -242,7 +366,7 @@ nav li{
 
     font-size:.85rem;
 
-    font-weight:600;
+    font-weight:500;
 
     cursor:pointer;
 
@@ -270,13 +394,14 @@ nav li{
 
 .header.scrolled{
 
-    background:rgba(255,255,255,.98);
+    background:rgba(255,255,255,.99);
 
     box-shadow:
-        0 12px 30px rgba(0,0,0,.08);
+        0 18px 45px rgba(15,41,77,.10);
+
+    border-bottom:1px solid rgba(212,175,55,.20);
 
 }
-
 
 /* ----------------------------------------------------------
    TRANSITIONS
@@ -290,6 +415,8 @@ nav li{
 
 .main-nav a{
 
+    position:relative;
+
     color:#12325B;
 
     text-decoration:none;
@@ -298,12 +425,57 @@ nav li{
 
     font-size:15px;
 
-    transition:.3s;
+    letter-spacing:.2px;
+
+    transition:all .3s ease;
+
+}
+.main-nav a.active{
+
+    color:#D4AF37;
+
+}
+
+.main-nav a.active::after{
+
+    width:100%;
 
 }
 
 .main-nav a:hover{
 
     color:#D4AF37;
+
+}
+
+.main-nav a{
+
+    position:relative;
+
+}
+
+.main-nav a::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    bottom:-8px;
+
+    width:0;
+
+    height:2px;
+
+    background:#D4AF37;
+
+    transition:.35s ease;
+
+}
+
+.main-nav a:hover::after{
+
+    width:100%;
 
 }

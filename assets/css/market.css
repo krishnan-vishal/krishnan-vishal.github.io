@@ -115,6 +115,43 @@ FINTECH OASIS
 
 }
 
+/* ==========================================================
+   Intelligence Card Thumbnail
+========================================================== */
+
+.tile-image{
+
+    width:100%;
+
+    overflow:hidden;
+
+    border-radius:14px;
+
+    margin:18px 0 22px;
+
+    background:#f8fafc;
+
+}
+
+.tile-image img{
+
+    display:block;
+
+    width:100%;
+
+    height:210px;
+
+    object-fit:cover;
+
+    transition:.45s ease;
+
+}
+
+.intelligence-tile:hover .tile-image img{
+
+    transform:scale(1.03);
+
+}
 
 /*=====================================================
 LEFT TITLE
@@ -128,7 +165,7 @@ LEFT TITLE
 
     justify-content:center;
 
-    background:#D4AF37;
+    background:var(--color-primary);
 
     color:#071A2F;
 
@@ -148,6 +185,7 @@ LEFT TITLE
 
     flex-shrink:0;
 
+    font-family:var(--font-primary);
 }
 
 /*=====================================================
@@ -206,6 +244,14 @@ ITEM
 
     color:#ffffff;
 
+    transition:color var(--transition-normal);
+
+}
+
+.ticker-item:hover{
+
+    color:var(--color-primary);
+
 }
 
 .pair{
@@ -255,6 +301,8 @@ LAST UPDATED
     padding:0 18px;
 
     border-left:1px solid rgba(255,255,255,.08);
+
+    font-variant-numeric:tabular-nums;
 
 }
 
