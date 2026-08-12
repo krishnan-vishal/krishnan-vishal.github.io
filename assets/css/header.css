@@ -494,6 +494,194 @@ nav li{
 
 
 /* ----------------------------------------------------------
+   RESEARCH MEGA-MENU
+---------------------------------------------------------- */
+
+.nav-item-mega{
+
+    position:relative;
+
+}
+
+.nav-mega-trigger{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:5px;
+
+}
+
+.mega-caret{
+
+    width:13px;
+
+    height:13px;
+
+    transition:transform .25s ease;
+
+}
+
+.nav-item-mega:hover .mega-caret,
+.nav-item-mega:focus-within .mega-caret{
+
+    transform:rotate(180deg);
+
+}
+
+.mega-menu{
+
+    position:absolute;
+
+    top:calc(100% + 20px);
+
+    left:50%;
+
+    transform:translate(-50%,-8px);
+
+    width:min(760px, 90vw);
+
+    background:#ffffff;
+
+    border:1px solid var(--border-light);
+
+    border-radius:var(--radius-lg);
+
+    box-shadow:var(--shadow-xl);
+
+    padding:28px 8px 28px 28px;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+    transition:opacity .22s ease, transform .22s ease, visibility .22s;
+
+    z-index:200;
+}
+
+.nav-item-mega:hover .mega-menu,
+.nav-item-mega:focus-within .mega-menu{
+
+    opacity:1;
+
+    visibility:visible;
+
+    pointer-events:auto;
+
+    transform:translate(-50%,0);
+}
+
+.mega-menu-inner{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:8px 28px;
+
+    max-height:60vh;
+
+    overflow-y:auto;
+
+    padding-right:20px;
+}
+
+.mega-col-title{
+
+    display:block;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:1.2px;
+
+    text-transform:uppercase;
+
+    color:var(--color-primary);
+
+    margin-bottom:14px;
+
+}
+
+.mega-col ul{
+
+    list-style:none;
+
+    margin:0 0 8px;
+
+    padding:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+
+    text-align:left;
+
+}
+
+.mega-col a{
+
+    display:block;
+
+    padding:7px 0;
+
+    color:#374151;
+
+    font-size:13.5px;
+
+    font-weight:500;
+
+    text-decoration:none;
+
+    letter-spacing:0;
+
+    transition:color .2s ease;
+}
+
+.mega-col a::after{
+
+    display:none;
+
+}
+
+.mega-col a:hover{
+
+    color:var(--color-primary);
+
+}
+
+.mega-col-cta{
+
+    display:inline-block;
+
+    margin-top:8px;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    color:var(--color-primary);
+}
+
+@media (max-width:1550px){
+
+    .mega-menu{
+
+        display:none;
+
+    }
+
+}
+
+
+/* ----------------------------------------------------------
    MOBILE NAV TOGGLE (hamburger)
 ---------------------------------------------------------- */
 
