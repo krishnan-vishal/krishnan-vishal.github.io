@@ -6,6 +6,6 @@
     <path d="M52 148 A94 94 0 0 0 150 44" fill="none" stroke="#D4AF37" stroke-width="9" stroke-linecap="round"></path>
     <circle cx="52" cy="148" r="9" fill="#D4AF37"></circle>
   </g>
-  <text x="320" y="270" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="52" fill="#F5F7FA">FINTECH <tspan fill="#D4AF37">OASIS</tspan></text>
+  <text x="320" y="270" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="52" fill="#F5F7FA">FINTECH<tspan fill="#D4AF37">OISIS</tspan></text>
   <text x="320" y="300" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="600" font-size="15" letter-spacing="2" fill="#9AA5B1">GLOBAL PAYMENTS INTELLIGENCE REPOSITORY</text>
 </svg>
