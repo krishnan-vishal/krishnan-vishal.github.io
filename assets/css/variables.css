@@ -120,6 +120,7 @@
 --fs-section-heading: clamp(1.85rem, 1.1vw + 1.45rem, 2.5rem); /* ~30-40px — every "#section h2" */
 --fs-section-intro: 1.05rem;               /* 17px  — intro paragraph under a section h2 */
 --fs-card-heading: 1.25rem;                /* 20px  — card h3/h4 */
+--fs-subheading: 1.6rem;                   /* 25.6px — column lead statement (e.g. founder message) */
 --fs-body: 1rem;                           /* 16px  — default paragraph */
 --fs-body-sm: 0.9375rem;                   /* 15px  — card/list body copy */
 --fs-small: 0.875rem;                      /* 14px  — meta/caption text */

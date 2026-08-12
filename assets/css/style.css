@@ -57,12 +57,15 @@
 
 .founder-message h3{
     margin:0 0 24px;
+    font-size:var(--fs-subheading);
     color:var(--hero-navy);
 }
 
 .founder-message p{
     margin:0 0 20px;
     line-height:1.85;
+    text-align:justify;
+    text-align-last:left;
     color:var(--hero-light-body);
 }
 
@@ -152,7 +155,7 @@
 
 .founder-principle h4{
     margin:0 0 10px;
-
+    font-size:var(--fs-card-heading);
     color:var(--hero-navy);
 }
 
@@ -163,6 +166,10 @@
     color:var(--hero-light-body);
 
     line-height:1.7;
+
+    text-align:justify;
+
+    text-align-last:left;
 }
 
 /* ---------------------------------------------------

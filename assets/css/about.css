@@ -137,6 +137,10 @@
 
     line-height:1.9;
 
+    text-align:justify;
+
+    text-align-last:left;
+
     margin-bottom:22px;
 
     font-size:1.02rem;
@@ -157,13 +161,9 @@
 
 .about-list li{
 
-    display:flex;
+    position:relative;
 
-    align-items:flex-start;
-
-    gap:12px;
-
-    padding:10px 0;
+    padding:10px 0 10px 20px;
 
     color:var(--hero-light-body);
 
@@ -173,6 +173,12 @@
 .about-list li::before{
 
     content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:19px;
 
     width:8px;
 
@@ -281,9 +287,9 @@
 
 .about-card h3{
 
-    font-size:1.55rem;
+    font-size:var(--fs-card-heading);
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin-bottom:28px;
 }
@@ -310,20 +316,24 @@
 
 .about-item h4{
 
-    font-size:1.08rem;
+    font-size:var(--fs-card-heading);
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin-bottom:12px;
 }
 
 .about-item p{
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.8;
 
-    font-size:.96rem;
+    text-align:justify;
+
+    text-align-last:left;
+
+    font-size:var(--fs-body-sm);
 }
 
 /*=====================================================

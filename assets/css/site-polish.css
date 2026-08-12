@@ -262,8 +262,6 @@ section {
 ========================================================= */
 
 .dashboard-card a,
-.global-btn,
-.about-button,
 .read-link {
     color: #a97920;
     font-weight: 700;
@@ -271,8 +269,6 @@ section {
 }
 
 .dashboard-card a:hover,
-.global-btn:hover,
-.about-button:hover,
 .read-link:hover {
     color: #8d6418;
 }
