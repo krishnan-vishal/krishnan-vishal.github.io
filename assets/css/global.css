@@ -98,7 +98,7 @@
 
     margin:22px 0 18px;
 
-    font-size:clamp(2rem,4vw,3rem);
+    font-size:var(--fs-section-heading);
 
     line-height:1.15;
 

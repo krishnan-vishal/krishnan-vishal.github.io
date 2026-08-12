@@ -21,7 +21,7 @@ FINTECH OASIS
 
 .stats-header h2{
 
-    font-size:42px;
+    font-size:var(--fs-section-heading);
 
     color:#071A2F;
 

@@ -356,7 +356,7 @@ HERO
 
     display:grid;
 
-    grid-template-columns:repeat(4,minmax(160px,1fr));
+    grid-template-columns:repeat(2,minmax(0,1fr));
 
     gap:20px;
 
@@ -414,15 +414,19 @@ HERO
 
     margin:0;
 
-    font-size:42px;
+    font-size:clamp(1.75rem, 1.1vw + 1.35rem, 2.625rem);
 
     font-weight:700;
 
     color:var(--hero-navy);
 
-    line-height:1;
+    line-height:1.1;
 
     font-variant-numeric:tabular-nums;
+
+    white-space:normal;
+
+    word-break:break-word;
 
 }
 

@@ -458,7 +458,7 @@ padding:70px 0;
 
 .research-header h2{
 
-font-size:32px;
+font-size:var(--fs-section-heading);
 
 }
 

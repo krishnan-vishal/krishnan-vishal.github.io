@@ -325,9 +325,7 @@ section {
 .region-card,
 .global-box,
 .dashboard-card,
-.research-card,
 .about-card,
-.command-card,
 .architecture-card {
     color: #142b4a;
 }
@@ -335,9 +333,7 @@ section {
 .region-card *,
 .global-box *,
 .dashboard-card *,
-.research-card *,
 .about-card *,
-.command-card *,
 .architecture-card * {
     color: inherit;
 }
@@ -348,12 +344,15 @@ section {
 .region-card p,
 .global-box p,
 .dashboard-card p,
-.research-card p,
 .about-card p,
-.command-card p,
 .architecture-card p {
     color: #536174;
 }
+
+/* .command-card and .research-card are dark-background cards (glass
+   panels on the dark Command Centre / Research sections), not light
+   cards like the others above -- they keep their own light-on-dark
+   colours from command-centre.css / research.css instead. */
 
 
 /* =========================================================

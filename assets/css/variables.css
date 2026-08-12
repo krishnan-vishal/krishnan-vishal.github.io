@@ -108,6 +108,22 @@
 --tracking-normal: 0;
 --tracking-wide: 0.08em;
 
+/* ======================================================
+   SHARED TYPE SCALE
+   Use these for section headers, card headings and body
+   copy across every section instead of one-off per-section
+   font-sizes, so heading/subheading/body sizes read the
+   same everywhere on the site.
+====================================================== */
+
+--fs-section-kicker: 0.8rem;               /* 13px  — small pill/tag labels */
+--fs-section-heading: clamp(1.85rem, 1.1vw + 1.45rem, 2.5rem); /* ~30-40px — every "#section h2" */
+--fs-section-intro: 1.05rem;               /* 17px  — intro paragraph under a section h2 */
+--fs-card-heading: 1.25rem;                /* 20px  — card h3/h4 */
+--fs-body: 1rem;                           /* 16px  — default paragraph */
+--fs-body-sm: 0.9375rem;                   /* 15px  — card/list body copy */
+--fs-small: 0.875rem;                      /* 14px  — meta/caption text */
+
     /* ======================================================
        SPACING
     ====================================================== */

@@ -33,6 +33,7 @@
 .founder-header h2{
     margin:0 0 20px;
     max-width:850px;
+    font-size:var(--fs-section-heading);
     color:var(--color-heading);
 }
 

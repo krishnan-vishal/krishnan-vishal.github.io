@@ -21,7 +21,7 @@
 
 .library-header h2{
 
-    font-size:clamp(2rem,4vw,2.75rem);
+    font-size:var(--fs-section-heading);
 
     color:#12325B;
 
@@ -34,7 +34,7 @@
 
     line-height:1.8;
 
-    font-size:1.05rem;
+    font-size:var(--fs-section-intro);
 }
 
 .library-grid{

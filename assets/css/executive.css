@@ -59,7 +59,7 @@
 
     margin-top:18px;
 
-    font-size:42px;
+    font-size:var(--fs-section-heading);
 
     color:#12263f;
 

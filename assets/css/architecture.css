@@ -50,7 +50,7 @@
 
     margin:18px 0 22px;
 
-    font-size:48px;
+    font-size:var(--fs-section-heading);
 
     line-height:1.15;
 
@@ -77,26 +77,11 @@
 
     margin:0;
 
-    font-size:24px;
+    font-size:var(--fs-card-heading);
 
     color:#12325B;
 
 }
-
-.architecture-card p{
-
-    padding:16px 28px 0;
-
-    color:#667085;
-
-    font-size:22px;
-
-    line-height:1.35;
-    
-    min-height:96px;
-
-}
-
 
 .architecture-grid{
 
@@ -164,6 +149,8 @@
 
     color:#667085;
 
+    font-size:var(--fs-body-sm);
+
     line-height:1.8;
 
     padding:0 28px;
@@ -171,7 +158,6 @@
     margin:18px 0;
 
     flex-grow:1;
-
 
 }
 

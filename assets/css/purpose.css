@@ -46,6 +46,8 @@ PURPOSE HEADER
 
     margin-bottom:28px;
 
+    font-size:var(--fs-section-heading);
+
     color:var(--text-heading);
 
 }

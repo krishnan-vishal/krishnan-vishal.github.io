@@ -55,7 +55,7 @@
 
     margin:20px 0;
 
-    font-size:clamp(2rem,4vw,3rem);
+    font-size:var(--fs-section-heading);
 
     color:#ffffff;
 }
