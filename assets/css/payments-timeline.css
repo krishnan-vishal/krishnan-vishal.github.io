@@ -299,6 +299,24 @@
 
 }
 
+.era-source-note{
+
+    margin:22px 0 0;
+
+    padding-top:16px;
+
+    border-top:1px dashed rgba(255,255,255,.14);
+
+    color:var(--text-muted);
+
+    font-size:11.5px;
+
+    font-style:italic;
+
+    line-height:1.6;
+
+}
+
 /*=====================================================
   RESPONSIVE
 ======================================================*/

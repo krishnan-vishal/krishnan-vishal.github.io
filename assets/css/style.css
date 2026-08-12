@@ -33,12 +33,14 @@
 .founder-header h2{
     margin:0 0 20px;
     max-width:850px;
+    color:var(--color-heading);
 }
 
 .founder-header p{
     max-width:780px;
     margin:0;
     line-height:1.8;
+    color:var(--color-text);
 }
 
 .founder-grid{
@@ -54,11 +56,13 @@
 
 .founder-message h3{
     margin:0 0 24px;
+    color:var(--color-heading);
 }
 
 .founder-message p{
     margin:0 0 20px;
     line-height:1.85;
+    color:var(--color-text);
 }
 
 .founder-attribution{
@@ -80,10 +84,12 @@
 
 .founder-attribution strong{
     font-size:1rem;
+    color:var(--color-heading);
 }
 
 .founder-attribution-role{
     font-size:.9rem;
+    color:var(--color-text);
     opacity:.7;
 }
 
