@@ -6,7 +6,9 @@ HERO
     position:relative;
     overflow:hidden;
 
-    min-height:92vh;
+    min-height:auto;
+
+    padding:64px 0 80px;
 
     display:flex;
     align-items:center;
@@ -30,10 +32,32 @@ HERO
 
     linear-gradient(
         90deg,
-        rgba(12,15,25,.72) 0%,
-        rgba(24,20,40,.55) 45%,
-        rgba(30,22,30,.28) 100%
+        rgba(12,15,25,.85) 0%,
+        rgba(24,20,40,.72) 45%,
+        rgba(30,22,30,.55) 100%
     );
+
+    z-index:1;
+
+}
+
+.hero-texture{
+
+    position:absolute;
+
+    inset:0;
+
+    background-image:
+        radial-gradient(circle, rgba(184,134,59,.35) 1px, transparent 1.4px);
+
+    background-size:26px 26px;
+
+    -webkit-mask-image:radial-gradient(ellipse 70% 90% at 78% 45%, #000 0%, transparent 72%);
+    mask-image:radial-gradient(ellipse 70% 90% at 78% 45%, #000 0%, transparent 72%);
+
+    opacity:.55;
+
+    pointer-events:none;
 
     z-index:1;
 
@@ -596,6 +620,90 @@ HERO
         border-color var(--transition-normal),
         transform var(--transition-normal),
         box-shadow var(--transition-normal);
+
+}
+
+
+/*=====================================================
+  RESPONSIVE
+======================================================*/
+
+@media (max-width:992px){
+
+    .hero-grid{
+
+        grid-template-columns:1fr;
+
+        gap:48px;
+    }
+
+    .hero-right{
+
+        order:2;
+    }
+
+    .hero h1{
+
+        font-size:clamp(2.4rem,6vw,72px);
+    }
+
+    .hero-stats{
+
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+}
+
+@media (max-width:560px){
+
+    .hero-grid{
+
+        padding:var(--space-lg) var(--space-sm);
+    }
+
+    .hero-tag{
+
+        font-size:11px;
+
+        letter-spacing:1px;
+
+        text-align:center;
+    }
+
+    .hero h1{
+
+        font-size:clamp(2rem,8vw,2.6rem);
+
+        letter-spacing:-1px;
+    }
+
+    .hero-buttons{
+
+        flex-direction:column;
+
+        align-items:stretch;
+    }
+
+    .hero-stats{
+
+        grid-template-columns:1fr 1fr;
+
+        gap:14px;
+    }
+
+    .stat-item{
+
+        padding:18px 14px;
+    }
+
+    .stat-item h2{
+
+        font-size:28px;
+
+        white-space:normal;
+
+        word-break:break-word;
+    }
 
 }
 
