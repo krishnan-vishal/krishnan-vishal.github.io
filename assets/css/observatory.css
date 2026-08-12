@@ -66,6 +66,8 @@
 
     color:var(--hero-light-body);
 
+    font-size:var(--fs-section-intro);
+
     line-height:1.8;
 }
 .observatory-grid{
@@ -159,6 +161,12 @@
 
     line-height:1.8;
 
+    font-size:var(--fs-body-sm);
+
+    text-align:justify;
+
+    text-align-last:left;
+
     margin-bottom:24px;
 }
 
@@ -176,6 +184,8 @@
     padding:10px 0;
 
     color:var(--hero-navy);
+
+    font-size:var(--fs-body-sm);
 
     border-bottom:1px solid var(--hero-light-border);
 }

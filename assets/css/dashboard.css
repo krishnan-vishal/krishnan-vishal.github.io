@@ -352,9 +352,15 @@
 
 .dashboard-card p{
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.8;
+
+    font-size:var(--fs-body-sm);
+
+    text-align:justify;
+
+    text-align-last:left;
 
     margin-bottom:24px;
 
@@ -904,7 +910,11 @@
 
     line-height:1.8;
 
-    font-size:15px;
+    font-size:var(--fs-body-sm);
+
+    text-align:justify;
+
+    text-align-last:left;
 
     margin-bottom:26px;
 

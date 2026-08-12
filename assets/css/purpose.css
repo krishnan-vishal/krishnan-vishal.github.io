@@ -60,6 +60,12 @@ PURPOSE HEADER
 
     line-height:1.9;
 
+    font-size:var(--fs-body);
+
+    text-align:justify;
+
+    text-align-last:left;
+
 }
 
 /*=====================================================

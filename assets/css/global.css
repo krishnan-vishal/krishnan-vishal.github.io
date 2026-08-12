@@ -441,9 +441,15 @@
 
 .region-card p{
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.8;
+
+    font-size:var(--fs-body-sm);
+
+    text-align:justify;
+
+    text-align-last:left;
 
     margin-bottom:24px;
 }
@@ -630,11 +636,15 @@
 
     margin:0;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.7;
 
-    font-size:.96rem;
+    font-size:var(--fs-body-sm);
+
+    text-align:justify;
+
+    text-align-last:left;
 }
 
 /*=====================================================

@@ -143,7 +143,7 @@
 
     margin-bottom:22px;
 
-    font-size:1.02rem;
+    font-size:var(--fs-body);
 }
 
 /*=====================================================
@@ -166,6 +166,8 @@
     padding:10px 0 10px 20px;
 
     color:var(--hero-light-body);
+
+    font-size:var(--fs-body);
 
     line-height:1.7;
 }

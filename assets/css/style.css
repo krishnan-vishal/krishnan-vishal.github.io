@@ -41,6 +41,9 @@
     max-width:780px;
     margin:0;
     line-height:1.8;
+    font-size:var(--fs-body);
+    text-align:justify;
+    text-align-last:left;
     color:var(--hero-light-body);
 }
 
@@ -64,6 +67,7 @@
 .founder-message p{
     margin:0 0 20px;
     line-height:1.85;
+    font-size:var(--fs-body);
     text-align:justify;
     text-align-last:left;
     color:var(--hero-light-body);
@@ -166,6 +170,8 @@
     color:var(--hero-light-body);
 
     line-height:1.7;
+
+    font-size:var(--fs-body-sm);
 
     text-align:justify;
 
