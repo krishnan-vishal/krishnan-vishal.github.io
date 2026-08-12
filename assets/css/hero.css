@@ -37,7 +37,7 @@ HERO
 
     grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
 
-    align-items:center;
+    align-items:start;
 
     gap:64px;
 
