@@ -657,6 +657,28 @@ nav li{
 
 }
 
+.mega-col-icon-list a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.mega-col-icon-list a img{
+
+    width:20px;
+
+    height:20px;
+
+    flex-shrink:0;
+
+    object-fit:contain;
+
+}
+
 .mega-col-cta{
 
     display:inline-block;
