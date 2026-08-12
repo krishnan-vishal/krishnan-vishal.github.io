@@ -47,6 +47,18 @@
 
 
     /* ======================================================
+       LIGHT-THEME PILOT (hero)
+       Executive Navy / Gold per Master-Library brand spec
+    ====================================================== */
+
+    --hero-light-bg: #FEFCF9;
+    --hero-navy: #0F2747;
+    --hero-gold: #C8A24A;
+    --hero-light-body: #4B5563;
+    --hero-light-border: rgba(15,39,71,.12);
+    --hero-light-card: #FFFFFF;
+
+    /* ======================================================
        TEXT
     ====================================================== */
 

@@ -416,14 +416,15 @@ section {
 /* =========================================================
    14. HERO HEADING GUARD
    (typography safety in section 2 targets bare h1-h6 for the
-   light-card sections; this restores the intended white
-   heading colour specifically for the dark hero section)
+   light-card sections; the hero is now also light-themed, so
+   this restores the intended navy heading colour rather than
+   the white used when the hero had a dark background)
 ========================================================= */
 
 .hero h1,
 .hero h2,
 .hero .hero-brand{
-    color:#ffffff;
+    color:var(--hero-navy);
 }
 
 

@@ -13,53 +13,17 @@ HERO
     display:flex;
     align-items:center;
 
-    background:
-        var(--gradient-rich-dark-radial),
-        var(--gradient-rich-dark);
+    background:var(--hero-light-bg);
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
 }
 
 
-.hero-overlay{
-
-    position:absolute;
-
-    inset:0;
-
-    background:
-
-    linear-gradient(
-        90deg,
-        rgba(12,15,25,.85) 0%,
-        rgba(24,20,40,.72) 45%,
-        rgba(30,22,30,.55) 100%
-    );
-
-    z-index:1;
-
-}
-
+.hero-overlay,
 .hero-texture{
 
-    position:absolute;
-
-    inset:0;
-
-    background-image:
-        radial-gradient(circle, rgba(184,134,59,.35) 1px, transparent 1.4px);
-
-    background-size:26px 26px;
-
-    -webkit-mask-image:radial-gradient(ellipse 70% 90% at 78% 45%, #000 0%, transparent 72%);
-    mask-image:radial-gradient(ellipse 70% 90% at 78% 45%, #000 0%, transparent 72%);
-
-    opacity:.55;
-
-    pointer-events:none;
-
-    z-index:1;
+    display:none;
 
 }
 
@@ -116,13 +80,13 @@ HERO
 
     background-image:
 
-        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(rgba(15,39,71,.05) 1px, transparent 1px),
 
-        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+        linear-gradient(90deg, rgba(15,39,71,.05) 1px, transparent 1px);
 
     background-size:70px 70px;
 
-    opacity:.35;
+    opacity:.6;
 
     pointer-events:none;
 
@@ -176,7 +140,7 @@ HERO
 
     text-transform:uppercase;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin:10px 0 8px;
 
@@ -186,7 +150,7 @@ HERO
 
     font-size:15px;
 
-    color:rgba(255,255,255,.72);
+    color:var(--hero-light-body);
 
     letter-spacing:1px;
 
@@ -241,14 +205,14 @@ HERO
 
     margin-bottom:28px;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
 }
 
 
 .hero h1 span{
 
-    color:var(--color-primary);
+    color:var(--hero-gold);
 
     display:block;
 
@@ -264,7 +228,7 @@ HERO
 
     line-height:1.9;
 
-    color:rgba(255,255,255,.88);
+    color:var(--hero-light-body);
 
 }
 
@@ -325,12 +289,20 @@ HERO
 
 }
 
+.hero .btn-primary{
+
+    background:var(--hero-gold);
+
+    color:#071A2F;
+
+}
+
 
 .btn-secondary{
 
-    border:2px solid rgba(255,255,255,.25);
+    border:2px solid var(--hero-light-border);
 
-    color:#fff;
+    color:var(--hero-navy);
 
     padding:16px 34px;
 
@@ -342,9 +314,27 @@ HERO
 
 .btn-secondary:hover{
 
-    background:rgba(255,255,255,.08);
+    background:rgba(15,39,71,.05);
 
-    border-color:var(--color-primary);
+    border-color:var(--hero-gold);
+
+}
+
+.hero .btn-secondary{
+
+    background:transparent;
+
+    color:var(--hero-navy);
+
+    border-color:var(--hero-light-border);
+
+}
+
+.hero .btn-secondary:hover{
+
+    background:rgba(15,39,71,.05);
+
+    border-color:var(--hero-gold);
 
 }
 
@@ -391,17 +381,17 @@ HERO
 
     position:relative;
 
-    background:rgba(255,255,255,.05);
+    background:var(--hero-light-card);
 
-    border:1px solid rgba(255,255,255,.10);
+    border:1px solid var(--hero-light-border);
 
-    border-top:3px solid var(--color-primary);
+    border-top:3px solid var(--hero-gold);
 
     border-radius:var(--radius-md);
 
     padding:24px 22px;
 
-    backdrop-filter:blur(16px);
+    box-shadow:0 4px 16px rgba(15,39,71,.05);
 
     transition:all .35s ease;
 
@@ -413,11 +403,9 @@ HERO
 
     transform:translateY(-8px);
 
-    border-color:rgba(212,175,55,.35);
+    border-color:rgba(200,162,74,.4);
 
-    background:rgba(255,255,255,.08);
-
-    box-shadow:var(--shadow-lg);
+    box-shadow:0 12px 28px rgba(15,39,71,.10);
 
 }
 
@@ -430,7 +418,7 @@ HERO
 
     font-weight:700;
 
-    color:var(--color-primary);
+    color:var(--hero-navy);
 
     line-height:1;
 
@@ -445,7 +433,7 @@ HERO
 
     margin-top:12px;
 
-    color:rgba(255,255,255,.82);
+    color:var(--hero-light-body);
 
     font-size:14px;
 
@@ -524,13 +512,13 @@ HERO
 
     transform:translateX(-50%);
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     font-size:14px;
 
     letter-spacing:1px;
 
-    opacity:.8;
+    opacity:.55;
 
     z-index:5;
 
@@ -594,11 +582,11 @@ HERO
 
 .hero-ribbon span{
 
-    background:rgba(255,255,255,.08);
+    background:var(--hero-light-card);
 
-    border:1px solid rgba(255,255,255,.15);
+    border:1px solid var(--hero-light-border);
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     padding:8px 16px;
 
