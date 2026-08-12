@@ -9,11 +9,34 @@ MARKET INTELLIGENCE RIBBON
 FINTECH OASIS
 ======================================================*/
 
+#fx-ribbon,
 #market-ribbon{
 
     position:relative;
 
     width:100%;
+
+    padding:0;
+
+    overflow:hidden;
+
+    height:64px;
+
+    display:flex;
+
+    align-items:center;
+
+    z-index:20;
+}
+
+#fx-ribbon{
+
+    background:#071A2F;
+
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+#market-ribbon{
 
     background:
         var(--gradient-rich-dark-radial),
@@ -23,15 +46,7 @@ FINTECH OASIS
 
     border-bottom:1px solid rgba(255,255,255,.08);
 
-    overflow:hidden;
-
     height:88px;
-
-    display:flex;
-
-    align-items:center;
-
-    z-index:20;
 
 }
 
@@ -181,7 +196,7 @@ LEFT TITLE
 
     padding:0 28px;
 
-    height:88px;
+    height:100%;
 
     white-space:nowrap;
 
@@ -202,7 +217,7 @@ TICKER AREA
 
     position:relative;
 
-    height:88px;
+    height:100%;
 
     display:flex;
 
@@ -476,13 +491,8 @@ font-size:14px;
 
 }
 
+#fx-ribbon,
 #market-ribbon{
-
-height:76px;
-
-}
-
-.ticker-wrapper{
 
 height:76px;
 
@@ -506,13 +516,7 @@ font-size:12px;
 
 @media(max-width:768px){
 
-#market-ribbon{
-
-height:54px;
-
-}
-
-.ticker-wrapper{
+#fx-ribbon{
 
 height:54px;
 
