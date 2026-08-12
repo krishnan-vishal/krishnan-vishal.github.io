@@ -17,7 +17,7 @@
 
 .founder-section{
     padding:100px 0;
-    background:var(--color-surface);
+    background:var(--hero-light-bg);
 }
 
 .founder-header{
@@ -34,14 +34,14 @@
     margin:0 0 20px;
     max-width:850px;
     font-size:var(--fs-section-heading);
-    color:var(--color-heading);
+    color:var(--hero-navy);
 }
 
 .founder-header p{
     max-width:780px;
     margin:0;
     line-height:1.8;
-    color:var(--color-text);
+    color:var(--hero-light-body);
 }
 
 .founder-grid{
@@ -57,13 +57,13 @@
 
 .founder-message h3{
     margin:0 0 24px;
-    color:var(--color-heading);
+    color:var(--hero-navy);
 }
 
 .founder-message p{
     margin:0 0 20px;
     line-height:1.85;
-    color:var(--color-text);
+    color:var(--hero-light-body);
 }
 
 .founder-attribution{
@@ -73,7 +73,7 @@
     gap:14px;
     margin-top:26px;
     padding-top:18px;
-    border-top:1px solid var(--color-border);
+    border-top:1px solid var(--hero-light-border);
 }
 
 .founder-attribution-label{
@@ -85,12 +85,12 @@
 
 .founder-attribution strong{
     font-size:1rem;
-    color:var(--color-heading);
+    color:var(--hero-navy);
 }
 
 .founder-attribution-role{
     font-size:.9rem;
-    color:var(--color-text);
+    color:var(--hero-light-body);
     opacity:.7;
 }
 
@@ -105,14 +105,16 @@
     flex-direction:column;
     gap:0;
 
-    background:var(--color-surface-alt);
-    border:1px solid var(--color-border);
-    border-left:4px solid var(--color-primary);
+    background:var(--hero-light-card);
+    border:1px solid var(--hero-light-border);
+    border-left:4px solid var(--hero-gold);
 
     border-radius:18px;
     padding:20px 34px;
 
     box-sizing:border-box;
+
+    box-shadow:0 4px 16px rgba(15,39,71,.05);
 }
 
 
@@ -123,7 +125,7 @@
 
     padding:26px 0;
 
-    border-top:1px solid var(--color-border);
+    border-top:1px solid var(--hero-light-border);
 }
 
 
@@ -151,14 +153,14 @@
 .founder-principle h4{
     margin:0 0 10px;
 
-    color:var(--color-heading);
+    color:var(--hero-navy);
 }
 
 
 .founder-principle p{
     margin:0;
 
-    color:var(--color-text);
+    color:var(--hero-light-body);
 
     line-height:1.7;
 }

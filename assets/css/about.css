@@ -15,12 +15,7 @@
 
     padding:110px 0;
 
-    background:
-    linear-gradient(
-        180deg,
-        #ffffff 0%,
-        var(--color-surface) 100%
-    );
+    background:var(--hero-light-bg);
 
     overflow:hidden;
 }
@@ -127,7 +122,7 @@
 
     line-height:1.15;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin-bottom:26px;
 }
@@ -138,7 +133,7 @@
 
 .about-content p{
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.9;
 
@@ -170,7 +165,7 @@
 
     padding:10px 0;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     line-height:1.7;
 }

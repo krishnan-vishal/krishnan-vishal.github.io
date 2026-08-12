@@ -23,14 +23,14 @@
 
     font-size:var(--fs-section-heading);
 
-    color:#12325B;
+    color:var(--hero-navy);
 
     margin:18px 0 20px;
 }
 
 .library-header p{
 
-    color:#667085;
+    color:var(--hero-light-body);
 
     line-height:1.8;
 
@@ -128,7 +128,7 @@
 
     background:#EEF4FF;
 
-    color:#12325B;
+    color:var(--hero-navy);
 
     font-size:11px;
 
@@ -143,7 +143,7 @@
 
 .library-content h3{
 
-    color:#12325B;
+    color:var(--hero-navy);
 
     font-size:1.08rem;
 
@@ -154,7 +154,7 @@
 
 .library-code{
 
-    color:#98A2B3;
+    color:#8A94A6;
 
     font-size:.78rem;
 

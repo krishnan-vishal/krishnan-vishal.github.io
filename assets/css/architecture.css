@@ -30,7 +30,7 @@
 
     background:var(--color-primary);
 
-    color:#071A2F;
+    color:var(--hero-navy);
 
     padding:8px 18px;
 
@@ -54,7 +54,7 @@
 
     line-height:1.15;
 
-    color:#071A2F;
+    color:var(--hero-navy);
 }
 
 .architecture-header p{
@@ -67,7 +67,7 @@
 
     line-height:1.9;
 
-    color:#556070;
+    color:var(--hero-light-body);
 
 }
 
@@ -79,7 +79,7 @@
 
     font-size:var(--fs-card-heading);
 
-    color:#12325B;
+    color:var(--hero-navy);
 
 }
 
@@ -147,7 +147,7 @@
 
 .architecture-card p{
 
-    color:#667085;
+    color:var(--hero-light-body);
 
     font-size:var(--fs-body-sm);
 
@@ -173,7 +173,7 @@
 
     font-weight:700;
 
-    color:#12325B;
+    color:var(--hero-navy);
 
     text-decoration:none;
 
@@ -230,7 +230,7 @@
 
     background:rgba(212,175,55,.12);
 
-    color:#12325B;
+    color:var(--hero-navy);
 
     border-radius:999px;
 

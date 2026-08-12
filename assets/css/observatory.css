@@ -8,9 +8,7 @@
 
     padding:var(--section-desktop) 0;
 
-    background:
-        var(--gradient-rich-dark-radial),
-        var(--gradient-rich-dark);
+    background:var(--hero-light-bg);
 
     overflow:hidden;
 }
@@ -25,7 +23,7 @@
 
     background:
         radial-gradient(circle at top right,
-        rgba(184,134,59,.08),
+        rgba(200,162,74,.10),
         transparent 42%);
 
     pointer-events:none;
@@ -57,7 +55,7 @@
 
     font-size:var(--fs-section-heading);
 
-    color:#ffffff;
+    color:var(--hero-navy);
 }
 
 .observatory-header p{
@@ -66,7 +64,7 @@
 
     margin:auto;
 
-    color:rgba(255,255,255,.75);
+    color:var(--hero-light-body);
 
     line-height:1.8;
 }
@@ -83,28 +81,28 @@
 
 .observatory-card{
 
-    background:rgba(255,255,255,.04);
+    background:var(--hero-light-card);
 
-    backdrop-filter:blur(14px);
-
-    border:1px solid rgba(255,255,255,.08);
+    border:1px solid var(--hero-light-border);
 
     border-radius:var(--radius-lg);
 
-    padding:var(--section-mobile) 0;
+    padding:34px 32px;
 
     transition:var(--transition);
 
     position:relative;
 
     overflow:hidden;
+
+    box-shadow:0 4px 16px rgba(15,39,71,.05);
 }
 
 .observatory-card:hover{
 
     transform:translateY(-6px);
 
-    border-color:rgba(184,134,59,.35);
+    border-color:var(--hero-gold);
 
     box-shadow:var(--shadow-lg);
 }
@@ -131,7 +129,7 @@
 
     font-size:30px;
 
-    background:rgba(184,134,59,.12);
+    background:rgba(200,162,74,.14);
 
     margin-bottom:24px;
 }
@@ -142,22 +140,22 @@
 
     height:30px;
 
-    color:var(--color-primary);
+    color:var(--hero-gold);
 
 }
 
 .observatory-card h3{
 
-    color:#ffffff;
+    color:var(--hero-navy);
 
     margin-bottom:16px;
 
-    font-size:1.35rem;
+    font-size:var(--fs-card-heading);
 }
 
 .observatory-card p{
 
-    color:rgba(255,255,255,.75);
+    color:var(--hero-light-body);
 
     line-height:1.8;
 
@@ -177,9 +175,9 @@
 
     padding:10px 0;
 
-    color:rgba(255,255,255,.82);
+    color:var(--hero-navy);
 
-    border-bottom:1px solid rgba(255,255,255,.06);
+    border-bottom:1px solid var(--hero-light-border);
 }
 
 .observatory-card li:last-child{

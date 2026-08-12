@@ -15,7 +15,7 @@ html {
 body {
     margin: 0;
     background: #f7f5ef;
-    color: #142b4a;
+    color: var(--hero-navy);
     overflow-x: hidden;
 }
 
@@ -36,11 +36,11 @@ h3,
 h4,
 h5,
 h6 {
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 a {
@@ -104,7 +104,7 @@ section {
 #global,
 #coverage {
     background: #f7f5ef;
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .global-header {
@@ -117,11 +117,11 @@ section {
 }
 
 .global-header h2 {
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .global-header p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 
@@ -137,7 +137,7 @@ section {
 
 .region-card {
     background: #ffffff;
-    color: #142b4a;
+    color: var(--hero-navy);
 
     border: 1px solid rgba(20, 43, 74, 0.08);
     border-radius: 24px;
@@ -160,15 +160,15 @@ section {
 }
 
 .region-card h4 {
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .region-card p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 .region-card li {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 .region-card li::marker {
@@ -182,7 +182,7 @@ section {
 
 .global-box {
     background: #ffffff;
-    color: #142b4a;
+    color: var(--hero-navy);
 
     border: 1px solid rgba(20, 43, 74, 0.08);
     border-radius: 28px;
@@ -200,7 +200,7 @@ section {
 }
 
 .global-box p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 
@@ -211,7 +211,7 @@ section {
 #dashboard-gallery,
 #dashboard {
     background: #f7f5ef;
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .dashboard-card {
@@ -230,11 +230,11 @@ section {
 
 .dashboard-card h3,
 .dashboard-card h4 {
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .dashboard-card p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
 
@@ -327,7 +327,7 @@ section {
 .dashboard-card,
 .about-card,
 .architecture-card {
-    color: #142b4a;
+    color: var(--hero-navy);
 }
 
 .region-card *,
@@ -346,13 +346,13 @@ section {
 .dashboard-card p,
 .about-card p,
 .architecture-card p {
-    color: #536174;
+    color: var(--hero-light-body);
 }
 
-/* .command-card and .research-card are dark-background cards (glass
-   panels on the dark Command Centre / Research sections), not light
-   cards like the others above -- they keep their own light-on-dark
-   colours from command-centre.css / research.css instead. */
+/* .command-card and .research-card carry their own explicit light-theme
+   colours directly in command-centre.css / research.css (part of the
+   site-wide light-theme cascade), so they don't need this block's
+   generic light-card override. */
 
 
 /* =========================================================

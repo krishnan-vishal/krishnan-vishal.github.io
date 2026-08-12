@@ -41,7 +41,7 @@ FINTECH OASIS
 
     font-size:var(--fs-section-heading);
 
-    color:#071A2F;
+    color:var(--hero-navy);
 
     margin-bottom:18px;
 
@@ -167,7 +167,7 @@ TEXT
 
 .knowledge-card h3{
 
-    color:#071A2F;
+    color:var(--hero-navy);
 
     margin-bottom:15px;
 
@@ -193,7 +193,7 @@ LINK
 
 .knowledge-card a{
 
-    color:#071A2F;
+    color:var(--hero-navy);
 
     font-weight:700;
 

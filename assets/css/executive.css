@@ -61,7 +61,7 @@
 
     font-size:var(--fs-section-heading);
 
-    color:#12263f;
+    color:var(--hero-navy);
 
     font-weight:700;
 
@@ -73,7 +73,7 @@
 
     margin:20px auto 0;
 
-    color:#667085;
+    color:var(--hero-light-body);
 
     line-height:1.9;
 
@@ -279,7 +279,7 @@
 
     font-size:24px;
 
-    color:#12263f;
+    color:var(--hero-navy);
 
     line-height:1.4;
 
@@ -289,7 +289,7 @@
 
 .article-body p{
 
-    color:#667085;
+    color:var(--hero-light-body);
 
     line-height:1.8;
 
