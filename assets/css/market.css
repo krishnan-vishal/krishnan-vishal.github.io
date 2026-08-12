@@ -295,6 +295,18 @@ ANNOUNCEMENT CARDS
     flex-shrink:0;
 }
 
+.icon-globe{
+
+    width:18px;
+
+    height:18px;
+
+    color:var(--color-primary);
+
+    vertical-align:middle;
+
+}
+
 .ticker-body{
 
     display:flex;

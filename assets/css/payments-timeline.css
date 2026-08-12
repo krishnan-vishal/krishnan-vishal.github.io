@@ -160,6 +160,22 @@
 
 }
 
+.era-icon svg{
+
+    width:24px;
+
+    height:24px;
+
+    color:var(--color-primary);
+
+}
+
+.timeline-era--future .era-icon svg{
+
+    color:var(--color-secondary);
+
+}
+
 .era-head-text{
 
     display:flex;
