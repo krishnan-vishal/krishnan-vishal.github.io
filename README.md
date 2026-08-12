@@ -1,6 +1,6 @@
-# FINTECH OASIS – Global Payments Intelligence Repository (GPIR)
+# FINTECHOISIS – Global Payments Intelligence Repository (GPIR)
 
-FINTECH OASIS is an executive-grade knowledge platform focused on global payments, cross-border money movement, fintech innovation, regulatory intelligence, and payment ecosystems.
+FINTECHOISIS is an executive-grade knowledge platform focused on global payments, cross-border money movement, fintech innovation, regulatory intelligence, and payment ecosystems.
 
 The platform has been designed as a professional research repository that combines industry insights, dashboards, architecture diagrams, and strategic analysis into a modern responsive web experience.
 

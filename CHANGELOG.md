@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the FINTECH OASIS | Global Payments Intelligence Repository (GPIR) are documented in this file.
+All notable changes to the FINTECHOISIS | Global Payments Intelligence Repository (GPIR) are documented in this file.
 
 ---
 
