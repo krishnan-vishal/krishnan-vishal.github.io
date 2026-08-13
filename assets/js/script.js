@@ -33,6 +33,8 @@ function initializeWebsite(){
 
     initializeMobileMegaAccordion();
 
+    initializeSearch();
+
 }
 
 /*=====================================================
@@ -99,7 +101,16 @@ function initializeAdaptiveNav(){
         const toolsWidth = toolsEl ? toolsEl.getBoundingClientRect().width : 0;
         const mainNavGap = getGapPx(mainNav);
 
-        const available = containerRect.width - brandWidth - containerGap - toolsWidth - mainNavGap - 4;
+        // .search-toggle sits in .header-container as its own flex item
+        // (outside .header-tools, so it stays reachable on mobile too),
+        // and is display:none only inside the mobile drawer breakpoint —
+        // above that it always takes up real width plus one more gap.
+        const searchToggleEl = document.querySelector(".search-toggle");
+        const searchToggleWidth = (searchToggleEl && searchToggleEl.offsetParent !== null)
+            ? searchToggleEl.getBoundingClientRect().width + containerGap
+            : 0;
+
+        const available = containerRect.width - brandWidth - containerGap - toolsWidth - mainNavGap - searchToggleWidth - 4;
 
         const listGap = getGapPx(list);
 
@@ -175,6 +186,10 @@ function initializeMobileMegaAccordion(){
 
             if(menu) menu.style.maxHeight = "";
 
+            const itemTrigger = item.querySelector(":scope > .nav-mega-trigger");
+
+            if(itemTrigger) itemTrigger.setAttribute("aria-expanded","false");
+
         });
 
     };
@@ -200,6 +215,8 @@ function initializeMobileMegaAccordion(){
                     other.classList.remove("is-expanded");
                     const otherMenu = other.querySelector(".mega-menu");
                     if(otherMenu) otherMenu.style.maxHeight = "";
+                    const otherTrigger = other.querySelector(":scope > .nav-mega-trigger");
+                    if(otherTrigger) otherTrigger.setAttribute("aria-expanded","false");
                 }
             });
 
@@ -207,11 +224,13 @@ function initializeMobileMegaAccordion(){
 
                 item.classList.remove("is-expanded");
                 menu.style.maxHeight = "";
+                trigger.setAttribute("aria-expanded","false");
 
             } else {
 
                 item.classList.add("is-expanded");
                 menu.style.maxHeight = menu.scrollHeight + "px";
+                trigger.setAttribute("aria-expanded","true");
 
             }
 
@@ -235,6 +254,19 @@ function initializeMegaMenuHoverIntent(){
     const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
 
     const mobileQuery = window.matchMedia("(max-width:767px)");
+
+    const closeMegaItem = (item) => {
+        item.classList.remove("is-open");
+        const itemTrigger = item.querySelector(":scope > .nav-mega-trigger");
+        if(itemTrigger) itemTrigger.setAttribute("aria-expanded","false");
+    };
+
+    // Escape-close refocuses the trigger for accessibility, but that
+    // focus() call itself fires "focusin" — which the per-item listener
+    // below would otherwise read as "user tabbed/clicked in, reopen me,"
+    // undoing the very close it's part of. This flag tells that listener
+    // to skip the reopen for the one focusin caused by our own call.
+    let suppressFocusOpen = false;
 
     document.querySelectorAll(".nav-item-mega").forEach(item => {
 
@@ -273,6 +305,7 @@ function initializeMegaMenuHoverIntent(){
             }
             applyEdgeGuard();
             item.classList.add("is-open");
+            if(trigger) trigger.setAttribute("aria-expanded","true");
         };
 
         const close = () => {
@@ -281,12 +314,14 @@ function initializeMegaMenuHoverIntent(){
                 closeTimer = null;
             }
             item.classList.remove("is-open");
+            if(trigger) trigger.setAttribute("aria-expanded","false");
         };
 
         const scheduleClose = () => {
             if(closeTimer) clearTimeout(closeTimer);
             closeTimer = setTimeout(() => {
                 item.classList.remove("is-open");
+                if(trigger) trigger.setAttribute("aria-expanded","false");
                 closeTimer = null;
             }, CLOSE_DELAY);
         };
@@ -305,6 +340,7 @@ function initializeMegaMenuHoverIntent(){
         // focus should still open it, so gate on :focus-visible, which
         // browsers only set true for non-pointer focus.
         item.addEventListener("focusin", () => {
+            if(suppressFocusOpen) return;
             if(!hoverCapable && trigger && !trigger.matches(":focus-visible")) return;
             open();
         });
@@ -327,7 +363,7 @@ function initializeMegaMenuHoverIntent(){
 
                 document.querySelectorAll(".nav-item-mega.is-open").forEach(other => {
                     if(other !== item && !other.contains(item) && !item.contains(other)){
-                        other.classList.remove("is-open");
+                        closeMegaItem(other);
                     }
                 });
 
@@ -346,12 +382,32 @@ function initializeMegaMenuHoverIntent(){
             if(mobileQuery.matches) return;
 
             document.querySelectorAll(".nav-item-mega.is-open").forEach(item => {
-                if(!item.contains(e.target)) item.classList.remove("is-open");
+                if(!item.contains(e.target)) closeMegaItem(item);
             });
 
         });
 
     }
+
+    document.addEventListener("keydown", (e) => {
+
+        if(e.key !== "Escape" || mobileQuery.matches) return;
+
+        const openItem = document.querySelector(".nav-item-mega.is-open");
+
+        if(!openItem) return;
+
+        const openTrigger = openItem.querySelector(":scope > .nav-mega-trigger");
+
+        closeMegaItem(openItem);
+
+        if(openTrigger){
+            suppressFocusOpen = true;
+            openTrigger.focus();
+            suppressFocusOpen = false;
+        }
+
+    });
 
 }
 
@@ -705,5 +761,239 @@ function initializeStatCounters(){
     },{threshold:0.6});
 
     counters.forEach(el=>observer.observe(el));
+
+}
+
+/*=====================================================
+  SEARCH
+
+  A lightweight client-side "quick jump" over content that
+  already exists on the page — the chapter directory and every
+  real (non-"#") mega-menu link — rather than a fabricated
+  backend search. No results are invented; a query with no
+  matches says so plainly.
+======================================================*/
+
+function buildSearchIndex(){
+
+    const seen = new Set();
+
+    const index = [];
+
+    const addLinks = (selector) => {
+
+        document.querySelectorAll(selector).forEach(a => {
+
+            const href = a.getAttribute("href");
+
+            if(!href || href === "#") return;
+
+            const strong = a.querySelector("strong");
+
+            const label = (strong ? strong.textContent : a.textContent).trim().replace(/\s+/g," ");
+
+            if(!label) return;
+
+            const key = href + "|" + label;
+
+            if(seen.has(key)) return;
+
+            seen.add(key);
+
+            index.push({ label, href });
+
+        });
+
+    };
+
+    addLinks(".research-directory-grid a");
+
+    addLinks(".main-nav .mega-col-desc-list a");
+
+    addLinks(".main-nav .mega-col a");
+
+    return index;
+
+}
+
+function initializeSearch(){
+
+    const toggle = document.getElementById("search-toggle");
+
+    const overlay = document.getElementById("search-overlay");
+
+    const input = document.getElementById("search-input");
+
+    const resultsEl = document.getElementById("search-results");
+
+    if(!toggle || !overlay || !input || !resultsEl) return;
+
+    const index = buildSearchIndex();
+
+    let activeIndex = -1;
+
+    const escapeHtml = (str) => {
+
+        const div = document.createElement("div");
+
+        div.textContent = str;
+
+        return div.innerHTML;
+
+    };
+
+    const renderResults = (items, query) => {
+
+        activeIndex = -1;
+
+        if(!items.length){
+
+            resultsEl.innerHTML = query
+
+                ? `<p class="search-empty">No matches for “${escapeHtml(query)}” — try a market, payment rail or chapter title.</p>`
+
+                : `<p class="search-hint">Start typing to jump to a chapter, market or intelligence section.</p>`;
+
+            return;
+
+        }
+
+        resultsEl.innerHTML = items.map(item =>
+
+            `<a class="search-result" href="${item.href}">${escapeHtml(item.label)}</a>`
+
+        ).join("");
+
+    };
+
+    const currentResultLinks = () => Array.from(resultsEl.querySelectorAll(".search-result"));
+
+    const setActive = (i) => {
+
+        const links = currentResultLinks();
+
+        if(!links.length) return;
+
+        activeIndex = (i + links.length) % links.length;
+
+        links.forEach((el,idx) => el.classList.toggle("is-active", idx === activeIndex));
+
+        links[activeIndex].scrollIntoView({ block:"nearest" });
+
+    };
+
+    const open = () => {
+
+        overlay.classList.add("is-open");
+
+        overlay.setAttribute("aria-hidden","false");
+
+        toggle.setAttribute("aria-expanded","true");
+
+        renderResults(index.slice(0,8), "");
+
+        requestAnimationFrame(() => requestAnimationFrame(() => input.focus()));
+
+        document.addEventListener("keydown", onKeydown);
+
+    };
+
+    const close = () => {
+
+        overlay.classList.remove("is-open");
+
+        overlay.setAttribute("aria-hidden","true");
+
+        toggle.setAttribute("aria-expanded","false");
+
+        input.value = "";
+
+        resultsEl.innerHTML = "";
+
+        activeIndex = -1;
+
+        document.removeEventListener("keydown", onKeydown);
+
+        toggle.focus();
+
+    };
+
+    const onKeydown = (e) => {
+
+        if(e.key === "Escape"){
+
+            close();
+
+            return;
+
+        }
+
+        if(e.key === "ArrowDown"){
+
+            e.preventDefault();
+
+            setActive(activeIndex + 1);
+
+            return;
+
+        }
+
+        if(e.key === "ArrowUp"){
+
+            e.preventDefault();
+
+            setActive(activeIndex - 1);
+
+            return;
+
+        }
+
+        if(e.key === "Enter"){
+
+            const links = currentResultLinks();
+
+            const target = activeIndex >= 0 ? links[activeIndex] : links[0];
+
+            if(target){
+
+                e.preventDefault();
+
+                window.location.href = target.getAttribute("href");
+
+            }
+
+        }
+
+    };
+
+    toggle.addEventListener("click", () => {
+
+        if(overlay.classList.contains("is-open")) close(); else open();
+
+    });
+
+    overlay.querySelectorAll("[data-search-close]").forEach(el => {
+
+        el.addEventListener("click", close);
+
+    });
+
+    input.addEventListener("input", () => {
+
+        const query = input.value.trim().toLowerCase();
+
+        if(!query){
+
+            renderResults(index.slice(0,8), "");
+
+            return;
+
+        }
+
+        const matches = index.filter(item => item.label.toLowerCase().includes(query)).slice(0,10);
+
+        renderResults(matches, query);
+
+    });
 
 }
