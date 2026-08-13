@@ -65,7 +65,7 @@
 
     white-space:nowrap;
 
-    padding:9px 14px;
+    padding:11px 20px;
 
     border-radius:30px;
 
@@ -77,7 +77,7 @@
 
     font-weight:700;
 
-    font-size:13px;
+    font-size:13.5px;
 
     transition:all .35s ease;
 
@@ -114,11 +114,11 @@
 
     justify-content:space-between;
 
-    gap:10px;
+    gap:16px;
 
     min-height:82px;
 
-    padding:0 14px;
+    padding:0 20px;
 
 }
 
@@ -139,7 +139,7 @@
 
     align-items:center;
 
-    gap:6px;
+    gap:10px;
 
     text-decoration:none;
 
@@ -152,7 +152,7 @@
 
 .brand-logo{
 
-    width:126px;
+    width:138px;
 
     height:auto;
 
@@ -303,7 +303,7 @@
 
     align-items:center;
 
-    gap:14px;
+    gap:clamp(16px, 2vw, 24px);
 
     margin-left:auto;
 
@@ -317,7 +317,12 @@
 
     align-items:center;
 
-    gap:4px;
+    /* Fluid, not tiered: spacing grows continuously with viewport width
+       instead of jumping at fixed breakpoints, so the adaptive nav
+       (script.js) never sees a sudden capacity drop as the window
+       resizes — items only move into "More" when they truly stop
+       fitting, not because a spacing tier just kicked in. */
+    gap:clamp(6px, 1.2vw, 16px);
 
     margin:0;
 
@@ -432,7 +437,7 @@ nav li{
 
     font-weight:600;
 
-    font-size:13.5px;
+    font-size:clamp(14px, 0.65vw + 8px, 14.5px);
 
     letter-spacing:0;
 
@@ -526,8 +531,9 @@ nav li{
 
 }
 
-.nav-item-mega:hover .mega-caret,
-.nav-item-mega:focus-within .mega-caret{
+.nav-item-mega:hover > .nav-mega-trigger .mega-caret,
+.nav-item-mega:focus-within > .nav-mega-trigger .mega-caret,
+.nav-item-mega.is-open > .nav-mega-trigger .mega-caret{
 
     transform:rotate(180deg);
 
@@ -587,9 +593,9 @@ nav li{
     z-index:200;
 }
 
-.nav-item-mega:hover .mega-menu,
-.nav-item-mega:focus-within .mega-menu,
-.nav-item-mega.is-open .mega-menu{
+.nav-item-mega:hover > .mega-menu,
+.nav-item-mega:focus-within > .mega-menu,
+.nav-item-mega.is-open > .mega-menu{
 
     opacity:1;
 
@@ -852,11 +858,118 @@ nav li{
 
 }
 
-@media (max-width:1500px){
+/* ----------------------------------------------------------
+   OVERFLOW "MORE" MENU — receives whichever top-level nav items
+   don't fit at the current viewport width (see initializeAdaptiveNav
+   in script.js). Deliberately a plain link list rather than a full
+   mega-menu: an overflowed item's own rich dropdown still opens
+   normally once it's inside here, this panel is just the shelf that
+   holds the trigger.
+---------------------------------------------------------- */
+
+.mega-menu--more{
+
+    width:240px;
+
+    padding:10px;
+}
+
+.nav-more-list{
+
+    list-style:none;
+
+    margin:0;
+
+    padding:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+}
+
+.nav-more-list > li{
+
+    position:relative;
+}
+
+.nav-more-list > li > .nav-mega-trigger{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    width:100%;
+
+    padding:11px 12px;
+
+    border-radius:8px;
+
+    font-size:14px;
+}
+
+.nav-more-list > li > .nav-mega-trigger:hover,
+.nav-more-list > li.is-open > .nav-mega-trigger{
+
+    background:rgba(200,162,74,.08);
+}
+
+.nav-more-list > li > a:not(.nav-mega-trigger){
+
+    display:block;
+
+    padding:11px 12px;
+
+    border-radius:8px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:#12325B;
+
+    text-decoration:none;
+}
+
+.nav-more-list > li > a:not(.nav-mega-trigger):hover{
+
+    background:rgba(200,162,74,.08);
+}
+
+/* A nav item relocated into More opens its own mega-menu to the
+   right of this panel instead of underneath its trigger. */
+
+.nav-more-list > li > .mega-menu{
+
+    top:-11px;
+
+    left:100%;
+
+    margin-left:10px;
+
+    transform:translate(var(--edge-shift,0px),-6px) scale(.98);
+}
+
+.nav-more-list > li:hover > .mega-menu,
+.nav-more-list > li:focus-within > .mega-menu,
+.nav-more-list > li.is-open > .mega-menu{
+
+    transform:translate(var(--edge-shift,0px),0) scale(1);
+}
+
+@media (max-width:767px){
 
     /* Mega-menus become inline accordion panels under the mobile nav
        instead of floating panels, so the same real content stays
        reachable at laptop / tablet widths. */
+
+    .nav-more-item{
+
+        display:none !important;
+    }
 
     .mega-menu{
 
@@ -901,6 +1014,28 @@ nav li{
         padding-top:0;
 
         padding-bottom:0;
+
+    }
+
+    /* The desktop hover/open positioning rules match with higher
+       specificity than the plain ".mega-menu" reset above, so a
+       focused or open trigger on mobile would otherwise keep the
+       menu's translate(-50%...) offset and render it half off-screen.
+       Re-assert the reset at matching specificity here. */
+    .nav-item-mega:hover > .mega-menu,
+    .nav-item-mega:focus-within > .mega-menu,
+    .nav-item-mega.is-open > .mega-menu,
+    .nav-item-mega.is-expanded > .mega-menu{
+
+        position:static;
+
+        left:auto;
+
+        top:auto;
+
+        margin-left:0;
+
+        transform:none;
 
     }
 
@@ -1012,7 +1147,7 @@ nav li{
    RESPONSIVE NAVIGATION
 ---------------------------------------------------------- */
 
-@media (max-width:1500px){
+@media (max-width:767px){
 
     .header-container{
 

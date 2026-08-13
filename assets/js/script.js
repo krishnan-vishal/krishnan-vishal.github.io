@@ -27,15 +27,141 @@ function initializeWebsite(){
 
     initializeStatCounters();
 
+    initializeAdaptiveNav();
+
     initializeMegaMenuHoverIntent();
 
     initializeMobileMegaAccordion();
 
 }
 
+/*=====================================================
+  ADAPTIVE NAV — priority + overflow
+
+  Measures the actual rendered width of the top-level nav items and
+  moves whichever ones don't fit into a "More" panel, instead of
+  shrinking text/spacing until things happen to fit. Runs above the
+  mobile breakpoint only; the accordion below it already shows every
+  category directly, so there's nothing to overflow there.
+======================================================*/
+
+function initializeAdaptiveNav(){
+
+    const mainNav = document.querySelector(".main-nav");
+
+    const list = mainNav ? mainNav.querySelector(":scope > ul") : null;
+
+    const moreItem = document.querySelector("[data-nav-more]");
+
+    const toolsEl = document.querySelector(".header-tools");
+
+    const headerContainer = document.querySelector(".header-container");
+
+    const brandEl = document.querySelector(".brand");
+
+    if(!mainNav || !list || !moreItem || !headerContainer || !brandEl) return;
+
+    const moreList = moreItem.querySelector(".nav-more-list");
+
+    const mobileQuery = window.matchMedia("(max-width:767px)");
+
+    const originalItems = Array.from(list.children).filter(li => li !== moreItem);
+
+    const getGapPx = (el) => {
+        const cs = getComputedStyle(el);
+        const gap = parseFloat(cs.columnGap || cs.gap);
+        return isNaN(gap) ? 0 : gap;
+    };
+
+    const restoreAll = () => {
+        originalItems.forEach(li => list.insertBefore(li, moreItem));
+        moreList.innerHTML = "";
+        moreItem.hidden = true;
+    };
+
+    const recalc = () => {
+
+        if(mobileQuery.matches){
+            restoreAll();
+            return;
+        }
+
+        restoreAll();
+
+        // .main-nav itself can't be measured directly here: as a flex item
+        // with nowrap text it won't shrink below its content's natural
+        // width, so its own rect is the "wants to be this wide" size, not
+        // the actual budget. Derive the budget from the header container
+        // and brand instead, which stay correctly sized.
+        const containerRect = headerContainer.getBoundingClientRect();
+        const brandWidth = brandEl.getBoundingClientRect().width;
+        const containerGap = getGapPx(headerContainer);
+        const toolsWidth = toolsEl ? toolsEl.getBoundingClientRect().width : 0;
+        const mainNavGap = getGapPx(mainNav);
+
+        const available = containerRect.width - brandWidth - containerGap - toolsWidth - mainNavGap - 4;
+
+        const listGap = getGapPx(list);
+
+        moreItem.hidden = false;
+        moreItem.style.visibility = "hidden";
+        const moreWidth = moreItem.getBoundingClientRect().width;
+        moreItem.style.visibility = "";
+        moreItem.hidden = true;
+
+        const widths = originalItems.map(li => li.getBoundingClientRect().width);
+        const totalWidth = widths.reduce((sum, w) => sum + w, 0) + listGap * Math.max(0, originalItems.length - 1);
+
+        if(totalWidth <= available) return;
+
+        let overflowCount = 0;
+        let remainingWidth = totalWidth;
+        const budget = available - moreWidth - listGap;
+
+        while(overflowCount < originalItems.length && remainingWidth > budget){
+            overflowCount++;
+            const idx = originalItems.length - overflowCount;
+            remainingWidth -= (widths[idx] + listGap);
+        }
+
+        if(overflowCount === 0) return;
+
+        originalItems
+            .slice(originalItems.length - overflowCount)
+            .forEach(li => moreList.appendChild(li));
+
+        moreItem.hidden = false;
+
+    };
+
+    let queued = false;
+
+    const scheduleRecalc = () => {
+        if(queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+            queued = false;
+            recalc();
+        });
+    };
+
+    scheduleRecalc();
+
+    window.addEventListener("resize", scheduleRecalc);
+
+    window.addEventListener("load", scheduleRecalc);
+
+    mobileQuery.addEventListener("change", scheduleRecalc);
+
+    if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(scheduleRecalc);
+    }
+
+}
+
 function initializeMobileMegaAccordion(){
 
-    const mobileQuery = window.matchMedia("(max-width:1500px)");
+    const mobileQuery = window.matchMedia("(max-width:767px)");
 
     const items = document.querySelectorAll(".nav-item-mega");
 
@@ -103,11 +229,20 @@ function initializeMegaMenuHoverIntent(){
 
     const EDGE_MARGIN = 16;
 
+    // Touch devices (tablets, touch laptops) don't fire hover reliably,
+    // so above the mobile-accordion breakpoint they need tap-to-toggle
+    // instead of relying on mouseenter/mouseleave.
+    const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+
+    const mobileQuery = window.matchMedia("(max-width:767px)");
+
     document.querySelectorAll(".nav-item-mega").forEach(item => {
 
         let closeTimer = null;
 
         const menu = item.querySelector(".mega-menu");
+
+        const trigger = item.querySelector(".nav-mega-trigger");
 
         const applyEdgeGuard = () => {
 
@@ -140,6 +275,14 @@ function initializeMegaMenuHoverIntent(){
             item.classList.add("is-open");
         };
 
+        const close = () => {
+            if(closeTimer){
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+            item.classList.remove("is-open");
+        };
+
         const scheduleClose = () => {
             if(closeTimer) clearTimeout(closeTimer);
             closeTimer = setTimeout(() => {
@@ -148,9 +291,23 @@ function initializeMegaMenuHoverIntent(){
             }, CLOSE_DELAY);
         };
 
-        item.addEventListener("mouseenter", open);
-        item.addEventListener("mouseleave", scheduleClose);
-        item.addEventListener("focusin", open);
+        if(hoverCapable){
+
+            item.addEventListener("mouseenter", open);
+            item.addEventListener("mouseleave", scheduleClose);
+
+        }
+
+        // On the click-to-toggle branch, a pointer click focuses the trigger
+        // *before* the click event fires, so an unconditional open() here
+        // would already be open by the time the click handler reads
+        // wasOpen — cancelling the tap out from under it. Keyboard (tab)
+        // focus should still open it, so gate on :focus-visible, which
+        // browsers only set true for non-pointer focus.
+        item.addEventListener("focusin", () => {
+            if(!hoverCapable && trigger && !trigger.matches(":focus-visible")) return;
+            open();
+        });
 
         item.addEventListener("focusout", (e) => {
             if(!item.contains(e.relatedTarget)){
@@ -158,13 +315,51 @@ function initializeMegaMenuHoverIntent(){
             }
         });
 
+        if(!hoverCapable && trigger){
+
+            trigger.addEventListener("click", (e) => {
+
+                if(mobileQuery.matches) return;
+
+                e.preventDefault();
+
+                const wasOpen = item.classList.contains("is-open");
+
+                document.querySelectorAll(".nav-item-mega.is-open").forEach(other => {
+                    if(other !== item && !other.contains(item) && !item.contains(other)){
+                        other.classList.remove("is-open");
+                    }
+                });
+
+                if(wasOpen) close(); else open();
+
+            });
+
+        }
+
     });
+
+    if(!hoverCapable){
+
+        document.addEventListener("click", (e) => {
+
+            if(mobileQuery.matches) return;
+
+            document.querySelectorAll(".nav-item-mega.is-open").forEach(item => {
+                if(!item.contains(e.target)) item.classList.remove("is-open");
+            });
+
+        });
+
+    }
 
 }
 
 function initializeSmoothScroll(){
 
-    const mobileMegaQuery = window.matchMedia("(max-width:1500px)");
+    const mobileMegaQuery = window.matchMedia("(max-width:767px)");
+
+    const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
 
     document
         .querySelectorAll('a[href^="#"]')
@@ -172,7 +367,7 @@ function initializeSmoothScroll(){
 
             anchor.addEventListener("click",function(e){
 
-                if(this.classList.contains("nav-mega-trigger") && mobileMegaQuery.matches) return;
+                if(this.classList.contains("nav-mega-trigger") && (mobileMegaQuery.matches || !hoverCapable)) return;
 
                 const href=this.getAttribute("href");
 
@@ -258,7 +453,7 @@ function initializeMobileNav(){
 
     });
 
-    const mobileQuery = window.matchMedia("(max-width:1500px)");
+    const mobileQuery = window.matchMedia("(max-width:767px)");
 
     nav.querySelectorAll("a").forEach(link=>{
 
