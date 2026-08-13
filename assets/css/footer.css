@@ -78,9 +78,9 @@
 
     display:grid;
 
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(2,1fr);
 
-    gap:40px 32px;
+    gap:40px 60px;
 }
 
 /*=====================================================
@@ -110,13 +110,28 @@
     width:auto;
 }
 
-.footer-brand p{
+.footer-headline{
+
+    color:var(--hero-navy);
+
+    font-weight:700;
+
+    line-height:1.4;
+
+    font-size:1.15rem;
+
+    max-width:280px;
+
+    margin-bottom:10px;
+}
+
+.footer-subtext{
 
     color:var(--hero-light-body);
 
-    line-height:1.85;
+    line-height:1.7;
 
-    font-size:.95rem;
+    font-size:.92rem;
 
     max-width:280px;
 
@@ -238,20 +253,10 @@
 
 .footer-bottom{
 
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-    gap:20px;
-
     padding-top:30px;
-
-    flex-wrap:wrap;
 }
 
-.footer-bottom p{
+.footer-compliance{
 
     margin:0;
 
@@ -262,6 +267,73 @@
     line-height:1.7;
 
     max-width:760px;
+}
+
+.footer-divider{
+
+    height:1px;
+
+    margin:26px 0;
+
+    background:var(--hero-light-border);
+}
+
+.footer-legal-row{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:20px;
+
+    flex-wrap:wrap;
+}
+
+.footer-legal-links{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:22px;
+
+    flex-wrap:wrap;
+}
+
+.footer-legal-links a{
+
+    text-decoration:none;
+
+    color:var(--hero-light-body);
+
+    font-size:.85rem;
+
+    transition:color var(--transition);
+}
+
+.footer-legal-links a:hover{
+
+    color:var(--hero-navy);
+}
+
+.footer-legal-meta{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    flex-wrap:wrap;
+}
+
+.footer-legal-meta span{
+
+    color:#8A94A6;
+
+    font-size:.85rem;
 }
 
 .back-top{
@@ -301,6 +373,7 @@
 ======================================================*/
 
 .footer-column a:focus-visible,
+.footer-legal-links a:focus-visible,
 .footer-cta:focus-visible,
 .back-top:focus-visible{
 
@@ -314,6 +387,7 @@
 @media (prefers-reduced-motion:reduce){
 
     .footer-column a,
+    .footer-legal-links a,
     .footer-cta,
     .back-top{
 
@@ -337,7 +411,8 @@
         gap:40px;
     }
 
-    .footer-brand p{
+    .footer-headline,
+    .footer-subtext{
 
         max-width:520px;
     }
@@ -365,20 +440,23 @@
         gap:32px;
     }
 
-    .footer-bottom{
+    .footer-legal-row{
 
         flex-direction:column;
 
         align-items:flex-start;
 
-        text-align:left;
+        gap:18px;
+    }
 
-        gap:20px;
+    .footer-legal-meta{
+
+        width:100%;
+
+        justify-content:space-between;
     }
 
     .back-top{
-
-        width:100%;
 
         justify-content:center;
     }
