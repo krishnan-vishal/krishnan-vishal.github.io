@@ -19,7 +19,7 @@
 
     font-size:13px;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     margin-bottom:28px;
 
@@ -27,7 +27,7 @@
 
 .chapter-breadcrumb a{
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     text-decoration:none;
 
@@ -41,7 +41,7 @@
 
 .chapter-breadcrumb span{
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     opacity:.5;
 
@@ -49,7 +49,7 @@
 
 .chapter-breadcrumb strong{
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     font-weight:600;
 
@@ -65,13 +65,11 @@
 
     overflow:hidden;
 
-    background:
-        var(--gradient-rich-dark-radial),
-        var(--gradient-rich-dark);
+    background:var(--hero-light-bg);
 
     padding:56px 0 64px;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
 }
 
@@ -83,11 +81,11 @@
 
     border-radius:999px;
 
-    background:rgba(184,134,59,.14);
+    background:rgba(200,162,74,.12);
 
-    border:1px solid rgba(184,134,59,.30);
+    border:1px solid var(--hero-light-border);
 
-    color:var(--color-primary);
+    color:var(--hero-navy);
 
     font-size:11px;
 
@@ -113,7 +111,7 @@
 
     margin-bottom:18px;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
 }
 
@@ -125,7 +123,7 @@
 
     line-height:1.8;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
     margin-bottom:36px;
 
@@ -145,15 +143,17 @@
 
 .chapter-stat{
 
-    background:rgba(255,255,255,.05);
+    background:var(--hero-light-card);
 
-    border:1px solid rgba(255,255,255,.10);
+    border:1px solid var(--hero-light-border);
 
-    border-top:3px solid var(--color-primary);
+    border-top:3px solid var(--hero-gold);
 
     border-radius:var(--radius-md);
 
     padding:18px 20px;
+
+    box-shadow:0 4px 16px rgba(15,39,71,.05);
 
 }
 
@@ -165,7 +165,7 @@
 
     font-size:26px;
 
-    color:var(--color-primary);
+    color:var(--hero-navy);
 
     line-height:1;
 
@@ -179,7 +179,7 @@
 
     font-size:12.5px;
 
-    color:rgba(255,255,255,.78);
+    color:var(--hero-light-body);
 
     line-height:1.5;
 
@@ -191,7 +191,7 @@
 
 .chapter-body{
 
-    background:var(--bg-page);
+    background:var(--hero-light-bg);
 
     padding:56px 0 90px;
 
@@ -233,7 +233,7 @@
 
     text-transform:uppercase;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     margin-bottom:14px;
 
@@ -253,7 +253,7 @@
 
     gap:2px;
 
-    border-left:1px solid var(--border-light);
+    border-left:1px solid var(--hero-light-border);
 
 }
 
@@ -267,7 +267,7 @@
 
     border-left:2px solid transparent;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     font-size:13.5px;
 
@@ -281,9 +281,9 @@
 
 .chapter-toc a:hover{
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
-    border-left-color:rgba(184,134,59,.4);
+    border-left-color:var(--hero-gold);
 
 }
 
@@ -297,7 +297,7 @@
 
     min-width:0;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
 }
 
@@ -307,7 +307,7 @@
 
     margin-bottom:48px;
 
-    border-bottom:1px solid var(--border-light);
+    border-bottom:1px solid var(--hero-light-border);
 
 }
 
@@ -325,7 +325,7 @@
 
     font-size:1.7rem;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin-bottom:18px;
 
@@ -339,7 +339,7 @@
 
     font-size:1.25rem;
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     margin:28px 0 14px;
 
@@ -351,7 +351,11 @@
 
     line-height:1.85;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
+
+    text-align:justify;
+
+    text-align-last:left;
 
     margin-bottom:16px;
 
@@ -363,7 +367,7 @@
 
     padding-left:20px;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
 }
 
@@ -389,7 +393,7 @@
 
     margin:20px 0 28px;
 
-    border:1px solid var(--border-light);
+    border:1px solid var(--hero-light-border);
 
     border-radius:var(--radius-md);
 
@@ -413,9 +417,9 @@
 
     padding:12px 18px;
 
-    background:var(--bg-card);
+    background:rgba(200,162,74,.08);
 
-    color:var(--color-primary);
+    color:var(--hero-navy);
 
     font-weight:700;
 
@@ -425,7 +429,7 @@
 
     text-transform:uppercase;
 
-    border-bottom:1px solid var(--border-light);
+    border-bottom:1px solid var(--hero-light-border);
 
 }
 
@@ -433,9 +437,9 @@
 
     padding:12px 18px;
 
-    color:var(--text-body);
+    color:var(--hero-light-body);
 
-    border-bottom:1px solid var(--border-light);
+    border-bottom:1px solid var(--hero-light-border);
 
 }
 
@@ -449,7 +453,7 @@
 
     font-size:12.5px;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     font-style:italic;
 
@@ -463,11 +467,11 @@
 
 .chapter-sources{
 
-    background:var(--bg-card);
+    background:var(--hero-light-card);
 
-    border:1px solid var(--border-light);
+    border:1px solid var(--hero-light-border);
 
-    border-left:3px solid var(--color-primary);
+    border-left:3px solid var(--hero-gold);
 
     border-radius:var(--radius-md);
 
@@ -477,7 +481,7 @@
 
 .chapter-sources h4{
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     font-size:14px;
 
@@ -489,7 +493,7 @@
 
     font-size:13.5px;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
     line-height:1.7;
 
@@ -513,7 +517,7 @@
 
     padding-top:32px;
 
-    border-top:1px solid var(--border-light);
+    border-top:1px solid var(--hero-light-border);
 
 }
 
@@ -529,11 +533,13 @@
 
     padding:16px 20px;
 
-    border:1px solid var(--border-light);
+    border:1px solid var(--hero-light-border);
 
     border-radius:var(--radius-md);
 
     text-decoration:none;
+
+    background:var(--hero-light-card);
 
     transition:border-color .2s ease, transform .2s ease;
 
@@ -541,7 +547,7 @@
 
 .chapter-nav-link:hover{
 
-    border-color:rgba(184,134,59,.4);
+    border-color:var(--hero-gold);
 
     transform:translateY(-2px);
 
@@ -567,13 +573,13 @@
 
     text-transform:uppercase;
 
-    color:var(--text-muted);
+    color:#8A94A6;
 
 }
 
 .chapter-nav-link strong{
 
-    color:var(--text-heading);
+    color:var(--hero-navy);
 
     font-size:15px;
 
