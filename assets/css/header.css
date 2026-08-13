@@ -1199,10 +1199,145 @@ nav li{
 
 @media (max-width:1550px){
 
+    /* Mega-menus become inline accordion panels under the mobile nav
+       instead of floating panels, so the same real content stays
+       reachable at laptop / tablet widths. */
+
     .mega-menu{
 
-        display:none;
+        position:static;
 
+        width:100%;
+
+        max-width:none;
+
+        opacity:1;
+
+        visibility:visible;
+
+        pointer-events:auto;
+
+        transform:none;
+
+        box-shadow:none;
+
+        border:none;
+
+        border-top:1px solid rgba(15,41,77,.08);
+
+        border-radius:0;
+
+        background:rgba(15,41,77,.02);
+
+        padding:6px 4px 6px 18px;
+
+        margin-top:4px;
+
+        max-height:0;
+
+        overflow:hidden;
+
+        transition:max-height .35s ease, padding .35s ease;
+
+    }
+
+    .nav-item-mega:not(.is-expanded) .mega-menu{
+
+        padding-top:0;
+
+        padding-bottom:0;
+
+    }
+
+    .mega-menu-inner,
+    .mega-menu-inner--headed,
+    .mega-menu-inner--split{
+
+        display:block;
+
+        max-height:none;
+
+        overflow:visible;
+
+        padding-right:0;
+
+    }
+
+    .mega-col,
+    .mega-col--headed{
+
+        margin-bottom:18px;
+
+    }
+
+    .mega-tile-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .mega-rail{
+
+        flex-direction:row;
+
+        overflow-x:auto;
+
+        gap:8px;
+
+        border-right:none;
+
+        border-bottom:1px solid var(--hero-light-border);
+
+        padding:12px 2px;
+
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .mega-rail-item{
+
+        flex-shrink:0;
+
+        width:auto;
+
+        min-width:200px;
+    }
+
+    .mega-rail-cta{
+
+        display:none;
+    }
+
+    .mega-panels{
+
+        padding:16px 2px 4px;
+    }
+
+    .nav-item-mega.is-expanded .mega-caret{
+
+        transform:rotate(180deg);
+    }
+
+    /* .main-nav a{display:block} (below) matches these links at equal
+       specificity and would otherwise collapse their flex layout. */
+
+    .main-nav .mega-col-desc-list a{
+
+        display:flex;
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        padding:9px 8px;
+    }
+
+    .main-nav .mega-tile{
+
+        display:flex;
+
+        align-items:flex-start;
+
+        padding:10px 8px;
     }
 
 }

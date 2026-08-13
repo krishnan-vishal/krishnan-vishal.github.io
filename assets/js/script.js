@@ -31,6 +31,72 @@ function initializeWebsite(){
 
     initializeMegaMenuHoverIntent();
 
+    initializeMobileMegaAccordion();
+
+}
+
+function initializeMobileMegaAccordion(){
+
+    const mobileQuery = window.matchMedia("(max-width:1550px)");
+
+    const items = document.querySelectorAll(".nav-item-mega");
+
+    const collapseAll = () => {
+
+        items.forEach(item => {
+
+            item.classList.remove("is-expanded");
+
+            const menu = item.querySelector(".mega-menu");
+
+            if(menu) menu.style.maxHeight = "";
+
+        });
+
+    };
+
+    items.forEach(item => {
+
+        const trigger = item.querySelector(".nav-mega-trigger");
+
+        const menu = item.querySelector(".mega-menu");
+
+        if(!trigger || !menu) return;
+
+        trigger.addEventListener("click", (e) => {
+
+            if(!mobileQuery.matches) return;
+
+            e.preventDefault();
+
+            const isExpanded = item.classList.contains("is-expanded");
+
+            items.forEach(other => {
+                if(other !== item){
+                    other.classList.remove("is-expanded");
+                    const otherMenu = other.querySelector(".mega-menu");
+                    if(otherMenu) otherMenu.style.maxHeight = "";
+                }
+            });
+
+            if(isExpanded){
+
+                item.classList.remove("is-expanded");
+                menu.style.maxHeight = "";
+
+            } else {
+
+                item.classList.add("is-expanded");
+                menu.style.maxHeight = menu.scrollHeight + "px";
+
+            }
+
+        });
+
+    });
+
+    mobileQuery.addEventListener("change", collapseAll);
+
 }
 
 function initializeMegaMenuHoverIntent(){
@@ -139,11 +205,15 @@ function initializeSplitMegaMenus(){
 
 function initializeSmoothScroll(){
 
+    const mobileMegaQuery = window.matchMedia("(max-width:1550px)");
+
     document
         .querySelectorAll('a[href^="#"]')
         .forEach(anchor=>{
 
             anchor.addEventListener("click",function(e){
+
+                if(this.classList.contains("nav-mega-trigger") && mobileMegaQuery.matches) return;
 
                 const target=document.querySelector(this.getAttribute("href"));
 
@@ -205,6 +275,16 @@ function initializeMobileNav(){
 
         toggle.setAttribute("aria-expanded","false");
 
+        nav.querySelectorAll(".nav-item-mega.is-expanded").forEach(item=>{
+
+            item.classList.remove("is-expanded");
+
+            const menu=item.querySelector(".mega-menu");
+
+            if(menu) menu.style.maxHeight = "";
+
+        });
+
     };
 
     toggle.addEventListener("click",()=>{
@@ -215,9 +295,23 @@ function initializeMobileNav(){
 
     });
 
+    const mobileQuery = window.matchMedia("(max-width:1550px)");
+
     nav.querySelectorAll("a").forEach(link=>{
 
+        if(link.classList.contains("nav-mega-trigger")) return;
+
         link.addEventListener("click",closeNav);
+
+    });
+
+    nav.querySelectorAll(".nav-mega-trigger").forEach(trigger=>{
+
+        trigger.addEventListener("click",(e)=>{
+
+            if(!mobileQuery.matches) closeNav();
+
+        });
 
     });
 
