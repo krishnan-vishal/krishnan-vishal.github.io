@@ -29,6 +29,73 @@ function initializeWebsite(){
 
     initializeSplitMegaMenus();
 
+    initializeMegaMenuHoverIntent();
+
+}
+
+function initializeMegaMenuHoverIntent(){
+
+    const CLOSE_DELAY = 260;
+
+    const EDGE_MARGIN = 16;
+
+    document.querySelectorAll(".nav-item-mega").forEach(item => {
+
+        let closeTimer = null;
+
+        const menu = item.querySelector(".mega-menu");
+
+        const applyEdgeGuard = () => {
+
+            if(!menu) return;
+
+            menu.style.setProperty("--edge-shift", "0px");
+
+            const rect = menu.getBoundingClientRect();
+
+            let shift = 0;
+
+            if(rect.right > window.innerWidth - EDGE_MARGIN){
+                shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
+            }
+
+            if(rect.left + shift < EDGE_MARGIN){
+                shift += (EDGE_MARGIN - (rect.left + shift));
+            }
+
+            menu.style.setProperty("--edge-shift", `${shift}px`);
+
+        };
+
+        const open = () => {
+            if(closeTimer){
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+            applyEdgeGuard();
+            item.classList.add("is-open");
+        };
+
+        const scheduleClose = () => {
+            if(closeTimer) clearTimeout(closeTimer);
+            closeTimer = setTimeout(() => {
+                item.classList.remove("is-open");
+                closeTimer = null;
+            }, CLOSE_DELAY);
+        };
+
+        item.addEventListener("mouseenter", open);
+        item.addEventListener("mouseleave", scheduleClose);
+        item.addEventListener("focusin", open);
+
+        item.addEventListener("focusout", (e) => {
+            if(!item.contains(e.relatedTarget)){
+                scheduleClose();
+            }
+        });
+
+    });
+
 }
 
 function initializeSplitMegaMenus(){
