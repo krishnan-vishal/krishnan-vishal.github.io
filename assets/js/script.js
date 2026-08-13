@@ -27,6 +27,47 @@ function initializeWebsite(){
 
     initializeStatCounters();
 
+    initializeSplitMegaMenus();
+
+}
+
+function initializeSplitMegaMenus(){
+
+    document.querySelectorAll(".mega-menu-inner--split").forEach(inner => {
+
+        const railItems = inner.querySelectorAll(".mega-rail-item");
+        const panels = inner.querySelectorAll(".mega-panel");
+
+        railItems.forEach(item => {
+
+            const activate = () => {
+
+                railItems.forEach(i => {
+                    i.classList.remove("is-active");
+                    i.setAttribute("aria-selected", "false");
+                });
+
+                panels.forEach(p => p.classList.remove("is-active"));
+
+                item.classList.add("is-active");
+                item.setAttribute("aria-selected", "true");
+
+                const target = inner.querySelector(
+                    '.mega-panel[data-panel="' + item.dataset.panel + '"]'
+                );
+
+                if(target) target.classList.add("is-active");
+
+            };
+
+            item.addEventListener("mouseenter", activate);
+            item.addEventListener("click", (e) => { e.preventDefault(); activate(); });
+            item.addEventListener("focus", activate);
+
+        });
+
+    });
+
 }
 
 function initializeSmoothScroll(){
