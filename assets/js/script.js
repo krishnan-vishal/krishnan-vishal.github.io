@@ -37,7 +37,7 @@ function initializeWebsite(){
 
 function initializeMobileMegaAccordion(){
 
-    const mobileQuery = window.matchMedia("(max-width:1550px)");
+    const mobileQuery = window.matchMedia("(max-width:2200px)");
 
     const items = document.querySelectorAll(".nav-item-mega");
 
@@ -205,7 +205,7 @@ function initializeSplitMegaMenus(){
 
 function initializeSmoothScroll(){
 
-    const mobileMegaQuery = window.matchMedia("(max-width:1550px)");
+    const mobileMegaQuery = window.matchMedia("(max-width:2200px)");
 
     document
         .querySelectorAll('a[href^="#"]')
@@ -215,7 +215,11 @@ function initializeSmoothScroll(){
 
                 if(this.classList.contains("nav-mega-trigger") && mobileMegaQuery.matches) return;
 
-                const target=document.querySelector(this.getAttribute("href"));
+                const href=this.getAttribute("href");
+
+                if(!href || href==="#") return;
+
+                const target=document.querySelector(href);
 
                 if(!target) return;
 
@@ -295,7 +299,7 @@ function initializeMobileNav(){
 
     });
 
-    const mobileQuery = window.matchMedia("(max-width:1550px)");
+    const mobileQuery = window.matchMedia("(max-width:2200px)");
 
     nav.querySelectorAll("a").forEach(link=>{
 
@@ -356,7 +360,11 @@ function initializeActiveNavLink(){
     if(!links.length) return;
 
     const sections=links
-        .map(link=>document.querySelector(link.getAttribute("href")))
+        .map(link=>{
+            const href=link.getAttribute("href");
+            if(!href || href==="#") return null;
+            return document.querySelector(href);
+        })
         .filter(Boolean);
 
     if(!sections.length) return;

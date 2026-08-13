@@ -505,3 +505,119 @@ grid-template-columns:1fr;
     color:var(--hero-light-body);
 
 }
+/*=====================================================
+  RESEARCH DIRECTORY — full chapter listing
+======================================================*/
+
+.research-directory{
+
+    margin-top:56px;
+
+    padding-top:48px;
+
+    border-top:1px solid var(--hero-light-border);
+}
+
+.research-directory-header h3{
+
+    font-family:var(--font-editorial);
+
+    font-size:1.5rem;
+
+    color:var(--hero-navy);
+
+    margin-bottom:8px;
+}
+
+.research-directory-header p{
+
+    color:var(--hero-light-body);
+
+    font-size:.95rem;
+
+    margin-bottom:32px;
+}
+
+.research-directory-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:32px 40px;
+}
+
+.research-directory-col h4{
+
+    color:var(--hero-gold);
+
+    font-size:.8rem;
+
+    font-weight:700;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+
+    margin-bottom:16px;
+
+    padding-bottom:12px;
+
+    border-bottom:1px solid var(--hero-light-border);
+}
+
+.research-directory-col ul{
+
+    list-style:none;
+
+    margin:0;
+
+    padding:0;
+}
+
+.research-directory-col li{
+
+    margin-bottom:10px;
+}
+
+.research-directory-col a{
+
+    text-decoration:none;
+
+    color:var(--hero-light-body);
+
+    font-size:.92rem;
+
+    line-height:1.5;
+
+    transition:color var(--transition), transform var(--transition);
+
+    display:inline-block;
+}
+
+.research-directory-col a:hover{
+
+    color:var(--hero-navy);
+
+    transform:translateX(4px);
+}
+
+@media (max-width:900px){
+
+    .research-directory-grid{
+
+        grid-template-columns:1fr 1fr;
+    }
+
+}
+
+@media (max-width:576px){
+
+    .research-directory-grid{
+
+        grid-template-columns:1fr;
+
+        gap:28px;
+    }
+
+}
