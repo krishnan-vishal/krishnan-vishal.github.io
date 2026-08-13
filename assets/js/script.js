@@ -37,7 +37,7 @@ function initializeWebsite(){
 
 function initializeMobileMegaAccordion(){
 
-    const mobileQuery = window.matchMedia("(max-width:2200px)");
+    const mobileQuery = window.matchMedia("(max-width:1500px)");
 
     const items = document.querySelectorAll(".nav-item-mega");
 
@@ -205,7 +205,7 @@ function initializeSplitMegaMenus(){
 
 function initializeSmoothScroll(){
 
-    const mobileMegaQuery = window.matchMedia("(max-width:2200px)");
+    const mobileMegaQuery = window.matchMedia("(max-width:1500px)");
 
     document
         .querySelectorAll('a[href^="#"]')
@@ -299,7 +299,7 @@ function initializeMobileNav(){
 
     });
 
-    const mobileQuery = window.matchMedia("(max-width:2200px)");
+    const mobileQuery = window.matchMedia("(max-width:1500px)");
 
     nav.querySelectorAll("a").forEach(link=>{
 
