@@ -152,9 +152,9 @@
 
 .brand-logo{
 
-    width:44px;
+    width:54px;
 
-    height:44px;
+    height:54px;
 
     display:block;
 
@@ -202,11 +202,11 @@
 
     margin:0;
 
-    font-size:1.38rem;
+    font-size:1.58rem;
 
     font-weight:800;
 
-    letter-spacing:.08em;
+    letter-spacing:.06em;
 
     color:#0F294D;
 
@@ -1007,6 +1007,12 @@ nav li{
 
 }
 
+.mega-menu--wide{
+
+    width:min(980px, 92vw);
+
+}
+
 .mega-menu-inner--headed{
 
     display:grid;
@@ -1020,6 +1026,11 @@ nav li{
     overflow-y:auto;
 
     padding-right:20px;
+}
+
+.mega-menu-inner--4col{
+
+    grid-template-columns:repeat(4,1fr);
 }
 
 .mega-col--headed{
@@ -1599,7 +1610,7 @@ nav li{
 
     .brand-text h1{
 
-        font-size:1.1rem;
+        font-size:1.22rem;
     }
 
     .repository-text{
@@ -1609,8 +1620,8 @@ nav li{
 
     .brand-logo{
 
-        width:36px;
+        width:42px;
 
-        height:36px;
+        height:42px;
     }
 }
