@@ -197,6 +197,31 @@
 
 }
 
+/*=====================================================
+  LEGAL / POLICY PAGES
+  No stat-row beneath the intro, so the default hero/body
+  padding (tuned for chapter pages with a stat-row) leaves
+  excess empty space above the actual document content.
+======================================================*/
+
+body.legal-page .chapter-hero{
+
+    padding:48px 0 32px;
+
+}
+
+body.legal-page .chapter-hero-intro{
+
+    margin-bottom:0;
+
+}
+
+body.legal-page .chapter-body{
+
+    padding-top:32px;
+
+}
+
 .chapter-layout{
 
     display:grid;
@@ -330,6 +355,20 @@
     margin-bottom:18px;
 
     scroll-margin-top:100px;
+
+}
+
+body.legal-page .chapter-content section{
+
+    padding:0 0 32px;
+
+    margin-bottom:32px;
+
+}
+
+body.legal-page .chapter-content h2{
+
+    margin-bottom:10px;
 
 }
 
