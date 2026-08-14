@@ -67,6 +67,10 @@ function initializeAdaptiveNav(){
 
     const mobileQuery = window.matchMedia("(max-width:767px)");
 
+    // "More" is a permanent static category (Resources / Directory /
+    // FINTECHOISIS / Legal) now, not a hidden-until-needed overflow
+    // bucket, so it's excluded from the measured/overflow-able items
+    // but always counted in the width budget below.
     const originalItems = Array.from(list.children).filter(li => li !== moreItem);
 
     const getGapPx = (el) => {
@@ -76,9 +80,8 @@ function initializeAdaptiveNav(){
     };
 
     const restoreAll = () => {
-        originalItems.forEach(li => list.insertBefore(li, moreItem));
+        originalItems.forEach(li => { li.hidden = false; });
         moreList.innerHTML = "";
-        moreItem.hidden = true;
     };
 
     const recalc = () => {
@@ -114,20 +117,18 @@ function initializeAdaptiveNav(){
 
         const listGap = getGapPx(list);
 
-        moreItem.hidden = false;
-        moreItem.style.visibility = "hidden";
+        // moreItem is always rendered now, so its real width is always
+        // part of the budget (no more measure-then-hide dance).
         const moreWidth = moreItem.getBoundingClientRect().width;
-        moreItem.style.visibility = "";
-        moreItem.hidden = true;
 
         const widths = originalItems.map(li => li.getBoundingClientRect().width);
-        const totalWidth = widths.reduce((sum, w) => sum + w, 0) + listGap * Math.max(0, originalItems.length - 1);
+        const totalWidth = widths.reduce((sum, w) => sum + w, 0) + listGap * (originalItems.length - 1) + moreWidth + listGap;
 
         if(totalWidth <= available) return;
 
         let overflowCount = 0;
         let remainingWidth = totalWidth;
-        const budget = available - moreWidth - listGap;
+        const budget = available;
 
         while(overflowCount < originalItems.length && remainingWidth > budget){
             overflowCount++;
@@ -137,11 +138,24 @@ function initializeAdaptiveNav(){
 
         if(overflowCount === 0) return;
 
+        // Genuinely-overflowing categories are degraded to a simple link
+        // in the More panel's overflow shelf, rather than moved wholesale
+        // with their own nested mega-menu — keeps this rare edge case
+        // (very cramped desktop widths) simple and predictable.
         originalItems
             .slice(originalItems.length - overflowCount)
-            .forEach(li => moreList.appendChild(li));
-
-        moreItem.hidden = false;
+            .forEach(li => {
+                const trigger = li.querySelector(":scope > a");
+                if(!trigger) return;
+                const label = (trigger.textContent || "").trim();
+                li.hidden = true;
+                const shelfItem = document.createElement("li");
+                const shelfLink = document.createElement("a");
+                shelfLink.href = trigger.getAttribute("href") || "#";
+                shelfLink.textContent = label;
+                shelfItem.appendChild(shelfLink);
+                moreList.appendChild(shelfItem);
+            });
 
     };
 
