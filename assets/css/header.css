@@ -715,7 +715,364 @@ nav li{
     font-size:13.5px;
 }
 
+/*=====================================================
+GPIR INTELLIGENCE DETAIL PANEL
+
+Same overlay/panel language as the search modal (rounded white
+card, navy/gold palette) so this reads as part of one product,
+not a bolted-on news widget.
+======================================================*/
+
+.intel-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:1210;
+
+    display:flex;
+
+    align-items:flex-start;
+
+    justify-content:center;
+
+    padding:10vh 20px 20px;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:opacity .25s ease, visibility .25s ease;
+}
+
+.intel-overlay.is-open{
+
+    opacity:1;
+
+    visibility:visible;
+}
+
+.intel-overlay-backdrop{
+
+    position:absolute;
+
+    inset:0;
+
+    background:rgba(15,41,77,.45);
+
+    backdrop-filter:blur(2px);
+}
+
+.intel-panel{
+
+    position:relative;
+
+    width:min(600px, 100%);
+
+    max-height:80vh;
+
+    overflow-y:auto;
+
+    background:#ffffff;
+
+    border-radius:var(--radius-lg, 16px);
+
+    box-shadow:0 30px 70px rgba(15,41,77,.28);
+
+    padding:22px;
+
+    transform:translateY(-12px) scale(.98);
+
+    transition:transform .25s cubic-bezier(.16,1,.3,1);
+}
+
+.intel-overlay.is-open .intel-panel{
+
+    transform:translateY(0) scale(1);
+}
+
+.intel-panel-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:16px;
+}
+
+.intel-detail-meta{
+
+    display:flex;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-bottom:10px;
+
+    color:#8A94A6;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    letter-spacing:.03em;
+
+    text-transform:uppercase;
+}
+
+.intel-detail-flag{
+
+    display:inline-flex;
+
+    align-items:center;
+}
+
+.intel-detail-flag img{
+
+    width:18px;
+
+    height:auto;
+
+    border-radius:3px;
+}
+
+.intel-detail-flag svg{
+
+    width:16px;
+
+    height:16px;
+
+    color:var(--color-primary, #B8863B);
+}
+
+.intel-detail-title{
+
+    margin:0 0 12px;
+
+    color:#12325B;
+
+    font-size:22px;
+
+    font-weight:800;
+
+    line-height:1.3;
+}
+
+.intel-badges{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-bottom:16px;
+}
+
+.intel-badge{
+
+    padding:4px 11px;
+
+    border-radius:999px;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:.04em;
+
+    text-transform:uppercase;
+}
+
+.intel-badge--ok{
+
+    background:rgba(45,140,90,.12);
+
+    color:#1F7A4C;
+}
+
+.intel-badge--pending{
+
+    background:rgba(200,80,60,.12);
+
+    color:#B8402C;
+}
+
+.intel-badge--recency{
+
+    background:rgba(200,162,74,.14);
+
+    color:#8A6A1E;
+}
+
+.intel-summary{
+
+    margin:0 0 14px;
+
+    color:#33415C;
+
+    font-size:14.5px;
+
+    line-height:1.65;
+}
+
+.intel-why{
+
+    margin:0 0 16px;
+
+    padding:14px 16px;
+
+    border-radius:12px;
+
+    background:#F7F9FC;
+}
+
+.intel-why h4{
+
+    margin:0 0 6px;
+
+    color:#12325B;
+
+    font-size:12px;
+
+    font-weight:800;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+}
+
+.intel-why p{
+
+    margin:0;
+
+    color:#33415C;
+
+    font-size:14px;
+
+    line-height:1.6;
+}
+
+.intel-source-block{
+
+    margin-bottom:16px;
+
+    padding:14px 16px;
+
+    border:1px solid #E4E9F0;
+
+    border-radius:12px;
+}
+
+.intel-source-block--pending p{
+
+    margin:0;
+
+    color:#8A94A6;
+
+    font-size:13px;
+
+    line-height:1.6;
+}
+
+.intel-source-list{
+
+    display:grid;
+
+    grid-template-columns:auto 1fr;
+
+    gap:4px 12px;
+
+    margin:0 0 12px;
+
+    font-size:13px;
+}
+
+.intel-source-list dt{
+
+    color:#8A94A6;
+
+    font-weight:700;
+}
+
+.intel-source-list dd{
+
+    margin:0;
+
+    color:#12325B;
+
+    font-weight:600;
+
+    word-break:break-word;
+}
+
+.intel-source-link,
+.intel-gpir-link{
+
+    display:inline-block;
+
+    color:#0F294D;
+
+    font-size:13.5px;
+
+    font-weight:700;
+
+    text-decoration:none;
+
+    border-bottom:1.5px solid rgba(200,162,74,.5);
+
+    transition:border-color .18s ease, color .18s ease;
+}
+
+.intel-source-link:hover,
+.intel-gpir-link:hover{
+
+    color:#B8863B;
+
+    border-color:#B8863B;
+}
+
+.intel-gpir-link{
+
+    display:block;
+
+    margin-top:2px;
+}
+
+button.ticker-card{
+
+    border:1px solid rgba(255,255,255,.10);
+
+    cursor:pointer;
+
+    font:inherit;
+
+    text-align:left;
+
+    -webkit-appearance:none;
+
+    appearance:none;
+}
+
 @media (max-width:560px){
+
+    .intel-panel{
+
+        padding:16px;
+
+        max-height:85vh;
+    }
+
+    .intel-overlay{
+
+        padding:6vh 12px 12px;
+    }
 
     .search-panel{
 
