@@ -1045,6 +1045,211 @@ not a bolted-on news widget.
     margin-top:2px;
 }
 
+/*=====================================================
+TRUST / SOURCE VERIFICATION LAYER
+======================================================*/
+
+.intel-badge--warning{
+
+    background:rgba(230,140,20,.14);
+
+    color:#9A5B00;
+}
+
+.intel-badge--blocked{
+
+    background:rgba(200,50,50,.14);
+
+    color:#B01F1F;
+}
+
+.intel-badge--confidence,
+.intel-badge--content{
+
+    background:#F1F3F7;
+
+    color:#5A6579;
+}
+
+.intel-summary-heading{
+
+    margin:0 0 4px;
+
+    color:#8A94A6;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+}
+
+.intel-source-block--warning{
+
+    border-color:rgba(230,140,20,.4);
+
+    background:rgba(230,140,20,.06);
+}
+
+.intel-source-block--blocked{
+
+    border-color:rgba(200,50,50,.35);
+
+    background:rgba(200,50,50,.06);
+}
+
+.intel-security-notice{
+
+    margin:0 0 10px;
+
+    color:#7A4C00;
+
+    font-size:13px;
+
+    line-height:1.55;
+}
+
+.intel-source-block--blocked p{
+
+    margin:0;
+
+    color:#8A2A2A;
+
+    font-size:13px;
+
+    line-height:1.55;
+}
+
+.intel-reveal-source{
+
+    padding:8px 14px;
+
+    border:1.5px solid rgba(230,140,20,.5);
+
+    border-radius:8px;
+
+    background:transparent;
+
+    color:#9A5B00;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:background .18s ease;
+}
+
+.intel-reveal-source:hover{
+
+    background:rgba(230,140,20,.12);
+}
+
+.intel-source-block--warning code{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    padding:6px 8px;
+
+    border-radius:6px;
+
+    background:#FFF6E8;
+
+    color:#7A4C00;
+
+    font-size:12px;
+
+    word-break:break-all;
+}
+
+.intel-report-block{
+
+    margin-top:14px;
+}
+
+.intel-report-toggle{
+
+    padding:0;
+
+    border:none;
+
+    background:transparent;
+
+    color:#8A94A6;
+
+    font-size:12.5px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    text-decoration:underline;
+
+    text-underline-offset:2px;
+}
+
+.intel-report-toggle:hover{
+
+    color:#12325B;
+}
+
+.intel-report-options{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin-top:10px;
+}
+
+.intel-report-reason{
+
+    padding:5px 11px;
+
+    border:1px solid #E4E9F0;
+
+    border-radius:999px;
+
+    color:#33415C;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    text-decoration:none;
+
+    transition:background .18s ease, border-color .18s ease;
+}
+
+.intel-report-reason:hover{
+
+    background:#F7F9FC;
+
+    border-color:#C8A24A;
+}
+
+.intel-disclaimer{
+
+    margin:16px 0 0;
+
+    padding-top:12px;
+
+    border-top:1px solid #E4E9F0;
+
+    color:#A0AAB8;
+
+    font-size:11px;
+
+    line-height:1.6;
+}
+
 button.ticker-card{
 
     border:1px solid rgba(255,255,255,.10);

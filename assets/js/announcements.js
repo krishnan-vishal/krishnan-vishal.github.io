@@ -1,19 +1,30 @@
 /*=====================================================
   GPIR GLOBAL ANNOUNCEMENTS — REAL-TIME INTELLIGENCE ENGINE
+  + TRUST / SOURCE VERIFICATION LAYER
 
   Renders the Global Announcements ticker from a structured JSON
   record set (assets/data/announcements.json), and turns each
   ticker item into a source-linked GPIR intelligence record: a
   detail panel showing category, country, summary, "why it
   matters", full source attribution and two actions — Read
-  Original Source (opens the real publisher, new tab) and
-  Explore Related GPIR Intelligence (navigates to the mapped
-  GPIR chapter, only where a genuine mapping exists).
+  Original Source (opens the real publisher, new tab, only for
+  a domain-verified source) and Explore Related GPIR Intelligence
+  (navigates to the mapped GPIR chapter, only where a genuine
+  mapping exists).
 
-  Governance: a record's source is never fabricated. Records
-  without a reliably identified primary source are ingested with
-  status SOURCE_VERIFICATION_REQUIRED and render with no source
-  link and no GPIR mapping button — see assets/data/announcements.json.
+  Every record's source is passed through assets/js/trust-engine.js
+  at render time: SOURCE TRUST (does the cited URL genuinely belong
+  to the claimed organization) and CONTENT STATUS (has GPIR reviewed
+  the summarised content) are tracked as two separate axes rather
+  than one blended "trusted" flag — a verified source does not by
+  itself make the record's content beyond question.
+
+  Governance: a record's source is never fabricated, and a source
+  link is never rendered as directly clickable unless the trust
+  engine resolves it to SOURCE_VERIFIED. Records without a reliably
+  identified primary source, or whose editorial status is not yet
+  GPIR_CLASSIFIED, do not reach the public ticker — see
+  assets/data/announcements.json.
 ======================================================*/
 
 (function(){
@@ -67,13 +78,20 @@
         return "ARCHIVED";
     }
 
-    // Only source-validated records reach the live ticker. Records still
-    // pending verification (status SOURCE_VERIFICATION_REQUIRED) stay in
-    // the data set — retained per section 27's governance rule rather
-    // than deleted — but are not published to the public-facing feed.
-    // They remain reachable via getRecordById() for internal review.
+    function evaluateTrust(record){
+        if(window.GPIRTrustEngine) return window.GPIRTrustEngine.evaluateSource(record);
+        return { sourceStatus: "SOURCE_REQUIRES_VERIFICATION", confidence: "UNVERIFIED", reasons: ["TRUST_ENGINE_UNAVAILABLE"] };
+    }
+
+    // Only editorially-classified records (GPIR_CLASSIFIED — GPIR found
+    // and reviewed a real primary source) reach the live ticker, and a
+    // record the trust engine resolves to SOURCE_BLOCKED is withheld
+    // even if it was previously classified, as a fail-safe.
     function publishedRecords(){
-        return records.filter(r => r.status !== "SOURCE_VERIFICATION_REQUIRED");
+        return records.filter(r => {
+            if(r.status !== "GPIR_CLASSIFIED") return false;
+            return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
+        });
     }
 
     function renderTicker(){
@@ -102,46 +120,89 @@
 
     }
 
-    function statusLabel(status){
-        const map = {
-            GPIR_CLASSIFIED: "GPIR Classified",
-            SOURCE_VERIFICATION_REQUIRED: "Source Verification Required",
-            NEW: "New",
-            SOURCE_VERIFIED: "Source Verified",
-            PUBLISHED: "Published",
-            UPDATED: "Updated",
-            ARCHIVED: "Archived"
-        };
-        return map[status] || status;
-    }
+    const SOURCE_STATUS_META = {
+        SOURCE_VERIFIED:              { icon: "✓", label: "Source Verified",              cls: "ok" },
+        SOURCE_REQUIRES_VERIFICATION: { icon: "◷", label: "Source Requires Verification",  cls: "pending" },
+        SOURCE_WARNING:                { icon: "⚠", label: "Source Warning",                cls: "warning" },
+        SOURCE_BLOCKED:                { icon: "⛔", label: "Source Blocked",               cls: "blocked" }
+    };
 
-    function buildDetailMarkup(record){
+    const CONTENT_STATUS_META = {
+        CONTENT_VERIFIED:     "Content: Reviewed by GPIR",
+        CONTENT_UNDER_REVIEW: "Content: Under Review"
+    };
 
-        const verified = record.status !== "SOURCE_VERIFICATION_REQUIRED";
-        const recency = recencyStatus(record.publishedDate);
+    const REPORT_REASONS = [
+        "Suspicious link",
+        "Possible scam",
+        "Incorrect source",
+        "Misleading information",
+        "Broken link",
+        "Duplicate",
+        "Other"
+    ];
 
-        const badges = `
-            <span class="intel-badge intel-badge--status intel-badge--${verified ? "ok" : "pending"}">${escapeHtml(statusLabel(record.status))}</span>
-            ${recency ? `<span class="intel-badge intel-badge--recency">${recency}</span>` : ""}
-        `;
+    function buildSourceBlock(record, trust){
 
-        const sourceBlock = verified && record.source ? `
-            <div class="intel-source-block">
-                <dl class="intel-source-list">
-                    <dt>Source</dt><dd>${escapeHtml(record.source.name)}</dd>
-                    <dt>Publication</dt><dd>${escapeHtml(record.source.publicationTitle)}</dd>
-                    <dt>Published</dt><dd>${escapeHtml(formatDate(record.publishedDate))}</dd>
-                    <dt>Retrieved</dt><dd>${escapeHtml(formatDate(record.retrievedDate))}</dd>
-                </dl>
-                <a class="intel-source-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Read Original Source →</a>
-            </div>
-        ` : `
+        if(trust.sourceStatus === "SOURCE_VERIFIED"){
+            return `
+                <div class="intel-source-block">
+                    <dl class="intel-source-list">
+                        <dt>Source</dt><dd>${escapeHtml(record.source.name)}</dd>
+                        <dt>Publication</dt><dd>${escapeHtml(record.source.publicationTitle)}</dd>
+                        <dt>Published</dt><dd>${escapeHtml(formatDate(record.publishedDate))}</dd>
+                        <dt>Retrieved</dt><dd>${escapeHtml(formatDate(record.retrievedDate))}</dd>
+                    </dl>
+                    <a class="intel-source-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Read Original Source →</a>
+                </div>
+            `;
+        }
+
+        if(trust.sourceStatus === "SOURCE_WARNING"){
+            return `
+                <div class="intel-source-block intel-source-block--warning">
+                    <p class="intel-security-notice"><strong>Security Notice:</strong> GPIR could not confirm this link's destination matches the declared source (${escapeHtml((trust.reasons || []).join(", ").replace(/_/g," ").toLowerCase() || "unspecified")}). Please proceed only if you trust the destination.</p>
+                    <button type="button" class="intel-reveal-source" data-record-id="${escapeHtml(record.id)}">Continue at your own risk →</button>
+                </div>
+            `;
+        }
+
+        if(trust.sourceStatus === "SOURCE_BLOCKED"){
+            return `
+                <div class="intel-source-block intel-source-block--blocked">
+                    <p><strong>Source Link Blocked.</strong> GPIR has withheld this link because it was classified as a confirmed high-risk destination. No continue option is offered from GPIR for this source.</p>
+                </div>
+            `;
+        }
+
+        return `
             <div class="intel-source-block intel-source-block--pending">
                 <p>A single authoritative primary source with a verifiable publication date has not yet been confirmed for this item. GPIR does not publish an original-source link until source verification is complete.</p>
             </div>
         `;
 
-        const summaryBlock = record.summary ? `<p class="intel-summary">${escapeHtml(record.summary)}</p>` : "";
+    }
+
+    function buildDetailMarkup(record){
+
+        const trust = evaluateTrust(record);
+        const statusMeta = SOURCE_STATUS_META[trust.sourceStatus] || SOURCE_STATUS_META.SOURCE_REQUIRES_VERIFICATION;
+        const recency = recencyStatus(record.publishedDate);
+
+        const badges = `
+            <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
+            <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
+            <span class="intel-badge intel-badge--content">${escapeHtml(CONTENT_STATUS_META[record.contentStatus] || "Content: Under Review")}</span>
+            ${recency ? `<span class="intel-badge intel-badge--recency">${recency}</span>` : ""}
+        `;
+
+        const sourceBlock = buildSourceBlock(record, trust);
+
+        const summaryBlock = record.summary ? `
+            <h4 class="intel-summary-heading">GPIR Summary</h4>
+            <p class="intel-summary">${escapeHtml(record.summary)}</p>
+        ` : "";
+
         const whyBlock = record.whyItMatters ? `
             <div class="intel-why">
                 <h4>Why It Matters</h4>
@@ -152,6 +213,15 @@
         const gpirButton = record.gpirMapping ? `
             <a class="intel-gpir-link" href="${escapeHtml(record.gpirMapping.href)}">Explore Related GPIR Intelligence →</a>
         ` : "";
+
+        const reportBlock = `
+            <div class="intel-report-block">
+                <button type="button" class="intel-report-toggle" data-record-id="${escapeHtml(record.id)}">Report This Source →</button>
+                <div class="intel-report-options" id="intel-report-options" hidden>
+                    ${REPORT_REASONS.map(reason => `<a class="intel-report-reason" href="${window.GPIRTrustEngine ? escapeHtml(window.GPIRTrustEngine.buildReportMailto(record, reason)) : "#"}">${escapeHtml(reason)}</a>`).join("")}
+                </div>
+            </div>
+        `;
 
         return `
             <div class="intel-detail-meta">
@@ -165,7 +235,37 @@
             ${whyBlock}
             ${sourceBlock}
             ${gpirButton}
+            ${reportBlock}
+            <p class="intel-disclaimer">GPIR checks source domains against a maintained registry and basic domain-pattern checks — this is a source-verification status, not a guarantee of safety. Always use judgment before entering any information on an external site. GPIR will never ask you for passwords, OTPs, card details or wallet credentials.</p>
         `;
+
+    }
+
+    function wireDetailInteractions(record){
+
+        const body = document.getElementById("intel-panel-body");
+
+        if(!body) return;
+
+        const revealBtn = body.querySelector(".intel-reveal-source");
+        if(revealBtn){
+            revealBtn.addEventListener("click", () => {
+                const trust = evaluateTrust(record);
+                const block = revealBtn.closest(".intel-source-block");
+                block.innerHTML = `
+                    <p class="intel-security-notice">Destination: <code>${escapeHtml(record.source.url)}</code></p>
+                    <a class="intel-source-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Open this link anyway →</a>
+                `;
+            });
+        }
+
+        const reportToggle = body.querySelector(".intel-report-toggle");
+        if(reportToggle){
+            reportToggle.addEventListener("click", () => {
+                const options = body.querySelector(".intel-report-options");
+                if(options) options.hidden = !options.hidden;
+            });
+        }
 
     }
 
@@ -181,6 +281,7 @@
         if(!overlay || !body) return;
 
         body.innerHTML = buildDetailMarkup(record);
+        wireDetailInteractions(record);
 
         const searchOverlay = document.getElementById("search-overlay");
         if(searchOverlay) searchOverlay.classList.remove("is-open");
@@ -223,24 +324,28 @@
 
     function load(){
 
-        return fetch(DATA_URL)
+        const dataReady = fetch(DATA_URL)
             .then(r => { if(!r.ok) throw new Error("announcements fetch failed"); return r.json(); })
             .then(data => {
-
                 records = (data.records || []).filter(r => r && r.id);
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
-
-                renderTicker();
-                initializeDetailPanel();
-
-                document.dispatchEvent(new CustomEvent("gpir:announcementsready", { detail: { records } }));
-
             })
             .catch(() => {
                 // A failed feed must not break the rest of the page — the ticker
                 // section simply stays empty rather than showing broken content.
             });
+
+        const trustReady = window.GPIRTrustEngine ? window.GPIRTrustEngine.ready : Promise.resolve();
+
+        return Promise.all([dataReady, trustReady]).then(() => {
+
+            renderTicker();
+            initializeDetailPanel();
+
+            document.dispatchEvent(new CustomEvent("gpir:announcementsready", { detail: { records: publishedRecords() } }));
+
+        });
 
     }
 
@@ -249,7 +354,8 @@
         closeDetail,
         getRecords: () => publishedRecords(),
         getAllRecords: () => records.slice(),
-        getRecordById: (id) => recordsById[id] || null
+        getRecordById: (id) => recordsById[id] || null,
+        evaluateTrust
     };
 
     if(document.readyState === "loading"){

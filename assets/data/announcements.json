@@ -14,6 +14,14 @@
       "eventType": "Regulation",
       "publishedDate": "2026-06-16",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "cbuae",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Central Bank of the UAE (CBUAE)",
         "tier": 1,
@@ -42,6 +50,14 @@
       "eventType": "Licensing",
       "publishedDate": "2026-07-22",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "spa-gov-sa",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Saudi Press Agency (SPA), reporting a Saudi Central Bank (SAMA) licensing decision",
         "tier": 2,
@@ -70,6 +86,14 @@
       "eventType": "Market Development",
       "publishedDate": "2026-07-30",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "newsonair-gov-in",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Maldives Monetary Authority (MMA), reported via India's official press service",
         "tier": 2,
@@ -98,6 +122,14 @@
       "eventType": "Policy Framework",
       "publishedDate": "2026-03-27",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "rbi",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Reserve Bank of India (RBI)",
         "tier": 1,
@@ -126,6 +158,14 @@
       "eventType": "Consultation",
       "publishedDate": "2026-06-25",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "mas-sg",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Monetary Authority of Singapore (MAS) and Association of Banks in Singapore (ABS)",
         "tier": 1,
@@ -154,6 +194,14 @@
       "eventType": "Product Launch",
       "publishedDate": "2026-03",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "swift",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Swift",
         "tier": 2,
@@ -182,6 +230,14 @@
       "eventType": "Product Expansion",
       "publishedDate": "2026-06-03",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "mastercard",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Mastercard",
         "tier": 2,
@@ -210,6 +266,14 @@
       "eventType": "Acquisition",
       "publishedDate": "2026-08",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "mastercard",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Mastercard",
         "tier": 2,
@@ -238,6 +302,14 @@
       "eventType": "Public Consultation",
       "publishedDate": "2026-06",
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": "fatf",
+      "contentStatus": "CONTENT_VERIFIED",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": "2026-08-14",
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": {
         "name": "Financial Action Task Force (FATF)",
         "tier": 1,
@@ -266,6 +338,14 @@
       "eventType": null,
       "publishedDate": null,
       "retrievedDate": "2026-08-14",
+      "sourceOrgId": null,
+      "contentStatus": "CONTENT_UNDER_REVIEW",
+      "audit": {
+        "discoveredDate": "2026-08-14",
+        "sourceVerifiedDate": null,
+        "lastVerifiedDate": "2026-08-14",
+        "correctionHistory": []
+      },
       "source": null,
       "summary": "GPIR's discovery layer identified reported activity relating to Qatar Central Bank cross-border settlement and open banking interoperability initiatives, but a single authoritative primary source with a verifiable publication date could not be confirmed at time of review.",
       "whyItMatters": null,

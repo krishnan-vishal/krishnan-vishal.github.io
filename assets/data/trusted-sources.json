@@ -1,0 +1,77 @@
+{
+  "schemaNote": "GPIR Trusted Source Registry. A small, hand-maintained allowlist of organizations whose official domain(s) GPIR has verified. Used by assets/js/trust-engine.js to confirm that an intelligence record's cited source URL actually resolves to the domain of the organization it claims to be. This is NOT a connected threat-intelligence or malware-scanning service — it is a static registry plus basic lookalike-domain heuristics, and it only covers organizations GPIR has manually reviewed. An organization's absence from this registry does not mean it is untrustworthy; it means GPIR has not yet verified its domain, and any record citing it is held at SOURCE_REQUIRES_VERIFICATION until it is added here.",
+  "registry": [
+    {
+      "id": "cbuae",
+      "organization": "Central Bank of the UAE (CBUAE)",
+      "officialDomains": ["centralbank.ae"],
+      "country": "United Arab Emirates",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "spa-gov-sa",
+      "organization": "Saudi Press Agency (SPA)",
+      "officialDomains": ["spa.gov.sa"],
+      "country": "Saudi Arabia",
+      "tier": 2,
+      "sourceType": "Official Government News Agency",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "newsonair-gov-in",
+      "organization": "NewsOnAir (Government of India / Prasar Bharati)",
+      "officialDomains": ["newsonair.gov.in"],
+      "country": "India",
+      "tier": 2,
+      "sourceType": "Official Government News Agency",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "rbi",
+      "organization": "Reserve Bank of India (RBI)",
+      "officialDomains": ["rbi.org.in", "rbidocs.rbi.org.in"],
+      "country": "India",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "mas-sg",
+      "organization": "Monetary Authority of Singapore (MAS)",
+      "officialDomains": ["mas.gov.sg"],
+      "country": "Singapore",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "swift",
+      "organization": "Swift",
+      "officialDomains": ["swift.com"],
+      "country": "Global",
+      "tier": 2,
+      "sourceType": "Payment Network",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "mastercard",
+      "organization": "Mastercard",
+      "officialDomains": ["mastercard.com"],
+      "country": "Global",
+      "tier": 2,
+      "sourceType": "Payment Network",
+      "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "fatf",
+      "organization": "Financial Action Task Force (FATF)",
+      "officialDomains": ["fatf-gafi.org"],
+      "country": "Global",
+      "tier": 1,
+      "sourceType": "International Standard-Setting Body",
+      "lastVerifiedDate": "2026-08-14"
+    }
+  ]
+}
