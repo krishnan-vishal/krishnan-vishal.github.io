@@ -284,6 +284,17 @@
     font-size:.85rem;
 }
 
+.footer-location .flag-icon{
+
+    width:16px;
+
+    height:auto;
+
+    border-radius:2px;
+
+    flex-shrink:0;
+}
+
 .footer-divider{
 
     height:1px;

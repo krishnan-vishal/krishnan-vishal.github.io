@@ -293,6 +293,19 @@ ANNOUNCEMENT CARDS
     line-height:1;
 
     flex-shrink:0;
+
+    display:inline-flex;
+
+    align-items:center;
+}
+
+.ticker-flag .flag-icon{
+
+    width:22px;
+
+    height:auto;
+
+    border-radius:3px;
 }
 
 .icon-globe{
