@@ -862,11 +862,15 @@ function initializeSearch(){
 
         if(!items.length){
 
+            const hintNone = window.GPIRI18n ? window.GPIRI18n.t("search.hint_none") : "No matches for “{query}” — try a market, payment rail or chapter title.";
+
+            const hintType = window.GPIRI18n ? window.GPIRI18n.t("search.hint_type") : "Start typing to jump to a chapter, market or intelligence section.";
+
             resultsEl.innerHTML = query
 
-                ? `<p class="search-empty">No matches for “${escapeHtml(query)}” — try a market, payment rail or chapter title.</p>`
+                ? `<p class="search-empty">${hintNone.replace("{query}", escapeHtml(query))}</p>`
 
-                : `<p class="search-hint">Start typing to jump to a chapter, market or intelligence section.</p>`;
+                : `<p class="search-hint">${hintType}</p>`;
 
             return;
 

@@ -1,6 +1,7 @@
 /*=====================================================
   FOOTER UTILITIES
-  Currency + Language preference controls.
+  Currency preference control. Language is handled by
+  assets/js/i18n.js — this file just wires the <select> to it.
 ======================================================*/
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,14 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeLanguageSelect();
 
 });
-
-const LANGUAGE_NAMES = {
-    en: "English", zh: "中文", hi: "हिन्दी", es: "Español", fr: "Français",
-    ar: "العربية", bn: "বাংলা", pt: "Português", ru: "Русский", ur: "اردو",
-    id: "Bahasa Indonesia", de: "Deutsch", ja: "日本語", it: "Italiano", mr: "मराठी"
-};
-
-const RTL_LANGUAGES = ["ar", "ur"];
 
 function initializeCurrencySelect(){
 
@@ -53,60 +46,22 @@ function initializeLanguageSelect(){
 
     const select = document.getElementById("footer-language-select");
 
-    const notice = document.getElementById("footer-language-notice");
-
     if(!select) return;
 
-    let stored = "en";
+    const applyStoredValue = () => {
+        if(window.GPIRI18n) select.value = window.GPIRI18n.currentLanguage();
+    };
 
-    try{
-        stored = localStorage.getItem("gpir-language") || "en";
-    } catch(e){}
-
-    select.value = stored;
-
-    applyLanguagePreference(stored, notice);
+    applyStoredValue();
 
     select.addEventListener("change", () => {
-
-        const code = select.value;
-
-        try{
-            localStorage.setItem("gpir-language", code);
-        } catch(e){}
-
-        applyLanguagePreference(code, notice);
-
+        if(window.GPIRI18n) window.GPIRI18n.setLanguage(select.value);
     });
 
-}
-
-function applyLanguagePreference(code, notice){
-
-    const isRtl = RTL_LANGUAGES.indexOf(code) !== -1;
-
-    document.documentElement.setAttribute("lang", code);
-
-    document.documentElement.setAttribute("dir", isRtl ? "rtl" : "ltr");
-
-    if(!notice) return;
-
-    if(code === "en"){
-
-        notice.hidden = true;
-        notice.textContent = "";
-
-    } else {
-
-        const name = LANGUAGE_NAMES[code] || code;
-
-        notice.hidden = false;
-
-        notice.textContent =
-            `GPIR is currently displayed in English. Full ${name} translation ` +
-            `of research content is in development — your preference is saved ` +
-            `and interface labels will switch automatically once it's ready.`;
-
-    }
+    // If i18n.js finishes its own async init after this ran, or another
+    // tab changes the language, keep the dropdown in sync.
+    document.addEventListener("gpir:languagechange", (e) => {
+        if(e.detail && e.detail.lang) select.value = e.detail.lang;
+    });
 
 }

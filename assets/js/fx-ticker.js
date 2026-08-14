@@ -42,6 +42,11 @@ function initializeFxTicker(){
 
     setInterval(loadRates, 60000);
 
+    // Re-render immediately on a language change so the "Last Updated" /
+    // error label reflects the new language without waiting for the
+    // next scheduled refresh.
+    document.addEventListener("gpir:languagechange", loadRates);
+
 }
 
 function setFxBaseCurrency(code){
@@ -91,8 +96,9 @@ async function loadRates(){
 
         if(updated){
 
+            const label = window.GPIRI18n ? window.GPIRI18n.t("ticker.last_updated") : "Last Updated";
             updated.textContent =
-                "Last Updated: " + new Date().toLocaleTimeString();
+                label + ": " + new Date().toLocaleTimeString();
 
         }
 
@@ -100,8 +106,9 @@ async function loadRates(){
 
         console.error(err);
 
+        const unableText = window.GPIRI18n ? window.GPIRI18n.t("ticker.unable_to_load") : "Unable to load exchange rates.";
         track.innerHTML =
-            "<span class=\"ticker-item\">Unable to load exchange rates.</span>";
+            `<span class="ticker-item">${unableText}</span>`;
 
         if(updated){
 
