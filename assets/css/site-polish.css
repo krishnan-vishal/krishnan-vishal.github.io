@@ -273,6 +273,21 @@ section {
     color: #8d6418;
 }
 
+.dashboard-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+}
+
+.dashboard-link-secondary {
+    color: var(--hero-navy);
+}
+
+.dashboard-link-secondary:hover {
+    color: #a97920;
+}
+
 
 /* =========================================================
    11. GOLD CTA
