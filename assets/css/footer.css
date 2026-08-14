@@ -504,5 +504,399 @@
 }
 
 /*=====================================================
+  FOOTER UTILITY LAYER
+  Platform metrics + Personal Intelligence + Global Utilities.
+  Sits between the nav-column grid and the legal row.
+======================================================*/
+
+.footer-utility{
+
+    padding-top:36px;
+
+    margin-top:36px;
+
+    border-top:1px solid var(--hero-light-border);
+}
+
+.footer-utility-divider{
+
+    height:1px;
+
+    margin:26px 0;
+
+    background:var(--hero-light-border);
+}
+
+.footer-utility-label{
+
+    display:block;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:1.5px;
+
+    text-transform:uppercase;
+
+    color:#8A94A6;
+
+    margin-bottom:16px;
+}
+
+/* --- Row 1: Visitors | Identity | Followers --- */
+
+.footer-metrics-row{
+
+    display:grid;
+
+    grid-template-columns:1fr auto 1fr;
+
+    align-items:center;
+
+    gap:24px;
+
+    text-align:center;
+}
+
+.footer-metric{
+
+    opacity:0;
+
+    animation:footerMetricReveal .6s ease forwards;
+}
+
+.footer-metric:nth-child(3){
+    animation-delay:.1s;
+}
+
+@keyframes footerMetricReveal{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .footer-metric{
+        opacity:1;
+        animation:none;
+    }
+}
+
+.footer-metric-label{
+
+    display:block;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:1.5px;
+
+    text-transform:uppercase;
+
+    color:#8A94A6;
+
+    margin-bottom:6px;
+}
+
+.footer-metric-value{
+
+    display:block;
+
+    font-family:var(--font-editorial);
+
+    font-size:24px;
+
+    font-weight:700;
+
+    color:var(--hero-navy);
+
+    line-height:1.2;
+}
+
+.footer-metric-desc{
+
+    display:block;
+
+    font-size:12px;
+
+    color:#8A94A6;
+
+    margin-top:4px;
+}
+
+.footer-identity{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    gap:5px;
+
+    padding:0 20px;
+
+    border-left:1px solid var(--hero-light-border);
+
+    border-right:1px solid var(--hero-light-border);
+}
+
+.footer-identity-name{
+
+    font-size:13px;
+
+    font-weight:800;
+
+    letter-spacing:.06em;
+
+    color:var(--hero-navy);
+
+    text-transform:uppercase;
+}
+
+.footer-identity-desc{
+
+    font-size:11.5px;
+
+    color:#8A94A6;
+
+    max-width:220px;
+}
+
+.footer-identity-flag{
+
+    margin-top:4px;
+}
+
+.footer-identity-flag .flag-icon{
+
+    width:18px;
+
+    height:auto;
+
+    border-radius:2px;
+
+    display:block;
+}
+
+/* --- Row 2: Personal Intelligence --- */
+
+.footer-personal-row{
+
+    text-align:center;
+}
+
+.footer-personal-links{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:28px;
+
+    flex-wrap:wrap;
+}
+
+.footer-personal-links a{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    text-decoration:none;
+
+    color:var(--hero-navy);
+
+    font-size:13.5px;
+
+    font-weight:600;
+
+    transition:color var(--transition);
+}
+
+.footer-personal-links a svg{
+
+    width:16px;
+
+    height:16px;
+
+    flex-shrink:0;
+
+    color:#8A94A6;
+
+    transition:color var(--transition);
+}
+
+.footer-personal-links a:hover{
+
+    color:var(--hero-gold);
+}
+
+.footer-personal-links a:hover svg{
+
+    color:var(--hero-gold);
+}
+
+/* --- Row 3: Global Utilities --- */
+
+.footer-global-row{
+
+    text-align:center;
+}
+
+.footer-utility-controls{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:16px;
+
+    flex-wrap:wrap;
+}
+
+.footer-select{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+}
+
+.footer-select-label{
+
+    font-size:12px;
+
+    font-weight:600;
+
+    color:#8A94A6;
+}
+
+.footer-select-input{
+
+    appearance:none;
+
+    -webkit-appearance:none;
+
+    background:#ffffff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%2312325B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 10px center;
+
+    background-size:13px;
+
+    border:1px solid var(--hero-light-border);
+
+    border-radius:8px;
+
+    padding:8px 30px 8px 12px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:var(--hero-navy);
+
+    cursor:pointer;
+
+    transition:border-color var(--transition);
+}
+
+.footer-select-input:hover{
+
+    border-color:var(--hero-gold);
+}
+
+.footer-select-input:focus-visible{
+
+    outline:2px solid var(--hero-gold);
+
+    outline-offset:2px;
+}
+
+.footer-language-notice{
+
+    margin-top:14px;
+
+    font-size:12px;
+
+    color:#8A94A6;
+
+    max-width:480px;
+
+    margin-left:auto;
+
+    margin-right:auto;
+}
+
+.footer-language-notice[hidden]{
+
+    display:none;
+}
+
+@media (max-width:767px){
+
+    .footer-metrics-row{
+
+        grid-template-columns:1fr;
+
+        gap:20px;
+    }
+
+    .footer-identity{
+
+        border-left:none;
+
+        border-right:none;
+
+        border-top:1px solid var(--hero-light-border);
+
+        border-bottom:1px solid var(--hero-light-border);
+
+        padding:20px 0;
+    }
+
+    .footer-personal-links{
+
+        flex-direction:column;
+
+        gap:14px;
+    }
+
+    .footer-utility-controls{
+
+        flex-direction:column;
+
+        align-items:stretch;
+
+        gap:12px;
+    }
+
+    .footer-select{
+
+        justify-content:space-between;
+    }
+
+    .footer-select-input{
+
+        flex:1;
+    }
+}
+
+/* --- RTL layout (Arabic / Urdu) --- */
+
+[dir="rtl"] .footer-select-input{
+
+    background-position:left 10px center;
+
+    padding:8px 12px 8px 30px;
+}
+
+/*=====================================================
   END OF FOOTER.CSS
 ======================================================*/

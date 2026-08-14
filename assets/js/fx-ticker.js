@@ -15,10 +15,22 @@ document.addEventListener("DOMContentLoaded", () => {
 ======================================================*/
 
 const currencies = [
-    "EUR","GBP","INR","BDT","PKR","AED","SAR","KWD",
+    "USD","EUR","GBP","INR","BDT","PKR","AED","SAR","KWD",
     "QAR","BHD","OMR","JPY","SGD","MYR","THB","CNY",
     "KRW","AUD","CAD","CHF","ZAR","NGN","MXN","BRL"
 ];
+
+// Base currency the ticker displays pairs against. A footer utility
+// (Currency selector) can change this via setFxBaseCurrency(); it's a
+// genuine re-fetch against the same live API, not a fabricated
+// conversion of already-displayed values.
+let fxBaseCurrency = (function(){
+    try{
+        return localStorage.getItem("gpir-currency") || "USD";
+    } catch(e){
+        return "USD";
+    }
+})();
 
 function initializeFxTicker(){
 
@@ -32,6 +44,16 @@ function initializeFxTicker(){
 
 }
 
+function setFxBaseCurrency(code){
+
+    if(!code || code === fxBaseCurrency) return;
+
+    fxBaseCurrency = code;
+
+    loadRates();
+
+}
+
 async function loadRates(){
 
     const track = document.getElementById("fxTicker");
@@ -42,7 +64,7 @@ async function loadRates(){
 
     try{
 
-        const response = await fetch("https://open.er-api.com/v6/latest/USD");
+        const response = await fetch(`https://open.er-api.com/v6/latest/${fxBaseCurrency}`);
 
         const data = await response.json();
 
@@ -50,11 +72,13 @@ async function loadRates(){
 
         for(const code of currencies){
 
+            if(code === fxBaseCurrency) continue;
+
             html += `
 
                 <span class="ticker-item">
 
-                    <span class="pair">USD/${code}</span>
+                    <span class="pair">${fxBaseCurrency}/${code}</span>
                     <span class="rate">${data.rates[code].toFixed(4)}</span>
                     <span class="separator">│</span>
 
