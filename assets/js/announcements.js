@@ -67,17 +67,24 @@
         return "ARCHIVED";
     }
 
+    // Only source-validated records reach the live ticker. Records still
+    // pending verification (status SOURCE_VERIFICATION_REQUIRED) stay in
+    // the data set — retained per section 27's governance rule rather
+    // than deleted — but are not published to the public-facing feed.
+    // They remain reachable via getRecordById() for internal review.
+    function publishedRecords(){
+        return records.filter(r => r.status !== "SOURCE_VERIFICATION_REQUIRED");
+    }
+
     function renderTicker(){
 
         const track = document.getElementById("announcementTicker");
 
         if(!track) return;
 
-        track.innerHTML = records.map(record => {
+        track.innerHTML = publishedRecords().map(record => {
 
-            const tag = record.status === "SOURCE_VERIFICATION_REQUIRED"
-                ? "Verification Pending"
-                : (record.category || "").split(" / ")[0];
+            const tag = (record.category || "").split(" / ")[0];
 
             return `<button type="button" class="ticker-card" data-intel-id="${escapeHtml(record.id)}">
                 <span class="ticker-flag">${flagMarkup(record)}</span>
@@ -240,7 +247,8 @@
     window.GPIRAnnouncements = {
         openDetail,
         closeDetail,
-        getRecords: () => records.slice(),
+        getRecords: () => publishedRecords(),
+        getAllRecords: () => records.slice(),
         getRecordById: (id) => recordsById[id] || null
     };
 
