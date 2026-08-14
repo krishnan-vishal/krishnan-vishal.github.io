@@ -1250,6 +1250,93 @@ TRUST / SOURCE VERIFICATION LAYER
     line-height:1.6;
 }
 
+.intel-related{
+
+    margin-top:16px;
+
+    padding-top:14px;
+
+    border-top:1px solid #E4E9F0;
+}
+
+.intel-related h4{
+
+    margin:0 0 8px;
+
+    color:#8A94A6;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+}
+
+.intel-related-list{
+
+    list-style:none;
+
+    margin:0;
+
+    padding:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+}
+
+.intel-related-item{
+
+    display:block;
+
+    width:100%;
+
+    padding:8px 10px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:transparent;
+
+    color:#33415C;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    text-align:left;
+
+    cursor:pointer;
+
+    transition:background .18s ease;
+}
+
+.intel-related-item:hover{
+
+    background:#F7F9FC;
+
+    color:#12325B;
+}
+
+.ticker-tag--suspension{
+
+    background:rgba(200,50,50,.16) !important;
+
+    color:#D14343 !important;
+}
+
+.ticker-card--suspension:hover{
+
+    border-color:rgba(200,50,50,.4);
+
+    background:rgba(200,50,50,.1);
+}
+
 button.ticker-card{
 
     border:1px solid rgba(255,255,255,.10);

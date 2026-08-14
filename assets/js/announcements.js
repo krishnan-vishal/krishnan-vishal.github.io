@@ -88,10 +88,57 @@
     // record the trust engine resolves to SOURCE_BLOCKED is withheld
     // even if it was previously classified, as a fail-safe.
     function publishedRecords(){
-        return records.filter(r => {
-            if(r.status !== "GPIR_CLASSIFIED") return false;
-            return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
+        return records
+            .filter(r => {
+                if(r.status !== "GPIR_CLASSIFIED") return false;
+                return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
+            })
+            .sort((a, b) => {
+                const rank = categoryPriority(a) - categoryPriority(b);
+                if(rank !== 0) return rank;
+                return (b.publishedDate || "").localeCompare(a.publishedDate || "");
+            });
+    }
+
+    // Ticker priority order, most to least urgent — new/unlisted
+    // categories fall to the back rather than crowding out the ones
+    // GPIR has explicitly prioritised.
+    const CATEGORY_PRIORITY = [
+        "Payment Suspension",
+        "Regulatory",
+        "AML / CFT",
+        "Payment Infrastructure",
+        "Cross-Border Payments",
+        "Open Banking",
+        "Digital Banking",
+        "M&A",
+        "Licensing",
+        "Payments",
+        "FinTech"
+    ];
+
+    function categoryPriority(record){
+        const idx = CATEGORY_PRIORITY.indexOf(record.category);
+        return idx === -1 ? CATEGORY_PRIORITY.length : idx;
+    }
+
+    function updateLastRefreshDisplay(lastRefreshed){
+
+        const el = document.getElementById("tickerLastRefresh");
+
+        if(!el || !lastRefreshed) return;
+
+        const d = new Date(lastRefreshed);
+
+        if(isNaN(d.getTime())) return;
+
+        const label = d.toLocaleString("en-GB", {
+            day: "numeric", month: "short", year: "numeric",
+            hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
         });
+
+        el.textContent = `Last Intelligence Refresh: ${label}`;
+
     }
 
     function renderTicker(){
@@ -103,11 +150,12 @@
         track.innerHTML = publishedRecords().map(record => {
 
             const tag = (record.category || "").split(" / ")[0];
+            const isSuspension = record.category === "Payment Suspension";
 
-            return `<button type="button" class="ticker-card" data-intel-id="${escapeHtml(record.id)}">
+            return `<button type="button" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
                 <span class="ticker-flag">${flagMarkup(record)}</span>
                 <span class="ticker-body">
-                    <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag">${escapeHtml(tag)}</span></span>
+                    <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span></span>
                     <span class="ticker-headline">${escapeHtml(record.tickerHeadline || record.title)}</span>
                 </span>
             </button>`;
@@ -148,9 +196,11 @@
             return `
                 <div class="intel-source-block">
                     <dl class="intel-source-list">
+                        ${record.organisation && record.organisation !== record.source.name ? `<dt>Organisation</dt><dd>${escapeHtml(record.organisation)}</dd>` : ""}
                         <dt>Source</dt><dd>${escapeHtml(record.source.name)}</dd>
                         <dt>Publication</dt><dd>${escapeHtml(record.source.publicationTitle)}</dd>
                         <dt>Published</dt><dd>${escapeHtml(formatDate(record.publishedDate))}</dd>
+                        ${record.lastUpdated ? `<dt>Last Updated</dt><dd>${escapeHtml(formatDate(record.lastUpdated))}</dd>` : ""}
                         <dt>Retrieved</dt><dd>${escapeHtml(formatDate(record.retrievedDate))}</dd>
                     </dl>
                     <a class="intel-source-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Read Original Source →</a>
@@ -181,6 +231,16 @@
             </div>
         `;
 
+    }
+
+    // Related GPIR Intelligence is computed live from what's currently
+    // published (same country or same category, excluding the record
+    // itself) rather than hand-curated, so it can never drift stale as
+    // records are added or retired.
+    function relatedRecords(record){
+        return publishedRecords()
+            .filter(r => r.id !== record.id && (r.country === record.country || r.category === record.category))
+            .slice(0, 3);
     }
 
     function buildDetailMarkup(record){
@@ -214,6 +274,16 @@
             <a class="intel-gpir-link" href="${escapeHtml(record.gpirMapping.href)}">Explore Related GPIR Intelligence →</a>
         ` : "";
 
+        const related = relatedRecords(record);
+        const relatedBlock = related.length ? `
+            <div class="intel-related">
+                <h4>Related GPIR Intelligence</h4>
+                <ul class="intel-related-list">
+                    ${related.map(r => `<li><button type="button" class="intel-related-item" data-intel-id="${escapeHtml(r.id)}">${escapeHtml(r.country)} · ${escapeHtml(r.tickerHeadline || r.title)}</button></li>`).join("")}
+                </ul>
+            </div>
+        ` : "";
+
         const reportBlock = `
             <div class="intel-report-block">
                 <button type="button" class="intel-report-toggle" data-record-id="${escapeHtml(record.id)}">Report This Source →</button>
@@ -235,6 +305,7 @@
             ${whyBlock}
             ${sourceBlock}
             ${gpirButton}
+            ${relatedBlock}
             ${reportBlock}
             <p class="intel-disclaimer">GPIR checks source domains against a maintained registry and basic domain-pattern checks — this is a source-verification status, not a guarantee of safety. Always use judgment before entering any information on an external site. GPIR will never ask you for passwords, OTPs, card details or wallet credentials.</p>
         `;
@@ -266,6 +337,10 @@
                 if(options) options.hidden = !options.hidden;
             });
         }
+
+        body.querySelectorAll(".intel-related-item").forEach(btn => {
+            btn.addEventListener("click", () => openDetail(btn.getAttribute("data-intel-id")));
+        });
 
     }
 
@@ -330,6 +405,7 @@
                 records = (data.records || []).filter(r => r && r.id);
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
+                updateLastRefreshDisplay(data.lastRefreshed);
             })
             .catch(() => {
                 // A failed feed must not break the rest of the page — the ticker

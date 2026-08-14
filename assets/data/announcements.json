@@ -1,5 +1,5 @@
 {
-  "schemaNote": "GPIR Global Announcements intelligence records. Each record traces a ticker item to a real, named, verifiable source with an original publication URL wherever status is not SOURCE_VERIFICATION_REQUIRED. Never fabricate a source URL: an item without a reliably identified primary source is published with status SOURCE_VERIFICATION_REQUIRED and source:null instead of an invented link.",
+  "schemaNote": "GPIR Global Announcements intelligence records. Each record traces a ticker item to a real, named, verifiable source with an original publication URL wherever status is not SOURCE_VERIFICATION_REQUIRED. Never fabricate a source URL: an item without a reliably identified primary source is published with status SOURCE_VERIFICATION_REQUIRED and source:null instead of an invented link. \"organisation\" holds the regulator/institution/company the record is actually about, which may differ from source.name (the outlet that published it, e.g. an official press agency reporting a central bank's decision). \"lastUpdated\" is set only when a previously published record is materially revised (see governance note in trust-engine.js); it must never silently overwrite the original publishedDate. Top-level \"lastRefreshed\" is updated by the hourly intelligence refresh routine (see assets/js/announcements.js) each time it runs, whether or not it adds new records.",
   "records": [
     {
       "id": "cbuae-payment-token-2026",
@@ -22,6 +22,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Central Bank of the UAE (CBUAE)",
+      "lastUpdated": null,
       "source": {
         "name": "Central Bank of the UAE (CBUAE)",
         "tier": 1,
@@ -58,6 +60,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Saudi Central Bank (SAMA)",
+      "lastUpdated": null,
       "source": {
         "name": "Saudi Press Agency (SPA), reporting a Saudi Central Bank (SAMA) licensing decision",
         "tier": 2,
@@ -94,6 +98,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Maldives Monetary Authority (MMA)",
+      "lastUpdated": null,
       "source": {
         "name": "Maldives Monetary Authority (MMA), reported via India's official press service",
         "tier": 2,
@@ -130,6 +136,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Reserve Bank of India (RBI)",
+      "lastUpdated": null,
       "source": {
         "name": "Reserve Bank of India (RBI)",
         "tier": 1,
@@ -166,6 +174,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Monetary Authority of Singapore (MAS) and Association of Banks in Singapore (ABS)",
+      "lastUpdated": null,
       "source": {
         "name": "Monetary Authority of Singapore (MAS) and Association of Banks in Singapore (ABS)",
         "tier": 1,
@@ -202,6 +212,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Swift",
+      "lastUpdated": null,
       "source": {
         "name": "Swift",
         "tier": 2,
@@ -238,6 +250,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Mastercard",
+      "lastUpdated": null,
       "source": {
         "name": "Mastercard",
         "tier": 2,
@@ -274,6 +288,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Mastercard",
+      "lastUpdated": null,
       "source": {
         "name": "Mastercard",
         "tier": 2,
@@ -310,6 +326,8 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": "Financial Action Task Force (FATF)",
+      "lastUpdated": null,
       "source": {
         "name": "Financial Action Task Force (FATF)",
         "tier": 1,
@@ -346,11 +364,14 @@
         "lastVerifiedDate": "2026-08-14",
         "correctionHistory": []
       },
+      "organisation": null,
+      "lastUpdated": null,
       "source": null,
       "summary": "GPIR's discovery layer identified reported activity relating to Qatar Central Bank cross-border settlement and open banking interoperability initiatives, but a single authoritative primary source with a verifiable publication date could not be confirmed at time of review.",
       "whyItMatters": null,
       "gpirMapping": null,
       "relatedCountryHref": null
     }
-  ]
+  ],
+  "lastRefreshed": "2026-08-14T00:00:00Z"
 }
