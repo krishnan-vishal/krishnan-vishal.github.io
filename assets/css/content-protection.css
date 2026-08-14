@@ -1,0 +1,143 @@
+/*=====================================================
+GPIR CONTENT PROTECTION LAYER
+
+Deters ordinary text/image selection and copying across the site
+while leaving every interactive control fully usable. See
+assets/js/content-protection.js for the companion behavioural layer.
+======================================================*/
+
+body{
+
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"]{
+
+    -webkit-user-select:text;
+    -moz-user-select:text;
+    -ms-user-select:text;
+    user-select:text;
+}
+
+img{
+
+    -webkit-user-drag:none;
+    user-drag:none;
+    -khtml-user-drag:none;
+    -moz-user-drag:none;
+    -o-user-drag:none;
+}
+
+/*=====================================================
+TOAST — single consistent protection message
+======================================================*/
+
+.gpir-toast{
+
+    position:fixed;
+
+    left:50%;
+
+    bottom:28px;
+
+    transform:translateX(-50%) translateY(16px);
+
+    max-width:min(420px, 90vw);
+
+    padding:12px 20px;
+
+    border-radius:10px;
+
+    background:#0F294D;
+
+    color:#ffffff;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    line-height:1.5;
+
+    text-align:center;
+
+    box-shadow:0 16px 40px rgba(15,41,77,.35);
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+    z-index:2000;
+
+    transition:opacity .25s ease, transform .25s ease, visibility .25s ease;
+}
+
+.gpir-toast.is-visible{
+
+    opacity:1;
+
+    visibility:visible;
+
+    transform:translateX(-50%) translateY(0);
+}
+
+/*=====================================================
+PRINT — swap content for a plain restriction notice
+======================================================*/
+
+#gpir-print-notice{
+
+    display:none;
+}
+
+@media print{
+
+    body *{
+
+        visibility:hidden !important;
+    }
+
+    #gpir-print-notice,
+    #gpir-print-notice *{
+
+        visibility:visible !important;
+    }
+
+    #gpir-print-notice{
+
+        display:block !important;
+
+        position:fixed;
+
+        top:40%;
+
+        left:0;
+
+        right:0;
+
+        padding:0 40px;
+
+        text-align:center;
+
+        font-family:Georgia, "Times New Roman", serif;
+
+        color:#000000;
+    }
+
+    #gpir-print-notice p{
+
+        margin:0 0 12px;
+
+        font-size:14px;
+
+        line-height:1.6;
+    }
+
+}

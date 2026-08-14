@@ -35,6 +35,70 @@ function initializeWebsite(){
 
     initializeSearch();
 
+    initializeFloatingBackToTop();
+
+    initializeReadingProgress();
+
+}
+
+/*=====================================================
+  FLOATING BACK TO TOP
+
+  A compact, scroll-triggered control distinct from the existing
+  footer "Back to Top" link — appears only after meaningful scroll
+  so it stays out of the way on short pages.
+======================================================*/
+
+function initializeFloatingBackToTop(){
+
+    const btn = document.createElement("button");
+
+    btn.type = "button";
+    btn.id = "floating-back-to-top";
+    btn.setAttribute("aria-label", "Back to top");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+
+    document.body.appendChild(btn);
+
+    btn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    const toggle = () => {
+        btn.classList.toggle("is-visible", window.scrollY > 600);
+    };
+
+    document.addEventListener("scroll", toggle, { passive: true });
+    toggle();
+
+}
+
+/*=====================================================
+  READING PROGRESS
+
+  A thin, subtle bar reflecting how far down the page the reader
+  has scrolled — helps orient readers on long research pages.
+======================================================*/
+
+function initializeReadingProgress(){
+
+    const bar = document.createElement("div");
+
+    bar.id = "reading-progress-bar";
+    bar.setAttribute("aria-hidden", "true");
+
+    document.body.appendChild(bar);
+
+    const update = () => {
+        const scrollable = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const ratio = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        bar.style.width = (ratio * 100) + "%";
+    };
+
+    document.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+
 }
 
 /*=====================================================
