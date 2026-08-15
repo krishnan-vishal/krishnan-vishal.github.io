@@ -340,6 +340,20 @@ span.region-country-directory-item{
     margin-left:2px;
 }
 
+.sepa-group-more--link{
+
+    color:var(--color-primary, #B8863B);
+
+    text-decoration:none;
+
+    margin-left:0;
+}
+
+.sepa-group-more--link:hover{
+
+    text-decoration:underline;
+}
+
 /* ----------------------------------------------------------
    SEPA DIRECTORY TILE — flag, currency and classification
    chips inside the full pages/regions/europe.html tiles
@@ -587,6 +601,37 @@ span.directory-tile{
 
     color:var(--color-grey, #5E636E);
 
+}
+
+.americas-latam-note{
+
+    padding:16px 18px;
+
+    margin:0 0 8px;
+
+    background:rgba(31,90,168,.06);
+
+    border:1px dashed rgba(31,90,168,.3);
+
+    border-radius:10px;
+}
+
+.americas-latam-note p{
+
+    margin:0;
+
+    font-size:13px;
+
+    line-height:1.6;
+
+    color:var(--hero-navy, #0F2747);
+}
+
+.americas-latam-note a{
+
+    color:#1F5AA8;
+
+    font-weight:700;
 }
 
 /* ----------------------------------------------------------
