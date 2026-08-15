@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-15",
-  "totalEntries": 264,
+  "totalEntries": 275,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -1289,160 +1289,6 @@
       "header": "Markets",
       "country": "United Arab Emirates",
       "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against CBUAE publications, DFSA/FSRA regulatory texts and other primary references. It should be treated as directional only until verified."
-    },
-    {
-      "id": "country-india-snapshot",
-      "pageTitle": "India",
-      "sectionTitle": "Executive Snapshot",
-      "url": "pages/countries/india.html#snapshot",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Executive Snapshot India is home to the Unified Payments Interface (UPI), one of the largest real-time retail payment systems in the world by transaction volume, and is consistently among the largest recipients of inbound personal remittances globally. Its payments ecosystem has been reshaped over the past decade by a state-backed digital public infrastructure strategy spanning identity, payments and data layers."
-    },
-    {
-      "id": "country-india-currency",
-      "pageTitle": "India",
-      "sectionTitle": "Currency & Foreign Exchange",
-      "url": "pages/countries/india.html#currency",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Currency & Foreign Exchange The national currency is the Indian Rupee (INR). The Reserve Bank of India (RBI) manages the currency under a managed-float exchange rate regime, intervening periodically to limit excess volatility rather than defending a fixed peg."
-    },
-    {
-      "id": "country-india-rails",
-      "pageTitle": "India",
-      "sectionTitle": "Payment Rails & Infrastructure",
-      "url": "pages/countries/india.html#rails",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Payment Rails & Infrastructure Core domestic payment rails, largely operated or overseen by the National Payments Corporation of India (NPCI) under RBI's regulatory umbrella, include: UPI (Unified Payments Interface) — a real-time, account-to-account retail payments system supporting person-to-person and person-to-merchant transfers via a common addressing layer. IMPS (Immediate Payment Service) — real-time interbank electronic funds transfer, available continuously. NEFT & RTGS — deferred net settlement and real-time gross settlement systems for retail and high-value transfers respectively."
-    },
-    {
-      "id": "country-india-banking",
-      "pageTitle": "India",
-      "sectionTitle": "Banking & Settlement Landscape",
-      "url": "pages/countries/india.html#banking",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Banking & Settlement Landscape The sector includes public-sector banks, private banks, small finance banks and payments banks, all regulated by the RBI. NPCI operates as the central retail payments infrastructure utility, running UPI, IMPS, RuPay (the domestic card network) and related settlement rails on behalf of participating banks."
-    },
-    {
-      "id": "country-india-regulatory",
-      "pageTitle": "India",
-      "sectionTitle": "Regulatory Environment",
-      "url": "pages/countries/india.html#regulatory",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Regulatory Environment The Reserve Bank of India regulates payment systems under the Payment and Settlement Systems Act, 2007, and issues periodic guidelines covering areas such as data localisation, digital lending and payment aggregator licensing. NPCI operates under RBI's oversight as a not-for-profit umbrella entity for retail payments."
-    },
-    {
-      "id": "country-india-fintech",
-      "pageTitle": "India",
-      "sectionTitle": "Fintech & Digital Ecosystem",
-      "url": "pages/countries/india.html#fintech",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Fintech & Digital Ecosystem India has actively pursued international expansion of UPI through bilateral linkages with several markets, including a UPI–PayNow linkage with Singapore, alongside acceptance arrangements in the UAE, France and other jurisdictions. The RBI has also run wholesale and retail pilots of a central bank digital currency, the e₹ (e-Rupee), since late 2022."
-    },
-    {
-      "id": "country-india-sources",
-      "pageTitle": "India",
-      "sectionTitle": "Sources & Verification Status",
-      "url": "pages/countries/india.html#sources",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "India",
-      "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against RBI and NPCI publications and other primary references. It should be treated as directional only until verified."
-    },
-    {
-      "id": "country-singapore-snapshot",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Executive Snapshot",
-      "url": "pages/countries/singapore.html#snapshot",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Executive Snapshot Singapore is a leading regional financial and fintech hub, and an early mover in real-time domestic payments and cross-border payment-system linkages. The Monetary Authority of Singapore (MAS) has driven much of this through a combination of public infrastructure investment, an active regulatory sandbox and bilateral cross-border payment initiatives with regional peers."
-    },
-    {
-      "id": "country-singapore-currency",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Currency & Foreign Exchange",
-      "url": "pages/countries/singapore.html#currency",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Currency & Foreign Exchange The national currency is the Singapore Dollar (SGD). Unlike most central banks, MAS manages monetary policy primarily through the exchange rate — allowing the SGD to float within an undisclosed policy band against a basket of currencies — rather than through domestic interest rates."
-    },
-    {
-      "id": "country-singapore-rails",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Payment Rails & Infrastructure",
-      "url": "pages/countries/singapore.html#rails",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Payment Rails & Infrastructure Key domestic payment infrastructure includes: FAST (Fast and Secure Transfers) — a real-time interbank funds transfer system. PayNow — a proxy-based (mobile number / national ID) instant payment service layered on top of FAST for peer-to-peer and business transfers. MEPS+ — the RTGS system for high-value interbank settlement."
-    },
-    {
-      "id": "country-singapore-banking",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Banking & Settlement Landscape",
-      "url": "pages/countries/singapore.html#banking",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Banking & Settlement Landscape The banking sector is anchored by three major domestic banking groups — DBS, OCBC and UOB — alongside a substantial presence of foreign banks operating under MAS licensing, reflecting Singapore's role as a regional and international financial centre."
-    },
-    {
-      "id": "country-singapore-regulatory",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Regulatory Environment",
-      "url": "pages/countries/singapore.html#regulatory",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Regulatory Environment The Monetary Authority of Singapore (MAS) acts as both central bank and integrated financial regulator. Payment services are governed under the Payment Services Act 2019 (PS Act), which established a risk-based licensing framework covering activities from money-changing to digital payment token services."
-    },
-    {
-      "id": "country-singapore-fintech",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Fintech & Digital Ecosystem",
-      "url": "pages/countries/singapore.html#fintech",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Fintech & Digital Ecosystem Singapore has established cross-border real-time payment linkages, including PayNow–UPI with India and PayNow–PromptPay with Thailand. MAS has also run a series of forward-looking initiatives exploring digital money and asset tokenisation, including Project Ubin (wholesale settlement), Project Orchid (retail CBDC exploration) and Project Guardian (asset tokenisation), alongside an active fintech regulatory sandbox."
-    },
-    {
-      "id": "country-singapore-sources",
-      "pageTitle": "Singapore",
-      "sectionTitle": "Sources & Verification Status",
-      "url": "pages/countries/singapore.html#sources",
-      "type": "GPIR Research",
-      "category": "Country Intelligence",
-      "header": "Markets",
-      "country": "Singapore",
-      "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against MAS publications and other primary references. It should be treated as directional only until verified."
     },
     {
       "id": "legal-cookie-policy-introduction",
@@ -2906,6 +2752,281 @@
       "header": "More",
       "country": null,
       "text": "32. Final User Acknowledgement By accessing or using Payments Repository, you acknowledge that: You are using the Services for lawful purposes; The Repository is primarily an information and research resource; You will independently evaluate information before relying upon it; Repository content does not constitute personalised financial, investment, legal, tax or regulatory advice; Intellectual-property rights remain with the applicable rights holders; You will not misuse or systematically extract Repository content without appropriate authorisation; and You agree to comply with these Terms of Use. Payments Repository Research. Intelligence. Understanding the Financial Services Ecosystem. Effective Date: 13 August 2026 Last Updated: 13 August 2026"
+    },
+    {
+      "id": "country-india-glance",
+      "pageTitle": "India",
+      "sectionTitle": "Country at a Glance",
+      "url": "pages/countries/india.html#glance",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Country at a Glance Country at a Glance $129.1B Inbound C2C remittances, CY2025 · GPIR Dashboard IND-2026-005 32.2M Overseas Indians (diaspora), 2025 · GPIR Dashboard Data Under Development Fintech Ecosystem · tracked participants 650+ Active C2C corridors, covering 150+ countries"
+    },
+    {
+      "id": "country-india-snapshot",
+      "pageTitle": "India",
+      "sectionTitle": "Executive Snapshot",
+      "url": "pages/countries/india.html#snapshot",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Executive Snapshot Executive Snapshot India is home to the Unified Payments Interface (UPI), one of the largest real-time retail payment systems in the world by transaction volume, and is consistently among the largest recipients of inbound personal remittances globally. Its payments ecosystem has been reshaped over the past decade by a state-backed digital public infrastructure strategy spanning identity, payments and data layers."
+    },
+    {
+      "id": "country-india-diaspora",
+      "pageTitle": "India",
+      "sectionTitle": "Diaspora & Migration Intelligence",
+      "url": "pages/countries/india.html#diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Diaspora & Migration Intelligence Diaspora & Migration Intelligence India has the largest diaspora population in the world. GPIR's own Country Intelligence Dashboard (embedded above; Reference ID VK-GPI-APAC-IND-2026-005, published 20 June 2026) puts Overseas Indians at 32.2 million for 2025 (2.2% of population), and includes a Diaspora Heat Map showing geographic concentration by destination country. Independently, the UN Department of Economic and Social Affairs (UN DESA) International Migrant Stock 2024 puts India-born people living outside India at approximately 18.5 million — still the highest of any origin country globally, on a stricter birth-country-only basis. India's Ministry of External Affairs (MEA) separately tracks Non-Resident Indians (NRIs) plus Persons of Indian Origin (PIOs) at 34.36 million across 208 countries and territories as of January 2025. These three figures are not directly comparable: UN DESA counts India-born residents abroad from census/register data; MEA additionally includes foreign-citizen Persons of Indian Origin; GPIR's dashboard figure sits between the two and reflects the dashboard's own compiled methodology (see Sources below). GPIR reports all three rather than picking one, and none should be treated as a projection or correction of the others. 32.2M Overseas Indians (2025) — GPIR Dashboard, with heat map by destination Source: GPIR Country Intelligence Dashboard IND-2026-005 · Year: 2025 18.5M India-born people resident abroad (migrant stock) Source: UN DESA, International Migrant Stock 2024 (published Jan 2025) · Year: 2024 34.36M NRIs + PIOs across 208 countries/territories Source: Ministry of External Affairs, Government of India · Year: January 2025 Top diaspora destinations (GPIR Dashboard, by share of Indian diaspora, 2025): USA 27.2%, UAE 18.7%, Saudi Arabia 6.6%, Malaysia 5.6%, UK 4.7%, Singapore 3.1%, Canada 3.1%, Australia 2.8%, Kuwait 2.1%, Qatar 1.8%, all other countries combined 23.8%. The full heat map (Very High / High / Medium / Low concentration by country) is in the embedded dashboard above — GPIR has not yet rebuilt it as an interactive on-page map, so the image is the authoritative version until that work is scheduled. Methodology note: the GPIR dashboard states its diaspora and remittance figures are compiled from RBI, World Bank (KNOMAD), IMF, UN DESA, SWIFT and BIS data, cross-checked against industry reports; forward-looking figures are analytical estimates, not verified actuals. Treat the dashboard's compiled figure (32.2M) as directionally consistent with, not a replacement for, the two independently issued government/UN figures above."
+    },
+    {
+      "id": "country-india-currency",
+      "pageTitle": "India",
+      "sectionTitle": "Currency & Foreign Exchange",
+      "url": "pages/countries/india.html#currency",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Currency & Foreign Exchange Currency & Foreign Exchange The national currency is the Indian Rupee (INR). The Reserve Bank of India (RBI) manages the currency under a managed-float exchange rate regime, intervening periodically to limit excess volatility rather than defending a fixed peg."
+    },
+    {
+      "id": "country-india-rails",
+      "pageTitle": "India",
+      "sectionTitle": "Payment Rails & Infrastructure",
+      "url": "pages/countries/india.html#rails",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Payment Rails & Infrastructure Payment Rails & Infrastructure Core domestic payment rails, largely operated or overseen by the National Payments Corporation of India (NPCI) under RBI's regulatory umbrella, include: UPI (Unified Payments Interface) — a real-time, account-to-account retail payments system supporting person-to-person and person-to-merchant transfers via a common addressing layer. IMPS (Immediate Payment Service) — real-time interbank electronic funds transfer, available continuously. NEFT & RTGS — deferred net settlement and real-time gross settlement systems for retail and high-value transfers respectively."
+    },
+    {
+      "id": "country-india-banking",
+      "pageTitle": "India",
+      "sectionTitle": "Banking & Settlement Landscape",
+      "url": "pages/countries/india.html#banking",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Banking & Settlement Landscape Banking & Settlement Landscape The sector includes public-sector banks, private banks, small finance banks and payments banks, all regulated by the RBI. NPCI operates as the central retail payments infrastructure utility, running UPI, IMPS, RuPay (the domestic card network) and related settlement rails on behalf of participating banks."
+    },
+    {
+      "id": "country-india-p2p",
+      "pageTitle": "India",
+      "sectionTitle": "P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May)",
+      "url": "pages/countries/india.html#p2p",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May) P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May) No central bank or agency publishes a strict P2P-app-only split of cross-border transfer volume separate from wider consumer remittances. The closest validated proxy GPIR has is its own C2C (consumer-to-consumer) cross-border dashboard for India (embedded above), compiled from RBI, World Bank/KNOMAD, IMF, UN DESA, SWIFT and BIS data. The figures below are that dashboard's inbound/outbound remittance data, which is consumer-to-consumer in nature but not verified to exclude every non-P2P consumer transfer — read it as \"C2C remittances,\" GPIR's nearest sourced approximation of P2P, not as a certified P2P-only figure. Metric CY2025 (Full Year) CY2026 YTD (Jan–May) Inbound C2C remittances (to India) $129.10B ▲ 5.8% YoY $55.34B ▲ 5.6% YoY Outbound C2C remittances (from India) $28.82B ▲ 7.6% YoY $12.22B ▲ 7.3% YoY Average cost to send $200 5.4% 5.1% Digital / account-based adoption share 81.4% 83.2% Number of transactions / avg. transaction value Data Under Development Data Under Development CY2026 YTD covers January–May only, per the source dashboard, and must not be read as a full-year estimate. \"C2C remittances\" is GPIR's nearest sourced proxy for P2P cross-border transfers, not a certified P2P-only figure — transaction counts and average ticket size remain Data Under Development pending a source that reports them."
+    },
+    {
+      "id": "country-india-corridors",
+      "pageTitle": "India",
+      "sectionTitle": "Corridor Intelligence",
+      "url": "pages/countries/india.html#corridors",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Corridor Intelligence Corridor Intelligence GPIR's Country Intelligence Dashboard (above) tracks India's top 15 inbound and outbound C2C remittance corridors for CY2025 and CY2026 YTD (Jan–May). By CY2025 share of inbound volume, the leading corridors into India were USA (25.1%, $32.18B), UAE (14.8%, $19.12B), Saudi Arabia (10.4%, $11.39B), Singapore (6.3%, $8.07B) and UK (4.9%, $6.33B). By CY2025 share of outbound volume, the leading corridors from India were UAE (27.1%, $7.82B), USA (15.0%, $3.32B), Saudi Arabia (10.4%, $1.26B) and Singapore (6.9%, $0.96B). Full top-15 tables with CY2026 YTD and YoY growth are in the embedded dashboard image above. This is consistent with GPIR's separately published corridor research (see the Major Corridors chapter), which classifies USA → India, UAE → India, Saudi Arabia → India and UK → India as Tier A strategic corridors, and South Asia (led by India) as the world's largest remittance-receiving region through 2040. India has also built live infrastructure-level cross-border linkages rather than only informal remittance corridors: the UPI–PayNow real-time payment linkage with Singapore is operational (see the Wallets, Mobile Money & Super Apps chapter), alongside UPI acceptance arrangements in the UAE, France and other jurisdictions referenced in the Fintech & Digital Ecosystem section below. GPIR's dashboard separately reports 650+ active C2C corridors covering 150+ countries and API-enabled payout coverage of 120+ countries (2025) — these are dashboard-compiled counts, not independently re-verified by GPIR editorial. Source: GPIR Country Intelligence Dashboard IND-2026-005 (corridor volumes); GPIR Corridor Factbook and Diaspora & Remittance Corridors chapters (Tier A classification, internal GPIR research, not an official regulator figure)."
+    },
+    {
+      "id": "country-india-regulatory",
+      "pageTitle": "India",
+      "sectionTitle": "Regulatory Environment",
+      "url": "pages/countries/india.html#regulatory",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Regulatory Environment Regulatory Environment The Reserve Bank of India regulates payment systems under the Payment and Settlement Systems Act, 2007, and issues periodic guidelines covering areas such as data localisation, digital lending and payment aggregator licensing. NPCI operates under RBI's oversight as a not-for-profit umbrella entity for retail payments."
+    },
+    {
+      "id": "country-india-fintech",
+      "pageTitle": "India",
+      "sectionTitle": "Fintech & Digital Ecosystem",
+      "url": "pages/countries/india.html#fintech",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Fintech & Digital Ecosystem Fintech & Digital Ecosystem India has actively pursued international expansion of UPI through bilateral linkages with several markets, including a UPI–PayNow linkage with Singapore, alongside acceptance arrangements in the UAE, France and other jurisdictions. The RBI has also run wholesale and retail pilots of a central bank digital currency, the e₹ (e-Rupee), since late 2022. Data Under Development — a verified count of fintechs, PSPs and wallet operators active in India will be added once sourced against a primary registry rather than estimated."
+    },
+    {
+      "id": "country-india-commentary",
+      "pageTitle": "India",
+      "sectionTitle": "Country Intelligence Commentary",
+      "url": "pages/countries/india.html#commentary",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Country Intelligence Commentary Country Intelligence Commentary Diaspora & migration. India's outbound diaspora is the largest in the world on every measure GPIR tracks: 32.2 million on GPIR's own compiled dashboard figure, 18.5 million by UN DESA's stricter birth-country migrant stock, and 34.36 million by MEA's broader NRI+PIO count. The USA and UAE alone account for roughly 46% of that diaspora by GPIR's dashboard breakdown. That scale is the structural reason India is consistently the world's largest remittance-receiving market: a large, geographically concentrated diaspora sustains inbound consumer transfer demand independent of any single corridor. C2C / P2P payments. GPIR's C2C dashboard shows inbound remittances to India growing from $129.10B (CY2025) at a pace of +5.8% YoY, with CY2026 YTD (Jan–May) already at $55.34B (+5.6% YoY) — growth has been broadly stable rather than accelerating or decelerating sharply between the two periods. Outbound remittances are smaller in absolute terms ($28.82B CY2025) but growing faster (+7.6% YoY), consistent with rising outbound mobility and a growing resident non-citizen population. GPIR frames this as C2C, its nearest sourced proxy for P2P, because no source splits P2P specifically from wider consumer remittances. Corridors & infrastructure. The USA and UAE dominate both inbound and outbound corridors, but from different bases: the USA leads inbound share (25.1%) reflecting the size and income profile of the US-based diaspora, while the UAE leads outbound share (27.1%) reflecting India's large resident/working population with UAE ties. This asymmetry — a wealthy, established diaspora sending home versus a large resident population sending to a nearby labour-migration hub — is a structural feature of India's corridor mix, not a one-off. Beyond corridor volumes, India has moved toward live infrastructure-level linkages, most notably UPI–PayNow with Singapore. Regulatory & ecosystem. RBI and NPCI continue to expand UPI's footprint internationally and have run CBDC (e₹) pilots since 2022; this page's Regulatory Environment and Fintech & Digital Ecosystem sections above track that content, unchanged from GPIR's original scaffold pending formal verification. A verified fintech/PSP participant count remains the one meaningful gap in this page's \"At a Glance\" cards. This commentary is written to be re-editable as the underlying dashboard (IND-2026-005) is refreshed, and as the outstanding fintech-count and transaction-level figures move from Data Under Development to sourced numbers — it should not be left describing figures that have since changed."
+    },
+    {
+      "id": "country-india-sources",
+      "pageTitle": "India",
+      "sectionTitle": "Sources & Verification Status",
+      "url": "pages/countries/india.html#sources",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "India",
+      "text": "Sources & Verification Status Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against RBI and NPCI publications and other primary references for its Currency, Payment Rails, Banking, Regulatory and Fintech sections. It should be treated as directional only until verified. The Country at a Glance, Diaspora & Migration Intelligence, P2P Cross-Border Payments and Corridor Intelligence sections above draw on the following, independently dated sources: GPIR Country Intelligence Dashboard, Reference ID VK-GPI-APAC-IND-2026-005 , published 20 June 2026, data period CY2025 / CY2026 YTD (Jan–May) — compiled by Vishal Krishnan from RBI, World Bank (KNOMAD), IMF, UN DESA, SWIFT and BIS data; forward-looking figures are analytical estimates, not verified actuals (see the dashboard's own methodology note, embedded above). UN DESA, International Migrant Stock 2024 (Population Division, UN DESA/POP/2024/DC/NO.13, published January 2025) — 18.5 million India-born migrant stock. Ministry of External Affairs, Government of India — 34.36 million NRIs + PIOs across 208 countries/territories, as of January 2025. GPIR Corridor Factbook and Diaspora & Remittance Corridors chapters (internal GPIR classification) — Tier A corridor list. Transaction counts, average ticket size and a verified fintech/PSP participant count are marked Data Under Development above because GPIR has not identified a source that reports them at the granularity this page requires, and will not substitute an estimate for a verified figure."
+    },
+    {
+      "id": "country-singapore-glance",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Country at a Glance",
+      "url": "pages/countries/singapore.html#glance",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Country at a Glance Country at a Glance $19.83B Inbound C2C remittances, CY2025 · GPIR Dashboard SGP-2026-006 1.91M Non-resident population · SingStat, June 2025 Data Under Development Fintech Ecosystem · tracked participants 650+ Active C2C corridors, covering 150+ countries"
+    },
+    {
+      "id": "country-singapore-snapshot",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Executive Snapshot",
+      "url": "pages/countries/singapore.html#snapshot",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Executive Snapshot Executive Snapshot Singapore is a leading regional financial and fintech hub, and an early mover in real-time domestic payments and cross-border payment-system linkages. The Monetary Authority of Singapore (MAS) has driven much of this through a combination of public infrastructure investment, an active regulatory sandbox and bilateral cross-border payment initiatives with regional peers."
+    },
+    {
+      "id": "country-singapore-diaspora",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Diaspora & Migration Intelligence",
+      "url": "pages/countries/singapore.html#diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Diaspora & Migration Intelligence Diaspora & Migration Intelligence Singapore's migration profile is predominantly that of a destination economy rather than an outbound diaspora source, so GPIR reports it that way rather than forcing an outbound-diaspora framing that doesn't fit the data. The Singapore Department of Statistics (SingStat) reported a non-resident population of 1.91 million as at June 2025, up 2.7% from 1.86 million in June 2024. Non-residents include work-pass holders, dependants and international students, and made up roughly one-third of Singapore's total population of 6.11 million at that date (alongside 3.66 million citizens and 0.54 million permanent residents). 1.91M Non-resident (foreign/immigrant) population Source: Singapore Department of Statistics, Population in Brief 2025 · Year: June 2025 6.11M Total resident + non-resident population Source: Singapore Department of Statistics · Year: June 2025 1.92M Foreign population (residence-pass holders), 2025 — GPIR Dashboard, closely aligned with SingStat's 1.91M Source: GPIR Country Intelligence Dashboard SGP-2026-006 · Year: 2025 Top foreign nationalities in Singapore (GPIR Dashboard, by share of foreign population, 2025): China 17.6%, Malaysia 13.1%, India 10.6%, Indonesia 7.6%, Philippines 6.0%, USA 4.7%, Myanmar 3.3%, Australia 2.8%, Bangladesh 2.4%, UK 2.4%, all other countries combined 27.3%. The dashboard's Foreign Population Heat Map (embedded above) shows this by concentration; GPIR has not yet rebuilt it as an interactive on-page map. GPIR has not identified a sufficiently current, sourced figure for Singaporeans resident abroad (outbound diaspora) — that remains Data Under Development rather than estimated. Methodology note: the SingStat non-resident figure is an administrative count from Singapore's official population statistics, published twice yearly; about two-thirds of it is the foreign workforce (across all work-pass types), with most of the remainder Migrant Domestic Workers. GPIR's own dashboard figure (1.92M) is independently compiled and sits within 1% of the official SingStat count, which GPIR treats as a useful cross-check rather than a coincidence to rely on for future periods."
+    },
+    {
+      "id": "country-singapore-currency",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Currency & Foreign Exchange",
+      "url": "pages/countries/singapore.html#currency",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Currency & Foreign Exchange Currency & Foreign Exchange The national currency is the Singapore Dollar (SGD). Unlike most central banks, MAS manages monetary policy primarily through the exchange rate — allowing the SGD to float within an undisclosed policy band against a basket of currencies — rather than through domestic interest rates."
+    },
+    {
+      "id": "country-singapore-rails",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Payment Rails & Infrastructure",
+      "url": "pages/countries/singapore.html#rails",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Payment Rails & Infrastructure Payment Rails & Infrastructure Key domestic payment infrastructure includes: FAST (Fast and Secure Transfers) — a real-time interbank funds transfer system. PayNow — a proxy-based (mobile number / national ID) instant payment service layered on top of FAST for peer-to-peer and business transfers. MEPS+ — the RTGS system for high-value interbank settlement."
+    },
+    {
+      "id": "country-singapore-banking",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Banking & Settlement Landscape",
+      "url": "pages/countries/singapore.html#banking",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Banking & Settlement Landscape Banking & Settlement Landscape The banking sector is anchored by three major domestic banking groups — DBS, OCBC and UOB — alongside a substantial presence of foreign banks operating under MAS licensing, reflecting Singapore's role as a regional and international financial centre."
+    },
+    {
+      "id": "country-singapore-p2p",
+      "pageTitle": "Singapore",
+      "sectionTitle": "P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May)",
+      "url": "pages/countries/singapore.html#p2p",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May) P2P Cross-Border Payments — CY2025 / CY2026 YTD (Jan–May) MAS and SingStat do not publish a strict P2P-app-only split of cross-border transfer volume separate from wider consumer remittances. GPIR's nearest sourced proxy is its own C2C (consumer-to-consumer) cross-border dashboard for Singapore (embedded above), compiled from the same RBI/World Bank-KNOMAD/IMF/UN DESA/SWIFT/BIS-style methodology used across GPIR Country Intelligence pages. Read the figures below as \"C2C remittances,\" not as a certified P2P-only number. Metric CY2025 (Full Year) CY2026 YTD (Jan–May) Inbound C2C remittances (to Singapore) $19.83B ▲ 6.7% YoY $9.21B ▲ 6.3% YoY Outbound C2C remittances (from Singapore) $33.27B ▲ 7.1% YoY $16.02B ▲ 6.4% YoY Average cost to send $200 5.2% 5.0% Digital / account-based adoption share 89.1% 90.6% Number of transactions / avg. transaction value Data Under Development Data Under Development CY2026 YTD covers January–May only, per the source dashboard, and must not be read as a full-year estimate. Note that Singapore's outbound C2C volume ($33.27B) exceeds its inbound volume ($19.83B) — consistent with Singapore being primarily a sending, not receiving, market for cross-border consumer transfers, which fits its large non-resident/foreign-worker population profile above."
+    },
+    {
+      "id": "country-singapore-corridors",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Corridor Intelligence",
+      "url": "pages/countries/singapore.html#corridors",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Corridor Intelligence Corridor Intelligence GPIR's Country Intelligence Dashboard (above) tracks Singapore's top 15 inbound and outbound C2C remittance corridors. By CY2025 share of inbound volume, the leading corridors were Indonesia (19.6%, $3.888B), Malaysia (16.2%, $3.21B), China (12.9%, $2.56B), India (11.6%, $2.30B) and the Philippines (7.8%, $1.54B). By CY2025 share of outbound volume, the leading corridors were Malaysia (18.4%, $6.12B), Indonesia (15.1%, $5.03B), India (14.6%, $4.85B), China (11.8%, $3.91B) and Thailand (7.5%, $2.48B). Full top-15 tables with CY2026 YTD and YoY growth are in the embedded dashboard image above. Singapore's most concretely documented cross-border P2P infrastructure (as opposed to volume) is its network of real-time payment-system linkages: PayNow–UPI with India and PayNow–PromptPay with Thailand are both operational (see the Wallets, Mobile Money & Super Apps chapter). These linkages let users send money using a mobile number or national ID across the two systems without traditional correspondent-banking rails — notably, India is both a top-4 corridor by remittance volume above and Singapore's first live account-to-account linkage partner. Source: GPIR Country Intelligence Dashboard SGP-2026-006 (corridor volumes); GPIR Wallets, Mobile Money & Super Apps chapter (PayNow linkage existence, internal GPIR research)."
+    },
+    {
+      "id": "country-singapore-regulatory",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Regulatory Environment",
+      "url": "pages/countries/singapore.html#regulatory",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Regulatory Environment Regulatory Environment The Monetary Authority of Singapore (MAS) acts as both central bank and integrated financial regulator. Payment services are governed under the Payment Services Act 2019 (PS Act), which established a risk-based licensing framework covering activities from money-changing to digital payment token services."
+    },
+    {
+      "id": "country-singapore-fintech",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Fintech & Digital Ecosystem",
+      "url": "pages/countries/singapore.html#fintech",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Fintech & Digital Ecosystem Fintech & Digital Ecosystem Singapore has established cross-border real-time payment linkages, including PayNow–UPI with India and PayNow–PromptPay with Thailand. MAS has also run a series of forward-looking initiatives exploring digital money and asset tokenisation, including Project Ubin (wholesale settlement), Project Orchid (retail CBDC exploration) and Project Guardian (asset tokenisation), alongside an active fintech regulatory sandbox. Data Under Development — a verified count of fintechs and payment participants operating in Singapore will be added once sourced against a primary MAS registry rather than estimated."
+    },
+    {
+      "id": "country-singapore-commentary",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Country Intelligence Commentary",
+      "url": "pages/countries/singapore.html#commentary",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Country Intelligence Commentary Country Intelligence Commentary Diaspora & migration. Singapore's migration story is the inverse of a typical GPIR diaspora profile: it is overwhelmingly a destination market, not a source. SingStat's June 2025 count of 1.91 million non-residents (up 2.7% year-on-year) alongside a 6.11 million total population — closely matched by GPIR's own dashboard figure of 1.92 million foreign residents — confirms immigration, not emigration, as the relevant structural factor. China, Malaysia and India together account for over 40% of Singapore's foreign population by GPIR's breakdown, consistent with Singapore's role as a regional labour and financial hub. C2C / P2P payments. Singapore is unusual among the markets GPIR has profiled so far in that its outbound C2C remittances ($33.27B, CY2025) are materially larger than inbound ($19.83B) — the opposite pattern from India. That is consistent with the diaspora finding above: a large resident non-citizen population sends money out more than the reverse. Both flows grew at a broadly similar pace in CY2026 YTD (Jan–May) to their CY2025 full-year rates, suggesting no sharp inflection so far this year. Corridors & infrastructure. Indonesia, Malaysia, China and India dominate both inbound and outbound corridors, mirroring the top foreign-nationality groups in the diaspora section above — corridor volume tracks resident population composition closely for Singapore. Infrastructure-wise, Singapore is one of the more advanced APAC markets for cross-border retail payment interoperability, with live PayNow–UPI (India) and PayNow–PromptPay (Thailand) linkages; notably, India is both a top-4 remittance corridor and Singapore's first live linkage partner, which is a useful example of GPIR's Corridor Intelligence and Fintech Ecosystem sections describing the same underlying relationship from two angles. Regulatory & ecosystem. MAS continues to run forward-looking digital-money initiatives (Ubin, Orchid, Guardian) alongside an active regulatory sandbox; this page's Regulatory Environment and Fintech & Digital Ecosystem sections track that content, unchanged from GPIR's original scaffold pending formal verification. A verified fintech/payments-participant count remains the one meaningful gap in this page's \"At a Glance\" cards. This commentary is written to be re-editable as the underlying dashboard (SGP-2026-006) is refreshed, and as the outstanding fintech-count and transaction-level figures move from Data Under Development to sourced numbers — it should not be left describing figures that have since changed."
+    },
+    {
+      "id": "country-singapore-sources",
+      "pageTitle": "Singapore",
+      "sectionTitle": "Sources & Verification Status",
+      "url": "pages/countries/singapore.html#sources",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Singapore",
+      "text": "Sources & Verification Status Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against MAS publications and other primary references for its Currency, Payment Rails, Banking, Regulatory and Fintech sections. It should be treated as directional only until verified. The Country at a Glance, Diaspora & Migration Intelligence, P2P Cross-Border Payments and Corridor Intelligence sections above draw on the following, independently dated sources: GPIR Country Intelligence Dashboard, Reference ID VK-GPI-APAC-SGP-2026-006 , published 20 June 2026, data period CY2025 / CY2026 YTD (Jan–May) — compiled by Vishal Krishnan from RBI, World Bank (KNOMAD), IMF, UN DESA, SWIFT and BIS-style data; forward-looking figures are analytical estimates, not verified actuals (see the dashboard's own methodology note, embedded above). Singapore Department of Statistics, Population in Brief 2025 — 1.91 million non-resident population, 6.11 million total population, as at June 2025. GPIR Wallets, Mobile Money & Super Apps chapter (internal GPIR research) — PayNow–UPI and PayNow–PromptPay linkage existence. Transaction counts, average ticket size, a verified fintech/payments-participant count, and any figure for Singaporeans resident abroad are marked Data Under Development above because GPIR has not identified a source that reports them at the granularity this page requires, and will not substitute an estimate for a verified figure."
+    },
+    {
+      "id": "region-apac-directory",
+      "pageTitle": "APAC Country Directory",
+      "sectionTitle": "APAC Country Directory",
+      "url": "pages/regions/apac.html",
+      "type": "GPIR Research",
+      "category": "Regional Intelligence",
+      "header": "Markets",
+      "country": null,
+      "text": "APAC Country Directory Banking infrastructure, payment rails, wallets, fintechs and regulatory developments across 16 Asia-Pacific markets. India and Singapore have published Country Intelligence pages today; the remaining markets are on the GPIR roadmap and are marked honestly as Coming Soon rather than presented as active. This directory reflects the GPIR APAC roadmap honestly: India and Singapore have published Country Intelligence pages today. The other 14 markets are shown as Coming Soon rather than as active links, and will move to Active as their pages are researched, sourced and published. This same directory structure is the template GPIR intends to reuse for LATAM, Africa, Europe/SEPA, Middle East/GCC and the Americas."
     }
   ]
 }

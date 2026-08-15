@@ -1,0 +1,24 @@
+{
+  "schemaNote": "Reusable regional country-directory data model for GPIR. Each entry represents one country's presence in the Country Intelligence architecture. 'status' drives whether a directory entry is clickable: active = a real, published Country Intelligence page exists; coming_soon = the country is on the GPIR roadmap but no page is published yet. This same shape is intended to be reused for future regions (LATAM, Africa, Europe, Americas, Middle East/GCC) rather than rebuilt per region.",
+  "region": "apac",
+  "regionLabel": "APAC",
+  "lastUpdated": "2026-08-15",
+  "countries": [
+    { "name": "Australia", "slug": "australia", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Bangladesh", "slug": "bangladesh", "status": "coming_soon", "descriptor": "Remittances, payments and diaspora intelligence." },
+    { "name": "China", "slug": "china", "status": "coming_soon", "descriptor": "Payments, digital banking and cross-border intelligence." },
+    { "name": "Hong Kong", "slug": "hong-kong", "status": "coming_soon", "descriptor": "Payments, banking and regional financial infrastructure." },
+    { "name": "India", "slug": "india", "status": "active", "descriptor": "UPI, banking, remittances and payment infrastructure.", "url": "pages/countries/india.html" },
+    { "name": "Indonesia", "slug": "indonesia", "status": "coming_soon", "descriptor": "Digital payments, wallets and financial infrastructure." },
+    { "name": "Japan", "slug": "japan", "status": "coming_soon", "descriptor": "Banking, payment infrastructure and cross-border flows." },
+    { "name": "Malaysia", "slug": "malaysia", "status": "coming_soon", "descriptor": "Payments, remittances and digital banking." },
+    { "name": "New Zealand", "slug": "new-zealand", "status": "coming_soon", "descriptor": "Payments, banking and cross-border flows." },
+    { "name": "Pakistan", "slug": "pakistan", "status": "coming_soon", "descriptor": "Remittances, digital payments and banking infrastructure." },
+    { "name": "Philippines", "slug": "philippines", "status": "coming_soon", "descriptor": "Remittances, wallets and digital payments." },
+    { "name": "Singapore", "slug": "singapore", "status": "active", "descriptor": "MAS, real-time payments and cross-border linkages.", "url": "pages/countries/singapore.html" },
+    { "name": "South Korea", "slug": "south-korea", "status": "coming_soon", "descriptor": "Payments, digital banking and financial infrastructure." },
+    { "name": "Sri Lanka", "slug": "sri-lanka", "status": "coming_soon", "descriptor": "Remittances, payments and financial infrastructure." },
+    { "name": "Thailand", "slug": "thailand", "status": "coming_soon", "descriptor": "Payments, wallets and cross-border corridors." },
+    { "name": "Vietnam", "slug": "vietnam", "status": "coming_soon", "descriptor": "Digital payments, remittances and financial infrastructure." }
+  ]
+}
