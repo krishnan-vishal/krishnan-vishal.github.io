@@ -1,0 +1,200 @@
+/*=====================================================
+GPIR DASHBOARD LIGHTBOX
+Keeps dashboard previews inside the protected page DOM instead of
+opening the raw image file directly. See assets/js/dashboard-lightbox.js.
+======================================================*/
+
+.gpir-lightbox{
+
+    position:fixed;
+    inset:0;
+    z-index:2100;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:24px;
+}
+
+.gpir-lightbox[hidden]{
+
+    display:none;
+}
+
+.gpir-lightbox-backdrop{
+
+    position:absolute;
+    inset:0;
+
+    background:rgba(11,26,51,.86);
+
+    opacity:0;
+    transition:opacity .2s ease;
+}
+
+.gpir-lightbox.is-visible .gpir-lightbox-backdrop{
+
+    opacity:1;
+}
+
+.gpir-lightbox-panel{
+
+    position:relative;
+
+    max-width:min(1200px, 94vw);
+    max-height:92vh;
+
+    display:flex;
+    flex-direction:column;
+
+    background:#0F294D;
+
+    border:1px solid rgba(224,164,88,.35);
+    border-radius:14px;
+
+    box-shadow:0 30px 80px rgba(6,15,30,.55);
+
+    padding:16px;
+
+    opacity:0;
+    transform:translateY(10px) scale(.98);
+    transition:opacity .22s ease, transform .22s ease;
+}
+
+.gpir-lightbox.is-visible .gpir-lightbox-panel{
+
+    opacity:1;
+    transform:translateY(0) scale(1);
+}
+
+.gpir-lightbox-close{
+
+    position:absolute;
+    top:-14px;
+    right:-14px;
+
+    width:36px;
+    height:36px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#E0A458;
+    color:#0F294D;
+
+    border:2px solid #0F294D;
+    border-radius:50%;
+
+    cursor:pointer;
+
+    box-shadow:0 8px 20px rgba(6,15,30,.4);
+}
+
+.gpir-lightbox-close svg{
+
+    width:18px;
+    height:18px;
+}
+
+.gpir-lightbox-close:hover{
+
+    background:#f0b876;
+}
+
+.gpir-lightbox-image-wrap{
+
+    flex:1;
+    min-height:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    overflow:auto;
+
+    border-radius:8px;
+}
+
+.gpir-lightbox-image{
+
+    max-width:100%;
+    max-height:78vh;
+
+    display:block;
+
+    border-radius:6px;
+
+    -webkit-user-drag:none;
+    user-drag:none;
+    -webkit-touch-callout:none;
+}
+
+.gpir-lightbox-caption{
+
+    margin-top:14px;
+
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+
+    text-align:center;
+}
+
+.gpir-lightbox-title{
+
+    color:#ffffff;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.02em;
+}
+
+.gpir-lightbox-note{
+
+    color:rgba(255,255,255,.62);
+    font-size:12px;
+    line-height:1.5;
+}
+
+body.gpir-lightbox-open{
+
+    overflow:hidden;
+}
+
+@media (max-width:640px){
+
+    .gpir-lightbox{
+
+        padding:12px;
+    }
+
+    .gpir-lightbox-panel{
+
+        padding:12px;
+        max-height:94vh;
+    }
+
+    .gpir-lightbox-image{
+
+        max-height:70vh;
+    }
+
+    .gpir-lightbox-close{
+
+        top:-10px;
+        right:-10px;
+
+        width:32px;
+        height:32px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce){
+
+    .gpir-lightbox-backdrop,
+    .gpir-lightbox-panel{
+
+        transition:none;
+    }
+}
