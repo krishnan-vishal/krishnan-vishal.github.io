@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-16",
-  "totalEntries": 290,
+  "totalEntries": 291,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -1223,6 +1223,17 @@
       "header": "Markets",
       "country": "United Arab Emirates",
       "text": "Executive Snapshot The United Arab Emirates is one of the world's most significant remittance-sending markets and a regional hub for cross-border payments, digital banking and fintech innovation in the Gulf Cooperation Council (GCC). Its economy is closely tied to a large expatriate workforce, whose outbound remittances flow primarily to South Asia, Southeast Asia and Africa through a mix of licensed exchange houses, bank transfers and, increasingly, instant payment rails. The UAE has invested heavily in modernising its domestic payments infrastructure over the past decade, moving from legacy batch-based systems toward real-time rails, open finance initiatives and an active central bank digital currency (CBDC) programme."
+    },
+    {
+      "id": "country-uae-migration-diaspora",
+      "pageTitle": "United Arab Emirates",
+      "sectionTitle": "Migration & Diaspora Intelligence",
+      "url": "pages/countries/uae.html#migration-diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Arab Emirates",
+      "text": "Migration Diaspora Intelligence UAE expat population foreign-born migrant population native resident Emirati population total population 10.51 million expatriate population 9.06 million 86.2 percent Top expatriate nationalities India 27.3 percent Pakistan 12.7 percent Bangladesh 7.1 percent Philippines 6.3 percent Egypt 5.4 percent Sri Lanka 3.6 percent Nepal 3.0 percent migrant origin concentration heat map diaspora corridors P2P remittances UN DESA International Migrant Stock UAE Government Regulatory Publications latest available data year"
     },
     {
       "id": "country-uae-currency",
