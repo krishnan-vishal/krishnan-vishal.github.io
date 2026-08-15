@@ -73,6 +73,7 @@ var REGION_LABEL = {
 };
 
 var REGION_DIRECTORY = {
+    gcc: "pages/regions/middle-east.html",
     apac: "pages/regions/apac.html",
     latam: "pages/regions/latam.html",
     europe: "pages/regions/europe.html",

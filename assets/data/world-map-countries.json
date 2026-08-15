@@ -1,5 +1,5 @@
 {
-  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids \u2014 consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 \u2014 x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas, Africa).",
+  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids — consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 — x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas, Africa). Middle East / GCC sprint (2026-08-16): Saudi Arabia and Qatar updated from coming_soon/null-url to active with real URLs into their existing homepage Dashboard Gallery entries (#dashboard-ksa, #dashboard-qatar) rather than left unlinked; ten new markers added for Bahrain, Kuwait, Oman, Jordan, Lebanon, Palestine, Syria, Iraq, Iran and Yemen (all region: gcc, status: coming_soon, using capital/financial-hub coordinates).",
   "lastUpdated": "2026-08-16",
   "countries": [
     {
@@ -15,16 +15,16 @@
       "region": "gcc",
       "lat": 24.7136,
       "lon": 46.6753,
-      "status": "coming_soon",
-      "url": null
+      "status": "active",
+      "url": "index.html#dashboard-ksa"
     },
     {
       "name": "Qatar",
       "region": "gcc",
       "lat": 25.2854,
       "lon": 51.531,
-      "status": "coming_soon",
-      "url": null
+      "status": "active",
+      "url": "index.html#dashboard-qatar"
     },
     {
       "name": "India",
@@ -559,6 +559,86 @@
       "region": "africa",
       "lat": 36.7538,
       "lon": 3.0588,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Bahrain",
+      "region": "gcc",
+      "lat": 26.2285,
+      "lon": 50.586,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Kuwait",
+      "region": "gcc",
+      "lat": 29.3759,
+      "lon": 47.9774,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Oman",
+      "region": "gcc",
+      "lat": 23.588,
+      "lon": 58.3829,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Jordan",
+      "region": "gcc",
+      "lat": 31.9454,
+      "lon": 35.9284,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Lebanon",
+      "region": "gcc",
+      "lat": 33.8938,
+      "lon": 35.5018,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Palestine",
+      "region": "gcc",
+      "lat": 31.9038,
+      "lon": 35.2034,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Syria",
+      "region": "gcc",
+      "lat": 33.5138,
+      "lon": 36.2765,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Iraq",
+      "region": "gcc",
+      "lat": 33.3152,
+      "lon": 44.3661,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Iran",
+      "region": "gcc",
+      "lat": 35.6892,
+      "lon": 51.389,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Yemen",
+      "region": "gcc",
+      "lat": 15.3694,
+      "lon": 44.191,
       "status": "coming_soon",
       "url": null
     }

@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-16",
-  "totalEntries": 289,
+  "totalEntries": 290,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -3181,6 +3181,17 @@
       "header": "Markets",
       "country": null,
       "text": "Africa Country Directory North Africa West Africa Central Africa East Africa Southern Africa regional payment infrastructure mobile money banking ecosystems fintech development PAPSS and regulatory intelligence across 55 African Union member states and special markets. No African country has a published Country Intelligence page yet, every entry is Coming Soon with flag and currency still visible. West African CFA franc XOF WAEMU UEMOA shared by Benin Burkina Faso Cote d'Ivoire Guinea-Bissau Mali Niger Senegal Togo. Central African CFA franc XAF CEMAC shared by Cameroon Central African Republic Chad Republic of the Congo Equatorial Guinea Gabon. Western Sahara Sahrawi Arab Democratic Republic special market territory no independent ISO 4217 currency code. Mobile Money PAPSS Pan-African Payment and Settlement System. Algeria دج / DA DZD Egypt E£ EGP Libya ل.د / LD LYD Mauritania UM MRU Morocco DH MAD Sudan ج.س / LS SDG Tunisia د.ت / DT TND Benin CFA XOF Burkina Faso CFA XOF Cabo Verde $ CVE Côte d'Ivoire CFA XOF The Gambia D GMD Ghana ₵ GHS Guinea FG GNF Guinea-Bissau CFA XOF Liberia $ LRD Mali CFA XOF Niger CFA XOF Nigeria ₦ NGN Senegal CFA XOF Sierra Leone Le SLE Togo CFA XOF Angola Kz AOA Cameroon FCFA XAF Central African Republic FCFA XAF Chad FCFA XAF Republic of the Congo FCFA XAF Democratic Republic of the Congo FC CDF Equatorial Guinea FCFA XAF Gabon FCFA XAF São Tomé and Príncipe Db STN Burundi FBu BIF Comoros CF KMF Djibouti Fdj DJF Eritrea Nkf ERN Ethiopia Br ETB Kenya KSh KES Madagascar Ar MGA Malawi MK MWK Mauritius Rs MUR Rwanda FRw RWF Seychelles Rs SCR Somalia Sh SOS South Sudan £ SSP Tanzania TSh TZS Uganda USh UGX Botswana P BWP Eswatini E SZL Lesotho L LSL Mozambique MT MZN Namibia N$ NAD South Africa R ZAR Zambia K ZMW Zimbabwe ZiG ZWG Western Sahara (Sahrawi Arab Democratic Republic) no ISO 4217 code"
+    },
+    {
+      "id": "region-middle-east-directory",
+      "pageTitle": "Middle East / GCC Country Directory",
+      "sectionTitle": "Middle East / GCC Country Directory",
+      "url": "pages/regions/middle-east.html",
+      "type": "GPIR Research",
+      "category": "Regional Intelligence",
+      "header": "Markets",
+      "country": null,
+      "text": "Middle East GCC Country Directory GCC Levant Mesopotamia Iran Persian Gulf Arabian Peninsula GCC remittances digital banking exchange houses fintech innovation payment modernisation. United Arab Emirates AED existing Country Intelligence page. Saudi Arabia SAR existing GPIR dashboard Vision 2030 sarie instant payments. Qatar QAR existing GPIR dashboard Fawran instant payments QCB. Bahrain BD BHD Kuwait KD KWD Oman OMR rial completing the six member Gulf Cooperation Council. Jordan JOD dinar Lebanon LBP pound Palestine ILS JOD USD no single currency Syria SYP pound. Iraq IQD dinar Mesopotamia. Iran IRR rial Persian Gulf not a GCC member. Yemen YER rial Arabian Peninsula. Exchange house MTO intelligence P2P cross-border payments diaspora remittances corridor intelligence regulatory intelligence digital banking open banking. United Arab Emirates AED AED Saudi Arabia SAR SAR Qatar QAR QAR Bahrain BD BHD Kuwait KD KWD Oman ر.ع. OMR Jordan د.أ JOD Lebanon ل.ل LBP Palestine ILS / JOD / USD multiple currencies Syria ل.س SYP Iraq ع.د IQD Iran ﷼ IRR Yemen ﷼ YER"
     }
   ]
 }
