@@ -110,6 +110,8 @@
 
     display:block;
 
+    grid-column:1 / -1;
+
     margin:14px 0 0;
 
     font-size:11px;
@@ -159,6 +161,8 @@
     padding:5px 0;
 
     font-size:12.5px;
+
+    min-width:0;
 
     border-bottom:1px dashed rgba(94,99,110,.16);
 
@@ -275,6 +279,8 @@ span.region-country-directory-item{
 
     padding:8px 0;
 
+    min-width:0;
+
     border-bottom:1px dashed rgba(94,99,110,.16);
 }
 
@@ -297,6 +303,10 @@ span.region-country-directory-item{
 
     font-weight:700;
 
+    min-width:0;
+
+    overflow-wrap:break-word;
+
     color:var(--hero-navy, #0F2747);
 }
 
@@ -312,6 +322,8 @@ span.region-country-directory-item{
 .sepa-group-flags{
 
     display:flex;
+
+    flex-wrap:wrap;
 
     align-items:center;
 
