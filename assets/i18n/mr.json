@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "नॉलेज बेस",
   "footer.pagenav.resources.methodology": "कार्यपद्धती",
   "footer.pagenav.resources.releasenotes": "रिलीज नोट्स",
-  "footer.pagenav.legal.heading": "कायदेशीर"
+  "footer.pagenav.legal.heading": "कायदेशीर",
+  "search.results_count": "{count} GPIR निकाल"
 }

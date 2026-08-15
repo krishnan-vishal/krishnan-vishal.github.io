@@ -940,11 +940,34 @@ function initializeSearch(){
 
     };
 
-    const renderResults = (items, query) => {
+    const TYPE_LABEL = {
+        "GPIR Research": "GPIR Research",
+        "GPIR Policy": "GPIR Policy",
+        "Global Intelligence": "Global Intelligence"
+    };
+
+    const contentResultMarkup = (r) => {
+
+        const location = [r.header, r.category, r.country].filter(Boolean).join(" · ");
+
+        return `<a class="search-result search-result--content" href="${r.href}">
+            <span class="search-result-type">${escapeHtml(TYPE_LABEL[r.type] || r.type)}</span>
+            <span class="search-result-title">${escapeHtml(r.pageTitle)}${r.sectionTitle && r.sectionTitle !== r.pageTitle ? " — " + escapeHtml(r.sectionTitle) : ""}</span>
+            <span class="search-result-excerpt">${r.excerptHtml}</span>
+            <span class="search-result-location">${escapeHtml(location)}</span>
+        </a>`;
+
+    };
+
+    const renderResults = (navItems, contentResult, query) => {
 
         activeIndex = -1;
 
-        if(!items.length){
+        const contentResults = (contentResult && contentResult.results) || [];
+        const contentTotal = (contentResult && contentResult.total) || 0;
+        const hasAny = contentResults.length > 0 || navItems.length > 0;
+
+        if(!hasAny){
 
             const hintNone = window.GPIRI18n ? window.GPIRI18n.t("search.hint_none") : "No matches for “{query}” — try a market, payment rail or chapter title.";
 
@@ -960,11 +983,26 @@ function initializeSearch(){
 
         }
 
-        resultsEl.innerHTML = items.map(item =>
+        const parts = [];
 
+        if(window.GPIRContentSearch && window.GPIRContentSearch.hasFailed() && query){
+            parts.push(`<p class="search-unavailable">GPIR content search is temporarily unavailable. Navigation results below still work.</p>`);
+        }
+
+        if(query && (contentResults.length || navItems.length)){
+            const countLabel = window.GPIRI18n
+                ? window.GPIRI18n.t("search.results_count").replace("{count}", contentTotal + navItems.length)
+                : `${contentTotal + navItems.length} GPIR results`;
+            parts.push(`<p class="search-result-count">${escapeHtml(countLabel)}</p>`);
+        }
+
+        contentResults.forEach(r => parts.push(contentResultMarkup(r)));
+
+        navItems.forEach(item => parts.push(
             `<a class="search-result" href="${item.href}"${item.intelId ? ` data-intel-id="${item.intelId}"` : ""}>${escapeHtml(item.label)}</a>`
+        ));
 
-        ).join("");
+        resultsEl.innerHTML = parts.join("");
 
     };
 
@@ -1020,7 +1058,7 @@ function initializeSearch(){
 
         toggle.setAttribute("aria-expanded","true");
 
-        renderResults(index.slice(0,8), "");
+        renderResults(index.slice(0,8), null, "");
 
         requestAnimationFrame(() => requestAnimationFrame(() => input.focus()));
 
@@ -1110,19 +1148,23 @@ function initializeSearch(){
 
     input.addEventListener("input", () => {
 
-        const query = input.value.trim().toLowerCase();
+        const rawQuery = input.value.trim();
+
+        const query = rawQuery.toLowerCase();
 
         if(!query){
 
-            renderResults(index.slice(0,8), "");
+            renderResults(index.slice(0,8), null, "");
 
             return;
 
         }
 
-        const matches = index.filter(item => item.label.toLowerCase().includes(query)).slice(0,10);
+        const navMatches = index.filter(item => item.label.toLowerCase().includes(query)).slice(0,6);
 
-        renderResults(matches, query);
+        const contentResult = window.GPIRContentSearch ? window.GPIRContentSearch.search(rawQuery, { limit: 8 }) : null;
+
+        renderResults(navMatches, contentResult, query);
 
     });
 

@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "Wissensdatenbank",
   "footer.pagenav.resources.methodology": "Methodik",
   "footer.pagenav.resources.releasenotes": "Versionshinweise",
-  "footer.pagenav.legal.heading": "Rechtliches"
+  "footer.pagenav.legal.heading": "Rechtliches",
+  "search.results_count": "{count} GPIR-Ergebnisse"
 }

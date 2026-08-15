@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "نالج بیس",
   "footer.pagenav.resources.methodology": "طریقہ کار",
   "footer.pagenav.resources.releasenotes": "ریلیز نوٹس",
-  "footer.pagenav.legal.heading": "قانونی"
+  "footer.pagenav.legal.heading": "قانونی",
+  "search.results_count": "{count} GPIR نتائج"
 }

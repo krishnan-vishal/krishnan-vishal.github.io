@@ -715,6 +715,106 @@ nav li{
     font-size:13.5px;
 }
 
+.search-result-count{
+
+    margin:0 0 6px;
+
+    padding:4px 12px;
+
+    color:#8A94A6;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:.04em;
+
+    text-transform:uppercase;
+}
+
+.search-unavailable{
+
+    margin:0 0 8px;
+
+    padding:10px 12px;
+
+    border-radius:8px;
+
+    background:rgba(200,80,60,.08);
+
+    color:#8A2A2A;
+
+    font-size:12.5px;
+
+    line-height:1.5;
+}
+
+.search-result--content{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:3px;
+
+    padding:12px;
+
+    margin-bottom:2px;
+}
+
+.search-result-type{
+
+    color:#B8863B;
+
+    font-size:10px;
+
+    font-weight:800;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+}
+
+.search-result-title{
+
+    color:#12325B;
+
+    font-size:14.5px;
+
+    font-weight:700;
+
+    line-height:1.35;
+}
+
+.search-result-excerpt{
+
+    color:#5A6579;
+
+    font-size:12.5px;
+
+    line-height:1.55;
+}
+
+.search-result-excerpt mark{
+
+    background:rgba(200,162,74,.28);
+
+    color:#12325B;
+
+    border-radius:2px;
+
+    padding:0 1px;
+}
+
+.search-result-location{
+
+    color:#8A94A6;
+
+    font-size:11px;
+
+    font-weight:600;
+}
+
 /*=====================================================
 GPIR INTELLIGENCE DETAIL PANEL
 

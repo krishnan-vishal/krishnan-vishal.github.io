@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "নলেজ বেস",
   "footer.pagenav.resources.methodology": "পদ্ধতি",
   "footer.pagenav.resources.releasenotes": "রিলিজ নোট",
-  "footer.pagenav.legal.heading": "আইনি"
+  "footer.pagenav.legal.heading": "আইনি",
+  "search.results_count": "{count}টি GPIR ফলাফল"
 }

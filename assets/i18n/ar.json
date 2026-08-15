@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "قاعدة المعرفة",
   "footer.pagenav.resources.methodology": "المنهجية",
   "footer.pagenav.resources.releasenotes": "ملاحظات الإصدار",
-  "footer.pagenav.legal.heading": "القانونية"
+  "footer.pagenav.legal.heading": "القانونية",
+  "search.results_count": "{count} نتيجة من GPIR"
 }

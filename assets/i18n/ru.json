@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "База Знаний",
   "footer.pagenav.resources.methodology": "Методология",
   "footer.pagenav.resources.releasenotes": "Примечания к Выпуску",
-  "footer.pagenav.legal.heading": "Правовая Информация"
+  "footer.pagenav.legal.heading": "Правовая Информация",
+  "search.results_count": "{count} результатов GPIR"
 }

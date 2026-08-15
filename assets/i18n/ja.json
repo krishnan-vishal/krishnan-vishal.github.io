@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "ナレッジベース",
   "footer.pagenav.resources.methodology": "調査方法",
   "footer.pagenav.resources.releasenotes": "リリースノート",
-  "footer.pagenav.legal.heading": "法的情報"
+  "footer.pagenav.legal.heading": "法的情報",
+  "search.results_count": "GPIR結果 {count} 件"
 }

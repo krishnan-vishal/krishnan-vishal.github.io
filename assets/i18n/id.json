@@ -175,5 +175,6 @@
   "footer.pagenav.resources.knowledgebase": "Basis Pengetahuan",
   "footer.pagenav.resources.methodology": "Metodologi",
   "footer.pagenav.resources.releasenotes": "Catatan Rilis",
-  "footer.pagenav.legal.heading": "Legal"
+  "footer.pagenav.legal.heading": "Legal",
+  "search.results_count": "{count} hasil GPIR"
 }
