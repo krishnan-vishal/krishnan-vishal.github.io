@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-15",
-  "totalEntries": 275,
+  "totalEntries": 276,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -3027,6 +3027,17 @@
       "header": "Markets",
       "country": null,
       "text": "APAC Country Directory Banking infrastructure, payment rails, wallets, fintechs and regulatory developments across 16 Asia-Pacific markets. India and Singapore have published Country Intelligence pages today; the remaining markets are on the GPIR roadmap and are marked honestly as Coming Soon rather than presented as active. This directory reflects the GPIR APAC roadmap honestly: India and Singapore have published Country Intelligence pages today. The other 14 markets are shown as Coming Soon rather than as active links, and will move to Active as their pages are researched, sourced and published. This same directory structure is the template GPIR intends to reuse for LATAM, Africa, Europe/SEPA, Middle East/GCC and the Americas."
+    },
+    {
+      "id": "region-latam-directory",
+      "pageTitle": "LATAM Country Directory",
+      "sectionTitle": "LATAM Country Directory",
+      "url": "pages/regions/latam.html",
+      "type": "GPIR Research",
+      "category": "Regional Intelligence",
+      "header": "Markets",
+      "country": null,
+      "text": "LATAM Country Directory Latin America payments, remittances, digital banking, fintech and cross-border payment intelligence across 20 sovereign markets in South America, Central America and the Caribbean. LATAM is a first-class GPIR region: every country below is on the roadmap, and every one is marked honestly as Coming Soon because no LATAM Country Intelligence page has been published yet. This directory reflects the GPIR LATAM roadmap honestly: all 20 countries are shown as Coming Soon because no LATAM Country Intelligence page has been published yet. Countries are grouped by South America, Central America and the Caribbean for navigation only — this does not imply that payment ecosystems, regulation or economic characteristics are identical within a grouping. As countries are researched and published, each will move from Coming Soon to Active using the same reusable Country Intelligence template built for APAC (India, Singapore), so LATAM never needs 20 separate page designs. Argentina Coming Soon Bolivia Coming Soon Brazil Coming Soon Chile Coming Soon Colombia Coming Soon Ecuador Coming Soon Paraguay Coming Soon Peru Coming Soon Uruguay Coming Soon Venezuela Coming Soon Belize Coming Soon Costa Rica Coming Soon El Salvador Coming Soon Guatemala Coming Soon Honduras Coming Soon Nicaragua Coming Soon Panama Coming Soon Cuba Coming Soon Dominican Republic Coming Soon Haiti Coming Soon"
     }
   ]
 }
