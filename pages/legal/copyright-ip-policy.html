@@ -5,6 +5,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- GPIR Performance Tier — local device/network hints only, never
+     transmitted. Sets data-gpir-perf on <html> before first paint so
+     CSS and later scripts (world map, dashboards) can scale visual
+     complexity to what this device/connection can reasonably carry. -->
+<script>
+(function(){
+    try{
+        var nav = navigator;
+        var mem = nav.deviceMemory;
+        var cores = nav.hardwareConcurrency;
+        var conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+        var saveData = !!(conn && conn.saveData);
+        var effType = conn && conn.effectiveType;
+        var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        var lowMem = typeof mem === "number" && mem <= 2;
+        var lowCores = typeof cores === "number" && cores <= 2;
+        var slowNet = saveData || effType === "slow-2g" || effType === "2g" || effType === "3g";
+
+        var tier = "standard";
+        if (lowMem || lowCores || slowNet) tier = "constrained";
+        else if (typeof mem === "number" && mem >= 8 && typeof cores === "number" && cores >= 8 && !slowNet) tier = "high";
+
+        document.documentElement.setAttribute("data-gpir-perf", tier);
+        if (reduceMotion) document.documentElement.setAttribute("data-gpir-motion", "reduced");
+
+        window.GPIRPerf = {
+            tier: tier.toUpperCase(),
+            saveData: saveData,
+            effectiveType: effType || null,
+            deviceMemory: (typeof mem === "number") ? mem : null,
+            hardwareConcurrency: (typeof cores === "number") ? cores : null,
+            reduceMotion: reduceMotion
+        };
+    } catch(e){
+        document.documentElement.setAttribute("data-gpir-perf", "standard");
+        window.GPIRPerf = { tier: "STANDARD", saveData: false, effectiveType: null, deviceMemory: null, hardwareConcurrency: null, reduceMotion: false };
+    }
+})();
+</script>
+
+
 <title>Copyright &amp; Intellectual Property Policy | FINTECHOISIS — GPIR</title>
 <meta name="description" content="Ownership, protection, permitted use, attribution and licensing of intellectual property associated with FINTECHOISIS and the Global Payments Intelligence Repository (GPIR).">
 

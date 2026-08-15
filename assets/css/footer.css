@@ -22,6 +22,15 @@
     border-top:1px solid var(--hero-light-border);
 
     overflow:hidden;
+
+    /* The footer is always the last, tallest thing on every page (~1,800px
+       of nav columns, tickers and legal links) and is never in the initial
+       viewport. Skipping its layout/paint until the reader nears it keeps
+       every page's initial render cost independent of footer size —
+       content-visibility:auto still keeps it in the accessibility tree
+       and keyboard-focusable, it only defers rendering work. */
+    content-visibility:auto;
+    contain-intrinsic-size:auto 1800px;
 }
 
 #footer::before{

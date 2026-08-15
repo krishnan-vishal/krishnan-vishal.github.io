@@ -108,3 +108,8 @@ database or knowledge graph, versioned/superseded record history, a public
 API, an AI-ingestion pipeline, uptime/error observability, or an editorial
 workflow tool. Anything claiming to offer these on top of a static
 GitHub Pages site without a backend would not be real.
+
+See `docs/PERFORMANCE_ARCHITECTURE.md` for how delivery/rendering is kept
+independent of how much content this layer holds — performance tiers,
+lazy loading, responsive images, and the migration triggers that would
+justify moving beyond this architecture.

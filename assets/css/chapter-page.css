@@ -336,6 +336,19 @@ body.legal-page .chapter-body{
 
 }
 
+/* Chapter and country pages run to a dozen-plus long-form sections.
+   Deferring layout/paint for the ones not yet scrolled to keeps a very
+   long research page no more expensive to first-render than a short
+   one — content stays in the DOM and accessibility tree throughout,
+   only rendering work is skipped until the reader nears each section. */
+.chapter-content section:not(:first-of-type){
+
+    content-visibility:auto;
+
+    contain-intrinsic-size:auto 700px;
+
+}
+
 .chapter-content section:last-child{
 
     border-bottom:none;
@@ -643,6 +656,8 @@ body.legal-page .chapter-content h2{
     box-shadow:0 12px 32px rgba(15,39,71,.08);
 
     margin-bottom:8px;
+
+    contain:layout style;
 
 }
 

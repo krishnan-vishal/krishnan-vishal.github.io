@@ -110,6 +110,11 @@
 
 .dashboard-card{
     position:relative;
+
+    /* Each card is a self-contained unit (image, badges, CTA) — scoping
+       layout/style recalculation to the card keeps a hover/image swap
+       on one card from forcing the browser to re-check the whole grid. */
+    contain:layout style;
 }
 
 .dashboard-card::before{

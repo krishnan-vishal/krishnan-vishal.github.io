@@ -105,12 +105,13 @@ function svgEl(tag, attrs){
     return el;
 }
 
-function buildLandDots(svg){
+function buildLandDots(svg, step){
+    step = step || 3;
     var polys = getPolygons();
     var frag = document.createDocumentFragment();
     var idx = 0;
-    for (var lat = 74; lat >= -56; lat -= 3){
-        for (var lon = -178; lon <= 178; lon += 3){
+    for (var lat = 74; lat >= -56; lat -= step){
+        for (var lon = -178; lon <= 178; lon += step){
             var isLand = false;
             for (var p = 0; p < polys.length; p++){
                 if (pointInPolygon([lon, lat], polys[p])) { isLand = true; break; }
@@ -127,7 +128,7 @@ function buildLandDots(svg){
     svg.appendChild(frag);
 }
 
-function buildCorridorArcs(svg, byName, reduceMotion){
+function buildCorridorArcs(svg, byName, skipFlowDots){
     var frag = document.createDocumentFragment();
     var used = 0;
     CORRIDORS.forEach(function(pair, i){
@@ -145,7 +146,7 @@ function buildCorridorArcs(svg, byName, reduceMotion){
 
         frag.appendChild(svgEl("path", { d: d, stroke: color, "stroke-width": "0.6", fill: "none", opacity: "0.22" }));
 
-        if (!reduceMotion){
+        if (!skipFlowDots){
             var flow = svgEl("circle", { r: "2.1", fill: color, class: "wm-flow-dot" });
             flow.style.offsetPath = "path('" + d + "')";
             flow.style.animation = "wmFlow " + (3.5 + (i % 5) * 0.7) + "s linear infinite";
@@ -287,19 +288,24 @@ function buildMarkers(container, tooltip, countries, reduceMotion){
     container.appendChild(frag);
 }
 
-function init(){
-    var root = document.getElementById("world-map-canvas");
-    if (!root) return;
+/* CONSTRAINED-tier devices get a sparser dot texture (bigger lat/lon
+   step = fewer SVG nodes to build and paint) and skip the animated
+   corridor-flow dots entirely — the static arcs still convey the
+   corridor, just without a continuously-animating layer. */
+function getDotStep(tier){
+    return tier === "CONSTRAINED" ? 6 : 3;
+}
 
-    var svg = document.getElementById("world-map-svg");
-    var markerLayer = document.getElementById("world-map-markers");
-    var tooltip = document.getElementById("world-map-tooltip");
-    var legendItems = document.getElementById("world-map-legend-items");
-    if (!svg || !markerLayer || !tooltip) return;
+function buildMap(root, svg, markerLayer, tooltip, legendItems, reduceMotion){
+    var perf = window.GPIRPerf || { tier: "STANDARD" };
+    var skipFlowDots = reduceMotion || perf.tier === "CONSTRAINED";
 
-    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    buildLandDots(svg);
+    try{
+        buildLandDots(svg, getDotStep(perf.tier));
+    } catch(e){
+        root.classList.add("world-map-canvas--error");
+        return;
+    }
 
     fetch("assets/data/world-map-countries.json")
         .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
@@ -308,7 +314,7 @@ function init(){
             var byName = {};
             countries.forEach(function(c){ byName[c.name] = c; });
 
-            buildCorridorArcs(svg, byName, reduceMotion);
+            buildCorridorArcs(svg, byName, skipFlowDots);
             buildMarkers(markerLayer, tooltip, countries, reduceMotion);
 
             if (legendItems){
@@ -339,6 +345,48 @@ function init(){
         .catch(function(){
             root.classList.add("world-map-canvas--error");
         });
+}
+
+function init(){
+    var root = document.getElementById("world-map-canvas");
+    if (!root) return;
+
+    var svg = document.getElementById("world-map-svg");
+    var markerLayer = document.getElementById("world-map-markers");
+    var tooltip = document.getElementById("world-map-tooltip");
+    var legendItems = document.getElementById("world-map-legend-items");
+    if (!svg || !markerLayer || !tooltip) return;
+
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* The map sits well below the fold on every page that has one, so
+       building ~1,600 SVG dot nodes plus fetching country data is
+       deferred until the reader is about to scroll it into view,
+       instead of competing with header/nav/hero for the main thread
+       at page load. Falls back to building immediately if
+       IntersectionObserver isn't available. */
+    var built = false;
+    var runBuild = function(){
+        if (built) return;
+        built = true;
+        try{
+            buildMap(root, svg, markerLayer, tooltip, legendItems, reduceMotion);
+        } catch(e){
+            root.classList.add("world-map-canvas--error");
+        }
+    };
+
+    if ("IntersectionObserver" in window){
+        var lazyIo = new IntersectionObserver(function(entries){
+            if (entries[0].isIntersecting){
+                runBuild();
+                lazyIo.disconnect();
+            }
+        }, { rootMargin: "600px 0px" });
+        lazyIo.observe(root);
+    } else {
+        runBuild();
+    }
 
     document.addEventListener("click", function(e){
         if (!tooltip.hidden && !e.target.closest(".wm-marker") && !e.target.closest(".world-map-tooltip")){

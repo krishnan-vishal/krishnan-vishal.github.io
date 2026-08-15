@@ -10,6 +10,48 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- GPIR Performance Tier — local device/network hints only, never
+     transmitted. Sets data-gpir-perf on <html> before first paint so
+     CSS and later scripts (world map, dashboards) can scale visual
+     complexity to what this device/connection can reasonably carry. -->
+<script>
+(function(){
+    try{
+        var nav = navigator;
+        var mem = nav.deviceMemory;
+        var cores = nav.hardwareConcurrency;
+        var conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+        var saveData = !!(conn && conn.saveData);
+        var effType = conn && conn.effectiveType;
+        var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        var lowMem = typeof mem === "number" && mem <= 2;
+        var lowCores = typeof cores === "number" && cores <= 2;
+        var slowNet = saveData || effType === "slow-2g" || effType === "2g" || effType === "3g";
+
+        var tier = "standard";
+        if (lowMem || lowCores || slowNet) tier = "constrained";
+        else if (typeof mem === "number" && mem >= 8 && typeof cores === "number" && cores >= 8 && !slowNet) tier = "high";
+
+        document.documentElement.setAttribute("data-gpir-perf", tier);
+        if (reduceMotion) document.documentElement.setAttribute("data-gpir-motion", "reduced");
+
+        window.GPIRPerf = {
+            tier: tier.toUpperCase(),
+            saveData: saveData,
+            effectiveType: effType || null,
+            deviceMemory: (typeof mem === "number") ? mem : null,
+            hardwareConcurrency: (typeof cores === "number") ? cores : null,
+            reduceMotion: reduceMotion
+        };
+    } catch(e){
+        document.documentElement.setAttribute("data-gpir-perf", "standard");
+        window.GPIRPerf = { tier: "STANDARD", saveData: false, effectiveType: null, deviceMemory: null, hardwareConcurrency: null, reduceMotion: false };
+    }
+})();
+</script>
+
+
 <title>GPIR | Global Payments Intelligence Repository | FINTECHOISIS</title>
 
 <meta name="description"
@@ -1358,12 +1400,21 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             data-lightbox-title="United Arab Emirates"
             aria-label="Open United Arab Emirates GPIR dashboard">
 
-            <img
-                src="assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001.png"
-                alt="GPIR Country Intelligence Dashboard – United Arab Emirates"
-                loading="lazy"
-                width="2560"
-                height="1620">
+            <picture>
+
+                <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w480.webp 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w640.webp 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w960.webp 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w1280.webp 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001.webp 2560w">
+
+                <img
+                    src="assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w960.png"
+                    srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w480.png 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w640.png 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w960.png 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001-w1280.png 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-UAE-TN-001.png 2560w"
+                    sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px"
+                    alt="GPIR Country Intelligence Dashboard – United Arab Emirates"
+                    loading="lazy"
+                    decoding="async"
+                    width="2560"
+                    height="1620">
+
+            </picture>
 
         </a>
 
@@ -1438,12 +1489,21 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             data-lightbox-title="Kingdom of Saudi Arabia"
             aria-label="Open Kingdom of Saudi Arabia GPIR dashboard">
 
-            <img
-                src="assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001.png"
-                alt="GPIR Country Intelligence Dashboard – Kingdom of Saudi Arabia"
-                loading="lazy"
-                width="2560"
-                height="1620">
+            <picture>
+
+                <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w480.webp 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w640.webp 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w960.webp 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w1280.webp 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001.webp 2560w">
+
+                <img
+                    src="assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w960.png"
+                    srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w480.png 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w640.png 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w960.png 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001-w1280.png 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-KSA-TN-001.png 2560w"
+                    sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px"
+                    alt="GPIR Country Intelligence Dashboard – Kingdom of Saudi Arabia"
+                    loading="lazy"
+                    decoding="async"
+                    width="2560"
+                    height="1620">
+
+            </picture>
 
         </a>
 
@@ -1518,12 +1578,21 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             data-lightbox-title="State of Qatar"
             aria-label="Open State of Qatar GPIR dashboard">
 
-            <img
-                src="assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001.png"
-                alt="GPIR Country Intelligence Dashboard – State of Qatar"
-                loading="lazy"
-                width="2560"
-                height="1620">
+            <picture>
+
+                <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w480.webp 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w640.webp 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w960.webp 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w1280.webp 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001.webp 2560w">
+
+                <img
+                    src="assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w960.png"
+                    srcset="assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w480.png 480w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w640.png 640w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w960.png 960w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001-w1280.png 1280w, assets/dashboards/thumbnail/VK-GPIR-GCC-QAT-TN-001.png 2560w"
+                    sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px"
+                    alt="GPIR Country Intelligence Dashboard – State of Qatar"
+                    loading="lazy"
+                    decoding="async"
+                    width="2560"
+                    height="1620">
+
+            </picture>
 
         </a>
 
@@ -1598,12 +1667,21 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             data-lightbox-title="India"
             aria-label="Open Republic of India GPIR dashboard">
 
-            <img
-                src="assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001.png"
-                alt="GPIR Country Intelligence Dashboard – Republic of India"
-                loading="lazy"
-                width="2560"
-                height="1620">
+            <picture>
+
+                <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w480.webp 480w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w640.webp 640w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w960.webp 960w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w1280.webp 1280w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001.webp 2560w">
+
+                <img
+                    src="assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w960.png"
+                    srcset="assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w480.png 480w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w640.png 640w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w960.png 960w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001-w1280.png 1280w, assets/dashboards/thumbnail/VK-GPIR-APAC-IND-TN-001.png 2560w"
+                    sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px"
+                    alt="GPIR Country Intelligence Dashboard – Republic of India"
+                    loading="lazy"
+                    decoding="async"
+                    width="2560"
+                    height="1620">
+
+            </picture>
 
         </a>
 
@@ -1678,12 +1756,21 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             data-lightbox-title="Singapore"
             aria-label="Open Republic of Singapore GPIR dashboard">
 
-            <img
-                src="assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001.png"
-                alt="GPIR Country Intelligence Dashboard – Republic of Singapore"
-                loading="lazy"
-                width="2560"
-                height="1620">
+            <picture>
+
+                <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w480.webp 480w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w640.webp 640w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w960.webp 960w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w1280.webp 1280w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001.webp 2560w">
+
+                <img
+                    src="assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w960.png"
+                    srcset="assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w480.png 480w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w640.png 640w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w960.png 960w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001-w1280.png 1280w, assets/dashboards/thumbnail/VK-GPIR-APAC-SGP-TN-001.png 2560w"
+                    sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px"
+                    alt="GPIR Country Intelligence Dashboard – Republic of Singapore"
+                    loading="lazy"
+                    decoding="async"
+                    width="2560"
+                    height="1620">
+
+            </picture>
 
         </a>
 

@@ -539,6 +539,15 @@ HERO
 
 }
 
+@media (prefers-reduced-motion:reduce){
+
+    .scroll-indicator{
+
+        animation:none;
+    }
+
+}
+
 
 /* ==============================
    Hero Badge

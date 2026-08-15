@@ -7,11 +7,13 @@
   and scores it against a reader's query.
 
   This is an indexed search, not a live page scan: the index is
-  fetched once per page load and matched entirely client-side, so
-  keystrokes never trigger network requests. If the index fails to
-  load, isReady() reports false and callers should show a graceful
-  "search temporarily unavailable" state rather than pretending
-  content search still works.
+  fetched once — on the reader's first search interaction, not on
+  page load, since most visits never open search — and matched
+  entirely client-side afterwards, so keystrokes never trigger
+  network requests. If the index fails to load, isReady() reports
+  false and callers should show a graceful "search temporarily
+  unavailable" state rather than pretending content search still
+  works.
 
   Governance: relevance is scored from real matches against real
   extracted text — synonyms/related terms are never invented. Where
@@ -47,16 +49,25 @@
     let entries = [];
     let loaded = false;
     let failed = false;
+    let loadPromise = null;
 
-    const ready = fetch(INDEX_URL)
-        .then(r => { if(!r.ok) throw new Error("search index fetch failed"); return r.json(); })
-        .then(data => {
-            entries = (data.entries || []);
-            loaded = true;
-        })
-        .catch(() => {
-            failed = true;
-        });
+    // Loaded lazily on first search interaction (see load()), not here —
+    // fetching ~300KB of section text on every page view when most
+    // visits never open search is exactly the payload-you-don't-need
+    // pattern GPIR's performance architecture avoids.
+    function load(){
+        if(loadPromise) return loadPromise;
+        loadPromise = fetch(INDEX_URL)
+            .then(r => { if(!r.ok) throw new Error("search index fetch failed"); return r.json(); })
+            .then(data => {
+                entries = (data.entries || []);
+                loaded = true;
+            })
+            .catch(() => {
+                failed = true;
+            });
+        return loadPromise;
+    }
 
     function escapeHtml(str){
         const div = document.createElement("div");
@@ -172,9 +183,10 @@
     }
 
     window.GPIRContentSearch = {
-        ready,
+        load,
         search,
         isReady: () => loaded,
+        isLoading: () => !!loadPromise && !loaded && !failed,
         hasFailed: () => failed
     };
 

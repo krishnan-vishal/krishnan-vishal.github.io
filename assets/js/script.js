@@ -987,6 +987,8 @@ function initializeSearch(){
 
         if(window.GPIRContentSearch && window.GPIRContentSearch.hasFailed() && query){
             parts.push(`<p class="search-unavailable">GPIR content search is temporarily unavailable. Navigation results below still work.</p>`);
+        } else if(window.GPIRContentSearch && window.GPIRContentSearch.isLoading() && query){
+            parts.push(`<p class="search-hint">Loading GPIR content index…</p>`);
         }
 
         if(query && (contentResults.length || navItems.length)){
@@ -1064,6 +1066,18 @@ function initializeSearch(){
 
         document.addEventListener("keydown", onKeydown);
 
+        // The ~300KB content-search index is only worth fetching once the
+        // reader has actually opened search — most page views never do.
+        if(window.GPIRContentSearch){
+            window.GPIRContentSearch.load().then(() => {
+                const rawQuery = input.value.trim();
+                if(!rawQuery || !overlay.classList.contains("is-open")) return;
+                const navMatches = index.filter(item => item.label.toLowerCase().includes(rawQuery.toLowerCase())).slice(0,6);
+                const contentResult = window.GPIRContentSearch.search(rawQuery, { limit: 8 });
+                renderResults(navMatches, contentResult, rawQuery.toLowerCase());
+            });
+        }
+
     };
 
     const close = () => {
@@ -1139,6 +1153,13 @@ function initializeSearch(){
         if(overlay.classList.contains("is-open")) close(); else open();
 
     });
+
+    // Hover/focus on the search toggle is a strong signal of intent to
+    // search — start the index fetch a beat before the click so it's
+    // more likely already resolved by the time the reader types.
+    const prefetchIndex = () => { if(window.GPIRContentSearch) window.GPIRContentSearch.load(); };
+    toggle.addEventListener("mouseenter", prefetchIndex, { once: true });
+    toggle.addEventListener("focus", prefetchIndex, { once: true });
 
     overlay.querySelectorAll("[data-search-close]").forEach(el => {
 

@@ -561,6 +561,14 @@ span.region-country-directory-item{
 
     gap:14px;
 
+    /* Region pages repeat this grid once per sub-region (up to five times
+       on Africa, up to 55 tiles total). Deferring the groups further down
+       the page keeps a dense region page as cheap to first-render as a
+       sparse one. */
+    content-visibility:auto;
+
+    contain-intrinsic-size:auto 400px;
+
 }
 
 .directory-tile{

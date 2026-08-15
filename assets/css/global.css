@@ -172,6 +172,14 @@
     overflow:hidden;
 
     background:linear-gradient(160deg,#1e2432,#191d27);
+
+    /* The map rebuilds ~1,600 SVG nodes on lazy init and repositions
+       markers/tooltips on every hover — contain scopes that work to the
+       canvas itself instead of forcing the rest of the page to
+       re-check layout. Safe alongside overflow:hidden above, which
+       already clips anything that would be affected by paint
+       containment. */
+    contain:layout paint style;
 }
 
 .world-map-stage{
