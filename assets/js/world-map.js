@@ -75,6 +75,20 @@ var REGION_DIRECTORY = {
     latam: "pages/regions/latam.html"
 };
 
+var REGION_COLOR = {
+    gcc: "#e0a458",
+    apac: "#4fb8a6",
+    europe: "#9b8cd1",
+    latam: "#6aa9d8"
+};
+
+var REGION_LEGEND_LABEL = {
+    gcc: "Middle East",
+    apac: "Asia Pacific",
+    europe: "Europe",
+    latam: "LATAM"
+};
+
 function svgEl(tag, attrs){
     var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
     for (var k in attrs) el.setAttribute(k, attrs[k]);
@@ -104,7 +118,6 @@ function buildLandDots(svg){
 }
 
 function buildCorridorArcs(svg, byName, reduceMotion){
-    var colorCycle = ["#e0a458", "#6aa9d8", "#9b8cd1", "#4fb8a6"];
     var frag = document.createDocumentFragment();
     var used = 0;
     CORRIDORS.forEach(function(pair, i){
@@ -118,7 +131,7 @@ function buildCorridorArcs(svg, byName, reduceMotion){
         var bend = Math.min(dist * 0.22, 70);
         var cx = mx + nx * bend, cy = my + ny * bend;
         var d = "M " + p1.x.toFixed(1) + " " + p1.y.toFixed(1) + " Q " + cx.toFixed(1) + " " + cy.toFixed(1) + " " + p2.x.toFixed(1) + " " + p2.y.toFixed(1);
-        var color = colorCycle[i % colorCycle.length];
+        var color = REGION_COLOR[a.region] || "#e0a458";
 
         frag.appendChild(svgEl("path", { d: d, stroke: color, "stroke-width": "0.6", fill: "none", opacity: "0.22" }));
 
@@ -149,6 +162,8 @@ function buildMarkers(container, tooltip, countries, reduceMotion){
         var topPct = (pt.y / H * 100).toFixed(2) + "%";
         var isActive = c.status === "active";
 
+        var regionColor = REGION_COLOR[c.region] || "#e0a458";
+
         var wrap = document.createElement(isActive ? "a" : "button");
         wrap.className = "wm-marker " + (isActive ? "wm-marker--active" : "wm-marker--soon");
         wrap.style.left = leftPct;
@@ -163,11 +178,16 @@ function buildMarkers(container, tooltip, countries, reduceMotion){
 
         var dot = document.createElement("span");
         dot.className = "wm-marker-dot";
+        dot.style.background = regionColor;
+        dot.style.boxShadow = isActive
+            ? "0 0 0 2px rgba(255,255,255,.92), 0 0 12px 4px " + regionColor
+            : "0 0 8px 2px " + regionColor + "88";
         wrap.appendChild(dot);
 
         if (!reduceMotion){
             var pulse = document.createElement("span");
             pulse.className = "wm-marker-pulse";
+            pulse.style.background = regionColor;
             wrap.appendChild(pulse);
         }
 
@@ -246,16 +266,28 @@ function init(){
             buildMarkers(markerLayer, tooltip, countries, reduceMotion);
 
             if (legendItems){
-                var legend = [
-                    { name: "Active", color: "#e0a458", cls: "wm-legend-dot--active" },
-                    { name: "Coming Soon", color: "rgba(255,255,255,.4)", cls: "wm-legend-dot--soon" }
-                ];
-                legend.forEach(function(item){
+                var regionsPresent = {};
+                countries.forEach(function(c){ regionsPresent[c.region] = true; });
+
+                Object.keys(REGION_COLOR).forEach(function(region){
+                    if (!regionsPresent[region]) return;
                     var el = document.createElement("span");
                     el.className = "wm-legend-item";
-                    el.innerHTML = '<span class="wm-legend-dot ' + item.cls + '"></span>' + item.name;
+                    var dot = document.createElement("span");
+                    dot.className = "wm-legend-dot";
+                    dot.style.background = REGION_COLOR[region];
+                    el.appendChild(dot);
+                    el.appendChild(document.createTextNode(REGION_LEGEND_LABEL[region]));
                     legendItems.appendChild(el);
                 });
+
+                var activeEl = document.createElement("span");
+                activeEl.className = "wm-legend-item wm-legend-item--active";
+                var activeDot = document.createElement("span");
+                activeDot.className = "wm-legend-dot wm-legend-dot--ring";
+                activeEl.appendChild(activeDot);
+                activeEl.appendChild(document.createTextNode("Active — click to open"));
+                legendItems.appendChild(activeEl);
             }
         })
         .catch(function(){

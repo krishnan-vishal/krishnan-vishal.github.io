@@ -174,13 +174,26 @@
     background:linear-gradient(160deg,#1e2432,#191d27);
 }
 
+.world-map-stage{
+
+    position:relative;
+
+    width:100%;
+
+    aspect-ratio:2/1;
+}
+
 .world-map-canvas svg{
+
+    position:absolute;
+
+    inset:0;
 
     display:block;
 
     width:100%;
 
-    height:auto;
+    height:100%;
 }
 
 .world-map-markers{
@@ -238,10 +251,6 @@
 .wm-marker--active .wm-marker-dot{
 
     inset:3px;
-
-    background:#e0a458;
-
-    box-shadow:0 0 6px rgba(224,164,88,.7);
 }
 
 .wm-marker:hover .wm-marker-dot,
@@ -260,14 +269,9 @@
 
     border-radius:50%;
 
-    background:rgba(224,164,88,.5);
+    opacity:.5;
 
     animation:wmPulse 2.6s ease-out infinite;
-}
-
-.wm-marker--soon .wm-marker-pulse{
-
-    background:rgba(255,255,255,.3);
 }
 
 .wm-marker:focus-visible{
@@ -400,6 +404,10 @@
 
 .world-map-legend{
 
+    position:relative;
+
+    z-index:3;
+
     display:flex;
 
     flex-wrap:wrap;
@@ -408,14 +416,16 @@
 
     justify-content:space-between;
 
-    gap:12px;
+    gap:10px 18px;
 
-    z-index:2;
+    padding:12px 20px;
+
+    border-top:1px solid rgba(255,255,255,.08);
 }
 
 .world-map-legend-caption{
 
-    font-size:.68rem;
+    font-size:.64rem;
 
     letter-spacing:.08em;
 
@@ -430,7 +440,11 @@
 
     display:flex;
 
-    gap:18px;
+    flex-wrap:wrap;
+
+    justify-content:flex-end;
+
+    gap:6px 16px;
 }
 
 .wm-legend-item{
@@ -441,11 +455,18 @@
 
     gap:6px;
 
-    font-size:.72rem;
+    font-size:.68rem;
 
-    color:rgba(255,255,255,.55);
+    color:rgba(255,255,255,.6);
 
     font-weight:600;
+
+    white-space:nowrap;
+}
+
+.wm-legend-item--active{
+
+    color:rgba(255,255,255,.85);
 }
 
 .wm-legend-dot{
@@ -457,16 +478,32 @@
     border-radius:50%;
 
     display:inline-block;
+
+    flex-shrink:0;
 }
 
-.wm-legend-dot--active{
+.wm-legend-dot--ring{
 
     background:#e0a458;
+
+    box-shadow:0 0 0 2px rgba(255,255,255,.85);
 }
 
-.wm-legend-dot--soon{
+@media (max-width:640px){
 
-    background:rgba(255,255,255,.4);
+    .world-map-legend{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        padding:12px 16px;
+    }
+
+    .world-map-legend-items{
+
+        justify-content:flex-start;
+    }
 }
 
 .world-map-canvas--error::after{
