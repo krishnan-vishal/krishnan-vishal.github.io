@@ -771,9 +771,13 @@
 
     border-radius:999px;
 
-    background:rgba(184,134,59,.08);
+    background:rgba(15,39,71,.06);
 
-    color:var(--text-body);
+    color:var(--hero-navy, #0F2747);
+
+    font-weight:600;
+
+    border:1px solid rgba(15,39,71,.12);
 
     font-size:.78rem;
 }
