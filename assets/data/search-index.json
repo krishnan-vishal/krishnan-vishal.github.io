@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-15",
-  "totalEntries": 276,
+  "totalEntries": 287,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -3038,6 +3038,127 @@
       "header": "Markets",
       "country": null,
       "text": "LATAM Country Directory Latin America payments, remittances, digital banking, fintech and cross-border payment intelligence across 20 sovereign markets in South America, Central America and the Caribbean. LATAM is a first-class GPIR region: every country below is on the roadmap, and every one is marked honestly as Coming Soon because no LATAM Country Intelligence page has been published yet. This directory reflects the GPIR LATAM roadmap honestly: all 20 countries are shown as Coming Soon because no LATAM Country Intelligence page has been published yet. Countries are grouped by South America, Central America and the Caribbean for navigation only — this does not imply that payment ecosystems, regulation or economic characteristics are identical within a grouping. As countries are researched and published, each will move from Coming Soon to Active using the same reusable Country Intelligence template built for APAC (India, Singapore), so LATAM never needs 20 separate page designs. Argentina Coming Soon Bolivia Coming Soon Brazil Coming Soon Chile Coming Soon Colombia Coming Soon Ecuador Coming Soon Paraguay Coming Soon Peru Coming Soon Uruguay Coming Soon Venezuela Coming Soon Belize Coming Soon Costa Rica Coming Soon El Salvador Coming Soon Guatemala Coming Soon Honduras Coming Soon Nicaragua Coming Soon Panama Coming Soon Cuba Coming Soon Dominican Republic Coming Soon Haiti Coming Soon"
+    },
+    {
+      "id": "region-europe-directory",
+      "pageTitle": "Europe / SEPA Country Directory",
+      "sectionTitle": "Europe / SEPA Country Directory",
+      "url": "pages/regions/europe.html",
+      "type": "GPIR Research",
+      "category": "Regional Intelligence",
+      "header": "Markets",
+      "country": null,
+      "text": "Europe SEPA Country Directory SEPA payment-scheme geography, EU EEA Euro Area classification, UK payments intelligence and cross-border payment intelligence across the current 41-country SEPA scope. SEPA is not the same as the EU or the Euro Area. SEPA is a payment-scheme geographical scope maintained by the European Payments Council (EPC), distinct from the Euro Area (the eurozone monetary union) and from the European Union (a political and economic union). Every country is classified independently across EU membership, EEA membership, Euro Area membership and SEPA participation. Groups: Euro Area, EU Non-Euro, EEA Non-EU, Non-EEA SEPA, United Kingdom. The United Kingdom has a published Country Intelligence page; the other 40 SEPA markets are Coming Soon. Austria € EUR Belgium € EUR Bulgaria € EUR Croatia € EUR Cyprus € EUR Estonia € EUR Finland € EUR France € EUR Germany € EUR Greece € EUR Ireland € EUR Italy € EUR Latvia € EUR Lithuania € EUR Luxembourg € EUR Malta € EUR Netherlands € EUR Portugal € EUR Slovakia € EUR Slovenia € EUR Spain € EUR Czechia Kč CZK Denmark kr DKK Hungary Ft HUF Poland zł PLN Romania lei RON Sweden kr SEK Iceland kr ISK Liechtenstein CHF CHF Norway kr NOK Albania Lek ALL Andorra € EUR Moldova L MDL Monaco € EUR Montenegro € EUR North Macedonia ден MKD San Marino € EUR Serbia din RSD Switzerland CHF CHF Vatican City € EUR United Kingdom £ GBP"
+    },
+    {
+      "id": "country-uk-snapshot",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Executive Snapshot",
+      "url": "pages/countries/uk.html#snapshot",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Executive Snapshot The United Kingdom left the European Union in 2020 and is not an EEA or Euro Area member, but it remains inside the SEPA Single Euro Payments Area geographical scope as defined by the European Payments Council, a payment-scheme participation independent of EU, EEA and Euro Area membership. London remains one of the largest global fintech and cross-border payments hubs, home to major international payment institutions, e-money issuers and remittance PSP businesses operating under Financial Conduct Authority FCA authorisation. Faster Payments has been live since 2008."
+    },
+    {
+      "id": "country-uk-currency",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Currency & Foreign Exchange",
+      "url": "pages/countries/uk.html#currency",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Currency & Foreign Exchange The national currency is the Pound Sterling GBP. The Bank of England does not operate a currency peg; GBP floats freely against other major currencies, with the Bank's Monetary Policy Committee setting the Bank Rate."
+    },
+    {
+      "id": "country-uk-sepa",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "SEPA Payment Intelligence",
+      "url": "pages/countries/uk.html#sepa",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "SEPA Payment Intelligence SEPA geographical scope: the UK is included in the EPC's current SEPA geographical scope, a non-EU, non-EEA, non-Euro Area SEPA participant. Scheme adherence: UK payment service providers may adhere individually to SEPA schemes such as SCT SEPA Credit Transfer, SCT Inst SEPA Instant Credit Transfer and SDD SEPA Direct Debit Core and B2B via EPC scheme rulebooks. Operational readiness: geographical inclusion in SEPA does not mean every UK bank or PSP actively processes every scheme end-to-end."
+    },
+    {
+      "id": "country-uk-rails",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Payment Rails & Infrastructure",
+      "url": "pages/countries/uk.html#rails",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Payment Rails & Infrastructure Faster Payments Service FPS, the UK's real-time retail payment system live since 2008. CHAPS Clearing House Automated Payment System, the UK's RTGS-style high-value same-day sterling payment system operated by the Bank of England. Bacs, the deferred net settlement system for direct debits and bulk direct credits. Open Banking, a regulator-mandated API framework enabling licensed third parties to initiate payments and access account data."
+    },
+    {
+      "id": "country-uk-banking",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Banking & Settlement Landscape",
+      "url": "pages/countries/uk.html#banking",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Banking & Settlement Landscape Large established banking groups including Barclays, HSBC, Lloyds Banking Group and NatWest Group, alongside challenger banks and e-money institutions authorised by the FCA. The Bank of England's Prudential Regulation Authority PRA supervises deposit-taking banks; the Payment Systems Regulator PSR regulates competition and access across major interbank payment systems."
+    },
+    {
+      "id": "country-uk-regulatory",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Regulatory Environment",
+      "url": "pages/countries/uk.html#regulatory",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Regulatory Environment The Financial Conduct Authority FCA is the primary conduct regulator for payment services and e-money under the Payment Services Regulations 2017 and the Electronic Money Regulations 2011. The Bank of England via the PRA supervises systemically important banks prudentially. The Payment Systems Regulator PSR regulates Faster Payments, Bacs, CHAPS and LINK for competition, innovation and access."
+    },
+    {
+      "id": "country-uk-fintech",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Fintech & Digital Ecosystem",
+      "url": "pages/countries/uk.html#fintech",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Fintech & Digital Ecosystem London is one of the world's largest fintech and cross-border payments hubs, hosting FCA-authorised payment institutions, e-money institutions and international money-transfer operators. The UK's Open Banking regime is widely cited as an early and influential model. The Bank of England and HM Treasury have explored a retail central bank digital currency Britcoin through consultation."
+    },
+    {
+      "id": "country-uk-corridors",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Corridor Intelligence",
+      "url": "pages/countries/uk.html#corridors",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Corridor Intelligence Data Under Development. GPIR has not yet compiled or sourced UK inbound outbound cross-border P2P or remittance corridor volumes."
+    },
+    {
+      "id": "country-uk-diaspora",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Diaspora / P2P Cross-Border Payments",
+      "url": "pages/countries/uk.html#diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Diaspora / P2P Cross-Border Payments Data Under Development. GPIR has not yet compiled or sourced UK diaspora, migrant-stock or P2P cross-border payment volume figures."
+    },
+    {
+      "id": "country-uk-sources",
+      "pageTitle": "United Kingdom",
+      "sectionTitle": "Sources & Verification Status",
+      "url": "pages/countries/uk.html#sources",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "United Kingdom",
+      "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against Bank of England, FCA, PSR and European Payments Council publications. Corridor Intelligence and Diaspora P2P Cross-Border Payments sections have no compiled data yet and are marked Data Under Development."
     }
   ]
 }

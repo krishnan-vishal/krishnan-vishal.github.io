@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="30" height="20">
+<rect width="30" height="20" fill="#D20000"/>
+<g fill="#FFE600">
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(0 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(45 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(90 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(135 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(180 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(225 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(270 15 10)"/>
+<polygon points="15,7.6 11,-2 19,-2" transform="rotate(315 15 10)"/>
+</g>
+<circle cx="15" cy="10" r="2.4" fill="#FFE600"/>
+</svg>

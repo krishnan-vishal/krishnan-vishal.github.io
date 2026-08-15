@@ -184,6 +184,247 @@ span.region-country-directory-item{
 
 }
 
+/* ----------------------------------------------------------
+   SEPA COUNTRY ROW — flag + name + currency + status
+   (used in the compact homepage region-card directory and can
+   be reused by any future region needing flag/currency display)
+---------------------------------------------------------- */
+
+.region-country-directory-item--sepa{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:3px;
+
+    padding:7px 0;
+
+}
+
+.sepa-item-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    width:100%;
+
+}
+
+.sepa-item-row .flag-icon{
+
+    width:16px;
+
+    height:auto;
+
+    border-radius:2px;
+
+    flex-shrink:0;
+
+    box-shadow:0 0 0 1px rgba(15,39,71,.08);
+
+}
+
+.sepa-item-name{
+
+    flex:1;
+
+    min-width:0;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+.sepa-item-currency{
+
+    padding-left:22px;
+
+    font-size:11px;
+
+    color:var(--color-grey-light, #A5ABB3);
+
+    font-weight:500;
+
+}
+
+/* ----------------------------------------------------------
+   SEPA CLASSIFICATION GROUP SUMMARY — compact homepage-card
+   rollup so a 41-country directory never becomes a giant list
+   on the region-grid overview (full list lives on the
+   dedicated pages/regions/europe.html directory page)
+---------------------------------------------------------- */
+
+.sepa-group-summary{
+
+    padding:8px 0;
+
+    border-bottom:1px dashed rgba(94,99,110,.16);
+}
+
+.sepa-group-summary-top{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:8px;
+
+    margin-bottom:6px;
+}
+
+.sepa-group-label{
+
+    font-size:12.5px;
+
+    font-weight:700;
+
+    color:var(--hero-navy, #0F2747);
+}
+
+.sepa-group-count{
+
+    font-size:11px;
+
+    font-weight:600;
+
+    color:var(--color-grey, #5E636E);
+}
+
+.sepa-group-flags{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:5px;
+}
+
+.sepa-group-flags .flag-icon{
+
+    width:18px;
+
+    height:auto;
+
+    border-radius:2px;
+
+    box-shadow:0 0 0 1px rgba(15,39,71,.08);
+}
+
+.sepa-group-more{
+
+    font-size:10.5px;
+
+    font-weight:700;
+
+    color:var(--color-grey-light, #A5ABB3);
+
+    margin-left:2px;
+}
+
+/* ----------------------------------------------------------
+   SEPA DIRECTORY TILE — flag, currency and classification
+   chips inside the full pages/regions/europe.html tiles
+---------------------------------------------------------- */
+
+.tile-flag-row{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-bottom:2px;
+
+}
+
+.tile-flag-row .flag-icon{
+
+    width:20px;
+
+    height:auto;
+
+    border-radius:2px;
+
+    flex-shrink:0;
+
+    box-shadow:0 0 0 1px rgba(15,39,71,.08);
+}
+
+.tile-flag-row h3{
+
+    margin:0;
+
+}
+
+.tile-currency-line{
+
+    display:block;
+
+    margin:2px 0 6px;
+
+    font-size:12.5px;
+
+    font-weight:700;
+
+    color:var(--hero-navy, #0F2747);
+
+}
+
+.tile-currency-line small{
+
+    margin-left:4px;
+
+    font-weight:600;
+
+    color:var(--color-grey, #5E636E);
+
+}
+
+.classification-chips{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:4px;
+
+    margin:6px 0 8px;
+
+}
+
+.classification-chip{
+
+    display:inline-block;
+
+    padding:2px 7px;
+
+    font-size:9.5px;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.03em;
+
+    color:var(--hero-navy, #0F2747);
+
+    background:rgba(15,39,71,.06);
+
+    border:1px solid rgba(15,39,71,.12);
+
+    border-radius:5px;
+}
+
 .region-directory-link{
 
     display:inline-block;

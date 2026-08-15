@@ -72,7 +72,8 @@ var REGION_LABEL = {
 
 var REGION_DIRECTORY = {
     apac: "pages/regions/apac.html",
-    latam: "pages/regions/latam.html"
+    latam: "pages/regions/latam.html",
+    europe: "pages/regions/europe.html"
 };
 
 var REGION_COLOR = {
@@ -153,11 +154,47 @@ function statusLabel(status){
     return status === "active" ? "Active" : "Coming Soon";
 }
 
+/* Nudges apart any marker centers closer than minDist (in the 1000x500
+   coordinate space) so dense clusters — e.g. Western/Central Europe —
+   never leave two markers overlapping as click targets. Geographic
+   accuracy is sacrificed only by the minimum needed to keep every
+   marker independently clickable; corridor arcs still use the true
+   projected coordinates, not these adjusted points. */
+function declutterPoints(points, minDist, iterations){
+    for (var iter = 0; iter < iterations; iter++){
+        var moved = false;
+        for (var i = 0; i < points.length; i++){
+            for (var j = i + 1; j < points.length; j++){
+                var dx = points[j].x - points[i].x;
+                var dy = points[j].y - points[i].y;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 0.0001){
+                    points[i].x -= minDist / 2;
+                    points[j].x += minDist / 2;
+                    moved = true;
+                } else if (dist < minDist){
+                    var push = (minDist - dist) / 2;
+                    var nx = dx / dist, ny = dy / dist;
+                    points[i].x -= nx * push;
+                    points[i].y -= ny * push;
+                    points[j].x += nx * push;
+                    points[j].y += ny * push;
+                    moved = true;
+                }
+            }
+        }
+        if (!moved) break;
+    }
+}
+
 function buildMarkers(container, tooltip, countries, reduceMotion){
     var frag = document.createDocumentFragment();
 
-    countries.forEach(function(c){
-        var pt = project(c.lon, c.lat);
+    var points = countries.map(function(c){ return project(c.lon, c.lat); });
+    declutterPoints(points, 34, 120);
+
+    countries.forEach(function(c, idx){
+        var pt = points[idx];
         var leftPct = (pt.x / W * 100).toFixed(2) + "%";
         var topPct = (pt.y / H * 100).toFixed(2) + "%";
         var isActive = c.status === "active";
