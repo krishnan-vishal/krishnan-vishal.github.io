@@ -3823,6 +3823,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
             Explore country intelligence, payment infrastructure,
             regulatory developments, market ecosystems and
             cross-border payment intelligence across global markets.
+            Click any market below to open its dashboard.
         </p>
 
         <div class="map-status">
@@ -3834,6 +3835,17 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
         </div>
 
+    </div>
+
+    <div class="world-map-canvas" id="world-map-canvas">
+        <svg id="world-map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive world map of GPIR-tracked countries"></svg>
+        <div class="world-map-markers" id="world-map-markers"></div>
+        <div class="world-map-tooltip" id="world-map-tooltip" role="status" hidden></div>
+    </div>
+
+    <div class="world-map-legend">
+        <span class="world-map-legend-caption">Tap a market to open its dashboard</span>
+        <div class="world-map-legend-items" id="world-map-legend-items"></div>
     </div>
 
 </div>
@@ -4829,6 +4841,8 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 </div>
 
 </footer>
+
+<script src="assets/js/world-map.js?v=20260815"></script>
 
 <script src="assets/js/fx-ticker.js?v=20260814"></script>
 

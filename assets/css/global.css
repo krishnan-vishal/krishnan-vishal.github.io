@@ -139,21 +139,353 @@
 
     position:relative;
 
-    min-height:420px;
-
     border-radius:24px;
     padding:40px;
     margin-bottom:50px;
     transition:.35s ease;
     overflow:hidden;
     display:flex;
-    align-items:center;
-    justify-content:center;
+    flex-direction:column;
+    align-items:stretch;
+    gap:34px;
     background:
         linear-gradient(rgba(255,255,255,0.03), rgba(255,255,255,0.03)),
         linear-gradient(135deg, var(--bg-page), var(--color-dark-2));
     border:1px solid rgba(255,255,255,0.08);
     box-shadow:var(--shadow-lg);
+}
+
+/*=====================================================
+  INTERACTIVE WORLD MAP CANVAS
+======================================================*/
+
+.world-map-canvas{
+
+    position:relative;
+
+    z-index:2;
+
+    width:100%;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    background:linear-gradient(160deg,#1e2432,#191d27);
+}
+
+.world-map-canvas svg{
+
+    display:block;
+
+    width:100%;
+
+    height:auto;
+}
+
+.world-map-markers{
+
+    position:absolute;
+
+    inset:0;
+}
+
+.wm-marker{
+
+    position:absolute;
+
+    display:block;
+
+    width:16px;
+
+    height:16px;
+
+    margin:-8px 0 0 -8px;
+
+    padding:0;
+
+    border:none;
+
+    background:none;
+
+    cursor:pointer;
+
+    -webkit-tap-highlight-color:transparent;
+}
+
+.wm-marker::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:-10px;
+}
+
+.wm-marker-dot{
+
+    position:absolute;
+
+    inset:5px;
+
+    border-radius:50%;
+
+    background:rgba(246,243,238,.55);
+
+    transition:transform .2s ease, background .2s ease;
+}
+
+.wm-marker--active .wm-marker-dot{
+
+    inset:3px;
+
+    background:#e0a458;
+
+    box-shadow:0 0 6px rgba(224,164,88,.7);
+}
+
+.wm-marker:hover .wm-marker-dot,
+.wm-marker:focus-visible .wm-marker-dot{
+
+    transform:scale(1.6);
+
+    background:#f6d9a8;
+}
+
+.wm-marker-pulse{
+
+    position:absolute;
+
+    inset:3px;
+
+    border-radius:50%;
+
+    background:rgba(224,164,88,.5);
+
+    animation:wmPulse 2.6s ease-out infinite;
+}
+
+.wm-marker--soon .wm-marker-pulse{
+
+    background:rgba(255,255,255,.3);
+}
+
+.wm-marker:focus-visible{
+
+    outline:2px solid #e0a458;
+
+    outline-offset:3px;
+
+    border-radius:50%;
+}
+
+@keyframes wmPulse{
+
+    0%,100%{ transform:scale(1); opacity:.55; }
+    50%{ transform:scale(2.4); opacity:0; }
+}
+
+@keyframes wmFlow{
+
+    0%{ offset-distance:0%; opacity:0; }
+    6%{ opacity:1; }
+    92%{ opacity:1; }
+    100%{ offset-distance:100%; opacity:0; }
+}
+
+.world-map-tooltip{
+
+    position:absolute;
+
+    z-index:5;
+
+    min-width:180px;
+
+    max-width:min(240px, calc(100vw - 60px));
+
+    transform:translate(14px, -50%);
+
+    padding:14px 16px;
+
+    border-radius:12px;
+
+    background:#242833;
+
+    border:1px solid rgba(255,255,255,.14);
+
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+
+    pointer-events:none;
+}
+
+.world-map-tooltip.wm-tooltip--flip{
+
+    transform:translate(calc(-100% - 14px), -50%);
+}
+
+.world-map-tooltip strong{
+
+    display:block;
+
+    color:#f6f3ee;
+
+    font-size:.92rem;
+
+    margin-bottom:6px;
+}
+
+.wm-tooltip-status{
+
+    display:inline-block;
+
+    padding:3px 9px;
+
+    border-radius:var(--radius-pill);
+
+    font-size:.68rem;
+
+    font-weight:700;
+
+    letter-spacing:.04em;
+
+    text-transform:uppercase;
+
+    margin-bottom:8px;
+}
+
+.wm-tooltip-status--active{
+
+    background:rgba(224,164,88,.18);
+
+    color:#e0a458;
+}
+
+.wm-tooltip-status--soon{
+
+    background:rgba(255,255,255,.10);
+
+    color:rgba(255,255,255,.65);
+}
+
+.world-map-tooltip p{
+
+    margin:0 0 8px;
+
+    color:rgba(255,255,255,.72);
+
+    font-size:.78rem;
+
+    line-height:1.5;
+}
+
+.wm-tooltip-link{
+
+    display:inline-block;
+
+    pointer-events:auto;
+
+    color:#e0a458;
+
+    font-size:.78rem;
+
+    font-weight:600;
+
+    text-decoration:none;
+}
+
+.wm-tooltip-link:hover{
+
+    text-decoration:underline;
+}
+
+.world-map-legend{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:12px;
+
+    z-index:2;
+}
+
+.world-map-legend-caption{
+
+    font-size:.68rem;
+
+    letter-spacing:.08em;
+
+    color:rgba(255,255,255,.35);
+
+    font-weight:600;
+
+    text-transform:uppercase;
+}
+
+.world-map-legend-items{
+
+    display:flex;
+
+    gap:18px;
+}
+
+.wm-legend-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    font-size:.72rem;
+
+    color:rgba(255,255,255,.55);
+
+    font-weight:600;
+}
+
+.wm-legend-dot{
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    display:inline-block;
+}
+
+.wm-legend-dot--active{
+
+    background:#e0a458;
+}
+
+.wm-legend-dot--soon{
+
+    background:rgba(255,255,255,.4);
+}
+
+.world-map-canvas--error::after{
+
+    content:"Map data unavailable — please refresh.";
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:rgba(255,255,255,.5);
+
+    font-size:.85rem;
 }
 
 /*=====================================================
@@ -726,6 +1058,13 @@
         transition:none;
 
         transform:none;
+    }
+
+    .wm-marker-pulse{
+
+        animation:none;
+
+        display:none;
     }
 
 }
