@@ -1739,6 +1739,18 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 }
 
+@media (prefers-reduced-motion: reduce){
+
+    .ticker-track{
+
+        animation:none;
+
+        overflow-x:auto;
+
+    }
+
+}
+
 @keyframes scrollTicker{
 
     from{

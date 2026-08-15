@@ -146,7 +146,7 @@ function buildCorridorArcs(svg, byName, reduceMotion){
         frag.appendChild(svgEl("path", { d: d, stroke: color, "stroke-width": "0.6", fill: "none", opacity: "0.22" }));
 
         if (!reduceMotion){
-            var flow = svgEl("circle", { r: "2.1", fill: color });
+            var flow = svgEl("circle", { r: "2.1", fill: color, class: "wm-flow-dot" });
             flow.style.offsetPath = "path('" + d + "')";
             flow.style.animation = "wmFlow " + (3.5 + (i % 5) * 0.7) + "s linear infinite";
             flow.style.animationDelay = (-(i * 0.6)) + "s";
@@ -348,6 +348,36 @@ function init(){
     document.addEventListener("keydown", function(e){
         if (e.key === "Escape") tooltip.hidden = true;
     });
+
+    /* Continuous corridor-flow and marker-pulse animations are wasted
+       compositor work while the map is scrolled off-screen or the tab
+       is backgrounded. Pause them in both cases; resume when the map
+       is back in view and the tab is active. */
+    if (!reduceMotion){
+        var setPaused = function(paused){
+            root.classList.toggle("wm-paused", paused);
+        };
+
+        if ("IntersectionObserver" in window){
+            var io = new IntersectionObserver(function(entries){
+                var entry = entries[0];
+                setPaused(!entry.isIntersecting || document.hidden);
+            }, { threshold: 0.01 });
+            io.observe(root);
+        }
+
+        document.addEventListener("visibilitychange", function(){
+            if (document.hidden){
+                setPaused(true);
+            } else if ("IntersectionObserver" in window === false){
+                setPaused(false);
+            } else {
+                var r = root.getBoundingClientRect();
+                var inView = r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight);
+                setPaused(!inView);
+            }
+        });
+    }
 }
 
 if (document.readyState === "loading"){

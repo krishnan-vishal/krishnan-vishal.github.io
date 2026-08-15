@@ -6,9 +6,9 @@
 
 /* ==========================================================
    GOOGLE FONT
+   Loaded via preconnect + stylesheet <link> tags in each
+   page's <head> (non-blocking), not via a CSS rule in here.
 ========================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 
 
 /* ==========================================================

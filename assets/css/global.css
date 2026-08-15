@@ -274,6 +274,20 @@
     animation:wmPulse 2.6s ease-out infinite;
 }
 
+/* Corridor-flow dots and marker pulses are paused via JS (viewport +
+   tab-visibility aware, see assets/js/world-map.js) rather than left
+   running as wasted compositor work while off-screen or backgrounded.
+   !important is required here because both animations are set via
+   inline style from JS (offset-path circles) or a base rule with equal
+   specificity (marker pulses); this is the standard, narrow way to
+   override an animation shorthand's play-state from an external
+   stylesheet. */
+.world-map-canvas.wm-paused .wm-flow-dot,
+.world-map-canvas.wm-paused .wm-marker-pulse{
+
+    animation-play-state:paused !important;
+}
+
 .wm-marker:focus-visible{
 
     outline:2px solid #e0a458;
