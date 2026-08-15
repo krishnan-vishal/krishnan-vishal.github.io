@@ -1,0 +1,88 @@
+/* ==========================================================
+   FINTECHOISIS | GPIR
+   Cards Intelligence — domain build-out grid
+   Used on pages/chapters/cards-intelligence.html to present
+   the domain's honest "Coming Soon" scope.
+========================================================== */
+
+.cards-domain-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+
+    gap:16px;
+
+    margin:18px 0 28px;
+
+}
+
+.cards-domain-item{
+
+    padding:18px 20px;
+
+    background:var(--hero-light-card, #FFFFFF);
+
+    border:1px solid var(--hero-light-border, rgba(15,39,71,.12));
+
+    border-radius:12px;
+
+    opacity:.72;
+
+}
+
+.cards-domain-item h3{
+
+    display:flex;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+    margin:0 0 8px;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:var(--hero-navy, #0F2747);
+
+}
+
+.cards-domain-item p{
+
+    margin:0;
+
+    font-size:14px;
+
+    line-height:1.55;
+
+    color:var(--hero-light-body, #4B5563);
+
+}
+
+.cards-domain-badge{
+
+    display:inline-block;
+
+    padding:2px 9px;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    text-transform:uppercase;
+
+    letter-spacing:.03em;
+
+    color:var(--hero-navy, #0F2747);
+
+    background:rgba(200,162,74,.18);
+
+    border:1px solid rgba(200,162,74,.4);
+
+    border-radius:999px;
+
+}
