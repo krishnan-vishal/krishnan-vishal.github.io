@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-16",
-  "totalEntries": 291,
+  "totalEntries": 307,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -1300,6 +1300,182 @@
       "header": "Markets",
       "country": "United Arab Emirates",
       "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against CBUAE publications, DFSA/FSRA regulatory texts and other primary references. It should be treated as directional only until verified."
+    },
+    {
+      "id": "country-saudi-arabia-snapshot",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Executive Snapshot",
+      "url": "pages/countries/saudi-arabia.html#snapshot",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Executive Snapshot Saudi Arabia is the largest economy in the Gulf Cooperation Council and one of the world's top remittance-sending markets, with a large expatriate workforce. Vision 2030 fintech licensing SAMA sarie instant payments cash to real-time digital rails South Asia MENA remittance corridors."
+    },
+    {
+      "id": "country-saudi-arabia-migration-diaspora",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Migration & Diaspora Intelligence",
+      "url": "pages/countries/saudi-arabia.html#migration-diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Migration & Diaspora Intelligence Saudi Arabia expat population foreign-born migrant population native resident population total population 36.3 million expatriate population 13.1 million 36.1 percent Top expatriate nationalities India 27.0 percent Bangladesh 16.0 percent Pakistan 12.7 percent Philippines 6.0 percent Egypt 5.6 percent Nepal 3.5 percent Sri Lanka 3.2 percent migrant origin concentration heat map diaspora corridors P2P remittances SAMA UN DESA International Migrant Stock World Bank KNOMAD latest available data year"
+    },
+    {
+      "id": "country-saudi-arabia-currency",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Currency & Foreign Exchange",
+      "url": "pages/countries/saudi-arabia.html#currency",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Currency & Foreign Exchange Saudi Riyal SAR pegged to US Dollar 3.75 fixed exchange rate stability trade remittance."
+    },
+    {
+      "id": "country-saudi-arabia-rails",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Payment Rails & Infrastructure",
+      "url": "pages/countries/saudi-arabia.html#rails",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Payment Rails & Infrastructure SARIE Saudi Arabian Riyal Interbank Express RTGS sarie instant payments mada domestic debit card scheme SAMA Al Rajhi Exchange Al Ansari Exchange Xpress Money UAExchange."
+    },
+    {
+      "id": "country-saudi-arabia-banking",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Banking & Settlement Landscape",
+      "url": "pages/countries/saudi-arabia.html#banking",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Banking & Settlement Landscape Saudi National Bank SNB Al Rajhi Bank Riyad Bank Bank AlBilad Saudi Awwal Bank SAB Banque Saudi Fransi BSF Islamic Sharia-compliant banking."
+    },
+    {
+      "id": "country-saudi-arabia-regulatory",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Regulatory Environment",
+      "url": "pages/countries/saudi-arabia.html#regulatory",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Regulatory Environment SAMA Saudi Central Bank regulator banking payments insurance fintech sandbox licensing Vision 2030 Financial Sector Development Program AML CFT FATF Absher National ID."
+    },
+    {
+      "id": "country-saudi-arabia-fintech",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Fintech & Digital Ecosystem",
+      "url": "pages/countries/saudi-arabia.html#fintech",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Fintech & Digital Ecosystem urpay stc pay Tamara buy-now-pay-later barq D360 digital wallets super apps Open Finance API integration."
+    },
+    {
+      "id": "country-saudi-arabia-sources",
+      "pageTitle": "Saudi Arabia",
+      "sectionTitle": "Sources & Verification Status",
+      "url": "pages/countries/saudi-arabia.html#sources",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Saudi Arabia",
+      "text": "Sources & Verification Status Draft scaffold SAMA publications verification GPIR editorial."
+    },
+    {
+      "id": "country-qatar-snapshot",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Executive Snapshot",
+      "url": "pages/countries/qatar.html#snapshot",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Executive Snapshot Qatar has one of the highest expatriate population shares of any country, workforce concentrated in construction energy hospitality professional services. QCB Qatar Central Bank Fawran instant payments Open Banking fintech licensing South Asia India Nepal Bangladesh Pakistan Philippines Egypt remittance corridors."
+    },
+    {
+      "id": "country-qatar-migration-diaspora",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Migration & Diaspora Intelligence",
+      "url": "pages/countries/qatar.html#migration-diaspora",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Migration & Diaspora Intelligence Qatar expat population foreign-born migrant population native resident population total population 3.02 million expatriate population 2.20 million 72.8 percent Top expatriate nationalities India 28.7 percent Nepal 14.0 percent Bangladesh 12.6 percent Pakistan 10.3 percent Philippines 7.6 percent Egypt 5.4 percent Sri Lanka 3.2 percent migrant origin concentration heat map diaspora corridors P2P remittances UN DESA International Migrant Stock Qatar Central Bank latest available data year"
+    },
+    {
+      "id": "country-qatar-currency",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Currency & Foreign Exchange",
+      "url": "pages/countries/qatar.html#currency",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Currency & Foreign Exchange Qatari Riyal QAR pegged to US Dollar 3.64 fixed exchange rate stability trade remittance."
+    },
+    {
+      "id": "country-qatar-rails",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Payment Rails & Infrastructure",
+      "url": "pages/countries/qatar.html#rails",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Payment Rails & Infrastructure Fawran instant payments QATCH automated clearing house payment switch Al Zaman Exchange Gulf Exchange Al Dar Exchange LuLu Exchange."
+    },
+    {
+      "id": "country-qatar-banking",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Banking & Settlement Landscape",
+      "url": "pages/countries/qatar.html#banking",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Banking & Settlement Landscape Qatar National Bank QNB Qatar Islamic Bank Commercial Bank of Qatar Doha Bank Dukhan Bank Masraf Al Rayan Islamic banking."
+    },
+    {
+      "id": "country-qatar-regulatory",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Regulatory Environment",
+      "url": "pages/countries/qatar.html#regulatory",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Regulatory Environment QCB Qatar Central Bank regulator banking payments fintech Qatar Financial Centre Regulatory Authority QFCRA AML CFT FATF Qatar Financial Information Unit QFIU."
+    },
+    {
+      "id": "country-qatar-fintech",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Fintech & Digital Ecosystem",
+      "url": "pages/countries/qatar.html#fintech",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Fintech & Digital Ecosystem Ooredoo Money QNB digital remittance Western Union MoneyGram Wise Instarem Open Banking API FIFA World Cup 2022 digital infrastructure."
+    },
+    {
+      "id": "country-qatar-sources",
+      "pageTitle": "Qatar",
+      "sectionTitle": "Sources & Verification Status",
+      "url": "pages/countries/qatar.html#sources",
+      "type": "GPIR Research",
+      "category": "Country Intelligence",
+      "header": "Markets",
+      "country": "Qatar",
+      "text": "Sources & Verification Status Draft scaffold QCB publications verification GPIR editorial."
     },
     {
       "id": "legal-cookie-policy-introduction",

@@ -1,5 +1,5 @@
 {
-  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids — consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 — x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas, Africa). Middle East / GCC sprint (2026-08-16): Saudi Arabia and Qatar updated from coming_soon/null-url to active with real URLs into their existing homepage Dashboard Gallery entries (#dashboard-ksa, #dashboard-qatar) rather than left unlinked; ten new markers added for Bahrain, Kuwait, Oman, Jordan, Lebanon, Palestine, Syria, Iraq, Iran and Yemen (all region: gcc, status: coming_soon, using capital/financial-hub coordinates).",
+  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids — consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 — x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas, Africa). Middle East / GCC sprint (2026-08-16): Saudi Arabia and Qatar updated from coming_soon/null-url to active with real URLs into their existing homepage Dashboard Gallery entries (#dashboard-ksa, #dashboard-qatar) rather than left unlinked; ten new markers added for Bahrain, Kuwait, Oman, Jordan, Lebanon, Palestine, Syria, Iraq, Iran and Yemen (all region: gcc, status: coming_soon, using capital/financial-hub coordinates). Saudi Arabia and Qatar URLs updated (2026-08-16) from their homepage dashboard-gallery anchors to their new dedicated Country Intelligence pages (pages/countries/saudi-arabia.html, pages/countries/qatar.html) now that those pages exist.",
   "lastUpdated": "2026-08-16",
   "countries": [
     {
@@ -16,7 +16,7 @@
       "lat": 24.7136,
       "lon": 46.6753,
       "status": "active",
-      "url": "index.html#dashboard-ksa"
+      "url": "pages/countries/saudi-arabia.html"
     },
     {
       "name": "Qatar",
@@ -24,7 +24,7 @@
       "lat": 25.2854,
       "lon": 51.531,
       "status": "active",
-      "url": "index.html#dashboard-qatar"
+      "url": "pages/countries/qatar.html"
     },
     {
       "name": "India",

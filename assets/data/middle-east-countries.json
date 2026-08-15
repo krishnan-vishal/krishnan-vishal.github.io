@@ -9,30 +9,177 @@
   "newRecordCount": 10,
   "lastUpdated": "2026-08-16",
   "subRegions": [
-    { "id": "gcc", "label": "GCC" },
-    { "id": "levant", "label": "Levant" },
-    { "id": "mesopotamia", "label": "Mesopotamia" },
-    { "id": "iran-persian-gulf", "label": "Iran / Persian Gulf" },
-    { "id": "arabian-peninsula", "label": "Arabian Peninsula" }
+    {
+      "id": "gcc",
+      "label": "GCC"
+    },
+    {
+      "id": "levant",
+      "label": "Levant"
+    },
+    {
+      "id": "mesopotamia",
+      "label": "Mesopotamia"
+    },
+    {
+      "id": "iran-persian-gulf",
+      "label": "Iran / Persian Gulf"
+    },
+    {
+      "id": "arabian-peninsula",
+      "label": "Arabian Peninsula"
+    }
   ],
   "countries": [
-    { "name": "United Arab Emirates", "countryCode": "AE", "flag": "ae", "subRegion": "gcc", "currencyName": "UAE Dirham", "currencySymbol": "AED", "currencyCode": "AED", "status": "active", "isExisting": true, "crossLinkUrl": "pages/countries/uae.html", "descriptor": "Payment rails, regulation and fintech ecosystem. Existing GPIR Country Intelligence record." },
-    { "name": "Saudi Arabia", "countryCode": "SA", "flag": "sa", "subRegion": "gcc", "currencyName": "Saudi Riyal", "currencySymbol": "SAR", "currencyCode": "SAR", "status": "active", "isExisting": true, "crossLinkUrl": "index.html#dashboard-ksa", "descriptor": "Vision 2030 fintech licensing and sarie instant payments. Existing GPIR dashboard record." },
-    { "name": "Qatar", "countryCode": "QA", "flag": "qa", "subRegion": "gcc", "currencyName": "Qatari Riyal", "currencySymbol": "QAR", "currencyCode": "QAR", "status": "active", "isExisting": true, "crossLinkUrl": "index.html#dashboard-qatar", "descriptor": "High expatriate-workforce share and QCB's Fawran instant payments rail. Existing GPIR dashboard record." },
-
-    { "name": "Bahrain", "countryCode": "BH", "flag": "bh", "subRegion": "gcc", "currencyName": "Bahraini Dinar", "currencySymbol": "BD", "currencyCode": "BHD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
-    { "name": "Kuwait", "countryCode": "KW", "flag": "kw", "subRegion": "gcc", "currencyName": "Kuwaiti Dinar", "currencySymbol": "KD", "currencyCode": "KWD", "status": "coming_soon", "descriptor": "Payments, remittances and cross-border intelligence." },
-    { "name": "Oman", "countryCode": "OM", "flag": "om", "subRegion": "gcc", "currencyName": "Omani Rial", "currencySymbol": "ر.ع.", "currencyCode": "OMR", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
-
-    { "name": "Jordan", "countryCode": "JO", "flag": "jo", "subRegion": "levant", "currencyName": "Jordanian Dinar", "currencySymbol": "د.أ", "currencyCode": "JOD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
-    { "name": "Lebanon", "countryCode": "LB", "flag": "lb", "subRegion": "levant", "currencyName": "Lebanese Pound", "currencySymbol": "ل.ل", "currencyCode": "LBP", "status": "coming_soon", "descriptor": "Payments, remittances and cross-border intelligence." },
-    { "name": "Palestine", "countryCode": "PS", "flag": "ps", "subRegion": "levant", "currencyName": "No single national currency", "currencySymbol": "ILS / JOD / USD", "currencyCode": null, "currencyNote": "The Israeli new shekel (ILS), Jordanian dinar (JOD) and US dollar (USD) all circulate depending on context. GPIR does not fabricate a single simplified ISO 4217 code where none exists.", "status": "coming_soon", "descriptor": "Payments and cross-border intelligence." },
-    { "name": "Syria", "countryCode": "SY", "flag": "sy", "subRegion": "levant", "currencyName": "Syrian Pound", "currencySymbol": "ل.س", "currencyCode": "SYP", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
-
-    { "name": "Iraq", "countryCode": "IQ", "flag": "iq", "subRegion": "mesopotamia", "currencyName": "Iraqi Dinar", "currencySymbol": "ع.د", "currencyCode": "IQD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
-
-    { "name": "Iran", "countryCode": "IR", "flag": "ir", "subRegion": "iran-persian-gulf", "currencyName": "Iranian Rial", "currencySymbol": "﷼", "currencyCode": "IRR", "status": "coming_soon", "descriptor": "Payments and regulatory intelligence. Not a GCC member." },
-
-    { "name": "Yemen", "countryCode": "YE", "flag": "ye", "subRegion": "arabian-peninsula", "currencyName": "Yemeni Rial", "currencySymbol": "﷼", "currencyCode": "YER", "status": "coming_soon", "descriptor": "Payments and payment infrastructure intelligence." }
+    {
+      "name": "United Arab Emirates",
+      "countryCode": "AE",
+      "flag": "ae",
+      "subRegion": "gcc",
+      "currencyName": "UAE Dirham",
+      "currencySymbol": "AED",
+      "currencyCode": "AED",
+      "status": "active",
+      "isExisting": true,
+      "crossLinkUrl": "pages/countries/uae.html",
+      "descriptor": "Payment rails, regulation and fintech ecosystem. Existing GPIR Country Intelligence record."
+    },
+    {
+      "name": "Saudi Arabia",
+      "countryCode": "SA",
+      "flag": "sa",
+      "subRegion": "gcc",
+      "currencyName": "Saudi Riyal",
+      "currencySymbol": "SAR",
+      "currencyCode": "SAR",
+      "status": "active",
+      "isExisting": true,
+      "crossLinkUrl": "pages/countries/saudi-arabia.html",
+      "descriptor": "Vision 2030 fintech licensing and sarie instant payments. Existing GPIR Country Intelligence record."
+    },
+    {
+      "name": "Qatar",
+      "countryCode": "QA",
+      "flag": "qa",
+      "subRegion": "gcc",
+      "currencyName": "Qatari Riyal",
+      "currencySymbol": "QAR",
+      "currencyCode": "QAR",
+      "status": "active",
+      "isExisting": true,
+      "crossLinkUrl": "pages/countries/qatar.html",
+      "descriptor": "High expatriate-workforce share and QCB's Fawran instant payments rail. Existing GPIR Country Intelligence record."
+    },
+    {
+      "name": "Bahrain",
+      "countryCode": "BH",
+      "flag": "bh",
+      "subRegion": "gcc",
+      "currencyName": "Bahraini Dinar",
+      "currencySymbol": "BD",
+      "currencyCode": "BHD",
+      "status": "coming_soon",
+      "descriptor": "Payments, banking and cross-border intelligence."
+    },
+    {
+      "name": "Kuwait",
+      "countryCode": "KW",
+      "flag": "kw",
+      "subRegion": "gcc",
+      "currencyName": "Kuwaiti Dinar",
+      "currencySymbol": "KD",
+      "currencyCode": "KWD",
+      "status": "coming_soon",
+      "descriptor": "Payments, remittances and cross-border intelligence."
+    },
+    {
+      "name": "Oman",
+      "countryCode": "OM",
+      "flag": "om",
+      "subRegion": "gcc",
+      "currencyName": "Omani Rial",
+      "currencySymbol": "ر.ع.",
+      "currencyCode": "OMR",
+      "status": "coming_soon",
+      "descriptor": "Payments, banking and cross-border intelligence."
+    },
+    {
+      "name": "Jordan",
+      "countryCode": "JO",
+      "flag": "jo",
+      "subRegion": "levant",
+      "currencyName": "Jordanian Dinar",
+      "currencySymbol": "د.أ",
+      "currencyCode": "JOD",
+      "status": "coming_soon",
+      "descriptor": "Payments, banking and cross-border intelligence."
+    },
+    {
+      "name": "Lebanon",
+      "countryCode": "LB",
+      "flag": "lb",
+      "subRegion": "levant",
+      "currencyName": "Lebanese Pound",
+      "currencySymbol": "ل.ل",
+      "currencyCode": "LBP",
+      "status": "coming_soon",
+      "descriptor": "Payments, remittances and cross-border intelligence."
+    },
+    {
+      "name": "Palestine",
+      "countryCode": "PS",
+      "flag": "ps",
+      "subRegion": "levant",
+      "currencyName": "No single national currency",
+      "currencySymbol": "ILS / JOD / USD",
+      "currencyCode": null,
+      "currencyNote": "The Israeli new shekel (ILS), Jordanian dinar (JOD) and US dollar (USD) all circulate depending on context. GPIR does not fabricate a single simplified ISO 4217 code where none exists.",
+      "status": "coming_soon",
+      "descriptor": "Payments and cross-border intelligence."
+    },
+    {
+      "name": "Syria",
+      "countryCode": "SY",
+      "flag": "sy",
+      "subRegion": "levant",
+      "currencyName": "Syrian Pound",
+      "currencySymbol": "ل.س",
+      "currencyCode": "SYP",
+      "status": "coming_soon",
+      "descriptor": "Payments, banking and cross-border intelligence."
+    },
+    {
+      "name": "Iraq",
+      "countryCode": "IQ",
+      "flag": "iq",
+      "subRegion": "mesopotamia",
+      "currencyName": "Iraqi Dinar",
+      "currencySymbol": "ع.د",
+      "currencyCode": "IQD",
+      "status": "coming_soon",
+      "descriptor": "Payments, banking and cross-border intelligence."
+    },
+    {
+      "name": "Iran",
+      "countryCode": "IR",
+      "flag": "ir",
+      "subRegion": "iran-persian-gulf",
+      "currencyName": "Iranian Rial",
+      "currencySymbol": "﷼",
+      "currencyCode": "IRR",
+      "status": "coming_soon",
+      "descriptor": "Payments and regulatory intelligence. Not a GCC member."
+    },
+    {
+      "name": "Yemen",
+      "countryCode": "YE",
+      "flag": "ye",
+      "subRegion": "arabian-peninsula",
+      "currencyName": "Yemeni Rial",
+      "currencySymbol": "﷼",
+      "currencyCode": "YER",
+      "status": "coming_soon",
+      "descriptor": "Payments and payment infrastructure intelligence."
+    }
   ]
 }
