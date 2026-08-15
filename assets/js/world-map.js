@@ -67,27 +67,31 @@ var REGION_LABEL = {
     gcc: "Middle East / GCC",
     apac: "APAC",
     latam: "LATAM",
-    europe: "Europe / SEPA"
+    europe: "Europe / SEPA",
+    americas: "Americas"
 };
 
 var REGION_DIRECTORY = {
     apac: "pages/regions/apac.html",
     latam: "pages/regions/latam.html",
-    europe: "pages/regions/europe.html"
+    europe: "pages/regions/europe.html",
+    americas: "pages/regions/americas.html"
 };
 
 var REGION_COLOR = {
     gcc: "#e0a458",
     apac: "#4fb8a6",
     europe: "#9b8cd1",
-    latam: "#6aa9d8"
+    latam: "#6aa9d8",
+    americas: "#d97757"
 };
 
 var REGION_LEGEND_LABEL = {
     gcc: "Middle East",
     apac: "Asia Pacific",
     europe: "Europe",
-    latam: "LATAM"
+    latam: "LATAM",
+    americas: "Americas"
 };
 
 function svgEl(tag, attrs){

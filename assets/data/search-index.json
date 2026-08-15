@@ -1,7 +1,7 @@
 {
   "schemaNote": "GPIR content search index — real, extracted, section-level text from the site's own chapter, country and legal pages, generated from the existing <section id=\"...\"> anchors already present in each page's HTML (not invented anchors). Each entry's url includes a #section-id fragment so a search result opens the exact matched section, not just the top of the page. Regenerate by re-running this extraction whenever page content changes; there is no live crawler — this is a static build artifact for a static site.",
   "generatedDate": "2026-08-15",
-  "totalEntries": 287,
+  "totalEntries": 288,
   "entries": [
     {
       "id": "chapter-betting-payments-exec-summary",
@@ -3037,7 +3037,7 @@
       "category": "Regional Intelligence",
       "header": "Markets",
       "country": null,
-      "text": "LATAM Country Directory Latin America payments, remittances, digital banking, fintech and cross-border payment intelligence across 20 sovereign markets in South America, Central America and the Caribbean. LATAM is a first-class GPIR region: every country below is on the roadmap, and every one is marked honestly as Coming Soon because no LATAM Country Intelligence page has been published yet. This directory reflects the GPIR LATAM roadmap honestly: all 20 countries are shown as Coming Soon because no LATAM Country Intelligence page has been published yet. Countries are grouped by South America, Central America and the Caribbean for navigation only — this does not imply that payment ecosystems, regulation or economic characteristics are identical within a grouping. As countries are researched and published, each will move from Coming Soon to Active using the same reusable Country Intelligence template built for APAC (India, Singapore), so LATAM never needs 20 separate page designs. Argentina Coming Soon Bolivia Coming Soon Brazil Coming Soon Chile Coming Soon Colombia Coming Soon Ecuador Coming Soon Paraguay Coming Soon Peru Coming Soon Uruguay Coming Soon Venezuela Coming Soon Belize Coming Soon Costa Rica Coming Soon El Salvador Coming Soon Guatemala Coming Soon Honduras Coming Soon Nicaragua Coming Soon Panama Coming Soon Cuba Coming Soon Dominican Republic Coming Soon Haiti Coming Soon"
+      "text": "LATAM Country Directory Latin America payments, remittances, digital banking, fintech and cross-border payment intelligence across 21 sovereign markets in South America, Central America and the Caribbean. LATAM is a first-class GPIR region: every country below is on the roadmap, and every one is marked honestly as Coming Soon because no LATAM Country Intelligence page has been published yet. This directory reflects the GPIR LATAM roadmap honestly: all 21 countries are shown as Coming Soon because no LATAM Country Intelligence page has been published yet. Countries are grouped by South America, Central America and the Caribbean for navigation only — this does not imply that payment ecosystems, regulation or economic characteristics are identical within a grouping. As countries are researched and published, each will move from Coming Soon to Active using the same reusable Country Intelligence template built for APAC (India, Singapore), so LATAM never needs 20 separate page designs. Argentina Coming Soon Bolivia Coming Soon Brazil Coming Soon Chile Coming Soon Colombia Coming Soon Ecuador Coming Soon Paraguay Coming Soon Peru Coming Soon Uruguay Coming Soon Venezuela Coming Soon Belize Coming Soon Costa Rica Coming Soon El Salvador Coming Soon Guatemala Coming Soon Honduras Coming Soon Nicaragua Coming Soon Panama Coming Soon Cuba Coming Soon Dominican Republic Coming Soon Haiti Coming Soon Mexico Coming Soon."
     },
     {
       "id": "region-europe-directory",
@@ -3159,6 +3159,17 @@
       "header": "Markets",
       "country": "United Kingdom",
       "text": "Sources & Verification Status This page is a draft scaffold pending formal sourcing and citation against Bank of England, FCA, PSR and European Payments Council publications. Corridor Intelligence and Diaspora P2P Cross-Border Payments sections have no compiled data yet and are marked Data Under Development."
+    },
+    {
+      "id": "region-americas-directory",
+      "pageTitle": "Americas Country Directory",
+      "sectionTitle": "Americas Country Directory",
+      "url": "pages/regions/americas.html",
+      "type": "GPIR Research",
+      "category": "Regional Intelligence",
+      "header": "Markets",
+      "country": null,
+      "text": "Americas Country Directory Northern America Central America Caribbean South America cross-border payments instant payment systems banking infrastructure fintech ecosystems and regulatory developments across 35 sovereign markets. Americas is a regional index, not a second country database. Twenty-one of the 35 countries already have a canonical record under LATAM (Mexico, all Central America, Cuba, Dominican Republic, Haiti, and all ten South American LATAM markets) and route straight to the LATAM directory rather than opening a duplicate page. Canada United States, ten sovereign Caribbean states (Antigua and Barbuda, Bahamas, Barbados, Dominica, Grenada, Jamaica, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines, Trinidad and Tobago), Guyana and Suriname are new GPIR Americas records with no LATAM equivalent. UN M49 geographic classification. Canada C$ CAD United States $ USD Mexico $ MXN Belize B$ BZD Costa Rica ₡ CRC El Salvador $ USD Guatemala Q GTQ Honduras L HNL Nicaragua C$ NIO Panama B/. PAB $ USD Antigua and Barbuda EC$ XCD Bahamas B$ BSD Barbados Bds$ BBD Cuba $ CUP Dominica EC$ XCD Dominican Republic RD$ DOP Grenada EC$ XCD Haiti G HTG Jamaica J$ JMD Saint Kitts and Nevis EC$ XCD Saint Lucia EC$ XCD Saint Vincent and the Grenadines EC$ XCD Trinidad and Tobago TT$ TTD Argentina $ ARS Bolivia Bs BOB Brazil R$ BRL Chile $ CLP Colombia $ COP Ecuador $ USD Guyana $ GYD Paraguay ₲ PYG Peru S/ PEN Suriname $ SRD Uruguay $ UYU Venezuela Bs.S VES"
     }
   ]
 }

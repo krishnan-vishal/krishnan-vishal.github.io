@@ -62,6 +62,16 @@
 
 }
 
+.country-status--crosslink{
+
+    color:#1F5AA8;
+
+    background:rgba(31,90,168,.1);
+
+    border:1px solid rgba(31,90,168,.3);
+
+}
+
 /* ----------------------------------------------------------
    DATA-PENDING TAG (used inside cards / dashboards where a
    figure is not yet sourced — never a fabricated number)

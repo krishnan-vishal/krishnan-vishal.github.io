@@ -1,5 +1,5 @@
 {
-  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids \u2014 consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 \u2014 x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Only countries that are already named somewhere on the site (APAC directory, LATAM directory, Europe/SEPA card, GCC card) are included \u2014 Africa and Americas region cards don't yet name individual countries, so no country nodes are fabricated for them; the dot-matrix continent backdrop still renders under those regions.",
+  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids \u2014 consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 \u2014 x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas). Africa doesn't yet name individual countries on the site, so no Africa country nodes are fabricated here; the dot-matrix continent backdrop still renders under it.",
   "lastUpdated": "2026-08-15",
   "countries": [
     {
@@ -433,6 +433,38 @@
       "lon": -0.1278,
       "status": "active",
       "url": "pages/countries/uk.html"
+    },
+    {
+      "name": "Canada",
+      "region": "americas",
+      "lat": 45.4215,
+      "lon": -75.6972,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "United States",
+      "region": "americas",
+      "lat": 38.9072,
+      "lon": -77.0369,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Guyana",
+      "region": "americas",
+      "lat": 6.8013,
+      "lon": -58.1551,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Suriname",
+      "region": "americas",
+      "lat": 5.852,
+      "lon": -55.2038,
+      "status": "coming_soon",
+      "url": null
     }
   ]
 }
