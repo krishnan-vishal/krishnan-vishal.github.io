@@ -1,6 +1,6 @@
 {
-  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids \u2014 consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 \u2014 x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas). Africa doesn't yet name individual countries on the site, so no Africa country nodes are fabricated here; the dot-matrix continent backdrop still renders under it.",
-  "lastUpdated": "2026-08-15",
+  "schemaNote": "Country nodes plotted on the homepage interactive world map. Coordinates are city-level (capital or primary financial hub), not geometric centroids \u2014 consistent with how corridor 'hub' points are conventionally shown on payments corridor maps. projection: equirectangular clipped to latTop=78, latBot=-58, viewBox 1000x500 \u2014 x=(lon+180)/360*1000, y=(latTop-lat)/(latTop-latBot)*500. Markers are curated for legibility, not exhaustive: the authoritative country lists live in the region cards and pages/regions/*.html directories (APAC, LATAM, Europe/SEPA, GCC, Americas, Africa).",
+  "lastUpdated": "2026-08-16",
   "countries": [
     {
       "name": "UAE",
@@ -463,6 +463,102 @@
       "region": "americas",
       "lat": 5.852,
       "lon": -55.2038,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Nigeria",
+      "region": "africa",
+      "lat": 6.5244,
+      "lon": 3.3792,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Egypt",
+      "region": "africa",
+      "lat": 30.0444,
+      "lon": 31.2357,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "South Africa",
+      "region": "africa",
+      "lat": -26.2041,
+      "lon": 28.0473,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Kenya",
+      "region": "africa",
+      "lat": -1.2921,
+      "lon": 36.8219,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Ghana",
+      "region": "africa",
+      "lat": 5.6037,
+      "lon": -0.187,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Morocco",
+      "region": "africa",
+      "lat": 33.5731,
+      "lon": -7.5898,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Ethiopia",
+      "region": "africa",
+      "lat": 9.025,
+      "lon": 38.7469,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Tanzania",
+      "region": "africa",
+      "lat": -6.7924,
+      "lon": 39.2083,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Senegal",
+      "region": "africa",
+      "lat": 14.7167,
+      "lon": -17.4677,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Angola",
+      "region": "africa",
+      "lat": -8.839,
+      "lon": 13.2894,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Democratic Republic of the Congo",
+      "region": "africa",
+      "lat": -4.4419,
+      "lon": 15.2663,
+      "status": "coming_soon",
+      "url": null
+    },
+    {
+      "name": "Algeria",
+      "region": "africa",
+      "lat": 36.7538,
+      "lon": 3.0588,
       "status": "coming_soon",
       "url": null
     }

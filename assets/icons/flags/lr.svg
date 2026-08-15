@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="30" height="20">
+<rect x="0" y="0" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="1.81818" width="30" height="1.81818" fill="#fff"/>
+<rect x="0" y="3.63636" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="5.45455" width="30" height="1.81818" fill="#fff"/>
+<rect x="0" y="7.27273" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="9.09091" width="30" height="1.81818" fill="#fff"/>
+<rect x="0" y="10.9091" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="12.7273" width="30" height="1.81818" fill="#fff"/>
+<rect x="0" y="14.5455" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="16.3636" width="30" height="1.81818" fill="#fff"/>
+<rect x="0" y="18.1818" width="30" height="1.81818" fill="#BF0A30"/>
+<rect x="0" y="0" width="12" height="10.9091" fill="#002868"/>
+<polygon points="6,3.55455 6.42661,4.86736 7.80701,4.86741 6.69028,5.67883 7.11679,6.99168 6,6.18035 4.88321,6.99168 5.30972,5.67883 4.19299,4.86741 5.57339,4.86736" fill="#fff"/>
+</svg>

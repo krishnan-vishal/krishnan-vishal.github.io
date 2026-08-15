@@ -390,6 +390,42 @@ span.region-country-directory-item{
 
 }
 
+/* ----------------------------------------------------------
+   MINIATURE FLAG MODIFIER — used for Africa's 55-country
+   directory, where the sheer country count means the flag
+   must stay a small identification cue, not a visual anchor.
+   Country name stays the dominant element; currency is
+   secondary; the flag is visually subordinate to both.
+---------------------------------------------------------- */
+
+.tile-flag-row--mini .flag-icon{
+
+    width:18px;
+}
+
+.sepa-item-row--mini .flag-icon{
+
+    width:16px;
+}
+
+@media (max-width:640px){
+
+    .tile-flag-row--mini .flag-icon{
+
+        width:16px;
+    }
+
+    .sepa-item-row--mini .flag-icon{
+
+        width:15px;
+    }
+
+    .sepa-group-flags .flag-icon{
+
+        width:16px;
+    }
+}
+
 .tile-currency-line{
 
     display:block;

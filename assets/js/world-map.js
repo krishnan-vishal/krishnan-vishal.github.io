@@ -68,14 +68,16 @@ var REGION_LABEL = {
     apac: "APAC",
     latam: "LATAM",
     europe: "Europe / SEPA",
-    americas: "Americas"
+    americas: "Americas",
+    africa: "Africa"
 };
 
 var REGION_DIRECTORY = {
     apac: "pages/regions/apac.html",
     latam: "pages/regions/latam.html",
     europe: "pages/regions/europe.html",
-    americas: "pages/regions/americas.html"
+    americas: "pages/regions/americas.html",
+    africa: "pages/regions/africa.html"
 };
 
 var REGION_COLOR = {
@@ -83,7 +85,8 @@ var REGION_COLOR = {
     apac: "#4fb8a6",
     europe: "#9b8cd1",
     latam: "#6aa9d8",
-    americas: "#d97757"
+    americas: "#d97757",
+    africa: "#5cb85c"
 };
 
 var REGION_LEGEND_LABEL = {
@@ -91,6 +94,7 @@ var REGION_LEGEND_LABEL = {
     apac: "Asia Pacific",
     europe: "Europe",
     latam: "LATAM",
+    africa: "Africa",
     americas: "Americas"
 };
 

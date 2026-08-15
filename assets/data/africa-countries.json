@@ -1,0 +1,118 @@
+{
+  "schemaNote": "Reusable regional country-directory data model for GPIR Africa, following the same shape as assets/data/apac-countries.json, latam-countries.json, sepa-countries.json and americas-countries.json. Uses the African Union Member State framework as the primary country directory (54 AU member states + a separate Western Sahara / Sahrawi Arab Democratic Republic special-market record, together displayed as the '55 countries' figure referenced throughout the site — see specialMarkets below). Shared currency systems (West African CFA franc / XOF across WAEMU, Central African CFA franc / XAF across CEMAC) are modelled once in currencyZones and referenced by currencyZone on each member country, rather than duplicated as separate currency records per country. 'status' follows the convention used across every other GPIR region: active = a real, published Country Intelligence page exists; coming_soon = the country is on the GPIR roadmap but no page is published yet. No African country is active in this release — Africa launches honestly, the same way LATAM and Americas did, with real classification, flag and currency data but no fabricated intelligence content (P2P, diaspora, mobile money, corridors, fintech and regulatory layers are all architecturally supported per the reusable Country Intelligence template but populated only once sourced).",
+  "region": "africa",
+  "regionLabel": "Africa",
+  "regionDescriptor": "Regional payment infrastructure, mobile money, banking ecosystems, fintech development, PAPSS and regulatory intelligence across the African Union's 55 member states and special markets.",
+  "regionalFrameworkNote": "Sub-region groupings (North, West, Central, East, Southern Africa) follow the African Union's own regional grouping conventions for navigation purposes only. This does not imply that countries within a grouping share identical payment systems, regulatory structures, currencies, economic conditions, FinTech ecosystems or cross-border payment flows.",
+  "countryCount": 55,
+  "sovereignCountryCount": 54,
+  "specialMarketCount": 1,
+  "lastUpdated": "2026-08-16",
+  "subRegions": [
+    { "id": "north-africa", "label": "North Africa" },
+    { "id": "west-africa", "label": "West Africa" },
+    { "id": "central-africa", "label": "Central Africa" },
+    { "id": "east-africa", "label": "East Africa" },
+    { "id": "southern-africa", "label": "Southern Africa" }
+  ],
+  "currencyZones": {
+    "WAEMU": {
+      "currencyName": "West African CFA franc",
+      "currencySymbol": "CFA",
+      "currencyCode": "XOF",
+      "fullName": "Union Économique et Monétaire Ouest Africaine (UEMOA / WAEMU)",
+      "note": "A single shared currency issued by the BCEAO across all member states — not a separate national currency per country."
+    },
+    "CEMAC": {
+      "currencyName": "Central African CFA franc",
+      "currencySymbol": "FCFA",
+      "currencyCode": "XAF",
+      "fullName": "Communauté Économique et Monétaire de l'Afrique Centrale (CEMAC)",
+      "note": "A single shared currency issued by the BEAC across all member states — not a separate national currency per country."
+    }
+  },
+  "countries": [
+    { "name": "Algeria", "countryCode": "DZ", "flag": "dz", "subRegion": "north-africa", "currencyName": "Algerian Dinar", "currencySymbol": "دج / DA", "currencyCode": "DZD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Egypt", "countryCode": "EG", "flag": "eg", "subRegion": "north-africa", "currencyName": "Egyptian Pound", "currencySymbol": "E£", "currencyCode": "EGP", "status": "coming_soon", "descriptor": "Payments, remittances and cross-border intelligence." },
+    { "name": "Libya", "countryCode": "LY", "flag": "ly", "subRegion": "north-africa", "currencyName": "Libyan Dinar", "currencySymbol": "ل.د / LD", "currencyCode": "LYD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Mauritania", "countryCode": "MR", "flag": "mr", "subRegion": "north-africa", "currencyName": "Mauritanian Ouguiya", "currencySymbol": "UM", "currencyCode": "MRU", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Morocco", "countryCode": "MA", "flag": "ma", "subRegion": "north-africa", "currencyName": "Moroccan Dirham", "currencySymbol": "DH", "currencyCode": "MAD", "status": "coming_soon", "descriptor": "Payments, remittances and cross-border intelligence." },
+    { "name": "Sudan", "countryCode": "SD", "flag": "sd", "subRegion": "north-africa", "currencyName": "Sudanese Pound", "currencySymbol": "ج.س / LS", "currencyCode": "SDG", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Tunisia", "countryCode": "TN", "flag": "tn", "subRegion": "north-africa", "currencyName": "Tunisian Dinar", "currencySymbol": "د.ت / DT", "currencyCode": "TND", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+
+    { "name": "Benin", "countryCode": "BJ", "flag": "bj", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Burkina Faso", "countryCode": "BF", "flag": "bf", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Cabo Verde", "countryCode": "CV", "flag": "cv", "subRegion": "west-africa", "currencyName": "Cape Verdean Escudo", "currencySymbol": "$", "currencyCode": "CVE", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Côte d'Ivoire", "countryCode": "CI", "flag": "ci", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "The Gambia", "countryCode": "GM", "flag": "gm", "subRegion": "west-africa", "currencyName": "Gambian Dalasi", "currencySymbol": "D", "currencyCode": "GMD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Ghana", "countryCode": "GH", "flag": "gh", "subRegion": "west-africa", "currencyName": "Ghanaian Cedi", "currencySymbol": "₵", "currencyCode": "GHS", "status": "coming_soon", "descriptor": "Payments, mobile money and diaspora intelligence." },
+    { "name": "Guinea", "countryCode": "GN", "flag": "gn", "subRegion": "west-africa", "currencyName": "Guinean Franc", "currencySymbol": "FG", "currencyCode": "GNF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Guinea-Bissau", "countryCode": "GW", "flag": "gw", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Liberia", "countryCode": "LR", "flag": "lr", "subRegion": "west-africa", "currencyName": "Liberian Dollar", "currencySymbol": "$", "currencyCode": "LRD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Mali", "countryCode": "ML", "flag": "ml", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Niger", "countryCode": "NE", "flag": "ne", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Nigeria", "countryCode": "NG", "flag": "ng", "subRegion": "west-africa", "currencyName": "Nigerian Naira", "currencySymbol": "₦", "currencyCode": "NGN", "status": "coming_soon", "descriptor": "Payments, fintech and cross-border corridor intelligence." },
+    { "name": "Senegal", "countryCode": "SN", "flag": "sn", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Sierra Leone", "countryCode": "SL", "flag": "sl", "subRegion": "west-africa", "currencyName": "Sierra Leonean Leone", "currencySymbol": "Le", "currencyCode": "SLE", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Togo", "countryCode": "TG", "flag": "tg", "subRegion": "west-africa", "currencyZone": "WAEMU", "currencyName": "West African CFA franc", "currencySymbol": "CFA", "currencyCode": "XOF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+
+    { "name": "Angola", "countryCode": "AO", "flag": "ao", "subRegion": "central-africa", "currencyName": "Angolan Kwanza", "currencySymbol": "Kz", "currencyCode": "AOA", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Cameroon", "countryCode": "CM", "flag": "cm", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Central African Republic", "countryCode": "CF", "flag": "cf", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Chad", "countryCode": "TD", "flag": "td", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Republic of the Congo", "countryCode": "CG", "flag": "cg", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Democratic Republic of the Congo", "countryCode": "CD", "flag": "cd", "subRegion": "central-africa", "currencyName": "Congolese Franc", "currencySymbol": "FC", "currencyCode": "CDF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Equatorial Guinea", "countryCode": "GQ", "flag": "gq", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Gabon", "countryCode": "GA", "flag": "ga", "subRegion": "central-africa", "currencyZone": "CEMAC", "currencyName": "Central African CFA franc", "currencySymbol": "FCFA", "currencyCode": "XAF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "São Tomé and Príncipe", "countryCode": "ST", "flag": "st", "subRegion": "central-africa", "currencyName": "São Tomé and Príncipe Dobra", "currencySymbol": "Db", "currencyCode": "STN", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+
+    { "name": "Burundi", "countryCode": "BI", "flag": "bi", "subRegion": "east-africa", "currencyName": "Burundian Franc", "currencySymbol": "FBu", "currencyCode": "BIF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Comoros", "countryCode": "KM", "flag": "km", "subRegion": "east-africa", "currencyName": "Comorian Franc", "currencySymbol": "CF", "currencyCode": "KMF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Djibouti", "countryCode": "DJ", "flag": "dj", "subRegion": "east-africa", "currencyName": "Djiboutian Franc", "currencySymbol": "Fdj", "currencyCode": "DJF", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Eritrea", "countryCode": "ER", "flag": "er", "subRegion": "east-africa", "currencyName": "Eritrean Nakfa", "currencySymbol": "Nkf", "currencyCode": "ERN", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Ethiopia", "countryCode": "ET", "flag": "et", "subRegion": "east-africa", "currencyName": "Ethiopian Birr", "currencySymbol": "Br", "currencyCode": "ETB", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Kenya", "countryCode": "KE", "flag": "ke", "subRegion": "east-africa", "currencyName": "Kenyan Shilling", "currencySymbol": "KSh", "currencyCode": "KES", "status": "coming_soon", "descriptor": "Mobile money, payments and cross-border intelligence." },
+    { "name": "Madagascar", "countryCode": "MG", "flag": "mg", "subRegion": "east-africa", "currencyName": "Malagasy Ariary", "currencySymbol": "Ar", "currencyCode": "MGA", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Malawi", "countryCode": "MW", "flag": "mw", "subRegion": "east-africa", "currencyName": "Malawian Kwacha", "currencySymbol": "MK", "currencyCode": "MWK", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Mauritius", "countryCode": "MU", "flag": "mu", "subRegion": "east-africa", "currencyName": "Mauritian Rupee", "currencySymbol": "Rs", "currencyCode": "MUR", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Rwanda", "countryCode": "RW", "flag": "rw", "subRegion": "east-africa", "currencyName": "Rwandan Franc", "currencySymbol": "FRw", "currencyCode": "RWF", "status": "coming_soon", "descriptor": "Payments, mobile money and cross-border intelligence." },
+    { "name": "Seychelles", "countryCode": "SC", "flag": "sc", "subRegion": "east-africa", "currencyName": "Seychellois Rupee", "currencySymbol": "Rs", "currencyCode": "SCR", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Somalia", "countryCode": "SO", "flag": "so", "subRegion": "east-africa", "currencyName": "Somali Shilling", "currencySymbol": "Sh", "currencyCode": "SOS", "status": "coming_soon", "descriptor": "Payments, mobile money and remittance intelligence." },
+    { "name": "South Sudan", "countryCode": "SS", "flag": "ss", "subRegion": "east-africa", "currencyName": "South Sudanese Pound", "currencySymbol": "£", "currencyCode": "SSP", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Tanzania", "countryCode": "TZ", "flag": "tz", "subRegion": "east-africa", "currencyName": "Tanzanian Shilling", "currencySymbol": "TSh", "currencyCode": "TZS", "status": "coming_soon", "descriptor": "Mobile money, payments and cross-border intelligence." },
+    { "name": "Uganda", "countryCode": "UG", "flag": "ug", "subRegion": "east-africa", "currencyName": "Ugandan Shilling", "currencySymbol": "USh", "currencyCode": "UGX", "status": "coming_soon", "descriptor": "Mobile money, payments and cross-border intelligence." },
+
+    { "name": "Botswana", "countryCode": "BW", "flag": "bw", "subRegion": "southern-africa", "currencyName": "Botswana Pula", "currencySymbol": "P", "currencyCode": "BWP", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Eswatini", "countryCode": "SZ", "flag": "sz", "subRegion": "southern-africa", "currencyName": "Eswatini Lilangeni", "currencySymbol": "E", "currencyCode": "SZL", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence.", "secondaryCurrency": { "currencyName": "South African Rand", "currencySymbol": "R", "currencyCode": "ZAR", "note": "Widely accepted alongside the lilangeni due to the Common Monetary Area, but not the country's own ISO 4217 currency." } },
+    { "name": "Lesotho", "countryCode": "LS", "flag": "ls", "subRegion": "southern-africa", "currencyName": "Lesotho Loti", "currencySymbol": "L", "currencyCode": "LSL", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence.", "secondaryCurrency": { "currencyName": "South African Rand", "currencySymbol": "R", "currencyCode": "ZAR", "note": "Widely accepted alongside the loti due to the Common Monetary Area, but not the country's own ISO 4217 currency." } },
+    { "name": "Mozambique", "countryCode": "MZ", "flag": "mz", "subRegion": "southern-africa", "currencyName": "Mozambican Metical", "currencySymbol": "MT", "currencyCode": "MZN", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Namibia", "countryCode": "NA", "flag": "na", "subRegion": "southern-africa", "currencyName": "Namibian Dollar", "currencySymbol": "N$", "currencyCode": "NAD", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence.", "secondaryCurrency": { "currencyName": "South African Rand", "currencySymbol": "R", "currencyCode": "ZAR", "note": "Pegged 1:1 and legal tender alongside the Namibian dollar due to the Common Monetary Area, but not a replacement for the country's own ISO 4217 currency." } },
+    { "name": "South Africa", "countryCode": "ZA", "flag": "za", "subRegion": "southern-africa", "currencyName": "South African Rand", "currencySymbol": "R", "currencyCode": "ZAR", "status": "coming_soon", "descriptor": "Payments, banking and cross-border corridor intelligence." },
+    { "name": "Zambia", "countryCode": "ZM", "flag": "zm", "subRegion": "southern-africa", "currencyName": "Zambian Kwacha", "currencySymbol": "K", "currencyCode": "ZMW", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." },
+    { "name": "Zimbabwe", "countryCode": "ZW", "flag": "zw", "subRegion": "southern-africa", "currencyName": "Zimbabwe Gold", "currencySymbol": "ZiG", "currencyCode": "ZWG", "status": "coming_soon", "descriptor": "Payments, banking and cross-border intelligence." }
+  ],
+  "specialMarkets": [
+    {
+      "name": "Western Sahara (Sahrawi Arab Democratic Republic)",
+      "countryCode": "EH",
+      "flag": "eh",
+      "subRegion": "north-africa",
+      "classification": "SPECIAL MARKET / TERRITORY / POLITICAL ENTITY",
+      "currencyName": "No independent ISO 4217 currency code",
+      "currencySymbol": null,
+      "currencyCode": null,
+      "currencyNote": "GPIR does not fabricate a currency symbol or ISO 4217 code where none exists. Moroccan dirham (MAD) and Algerian dinar (DZD) circulate in different administered areas depending on control; this is contextual information, not an official national currency assignment.",
+      "status": "coming_soon",
+      "descriptor": "Listed under the African Union framework as a special market / territory / political entity, not a sovereign country record with a national currency."
+    }
+  ],
+  "territoriesNote": "Beyond the Western Sahara / SADR special-market record above, GPIR has not yet built a broader 'African territories and dependencies' structure (e.g. islands and overseas territories administered outside the African Union framework). That remains a future sprint, to be classified explicitly as TERRITORY, SPECIAL MARKET or DEPENDENCY rather than as a sovereign country.",
+  "recordShape": {
+    "note": "Documented for future country records; not populated for any country yet.",
+    "fields": ["countryName", "countryCode", "flag", "region", "subRegion", "canonicalRegion", "currencyName", "currencySymbol", "currencyCode", "currencyZone", "secondaryCurrency", "status", "diasporaData", "p2pData", "mobileMoneyData", "corridorData", "fintechData", "paymentInfrastructure", "regionalPaymentSystems", "regulatoryData", "commentary", "sources", "lastUpdated"]
+  },
+  "regionalRecordShape": {
+    "note": "Documented for a future Africa regional intelligence record; not populated yet — GPIR will not aggregate country figures into a regional total unless the underlying methodology supports aggregation.",
+    "fields": ["region", "countries", "regionalP2P", "regionalDiaspora", "regionalMobileMoney", "regionalCorridors", "regionalFinTech", "regionalInfrastructure", "papss", "regionalRegulation", "regionalCommentary", "sources", "lastUpdated"]
+  }
+}
