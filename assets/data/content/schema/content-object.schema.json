@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://krishnan-vishal.github.io/assets/data/content/schema/content-object.schema.json",
+  "title": "GPIR Structured Content Object",
+  "description": "Common envelope shared by all 11 GPIR content types. See docs/CONTENT_SCHEMA.md for the design rationale and the rendering-path mapping for each type.",
+  "type": "object",
+  "required": ["id", "title", "contentType", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Stable, unique, kebab-case identifier, conventionally prefixed by type (e.g. country-uae, intel-cbuae-payment-token-2026)."
+    },
+    "title": { "type": "string" },
+    "slug": { "type": "string" },
+    "summary": { "type": ["string", "null"] },
+    "description": { "type": ["string", "null"] },
+    "contentType": {
+      "type": "string",
+      "enum": [
+        "country", "region", "topic", "paymentRail", "entity",
+        "corridor", "regulation", "research", "intelligence",
+        "dataset", "learningAsset"
+      ]
+    },
+    "country": { "type": ["string", "null"] },
+    "region": { "type": ["string", "null"] },
+    "topic": { "type": ["string", "null"] },
+    "subtopic": { "type": ["string", "null"] },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "publicationDate": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "lastUpdated": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "version": { "type": "integer", "minimum": 1, "default": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["PUBLISHED", "DRAFT", "PENDING_REVIEW", "ARCHIVED", "SUPERSEDED"]
+    },
+    "source": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": "string" },
+        "tier": { "type": "integer" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "sourceUrl": { "type": ["string", "null"], "format": "uri" },
+    "relatedContent": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "renderingTarget": {
+      "type": ["string", "null"],
+      "description": "Repo-relative path to the existing static page this content object corresponds to, where one already exists. Not part of the prompt's required field list -- an explicit bridge field so an adapter always knows which existing rendering path a given object feeds. See docs/CONTENT_SCHEMA.md §5."
+    },
+    "typeSpecific": {
+      "type": "object",
+      "description": "Fields specific to this object's contentType. Shape varies by type -- see docs/CONTENT_SCHEMA.md §3."
+    }
+  },
+  "additionalProperties": false
+}

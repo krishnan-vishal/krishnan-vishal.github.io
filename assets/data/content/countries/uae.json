@@ -1,0 +1,39 @@
+{
+  "id": "country-uae",
+  "title": "United Arab Emirates",
+  "slug": "uae",
+  "summary": "GPIR Country Intelligence profile for the United Arab Emirates: payment rails, banking landscape, regulatory environment and fintech ecosystem.",
+  "description": null,
+  "contentType": "country",
+  "country": "United Arab Emirates",
+  "region": "Middle East / GCC",
+  "topic": "Country Intelligence",
+  "subtopic": "Payment rails, regulation and fintech ecosystem",
+  "tags": ["gcc", "uae", "payment-rails", "regulation", "fintech-ecosystem"],
+  "publicationDate": null,
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": null,
+  "sourceUrl": null,
+  "relatedContent": [
+    "pages/regions/middle-east.html",
+    "pages/countries/saudi-arabia.html",
+    "pages/countries/qatar.html"
+  ],
+  "renderingTarget": "pages/countries/uae.html",
+  "typeSpecific": {
+    "countryCode": "AE",
+    "flag": "ae",
+    "currencyName": "UAE Dirham",
+    "currencySymbol": "AED",
+    "currencyCode": "AED",
+    "subRegion": "gcc",
+    "mapName": "UAE",
+    "isExisting": true,
+    "lat": 25.2048,
+    "lon": 55.2708,
+    "mapStatus": "active",
+    "dashboardUrl": "assets/dashboards/VK-GPIR-GCC-UAE-DB-001.png"
+  }
+}

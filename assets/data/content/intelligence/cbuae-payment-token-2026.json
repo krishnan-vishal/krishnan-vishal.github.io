@@ -1,0 +1,47 @@
+{
+  "id": "intel-cbuae-payment-token-2026",
+  "title": "UAE Central Bank Payment Token Services Regulation moves into operational phase",
+  "slug": "cbuae-payment-token-2026",
+  "summary": "The Central Bank of the UAE's Payment Token Services Regulation, which licenses and supervises the issuance, conversion, custody and transfer of fiat-referenced payment tokens including stablecoins, moved out of its transition period on 16 June 2026 and is now in its operational phase.",
+  "description": "The regulation gives UAE-licensed payment token issuers and service providers a formal supervisory framework — a reference point for stablecoin activity in a major Gulf payments hub, with direct relevance to cross-border settlement using tokenised value.",
+  "contentType": "intelligence",
+  "country": "United Arab Emirates",
+  "region": "Middle East",
+  "topic": "Technology",
+  "subtopic": "Digital Currency & Stablecoins",
+  "tags": ["regulatory", "digital-currency", "stablecoins", "uae", "cbuae"],
+  "publicationDate": "2026-06-16",
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": {
+    "name": "Central Bank of the UAE (CBUAE)",
+    "tier": 1,
+    "url": "https://rulebook.centralbank.ae/en/rulebook/payment-token-services-regulation"
+  },
+  "sourceUrl": "https://rulebook.centralbank.ae/en/rulebook/payment-token-services-regulation",
+  "relatedContent": [
+    "pages/countries/uae.html",
+    "pages/chapters/stablecoins-cbdcs.html"
+  ],
+  "renderingTarget": "pages/intelligence/cbuae-payment-token-2026.html",
+  "typeSpecific": {
+    "tickerHeadline": "Central Bank of the UAE payment token regulation now fully operational",
+    "chapterHref": "pages/chapters/stablecoins-cbdcs.html",
+    "organisation": "Central Bank of the UAE (CBUAE)",
+    "eventType": "Regulation",
+    "category": "Regulatory",
+    "subCategory": "Digital Currency / Stablecoins",
+    "contentStatus": "CONTENT_VERIFIED",
+    "sourceOrgId": "cbuae",
+    "countryCode": "ae",
+    "retrievedDate": "2026-08-14",
+    "audit": {
+      "discoveredDate": "2026-08-14",
+      "sourceVerifiedDate": "2026-08-14",
+      "lastVerifiedDate": "2026-08-14",
+      "correctionHistory": []
+    },
+    "publicationTitle": "Payment Token Services Regulation — CBUAE Rulebook"
+  }
+}
