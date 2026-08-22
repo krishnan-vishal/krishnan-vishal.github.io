@@ -66,6 +66,41 @@
     "typeSpecific": {
       "type": "object",
       "description": "Fields specific to this object's contentType. Shape varies by type -- see docs/CONTENT_SCHEMA.md §3."
+    },
+    "relationships": {
+      "type": "array",
+      "default": [],
+      "description": "Typed, directed edges to other content objects. See docs/CONTENT_SCHEMA.md §7 for the controlled vocabulary and the reverse-index mechanism that derives inbound edges without hand-duplicating them.",
+      "items": {
+        "type": "object",
+        "required": ["type", "targetId", "targetType"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Country->Region", "Country->Currency", "Country->PaymentRail",
+              "Country->Company", "Country->Regulator", "Country->Corridor",
+              "Country->Research", "Country->Regulation",
+              "Company->Country", "Company->PaymentRail", "Company->Corridor", "Company->Research",
+              "PaymentRail->Country", "PaymentRail->Region", "PaymentRail->Company", "PaymentRail->Corridor",
+              "Research->Country", "Research->Topic", "Research->Company",
+              "Research->PaymentRail", "Research->Corridor",
+              "Regulation->Country", "Regulation->Regulator",
+              "Regulation->PaymentRail", "Regulation->Company"
+            ]
+          },
+          "targetId": { "type": "string" },
+          "targetType": {
+            "type": "string",
+            "enum": [
+              "country", "region", "topic", "paymentRail", "entity",
+              "corridor", "regulation", "research", "intelligence",
+              "dataset", "learningAsset"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

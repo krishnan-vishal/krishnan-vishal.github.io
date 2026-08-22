@@ -1,0 +1,32 @@
+{
+  "id": "paymentrail-aani-uae-ipp",
+  "title": "Aani — UAE Instant Payments Platform",
+  "slug": "aani-uae-ipp",
+  "summary": "The CBUAE's instant payments platform, enabling near real-time retail transfers between banks and licensed non-bank providers in the United Arab Emirates.",
+  "description": null,
+  "contentType": "paymentRail",
+  "country": "United Arab Emirates",
+  "region": "Middle East / GCC",
+  "topic": "Real-Time Payments",
+  "subtopic": null,
+  "tags": ["rtp", "instant-payments", "uae", "aani"],
+  "publicationDate": null,
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": null,
+  "sourceUrl": null,
+  "relatedContent": [
+    "pages/countries/uae.html",
+    "pages/chapters/rtp-directory.html"
+  ],
+  "renderingTarget": null,
+  "typeSpecific": {
+    "operator": "Central Bank of the UAE (CBUAE)",
+    "railType": "instant/retail"
+  },
+  "relationships": [
+    { "type": "PaymentRail->Country", "targetId": "country-uae", "targetType": "country" },
+    { "type": "PaymentRail->Region", "targetId": "region-middle-east", "targetType": "region" }
+  ]
+}

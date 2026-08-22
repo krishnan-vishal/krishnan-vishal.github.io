@@ -1,0 +1,31 @@
+{
+  "id": "entity-cbuae",
+  "title": "Central Bank of the UAE (CBUAE)",
+  "slug": "cbuae",
+  "summary": "The central bank and financial regulator of the United Arab Emirates.",
+  "description": null,
+  "contentType": "entity",
+  "country": "United Arab Emirates",
+  "region": "Middle East / GCC",
+  "topic": null,
+  "subtopic": null,
+  "tags": ["regulator", "central-bank", "uae"],
+  "publicationDate": null,
+  "lastUpdated": "2026-08-14",
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": {
+    "name": "Central Bank of the UAE (CBUAE)",
+    "tier": 1,
+    "url": "https://centralbank.ae"
+  },
+  "sourceUrl": "https://centralbank.ae",
+  "relatedContent": ["pages/countries/uae.html"],
+  "renderingTarget": null,
+  "typeSpecific": {
+    "entityRole": "regulator",
+    "sourceType": "Central Bank / Regulator",
+    "officialDomains": ["centralbank.ae"]
+  },
+  "relationships": []
+}

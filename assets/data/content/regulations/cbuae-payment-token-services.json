@@ -1,0 +1,37 @@
+{
+  "id": "regulation-cbuae-payment-token-services",
+  "title": "Payment Token Services Regulation (CBUAE)",
+  "slug": "cbuae-payment-token-services",
+  "summary": "The Central Bank of the UAE's regulation licensing and supervising the issuance, conversion, custody and transfer of fiat-referenced payment tokens, including stablecoins.",
+  "description": "Moved out of its transition period on 16 June 2026 and is now in its operational phase, giving UAE-licensed payment token issuers and service providers a formal supervisory framework.",
+  "contentType": "regulation",
+  "country": "United Arab Emirates",
+  "region": "Middle East",
+  "topic": "Technology",
+  "subtopic": "Digital Currency & Stablecoins",
+  "tags": ["regulation", "stablecoins", "digital-currency", "uae", "cbuae"],
+  "publicationDate": "2026-06-16",
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": {
+    "name": "Central Bank of the UAE (CBUAE)",
+    "tier": 1,
+    "url": "https://rulebook.centralbank.ae/en/rulebook/payment-token-services-regulation"
+  },
+  "sourceUrl": "https://rulebook.centralbank.ae/en/rulebook/payment-token-services-regulation",
+  "relatedContent": [
+    "pages/countries/uae.html",
+    "pages/chapters/stablecoins-cbdcs.html",
+    "pages/intelligence/cbuae-payment-token-2026.html"
+  ],
+  "renderingTarget": null,
+  "typeSpecific": {
+    "publicationTitle": "Payment Token Services Regulation — CBUAE Rulebook",
+    "regulatorId": "entity-cbuae"
+  },
+  "relationships": [
+    { "type": "Regulation->Country", "targetId": "country-uae", "targetType": "country" },
+    { "type": "Regulation->Regulator", "targetId": "entity-cbuae", "targetType": "entity" }
+  ]
+}

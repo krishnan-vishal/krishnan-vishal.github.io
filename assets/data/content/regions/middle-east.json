@@ -1,0 +1,26 @@
+{
+  "id": "region-middle-east",
+  "title": "Middle East / GCC",
+  "slug": "middle-east",
+  "summary": "The GPIR Middle East / GCC regional directory: United Arab Emirates, Saudi Arabia and Qatar (existing GPIR records) plus the rest of the six-member GCC, alongside Levant, Mesopotamia, Iran/Persian Gulf and Arabian Peninsula sub-regions.",
+  "description": null,
+  "contentType": "region",
+  "country": null,
+  "region": "Middle East / GCC",
+  "topic": null,
+  "subtopic": null,
+  "tags": ["gcc", "middle-east", "levant", "mesopotamia"],
+  "publicationDate": null,
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": null,
+  "sourceUrl": null,
+  "relatedContent": ["pages/regions/middle-east.html"],
+  "renderingTarget": "pages/regions/middle-east.html",
+  "typeSpecific": {
+    "subRegions": ["gcc", "levant", "mesopotamia", "iran-persian-gulf", "arabian-peninsula"],
+    "countryCount": 13
+  },
+  "relationships": []
+}

@@ -1,0 +1,23 @@
+{
+  "id": "topic-stablecoins-cbdcs",
+  "title": "Stablecoins, CBDCs, Tokenized Money & Digital Asset Payments",
+  "slug": "stablecoins-cbdcs",
+  "summary": "Executive research on stablecoins, CBDCs and tokenized deposits: issuer landscape, RTP convergence, correspondent banking comparison, regulation and market-share scenarios to 2050.",
+  "description": null,
+  "contentType": "topic",
+  "country": null,
+  "region": null,
+  "topic": "Technology",
+  "subtopic": "Digital Currency & Stablecoins",
+  "tags": ["stablecoins", "cbdc", "tokenized-money", "digital-assets"],
+  "publicationDate": null,
+  "lastUpdated": null,
+  "version": 1,
+  "status": "PUBLISHED",
+  "source": null,
+  "sourceUrl": null,
+  "relatedContent": ["pages/chapters/stablecoins-cbdcs.html"],
+  "renderingTarget": "pages/chapters/stablecoins-cbdcs.html",
+  "typeSpecific": {},
+  "relationships": []
+}

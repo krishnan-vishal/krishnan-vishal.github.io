@@ -135,3 +135,117 @@ incrementally:
 None of that is done here. This task proves the model is *compatible*
 with the existing architecture; adopting it as the live source of truth
 for any given type is a separate, later decision.
+
+---
+
+## 7. Relationships (Implementation 05)
+
+**Why not a graph database.** The relationship need here is small and
+enumerable (a controlled vocabulary of ~25 edge types, a content set in
+the hundreds not millions), and the site has no server to host a graph
+engine even if one were justified. A typed edge list embedded in each
+JSON object, plus one small generated reverse-index file, covers the
+same need with zero new infrastructure — consistent with §1's "simplest
+architecture" principle and Implementation 04's "no database, no
+knowledge graph" constraint.
+
+**Shape.** Each content object gets a `relationships` array (see the
+JSON Schema, `content-object.schema.json`) of directed edges:
+
+```json
+{ "type": "Country->Regulator", "targetId": "entity-cbuae", "targetType": "entity" }
+```
+
+`type` is one of the controlled vocabulary strings below. `targetId` is
+another content object's `id`. `targetType` is a denormalized copy of
+the target's `contentType`, so a consumer doesn't have to resolve the
+target just to know what kind of thing it is.
+
+This is a **second, additive** relationship layer alongside the
+`relatedContent` href array Implementation 04 already established.
+`relatedContent` stays exactly as it was — it's what the adapter's
+`toAnnouncementRecord()` reads to reconstruct `relatedCountryHref`
+losslessly, and changing its meaning would break that already-verified
+proof. `relationships` is the new, typed, queryable layer for
+cross-content graph-style questions; the two are allowed to overlap in
+practice without being forced into one shape.
+
+**Controlled vocabulary** (exactly the 24 edge types this prompt named,
+plus the `Country->Currency` clarification below — nothing added,
+nothing renamed):
+
+```
+Country -> Region            Company -> Country           PaymentRail -> Country
+Country -> Currency          Company -> PaymentRail        PaymentRail -> Region
+Country -> PaymentRail       Company -> Corridor           PaymentRail -> Company
+Country -> Company           Company -> Research           PaymentRail -> Corridor
+Country -> Regulator
+Country -> Corridor          Research -> Country           Regulation -> Country
+Country -> Research          Research -> Topic             Regulation -> Regulator
+Country -> Regulation        Research -> Company           Regulation -> PaymentRail
+                              Research -> PaymentRail        Regulation -> Company
+                              Research -> Corridor
+```
+
+Two vocabulary clarifications, made explicit rather than silently
+papered over:
+
+- **`Country -> Currency` is modeled as an attribute, not an edge to a
+  separate content object.** Implementation 04's 11 content types do not
+  include "currency" as a type — a currency is `typeSpecific.currencyCode`
+  /`currencyName`/`currencySymbol` on the country object itself (already
+  present on `uae.json`). Introducing a twelfth content type for this
+  would go beyond what Implementation 04 established without a real
+  driving need — currencies don't have their own pages, summaries, or
+  publication history the way the other 11 types do.
+- **"Regulator" is a role, not a distinct content type.** The 11 types
+  list has "company/entity" as one type. A regulator (e.g. the Central
+  Bank of the UAE) is an `entity` object with `typeSpecific.entityRole:
+  "regulator"` rather than "company" — same shape, same rendering-path
+  questions, different role. `Country -> Regulator` and `Regulation ->
+  Regulator` both target `entity` objects.
+- **The "Research" vocabulary also covers `intelligence` objects.** The
+  11 types list `research` and `intelligence` separately (an
+  intelligence record is a dated event/announcement; research is
+  longer-form analysis), but the prompt's relationship vocabulary only
+  names "Research". `Research -> X` edges from an `intelligence` object
+  use the same vocabulary rather than inventing a parallel
+  `Intelligence -> X` set the prompt didn't ask for.
+
+**What's populated vs. vocabulary-only.** Following the same honesty
+standard Implementation 04 used for the 9 unpopulated content types:
+real relationships were only added where they connect to real,
+already-published site content — nothing was invented to fill out the
+vocabulary list. As of Implementation 05:
+
+*Populated with real edges* (UAE/CBUAE pilot cluster):
+`Country->Region`, `Country->Regulator`, `Country->Regulation`,
+`Country->PaymentRail`, `Country->Research`, `Regulation->Country`,
+`Regulation->Regulator`, `Research->Country`, `Research->Topic`,
+`PaymentRail->Country`, `PaymentRail->Region`.
+
+*Vocabulary-defined, no real instance yet* (would need a real Company,
+Corridor, or Dataset object to populate honestly — none exists in the
+site's structured-content set as of this implementation):
+`Country->Currency` (see clarification above — deliberately never
+populated as an edge), `Country->Company`, `Country->Corridor`,
+`Company->*` (all four), `PaymentRail->Company`, `PaymentRail->Corridor`,
+`Research->Company`, `Research->PaymentRail`, `Research->Corridor`,
+`Regulation->PaymentRail`, `Regulation->Company`.
+
+**Reusability — the actual point of this exercise.** The prompt's own
+example: a Vietnam payment-development object shouldn't need separate
+copies for Vietnam, APAC, RTP, B2B, and its corridor — it should relate
+to existing objects for each of those instead. This is demonstrated
+concretely with real data rather than a hypothetical: `region-middle-east`
+and `entity-cbuae` are each real, single objects, but multiple *other*
+objects (`country-uae`, `paymentrail-aani-uae-ipp`, `regulation-cbuae-
+payment-token-services`) all relate *to* them rather than embedding a
+copy of the region's or the regulator's data. `assets/data/content/
+relationships-index.json` (generated by `scripts/generate-relationships-
+index.js`, never hand-edited) makes this multi-context reuse visible: it
+lists, for every object, both its own outbound edges and the *inbound*
+edges computed by scanning every other object — for `region-middle-east`
+that inbound list currently has two independent sources
+(`country-uae`, `paymentrail-aani-uae-ipp`), proof the same object is
+already serving two different contexts without duplication.

@@ -43,5 +43,9 @@
       "correctionHistory": []
     },
     "publicationTitle": "Payment Token Services Regulation — CBUAE Rulebook"
-  }
+  },
+  "relationships": [
+    { "type": "Research->Country", "targetId": "country-uae", "targetType": "country" },
+    { "type": "Research->Topic", "targetId": "topic-stablecoins-cbdcs", "targetType": "topic" }
+  ]
 }
