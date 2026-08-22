@@ -36,6 +36,7 @@
     "mapStatus": "active",
     "dashboardUrl": "assets/dashboards/VK-GPIR-GCC-UAE-DB-001.png"
   },
+  "versionInfo": { "supersedes": null, "supersededBy": null },
   "relationships": [
     { "type": "Country->Region", "targetId": "region-middle-east", "targetType": "region" },
     { "type": "Country->Regulator", "targetId": "entity-cbuae", "targetType": "entity" },

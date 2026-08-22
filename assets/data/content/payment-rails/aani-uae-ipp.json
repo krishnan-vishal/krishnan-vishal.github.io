@@ -25,6 +25,7 @@
     "operator": "Central Bank of the UAE (CBUAE)",
     "railType": "instant/retail"
   },
+  "versionInfo": { "supersedes": null, "supersededBy": null },
   "relationships": [
     { "type": "PaymentRail->Country", "targetId": "country-uae", "targetType": "country" },
     { "type": "PaymentRail->Region", "targetId": "region-middle-east", "targetType": "region" }

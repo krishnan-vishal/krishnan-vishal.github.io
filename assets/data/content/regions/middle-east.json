@@ -22,5 +22,6 @@
     "subRegions": ["gcc", "levant", "mesopotamia", "iran-persian-gulf", "arabian-peninsula"],
     "countryCount": 13
   },
+  "versionInfo": { "supersedes": null, "supersededBy": null },
   "relationships": []
 }

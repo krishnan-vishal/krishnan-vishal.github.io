@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GPIR Source/Evidence Component — Demo (not part of the live site)</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../assets/css/variables.css">
+<link rel="stylesheet" href="../assets/css/source-evidence-badge.css">
+<style>
+    /* Demo-page-only chrome, not part of the reusable component itself. */
+    body{ font-family:var(--font-primary); background:#F7F5F0; margin:0; padding:40px 24px; color:var(--text-dark); }
+    .demo-wrap{ max-width:640px; margin:0 auto; }
+    .demo-banner{ background:#fff8e6; border:1px solid #e6d9a8; border-radius:var(--radius-sm); padding:14px 18px; font-size:13px; margin-bottom:32px; }
+    .demo-card{ background:#fff; border:1px solid var(--hero-light-border); border-radius:var(--radius-md); padding:22px 24px; margin-bottom:24px; }
+    .demo-card h2{ font-family:var(--font-editorial); font-size:19px; margin:0 0 4px; }
+    .demo-card .demo-card-summary{ font-size:13.5px; color:var(--hero-light-body); margin:0 0 14px; }
+    .demo-badge-slot, .demo-note-slot{ margin-top:10px; }
+    .demo-field-label{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#9AA1AC; margin:14px 0 4px; }
+    .demo-field-value{ font-size:13.5px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="demo-wrap">
+
+    <div class="demo-banner">
+        This page is not part of the live site — it lives under <code>_demo/</code>,
+        which GitHub Pages' default Jekyll build excludes from what's actually served
+        (same convention Implementation 02 established for archived source material).
+        It exists only so the Implementation 06 source/evidence component can be
+        inspected rendered, with real data, without touching any production page.
+    </div>
+
+    <div class="demo-card" id="card-intel"></div>
+    <div class="demo-card" id="card-regulation"></div>
+    <div class="demo-card" id="card-entity"></div>
+
+</div>
+
+<script src="../assets/js/source-evidence-badge.js"></script>
+<script>
+async function loadObject(path){
+    const res = await fetch(path);
+    return res.json();
+}
+
+function renderCard(obj, cardId){
+    const card = document.getElementById(cardId);
+
+    const title = document.createElement("h2");
+    title.textContent = obj.title;
+    card.appendChild(title);
+
+    const summary = document.createElement("p");
+    summary.className = "demo-card-summary";
+    summary.textContent = obj.summary;
+    card.appendChild(summary);
+
+    const badgeSlot = document.createElement("div");
+    badgeSlot.className = "demo-badge-slot";
+    card.appendChild(badgeSlot);
+    renderSourceEvidenceBadge(obj, badgeSlot);
+
+    if(obj.description){
+        const label = document.createElement("p");
+        label.className = "demo-field-label";
+        label.textContent = "description";
+        card.appendChild(label);
+
+        const value = document.createElement("p");
+        value.className = "demo-field-value";
+        value.textContent = obj.description;
+        card.appendChild(value);
+
+        const noteSlot = document.createElement("div");
+        noteSlot.className = "demo-note-slot";
+        card.appendChild(noteSlot);
+        renderAnalysisNote(obj, "description", noteSlot);
+    }
+}
+
+(async function(){
+    const [intel, regulation, entity] = await Promise.all([
+        loadObject("../assets/data/content/intelligence/cbuae-payment-token-2026.json"),
+        loadObject("../assets/data/content/regulations/cbuae-payment-token-services.json"),
+        loadObject("../assets/data/content/entities/cbuae.json"),
+    ]);
+    renderCard(intel, "card-intel");
+    renderCard(regulation, "card-regulation");
+    renderCard(entity, "card-entity");
+})();
+</script>
+</body>
+</html>

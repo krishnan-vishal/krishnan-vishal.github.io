@@ -1,0 +1,103 @@
+/*=====================================================
+  GPIR SOURCE / EVIDENCE PRESENTATION COMPONENT
+  Implementation 06 -- assets/js/source-evidence-badge.js renders this
+  markup from a structured content object's `evidence` block
+  (assets/data/content/**, docs/CONTENT_SCHEMA.md §8/§9).
+
+  Not linked from any live page yet -- see _demo/source-evidence-badge-
+  demo.html for a rendered, inspectable proof. Every colour, radius and
+  spacing value below is an existing design token from variables.css;
+  nothing new was introduced to the palette, per "preserve existing
+  design" and "without making the interface visually heavy".
+======================================================*/
+
+.gpir-evidence{
+    display:flex;
+    flex-direction:column;
+    gap:var(--space-xxs);
+    font-family:var(--font-primary);
+}
+
+/* The compact pill: "REGULATORY · FACT". Deliberately small and
+   single-line -- this is the "not visually heavy" requirement made
+   concrete. Reuses the same pill shape (--radius-pill) the site's
+   existing status/category badges already use elsewhere. */
+.gpir-evidence-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    align-self:flex-start;
+    padding:3px 12px;
+    border-radius:var(--radius-pill);
+    border:1px solid var(--hero-light-border);
+    background:rgba(184,134,59,.08);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--color-primary);
+    white-space:nowrap;
+}
+
+.gpir-evidence-pill-sep{
+    opacity:.5;
+}
+
+/* Verification status gets its own colour cue (reusing the existing
+   success/warning/danger tokens) layered onto the same pill shape,
+   rather than a second competing badge style. */
+.gpir-evidence-pill[data-verification="SOURCE_VERIFIED"]{
+    border-color:rgba(63,167,108,.35);
+}
+.gpir-evidence-pill[data-verification="SOURCE_WARNING"],
+.gpir-evidence-pill[data-verification="SOURCE_REQUIRES_VERIFICATION"]{
+    border-color:rgba(212,160,23,.4);
+}
+.gpir-evidence-pill[data-verification="SOURCE_BLOCKED"]{
+    border-color:rgba(217,83,79,.4);
+}
+
+.gpir-evidence-source{
+    font-size:12.5px;
+    color:var(--hero-light-body);
+    line-height:1.5;
+}
+
+.gpir-evidence-source strong{
+    color:var(--text-dark);
+    font-weight:600;
+}
+
+.gpir-evidence-meta{
+    font-size:11px;
+    color:var(--hero-light-body);
+    opacity:.85;
+}
+
+/* The fact-vs-analysis distinction: a thin left rule + small label,
+   not a boxed callout -- deliberately lighter-weight than a full
+   panel so it reads as a margin note, not an interruption. */
+.gpir-analysis-note{
+    margin-top:var(--space-xxs);
+    padding-left:10px;
+    border-left:2px solid var(--color-primary);
+    font-size:12.5px;
+    font-style:italic;
+    color:var(--hero-light-body);
+    line-height:1.5;
+}
+
+.gpir-analysis-note-label{
+    display:block;
+    font-style:normal;
+    font-weight:700;
+    font-size:10px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--color-primary);
+    margin-bottom:2px;
+}
+
+@media (max-width:600px){
+    .gpir-evidence-pill{ font-size:10.5px; }
+}

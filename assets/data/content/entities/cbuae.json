@@ -27,5 +27,17 @@
     "sourceType": "Central Bank / Regulator",
     "officialDomains": ["centralbank.ae"]
   },
+  "evidence": {
+    "sourceName": "GPIR Trusted Source Registry entry: cbuae",
+    "sourceOrganisation": "Central Bank of the UAE (CBUAE)",
+    "sourceType": "REGULATORY",
+    "evidenceType": "FACT",
+    "referencePeriod": null,
+    "retrievalDate": null,
+    "verificationStatus": "SOURCE_VERIFIED",
+    "lastReviewed": "2026-08-14",
+    "analysisFields": []
+  },
+  "versionInfo": { "supersedes": null, "supersededBy": null },
   "relationships": []
 }

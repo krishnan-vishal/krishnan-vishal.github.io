@@ -249,3 +249,96 @@ edges computed by scanning every other object — for `region-middle-east`
 that inbound list currently has two independent sources
 (`country-uae`, `paymentrail-aani-uae-ipp`), proof the same object is
 already serving two different contexts without duplication.
+
+---
+
+## 8. Evidence and version metadata (Implementation 06)
+
+Two new optional envelope objects, both null/empty by default:
+`evidence` (research provenance) and `versionInfo` (lightweight content
+lifecycle).
+
+### 8.1 `evidence`
+
+| Field | Notes |
+|---|---|
+| `sourceName` | The specific named publication/document -- e.g. "Payment Token Services Regulation -- CBUAE Rulebook". Distinct from... |
+| `sourceOrganisation` | ...the organisation that issued it -- e.g. "Central Bank of the UAE (CBUAE)". Both already existed informally as one merged field (`source.name`) since Implementation 04; this formalizes the real distinction the data already had. |
+| `sourceType` | One of `PRIMARY`, `REGULATORY`, `MULTILATERAL`, `INDUSTRY`, `COMPANY`, `SECONDARY`, `OTHER`. |
+| `evidenceType` | One of `FACT`, `DATA`, `ANALYSIS`, `ESTIMATE`, `FORECAST` -- see the fact-vs-analysis note below. |
+| `referencePeriod` | The bounded period a data point applies to, only where real evidence supports one. |
+| `retrievalDate` | When GPIR retrieved the source. |
+| `verificationStatus` | Reuses the site's existing trust-engine vocabulary (`SOURCE_VERIFIED` / `SOURCE_WARNING` / `SOURCE_REQUIRES_VERIFICATION` / `SOURCE_BLOCKED`) -- the exact enum `assets/js/trust-engine.js` and `generate-intelligence-pages.js`'s `evaluateSource()` already compute. Deliberate non-duplication: a competing vocabulary here would violate the guardrail doc's "must not be duplicated" rule for that system. |
+| `lastReviewed` | Most recent human/system review date. |
+| `analysisFields` | Names the specific fields on this same object that are FINTECHOISIS's own analysis rather than sourced fact -- see below. |
+
+**Fact vs. analysis within one object.** Reviewing the real
+`intel-cbuae-payment-token-2026` pilot object surfaced a genuine nuance:
+its `summary` field is a direct factual restatement of what the primary
+source says, but its `description` field (ported from the original
+record's `whyItMatters`) is FINTECHOISIS's own interpretive commentary --
+why the regulation matters, not what the regulator said. These are
+different evidentiary natures inside the same content object. Rather
+than forcing a second content object to exist just to hold one sentence
+of commentary, `evidenceType` classifies the object's core claim (here,
+`FACT` -- a regulation genuinely went operational, verifiably) and
+`analysisFields: ["description"]` flags which field is FINTECHOISIS's
+own analysis layered on top. The presentation component (§9) uses this
+to render the two differently without a heavier content model.
+
+**"Do not automatically classify existing content if evidence is
+insufficient" -- applied, not just stated.** Of the 7 content objects
+that exist as of Implementation 06, exactly 3 got a populated `evidence`
+block, because exactly 3 share the same real, tier-1, already-verified
+source (the CBUAE Payment Token Services Regulation and the Central Bank
+of the UAE itself):
+
+| Object | `evidence` | Why |
+|---|---|---|
+| `intel-cbuae-payment-token-2026` | Populated | Real tier-1 source (`rulebook.centralbank.ae`), and `verificationStatus: SOURCE_VERIFIED` is not a guess -- it's the literal, already-computed output the real `generate-intelligence-pages.js` printed when it generated this record's page (`source status: SOURCE_VERIFIED`), cited rather than re-derived. |
+| `regulation-cbuae-payment-token-services` | Populated | Same real source and registry entry as above. |
+| `entity-cbuae` | Populated | Same registry entry (`trusted-sources.json`'s real `cbuae` record, tier 1). |
+| `country-uae` | Left null | A country profile aggregates many facts; it isn't itself evidenced by one external publication. Picking an arbitrary "representative" source wouldn't actually characterize the whole object. |
+| `region-middle-east` | Left null | An internal GPIR editorial/navigational grouping, not an externally-sourced claim. |
+| `topic-stablecoins-cbdcs` | Left null | Same -- an internal taxonomy node mapping to a chapter, not itself a sourced claim. |
+| `paymentrail-aani-uae-ipp` | Left null | Built from GPIR's own existing editorial content (the UAE country page and RTP directory chapter), not a captured external primary-source citation with a URL -- inventing one to fill this field would violate "do not invent source information." |
+
+No existing page's factual content was changed anywhere in this process.
+
+### 8.2 `versionInfo`
+
+```json
+{ "supersedes": null, "supersededBy": null }
+```
+
+Set to this default (both null) on every one of the 7 objects -- safe to
+apply universally, unlike `evidence`, because it's not asserting
+anything; it's recording the absence of a superseding relationship,
+which is true and known for all 7. Git history remains the record of
+every edit to every file. This field answers a different, narrower
+question git can't: "is there a newer or older content object
+representing the same thing" -- relevant once a regulation is amended, a
+country profile is substantially rewritten, or a research object is
+updated with a later dataset, none of which has happened yet in this
+project.
+
+## 9. Reusable source/evidence presentation component
+
+`assets/css/source-evidence-badge.css` + `assets/js/source-evidence-
+badge.js` -- a small, optional renderer (`renderSourceEvidenceBadge(obj,
+container)`) that takes any content object with a populated `evidence`
+block and renders: a compact pill (`sourceType · evidenceType`, e.g.
+"REGULATORY · FACT"), the source name/organisation, and -- only when
+`analysisFields` is non-empty -- a visually distinct "FINTECHOISIS
+Analysis" note beneath whichever field it names. Styled entirely from
+`assets/css/variables.css` design tokens (no new colours, no new type
+scale) so it reads as part of the existing design system rather than a
+new one, and stays a small pill/note rather than a heavy panel, per "the
+website should clearly distinguish factual source material from
+Fintechosis analysis without making the interface visually heavy."
+
+Not wired into any live page -- see `_demo/source-evidence-badge-
+demo.html` (excluded from the public build by the same underscore-prefix
+Jekyll convention Implementation 02 established) for a rendered,
+inspectable proof using the 3 real classified objects, without touching
+production per "preserve existing design."

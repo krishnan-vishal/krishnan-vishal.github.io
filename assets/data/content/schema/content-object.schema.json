@@ -67,6 +67,48 @@
       "type": "object",
       "description": "Fields specific to this object's contentType. Shape varies by type -- see docs/CONTENT_SCHEMA.md §3."
     },
+    "evidence": {
+      "type": ["object", "null"],
+      "description": "Research provenance -- only present where there is enough real, verifiable information to justify it. See docs/CONTENT_SCHEMA.md §8. Absent/null is a valid, expected state, not a gap to fill by guessing.",
+      "properties": {
+        "sourceName": { "type": ["string", "null"], "description": "The specific named publication/document, distinct from the organisation that issued it." },
+        "sourceOrganisation": { "type": ["string", "null"] },
+        "sourceType": {
+          "type": ["string", "null"],
+          "enum": ["PRIMARY", "REGULATORY", "MULTILATERAL", "INDUSTRY", "COMPANY", "SECONDARY", "OTHER", null]
+        },
+        "evidenceType": {
+          "type": ["string", "null"],
+          "enum": ["FACT", "DATA", "ANALYSIS", "ESTIMATE", "FORECAST", null],
+          "description": "The nature of THIS object's core claim. Where a single object mixes a sourced fact with FINTECHOISIS's own interpretive commentary (common for intelligence records), this classifies the object's primary claim and `analysisFields` names which specific fields are FINTECHOISIS's own analysis layered on top."
+        },
+        "referencePeriod": { "type": ["string", "null"], "description": "The period the underlying data/claim applies to, where that's a real, bounded period backed by evidence -- left null rather than guessed when no such period is evidenced." },
+        "retrievalDate": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "verificationStatus": {
+          "type": ["string", "null"],
+          "enum": ["SOURCE_VERIFIED", "SOURCE_WARNING", "SOURCE_REQUIRES_VERIFICATION", "SOURCE_BLOCKED", null],
+          "description": "Reuses the exact vocabulary assets/js/trust-engine.js and scripts/generate-intelligence-pages.js's evaluateSource() already compute -- not a competing classification. Set from that system's real, already-computed output, never guessed independently."
+        },
+        "lastReviewed": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "analysisFields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Names of this object's own fields (e.g. \"description\") that are FINTECHOISIS's own analysis/commentary rather than sourced fact, so a presentation component can visually separate the two without needing a second content object."
+        }
+      },
+      "additionalProperties": false
+    },
+    "versionInfo": {
+      "type": "object",
+      "default": { "supersedes": null, "supersededBy": null },
+      "description": "Lightweight content-lifecycle metadata, distinct from git history (which remains the record of every edit). Tracks only whether this object has been superseded by, or itself supersedes, another content object -- for future intelligence processing (e.g. \"show me only the current version of X\"), not a full changelog.",
+      "properties": {
+        "supersedes": { "type": ["string", "null"], "description": "id of an older content object this one replaces, if any." },
+        "supersededBy": { "type": ["string", "null"], "description": "id of a newer content object that replaces this one, if any." }
+      },
+      "additionalProperties": false
+    },
     "relationships": {
       "type": "array",
       "default": [],

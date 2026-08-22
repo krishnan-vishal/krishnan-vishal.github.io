@@ -30,6 +30,18 @@
     "publicationTitle": "Payment Token Services Regulation — CBUAE Rulebook",
     "regulatorId": "entity-cbuae"
   },
+  "evidence": {
+    "sourceName": "Payment Token Services Regulation — CBUAE Rulebook",
+    "sourceOrganisation": "Central Bank of the UAE (CBUAE)",
+    "sourceType": "REGULATORY",
+    "evidenceType": "FACT",
+    "referencePeriod": null,
+    "retrievalDate": "2026-08-14",
+    "verificationStatus": "SOURCE_VERIFIED",
+    "lastReviewed": "2026-08-14",
+    "analysisFields": []
+  },
+  "versionInfo": { "supersedes": null, "supersededBy": null },
   "relationships": [
     { "type": "Regulation->Country", "targetId": "country-uae", "targetType": "country" },
     { "type": "Regulation->Regulator", "targetId": "entity-cbuae", "targetType": "entity" }
