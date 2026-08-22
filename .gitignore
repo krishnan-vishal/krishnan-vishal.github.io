@@ -1,0 +1,18 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# Stray dev artifacts that don't belong at the repo root
+# (working docs, spreadsheets, patch files) -- put material worth
+# keeping in an underscore-prefixed directory instead (e.g.
+# _dev-archive/), which stays tracked in git but is excluded from the
+# live site by GitHub Pages' default Jekyll build.
+/*.patch
+/*.docx
+/*.xlsx
+
+node_modules/

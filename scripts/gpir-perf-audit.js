@@ -44,7 +44,13 @@ const section = (title) => console.log("\n=== " + title + " ===");
 function walk(dir, filterExt, out = []) {
     if (!fs.existsSync(dir)) return out;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        if (entry.name === "Archive" || entry.name === "node_modules" || entry.name.startsWith(".git")) continue;
+        // Underscore-prefixed directories follow the same convention GitHub
+        // Pages' default Jekyll build already excludes from the served
+        // site (_archive, _master-libraries, etc. -- source/staging
+        // material kept in git history but never deployed), so this dev
+        // audit skips them too: they don't inform page performance, which
+        // is what this check exists for.
+        if (entry.name === "node_modules" || entry.name.startsWith(".git") || entry.name.startsWith("_")) continue;
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) walk(full, filterExt, out);
         else if (!filterExt || filterExt.some(ext => entry.name.toLowerCase().endsWith(ext))) out.push(full);
@@ -52,7 +58,7 @@ function walk(dir, filterExt, out = []) {
     return out;
 }
 
-const htmlFiles = walk(ROOT, [".html"]).filter(f => !f.includes(path.sep + "Archive" + path.sep));
+const htmlFiles = walk(ROOT, [".html"]);
 
 /* ---------------------------------------------------------
    1. IMAGE AUDIT
@@ -111,14 +117,9 @@ ok("image audit complete");
 --------------------------------------------------------- */
 section("2. Duplicate / near-duplicate media");
 
-// assets/master-libraries is a source/staging archive, never referenced
-// from any served page (verified: `grep -rl master-libraries **/*.html`
-// finds nothing) -- comparing it against served assets doesn't inform
-// page performance, which is what this check exists for.
-const NON_SERVED_DIRS = ["master-libraries"];
-
+// walk() already skips underscore-prefixed dirs (assets/_master-libraries
+// etc.) -- see its comment above.
 const mediaFiles = walk(path.join(ROOT, "assets"), [".png", ".jpg", ".jpeg", ".webp", ".svg"])
-    .filter(f => !NON_SERVED_DIRS.some(d => f.includes(path.sep + d + path.sep)))
     .filter(f => fs.statSync(f).size > 0); // 0-byte stub files hash-match trivially and aren't a real duplicate
 
 const hashToFiles = new Map();
