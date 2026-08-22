@@ -13,33 +13,45 @@ function initializeWebsite(){
 
     console.log("GPIR Version 1.1 Loaded");
 
-    initializeSmoothScroll();
+    // Each feature module is independent, so one throwing (e.g. a bad
+    // selector on a page that doesn't have that section) must not stop
+    // the rest -- most critically the navigation, which has to keep
+    // working even if an unrelated module (map, ticker, search) fails.
+    const safeInit = (fn) => {
+        try{
+            fn();
+        } catch(err){
+            console.error("[GPIR] " + (fn.name || "init") + " failed:", err);
+        }
+    };
 
-    initializeBackToTop();
+    safeInit(initializeSmoothScroll);
 
-    initializeMobileNav();
+    safeInit(initializeBackToTop);
 
-    initializeHeaderScrollState();
+    safeInit(initializeMobileNav);
 
-    initializeActiveNavLink();
+    safeInit(initializeHeaderScrollState);
 
-    initializeScrollReveal();
+    safeInit(initializeActiveNavLink);
 
-    initializeStatCounters();
+    safeInit(initializeScrollReveal);
 
-    initializeAdaptiveNav();
+    safeInit(initializeStatCounters);
 
-    initializeMegaMenuHoverIntent();
+    safeInit(initializeAdaptiveNav);
 
-    initializeMobileMegaAccordion();
+    safeInit(initializeMegaMenuHoverIntent);
 
-    initializeSearch();
+    safeInit(initializeMobileMegaAccordion);
 
-    initializeFloatingBackToTop();
+    safeInit(initializeSearch);
 
-    initializeReadingProgress();
+    safeInit(initializeFloatingBackToTop);
 
-    initializeTickerVisibilityPause();
+    safeInit(initializeReadingProgress);
+
+    safeInit(initializeTickerVisibilityPause);
 
 }
 
@@ -328,18 +340,18 @@ function initializeMegaMenuHoverIntent(){
 
     const EDGE_MARGIN = 16;
 
+    // How far the reader has to scroll away from where a menu was opened
+    // before it's treated as "genuinely left the navigation context" (v1
+    // menu-accessibility sprint, GPIR-MENU-01) rather than a mega-menu
+    // floating stale over unrelated content.
+    const SCROLL_CLOSE_THRESHOLD = 80;
+
     // Touch devices (tablets, touch laptops) don't fire hover reliably,
     // so above the mobile-accordion breakpoint they need tap-to-toggle
     // instead of relying on mouseenter/mouseleave.
     const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
 
     const mobileQuery = window.matchMedia("(max-width:767px)");
-
-    const closeMegaItem = (item) => {
-        item.classList.remove("is-open");
-        const itemTrigger = item.querySelector(":scope > .nav-mega-trigger");
-        if(itemTrigger) itemTrigger.setAttribute("aria-expanded","false");
-    };
 
     // Escape-close refocuses the trigger for accessibility, but that
     // focus() call itself fires "focusin" — which the per-item listener
@@ -348,109 +360,166 @@ function initializeMegaMenuHoverIntent(){
     // to skip the reopen for the one focusin caused by our own call.
     let suppressFocusOpen = false;
 
+    // Captured the moment any menu opens (not lazily on first scroll
+    // event, which would already reflect the post-scroll position and
+    // never see a delta). Read by the scroll listener below.
+    let scrollAnchorY = null;
+
+    // Single registry every item's controls are added to, so the singleton
+    // rule ("only one mega-menu open at a time") and the scroll/resize
+    // safeguards below can act on every item without re-querying the DOM
+    // or duplicating per-item logic (v1 sprint requires one shared
+    // controller, not separate hover logic per menu).
+    const controllers = [];
+
+    let menuIdCounter = 0;
+
     document.querySelectorAll(".nav-item-mega").forEach(item => {
 
-        let closeTimer = null;
+        try{
 
-        const menu = item.querySelector(".mega-menu");
+            let closeTimer = null;
 
-        const trigger = item.querySelector(".nav-mega-trigger");
+            const menu = item.querySelector(".mega-menu");
 
-        const applyEdgeGuard = () => {
+            const trigger = item.querySelector(".nav-mega-trigger");
 
-            if(!menu) return;
+            if(!menu || !trigger) return;
 
-            menu.style.setProperty("--edge-shift", "0px");
-
-            const rect = menu.getBoundingClientRect();
-
-            let shift = 0;
-
-            if(rect.right > window.innerWidth - EDGE_MARGIN){
-                shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
+            // Wire aria-controls to a real id so assistive tech can
+            // associate the trigger with the panel it expands, without
+            // adding roles the interaction model doesn't actually support.
+            if(!menu.id){
+                menuIdCounter += 1;
+                menu.id = "mega-menu-" + menuIdCounter;
             }
+            trigger.setAttribute("aria-controls", menu.id);
 
-            if(rect.left + shift < EDGE_MARGIN){
-                shift += (EDGE_MARGIN - (rect.left + shift));
-            }
+            const applyEdgeGuard = () => {
 
-            menu.style.setProperty("--edge-shift", `${shift}px`);
+                menu.style.setProperty("--edge-shift", "0px");
 
-        };
+                const rect = menu.getBoundingClientRect();
 
-        const open = () => {
-            if(closeTimer){
-                clearTimeout(closeTimer);
-                closeTimer = null;
-            }
-            applyEdgeGuard();
-            item.classList.add("is-open");
-            if(trigger) trigger.setAttribute("aria-expanded","true");
-        };
+                let shift = 0;
 
-        const close = () => {
-            if(closeTimer){
-                clearTimeout(closeTimer);
-                closeTimer = null;
-            }
-            item.classList.remove("is-open");
-            if(trigger) trigger.setAttribute("aria-expanded","false");
-        };
+                if(rect.right > window.innerWidth - EDGE_MARGIN){
+                    shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
+                }
 
-        const scheduleClose = () => {
-            if(closeTimer) clearTimeout(closeTimer);
-            closeTimer = setTimeout(() => {
+                if(rect.left + shift < EDGE_MARGIN){
+                    shift += (EDGE_MARGIN - (rect.left + shift));
+                }
+
+                menu.style.setProperty("--edge-shift", `${shift}px`);
+
+            };
+
+            // Forces the close transition to complete in ~0s instead of the
+            // normal ~280ms fade. Used only when a DIFFERENT item is taking
+            // over (singleton switch) or the viewport just changed shape —
+            // cases where a lingering fade would mean two menus visibly
+            // overlapping, or a stale panel surviving a breakpoint change.
+            // The graceful fade is preserved for a genuine "user moved
+            // away" close via scheduleClose().
+            const closeInstant = () => {
+                if(closeTimer){
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+                item.classList.add("is-instant-close");
                 item.classList.remove("is-open");
-                if(trigger) trigger.setAttribute("aria-expanded","false");
-                closeTimer = null;
-            }, CLOSE_DELAY);
-        };
+                trigger.setAttribute("aria-expanded","false");
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        item.classList.remove("is-instant-close");
+                    });
+                });
+            };
 
-        if(hoverCapable){
-
-            item.addEventListener("mouseenter", open);
-            item.addEventListener("mouseleave", scheduleClose);
-
-        }
-
-        // On the click-to-toggle branch, a pointer click focuses the trigger
-        // *before* the click event fires, so an unconditional open() here
-        // would already be open by the time the click handler reads
-        // wasOpen — cancelling the tap out from under it. Keyboard (tab)
-        // focus should still open it, so gate on :focus-visible, which
-        // browsers only set true for non-pointer focus.
-        item.addEventListener("focusin", () => {
-            if(suppressFocusOpen) return;
-            if(!hoverCapable && trigger && !trigger.matches(":focus-visible")) return;
-            open();
-        });
-
-        item.addEventListener("focusout", (e) => {
-            if(!item.contains(e.relatedTarget)){
-                scheduleClose();
-            }
-        });
-
-        if(!hoverCapable && trigger){
-
-            trigger.addEventListener("click", (e) => {
-
-                if(mobileQuery.matches) return;
-
-                e.preventDefault();
-
-                const wasOpen = item.classList.contains("is-open");
-
-                document.querySelectorAll(".nav-item-mega.is-open").forEach(other => {
-                    if(other !== item && !other.contains(item) && !item.contains(other)){
-                        closeMegaItem(other);
+            const open = () => {
+                if(closeTimer){
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+                // Singleton rule: opening this item always closes every
+                // other open one immediately, so rapid pointer movement
+                // across adjacent primary items can never render two
+                // mega-menus at once.
+                controllers.forEach(other => {
+                    if(other.item !== item && other.item.classList.contains("is-open")){
+                        other.closeInstant();
                     }
                 });
+                applyEdgeGuard();
+                item.classList.add("is-open");
+                trigger.setAttribute("aria-expanded","true");
+                scrollAnchorY = window.scrollY;
+            };
 
-                if(wasOpen) close(); else open();
+            const close = () => {
+                if(closeTimer){
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+                item.classList.remove("is-open");
+                trigger.setAttribute("aria-expanded","false");
+            };
 
+            const scheduleClose = () => {
+                if(closeTimer) clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => {
+                    item.classList.remove("is-open");
+                    trigger.setAttribute("aria-expanded","false");
+                    closeTimer = null;
+                }, CLOSE_DELAY);
+            };
+
+            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose });
+
+            if(hoverCapable){
+
+                item.addEventListener("mouseenter", open);
+                item.addEventListener("mouseleave", scheduleClose);
+
+            }
+
+            // On the click-to-toggle branch, a pointer click focuses the trigger
+            // *before* the click event fires, so an unconditional open() here
+            // would already be open by the time the click handler reads
+            // wasOpen — cancelling the tap out from under it. Keyboard (tab)
+            // focus should still open it, so gate on :focus-visible, which
+            // browsers only set true for non-pointer focus.
+            item.addEventListener("focusin", () => {
+                if(suppressFocusOpen) return;
+                if(!hoverCapable && !trigger.matches(":focus-visible")) return;
+                open();
             });
 
+            item.addEventListener("focusout", (e) => {
+                if(!item.contains(e.relatedTarget)){
+                    scheduleClose();
+                }
+            });
+
+            if(!hoverCapable){
+
+                trigger.addEventListener("click", (e) => {
+
+                    if(mobileQuery.matches) return;
+
+                    e.preventDefault();
+
+                    const wasOpen = item.classList.contains("is-open");
+
+                    if(wasOpen) close(); else open();
+
+                });
+
+            }
+
+        } catch(err){
+            console.error("[GPIR] mega-menu item setup failed:", err);
         }
 
     });
@@ -461,8 +530,8 @@ function initializeMegaMenuHoverIntent(){
 
             if(mobileQuery.matches) return;
 
-            document.querySelectorAll(".nav-item-mega.is-open").forEach(item => {
-                if(!item.contains(e.target)) closeMegaItem(item);
+            controllers.forEach(c => {
+                if(c.item.classList.contains("is-open") && !c.item.contains(e.target)) c.closeInstant();
             });
 
         });
@@ -473,21 +542,54 @@ function initializeMegaMenuHoverIntent(){
 
         if(e.key !== "Escape" || mobileQuery.matches) return;
 
-        const openItem = document.querySelector(".nav-item-mega.is-open");
+        const openController = controllers.find(c => c.item.classList.contains("is-open"));
 
-        if(!openItem) return;
+        if(!openController) return;
 
-        const openTrigger = openItem.querySelector(":scope > .nav-mega-trigger");
+        openController.closeInstant();
 
-        closeMegaItem(openItem);
-
-        if(openTrigger){
-            suppressFocusOpen = true;
-            openTrigger.focus();
-            suppressFocusOpen = false;
-        }
+        suppressFocusOpen = true;
+        openController.trigger.focus();
+        suppressFocusOpen = false;
 
     });
+
+    // If the reader scrolls meaningfully away from where an open menu was
+    // triggered, it's no longer relevant to what's on screen -- close it
+    // rather than leaving it floating over unrelated content.
+    window.addEventListener("scroll", () => {
+
+        if(scrollAnchorY === null) return;
+
+        const openController = controllers.find(c => c.item.classList.contains("is-open"));
+
+        if(!openController){
+            scrollAnchorY = null;
+            return;
+        }
+
+        if(Math.abs(window.scrollY - scrollAnchorY) > SCROLL_CLOSE_THRESHOLD){
+            openController.scheduleClose();
+            scrollAnchorY = null;
+        }
+
+    }, { passive:true });
+
+    // A viewport resize (desktop <-> tablet <-> mobile, or a plain window
+    // resize) can leave a menu positioned for a layout that no longer
+    // exists -- close everything instantly and let the next interaction
+    // recompute from a clean state, rather than risk a stale panel stuck
+    // open across the breakpoint change.
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+        if(resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            controllers.forEach(c => {
+                if(c.item.classList.contains("is-open")) c.closeInstant();
+            });
+        }, 120);
+    }, { passive:true });
 
 }
 

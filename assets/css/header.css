@@ -1682,6 +1682,32 @@ button.ticker-card{
     transform:translate(calc(-50% + var(--edge-shift)),0) scale(1);
 }
 
+/* Applied briefly by the menu controller (script.js) when a different
+   primary item takes over, or the viewport is resized while a menu is
+   open. Without this the ~280ms opacity/visibility fade above would let
+   two mega-menus render on screen at once during fast pointer movement
+   between adjacent nav items -- this collapses that fade to effectively
+   nothing for just that one state change, then the class is removed so
+   the next genuine open/close keeps its normal, "forgiving" animation. */
+.nav-item-mega.is-instant-close > .mega-menu{
+
+    transition-duration:.001s;
+}
+
+/* Placed after the base .mega-menu rule (not in the earlier sitewide
+   reduced-motion block) so equal-specificity source order lets this
+   actually override the transition it's meant to remove. */
+@media (prefers-reduced-motion: reduce){
+
+    .mega-menu,
+    .mega-caret{
+
+        transition:none;
+
+    }
+
+}
+
 .mega-menu-inner{
 
     display:grid;
