@@ -1052,7 +1052,7 @@ function initializeSearch(){
 
             index.push({
                 label: record.title,
-                href: record.gpirMapping ? record.gpirMapping.href : "#market-ribbon",
+                href: "pages/intelligence/" + record.id + ".html",
                 intelId: record.id
             });
 
@@ -1147,6 +1147,8 @@ function initializeSearch(){
     const activateResult = (link, e) => {
 
         const intelId = link.getAttribute("data-intel-id");
+
+        if(e && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return false;
 
         if(intelId && window.GPIRAnnouncements){
 

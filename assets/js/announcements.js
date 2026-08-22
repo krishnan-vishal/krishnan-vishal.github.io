@@ -137,7 +137,7 @@
             hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
         });
 
-        el.textContent = `Last Intelligence Refresh: ${label}`;
+        el.textContent = `Refreshed: ${label}`;
 
     }
 
@@ -157,13 +157,21 @@
                 const tag = (record.category || "").split(" / ")[0];
                 const isSuspension = record.category === "Payment Suspension";
 
-                return `<button type="button" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
+                // A real href (not a plain button) means every card is a
+                // genuine, shareable, crawlable link to its own summary
+                // page (pages/intelligence/{id}.html, built by
+                // scripts/generate-intelligence-pages.js) even without
+                // JS. The click handler below still intercepts a normal
+                // left-click to open the faster in-page panel instead --
+                // ctrl/cmd/middle-click and "open in new tab" fall
+                // through to the real page untouched.
+                return `<a href="pages/intelligence/${escapeHtml(record.id)}.html" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
                     <span class="ticker-flag">${flagMarkup(record)}</span>
                     <span class="ticker-body">
                         <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span></span>
                         <span class="ticker-headline">${escapeHtml(record.tickerHeadline || record.title)}</span>
                     </span>
-                </button>`;
+                </a>`;
 
             } catch(err){
                 console.error("[GPIR] failed to render ticker card for record " + (record && record.id) + ":", err);
@@ -172,8 +180,12 @@
 
         }).join("");
 
-        track.querySelectorAll("[data-intel-id]").forEach(btn => {
-            btn.addEventListener("click", () => openDetail(btn.getAttribute("data-intel-id")));
+        track.querySelectorAll("[data-intel-id]").forEach(link => {
+            link.addEventListener("click", (e) => {
+                if(e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                openDetail(link.getAttribute("data-intel-id"));
+            });
         });
 
     }
@@ -289,7 +301,7 @@
             <div class="intel-related">
                 <h4>Related GPIR Intelligence</h4>
                 <ul class="intel-related-list">
-                    ${related.map(r => `<li><button type="button" class="intel-related-item" data-intel-id="${escapeHtml(r.id)}">${escapeHtml(r.country)} · ${escapeHtml(r.tickerHeadline || r.title)}</button></li>`).join("")}
+                    ${related.map(r => `<li><a href="pages/intelligence/${escapeHtml(r.id)}.html" class="intel-related-item" data-intel-id="${escapeHtml(r.id)}">${escapeHtml(r.country)} · ${escapeHtml(r.tickerHeadline || r.title)}</a></li>`).join("")}
                 </ul>
             </div>
         ` : "";
@@ -348,8 +360,12 @@
             });
         }
 
-        body.querySelectorAll(".intel-related-item").forEach(btn => {
-            btn.addEventListener("click", () => openDetail(btn.getAttribute("data-intel-id")));
+        body.querySelectorAll(".intel-related-item").forEach(link => {
+            link.addEventListener("click", (e) => {
+                if(e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
+                openDetail(link.getAttribute("data-intel-id"));
+            });
         });
 
     }

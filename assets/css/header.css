@@ -1411,6 +1411,8 @@ TRUST / SOURCE VERIFICATION LAYER
 
     text-align:left;
 
+    text-decoration:none;
+
     cursor:pointer;
 
     transition:background .18s ease;

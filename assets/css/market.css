@@ -493,16 +493,41 @@ LAST UPDATED
 
     flex-direction:column;
 
-    gap:2px;
+    gap:1px;
 
-    min-width:190px;
+    min-width:128px;
+
+    max-width:128px;
+
+    font-size:10px;
+
+    padding:0 12px;
+
+    text-align:center;
+
+    line-height:1.3;
 }
 
 .ticker-last-refresh{
 
     color:rgba(255,255,255,.4);
 
-    font-size:10px;
+    font-size:9px;
+}
+
+/* GLOBAL ANNOUNCEMENTS is longer text than LIVE FX RATES, and this
+   row's title/refresh sections were eating enough width at the shared
+   .market-title/.market-time sizing that the scrolling ticker itself
+   -- the actual point of the row -- had visibly less room to be
+   read. Scoped smaller here rather than shrinking .market-title
+   globally, since the FX ribbon's proportions weren't a problem. */
+#market-ribbon .market-title{
+
+    font-size:11px;
+
+    letter-spacing:.5px;
+
+    padding:0 14px;
 }
 
 /*=====================================================
