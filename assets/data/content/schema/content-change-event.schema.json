@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://krishnan-vishal.github.io/assets/data/content/schema/content-change-event.schema.json",
+  "title": "GPIR Content Change Event",
+  "description": "A machine-readable record of a content object being created, updated, corrected, or archived. See docs/CONTENT_SCHEMA.md §10. Events are appended to assets/data/content/events/change-events.jsonl -- this schema describes one line of that file.",
+  "type": "object",
+  "required": [
+    "eventId", "contentId", "contentType", "eventType", "eventDate",
+    "contentVersion", "newVersion", "source", "significanceStatus"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "description": "Stable, unique id for this event -- evt-{contentId}-{sequence}."
+    },
+    "contentId": {
+      "type": "string",
+      "description": "The `id` of the content object this event is about (assets/data/content/**)."
+    },
+    "contentType": {
+      "type": "string",
+      "enum": [
+        "country", "region", "topic", "paymentRail", "entity",
+        "corridor", "regulation", "research", "intelligence",
+        "dataset", "learningAsset"
+      ]
+    },
+    "country": { "type": ["string", "null"] },
+    "region": { "type": ["string", "null"] },
+    "topics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Derived from the content object's own topic/subtopic fields and any Research->Topic relationships -- not a separately hand-maintained list."
+    },
+    "entities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Ids of related `entity` content objects, derived from the content object's own `relationships` array (any edge whose targetType is \"entity\") -- not a separately hand-maintained list."
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["CREATED", "UPDATED", "CORRECTED", "ARCHIVED"]
+    },
+    "eventDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "contentVersion": {
+      "type": "string",
+      "description": "The content MODEL schema version this event was generated under (see content-object.schema.json's $comment) -- e.g. \"1.0.0\". Distinct from previousVersion/newVersion, which are the individual content object's own version number."
+    },
+    "previousVersion": {
+      "type": ["integer", "null"],
+      "description": "The content object's own `version` before this event. Null for a CREATED event -- there is no prior version."
+    },
+    "newVersion": {
+      "type": "integer",
+      "description": "The content object's own `version` after this event."
+    },
+    "source": {
+      "type": "string",
+      "description": "What authorized/caused this change -- an editorial process description, ideally including a git commit reference for traceability. Never an AI-generated justification (no AI analysis exists yet)."
+    },
+    "significanceStatus": {
+      "type": "string",
+      "enum": ["UNASSESSED", "ROUTINE", "NOTABLE", "MAJOR"],
+      "default": "UNASSESSED",
+      "description": "Honest placeholder, not a computed score -- \"do not build AI analysis yet\" means nothing currently calculates this. UNASSESSED unless a human explicitly sets it at generation time. Exists so a future intelligence-processing consumer has a field to read once one does."
+    }
+  },
+  "additionalProperties": false
+}

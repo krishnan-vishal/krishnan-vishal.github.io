@@ -342,3 +342,115 @@ demo.html` (excluded from the public build by the same underscore-prefix
 Jekyll convention Implementation 02 established) for a rendered,
 inspectable proof using the 3 real classified objects, without touching
 production per "preserve existing design."
+
+## 10. Content change events (Implementation 07)
+
+A lightweight, append-only event log recording every time a content
+object (`assets/data/content/**`) is created, updated, corrected, or
+archived. The goal is narrow: establish the event *stream* now, so a
+future intelligence-analysis consumer has real data to read once it
+exists -- not to build that consumer yet.
+
+### 10.1 Format: JSON Lines, not a JSON array
+
+Events are appended to `assets/data/content/events/change-events.jsonl`
+-- one JSON object per line, in emission order. Schema for a single line:
+`assets/data/content/schema/content-change-event.schema.json`.
+
+JSON Lines was chosen over a single JSON array for the same reason the
+site already avoids re-writing whole files where an append will do: an
+event log is append-only by nature, and appending one line is O(1),
+where rewriting a growing JSON array to add one entry is not. It's also
+the simplest format that still behaves like a real event stream (one
+line = one event) without reaching for Kafka or a message broker, which
+the prompt explicitly ruled out and which neither this site's static
+architecture nor its current content volume would justify.
+
+### 10.2 Fields
+
+| Field | Notes |
+|---|---|
+| `eventId` | `evt-{contentId}-{sequence}` -- stable, unique, human-readable. |
+| `contentId` | The `id` of the content object this event is about. |
+| `contentType` | Copied from the content object at generation time. |
+| `country`, `region` | Copied from the content object. |
+| `topics` | **Derived**, not hand-maintained -- the content object's own `topic`/`subtopic` fields plus any `Research->Topic` relationship targets. |
+| `entities` | **Derived**, not hand-maintained -- ids of any `relationships` entries whose `targetType` is `entity`. |
+| `eventType` | One of `CREATED`, `UPDATED`, `CORRECTED`, `ARCHIVED`. |
+| `eventDate` | Date the event was recorded. |
+| `contentVersion` | The content **model's** schema version (e.g. `"1.0.0"`, tracked in `content-object.schema.json`'s `$comment` as `contentModelVersion`) -- i.e. which shape of the envelope/typeSpecific this event was generated under. Deliberately distinct from... |
+| `previousVersion` / `newVersion` | ...these two, which are the individual content object's own `version` integer before/after the change. `previousVersion` is `null` for a `CREATED` event, since there is no prior version. The prompt lists `contentVersion` and `newVersion` as separate fields; treating them as two different kinds of version (model vs. object) is what makes that non-redundant. |
+| `source` | What authorized the change -- an editorial description, ideally citing a git commit for traceability. Never an AI-generated justification -- no AI analysis exists yet (by design, per this prompt). |
+| `significanceStatus` | One of `UNASSESSED`, `ROUTINE`, `NOTABLE`, `MAJOR`. Defaults to `UNASSESSED`. This is an honest placeholder, not a computed score -- nothing in the codebase currently calculates significance. The field exists so a future intelligence-processing consumer has somewhere to read a significance signal once one is computed; setting it to anything but `UNASSESSED` today would be fabricating an assessment that hasn't happened. |
+
+`topics` and `entities` are derived at generation time from the content
+object's own fields rather than passed in and hand-maintained separately
+-- the same non-duplication discipline `docs/ARCHITECTURE_GUARDRAIL.md`
+established for every other generator in this repo: there is exactly one
+place each of those facts lives.
+
+### 10.3 Generator
+
+`scripts/record-content-change-event.js` -- a dev-time CLI, run manually
+whenever a content object changes (not a runtime dependency of any live
+page, like every other `scripts/generate-*.js` file in this repo). It
+looks up the named content object by `id`, derives `topics`/`entities`
+from its real fields, reads the current content-model version from
+`content-object.schema.json`, and appends one line to
+`change-events.jsonl`:
+
+```
+node scripts/record-content-change-event.js \
+  --id <contentId> \
+  --eventType CREATED|UPDATED|CORRECTED|ARCHIVED \
+  --newVersion <n> \
+  --source "..." \
+  [--previousVersion <n>] \
+  [--significance UNASSESSED|ROUTINE|NOTABLE|MAJOR]
+```
+
+### 10.4 Real example event
+
+Rather than fabricate a hypothetical Vietnam/NAPAS event to match the
+prompt's illustrative example literally, this implementation generated
+one real event from a real, already-committed change: `version` on
+`intel-cbuae-payment-token-2026` was bumped from `1` to `2`, honestly
+reflecting the real relationships (Implementation 05) and evidence/
+versionInfo (Implementation 06) that object had already gained but never
+had its version number incremented for. Running the generator against
+that produced:
+
+```json
+{
+  "eventId": "evt-intel-cbuae-payment-token-2026-1",
+  "contentId": "intel-cbuae-payment-token-2026",
+  "contentType": "intelligence",
+  "country": "United Arab Emirates",
+  "region": "Middle East",
+  "topics": ["Technology", "Digital Currency & Stablecoins", "topic-stablecoins-cbdcs"],
+  "entities": [],
+  "eventType": "UPDATED",
+  "eventDate": "2026-08-22",
+  "contentVersion": "1.0.0",
+  "previousVersion": 1,
+  "newVersion": 2,
+  "source": "Implementation 05 added relationships (commit 2458b2a), Implementation 06 added evidence/versionInfo (commit 37ca4d6) -- version field bumped to reflect both",
+  "significanceStatus": "ROUTINE"
+}
+```
+
+`entities` is correctly empty: this object's own `relationships` array
+has two edges (`Research->Country` to `country-uae`, `Research->Topic`
+to `topic-stablecoins-cbdcs`) and neither targets an `entity`-type
+object, so there is nothing to derive there -- not a bug, the honest
+output of the derivation rule in §10.2. No other content object's
+`version` was touched; the prompt asked for one example, not a
+retroactive event history for all 7.
+
+### 10.5 What this is not, yet
+
+No AI analysis, no significance scoring, no automatic triggering on file
+save, no consumer that reads this log -- per the prompt's explicit "do
+not build AI analysis yet." This section establishes the event *stream*
+only: a durable, machine-readable, non-duplicated record that a future
+intelligence-processing feature can consume once one is built.

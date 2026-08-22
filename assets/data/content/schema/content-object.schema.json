@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://krishnan-vishal.github.io/assets/data/content/schema/content-object.schema.json",
   "title": "GPIR Structured Content Object",
+  "$comment": "contentModelVersion: 1.0.0 -- bump this when the envelope/typeSpecific shape changes in a way a consumer would need to know about. Referenced by change events' `contentVersion` field (docs/CONTENT_SCHEMA.md §10) -- distinct from an individual object's own `version` field.",
   "description": "Common envelope shared by all 11 GPIR content types. See docs/CONTENT_SCHEMA.md for the design rationale and the rendering-path mapping for each type.",
   "type": "object",
   "required": ["id", "title", "contentType", "status"],
