@@ -133,9 +133,6 @@ content="#0B1120">
 =================================================== -->
 
 <link rel="icon" href="assets/favicon/favicon.ico" sizes="any">
-
-<link rel="icon" type="image/svg+xml" href="assets/favicon/favicon.svg">
-
 <link rel="icon" type="image/png" sizes="16x16" href="assets/branding/favicons/favicon-16x16.png">
 
 <link rel="icon" type="image/png" sizes="32x32" href="assets/branding/favicons/favicon-32x32.png">
@@ -147,6 +144,9 @@ content="#0B1120">
 <!-- Core -->
 
 <link rel="stylesheet" href="assets/css/style.css?v=20260814">
+<link rel="stylesheet" href="assets/css/stats.css?v=20260814">
+<link rel="stylesheet" href="assets/css/executive.css?v=20260814">
+<link rel="stylesheet" href="assets/css/page.css?v=20260814">
 
 <!-- ==========================
      DESIGN SYSTEM
@@ -1209,9 +1209,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
     </div>
 -->
     
-    <img
-        src="assets/maps/world/hero-global-coverage-map.png"
-        alt="Global Payments Intelligence Repository global payment coverage map">
+    <picture>
+        <source type="image/webp" sizes="(max-width:900px) 92vw, 760px" srcset="assets/maps/world/hero-global-coverage-map-w480.webp 480w, assets/maps/world/hero-global-coverage-map-w640.webp 640w, assets/maps/world/hero-global-coverage-map-w800.webp 800w, assets/maps/world/hero-global-coverage-map.webp 1536w">
+        <img src="assets/maps/world/hero-global-coverage-map-w800.png" srcset="assets/maps/world/hero-global-coverage-map-w480.png 480w, assets/maps/world/hero-global-coverage-map-w640.png 640w, assets/maps/world/hero-global-coverage-map-w800.png 800w, assets/maps/world/hero-global-coverage-map.png 1536w" sizes="(max-width:900px) 92vw, 760px" alt="Global Payments Intelligence Repository global payment coverage map" fetchpriority="high" decoding="async" width="1536" height="1024">
+    </picture>
     
         </div>   <!-- world-map-card -->
 
@@ -1290,7 +1291,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/payment-systems.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/payment-systems-w168.webp"><img src="assets/icons/payments-family/payment-systems-w168.png" alt="" loading="lazy" decoding="async" width="168" height="136"></picture></div>
 
                 <h3>Payments</h3>
 
@@ -1300,7 +1301,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/clearing.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/clearing-w168.webp"><img src="assets/icons/payments-family/clearing-w168.png" alt="" loading="lazy" decoding="async" width="168" height="89"></picture></div>
 
                 <h3>Regulations</h3>
 
@@ -1310,7 +1311,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/settlement.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/settlement-w168.webp"><img src="assets/icons/payments-family/settlement-w168.png" alt="" loading="lazy" decoding="async" width="168" height="73"></picture></div>
 
                 <h3>Mergers &amp; Acquisitions</h3>
 
@@ -1320,7 +1321,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/ach.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/ach-w168.webp"><img src="assets/icons/payments-family/ach-w168.png" alt="" loading="lazy" decoding="async" width="168" height="136"></picture></div>
 
                 <h3>Research</h3>
 
@@ -1330,7 +1331,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/payment-gateway.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/payment-gateway-w168.webp"><img src="assets/icons/payments-family/payment-gateway-w168.png" alt="" loading="lazy" decoding="async" width="168" height="134"></picture></div>
 
                 <h3>Innovation</h3>
 
@@ -1340,7 +1341,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
             <div class="command-card">
 
-                <div class="command-icon"><img src="assets/icons/payments-family/multi-currency.png" alt="" loading="lazy"></div>
+                <div class="command-icon"><picture><source type="image/webp" srcset="assets/icons/payments-family/multi-currency-w168.webp"><img src="assets/icons/payments-family/multi-currency-w168.png" alt="" loading="lazy" decoding="async" width="168" height="128"></picture></div>
 
                 <h3>Markets</h3>
 
@@ -1873,11 +1874,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/swift-messaging-network.png"
-            alt="SWIFT Messaging Network"
-                width="3072"
-                height="1578">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/swift-messaging-network-w480.webp 480w, assets/architecture/thumbnails/swift-messaging-network-w640.webp 640w, assets/architecture/thumbnails/swift-messaging-network-w960.webp 960w, assets/architecture/thumbnails/swift-messaging-network.webp 3072w">
+            <img src="assets/architecture/thumbnails/swift-messaging-network-w960.png" srcset="assets/architecture/thumbnails/swift-messaging-network-w480.png 480w, assets/architecture/thumbnails/swift-messaging-network-w640.png 640w, assets/architecture/thumbnails/swift-messaging-network-w960.png 960w, assets/architecture/thumbnails/swift-messaging-network.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="SWIFT Messaging Network" loading="lazy" decoding="async" width="3072" height="1578">
+        </picture>
 
     </div>
 
@@ -1918,11 +1918,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/cross-border-payments.png"
-            alt="Cross-Border Payments Architecture"
-                width="3072"
-                height="1558">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/cross-border-payments-w480.webp 480w, assets/architecture/thumbnails/cross-border-payments-w640.webp 640w, assets/architecture/thumbnails/cross-border-payments-w960.webp 960w, assets/architecture/thumbnails/cross-border-payments.webp 3072w">
+            <img src="assets/architecture/thumbnails/cross-border-payments-w960.png" srcset="assets/architecture/thumbnails/cross-border-payments-w480.png 480w, assets/architecture/thumbnails/cross-border-payments-w640.png 640w, assets/architecture/thumbnails/cross-border-payments-w960.png 960w, assets/architecture/thumbnails/cross-border-payments.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Cross-Border Payments Architecture" loading="lazy" decoding="async" width="3072" height="1558">
+        </picture>
 
     </div>
 
@@ -1963,11 +1962,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/card-network-architecture.png"
-            alt="Card Network Architecture"
-                width="3072"
-                height="1526">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/card-network-architecture-w480.webp 480w, assets/architecture/thumbnails/card-network-architecture-w640.webp 640w, assets/architecture/thumbnails/card-network-architecture-w960.webp 960w, assets/architecture/thumbnails/card-network-architecture.webp 3072w">
+            <img src="assets/architecture/thumbnails/card-network-architecture-w960.png" srcset="assets/architecture/thumbnails/card-network-architecture-w480.png 480w, assets/architecture/thumbnails/card-network-architecture-w640.png 640w, assets/architecture/thumbnails/card-network-architecture-w960.png 960w, assets/architecture/thumbnails/card-network-architecture.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Card Network Architecture" loading="lazy" decoding="async" width="3072" height="1526">
+        </picture>
 
     </div>
 
@@ -2008,11 +2006,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/digital-wallet-ecosystem.png"
-            alt="Digital Wallet Ecosystem"
-                width="3072"
-                height="1550">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/digital-wallet-ecosystem-w480.webp 480w, assets/architecture/thumbnails/digital-wallet-ecosystem-w640.webp 640w, assets/architecture/thumbnails/digital-wallet-ecosystem-w960.webp 960w, assets/architecture/thumbnails/digital-wallet-ecosystem.webp 3072w">
+            <img src="assets/architecture/thumbnails/digital-wallet-ecosystem-w960.png" srcset="assets/architecture/thumbnails/digital-wallet-ecosystem-w480.png 480w, assets/architecture/thumbnails/digital-wallet-ecosystem-w640.png 640w, assets/architecture/thumbnails/digital-wallet-ecosystem-w960.png 960w, assets/architecture/thumbnails/digital-wallet-ecosystem.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Digital Wallet Ecosystem" loading="lazy" decoding="async" width="3072" height="1550">
+        </picture>
 
     </div>
 
@@ -2052,11 +2049,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/rtgs.png"
-            alt="Real-Time Gross Settlement"
-                width="3072"
-                height="1574">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/rtgs-w480.webp 480w, assets/architecture/thumbnails/rtgs-w640.webp 640w, assets/architecture/thumbnails/rtgs-w960.webp 960w, assets/architecture/thumbnails/rtgs.webp 3072w">
+            <img src="assets/architecture/thumbnails/rtgs-w960.png" srcset="assets/architecture/thumbnails/rtgs-w480.png 480w, assets/architecture/thumbnails/rtgs-w640.png 640w, assets/architecture/thumbnails/rtgs-w960.png 960w, assets/architecture/thumbnails/rtgs.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Real-Time Gross Settlement" loading="lazy" decoding="async" width="3072" height="1574">
+        </picture>
 
     </div>
 
@@ -2097,11 +2093,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/stablecoin-infrastructure.png"
-            alt="Stablecoin Infrastructure"
-                width="3072"
-                height="1574">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/stablecoin-infrastructure-w480.webp 480w, assets/architecture/thumbnails/stablecoin-infrastructure-w640.webp 640w, assets/architecture/thumbnails/stablecoin-infrastructure-w960.webp 960w, assets/architecture/thumbnails/stablecoin-infrastructure.webp 3072w">
+            <img src="assets/architecture/thumbnails/stablecoin-infrastructure-w960.png" srcset="assets/architecture/thumbnails/stablecoin-infrastructure-w480.png 480w, assets/architecture/thumbnails/stablecoin-infrastructure-w640.png 640w, assets/architecture/thumbnails/stablecoin-infrastructure-w960.png 960w, assets/architecture/thumbnails/stablecoin-infrastructure.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Stablecoin Infrastructure" loading="lazy" decoding="async" width="3072" height="1574">
+        </picture>
 
     </div>
 
@@ -2141,11 +2136,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/correspondent-banking-network.png"
-            alt="Correspondent Banking Network"
-                width="3072"
-                height="1574">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/correspondent-banking-network-w480.webp 480w, assets/architecture/thumbnails/correspondent-banking-network-w640.webp 640w, assets/architecture/thumbnails/correspondent-banking-network-w960.webp 960w, assets/architecture/thumbnails/correspondent-banking-network.webp 3072w">
+            <img src="assets/architecture/thumbnails/correspondent-banking-network-w960.png" srcset="assets/architecture/thumbnails/correspondent-banking-network-w480.png 480w, assets/architecture/thumbnails/correspondent-banking-network-w640.png 640w, assets/architecture/thumbnails/correspondent-banking-network-w960.png 960w, assets/architecture/thumbnails/correspondent-banking-network.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Correspondent Banking Network" loading="lazy" decoding="async" width="3072" height="1574">
+        </picture>
 
     </div>
 
@@ -2186,11 +2180,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/treasury-liquidity-management.png"
-            alt="Treasury & Liquidity Management"
-                width="3072"
-                height="1610">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/treasury-liquidity-management-w480.webp 480w, assets/architecture/thumbnails/treasury-liquidity-management-w640.webp 640w, assets/architecture/thumbnails/treasury-liquidity-management-w960.webp 960w, assets/architecture/thumbnails/treasury-liquidity-management.webp 3072w">
+            <img src="assets/architecture/thumbnails/treasury-liquidity-management-w960.png" srcset="assets/architecture/thumbnails/treasury-liquidity-management-w480.png 480w, assets/architecture/thumbnails/treasury-liquidity-management-w640.png 640w, assets/architecture/thumbnails/treasury-liquidity-management-w960.png 960w, assets/architecture/thumbnails/treasury-liquidity-management.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Treasury & Liquidity Management" loading="lazy" decoding="async" width="3072" height="1610">
+        </picture>
 
     </div>
 
@@ -2231,11 +2224,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="architecture-image">
 
-        <img
-            src="assets/architecture/thumbnails/fx-trading-settlement.png"
-            alt="FX Trading & Settlement"
-                width="3072"
-                height="1582">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/architecture/thumbnails/fx-trading-settlement-w480.webp 480w, assets/architecture/thumbnails/fx-trading-settlement-w640.webp 640w, assets/architecture/thumbnails/fx-trading-settlement-w960.webp 960w, assets/architecture/thumbnails/fx-trading-settlement.webp 3072w">
+            <img src="assets/architecture/thumbnails/fx-trading-settlement-w960.png" srcset="assets/architecture/thumbnails/fx-trading-settlement-w480.png 480w, assets/architecture/thumbnails/fx-trading-settlement-w640.png 640w, assets/architecture/thumbnails/fx-trading-settlement-w960.png 960w, assets/architecture/thumbnails/fx-trading-settlement.png 3072w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="FX Trading & Settlement" loading="lazy" decoding="async" width="3072" height="1582">
+        </picture>
 
     </div>
 
@@ -2306,314 +2298,314 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
         <div class="library-grid">
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-020/MP-020.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-020/MP-020.png" alt="Real-Time Payment Systems intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-020/MP-020.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-020/MP-020.png" data-lightbox-title="Real-Time Payment Systems">
+                    <img src="assets/maps/intelligence/MP-020/MP-020.png" alt="Real-Time Payment Systems intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Infrastructure</span>
                     <h3>Real-Time Payment Systems</h3>
                     <span class="library-code">MP-020</span>
-                    <a href="assets/maps/intelligence/MP-020/MP-020.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-020/MP-020.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-020/MP-020.png" data-lightbox-title="Real-Time Payment Systems">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-021/MP-021.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-021/MP-021.png" alt="Digital Wallet Coverage intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-021/MP-021.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-021/MP-021.png" data-lightbox-title="Digital Wallet Coverage">
+                    <img src="assets/maps/intelligence/MP-021/MP-021.png" alt="Digital Wallet Coverage intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Wallets</span>
                     <h3>Digital Wallet Coverage</h3>
                     <span class="library-code">MP-021</span>
-                    <a href="assets/maps/intelligence/MP-021/MP-021.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-021/MP-021.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-021/MP-021.png" data-lightbox-title="Digital Wallet Coverage">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-022/MP-022.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-022/MP-022.png" alt="SWIFT Network Coverage intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-022/MP-022.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-022/MP-022.png" data-lightbox-title="SWIFT Network Coverage">
+                    <img src="assets/maps/intelligence/MP-022/MP-022.png" alt="SWIFT Network Coverage intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Correspondent Banking</span>
                     <h3>SWIFT Network Coverage</h3>
                     <span class="library-code">MP-022</span>
-                    <a href="assets/maps/intelligence/MP-022/MP-022.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-022/MP-022.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-022/MP-022.png" data-lightbox-title="SWIFT Network Coverage">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-023/MP-023.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-023/MP-023.png" alt="Stablecoin Adoption intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-023/MP-023.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-023/MP-023.png" data-lightbox-title="Stablecoin Adoption">
+                    <img src="assets/maps/intelligence/MP-023/MP-023.png" alt="Stablecoin Adoption intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Stablecoins</span>
                     <h3>Stablecoin Adoption</h3>
                     <span class="library-code">MP-023</span>
-                    <a href="assets/maps/intelligence/MP-023/MP-023.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-023/MP-023.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-023/MP-023.png" data-lightbox-title="Stablecoin Adoption">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-024/MP-024.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-024/MP-024.png" alt="CBDC Landscape intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-024/MP-024.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-024/MP-024.png" data-lightbox-title="CBDC Landscape">
+                    <img src="assets/maps/intelligence/MP-024/MP-024.png" alt="CBDC Landscape intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">CBDCs</span>
                     <h3>CBDC Landscape</h3>
                     <span class="library-code">MP-024</span>
-                    <a href="assets/maps/intelligence/MP-024/MP-024.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-024/MP-024.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-024/MP-024.png" data-lightbox-title="CBDC Landscape">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-025/MP-025.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-025/MP-025.png" alt="Global Payment Infrastructure Overview intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-025/MP-025.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-025/MP-025.png" data-lightbox-title="Global Payment Infrastructure Overview">
+                    <img src="assets/maps/intelligence/MP-025/MP-025.png" alt="Global Payment Infrastructure Overview intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Infrastructure</span>
                     <h3>Global Payment Infrastructure Overview</h3>
                     <span class="library-code">MP-025</span>
-                    <a href="assets/maps/intelligence/MP-025/MP-025.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-025/MP-025.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-025/MP-025.png" data-lightbox-title="Global Payment Infrastructure Overview">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" alt="Global Cross-Border Payment Corridors intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" data-lightbox-title="Global Cross-Border Payment Corridors">
+                    <img src="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" alt="Global Cross-Border Payment Corridors intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Cross-Border</span>
                     <h3>Global Cross-Border Payment Corridors</h3>
                     <span class="library-code">MP-026</span>
-                    <a href="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-026%20%E2%80%93%20Global%20Cross-Border%20Payment%20Corridors/MP-026.png" data-lightbox-title="Global Cross-Border Payment Corridors">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" alt="Global Correspondent Banking Network intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" data-lightbox-title="Global Correspondent Banking Network">
+                    <img src="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" alt="Global Correspondent Banking Network intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Correspondent Banking</span>
                     <h3>Global Correspondent Banking Network</h3>
                     <span class="library-code">MP-027</span>
-                    <a href="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-027%20%E2%80%93%20Global%20Correspondent%20Banking%20Network/MP-027.png" data-lightbox-title="Global Correspondent Banking Network">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" alt="FX Liquidity & Treasury Centres intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" data-lightbox-title="FX Liquidity & Treasury Centres">
+                    <img src="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" alt="FX Liquidity & Treasury Centres intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Treasury</span>
                     <h3>FX Liquidity & Treasury Centres</h3>
                     <span class="library-code">MP-028</span>
-                    <a href="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-028%20%E2%80%93%20FX%20Liquidity%20%26%20Treasury%20Centres/MP-028.png" data-lightbox-title="FX Liquidity & Treasury Centres">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" alt="Global Regulatory & Licensing Landscape intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" data-lightbox-title="Global Regulatory & Licensing Landscape">
+                    <img src="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" alt="Global Regulatory & Licensing Landscape intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Regulatory</span>
                     <h3>Global Regulatory & Licensing Landscape</h3>
                     <span class="library-code">MP-029</span>
-                    <a href="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-029%20%E2%80%93%20Global%20Regulatory%20%26%20Licensing%20Landscape/MP-029.png" data-lightbox-title="Global Regulatory & Licensing Landscape">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" alt="Digital Identity & KYC Infrastructure intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" data-lightbox-title="Digital Identity & KYC Infrastructure">
+                    <img src="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" alt="Digital Identity & KYC Infrastructure intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Identity</span>
                     <h3>Digital Identity & KYC Infrastructure</h3>
                     <span class="library-code">MP-030</span>
-                    <a href="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-030%20%E2%80%93%20Digital%20Identity%20%26%20KYC%20Infrastructure/MP-030.png" data-lightbox-title="Digital Identity & KYC Infrastructure">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" alt="AML & Sanctions Intelligence intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" data-lightbox-title="AML & Sanctions Intelligence">
+                    <img src="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" alt="AML & Sanctions Intelligence intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Regulatory</span>
                     <h3>AML & Sanctions Intelligence</h3>
                     <span class="library-code">MP-031</span>
-                    <a href="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-031%20%E2%80%93%20AML%20%26%20Sanctions%20Intelligence/MP-031.png" data-lightbox-title="AML & Sanctions Intelligence">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" alt="Cross-Border Settlement Networks intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" data-lightbox-title="Cross-Border Settlement Networks">
+                    <img src="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" alt="Cross-Border Settlement Networks intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Cross-Border</span>
                     <h3>Cross-Border Settlement Networks</h3>
                     <span class="library-code">MP-032</span>
-                    <a href="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-032%20%E2%80%93%20Cross-Border%20Settlement%20Networks/MP-032.png" data-lightbox-title="Cross-Border Settlement Networks">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" alt="Global Payment Gateways intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" data-lightbox-title="Global Payment Gateways">
+                    <img src="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" alt="Global Payment Gateways intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Infrastructure</span>
                     <h3>Global Payment Gateways</h3>
                     <span class="library-code">MP-033</span>
-                    <a href="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-033%20%E2%80%93%20Global%20Payment%20Gateways/MP-033.png" data-lightbox-title="Global Payment Gateways">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" alt="Fintech Ecosystem Landscape intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" data-lightbox-title="Fintech Ecosystem Landscape">
+                    <img src="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" alt="Fintech Ecosystem Landscape intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Fintech</span>
                     <h3>Fintech Ecosystem Landscape</h3>
                     <span class="library-code">MP-034</span>
-                    <a href="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-034%20%E2%80%93%20Fintech%20Ecosystem%20Landscape/MP-034.png" data-lightbox-title="Fintech Ecosystem Landscape">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" alt="Global Money Movement Atlas intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" data-lightbox-title="Global Money Movement Atlas">
+                    <img src="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" alt="Global Money Movement Atlas intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Cross-Border</span>
                     <h3>Global Money Movement Atlas</h3>
                     <span class="library-code">MP-035</span>
-                    <a href="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-035%20%E2%80%93%20Global%20Money%20Movement%20Atlas/MP-035.png" data-lightbox-title="Global Money Movement Atlas">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" alt="Payments Risk & Fraud Intelligence intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" data-lightbox-title="Payments Risk & Fraud Intelligence">
+                    <img src="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" alt="Payments Risk & Fraud Intelligence intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Risk</span>
                     <h3>Payments Risk & Fraud Intelligence</h3>
                     <span class="library-code">MP-036</span>
-                    <a href="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-036%20%E2%80%93%20Payments%20Risk%20%26%20Fraud%20Intelligence/MP-036.png" data-lightbox-title="Payments Risk & Fraud Intelligence">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" alt="Cyber Resilience in Payments intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" data-lightbox-title="Cyber Resilience in Payments">
+                    <img src="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" alt="Cyber Resilience in Payments intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Risk</span>
                     <h3>Cyber Resilience in Payments</h3>
                     <span class="library-code">MP-037</span>
-                    <a href="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-037%20%E2%80%93%20Cyber%20Resilience%20in%20Payments/MP-037.png" data-lightbox-title="Cyber Resilience in Payments">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" alt="Digital Asset & Tokenized Payments intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" data-lightbox-title="Digital Asset & Tokenized Payments">
+                    <img src="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" alt="Digital Asset & Tokenized Payments intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Digital Assets</span>
                     <h3>Digital Asset & Tokenized Payments</h3>
                     <span class="library-code">MP-038</span>
-                    <a href="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-038%20%E2%80%93%20Digital%20Asset%20%26%20Tokenized%20Payments/MP-038.png" data-lightbox-title="Digital Asset & Tokenized Payments">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" alt="Open Finance & API Ecosystem intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" data-lightbox-title="Open Finance & API Ecosystem">
+                    <img src="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" alt="Open Finance & API Ecosystem intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">API</span>
                     <h3>Open Finance & API Ecosystem</h3>
                     <span class="library-code">MP-039</span>
-                    <a href="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-039%20%E2%80%93%20Open%20Finance%20%26%20API%20Ecosystem/MP-039.png" data-lightbox-title="Open Finance & API Ecosystem">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" alt="AI in Payments & Financial Infrastructure intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" data-lightbox-title="AI in Payments & Financial Infrastructure">
+                    <img src="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" alt="AI in Payments & Financial Infrastructure intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">AI</span>
                     <h3>AI in Payments & Financial Infrastructure</h3>
                     <span class="library-code">MP-040</span>
-                    <a href="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-040%20%E2%80%93%20AI%20in%20Payments%20%26%20Financial%20Infrastructure/MP-040.png" data-lightbox-title="AI in Payments & Financial Infrastructure">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" alt="Next-Generation Payment Orchestration intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" data-lightbox-title="Next-Generation Payment Orchestration">
+                    <img src="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" alt="Next-Generation Payment Orchestration intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Infrastructure</span>
                     <h3>Next-Generation Payment Orchestration</h3>
                     <span class="library-code">MP-041</span>
-                    <a href="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-041%20%E2%80%93%20Next-Generation%20Payment%20Orchestration/MP-041.png" data-lightbox-title="Next-Generation Payment Orchestration">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" alt="Global Digital Identity & Trust Frameworks intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" data-lightbox-title="Global Digital Identity & Trust Frameworks">
+                    <img src="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" alt="Global Digital Identity & Trust Frameworks intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Identity</span>
                     <h3>Global Digital Identity & Trust Frameworks</h3>
                     <span class="library-code">MP-042</span>
-                    <a href="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-042%20%E2%80%93%20Global%20Digital%20Identity%20%26%20Trust%20Frameworks/MP-042.png" data-lightbox-title="Global Digital Identity & Trust Frameworks">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" alt="Quantum-Ready Payments & Cryptography intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" data-lightbox-title="Quantum-Ready Payments & Cryptography">
+                    <img src="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" alt="Quantum-Ready Payments & Cryptography intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Emerging Tech</span>
                     <h3>Quantum-Ready Payments & Cryptography</h3>
                     <span class="library-code">MP-043</span>
-                    <a href="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-043%20%E2%80%93%20Quantum-Ready%20Payments%20%26%20Cryptography/MP-043.png" data-lightbox-title="Quantum-Ready Payments & Cryptography">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" alt="Global Treasury, Liquidity & FX Management intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" data-lightbox-title="Global Treasury, Liquidity & FX Management">
+                    <img src="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" alt="Global Treasury, Liquidity & FX Management intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Treasury</span>
                     <h3>Global Treasury, Liquidity & FX Management</h3>
                     <span class="library-code">MP-044</span>
-                    <a href="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-044%20%E2%80%93%20Global%20Treasury%2C%20Liquidity%20%26%20FX%20Management/MP-044.png" data-lightbox-title="Global Treasury, Liquidity & FX Management">View Infographic →</a>
                 </div>
             </article>
 
             <article class="library-card">
-                <a href="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" target="_blank" rel="noopener noreferrer" class="library-image">
-                    <img src="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" alt="Global Payment Observability & Operational Intelligence intelligence infographic" loading="lazy">
+                <a href="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" class="library-image" data-lightbox-src="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" data-lightbox-title="Global Payment Observability & Operational Intelligence">
+                    <img src="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" alt="Global Payment Observability & Operational Intelligence intelligence infographic" loading="lazy" decoding="async" width="3840" height="2160">
                 </a>
                 <div class="library-content">
                     <span class="library-tag">Infrastructure</span>
                     <h3>Global Payment Observability & Operational Intelligence</h3>
                     <span class="library-code">MP-045</span>
-                    <a href="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" target="_blank" rel="noopener noreferrer" class="library-link">View Infographic →</a>
+                    <a href="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" class="library-link" data-lightbox-src="assets/maps/intelligence/MP-045%20%E2%80%93%20Global%20Payment%20Observability%20%26%20Operational%20Intelligence/MP-045.png" data-lightbox-title="Global Payment Observability & Operational Intelligence">View Infographic →</a>
                 </div>
             </article>
 
@@ -3274,11 +3266,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
     </div>
 <div class="tile-image">
 
-    <img
-        src="assets/intelligence/thumbnails/apac-payments-intelligence.png"
-        alt="APAC Payments Intelligence"
-                width="2160"
-                height="1779">
+    <picture>
+        <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/apac-payments-intelligence-w480.webp 480w, assets/intelligence/thumbnails/apac-payments-intelligence-w640.webp 640w, assets/intelligence/thumbnails/apac-payments-intelligence-w960.webp 960w, assets/intelligence/thumbnails/apac-payments-intelligence.webp 2160w">
+        <img src="assets/intelligence/thumbnails/apac-payments-intelligence-w960.png" srcset="assets/intelligence/thumbnails/apac-payments-intelligence-w480.png 480w, assets/intelligence/thumbnails/apac-payments-intelligence-w640.png 640w, assets/intelligence/thumbnails/apac-payments-intelligence-w960.png 960w, assets/intelligence/thumbnails/apac-payments-intelligence.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="APAC Payments Intelligence" loading="lazy" decoding="async" width="2160" height="1779">
+    </picture>
 
 </div>
 
@@ -3384,11 +3375,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
     </div>
 <div class="tile-image">
 
-    <img
-        src="assets/intelligence/thumbnails/global-payment-networks.png"
-        alt="Global Payment Networks"
-                width="2160"
-                height="1779">
+    <picture>
+        <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/global-payment-networks-w480.webp 480w, assets/intelligence/thumbnails/global-payment-networks-w640.webp 640w, assets/intelligence/thumbnails/global-payment-networks-w960.webp 960w, assets/intelligence/thumbnails/global-payment-networks.webp 2160w">
+        <img src="assets/intelligence/thumbnails/global-payment-networks-w960.png" srcset="assets/intelligence/thumbnails/global-payment-networks-w480.png 480w, assets/intelligence/thumbnails/global-payment-networks-w640.png 640w, assets/intelligence/thumbnails/global-payment-networks-w960.png 960w, assets/intelligence/thumbnails/global-payment-networks.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Global Payment Networks" loading="lazy" decoding="async" width="2160" height="1779">
+    </picture>
 
 </div>
 
@@ -3498,11 +3488,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
     </div>
 <div class="tile-image">
 
-    <img
-        src="assets/intelligence/thumbnails/digital-assets-intelligence.png"
-        alt="Digital Assets Intelligence"
-                width="2160"
-                height="1779">
+    <picture>
+        <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/digital-assets-intelligence-w480.webp 480w, assets/intelligence/thumbnails/digital-assets-intelligence-w640.webp 640w, assets/intelligence/thumbnails/digital-assets-intelligence-w960.webp 960w, assets/intelligence/thumbnails/digital-assets-intelligence.webp 2160w">
+        <img src="assets/intelligence/thumbnails/digital-assets-intelligence-w960.png" srcset="assets/intelligence/thumbnails/digital-assets-intelligence-w480.png 480w, assets/intelligence/thumbnails/digital-assets-intelligence-w640.png 640w, assets/intelligence/thumbnails/digital-assets-intelligence-w960.png 960w, assets/intelligence/thumbnails/digital-assets-intelligence.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Digital Assets Intelligence" loading="lazy" decoding="async" width="2160" height="1779">
+    </picture>
 
 </div>
 
@@ -3611,11 +3600,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="tile-image">
 
-        <img
-        src="assets/intelligence/thumbnails/country-intelligence-repository.png"
-        alt="Country Intelligence Repository"
-                width="2160"
-                height="1359">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/country-intelligence-repository-w480.webp 480w, assets/intelligence/thumbnails/country-intelligence-repository-w640.webp 640w, assets/intelligence/thumbnails/country-intelligence-repository-w960.webp 960w, assets/intelligence/thumbnails/country-intelligence-repository.webp 2160w">
+            <img src="assets/intelligence/thumbnails/country-intelligence-repository-w960.png" srcset="assets/intelligence/thumbnails/country-intelligence-repository-w480.png 480w, assets/intelligence/thumbnails/country-intelligence-repository-w640.png 640w, assets/intelligence/thumbnails/country-intelligence-repository-w960.png 960w, assets/intelligence/thumbnails/country-intelligence-repository.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Country Intelligence Repository" loading="lazy" decoding="async" width="2160" height="1359">
+        </picture>
 
     </div>
 
@@ -3713,11 +3701,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="tile-image">
 
-        <img
-        src="assets/intelligence/thumbnails/cross-border-payments-intelligence.png"
-        alt="Cross Border Payments"
-                width="2160"
-                height="1359">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/cross-border-payments-intelligence-w480.webp 480w, assets/intelligence/thumbnails/cross-border-payments-intelligence-w640.webp 640w, assets/intelligence/thumbnails/cross-border-payments-intelligence-w960.webp 960w, assets/intelligence/thumbnails/cross-border-payments-intelligence.webp 2160w">
+            <img src="assets/intelligence/thumbnails/cross-border-payments-intelligence-w960.png" srcset="assets/intelligence/thumbnails/cross-border-payments-intelligence-w480.png 480w, assets/intelligence/thumbnails/cross-border-payments-intelligence-w640.png 640w, assets/intelligence/thumbnails/cross-border-payments-intelligence-w960.png 960w, assets/intelligence/thumbnails/cross-border-payments-intelligence.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Cross Border Payments" loading="lazy" decoding="async" width="2160" height="1359">
+        </picture>
 
     </div>
 
@@ -3815,11 +3802,10 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 
     <div class="tile-image">
 
-        <img
-        src="assets/intelligence/thumbnails/regulatory-intelligence.png"
-        alt="Regulatory Intelligence"
-                width="2160"
-                height="1359">
+        <picture>
+            <source type="image/webp" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" srcset="assets/intelligence/thumbnails/regulatory-intelligence-w480.webp 480w, assets/intelligence/thumbnails/regulatory-intelligence-w640.webp 640w, assets/intelligence/thumbnails/regulatory-intelligence-w960.webp 960w, assets/intelligence/thumbnails/regulatory-intelligence.webp 2160w">
+            <img src="assets/intelligence/thumbnails/regulatory-intelligence-w960.png" srcset="assets/intelligence/thumbnails/regulatory-intelligence-w480.png 480w, assets/intelligence/thumbnails/regulatory-intelligence-w640.png 640w, assets/intelligence/thumbnails/regulatory-intelligence-w960.png 960w, assets/intelligence/thumbnails/regulatory-intelligence.png 2160w" sizes="(max-width:768px) 92vw, (max-width:1200px) 45vw, 380px" alt="Regulatory Intelligence" loading="lazy" decoding="async" width="2160" height="1359">
+        </picture>
 
     </div>
 

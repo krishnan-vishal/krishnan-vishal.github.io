@@ -15,6 +15,24 @@ CSS media queries, and browser-native APIs (`loading="lazy"`,
 `navigator.connection`) — nothing here requires a bundler, a CDN beyond
 what GitHub Pages already provides, or a service worker.
 
+**Status key used throughout this document**, per the GPIR performance
+governance standard (§12 onward):
+
+- **IMPLEMENTED** — exists, running in production today, verified by test.
+- **MANDATORY FOR FUTURE CONTENT** — a rule every new page/asset must
+  follow; not automatically enforced by a build step (there is none), but
+  checked by `scripts/gpir-perf-audit.js` (§16) and the checklist (§17).
+- **MONITORED** — not a problem today, but a metric with a defined
+  threshold that's watched so the decision to act is triggered by a
+  number, not a guess.
+- **TRIGGER-BASED FUTURE ARCHITECTURE** — deliberately not built; would
+  only be built once its specific documented trigger is actually reached.
+
+§§1–11 below (the original v2/v2.1 performance-sprint content) are all
+**IMPLEMENTED**. §12 onward is the governance layer added to keep that
+foundation intact as GPIR grows past its current ~40 pages toward 150+
+countries, hundreds of dashboards and thousands of research sections.
+
 ---
 
 ## 1. The core problem this solves
@@ -421,3 +439,368 @@ actually observed — not in anticipation of it:
 
 None of these are close today. This document exists so the decision, when
 it comes, is made against an observed threshold — not a guess.
+
+---
+
+## 12. Performance governance (v3): the core rule
+
+**IMPLEMENTED / MANDATORY FOR FUTURE CONTENT.**
+
+Everything above (§1–11) optimized the site as it exists today. This
+section exists because that's not the same problem as keeping the site
+fast as it grows to 150+ countries, hundreds of dashboards, and thousands
+of research sections. The rule that governs every future addition:
+
+> **Adding a country, dashboard, map or research page must only
+> materially affect that item's own page, its regional directory, and
+> the search index. It must never grow what an unrelated page has to
+> load.**
+
+This isn't aspirational — it's already how the architecture is shaped
+(§3–5: the map only loads on the homepage, images are per-country
+responsive tiers, the search index is fetched once on demand) — but it
+has to be actively re-verified every time content is added, because nothing
+stops a future page from quietly violating it (see §15 for two real
+examples found and fixed during this sprint, neither of which a human
+reviewer would have caught by eye).
+
+---
+
+## 13. Performance budgets
+
+**IMPLEMENTED (baseline measured) / MONITORED (thresholds going forward).**
+
+Measured locally (Python `http.server`, not GitHub Pages' real CDN — see
+the caveat in §8) at a 1440×900 viewport, bytes counted to the `load`
+event, immediately after the fixes in §15 landed:
+
+| Page type | Requests | Total transfer | HTML | CSS | JS | Images | JSON |
+|---|---|---|---|---|---|---|---|
+| Home (Dashboard Gallery + World Map) | 61 | 758KB | 214KB | 325KB | 102KB | 85KB | 32KB |
+| Regional (Middle East/GCC) | 43 | 343KB | 82KB | 194KB | 54KB | 4KB | 9KB |
+| Country (UAE, incl. Migration dashboard) | 38 | 462KB | 75KB | 197KB | 58KB | 124KB | 9KB |
+| Chapter (Trade Payments) | 34 | 335KB | 78KB | 194KB | 54KB | 0KB | 9KB |
+
+GPIR doesn't have separate "Dashboard page" or "Map page" URLs today —
+both live embedded in the homepage (§14) — so those two spec-requested
+page types are covered by the Home row above, noted honestly rather than
+measured against pages that don't exist.
+
+**Budget table** (target = current baseline, rounded up; warning = a real
+regression worth investigating; failure = act before publishing further
+content of that type):
+
+| Metric | Target | Warning | Failure |
+|---|---|---|---|
+| Total transfer (by `load`) — Home | ≤800KB | 1.2MB | 2MB |
+| Total transfer — Regional/Country/Chapter | ≤500KB | 800KB | 1.5MB |
+| Requests — any page | ≤65 | 90 | 130 |
+| CSS transfer — any page | ≤350KB | 500KB | 700KB (see §18 — this is the least efficient budget line today, a known candidate for future incremental improvement) |
+| Image transfer — Home | ≤150KB | 400KB | 1MB (before responsive delivery, §3.3) |
+| Search index (`search-index.json`) | ≤2MB | 3MB | 5MB (see §7) |
+
+LCP/CLS/INP use industry-standard Core Web Vitals thresholds rather than
+this environment's local numbers, because the local single-process dev
+server's timing isn't representative of GitHub Pages' real CDN (§8, §14):
+
+| Metric | Good (target) | Needs improvement (warning) | Poor (failure) |
+|---|---|---|---|
+| LCP | ≤2.5s | ≤4s | >4s |
+| CLS | ≤0.1 | ≤0.25 | >0.25 |
+| INP | ≤200ms | ≤500ms | >500ms |
+
+CLS was measured at effectively zero across every tested page (0.0004 on
+Home, 0 elsewhere) — the explicit-`width`/`height` and `content-visibility`
+work in §1–11 is holding. LCP/INP need real-device/real-network
+measurement to validate against these thresholds meaningfully — see §19.
+
+---
+
+## 14. Homepage payload: four phases, not one number
+
+**IMPLEMENTED.**
+
+The prior sprint's ~15MB local measurement was correctly flagged as
+partly a headless-Chromium-on-loopback artifact, but "partly" wasn't the
+whole story — investigating further (per the explicit instruction not to
+dismiss that finding) surfaced two genuine bugs, fixed in §15. After
+those fixes, the homepage's real shape across four phases:
+
+| Phase | What it means | Requests | Transfer |
+|---|---|---|---|
+| **Initial** (by `DOMContentLoaded`) | Render-blocking CSS/JS + the doc itself | 52 | 695KB |
+| **Above-the-fold** (visible in a 1440×900 viewport, no scroll) | 7 images: header/flag icons + the hero coverage map | 7 | 57KB |
+| **First-interaction** (by the `load` event, before any scroll/click) | Everything native `loading="lazy"` correctly deferred past this point | 52 | 695KB (identical to Initial — nothing extra loads by `load` on this page) |
+| **Full-page** (after scrolling the entire page, letting every lazy image and the map load) | The complete repository of homepage content | 78 | 1,132KB |
+
+The gap between **first-interaction (695KB)** and **full-page (1,132KB)**
+— roughly 440KB — is exactly the content a reader never pays for unless
+they scroll to it: the Dashboard Gallery thumbnails, architecture/
+intelligence library images, and the world map's country registry fetch.
+That gap is the concrete evidence that "content-first, lazy the rest"
+(§3) is doing its job.
+
+---
+
+## 15. Case study: two governance bugs found this sprint
+
+Neither of these was visible by eye or caught by the previous sprint's
+Playwright tests — both needed the payload-phase investigation in §14 and
+the dev-time audit script in §16 to surface. They're recorded here as the
+concrete argument for why "prevent accidental performance regression"
+(§27 of the governing sprint prompt) needs tooling, not vigilance alone.
+
+**Bug 1 — a 2.2MB favicon on every single page.** `assets/favicon/
+favicon.svg`, referenced via `<link rel="icon" type="image/svg+xml">` on
+all 39 live pages, was not a real vector icon — it was a
+`RealFaviconGenerator` export wrapping a base64-encoded 1248×1248 PNG
+inside `<svg><image xlink:href="data:image/png;base64,...">`. Because
+browsers prefer an SVG favicon over the `.ico`/PNG alternatives when one
+is listed, this was the browser's actual pick — 2.2MB fetched for a
+16×16 tab icon, on every page, before any content-related optimization
+even had a chance to matter. **Fix:** removed the broken `<link>` tag
+site-wide; the existing `favicon.ico` + 16×16/32×32 PNG + apple-touch-icon
+`<link>` tags already provide the identical visible icon at a fraction of
+the size. Full-page homepage transfer dropped from 3.4MB to 1.1MB from
+this one change alone.
+
+**Bug 2 — two tickers with colliding CSS, one of them silently running
+the wrong animation.** `assets/css/style.css` (homepage only) contained
+11 `@import` statements at its top — a render-blocking waterfall (see
+§3.4's Google Fonts fix from the prior sprint for the same anti-pattern)
+where 8 of the 11 imported files were *also* already linked directly in
+`index.html`'s `<head>`, meaning they were fetched twice. Three files
+(`stats.css`, `executive.css`, `page.css`) were reachable *only* through
+that blocking `@import` chain. Flattening the imports into direct
+`<link>` tags exposed a second, worse problem underneath: `market.css`
+(FX ticker) and `page.css` (Global Announcements ticker) both style a
+generic `.ticker-track` class at equal CSS specificity — and because
+`@import`'d content is inserted at the position of the `@import`
+statement, the *actual* winner for `.ticker-track{animation:...}` on
+**both** tickers was whichever file's rule happened to land last in the
+resulting cascade. It was `market.css`'s `tickerMove` — meaning the
+Global Announcements ticker had been silently running the FX ticker's
+animation the entire time, not its own `scrollTicker`. This was
+invisible because both are 60s linear marquees, but they're built for
+different content: `tickerMove` (`translateX(0)→translateX(-50%)`)
+assumes duplicated content for a seamless loop, which is what
+`fx-ticker.js` does (`track.innerHTML = html + html`); `scrollTicker`
+(`translateX(100%)→translateX(-100%)`) is a full sweep for
+non-duplicated content, which is what `announcements.js` actually
+renders. The announcements ticker was therefore looping on math designed
+for content it doesn't have — a jump-cut every cycle rather than the
+smooth sweep it was built for. **Fix:** scoped both rules by container ID
+(`#fx-ribbon .ticker-track` / `#market-ribbon .ticker-track`), which
+resolves the collision by specificity rather than by fragile load order,
+and updated both `prefers-reduced-motion` overrides to match the new
+selectors (an easy follow-on mistake — raising a base rule's specificity
+without raising its override's specificity the same way silently breaks
+the override, which is exactly what happened on the first pass of this
+fix and was itself caught by `scripts/gpir-perf-audit.js`, §16). Verified
+via `getComputedStyle(...).animationName`: each ticker now runs its own
+correct animation, `getAnimations()[0].currentTime` progresses
+continuously across pause/resume (§20), and reduced-motion correctly
+disables both.
+
+The lesson generalized into governance: **a bare class name shared across
+two component stylesheets is a load-order-dependent bug waiting to
+happen.** New components must scope shared-looking class names
+(`.ticker-track`, `.card`, `.tile`) to their container, not rely on file
+load order to keep them apart.
+
+---
+
+## 16. The dev-time performance audit script
+
+**IMPLEMENTED.**
+
+`scripts/gpir-perf-audit.js` (Node, no dependencies beyond the standard
+library — `fs`, `path`, `crypto`). Run it locally before publishing new
+content:
+
+```
+node scripts/gpir-perf-audit.js
+```
+
+It is advisory only (always exits 0) — per the sprint principle "the
+objective is not to block development unnecessarily, [but] to prevent
+accidental performance regression." It checks:
+
+1. **Images** — every `<img>` across every live page: missing
+   `width`/`height` (CLS risk), missing `alt` attribute (decorative
+   `alt=""` is correctly accepted, only a fully absent attribute is
+   flagged), and images over 150KB with no `srcset`/`<picture>`. Images
+   sized entirely by CSS (`.flag-icon`, `.brand-logo`, `.footer-logo` —
+   confirmed to carry unconditional CSS width/height in every context
+   they appear) are correctly exempted, since the HTML attribute would be
+   redundant there, not a real gap.
+2. **Duplicate/near-duplicate media** — SHA-1 hashes every media file
+   under `assets/` (excluding `assets/master-libraries/`, a source/
+   staging archive never referenced by any served page, and 0-byte stub
+   files, which hash-match trivially and aren't a real duplicate) and
+   flags byte-identical files under different names, plus filenames
+   matching a `-final`/`-new`/`-copy`/`-old`/`-draft` pattern.
+3. **Search index size** — warns against the 2/3/4/5MB ladder from §7.
+4. **Reduced-motion coverage** — for every continuous (`infinite`) CSS
+   animation found (in `<style>` rules or JS-applied via
+   `.style.animation =`), extracts the selector that declares it and
+   checks whether that *same selector* appears inside a
+   `prefers-reduced-motion` override elsewhere in the codebase. (Matching
+   on the selector, not the animation name, matters — a reduced-motion
+   override almost never repeats the keyframe name, it sets
+   `animation:none` on the selector that uses it.)
+5. **Global vs. page-specific script loading** — counts how many of the
+   58 HTML files (39 live pages + 19 archive/legacy files the walker
+   doesn't specially exclude by name) load each `assets/js/*.js` file,
+   and specifically checks that `world-map.js` loads on exactly one page.
+
+Current output on this codebase: 3 informational warnings (an orphaned
+legacy page outside the linked site graph, and two small byte-identical
+logo files) — see §18 for the full script/CSS inventory.
+
+---
+
+## 17. Content-addition checklist
+
+**MANDATORY FOR FUTURE CONTENT.**
+
+Before publishing a new country, region, dashboard, map, heat map,
+research page, media card, or animation:
+
+- [ ] Image follows the GPIRImage convention (§10): canonical master +
+      responsive width tiers + WebP `<source>` + explicit
+      `width`/`height` + `sizes` + `loading="lazy"` (unless genuinely
+      above-the-fold) + `decoding="async"`.
+- [ ] `alt` text is present and meaningful (or explicitly `alt=""` for a
+      confirmed-decorative image, not just omitted).
+- [ ] No new global `<script>`/`<link>` added to *every* page for
+      something only one page/component needs (§18) — page-specific and
+      component-specific scripts stay scoped.
+- [ ] No new render-blocking resource (a `@import` chain, an
+      unnecessary synchronous `<script>` in `<head>`) — see §15's case
+      study for what this looks like when it goes unnoticed.
+- [ ] Any new continuous (`infinite`) animation has: a documented
+      purpose, `prefers-reduced-motion` coverage, and an off-screen/
+      tab-hidden pause if it's expensive enough to matter (§5, §20).
+- [ ] Any new hover/tooltip/card interaction follows the existing GPIR
+      interaction language: no cursor-chasing, no layout shift, stable
+      positioning (§10's GPIRTooltip reference).
+- [ ] New map/heavy visualization follows the GPIRMap pattern (§10,
+      §3.1): deferred `IntersectionObserver` init, tier-aware
+      complexity, `try/catch` failure isolation with a visible fallback.
+- [ ] New dashboard is classified (static image / interactive data / live
+      data / animated visualization) and uses the lightest form that
+      actually serves the content — a static research graphic doesn't
+      need an interactive data engine.
+- [ ] Content is indexed in `assets/data/search-index.json` as
+      metadata + snippet, not full page text (§7, §22).
+- [ ] Mobile layout checked at 375px and 1440px, no horizontal overflow.
+- [ ] Run `node scripts/gpir-perf-audit.js` (§16) and address anything it
+      flags for the new content specifically.
+
+---
+
+## 18. Shared JS/CSS load audit
+
+**IMPLEMENTED (JS) / MANDATORY FOR FUTURE (CSS, incremental only).**
+
+**JavaScript** — confirmed via `scripts/gpir-perf-audit.js`'s script-count
+check: `world-map.js` (the heaviest client-side component, §3.1) loads on
+exactly 1 of 58 files, as designed. The shared "site chrome" scripts
+(`script.js`, `i18n.js`, `footer-utilities.js`, `content-search.js`,
+`content-protection.js`, `fx-ticker.js`) load on all 39 live pages
+because every page genuinely needs navigation, translation, search,
+content protection and the FX ticker — that's correctly global, not
+scope creep. `dashboard-lightbox.js` (6 pages), `trust-engine.js` and
+`announcements.js` (1 page, homepage) are correctly scoped to only the
+pages that use them.
+
+**CSS** — the opposite finding: every one of the 26 stylesheets under
+`assets/css/` loads on every page, including page-type-specific ones
+(`hero.css`, `command-centre.css`, `intelligence-library.css`,
+`observatory.css`, `payments-timeline.css`, `purpose.css`, `knowledge.css`
+— all homepage-only components, still loaded in full on a chapter or
+country page that never uses them). This is a real instance of the
+pattern §6 of the governing sprint warns about ("large component-specific
+styles loaded globally"), and it's the largest remaining line item in the
+budget table (§13) — CSS transfer (194–325KB) exceeds JS transfer
+(54–102KB) on every page type measured.
+
+**Why this isn't fixed in this sprint:** the governing instruction is
+explicit — "do not perform a dangerous wholesale CSS rewrite. Make
+incremental, verified improvements." Splitting 26 interdependent
+stylesheets by page type requires first auditing which selectors in each
+file are actually referenced cross-file (the ticker collision in §15 is
+a preview of exactly the kind of bug a rushed split would reintroduce at
+scale) — that audit is bigger than this sprint's remaining scope and
+belongs in its own pass. Documented here as the next legitimate
+incremental-CSS-governance candidate rather than either attempted
+hastily or silently dropped.
+
+---
+
+## 19. Real-device and real-network test plan
+
+**MONITORED — plan documented, not yet executed; no measurements
+fabricated.**
+
+No physical devices or real network conditions were available in this
+environment (a cloud execution container, not a device lab), consistent
+with the prior sprint's disclosure. This section is the plan for when
+they are, not a claim that they've been run:
+
+**Devices (minimum target):**
+
+| Device | Browser | What to verify |
+|---|---|---|
+| iPhone (current + one generation back) | Safari | Map/dashboard rendering, `<picture>`/WebP fallback, touch tooltip behavior |
+| Android (mid-range) | Chrome | CONSTRAINED-tier map behavior (§2) actually engages on real low-end hardware, not just the forced-override test used in this environment |
+| iPad | Safari | Layout at tablet breakpoints, touch + hover hybrid interaction |
+| Android tablet | Chrome | Same as iPad, cross-vendor confirmation |
+
+**Networks (where physically testable):** Fast Wi-Fi, normal 4G, slow
+4G, 3G/high-latency — measuring first meaningful content, navigation
+responsiveness, search responsiveness, map load, image load, and scroll
+smoothness under each.
+
+**What substituted for this in-session:** Chrome DevTools Protocol CPU
+throttling (4×) and network condition emulation (~1.6Mbps/150ms latency,
+a "Slow 4G" proxy) were attempted in the prior sprint but produced
+unreliable results when combined with this environment's single-process
+local file server (requests compounding into multi-minute waits
+unrelated to the throttle itself) — abandoned in favor of the honestly-
+labeled local, unthrottled measurements in §13–14, which is why this
+plan exists as its own section rather than a claimed substitute.
+
+---
+
+## 20. Ticker governance
+
+**IMPLEMENTED.**
+
+Both marquee tickers (LIVE FX RATES, GLOBAL ANNOUNCEMENTS) now match the
+map's existing pause discipline (§3.1):
+
+- Pause when scrolled off-screen (`IntersectionObserver`, threshold 0.01).
+- Pause when the browser tab is backgrounded (`visibilitychange` +
+  `document.hidden`).
+- Resume without a visible jump: implemented via a CSS class toggle
+  (`.gpir-ticker-paused{animation-play-state:paused}`) rather than an
+  inline style or a stop/restart — `animation-play-state:paused` freezes
+  a CSS animation at its exact current position by definition, so there
+  is no manual offset to track and no restart-from-beginning. Verified
+  via `getAnimations()[0].currentTime` progressing continuously across a
+  pause/resume cycle.
+- Respect `prefers-reduced-motion` (pre-existing; the pause logic itself
+  no-ops under reduced motion since the ticker is already static).
+- The pre-existing hover-to-pause behavior on the FX ticker is
+  unaffected — the class toggle never competes with the `:hover` rule
+  the way an inline style would have.
+- Each ticker's animation is now scoped to its own container ID
+  (`#fx-ribbon` / `#market-ribbon`, §15) so this can never again silently
+  cross-apply to the wrong ticker regardless of future CSS load order.
+
+`initializeTickerVisibilityPause()` in `assets/js/script.js` runs on
+every page (a harmless no-op where no ticker markup exists) so a future
+page that adds its own ticker inherits this behavior automatically,
+consistent with §31's "automate the check, don't rely on memory."

@@ -39,6 +39,8 @@ function initializeWebsite(){
 
     initializeReadingProgress();
 
+    initializeTickerVisibilityPause();
+
 }
 
 /*=====================================================
@@ -1186,6 +1188,93 @@ function initializeSearch(){
         const contentResult = window.GPIRContentSearch ? window.GPIRContentSearch.search(rawQuery, { limit: 8 }) : null;
 
         renderResults(navMatches, contentResult, query);
+
+    });
+
+}
+
+/*=====================================================
+  TICKER VISIBILITY PAUSE
+
+  Same principle already applied to the interactive map's
+  corridor-flow/marker-pulse animations: a 60s linear marquee keeps
+  animating (and getting painted) even while scrolled off-screen or
+  the tab is backgrounded, for no reader benefit. animation-play-state
+  freezes a CSS animation at its exact current position and resumes
+  from that same position — there is no offset to track manually and
+  no restart-from-beginning, so this is a plain visibility toggle, not
+  a stateful pause/resume implementation.
+
+  Runs on every page (harmless no-op where the ticker markup doesn't
+  exist, e.g. every page but the homepage) rather than only on
+  index.html, so a future page that adds a ticker gets this for free.
+======================================================*/
+
+function initializeTickerVisibilityPause(){
+
+    const ribbons = [
+        document.getElementById("fx-ribbon"),
+        document.getElementById("market-ribbon")
+    ].filter(Boolean);
+
+    if(!ribbons.length) return;
+
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(reduceMotion) return; // already fully static via the existing reduced-motion CSS rule
+
+    // A class toggle (not an inline style) so this never overrides the
+    // existing .ticker-track:hover{animation-play-state:paused} rule —
+    // hovering to read the ticker keeps working regardless of this
+    // visibility-driven pause.
+    const setPaused = (ribbon, paused) => {
+
+        const track = ribbon.querySelector(".ticker-track");
+
+        if(track) track.classList.toggle("gpir-ticker-paused", paused);
+
+    };
+
+    ribbons.forEach(ribbon => {
+
+        if("IntersectionObserver" in window){
+
+            const io = new IntersectionObserver((entries) => {
+
+                const entry = entries[0];
+
+                setPaused(ribbon, !entry.isIntersecting || document.hidden);
+
+            }, { threshold: 0.01 });
+
+            io.observe(ribbon);
+
+        }
+
+        document.addEventListener("visibilitychange", () => {
+
+            if(document.hidden){
+
+                setPaused(ribbon, true);
+
+                return;
+
+            }
+
+            if("IntersectionObserver" in window === false){
+
+                setPaused(ribbon, false);
+
+                return;
+
+            }
+
+            const rect = ribbon.getBoundingClientRect();
+
+            const inView = rect.bottom > 0 && rect.top < (window.innerHeight || document.documentElement.clientHeight);
+
+            setPaused(ribbon, !inView);
+
+        });
 
     });
 

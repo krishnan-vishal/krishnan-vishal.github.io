@@ -1688,7 +1688,12 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 }
 
-.ticker-track{
+/* Scoped to #market-ribbon (Global Announcements) specifically -- see the
+   matching note in market.css's #fx-ribbon .ticker-track rule: both files
+   used the bare .ticker-track selector, which collided at equal
+   specificity and let market.css's tickerMove silently win for both
+   tickers regardless of which one was actually intended here. */
+#market-ribbon .ticker-track{
 
     display:inline-block;
 
@@ -1697,6 +1702,14 @@ GLOBAL FIAT EXCHANGE MONITOR
     font-size:14px;
 
     color:#444;
+
+}
+
+/* Set by initializeTickerVisibilityPause() in script.js when the ribbon
+   is scrolled off-screen or the tab is backgrounded. */
+#market-ribbon .ticker-track.gpir-ticker-paused{
+
+    animation-play-state:paused;
 
 }
 
@@ -1741,7 +1754,7 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 @media (prefers-reduced-motion: reduce){
 
-    .ticker-track{
+    #market-ribbon .ticker-track{
 
         animation:none;
 

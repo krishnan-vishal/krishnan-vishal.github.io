@@ -1,15 +1,12 @@
-@import url("variables.css");
-@import url("header.css");
-@import url("hero.css");
-@import url("stats.css");
-@import url("knowledge.css");
-@import url("research.css");
-@import url("market.css");
-@import url("dashboard.css");
-@import url("executive.css");
-@import url("footer.css");
-@import url("page.css");
-@import url("responsive.css");
+/* This file used to pull in 11 other stylesheets via CSS import rules
+   (variables/header/hero/stats/knowledge/research/market/dashboard/
+   executive/footer/page/responsive.css) -- a render-blocking waterfall
+   (the browser can't even discover those files until this stylesheet
+   itself has been fetched and parsed), and 8 of the 11 were ALSO
+   already linked directly in index.html's <head>, so they were being
+   fetched twice. stats.css, executive.css and page.css (the 3 not
+   already linked) now have their own direct <link> tags in index.html
+   instead. */
 
 /* ===================================================
    P1.3 — FOUNDER & EDITORIAL IDENTITY

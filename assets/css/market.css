@@ -225,7 +225,17 @@ TICKER AREA
 
 }
 
-.ticker-track{
+/* Scoped to #fx-ribbon specifically: .ticker-track is (unfortunately) also
+   used by the Global Announcements ribbon (page.css), with a different
+   intended animation. Without this ID scope the two rules collide at
+   equal specificity and whichever file loads last silently wins for
+   BOTH tickers -- which is exactly what happened before this fix (both
+   ran market.css's tickerMove, including the announcements ticker,
+   which was built for scrollTicker's non-duplicated-content sweep and
+   visibly jump-cut every cycle as a result). Scoping by ID gives each
+   ticker a higher-specificity, load-order-independent claim on its own
+   animation. */
+#fx-ribbon .ticker-track{
 
     display:inline-flex;
 
@@ -241,7 +251,16 @@ TICKER AREA
 
 }
 
-.ticker-track:hover{
+/* Set by initializeTickerVisibilityPause() in script.js when the ribbon
+   is scrolled off-screen or the tab is backgrounded — a class toggle
+   (not an inline style) so it never overrides the :hover pause below. */
+#fx-ribbon .ticker-track.gpir-ticker-paused{
+
+    animation-play-state:paused;
+
+}
+
+#fx-ribbon .ticker-track:hover{
 
     animation-play-state:paused;
 
@@ -508,7 +527,7 @@ ANIMATION
 
 @media (prefers-reduced-motion: reduce){
 
-    .ticker-track{
+    #fx-ribbon .ticker-track{
 
         animation:none;
 
