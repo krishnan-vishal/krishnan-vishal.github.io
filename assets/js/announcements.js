@@ -147,18 +147,28 @@
 
         if(!track) return;
 
+        // One malformed record building its own card must not blank the
+        // rest of the ticker -- skip that record rather than letting a
+        // single throw abort the whole .map() before assignment.
         track.innerHTML = publishedRecords().map(record => {
 
-            const tag = (record.category || "").split(" / ")[0];
-            const isSuspension = record.category === "Payment Suspension";
+            try{
 
-            return `<button type="button" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
-                <span class="ticker-flag">${flagMarkup(record)}</span>
-                <span class="ticker-body">
-                    <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span></span>
-                    <span class="ticker-headline">${escapeHtml(record.tickerHeadline || record.title)}</span>
-                </span>
-            </button>`;
+                const tag = (record.category || "").split(" / ")[0];
+                const isSuspension = record.category === "Payment Suspension";
+
+                return `<button type="button" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
+                    <span class="ticker-flag">${flagMarkup(record)}</span>
+                    <span class="ticker-body">
+                        <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span></span>
+                        <span class="ticker-headline">${escapeHtml(record.tickerHeadline || record.title)}</span>
+                    </span>
+                </button>`;
+
+            } catch(err){
+                console.error("[GPIR] failed to render ticker card for record " + (record && record.id) + ":", err);
+                return "";
+            }
 
         }).join("");
 
@@ -412,12 +422,24 @@
                 // section simply stays empty rather than showing broken content.
             });
 
-        const trustReady = window.GPIRTrustEngine ? window.GPIRTrustEngine.ready : Promise.resolve();
+        // Deliberately NOT gated on the trust engine's registry fetch
+        // (trust-engine.js's `.ready`): evaluateTrust() already falls back
+        // safely when the registry hasn't loaded yet (or never loads), and
+        // making the ticker wait on a second network round-trip it doesn't
+        // strictly need was itself a "blank ticker" risk on a slow or
+        // flaky connection — the GPIR performance standard's "no
+        // blank-page waiting" rule applies here too.
+        return dataReady.then(() => {
 
-        return Promise.all([dataReady, trustReady]).then(() => {
-
-            renderTicker();
-            initializeDetailPanel();
+            try{
+                renderTicker();
+                initializeDetailPanel();
+            } catch(err){
+                // One malformed record must not blank the whole ticker
+                // silently forever -- surface it and leave whatever
+                // partial state exists rather than an inexplicable void.
+                console.error("[GPIR] announcements render failed:", err);
+            }
 
             document.dispatchEvent(new CustomEvent("gpir:announcementsready", { detail: { records: publishedRecords() } }));
 

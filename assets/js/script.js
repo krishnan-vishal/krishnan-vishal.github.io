@@ -437,6 +437,28 @@ function initializeMegaMenuHoverIntent(){
                 });
             };
 
+            // closeInstant() alone can't hide the panel here: the pointer
+            // is still physically resting over it (that's how it got
+            // clicked), so CSS's own `:hover` fallback -- kept for
+            // graceful no-JS degradation -- keeps it visible regardless
+            // of the is-open class, for the entire window between "link
+            // clicked" and "browser actually swaps in the new page". An
+            // inline !important override is the one thing that outranks
+            // a stylesheet :hover rule in the cascade, so it's the only
+            // way to guarantee the panel is gone for that window rather
+            // than visibly riding out the navigation.
+            const closeForNavigation = () => {
+                closeInstant();
+                menu.style.setProperty("opacity", "0", "important");
+                menu.style.setProperty("visibility", "hidden", "important");
+                menu.style.setProperty("pointer-events", "none", "important");
+                setTimeout(() => {
+                    menu.style.removeProperty("opacity");
+                    menu.style.removeProperty("visibility");
+                    menu.style.removeProperty("pointer-events");
+                }, 1000);
+            };
+
             const open = () => {
                 if(closeTimer){
                     clearTimeout(closeTimer);
@@ -476,6 +498,16 @@ function initializeMegaMenuHoverIntent(){
             };
 
             controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose });
+
+            // Activating a real link inside the menu starts a full page
+            // navigation, which the browser doesn't complete instantly --
+            // the current page (including this open dropdown) stays
+            // rendered for that window. Closing it the instant a link is
+            // activated means the open panel isn't what's still on screen
+            // for that gap, rather than lingering through it.
+            menu.querySelectorAll("a[href]").forEach(link => {
+                link.addEventListener("click", () => closeForNavigation());
+            });
 
             if(hoverCapable){
 
