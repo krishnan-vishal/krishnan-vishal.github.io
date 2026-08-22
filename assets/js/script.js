@@ -395,23 +395,39 @@ function initializeMegaMenuHoverIntent(){
             }
             trigger.setAttribute("aria-controls", menu.id);
 
+            // Centers the panel under its trigger and keeps it on-screen by
+            // setting a real `left` (px, relative to .nav-item-mega, its
+            // position:relative containing block) rather than the old
+            // left:50% + transform:translateX approach. transform is
+            // paint-only: it corrects what the reader sees, but not the
+            // element's contribution to the document's scrollable width,
+            // which is exactly why a transform-shifted-but-still-centered
+            // panel kept forcing a page-wide horizontal scrollbar even
+            // once it was visually back on-screen. A real `left` value
+            // does count toward that measurement, so this is the fix that
+            // actually removes the overflow rather than just hiding it.
             const applyEdgeGuard = () => {
 
-                menu.style.setProperty("--edge-shift", "0px");
+                const menuWidth = menu.offsetWidth;
+                const itemWidth = item.offsetWidth;
 
-                const rect = menu.getBoundingClientRect();
+                let left = (itemWidth - menuWidth) / 2;
 
-                let shift = 0;
+                const itemRect = item.getBoundingClientRect();
+                let absLeft = itemRect.left + left;
+                let absRight = absLeft + menuWidth;
 
-                if(rect.right > window.innerWidth - EDGE_MARGIN){
-                    shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
+                if(absRight > window.innerWidth - EDGE_MARGIN){
+                    const over = absRight - (window.innerWidth - EDGE_MARGIN);
+                    left -= over;
+                    absLeft -= over;
                 }
 
-                if(rect.left + shift < EDGE_MARGIN){
-                    shift += (EDGE_MARGIN - (rect.left + shift));
+                if(absLeft < EDGE_MARGIN){
+                    left += (EDGE_MARGIN - absLeft);
                 }
 
-                menu.style.setProperty("--edge-shift", `${shift}px`);
+                menu.style.left = `${left}px`;
 
             };
 
@@ -497,7 +513,7 @@ function initializeMegaMenuHoverIntent(){
                 }, CLOSE_DELAY);
             };
 
-            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose });
+            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose, applyEdgeGuard });
 
             // Activating a real link inside the menu starts a full page
             // navigation, which the browser doesn't complete instantly --
@@ -555,6 +571,38 @@ function initializeMegaMenuHoverIntent(){
         }
 
     });
+
+    // Every menu panel stays in the layout tree even while closed (it's
+    // hidden via opacity/visibility, not display:none, so the close
+    // transition can animate) -- so its default centered position still
+    // counts toward the document's scrollable width until a guard has run
+    // on it. Previously that only happened inside open(), which left every
+    // panel free to overflow the viewport from first paint until a reader
+    // actually hovered/tapped it. A single guard pass right after setup
+    // isn't enough either: it can run before web fonts finish swapping in,
+    // while nav-item widths (and therefore each menu's centered position)
+    // are still settling -- exactly the kind of timing gap that made this
+    // overflow intermittent rather than constant. Re-running the guard on
+    // resize, on the window "load" event, and once document.fonts.ready
+    // resolves (the same recalc pattern the nav "More" shelf below already
+    // uses) keeps --edge-shift correct once layout has actually settled.
+    let edgeGuardQueued = false;
+    const scheduleEdgeGuardAll = () => {
+        if(mobileQuery.matches || edgeGuardQueued) return;
+        edgeGuardQueued = true;
+        requestAnimationFrame(() => {
+            edgeGuardQueued = false;
+            controllers.forEach(c => c.applyEdgeGuard());
+        });
+    };
+
+    scheduleEdgeGuardAll();
+
+    window.addEventListener("load", scheduleEdgeGuardAll);
+
+    if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(scheduleEdgeGuardAll);
+    }
 
     if(!hoverCapable){
 
@@ -620,6 +668,7 @@ function initializeMegaMenuHoverIntent(){
             controllers.forEach(c => {
                 if(c.item.classList.contains("is-open")) c.closeInstant();
             });
+            scheduleEdgeGuardAll();
         }, 120);
     }, { passive:true });
 

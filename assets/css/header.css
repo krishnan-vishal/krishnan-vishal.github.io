@@ -1639,11 +1639,16 @@ button.ticker-card{
 
     top:calc(100% + 20px);
 
-    left:50%;
+    /* Horizontal position is set in px by the edge guard in script.js
+       (menu.style.left), not centered here with left:50% + a transform.
+       transform is paint-only and doesn't affect the document's
+       scrollable width, so a transform-centered panel still claimed its
+       full un-shifted width toward the page's horizontal scroll extent
+       even while closed and visually corrected -- this left:0 default is
+       just the pre-JS fallback. */
+    left:0;
 
-    --edge-shift:0px;
-
-    transform:translate(calc(-50% + var(--edge-shift)),-10px) scale(.98);
+    transform:translateY(-10px) scale(.98);
 
     width:min(760px, 90vw);
 
@@ -1681,7 +1686,7 @@ button.ticker-card{
 
     pointer-events:auto;
 
-    transform:translate(calc(-50% + var(--edge-shift)),0) scale(1);
+    transform:translateY(0) scale(1);
 }
 
 /* Applied briefly by the menu controller (script.js) when a different

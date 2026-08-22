@@ -213,7 +213,34 @@ function main(){
     }
 
     let headerBlockTemplate = templateSource.slice(0, heroIdx);
-    const footerBlock = templateSource.slice(footerIdx);
+
+    // The footer is lifted verbatim from pages/legal/privacy-policy.html,
+    // where its five legal links are correctly bare (same-directory
+    // siblings: disclaimer.html, terms-of-use.html, etc.). pages/legal/
+    // and pages/intelligence/ sit at the same depth under pages/, but
+    // they're different directories -- copied as-is those bare hrefs
+    // resolved to pages/intelligence/privacy-policy.html and 404'd on
+    // every generated page. Rewriting them to ../legal/ here, once, at
+    // the source of truth, fixes it for every current and future
+    // generated page instead of patching each output file.
+    const FOOTER_LEGAL_LINKS = [
+        "privacy-policy.html",
+        "disclaimer.html",
+        "terms-of-use.html",
+        "copyright-ip-policy.html",
+        "cookie-policy.html",
+    ];
+
+    let footerBlock = templateSource.slice(footerIdx);
+
+    FOOTER_LEGAL_LINKS.forEach(file => {
+        const from = `href="${file}"`;
+        const to = `href="../legal/${file}"`;
+        if(!footerBlock.includes(from)){
+            throw new Error(`Expected footer legal link not found in template: ${from}`);
+        }
+        footerBlock = footerBlock.split(from).join(to);
+    });
 
     // Head meta strings specific to the source template page, replaced
     // per-record below. These are literal strings from the current
