@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PROMPT-11 — GPIR Backlog Reconciliation & Pending Work Intake
-**Current Milestone:** M-10 — PARTIAL: Scalable GPIR Content Registry Foundation  
-**Last Completed Prompt:** PROMPT-10 (partial milestone)  
-**Last Verified Commit:** `fe32af6b0b58d96559ac8a6c33b0e77354a3a911`
-**Current Development Status:** Backlog reconciliation complete; implementation is gated until external work is captured and reconciled.
+**Current Prompt:** PROMPT-13 — P1 Link Remediation & Safe Regeneration
+**Current Milestone:** M-13 — Critical Link Remediation & Production Safety
+**Last Completed Prompt:** PROMPT-13
+**Last Verified Commit:** `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`
+**Current Development Status:** Both confirmed P1 link findings are remediated and validated; M-10 remains PARTIAL and future registry work remains gated.
 
 ## COMPLETED
 
@@ -37,6 +37,7 @@
   templates and data.
 - Add low-cost governance/monitoring checks that reflect documented contracts.
 - Reconcile all known pending work before starting another implementation prompt.
+- Reconcile external pending work before authorizing the next implementation.
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
 
@@ -68,7 +69,10 @@ See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance crit
 ## NEXT DEVELOPMENT GATE
 
 **Reconcile all known pending work before starting the next implementation
-prompt.**
+prompt.** P1 AUDIT-001 and AUDIT-002 are closed by Prompt 13.
+
+Prompt 12 adds a live-site condition to that gate: review the two P1 audit
+findings before authorizing the next implementation prompt.
 
 ## KNOWN ISSUES
 
@@ -82,6 +86,8 @@ prompt.**
   `7813132e2fd21a746932778b8c8459bb62dafaab`.
 - Prompt 11 governance updates are committed in
   `fe32af6b0b58d96559ac8a6c33b0e77354a3a911`.
+- P5: `pages/regions/sepa.html` is not a repository route and returns 404; the
+  current canonical route is `pages/regions/europe.html`.
 
 ## ARCHITECTURE STATUS
 
@@ -101,5 +107,9 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - The existing Word document was deliberately not modified; it is a privacy
   policy, not a project log. The repository-native Markdown record is the
   authoritative new project memory.
+- Prompt 12 was audit-only; Prompt 13 changed only the authorized generator,
+  affected generated pages, legacy research links and governance records.
+- M-12 was verified as the Prompt 12 audit result, but no separate M-12
+  milestone was formally declared in the project record.
 
 **LAST UPDATED:** 2026-08-28

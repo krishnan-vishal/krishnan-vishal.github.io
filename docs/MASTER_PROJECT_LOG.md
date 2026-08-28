@@ -247,3 +247,132 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Follow-up requirements:** Resolve the external intake gate, then select
   one non-overlapping actionable backlog item. Do not begin M-10 continuation
   or another feature stream before reconciliation is complete.
+
+## Prompt 12 — Deployment, Architecture & Live-Site Drift Audit
+
+- **Prompt ID:** PROMPT-12.
+- **Date:** 2026-08-28.
+- **Objective:** Audit repository/deployment alignment and identify material
+  live-site drift without modifying application code, content or production
+  artifacts.
+- **Category:** GOVERNANCE, DEPLOYMENT, ARCHITECTURE, PERFORMANCE, SECURITY,
+  READER EXPERIENCE.
+- **Repository HEAD:** `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa` on `main`; the
+  working tree was clean before the audit.
+- **Architecture assessment:** The deployed site remains the static
+  HTML/CSS/vanilla-JavaScript GitHub Pages architecture. Information
+  architecture, navigation, templates, content model, registry model, search,
+  ticker, dashboards, country pages, intelligence pages, performance model,
+  responsive model, accessibility model and deployment model are unchanged in
+  kind. No fundamental architecture change was observed.
+- **Live-site observations:** Homepage, mega-menu, search, ticker, map,
+  dashboards, country, region, chapter and intelligence surfaces were present.
+  Representative local/live SHA-256 hashes matched for the homepage, registry,
+  announcements, search index, UAE country page and CBUAE intelligence page.
+  The deployed registry asset returned 200 and matched the repository.
+- **Deployment drift:** All 48 sitemap URLs returned HTTP 200, and all 67
+  repository HTML routes checked returned HTTP 200 except the separately tested
+  non-repository expectation `pages/regions/sepa.html`, which returned 404.
+  No deployed-only route was identified from the sitemap or representative
+  route checks. Deployment appears aligned with HEAD for tested artifacts.
+- **Findings:** **P1 AUDIT-001** — all 9 deployed generated intelligence pages
+  contain five sibling legal footer links returning 404; correct `pages/legal/`
+  routes return 200. **P1 AUDIT-002** — the legacy research page contains
+  eight sibling research links returning 404. **P5 AUDIT-003** — stale SEPA
+  route expectation; repository navigation correctly uses Europe / SEPA.
+  Findings were added to `GPIR_BACKLOG.md`; none were fixed.
+- **M-10 impact:** The registry asset is deployed, but no runtime file consumes
+  `content-registry.json` and the existing intelligence generator still reads
+  `announcements.json` directly. Existing pages remain template-compatible;
+  no visual, navigation or search change attributable to M-10 was observed.
+- **M-11 impact:** Governance-only. The M-11 changes were limited to project
+  memory and development governance Markdown; no application functionality was
+  modified.
+- **Fundamental-change classifications:** Information architecture
+  UNCHANGED; navigation UNCHANGED with the documented broken-link findings;
+  page-template architecture UNCHANGED; content model UNCHANGED; structured
+  data model MINOR CHANGE due to the deployed registry catalog; search
+  UNCHANGED; tickers UNCHANGED; dashboards UNCHANGED; country architecture
+  UNCHANGED; intelligence architecture UNCHANGED; performance architecture
+  UNCHANGED; responsive behaviour UNCHANGED; accessibility UNCHANGED from
+  available repository/live evidence; deployment model UNCHANGED; GitHub Pages
+  compatibility UNCHANGED.
+- **Protection requirements:** Preserve the mega-menu, world map, ticker,
+  search, dashboards, country/intelligence URLs and templates, performance
+  tier, reduced motion, lazy loading, responsive assets, source governance and
+  all existing sitemap routes during future fixes.
+- **Validation:** Live route checks, sitemap check (48/48 HTTP 200), local/live
+  representative hashes, deployed asset checks, repository route checks,
+  registry-consumer search, and read-only git status/history inspection passed
+  or produced the findings above. No application, content, asset or generator
+  files were changed.
+- **Files modified:** `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`,
+  `docs/PROJECT_STATUS.md` only, as authorized by Prompt 12.
+- **Files deliberately not modified:** HTML, CSS, JavaScript, content records,
+  assets, generators, search index, ticker, dashboards, country pages,
+  intelligence pages and all production artifacts.
+- **Git commit SHA:** Not created by Prompt 12; audit documentation is
+  currently uncommitted. Last verified HEAD before the audit:
+  `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`.
+- **Outcome:** Repository and deployment are materially aligned for tested
+  core artifacts, with two P1 broken-link findings and one P5 stale-route
+  expectation requiring explicit future decisions.
+- **Milestone status:** No new feature milestone. M-10 remains PARTIAL and
+  M-11 remains the latest governance milestone. Prompt 12 is an audit record,
+  not M-12.
+- **Recommended next gate:** Reconcile pending external work, then review and
+  explicitly authorize remediation of AUDIT-001 and AUDIT-002 before starting
+  the next implementation prompt.
+
+## Prompt 13 — P1 Link Remediation & Safe Regeneration
+
+- **Prompt ID:** PROMPT-13.
+- **Date:** 2026-08-28.
+- **Objective:** Remediate only the two confirmed P1 link-integrity findings
+  from Prompt 12 while preserving the existing GPIR build.
+- **Category:** FIX, DEPLOYMENT, GOVERNANCE, READER EXPERIENCE.
+- **Starting HEAD:** `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa` on `main`; the
+  working tree already contained the three authorized Prompt 12 governance
+  document changes.
+- **AUDIT-001 diagnosis:** `scripts/generate-intelligence-pages.js` extracted
+  footer links relative to the legal template, producing sibling paths such as
+  `pages/intelligence/privacy-policy.html`.
+- **AUDIT-001 remediation:** Added a generator-only footer href transformation
+  to the correct `../../pages/legal/` targets and regenerated all 9 published
+  intelligence pages. Each page changed only its five legal href targets.
+- **AUDIT-002 diagnosis:** `pages/research/global-payments-landscape.html` was
+  a standalone legacy page containing eight stale sibling research links; no
+  generator or reusable template owned those targets.
+- **AUDIT-002 remediation:** Retargeted the eight links and two related broken
+  breadcrumbs to existing canonical GPIR homepage, chapter and research
+  routes, preserving link labels, page content and taxonomy.
+- **Files changed:** `scripts/generate-intelligence-pages.js`,
+  `pages/research/global-payments-landscape.html`, 9 generated
+  `pages/intelligence/*.html` outputs, and the three Prompt 12 governance
+  records. The incidental sitemap whitespace produced by regeneration was
+  removed; no sitemap URL changed.
+- **Files deliberately not modified:** No content records, registry, search
+  index, ticker, dashboard, country pages, legal pages, CSS, unrelated HTML or
+  unrelated runtime JavaScript were changed.
+- **Validation:** Focused local remediation check passed for 9 intelligence
+  pages and the legacy research targets. All corrected live targets returned
+  HTTP 200. `node scripts/validate-content.js` passed for 10 announcements, 8
+  sources and 7 registry records. Generator syntax and editor diagnostics
+  passed. Documentation links passed across 13 Markdown files. `git diff --check`
+  passed. Performance audit remained unchanged with 3 pre-existing advisory
+  warnings.
+- **QA result:** No layout, navigation, ticker, dashboard, search, map,
+  content or performance changes were observed beyond the authorized link
+  targets. AUDIT-001 and AUDIT-002 are closed.
+- **Git commit SHA:** Not yet available; Prompt 13 changes are currently
+  uncommitted. Starting HEAD remains `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`.
+- **Outcome:** Both P1 findings were fixed at their owning source or page and
+  safely regenerated. No M-10 registry migration or AI work was started.
+- **Milestone achieved:** **M-13 — Critical Link Remediation & Production
+  Safety.** M-10 remains PARTIAL. Prompt 12 was verified as an audit result;
+  the repository does not formally declare a separate M-12 milestone.
+- **Remaining backlog:** External intake gate, registry-driven generation,
+  structured content expansion and other existing backlog items remain.
+- **Recommended next gate:** Reconcile external pending work before authorizing
+  another implementation prompt; then address only one non-overlapping
+  backlog item.

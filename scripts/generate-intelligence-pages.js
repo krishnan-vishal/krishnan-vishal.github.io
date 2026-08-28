@@ -213,7 +213,10 @@ function main(){
     }
 
     let headerBlockTemplate = templateSource.slice(0, heroIdx);
-    const footerBlock = templateSource.slice(footerIdx);
+    const footerBlock = templateSource.slice(footerIdx).replace(
+        /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
+        'href="../../pages/legal/$1.html"'
+    );
 
     // Head meta strings specific to the source template page, replaced
     // per-record below. These are literal strings from the current
