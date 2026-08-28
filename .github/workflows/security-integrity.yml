@@ -1,0 +1,47 @@
+name: GPIR Security and Integrity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-integrity:
+    name: Validate security and content integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate structured content
+        run: node scripts/validate-content.js
+
+      - name: Validate internal HTML links
+        run: node scripts/validate-links.js
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find assets/js scripts -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Scan for high-confidence secret patterns
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep --no-index -n -I -E '(AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY|password[[:space:]]*[:=][[:space:]]*[^[:space:]]+|api[_-]?key[[:space:]]*[:=][[:space:]]*[^[:space:]]+)' -- . ':(exclude)SECURITY.md' ':(exclude)docs/**'; then
+            echo 'High-confidence secret pattern detected. Review the matching file without exposing the value.'
+            exit 1
+          fi
+          echo 'No high-confidence secret patterns detected.'

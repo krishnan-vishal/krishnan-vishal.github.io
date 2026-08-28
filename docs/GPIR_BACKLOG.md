@@ -88,6 +88,24 @@ not fixed by Prompt 12.
 | API-001 | 2026-08-28 | Public intelligence API or backend knowledge store | ARCHITECTURE, SCALING | Medium | BLOCKED | Backend hosting, operational ownership, security model and explicit approval | Stage 3+ | Not implemented | Provide queryable server-side records beyond static GitHub Pages delivery. | Approved architecture, cost/security review, migration plan and measured need are documented. | Blocked because the current repository has no backend and no approved need to add one. | Not available in repository record. | Not available in repository record. | Future architecture decision |
 | MON-001 | 2026-08-28 | Production observability and uptime monitoring | MONITORING, AUTOMATION | Low | BLOCKED | Approved free monitoring mechanism and privacy/ownership decision | Stage 3+ | Not implemented | Monitor production errors, freshness and availability. | Ownership, privacy, alert thresholds and retention are approved before adoption. | Blocked; current docs explicitly state observability is not implemented. | Not available in repository record. | Not available in repository record. | Future operations milestone |
 
+## Phase 2 security disposition
+
+| ID | Control | Status | Evidence / limitation | Next action |
+|---|---|---|---|---|
+| SEC-001 | CSP and browser security response headers | BLOCKED | GitHub Pages serves HTTPS/HSTS but does not expose repository-level custom response-header configuration. No false meta-CSP claim was added. | Evaluate an approved compatible edge/hosting option; not required for current static implementation. |
+| SEC-002 | GitHub Actions security/integrity workflow | COMPLETED | `.github/workflows/security-integrity.yml` runs least-privilege content, link, syntax and secret-pattern checks. | Maintain with future schema changes. |
+| SEC-003 | Google Fonts dependency | PARKED | External HTTPS fonts remain to preserve current typography and avoid an unverified licensing/vendor migration. | Reassess local vendoring with licensing and visual regression evidence. |
+| SEC-004 | FX API dependency | PARKED | `fx-ticker.js` requests only public FX rates over HTTPS, stores no submitted data, and renders a failure state. | Reassess only with a safe, free alternative and data-integrity evidence. |
+| SEC-005 | Security disclosure mechanism | COMPLETED | Repository-native `SECURITY.md` documents safe reporting and avoids exposing new private contact data. | Keep reporting instructions current. |
+| SEC-006 | Source-health/change detection | PARKED | No uncontrolled crawler or monitoring engine was introduced. | Design only after an approved source inventory and workflow exist. |
+| SEC-007 | AI-agent security policy | PARKED | Phase 2 did not enter AI governance; existing development governance remains the applicable boundary. | Address in the separately authorized AI governance phase. |
+| SEC-008 | Content-tamper detection/publish gate | PARTIAL | GitHub Actions now blocks malformed content, broken HTML links, syntax failures and high-confidence secret patterns; it does not independently detect all legitimate/illegitimate content changes. | Extend only with measured, low-noise protected-file checks. |
+| SEC-009 | Limited localStorage use | PARKED | Only language and currency preferences were observed; no sensitive visitor data was added. | Document privacy implications in the authorized privacy phase. |
+| SEC-010 | Google Fonts SRI | PARKED | Fonts remain external and no SRI was added because the stylesheet is third-party dynamic CSS. | Reassess if fonts are vendored locally. |
+
+Phase 2 does not close SEC-001, SEC-003, SEC-004, SEC-006, SEC-007, SEC-009 or
+SEC-010. Their statuses are explicit and no later phase has been started.
+
 ## Backlog maintenance
 
 When an item changes, update its status, outcome, completion date, commit and

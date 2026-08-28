@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PROMPT-13 — P1 Link Remediation & Safe Regeneration
-**Current Milestone:** M-13 — Critical Link Remediation & Production Safety
-**Last Completed Prompt:** PROMPT-13
-**Last Verified Commit:** `fea8228b4d52363a92dcd61ea48224f2f74a0a01`
-**Current Development Status:** Both confirmed P1 link findings are remediated and validated; M-10 remains PARTIAL and future registry work remains gated.
+**Current Prompt:** PHASE 2 — Zero-Cost Security Hardening
+**Current Milestone:** M-16 — Zero-Cost Security Hardening Foundation
+**Last Completed Prompt:** PHASE 2 — Zero-Cost Security Hardening
+**Last Verified Commit:** `082cad751e3a4bc13136cfc1397dd7f599a50514`
+**Current Development Status:** Phase 2 security baseline implemented and validated; M-10 remains PARTIAL and later privacy/provenance/Trust Centre/AI phases remain gated.
 
 ## COMPLETED
 
@@ -21,6 +21,9 @@
   countries, regions, source, announcement and intelligence.
 - Registry validation for IDs, types, slugs, source references, relationships
   and page targets.
+- Least-privilege GitHub Actions security/integrity workflow.
+- Repository-native internal HTML-link validation and security disclosure
+  guidance.
 
 ## IN PROGRESS
 
@@ -38,6 +41,8 @@
 - Add low-cost governance/monitoring checks that reflect documented contracts.
 - Reconcile all known pending work before starting another implementation prompt.
 - Reconcile external pending work before authorizing the next implementation.
+- Preserve the Phase 2 workflow and review remaining SEC items before any later
+  security or privacy work.
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
 
@@ -88,6 +93,10 @@ findings before authorizing the next implementation prompt.
   `fe32af6b0b58d96559ac8a6c33b0e77354a3a911`.
 - P5: `pages/regions/sepa.html` is not a repository route and returns 404; the
   current canonical route is `pages/regions/europe.html`.
+- SEC-001 remains blocked by GitHub Pages response-header limitations; no CSP,
+  X-Frame-Options, Permissions-Policy, Referrer-Policy or X-Content-Type-
+  Options response headers are currently deployed.
+- Google Fonts and the public FX API remain documented third-party risks.
 
 ## ARCHITECTURE STATUS
 
@@ -113,5 +122,7 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   milestone was formally declared in the project record.
 - Prompt 13 remediation and governance updates are committed in
   `fea8228b4d52363a92dcd61ea48224f2f74a0a01`.
+- Phase 2 security controls are currently uncommitted; no application,
+  content, asset or runtime page files were changed.
 
 **LAST UPDATED:** 2026-08-28

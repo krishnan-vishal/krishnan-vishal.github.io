@@ -84,6 +84,21 @@ functionality.
 Work from another AI engine must enter the backlog as `AWAITING SOURCE PROMPT`
 until its exact prompt, outcome and changed files are supplied and reconciled.
 
+## Security hardening boundary
+
+Security changes must use GitHub-native, browser-native or open-source controls
+and must not introduce paid services, backend infrastructure or false security
+claims. Response-header controls unavailable on GitHub Pages must be recorded
+as limitations rather than simulated as equivalent controls. Security checks
+must be least-privilege, must not publish or rewrite production content, and
+must preserve source attribution, validation history and protected URLs.
+
+The repository security gate is defined in
+`.github/workflows/security-integrity.yml`. It validates structured content,
+internal HTML links, JavaScript syntax and high-confidence secret patterns.
+See [SECURITY.md](../SECURITY.md) for the reporting and platform-limitation
+statement.
+
 ## Milestone governance
 
 A milestone may be declared only when its objective was implemented, relevant

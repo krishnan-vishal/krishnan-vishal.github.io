@@ -376,3 +376,68 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Recommended next gate:** Reconcile external pending work before authorizing
   another implementation prompt; then address only one non-overlapping
   backlog item.
+
+## Phase 2 — Zero-Cost Security Hardening
+
+- **Prompt ID:** PHASE-2.
+- **Date:** 2026-08-28.
+- **Objective:** Implement practical zero-cost repository security controls
+  without changing GPIR application behaviour or beginning later privacy,
+  provenance, Trust Centre or AI-governance phases.
+- **Category:** SECURITY, GOVERNANCE, AUTOMATION, DEPLOYMENT.
+- **Starting HEAD:** `082cad751e3a4bc13136cfc1397dd7f599a50514` on `main`; the
+  starting worktree was clean.
+- **Controls implemented:** Added least-privilege
+  `.github/workflows/security-integrity.yml`, which validates structured
+  content, internal HTML links, JavaScript syntax and high-confidence secret
+  patterns without modifying production content. Added
+  `scripts/validate-links.js` and repository-native `SECURITY.md` with factual
+  reporting, platform limitations and zero-cost scope.
+- **SEC-001 result:** Not implementable as an HTTP response-header control
+  through the current GitHub Pages repository. HTTPS redirect and HSTS are
+  platform-provided; CSP and other requested response headers remain a
+  documented limitation. No misleading meta-CSP was added.
+- **SEC-002 result:** COMPLETED through the GitHub Actions workflow.
+- **SEC-003 result:** PARKED; Google Fonts retained to preserve typography and
+  avoid an unverified licensing/vendor migration.
+- **SEC-004 result:** PARKED; FX ticker remains unchanged with public HTTPS
+  rates and an existing failure state.
+- **SEC-005 result:** COMPLETED through `SECURITY.md`.
+- **SEC-006 result:** PARKED; no uncontrolled source crawler or monitoring
+  engine was introduced.
+- **SEC-007 result:** PARKED for the separately authorized AI governance phase.
+- **SEC-008 result:** PARTIAL; the new workflow gates structural/link/syntax/
+  secret regressions but does not classify every legitimate content change.
+- **SEC-009 result:** PARKED; existing localStorage use remains limited to
+  language and currency preferences.
+- **SEC-010 result:** PARKED; no SRI was added to dynamic third-party font CSS.
+- **Files created:** `.github/workflows/security-integrity.yml`, `SECURITY.md`,
+  `scripts/validate-links.js`.
+- **Files modified:** `docs/DEVELOPMENT_GOVERNANCE.md`,
+  `docs/GPIR_BACKLOG.md`, `docs/MASTER_PROJECT_LOG.md`,
+  `docs/PROJECT_STATUS.md`.
+- **Files deliberately not modified:** No HTML, CSS, runtime JavaScript,
+  content records, assets, registry, search index, ticker, generators or
+  generated pages were changed.
+- **Tests executed:** Internal HTML-link validation, content validation,
+  JavaScript syntax validation, workflow secret-pattern scan, documentation
+  link validation, YAML parsing, `git diff --check`, editor diagnostics and
+  performance audit.
+- **Tests not executed:** `gitleaks`, `trivy`, `semgrep`, `actionlint` and
+  `yamllint` were unavailable in the environment; no specialist scanner is
+  claimed as passed. Browser/mobile regression testing was not executed in
+  this phase.
+- **Validation result:** Content validation passed for 10 announcements, 8
+  trusted sources and 7 registry records. Internal HTML-link validation passed
+  for 67 HTML files. All JavaScript syntax checks passed. Workflow YAML parsed
+  successfully. No high-confidence secret patterns were detected.
+- **Known limitations:** GitHub Pages response-header controls remain
+  unavailable. External Google Fonts and FX API remain. The existing
+  performance audit continues to report 3 pre-existing advisory warnings.
+- **Outcome:** A validated zero-cost security hardening foundation and
+  disclosure mechanism were established without starting later phases.
+- **Milestone achieved:** **M-16 — Zero-Cost Security Hardening Foundation.**
+- **Commit:** Not yet available; Phase 2 changes are currently uncommitted.
+- **Recommended next gate:** Review Phase 2 before authorizing Phase 3. Do not
+  begin privacy, content provenance, Trust Centre, AI governance or final audit
+  work automatically.
