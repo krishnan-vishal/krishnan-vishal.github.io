@@ -180,7 +180,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
   1,000+ corridors, thousands of entities, intelligence records and sources
   without per-record code. The current pilot does not yet populate or render
   those scales.
-- **Git commit SHA:** `026d9a0a9d1ccac28d75bd5cbf855f78092ba3e7`.
+- **Git commit SHA:** `7813132e2fd21a746932778b8c8459bb62dafaab`.
 - **Outcome:** A single validated registry foundation was established while
   the existing website remained protected.
 - **Milestone achieved:** **M-10 — PARTIAL: Scalable GPIR Content Registry

@@ -5,7 +5,7 @@
 **Current Prompt:** PROMPT-10 — Scalable GPIR Content Registry & Data-Driven Content Engine  
 **Current Milestone:** M-10 — PARTIAL: Scalable GPIR Content Registry Foundation  
 **Last Completed Prompt:** PROMPT-10 (partial milestone)  
-**Last Verified Commit:** `026d9a0a9d1ccac28d75bd5cbf855f78092ba3e7`
+**Last Verified Commit:** `7813132e2fd21a746932778b8c8459bb62dafaab`
 **Current Development Status:** Registry pilot complete in the working tree; the existing application build remains protected and the registry is not yet consumed by runtime pages.
 
 ## COMPLETED
@@ -64,7 +64,7 @@ See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance crit
 - The repository has no backend, database, API, live ingestion, AI pipeline or
   production observability service.
 - Prompt 10 registry, validator and governance files are committed in
-  `026d9a0a9d1ccac28d75bd5cbf855f78092ba3e7`.
+  `7813132e2fd21a746932778b8c8459bb62dafaab`.
 
 ## ARCHITECTURE STATUS
 
