@@ -364,8 +364,8 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **QA result:** No layout, navigation, ticker, dashboard, search, map,
   content or performance changes were observed beyond the authorized link
   targets. AUDIT-001 and AUDIT-002 are closed.
-- **Git commit SHA:** Not yet available; Prompt 13 changes are currently
-  uncommitted. Starting HEAD remains `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`.
+- **Git commit SHA:** `fea8228b4d52363a92dcd61ea48224f2f74a0a01`. Starting HEAD
+  was `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`.
 - **Outcome:** Both P1 findings were fixed at their owning source or page and
   safely regenerated. No M-10 registry migration or AI work was started.
 - **Milestone achieved:** **M-13 — Critical Link Remediation & Production

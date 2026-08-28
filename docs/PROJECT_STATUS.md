@@ -5,7 +5,7 @@
 **Current Prompt:** PROMPT-13 — P1 Link Remediation & Safe Regeneration
 **Current Milestone:** M-13 — Critical Link Remediation & Production Safety
 **Last Completed Prompt:** PROMPT-13
-**Last Verified Commit:** `71669f45a4057bf1d1d93fbb2c9114ccc97c03aa`
+**Last Verified Commit:** `fea8228b4d52363a92dcd61ea48224f2f74a0a01`
 **Current Development Status:** Both confirmed P1 link findings are remediated and validated; M-10 remains PARTIAL and future registry work remains gated.
 
 ## COMPLETED
@@ -111,5 +111,7 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   affected generated pages, legacy research links and governance records.
 - M-12 was verified as the Prompt 12 audit result, but no separate M-12
   milestone was formally declared in the project record.
+- Prompt 13 remediation and governance updates are committed in
+  `fea8228b4d52363a92dcd61ea48224f2f74a0a01`.
 
 **LAST UPDATED:** 2026-08-28
