@@ -25,6 +25,38 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 | READER-001 | 2026-08-28 | Add a reader-facing intelligence layer | READER EXPERIENCE, INTELLIGENCE | Medium | ACTIONABLE | Structured content relationships and UX evidence | Stage 1 | Existing templates and shared JS | Improve compare, related-content and evidence discovery using existing relationships. | Changes preserve URLs, source labels, reduced motion and mobile layout; focused UX validation passes. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
 | GOV-003 | 2026-08-28 | Expand governance and monitoring checks | GOVERNANCE, AUTOMATION, PERFORMANCE | Medium | ACTIONABLE | Existing validation scripts | Stage 1 | `scripts/` and `docs/` | Add only low-cost repository checks that reflect documented contracts and known thresholds. | Checks are repeatable, documented and do not fabricate external verification. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
 
+## EXTERNAL / OTHER AI ENGINE — PENDING INTAKE
+
+| Status | Requirement | Implementation rule |
+|---|---|---|
+| AWAITING SOURCE PROMPT | Additional actionable work is known to exist outside the current Codespace development stream. Exact prompt statements and outcomes have not yet been supplied to this repository. | Do not implement until the source prompts/results are captured and reconciled. |
+
+This is an intake placeholder only. It is not an actionable implementation
+item and does not imply any particular missing feature.
+
+## Reconciliation and priority order
+
+Prompt 11 found no duplicate or conflicting requirement among the repository
+records. The priority order below follows current dependencies and the
+protected-build rules:
+
+| Priority | Work | Reason |
+|---|---|---|
+| P0 | Protection and blocked conflicts | Reconcile external work first and preserve existing pages, URLs, generators and runtime behaviour. API-001 and MON-001 remain blocked pending approval and operational dependencies. |
+| P1 | M-10 completion work | REG-002 is the next direct registry step, but only after external intake and a page-parity design/check. DATA-001 supplies the governed records it needs. |
+| P2 | Approved architecture increment | DATA-001, then REG-002 and GOV-003, are approved Stage 1 foundation work extending existing JSON, templates and scripts. |
+| P3 | Reader experience | SEARCH-001 and READER-001 follow measured needs and governed relationships while preserving lazy loading and current page behaviour. |
+| P4 | Intelligence automation | SOURCE-001, INGEST-001, CHANGE-001, AI-001, ENGINE-001 and AUTO-001 require verified sources, review workflow, change governance and evaluation. |
+| P5 | Future/experimental scale | COUNTRY-001 and CORRIDOR-001 remain later scale work until the registry pilot and evidence model are proven. |
+
+## Next safe development gate
+
+**Current milestone:** M-10 PARTIAL.
+**Current objective:** Complete the scalable registry foundation only after
+pending external work has been reconciled.
+**Next development gate:** Reconcile all known pending work before starting the
+next implementation prompt.
+
 ## Parked work
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

@@ -72,6 +72,18 @@ work, in the backlog. Allowed classifications are:
 `INTELLIGENCE`, `READER EXPERIENCE`, `SEARCH`, `PERFORMANCE`, `GOVERNANCE`,
 `SECURITY`, `AUTOMATION`.
 
+## No parallel AI implementation without backlog reconciliation
+
+Before any AI coding agent implements a substantial requirement, it must read
+`PROJECT_STATUS.md`, `GPIR_BACKLOG.md` and `MASTER_PROJECT_LOG.md`, search for
+an existing implementation or equivalent requirement, and determine whether
+another agent has already implemented or is implementing it. If overlap
+exists, the agent must stop and report the conflict rather than duplicate
+functionality.
+
+Work from another AI engine must enter the backlog as `AWAITING SOURCE PROMPT`
+until its exact prompt, outcome and changed files are supplied and reconciled.
+
 ## Milestone governance
 
 A milestone may be declared only when its objective was implemented, relevant
@@ -110,3 +122,13 @@ A material task report must state:
 
 The project status page is the current snapshot; the master log is the
 chronological record; the backlog is the work register.
+
+## Current development gate
+
+**Current milestone:** M-10 PARTIAL — Scalable GPIR Content Registry Foundation.
+
+**Current objective:** Complete the scalable registry foundation only after
+pending external work has been reconciled.
+
+**Next development gate:** Reconcile all known pending work before starting the
+next implementation prompt.
