@@ -121,7 +121,7 @@ change to the current external-resource or browser-storage model.
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TICKER-001 | 2026-08-28 | Repair announcement ticker overflow and freshness wording | FIX, READER EXPERIENCE, CONTENT INTEGRITY | High | COMPLETED | Existing ticker markup/data/CSS/JS | Stage 1 | `index.html`, `assets/css/page.css` | Keep long announcement cards inside the allocated ribbon and avoid implying continuous ingestion. | Scoped overflow contract passes; truthful status is displayed; content, animation, pause and reduced-motion behavior remain preserved. | Replaced the unsupported status claim with `Verified Dataset` and added scoped min-width/max-content rules to the announcement ribbon. | 2026-08-28 | Prompt 18 commit | M-18 |
+| TICKER-001 | 2026-08-28 | Repair announcement ticker overflow and freshness wording | FIX, READER EXPERIENCE, CONTENT INTEGRITY | High | COMPLETED | Existing ticker markup/data/CSS/JS | Stage 1 | `index.html`, `assets/css/page.css` | Keep long announcement cards inside the allocated ribbon and avoid implying continuous ingestion. | Scoped overflow contract passes; truthful status is displayed; content, animation, pause and reduced-motion behavior remain preserved. | Replaced the unsupported status claim with `Verified Dataset` and added scoped min-width/max-content rules to the announcement ribbon. | 2026-08-28 | `71e35efdc12df0decdcf61bf144863f643ec8ac1` | M-18 |
 
 ## Backlog maintenance
 

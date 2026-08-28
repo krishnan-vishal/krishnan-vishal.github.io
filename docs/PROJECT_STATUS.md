@@ -5,7 +5,7 @@
 **Current Prompt:** PROMPT-18 — Surgical Fix: Global Announcements Ticker
 **Current Milestone:** M-18 — Global Announcements Ticker Integrity
 **Last Completed Prompt:** PROMPT-18
-**Last Verified Commit:** `00f8d74269710eb9b08c292d33f78c2863d702a9`
+**Last Verified Commit:** `71e35efdc12df0decdcf61bf144863f643ec8ac1`
 **Current Development Status:** Announcement ticker overflow and freshness wording are remediated and validated; protected GPIR functionality remains unchanged.
 
 ## COMPLETED
@@ -141,6 +141,7 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - Prompt 17 privacy baseline is committed in
   `391501d70790b963a58eb36a5b2f170632020231`.
 - Prompt 18 changed only `index.html` and `assets/css/page.css` for the ticker;
-  governance metadata is currently uncommitted.
+  governance metadata is committed in
+  `71e35efdc12df0decdcf61bf144863f643ec8ac1`.
 
 **LAST UPDATED:** 2026-08-28

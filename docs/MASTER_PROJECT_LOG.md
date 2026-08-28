@@ -536,7 +536,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Milestone achieved:** **M-18 — Global Announcements Ticker Integrity.**
   This does not start Prompt 19, registry migration, AI work or any unrelated
   architecture change.
-- **Commit:** Not yet available; Prompt 18 changes are currently uncommitted.
+- **Commit:** `71e35efdc12df0decdcf61bf144863f643ec8ac1`.
 - **Recommended next gate:** Review the live ticker after deployment at
   desktop, tablet and mobile widths; keep future work behind the existing
   backlog reconciliation gate.
