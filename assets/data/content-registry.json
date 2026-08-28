@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0",
+  "schemaNote": "GPIR canonical content registry. Records are identity, relationship and provenance indexes that point to existing country, announcement and source data; they do not duplicate substantive content. Expand by adding a validated registry record and its canonical source reference before migrating additional content types.",
+  "lastUpdated": "2026-08-28",
+  "supportedContentTypes": [
+    "COUNTRY",
+    "REGION",
+    "ENTITY",
+    "REGULATOR",
+    "LICENCE",
+    "PAYMENT_RAIL",
+    "WALLET",
+    "BANK",
+    "MTO",
+    "FINTECH",
+    "CORRIDOR",
+    "REGULATION",
+    "RESEARCH",
+    "INTELLIGENCE",
+    "ANNOUNCEMENT",
+    "SOURCE"
+  ],
+  "records": [
+    {
+      "id": "country:united-arab-emirates",
+      "contentType": "COUNTRY",
+      "title": "United Arab Emirates",
+      "slug": "united-arab-emirates",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/middle-east-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "United Arab Emirates"
+      },
+      "page": "pages/countries/uae.html",
+      "relationships": [
+        { "type": "REGION", "target": "region:middle-east" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" }
+      ]
+    },
+    {
+      "id": "country:india",
+      "contentType": "COUNTRY",
+      "title": "India",
+      "slug": "india",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/apac-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "India"
+      },
+      "page": "pages/countries/india.html",
+      "relationships": [
+        { "type": "REGION", "target": "region:apac" }
+      ]
+    },
+    {
+      "id": "region:middle-east",
+      "contentType": "REGION",
+      "title": "Middle East / GCC",
+      "slug": "middle-east",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/middle-east-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "middle-east"
+      },
+      "relationships": []
+    },
+    {
+      "id": "region:apac",
+      "contentType": "REGION",
+      "title": "APAC",
+      "slug": "apac",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/apac-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "apac"
+      },
+      "relationships": []
+    },
+    {
+      "id": "source:cbuae",
+      "contentType": "SOURCE",
+      "title": "Central Bank of the UAE (CBUAE)",
+      "slug": "cbuae",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "cbuae"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:cbuae-payment-token-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "UAE Central Bank Payment Token Services Regulation moves into operational phase",
+      "slug": "cbuae-payment-token-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "cbuae-payment-token-2026"
+      },
+      "page": "pages/intelligence/cbuae-payment-token-2026.html",
+      "sourceRefs": ["source:cbuae"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:united-arab-emirates" },
+        { "type": "SOURCE", "target": "source:cbuae" },
+        { "type": "INTELLIGENCE", "target": "intelligence:cbuae-payment-token-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:cbuae-payment-token-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "UAE Central Bank Payment Token Services Regulation moves into operational phase",
+      "slug": "cbuae-payment-token-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "cbuae-payment-token-2026"
+      },
+      "page": "pages/intelligence/cbuae-payment-token-2026.html",
+      "sourceRefs": ["source:cbuae"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:united-arab-emirates" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" },
+        { "type": "SOURCE", "target": "source:cbuae" }
+      ]
+    }
+  ]
+}

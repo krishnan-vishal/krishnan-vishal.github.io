@@ -1,0 +1,198 @@
+# FINTECHOISIS / GPIR Master Project Log
+
+Permanent chronological record of repository development prompts and verified
+outcomes. Entries are append-only. Where the repository does not contain a
+reliable prompt-level record, that fact is stated rather than inferred.
+
+## Record conventions
+
+- Dates use `YYYY-MM-DD`.
+- A commit SHA identifies a committed repository state. Uncommitted work is
+  labelled as such.
+- A milestone is declared only after implementation, validation, known outcome
+  and limitations are recorded.
+- See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
+  [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
+
+## Historical repository record
+
+### Prompt history before Prompt 09
+
+- **Prompt ID:** Not available in repository record.
+- **Date:** Not available in repository record.
+- **Prompt statement:** Not available in repository record.
+- **Objective:** Not available in repository record.
+- **Category:** Not available in repository record.
+- **Execution summary:** The repository history records a Version 1.0 release,
+  performance governance work, menu accessibility fixes, country-intelligence
+  expansion and intelligence summary pages. A prompt-by-prompt mapping is not
+  present.
+- **Files created:** Not available in repository record.
+- **Files modified:** Not available in repository record.
+- **Files deleted:** None recorded.
+- **Tests performed:** Not available in repository record.
+- **QA result:** Not available in repository record.
+- **Validation result:** Not available in repository record.
+- **Git commit SHA:** See individual commits in `git log`; no prompt mapping is
+  available.
+- **Outcome:** Existing committed functionality remains the authoritative
+  baseline.
+- **Milestone achieved:** Version 1.0 release and subsequent recorded feature
+  and performance milestones; exact prompt ownership is unavailable.
+- **Known limitations:** No historical prompt register was found in the
+  repository.
+- **Deferred work:** See [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
+- **Follow-up requirements:** Maintain this log for every future material
+  prompt.
+
+### Prior governance increment
+
+- **Prompt ID:** Not available in repository record.
+- **Date:** 2026-08-28.
+- **Prompt statement:** Establish the first repository-native GPIR content
+  schema and architecture guardrail, with a dev-time content validator.
+- **Objective:** Make the existing static content, source and architecture
+  contracts explicit without changing runtime behaviour.
+- **Category:** GOVERNANCE, ARCHITECTURE, DATA, VALIDATION.
+- **Execution summary:** Added documentation for the existing content schema
+  and architecture guardrails, plus a validator for announcement records,
+  trusted sources, lifecycle states, dates and internal relationships.
+- **Files created:** `docs/CONTENT_SCHEMA.md`,
+  `docs/ARCHITECTURE_GUARDRAIL.md`, `scripts/validate-content.js`.
+- **Files modified:** None.
+- **Files deleted:** None.
+- **Tests performed:** `node scripts/validate-content.js`,
+  `node --check scripts/validate-content.js`, and
+  `node scripts/gpir-perf-audit.js`.
+- **QA result:** No editor diagnostics for the validator. Existing performance
+  audit reported three advisory warnings.
+- **Validation result:** Content validation passed for 10 records and 8
+  trusted sources. JavaScript syntax passed.
+- **Git commit SHA:** Uncommitted at the time of this log; last verified commit
+  was `c25ff96047dba7a688e0c7d374bc162abce22737`.
+- **Outcome:** Governance documentation and a repeatable content integrity
+  check exist in the repository.
+- **Milestone achieved:** M-08, Content and Architecture Contract Baseline.
+- **Known limitations:** The validator checks structure and relationships; it
+  does not verify external facts or source contents over the network.
+- **Deferred work:** Backend, API, AI ingestion, version history and
+  observability remain outside the static architecture.
+- **Follow-up requirements:** Keep the validator aligned when the documented
+  JSON contract changes.
+
+## Prompt 09 — Permanent Project Memory, Development Register & Change Governance
+
+- **Prompt ID:** PROMPT-09.
+- **Date:** 2026-08-28.
+- **Prompt statement:** Establish permanent repository-native project memory,
+  development registers, project status and autonomous change governance for
+  FINTECHOSIS / GPIR without changing the existing website build.
+- **Objective:** Ensure future agent sessions can determine what has been done,
+  what is in progress, what is next, what is parked, what is blocked, what is
+  protected and which milestone was last achieved.
+- **Category:** GOVERNANCE, ARCHITECTURE, AUTOMATION.
+- **Execution summary:** Inspected the current branch, commit, worktree,
+  architecture documents, content schema, README, scripts, repository
+  structure, changelog and available Markdown/Word records. Added the four
+  requested governance documents. Registered supported current capabilities
+  and future requirements in the backlog. Recorded current status and
+  milestone evidence.
+- **Files created:** `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`,
+  `docs/PROJECT_STATUS.md`, `docs/DEVELOPMENT_GOVERNANCE.md`.
+- **Files modified:** None.
+- **Files deleted:** None.
+- **Tests performed:** Markdown link/path check, `node scripts/validate-content.js`,
+  `node --check scripts/validate-content.js`, and
+  `node scripts/gpir-perf-audit.js`.
+- **QA result:** Documentation links resolve to repository files. No existing
+  application files were changed. The Word document was not modified because
+  it is a privacy-policy document, not a project log, and no safe Word-log
+  update tool is present.
+- **Validation result:** Content validation passed for 10 records and 8
+  trusted sources; JavaScript syntax passed. Performance audit completed with
+  its existing three advisory warnings.
+- **Git commit SHA:** No new commit; working tree contains the four new Prompt
+  09 documents plus the three prior uncommitted governance files. Last
+  verified commit: `c25ff96047dba7a688e0c7d374bc162abce22737`.
+- **Outcome:** Repository-native permanent memory and change governance are
+  established without application feature development.
+- **Milestone achieved:** M-09, Permanent Project Memory and Governance
+  Foundation.
+- **Known limitations:** Earlier prompt-level history is unavailable; no
+  commit was created by this task; the Word backup remains an external
+  human-readable backup and was not claimed as updated.
+- **Deferred work:** AI ingestion, semantic search, country/corridor engines,
+  automated ticker ingestion and regulatory scraping remain deferred or
+  blocked as documented in the backlog.
+- **Follow-up requirements:** Future material prompts must update the log,
+  backlog and project status, and must run the relevant validation before
+  claiming completion.
+
+## Prompt 10 — Scalable GPIR Content Registry & Data-Driven Content Engine
+
+- **Prompt ID:** PROMPT-10.
+- **Date:** 2026-08-28.
+- **Prompt statement:** Establish a reusable, structured, reference-based GPIR
+  content registry and data-driven foundation without rebuilding the existing
+  static website.
+- **Objective:** Create a scalable registry model for typed content,
+  relationships, source/evidence references and future page generation while
+  preserving existing page experience and payload behaviour.
+- **Category:** DATA, ARCHITECTURE, SCALING, CONTENT, INTELLIGENCE,
+  AUTOMATION.
+- **Execution summary:** Inspected project memory, data files, regional
+  country indexes, announcement/source registries, templates, existing
+  intelligence generator, search index and validation scripts. Established a
+  single catalog at `assets/data/content-registry.json` containing a pilot of
+  two countries, two regions, one source, one announcement and one
+  intelligence presentation record. Extended the existing validator to check
+  registry types, IDs, slugs, source references, relationships and page
+  targets. No runtime consumer or second page generator was introduced.
+- **Files created:** `assets/data/content-registry.json`.
+- **Files modified:** `scripts/validate-content.js`,
+  `docs/CONTENT_SCHEMA.md`, `docs/ARCHITECTURE_GUARDRAIL.md`,
+  `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`,
+  `docs/PROJECT_STATUS.md`.
+- **Files deleted:** None.
+- **Files deliberately not modified:** HTML, CSS, runtime JavaScript, search
+  index, country pages, intelligence pages, existing page generator and Word
+  documents.
+- **Pilot records:** United Arab Emirates, India, Middle East / GCC, APAC,
+  CBUAE source, the CBUAE payment-token announcement, and its generated
+  intelligence page reference.
+- **Tests performed:** `node scripts/validate-content.js`,
+  `node --check scripts/validate-content.js`, existing intelligence page
+  generation, search-index structure validation, documentation link check,
+  pilot page-reference check, and `node scripts/gpir-perf-audit.js`.
+- **QA result:** Existing generator produced 9 classified intelligence pages
+  and correctly skipped 1 unresolved record. Existing search index retained
+  307 valid entries. No generated page content changed; an incidental sitemap
+  whitespace change was removed.
+- **Validation result:** Content validation passed for 10 announcements, 8
+  trusted sources and 7 registry records. Documentation links passed across
+  13 Markdown files. JavaScript syntax and editor diagnostics passed.
+- **Search compatibility result:** Preserved. The registry is not globally
+  loaded and the existing 307-entry lazy search index is unchanged.
+- **AI-readiness result:** Structured IDs, typed records, relationships and
+  source references are available for future processing; no AI processing was
+  implemented.
+- **Scalability assessment:** The catalog shape can represent 200+ countries,
+  1,000+ corridors, thousands of entities, intelligence records and sources
+  without per-record code. The current pilot does not yet populate or render
+  those scales.
+- **Git commit SHA:** `026d9a0a9d1ccac28d75bd5cbf855f78092ba3e7`.
+- **Outcome:** A single validated registry foundation was established while
+  the existing website remained protected.
+- **Milestone achieved:** **M-10 — PARTIAL: Scalable GPIR Content Registry
+  Foundation.** The registry and validation criteria passed, but registry-
+  driven page generation and broad content migration remain incomplete.
+- **Known limitations:** Country and intelligence pages still use their
+  existing generation/presentation paths; the registry is currently a
+  build-time catalog, not a runtime API or knowledge graph. No complete
+  corridor/entity/regulator/licence dataset was created.
+- **Deferred work:** Registry-driven generation, broader country/entity/
+  corridor migration, controlled ingestion, change detection and AI
+  classification remain in the backlog.
+- **Follow-up requirements:** Complete REG-002 only after a parity pilot proves
+  generated output and URLs remain unchanged; then progress DATA-001 and the
+  parked scale-phase items in sequence.
