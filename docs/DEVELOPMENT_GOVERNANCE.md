@@ -138,6 +138,15 @@ A material task report must state:
 The project status page is the current snapshot; the master log is the
 chronological record; the backlog is the work register.
 
+## Ticker freshness rule
+
+The Global Announcements ticker may display a verified dataset status and a
+repository-provided refresh timestamp, but must not claim continuous or live
+ingestion unless an actual automated ingestion system and evidence-backed
+timestamp exist. Overflow fixes must remain scoped to the announcement ribbon
+and preserve its animation, hover/focus pause, reduced-motion behavior and
+responsive layout.
+
 ## Current development gate
 
 **Current milestone:** M-10 PARTIAL — Scalable GPIR Content Registry Foundation.

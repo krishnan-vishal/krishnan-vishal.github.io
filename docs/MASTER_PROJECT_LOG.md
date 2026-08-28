@@ -494,3 +494,49 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Recommended next gate:** Human review of the privacy wording before any
   later provenance, Trust Centre or AI-governance phase. Keep the site static
   and do not add collection or consent infrastructure without explicit scope.
+
+## Prompt 18 — Surgical Fix: Global Announcements Ticker
+
+- **Prompt ID:** PROMPT-18.
+- **Date:** 2026-08-28.
+- **Objective:** Fix only the Global Announcements ticker overflow risk and
+  replace the unsupported continuous-freshness wording.
+- **Category:** FIX, READER EXPERIENCE, CONTENT INTEGRITY.
+- **Starting state:** `main` at `00f8d74269710eb9b08c292d33f78c2863d702a9`,
+  clean worktree. No Claude or other-AI work was touched.
+- **Files inspected:** `index.html`, `assets/data/announcements.json`,
+  `assets/css/page.css`, `assets/css/market.css`, `assets/js/announcements.js`,
+  `assets/js/fx-ticker.js`, and project-memory records.
+- **Root cause:** The homepage rendered a `Continuously Updated` i18n label
+  even though the static dataset only has a repository refresh timestamp. The
+  announcement track also lacked an explicit flex shrink/content-width
+  contract in the shared ribbon layout, allowing long card content to compete
+  with fixed ribbon elements.
+- **Files changed:** `index.html` and `assets/css/page.css`.
+- **Fix:** Replaced the displayed label with `Verified Dataset`; added
+  `width: max-content`, `max-width: none` to the scoped announcement track and
+  `min-width: 0` to its wrapper. Existing `scrollTicker`, hover/focus behavior,
+  visibility pause, reduced-motion fallback and card line clamp remain intact.
+- **Data integrity:** No announcement records, facts, dates, sources or
+  timestamps were changed. The existing verified `lastRefreshed` display is
+  unchanged.
+- **Protected functionality:** Homepage architecture, navigation, map, FX
+  ticker, search, dashboards, pages, registry, performance tier, accessibility,
+  responsive rules, reduced motion and source verification were not changed.
+- **Validation:** Old ticker wording is no longer referenced by the homepage
+  runtime path and `Verified Dataset` is present. Content validation passed for
+  10 announcements, 8 sources and 7 registry records. All JavaScript syntax
+  checks passed. Performance audit completed with its 3 pre-existing advisory
+  warnings. Editor diagnostics reported no errors for `index.html`.
+  `git diff --check` passed. No local browser automation was available, so no
+  screenshot-based responsive test is claimed.
+- **Outcome:** The ticker status is evidence-based and its announcement track
+  has a scoped width/shrink contract intended to keep long content inside the
+  ribbon without changing the existing marquee behavior.
+- **Milestone achieved:** **M-18 — Global Announcements Ticker Integrity.**
+  This does not start Prompt 19, registry migration, AI work or any unrelated
+  architecture change.
+- **Commit:** Not yet available; Prompt 18 changes are currently uncommitted.
+- **Recommended next gate:** Review the live ticker after deployment at
+  desktop, tablet and mobile widths; keep future work behind the existing
+  backlog reconciliation gate.

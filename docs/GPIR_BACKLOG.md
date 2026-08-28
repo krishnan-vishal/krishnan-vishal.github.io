@@ -117,6 +117,12 @@ accounts, forms, personal-data collection, new contact channel or Trust Centre.
 Future privacy/legal review may address jurisdiction-specific wording and any
 change to the current external-resource or browser-storage model.
 
+## Prompt 18 Global Announcements ticker remediation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| TICKER-001 | 2026-08-28 | Repair announcement ticker overflow and freshness wording | FIX, READER EXPERIENCE, CONTENT INTEGRITY | High | COMPLETED | Existing ticker markup/data/CSS/JS | Stage 1 | `index.html`, `assets/css/page.css` | Keep long announcement cards inside the allocated ribbon and avoid implying continuous ingestion. | Scoped overflow contract passes; truthful status is displayed; content, animation, pause and reduced-motion behavior remain preserved. | Replaced the unsupported status claim with `Verified Dataset` and added scoped min-width/max-content rules to the announcement ribbon. | 2026-08-28 | Prompt 18 commit | M-18 |
+
 ## Backlog maintenance
 
 When an item changes, update its status, outcome, completion date, commit and

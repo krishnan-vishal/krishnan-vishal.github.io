@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PROMPT-17 — Phase 3 Privacy Baseline & Trust Foundation
-**Current Milestone:** M-17 — Privacy Baseline & Trust Foundation
-**Last Completed Prompt:** PROMPT-17
-**Last Verified Commit:** `391501d70790b963a58eb36a5b2f170632020231`
-**Current Development Status:** Privacy baseline implemented and validated; no collection or tracking mechanism was added, and later provenance/Trust Centre/AI phases remain gated.
+**Current Prompt:** PROMPT-18 — Surgical Fix: Global Announcements Ticker
+**Current Milestone:** M-18 — Global Announcements Ticker Integrity
+**Last Completed Prompt:** PROMPT-18
+**Last Verified Commit:** `00f8d74269710eb9b08c292d33f78c2863d702a9`
+**Current Development Status:** Announcement ticker overflow and freshness wording are remediated and validated; protected GPIR functionality remains unchanged.
 
 ## COMPLETED
 
@@ -46,6 +46,7 @@
   security or privacy work.
 - Review jurisdiction-specific privacy wording separately before introducing
   any new data collection or consent mechanism.
+- Reconcile external pending work before authorizing the next implementation.
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
 
@@ -100,6 +101,9 @@ findings before authorizing the next implementation prompt.
   X-Frame-Options, Permissions-Policy, Referrer-Policy or X-Content-Type-
   Options response headers are currently deployed.
 - Google Fonts and the public FX API remain documented third-party risks.
+- Local browser rendering automation was unavailable for Prompt 18; responsive
+  behavior was checked against the scoped CSS contract and existing responsive
+  rules, not screenshots.
 - The legal documents contain future-oriented sections for capabilities not
   currently deployed; the current-state disclosures now distinguish those
   possibilities from actual GPIR behavior.
@@ -136,5 +140,7 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   backend was added.
 - Prompt 17 privacy baseline is committed in
   `391501d70790b963a58eb36a5b2f170632020231`.
+- Prompt 18 changed only `index.html` and `assets/css/page.css` for the ticker;
+  governance metadata is currently uncommitted.
 
 **LAST UPDATED:** 2026-08-28

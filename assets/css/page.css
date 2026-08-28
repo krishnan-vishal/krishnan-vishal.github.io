@@ -1697,11 +1697,21 @@ GLOBAL FIAT EXCHANGE MONITOR
 
     display:inline-block;
 
+    width:max-content;
+
+    max-width:none;
+
     animation:scrollTicker 60s linear infinite;
 
     font-size:14px;
 
     color:#444;
+
+}
+
+#market-ribbon .ticker-wrapper{
+
+    min-width:0;
 
 }
 
