@@ -122,7 +122,8 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   milestone was formally declared in the project record.
 - Prompt 13 remediation and governance updates are committed in
   `fea8228b4d52363a92dcd61ea48224f2f74a0a01`.
-- Phase 2 security controls are currently uncommitted; no application,
-  content, asset or runtime page files were changed.
+- Phase 2 security controls are committed in
+  `b326c4501008e857e1efd48db6f59a8a10e31aa6`; no application, content, asset
+  or runtime page files were changed.
 
 **LAST UPDATED:** 2026-08-28

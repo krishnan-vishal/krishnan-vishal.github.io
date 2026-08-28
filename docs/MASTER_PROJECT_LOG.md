@@ -437,7 +437,8 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Outcome:** A validated zero-cost security hardening foundation and
   disclosure mechanism were established without starting later phases.
 - **Milestone achieved:** **M-16 — Zero-Cost Security Hardening Foundation.**
-- **Commit:** Not yet available; Phase 2 changes are currently uncommitted.
+- **Commit:** `b326c4501008e857e1efd48db6f59a8a10e31aa6` contains the Phase 2
+  implementation; the final metadata record is committed separately.
 - **Recommended next gate:** Review Phase 2 before authorizing Phase 3. Do not
   begin privacy, content provenance, Trust Centre, AI governance or final audit
   work automatically.
