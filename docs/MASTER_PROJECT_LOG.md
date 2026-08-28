@@ -490,7 +490,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Known limitations:** This is repository/site transparency, not legal advice
   or a jurisdiction-specific compliance determination. GitHub Pages response
   metadata and third-party provider processing remain outside GPIR control.
-- **Commit:** Not yet available; Prompt 17 changes are currently uncommitted.
+- **Commit:** `391501d70790b963a58eb36a5b2f170632020231`.
 - **Recommended next gate:** Human review of the privacy wording before any
   later provenance, Trust Centre or AI-governance phase. Keep the site static
   and do not add collection or consent infrastructure without explicit scope.

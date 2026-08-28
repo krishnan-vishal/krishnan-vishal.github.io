@@ -5,7 +5,7 @@
 **Current Prompt:** PROMPT-17 — Phase 3 Privacy Baseline & Trust Foundation
 **Current Milestone:** M-17 — Privacy Baseline & Trust Foundation
 **Last Completed Prompt:** PROMPT-17
-**Last Verified Commit:** `6053fd6bb9d07d20b3133f5a6e5e9508027d2299`
+**Last Verified Commit:** `391501d70790b963a58eb36a5b2f170632020231`
 **Current Development Status:** Privacy baseline implemented and validated; no collection or tracking mechanism was added, and later provenance/Trust Centre/AI phases remain gated.
 
 ## COMPLETED
@@ -134,5 +134,7 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - Prompt 17 changed only the existing Privacy Policy and Cookie Policy; no
   application data collection, tracker, consent platform, account, form or
   backend was added.
+- Prompt 17 privacy baseline is committed in
+  `391501d70790b963a58eb36a5b2f170632020231`.
 
 **LAST UPDATED:** 2026-08-28
