@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PHASE 2 — Zero-Cost Security Hardening
-**Current Milestone:** M-16 — Zero-Cost Security Hardening Foundation
-**Last Completed Prompt:** PHASE 2 — Zero-Cost Security Hardening
-**Last Verified Commit:** `082cad751e3a4bc13136cfc1397dd7f599a50514`
-**Current Development Status:** Phase 2 security baseline implemented and validated; M-10 remains PARTIAL and later privacy/provenance/Trust Centre/AI phases remain gated.
+**Current Prompt:** PROMPT-17 — Phase 3 Privacy Baseline & Trust Foundation
+**Current Milestone:** M-17 — Privacy Baseline & Trust Foundation
+**Last Completed Prompt:** PROMPT-17
+**Last Verified Commit:** `6053fd6bb9d07d20b3133f5a6e5e9508027d2299`
+**Current Development Status:** Privacy baseline implemented and validated; no collection or tracking mechanism was added, and later provenance/Trust Centre/AI phases remain gated.
 
 ## COMPLETED
 
@@ -24,6 +24,7 @@
 - Least-privilege GitHub Actions security/integrity workflow.
 - Repository-native internal HTML-link validation and security disclosure
   guidance.
+- Accurate current-state privacy and cookie disclosures for the static site.
 
 ## IN PROGRESS
 
@@ -43,6 +44,8 @@
 - Reconcile external pending work before authorizing the next implementation.
 - Preserve the Phase 2 workflow and review remaining SEC items before any later
   security or privacy work.
+- Review jurisdiction-specific privacy wording separately before introducing
+  any new data collection or consent mechanism.
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
 
@@ -97,6 +100,9 @@ findings before authorizing the next implementation prompt.
   X-Frame-Options, Permissions-Policy, Referrer-Policy or X-Content-Type-
   Options response headers are currently deployed.
 - Google Fonts and the public FX API remain documented third-party risks.
+- The legal documents contain future-oriented sections for capabilities not
+  currently deployed; the current-state disclosures now distinguish those
+  possibilities from actual GPIR behavior.
 
 ## ARCHITECTURE STATUS
 
@@ -125,5 +131,8 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - Phase 2 security controls are committed in
   `b326c4501008e857e1efd48db6f59a8a10e31aa6`; no application, content, asset
   or runtime page files were changed.
+- Prompt 17 changed only the existing Privacy Policy and Cookie Policy; no
+  application data collection, tracker, consent platform, account, form or
+  backend was added.
 
 **LAST UPDATED:** 2026-08-28

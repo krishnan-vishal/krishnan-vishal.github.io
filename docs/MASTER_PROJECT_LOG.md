@@ -442,3 +442,55 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Recommended next gate:** Review Phase 2 before authorizing Phase 3. Do not
   begin privacy, content provenance, Trust Centre, AI governance or final audit
   work automatically.
+
+## Prompt 17 — Phase 3 Privacy Baseline & Trust Foundation
+
+- **Prompt ID:** PROMPT-17.
+- **Date:** 2026-08-28.
+- **Objective:** Establish accurate, transparent privacy information for the
+  existing static GPIR site without adding collection, tracking, consent SaaS,
+  backend infrastructure or later trust/provenance/AI features.
+- **Category:** PRIVACY, GOVERNANCE, SECURITY, READER EXPERIENCE.
+- **Starting state:** `main` at `6053fd6bb9d07d20b3133f5a6e5e9508027d2299`, clean
+  worktree, with the Claude branch present remotely and deliberately untouched.
+- **Privacy findings:** The site implements no accounts, authentication,
+  forms, uploads, comments, newsletter subscriptions, advertising trackers,
+  analytics provider, HTTP cookies or payment collection. It uses localStorage
+  for language and display-currency preferences and makes external HTTPS
+  requests for Google Fonts, FX rates, i18n/data assets and cited sources.
+  GitHub Pages and external providers may process ordinary request metadata;
+  that platform-level processing is not claimed absent.
+- **Changes implemented:** Updated the existing Privacy Policy and Cookie
+  Policy to distinguish current implementation from future-oriented language,
+  state what the static site does not intentionally collect, document the two
+  localStorage preferences, disclose the absence of a cookie preference centre,
+  and accurately describe the current lack of analytics and tracking.
+- **Files modified:** `pages/legal/privacy-policy.html`,
+  `pages/legal/cookie-policy.html`.
+- **Files deliberately not modified:** No homepage, navigation, footer
+  structure, runtime JavaScript, CSS, content records, assets, registry,
+  search, ticker, dashboards, country/intelligence/research pages, security
+  workflow, Claude branch or Trust Centre was changed. No new contact channel
+  was added; existing placeholder legal contact information was not invented.
+- **Validation:** Internal HTML links passed for 67 files. Content validation
+  passed for 10 announcements, 8 trusted sources and 7 registry records. All
+  JavaScript syntax checks passed. Affected HTML doctype/title/update metadata
+  checks passed. Documentation links passed across 13 Markdown files. Editor
+  diagnostics reported no errors. `git diff --check` passed. Performance audit
+  completed with the same 3 pre-existing advisory warnings.
+- **Live-site impact:** Existing representative legal routes remain available;
+  this work is not deployed until the commit is published. No runtime behavior
+  or protected page was changed.
+- **Outcome:** The privacy baseline now reflects verified current behavior and
+  avoids unsupported claims about anonymity, certification, analytics,
+  accounts, cookies or data collection.
+- **Milestone achieved:** **M-17 — Privacy Baseline & Trust Foundation.** This
+  milestone does not include content provenance, Trust Centre construction,
+  AI governance, registry migration or new collection mechanisms.
+- **Known limitations:** This is repository/site transparency, not legal advice
+  or a jurisdiction-specific compliance determination. GitHub Pages response
+  metadata and third-party provider processing remain outside GPIR control.
+- **Commit:** Not yet available; Prompt 17 changes are currently uncommitted.
+- **Recommended next gate:** Human review of the privacy wording before any
+  later provenance, Trust Centre or AI-governance phase. Keep the site static
+  and do not add collection or consent infrastructure without explicit scope.

@@ -106,6 +106,17 @@ not fixed by Prompt 12.
 Phase 2 does not close SEC-001, SEC-003, SEC-004, SEC-006, SEC-007, SEC-009 or
 SEC-010. Their statuses are explicit and no later phase has been started.
 
+## Prompt 17 privacy baseline
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PRIV-001 | 2026-08-28 | Establish accurate current-state privacy transparency | PRIVACY, GOVERNANCE, SECURITY | High | COMPLETED | Verified static-site implementation | Stage 1 | `pages/legal/privacy-policy.html`, `pages/legal/cookie-policy.html` | Align public privacy/cookie wording with the actual static site: no accounts, forms, analytics, trackers, payment collection or intentional HTTP cookies; limited localStorage and external requests are disclosed. | Legal pages state current practice separately from future possibilities, preserve existing routes, and pass link/content/HTML validation. | Privacy baseline implemented without adding collection, consent SaaS or backend infrastructure. | 2026-08-28 | Prompt 17 commit | M-17 |
+
+Phase 3 does not introduce a cookie-consent platform, analytics, tracking,
+accounts, forms, personal-data collection, new contact channel or Trust Centre.
+Future privacy/legal review may address jurisdiction-specific wording and any
+change to the current external-resource or browser-storage model.
+
 ## Backlog maintenance
 
 When an item changes, update its status, outcome, completion date, commit and
