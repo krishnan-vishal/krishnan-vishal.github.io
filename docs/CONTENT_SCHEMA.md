@@ -5,6 +5,26 @@ current static GPIR repository. It describes the JSON model that already feeds
 the ticker, detail views, search relationships and generated intelligence pages.
 It does not imply a database, API or ingestion service.
 
+## Content-factory vocabulary
+
+**File:** `assets/data/content-model.json`
+
+The content-factory contract defines shared vocabulary for future records across
+countries, regions, corridors, payment systems, regulatory bodies, entities,
+intelligence events, announcements, sources and evidence. It also defines the
+evidence classifications `FACT`, `DATA`, `ANALYSIS`, `ESTIMATE` and `FORECAST`,
+plus explicit verification, readiness and reconciliation states.
+
+This is a build-time contract only. Existing datasets remain authoritative for
+their current presentation surfaces, and no placeholder record is published
+merely because the vocabulary supports it. Source URL, publication date and
+retrieval date requirements apply when those facts exist and have been checked.
+
+Dashboard metadata is defined in the same contract for future data migration:
+country, direction, use case, period, currency, volume, corridor, source,
+evidence, last updated and methodology. Existing dashboard presentation remains
+unchanged until a separately authorised data migration proves parity.
+
 ## Announcements dataset
 
 **File:** `assets/data/announcements.json`
@@ -88,11 +108,13 @@ to be populated: `COUNTRY`, `REGION`, `ENTITY`, `REGULATOR`, `LICENCE`,
 `PAYMENT_RAIL`, `WALLET`, `BANK`, `MTO`, `FINTECH`, `CORRIDOR`, `REGULATION`,
 `RESEARCH`, `INTELLIGENCE`, `ANNOUNCEMENT` and `SOURCE`.
 
-The current pilot indexes two existing countries (United Arab Emirates and
-India), their regions, the CBUAE source, and one existing announcement plus
-its generated intelligence page. Announcement and intelligence entries may
-point to the same canonical announcement record because they represent two
-existing presentation surfaces, not duplicated substantive content.
+The current pilot indexes five existing active countries (United Arab Emirates,
+India, Saudi Arabia, Qatar and Singapore), their regions, the CBUAE source, and
+one existing announcement plus its generated intelligence page. Announcement
+and intelligence entries may point to the same canonical announcement record
+because they represent two existing presentation surfaces, not duplicated
+substantive content. Countries are added to the registry only when both the
+structured directory record and the published page already exist.
 
 The registry is currently a validated build-time catalog. Runtime pages do not
 load it globally, so the pilot adds no initial page payload. A future

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0",
+  "schemaNote": "GPIR content-factory contract. This file defines shared vocabulary and metadata requirements for future records; it does not publish content or replace the existing country, announcement, source or registry datasets.",
+  "contentTypes": [
+    "COUNTRY",
+    "REGION",
+    "CORRIDOR",
+    "PAYMENT_SYSTEM",
+    "REGULATORY_BODY",
+    "ENTITY",
+    "INTELLIGENCE_EVENT",
+    "ANNOUNCEMENT",
+    "SOURCE",
+    "EVIDENCE"
+  ],
+  "evidenceClassifications": [
+    "FACT",
+    "DATA",
+    "ANALYSIS",
+    "ESTIMATE",
+    "FORECAST"
+  ],
+  "verificationStatuses": [
+    "VERIFIED",
+    "PARTIALLY_VERIFIED",
+    "RESEARCH_REQUIRED",
+    "NOT_AVAILABLE"
+  ],
+  "readinessStatuses": [
+    "READY",
+    "DRAFT",
+    "RESEARCH_REQUIRED",
+    "NOT_AVAILABLE"
+  ],
+  "reconciliationStatuses": [
+    "RECONCILED",
+    "PENDING",
+    "CONFLICT",
+    "NOT_APPLICABLE"
+  ],
+  "provenanceFields": [
+    "recordId",
+    "country",
+    "region",
+    "topic",
+    "subtopic",
+    "entity",
+    "development",
+    "eventDate",
+    "referencePeriod",
+    "source",
+    "sourceOrganisation",
+    "sourceType",
+    "sourceUrl",
+    "publicationDate",
+    "retrievalDate",
+    "evidenceClassification",
+    "verificationStatus",
+    "proposedVersion",
+    "significance",
+    "readerSummary",
+    "detailedNote",
+    "readyFlag",
+    "reconciliationFlag",
+    "notes"
+  ],
+  "dashboardMetadataFields": [
+    "country",
+    "direction",
+    "useCase",
+    "period",
+    "currency",
+    "volume",
+    "corridor",
+    "source",
+    "evidence",
+    "lastUpdated",
+    "methodology"
+  ],
+  "recordRules": {
+    "sourceUrl": "Required when source is supplied; use HTTPS and preserve the original publisher URL.",
+    "publicationDate": "Required when the cited source has a publication date; use YYYY-MM or YYYY-MM-DD.",
+    "retrievalDate": "Required when a source is reviewed; use YYYY-MM-DD.",
+    "evidenceClassification": "Required for published research claims; distinguish FACT, DATA, ANALYSIS, ESTIMATE and FORECAST.",
+    "unsupportedFreshness": "Do not use live, real-time, hourly or continuously updated as a content-freshness claim without verified ingestion evidence."
+  }
+}

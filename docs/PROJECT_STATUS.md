@@ -18,7 +18,11 @@
 - Dev-time content contract validation for current records and relationships.
 - Permanent project log, backlog, status snapshot and development governance documents.
 - Canonical reference-based content registry with typed pilot records for
-  countries, regions, source, announcement and intelligence.
+  countries, regions, source, announcement and intelligence; the pilot now
+  indexes all five active country records with existing pages.
+- Build-time GPIR content-factory contract defining shared content types,
+  evidence classifications, provenance fields, readiness states,
+  reconciliation states and future dashboard metadata.
 - Registry validation for IDs, types, slugs, source references, relationships
   and page targets.
 - Least-privilege GitHub Actions security/integrity workflow.
@@ -33,6 +37,9 @@
 ## ACTIONABLE NEXT
 
 - Expand structured content registry coverage using verified evidence.
+- Use `assets/data/content-model.json` as the shared contract for the first
+  structured content batches; no placeholder record is publishable without
+  evidence and review state.
 - Extend the page generator to consume registry records only after a second
   pilot proves parity with existing country/intelligence pages.
 - Improve repository search only after measured need and within current

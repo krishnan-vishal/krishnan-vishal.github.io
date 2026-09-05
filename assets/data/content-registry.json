@@ -57,6 +57,57 @@
       ]
     },
     {
+      "id": "country:saudi-arabia",
+      "contentType": "COUNTRY",
+      "title": "Saudi Arabia",
+      "slug": "saudi-arabia",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/middle-east-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "Saudi Arabia"
+      },
+      "page": "pages/countries/saudi-arabia.html",
+      "relationships": [
+        { "type": "REGION", "target": "region:middle-east" }
+      ]
+    },
+    {
+      "id": "country:qatar",
+      "contentType": "COUNTRY",
+      "title": "Qatar",
+      "slug": "qatar",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/middle-east-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "Qatar"
+      },
+      "page": "pages/countries/qatar.html",
+      "relationships": [
+        { "type": "REGION", "target": "region:middle-east" }
+      ]
+    },
+    {
+      "id": "country:singapore",
+      "contentType": "COUNTRY",
+      "title": "Singapore",
+      "slug": "singapore",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/apac-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "Singapore"
+      },
+      "page": "pages/countries/singapore.html",
+      "relationships": [
+        { "type": "REGION", "target": "region:apac" }
+      ]
+    },
+    {
       "id": "region:middle-east",
       "contentType": "REGION",
       "title": "Middle East / GCC",

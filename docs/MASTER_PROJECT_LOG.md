@@ -540,3 +540,47 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Recommended next gate:** Review the live ticker after deployment at
   desktop, tablet and mobile widths; keep future work behind the existing
   backlog reconciliation gate.
+
+## Prompt 22A — GPIR Content Factory: Foundation + First Content Batch + Validation
+
+- **Prompt ID:** PROMPT-22A.
+- **Date:** 2026-09-05.
+- **Starting commit:** `720dccc239c38cb75c0c983187059e288f90ae22`.
+- **Objective:** Establish a reusable, evidence-aware content-factory
+  contract and index the first additional active country records without
+  changing published page content, runtime architecture or custom-domain
+  configuration.
+- **Tasks completed:** Added the build-time content model vocabulary for
+  countries, regions, corridors, payment systems, regulatory bodies, entities,
+  intelligence events, announcements, sources and evidence. Defined FACT,
+  DATA, ANALYSIS, ESTIMATE and FORECAST classifications, explicit verification,
+  readiness and reconciliation states, provenance fields and future dashboard
+  metadata. Extended the content validator to validate the contract. Added
+  Saudi Arabia, Qatar and Singapore to the canonical registry using existing
+  structured country records and published pages as source references.
+- **Tasks not completed:** No new sourced research records, dashboards,
+  country prose, region prose, search-index migration, runtime consumer,
+  ingestion process, version store, browser validation or custom-domain work
+  was performed. Existing unsupported freshness wording remains documented for
+  a later trust-language task.
+- **Files created:** `assets/data/content-model.json`.
+- **Files modified:** `assets/data/content-registry.json`,
+  `scripts/validate-content.js`, `docs/CONTENT_SCHEMA.md`,
+  `docs/GPIR_BACKLOG.md`, `docs/PROJECT_STATUS.md`.
+- **Files deleted:** None.
+- **Validation:** Content validation passed for 10 announcements, 8 trusted
+  sources and 10 registry records. Content-model and registry JSON parsing
+  passed. JavaScript syntax passed for the validator. Full repository checks
+  and live HTTP verification were run before release reporting.
+- **Known limitations:** The content model is a build-time contract and is
+  not yet consumed by runtime pages or a registry-driven generator. Existing
+  dashboard metadata remains embedded in page markup. Source trust remains a
+  domain allowlist, not fact verification. No browser-level validation is
+  claimed where browser automation is unavailable.
+- **Remaining risks:** Freshness wording in legacy/runtime surfaces, incomplete
+  source coverage, missing version/event history and future schema reconciliation
+  remain in the backlog.
+- **Milestone status:** M-22 foundation increment PARTIAL; the contract and
+  first registry indexing batch are complete, while broad content-factory
+  migration remains outstanding.
+- **Commit:** To be recorded after final validation.

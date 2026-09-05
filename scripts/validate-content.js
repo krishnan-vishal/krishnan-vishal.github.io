@@ -15,6 +15,7 @@ const DATA_DIR = path.join(ROOT, "assets", "data");
 const announcementsPath = path.join(DATA_DIR, "announcements.json");
 const sourcesPath = path.join(DATA_DIR, "trusted-sources.json");
 const registryPath = path.join(DATA_DIR, "content-registry.json");
+const modelPath = path.join(DATA_DIR, "content-model.json");
 
 const errors = [];
 const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOURCE_VERIFICATION_REQUIRED"]);
@@ -56,9 +57,34 @@ function repositoryFileExists(href, label){
 const announcements = readJson(announcementsPath);
 const sourceData = readJson(sourcesPath);
 const registryData = readJson(registryPath);
+const contentModel = readJson(modelPath);
 const records = Array.isArray(announcements.records) ? announcements.records : [];
 const registry = Array.isArray(sourceData.registry) ? sourceData.registry : [];
 const sourceRegistryIds = new Set();
+
+function validateEnumList(value, label){
+    if(!Array.isArray(value) || value.length === 0){
+        errors.push(`${label}: expected a non-empty array`);
+        return;
+    }
+    const seen = new Set();
+    value.forEach((item, index) => {
+        if(typeof item !== "string" || !item.trim()) errors.push(`${label}[${index}]: expected a non-empty string`);
+        if(seen.has(item)) errors.push(`${label}[${index}]: duplicate value (${item})`);
+        seen.add(item);
+    });
+}
+
+validateEnumList(contentModel.contentTypes, "content-model.contentTypes");
+validateEnumList(contentModel.evidenceClassifications, "content-model.evidenceClassifications");
+validateEnumList(contentModel.verificationStatuses, "content-model.verificationStatuses");
+validateEnumList(contentModel.readinessStatuses, "content-model.readinessStatuses");
+validateEnumList(contentModel.reconciliationStatuses, "content-model.reconciliationStatuses");
+validateEnumList(contentModel.provenanceFields, "content-model.provenanceFields");
+validateEnumList(contentModel.dashboardMetadataFields, "content-model.dashboardMetadataFields");
+if(!contentModel.recordRules || typeof contentModel.recordRules !== "object"){
+    errors.push("content-model.recordRules: expected an object");
+}
 
 registry.forEach((source, index) => {
     const label = `trusted-sources.registry[${index}]`;

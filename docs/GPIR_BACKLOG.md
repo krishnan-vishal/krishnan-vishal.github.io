@@ -17,6 +17,11 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## Actionable next work
 
+The Prompt 22A foundation increment adds a validated shared vocabulary in
+`assets/data/content-model.json` and indexes the three remaining active country
+pages in the canonical registry. It does not migrate page prose, dashboards or
+coming-soon records.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
