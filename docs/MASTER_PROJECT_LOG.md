@@ -808,3 +808,92 @@ source trust remains a static allowlist rather than factual verification.
 ### Next Recommended Milestone
 M-25B — Source-aware search result cards and validated multi-hop reader
 navigation, followed by browser-enabled QA when a browser runtime is available.
+
+## M-25B — Source-Aware Search Cards & Validated Multi-Hop Reader Navigation
+
+### Objective
+Make existing GPIR search results more useful by exposing repository-held
+provenance and traversing only validated registry relationships, without adding
+content, sources, facts or external AI services.
+
+### Date
+05 September 2026
+
+### Starting SHA
+`e92b605125b7e12edc6dafe579bae23cd54acf88`
+
+### Implementation
+Changed `assets/js/script.js` only. Search results now lazily join existing
+content-registry, trusted-source and announcement data by canonical page route.
+Cards can expose source organisation, source type, publication title, published
+date, retrieval date, verification date, content status and source URL where
+those fields already exist. Cards also expose bounded related page links from
+validated registry relationships. ASK GPIR adds deterministic Source/Evidence
+and Read Next intents using the same bounded relationships.
+
+### Achievements
+- **ACHIEVED:** Source-aware search cards for registry-backed page results.
+- **ACHIEVED:** Native Source / Evidence disclosure with safe external links.
+- **ACHIEVED:** Bounded depth-two registry traversal with visited-target and
+  page-target checks.
+- **ACHIEVED:** Explore Related disclosure for validated page relationships.
+- **ACHIEVED:** Deterministic “What should I read next?” intent.
+- **ACHIEVED:** Existing search and M-25A ASK GPIR fallback behavior preserved.
+
+### Partially Achieved
+- **PARTIALLY ACHIEVED:** Only registry-backed results expose provenance;
+  unindexed search sections retain their existing result presentation.
+- **PARTIALLY ACHIEVED:** Multi-hop traversal is limited to page-bearing targets
+  and a maximum depth of two.
+- **PARTIALLY ACHIEVED:** Dashboard records do not have enough structured
+  metadata for dashboard-specific source cards.
+
+### NOT YET ADDED / TO DO
+- Full generative AI or external model integration.
+- Dashboard intelligence and structured dashboard reader controls.
+- Browser QA and interactive accessibility verification.
+- Broader source cards for non-registry search entries.
+- M-18 ticker remediation.
+- M-19 cross-stream reconciliation.
+
+### Validation
+Focused `node --check assets/js/script.js` passed after implementation. Full
+content, link, syntax, JSON, registry-reference, source-reference, page-route,
+secret, forbidden-path and performance validation are required before closure.
+
+### Browser QA
+**BROWSER QA NOT AVAILABLE IN THIS ENVIRONMENT** unless a browser runtime is
+detected during final validation. No browser interaction claim is made without
+that runtime.
+
+### Live Verification
+Production URL remains `https://krishnan-vishal.github.io/`. Final live checks
+covered homepage, search assets, representative content routes, registry,
+announcements, search index, dashboard asset and deployed script markers. The
+deployed script matched implementation commit `9f77ff182d38f8f2c568d07185605a7b075dcde1`
+byte-for-byte; all tested URLs returned HTTP 200 and no final URL contained
+`fintechosis.com`. CNAME remained untouched.
+
+### Security
+No API keys, secrets, external AI calls, query storage, telemetry, cookies or
+new dependencies were introduced. Source links retain `target="_blank"` and
+`rel="noopener noreferrer"`.
+
+### Performance
+Context data remains lazy and is loaded only when search/context features need
+it. No blocking page-load request or large dependency was added.
+
+### Known Risks / Limitations
+Search provenance depends on registry page coverage. Relationship navigation
+does not include source records without page routes. Source allowlist trust is
+not factual verification. Browser behavior remains unverified if no runtime is
+available.
+
+### M-18
+Remain open.
+
+### M-19
+Remain open.
+
+### Recommended Next Milestone
+M-25C — Dashboard Intelligence / Structured Dashboard Reader.

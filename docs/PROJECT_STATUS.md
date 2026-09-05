@@ -11,6 +11,10 @@
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are
 live; browser QA, broader source cards and dashboard intelligence remain open.
+**M-25B Status:** PARTIAL — source-aware search cards and bounded validated
+reader navigation are implemented; browser QA, broader registry coverage and
+dashboard intelligence remain open.
+**M-25B Implementation SHA:** `9f77ff182d38f8f2c568d07185605a7b075dcde1`
 
 ## COMPLETED
 
@@ -64,6 +68,8 @@ live; browser QA, broader source cards and dashboard intelligence remain open.
   the no-external-AI/no-query-storage boundary.
 - Add browser-enabled QA before claiming interactive, responsive or accessibility
   completion for M-25A.
+- Preserve M-18 and M-19 as separate open workstreams.
+- Defer M-25C dashboard intelligence until structured dashboard metadata exists.
 - Add low-cost governance/monitoring checks that reflect documented contracts.
 - Reconcile all known pending work before starting another implementation prompt.
 - Reconcile external pending work before authorizing the next implementation.

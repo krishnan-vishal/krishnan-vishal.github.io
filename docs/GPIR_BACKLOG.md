@@ -40,6 +40,12 @@ exploration. It does not create content, infer relationships, change dashboards
 or call an AI service. M-25A is PARTIAL until browser QA and the remaining
 source/dashboard reader surfaces are completed.
 
+M-25B adds source-aware search cards, native Source / Evidence disclosures,
+bounded depth-two registry navigation and deterministic Read Next behavior. It
+uses only existing registry relationships and repository metadata. M-25B is
+PARTIAL until browser QA and broader non-registry provenance coverage are
+available. M-25C dashboard intelligence remains deferred.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
