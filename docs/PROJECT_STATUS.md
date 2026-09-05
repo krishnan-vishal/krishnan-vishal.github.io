@@ -5,7 +5,7 @@
 **Current Prompt:** M-27A.1 — Navigation Hierarchy & Dashboard Gallery Release
 **Current Milestone:** M-27A.1 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
 **Last Completed Prompt:** M-27A.1 navigation hierarchy and dashboard gallery release
-**Last Verified Commit:** To be recorded after the M-27A.1 push
+**Last Verified Commit:** `69b928f9952b242c4fd164908394634394a2a89d`
 **Current Development Status:** M-27A.1 completes the canonical geographic
 navigation and registry-driven Dashboard Gallery release using existing assets
 only. The Dashboard Gallery is a presentation/view layer and does not create a
@@ -104,9 +104,9 @@ Dashboard -> Country -> Region using existing metadata, narratives, image
 assets and routes. No new research content was introduced.
 **M-27A.1 Validation:** Both runtime scripts, link validation, content
 validation, registry relationship checks and `git diff --check` passed.
-**M-27A.1 Live HTTP:** Pending push verification for homepage, country page,
+**M-27A.1 Live HTTP:** VERIFIED — homepage, UAE country page, Middle East
 region page, dashboard metadata, narratives, gallery script, main script and
-CSS.
+CSS all returned HTTP 200; deployed resource bytes match the release files.
 **M-27A.1 Achieved:** Navigation alignment, registry-driven gallery and
 asset/route preservation.
 **M-27A.1 Partial:** Browser QA remains NOT VERIFIED because browser tooling is

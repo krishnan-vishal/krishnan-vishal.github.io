@@ -1743,9 +1743,10 @@ and browser QA remain outstanding.
   no parallel country hierarchy or new registry record was created.
 - **Validation:** JavaScript syntax, internal links, content validation,
   registry relationship checks and `git diff --check` passed.
-- **Live HTTP verification:** To be recorded after push for the homepage,
-  country page, region page, dashboard metadata, narratives, gallery script,
-  main script and CSS resources.
+- **Live HTTP verification:** Passed after push. Homepage, UAE country page,
+  Middle East region page, dashboard metadata, dashboard narratives, gallery
+  script, main script and CSS all returned HTTP 200. Deployed bytes for the
+  homepage and runtime/data/CSS resources match the release files.
 - **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
 - **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
 - **Research scope:** No new research content was introduced.
@@ -1757,3 +1758,4 @@ and browser QA remain outstanding.
   historical editions; browser QA remains outstanding.
 - **Next milestone:** Future governed reader validation or coverage expansion
   under separate authorization.
+- **Release commit SHA:** `69b928f9952b242c4fd164908394634394a2a89d`.
