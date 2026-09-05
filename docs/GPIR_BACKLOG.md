@@ -22,6 +22,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 | M-27A.3 | 2026-09-05 | Search result overlay close and navigation UX fix | READER EXPERIENCE, GOVERNANCE | High | COMPLETED | M-27A.2; existing search close/reset mechanism | Stage 1 | `assets/js/script.js`, `docs/*.md` | Close and reset Search GPIR when a normal result is selected while preserving existing routing, indexing, ranking, ASK GPIR and hierarchy. | Mouse and keyboard result selection invoke the existing close/reset path before navigation; search indexing and ranking remain unchanged; validators pass. | Implemented, locally validated and live HTTP verified. Final release SHA: `c818f4f3023ae41a8db183c81fd9159476429dc6`. | 2026-09-05 | `c818f4f3023ae41a8db183c81fd9159476429dc6` | M-27A.3 |
 
+| M-27A.4 | 2026-09-05 | India country status and search route consistency fix | READER EXPERIENCE, GOVERNANCE | High | COMPLETED | M-27A.3; active India registry status; canonical route | Stage 1 | `pages/countries/india.html`, `docs/*.md` | Remove stale generic India country scaffold warning while preserving the Country editorial status != Dashboard publication status architecture and canonical Search/Markets routes. | India warning is removed; India menu/search routes remain canonical; dashboard embed/disclaimer/research remain unchanged; other country pages are untouched. | ACHIEVED — stale India country-page scaffold warning removed; dashboard publication architecture unchanged. Live HTTP verified. | 2026-09-05 | `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957` | M-27A.4 |
+
 ## Actionable next work
 
 The Prompt 22A foundation increment adds a validated shared vocabulary in

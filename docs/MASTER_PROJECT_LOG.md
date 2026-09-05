@@ -1790,6 +1790,43 @@ and browser QA remain outstanding.
   architecture changes; browser QA remains outstanding.
 - **Next milestone:** Future governed reader validation under separate
   authorization.
+- **Final release commit SHA:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`.
+- **Live HTTP verification:** GitHub Pages deployment succeeded. India page,
+  homepage, dashboard metadata and content-search runtime returned HTTP 200.
+  India has no generic draft notice; its canonical dashboard and dashboard
+  disclaimer remain present, and the other four country pages are unchanged.
+
+## M-27A.4 — India Country Status & Search Route Consistency Fix
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `35cc9e7076820ecc87cd6aeb37790ea629ba872d`.
+- **Objective:** Remove the stale generic country draft scaffold warning from
+  the active India country reader while preserving separate dashboard
+  publication status.
+- **Root cause:** India had an `active` country registry record and canonical
+  page, but stale static `.draft-notice` markup remained after its dashboard
+  reader boundary. Search and Markets both resolved to the same canonical page.
+- **Correction:** Removed only the stale warning block from
+  `pages/countries/india.html`. The India dashboard reader, disclaimer,
+  research, sources, statistics, image, reference ID, metadata and narrative
+  were not changed.
+- **Files changed:** `pages/countries/india.html` only, plus these governance
+  records.
+- **Preservation:** UAE, Saudi Arabia, Qatar and Singapore were unchanged.
+  Dashboard publication architecture, search architecture, registry, hierarchy,
+  historical architecture, M-18, M-19 and domain configuration were preserved.
+- **Validation:** Standard validators, M-27A validation (36/36), targeted India
+  route/status/dashboard-preservation assertions and `git diff --check` passed.
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
+- **Achieved:** Stale India country-page scaffold warning removed; dashboard
+  publication architecture unchanged.
+- **Partial:** Browser-level verification remains unavailable.
+- **Deferred:** Custom domain, M-18, M-19 and future reader work.
+- **Not yet added / to do:** No new content, research, dashboard, source,
+  metadata, narrative, registry record or asset was added.
+- **Next milestone:** Future governed reader validation under separate
+  authorization.
 - **Final release commit SHA:** `c818f4f3023ae41a8db183c81fd9159476429dc6`.
 - **Live HTTP verification:** GitHub Pages deployed SHA matched origin/main.
   Homepage, UAE country page, Qatar country page, `content-search.js` and

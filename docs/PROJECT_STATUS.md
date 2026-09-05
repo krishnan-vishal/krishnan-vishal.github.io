@@ -2,11 +2,13 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27A.3 — Search Result Overlay Close & Navigation UX Fix
-**Current Milestone:** M-27A.3 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
-**Last Completed Prompt:** M-27A.3 search result overlay close and navigation fix
-**Last Verified Commit:** `c818f4f3023ae41a8db183c81fd9159476429dc6`
-**Current Development Status:** M-27A.3 closes and resets the search overlay
+**Current Prompt:** M-27A.4 — India Country Status & Search Route Consistency Fix
+**Current Milestone:** M-27A.4 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
+**Last Completed Prompt:** M-27A.4 India country status correction
+**Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
+**Current Development Status:** M-27A.4 removes only the stale India country-page
+scaffold warning. India Search and Markets routes resolve to the same canonical
+page; dashboard publication architecture and content remain unchanged. M-27A.3 closes and resets the search overlay
 before preserving existing result navigation. Search indexing, ranking, ASK GPIR,
 dashboard architecture and content remain unchanged. M-27A.2 separates country editorial status from
 dashboard publication status and resolves connected dashboard links through
@@ -175,6 +177,27 @@ unavailable.
 **M-27A.3 Not yet added / to do:** No additional UX, design, content, ranking or
 architecture changes; browser QA remains outstanding.
 **M-27A.3 Next milestone:** Future governed reader validation under separate
+authorization.
+
+**M-27A.4 Status:** ACHIEVED — stale India country-page scaffold warning
+removed; dashboard publication architecture unchanged.
+**M-27A.4 Starting SHA:** `35cc9e7076820ecc87cd6aeb37790ea629ba872d`.
+**M-27A.4 Objective:** Remove stale generic draft markup from the active India
+country page while preserving canonical Search/Markets routing and dashboard
+publication status separation.
+**M-27A.4 Correction:** Removed only the stale `.draft-notice` block from
+`pages/countries/india.html`; dashboard reader, disclaimer, research, sources,
+statistics, image, reference ID, metadata and narrative remain unchanged.
+**M-27A.4 Validation:** Standard validators, M-27A validation (36/36), route
+consistency, status, dashboard-preservation and warning-retention assertions
+passed.
+**M-27A.4 Browser QA:** NOT VERIFIED because browser tooling is unavailable.
+**M-27A.4 Live HTTP:** VERIFIED — GitHub Pages deployment succeeded. India
+page, homepage, dashboard metadata and content-search runtime returned HTTP
+200; India has no generic draft notice and its dashboard/disclaimer remain
+present.
+**M-27A.4 Deferred:** Custom domain; M-18; M-19; future reader work.
+**M-27A.4 Next milestone:** Future governed reader validation under separate
 authorization.
 
 ## COMPLETED
