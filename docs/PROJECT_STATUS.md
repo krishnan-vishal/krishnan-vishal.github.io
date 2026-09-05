@@ -2,11 +2,18 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** M-25C — Dashboard Intelligence & Structured Dashboard Reader
-**Current Milestone:** M-25C — Dashboard Intelligence (PARTIAL)
-**Last Completed Prompt:** M-25B source-aware reader milestone
-**Last Verified Commit:** `a4da3c97efd6eee481cd1a2f982899a2990dc03e`
-**Current Development Status:** Five existing homepage dashboard cards now have validated build-time metadata and deterministic reader disclosures; source/methodology fields remain unavailable where the repository does not provide them.
+**Current Prompt:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader
+**Current Milestone:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader (PARTIAL)
+**Last Completed Prompt:** M-25C dashboard intelligence milestone
+**Last Verified Commit:** `a55ad91a05acb06451c9d61d020974e8c08d6e4b`
+**Current Development Status:** M-25D diagnostic audit completed and its scope
+corrected. Existing GPIR dashboards are confirmed as already-validated research
+publications (validation precedes publication); the diagnostic findings are a
+technical publication/reader integration gap, not a dashboard
+research-validation deficiency. Strategic priority is now live activation of
+the existing GPIR portfolio and its reader utilities, in parallel with the
+dashboard programme. No dashboard, metadata, registry, route or content-model
+implementation has been authorised yet.
 
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are
@@ -17,6 +24,11 @@ dashboard intelligence remain open.
 **M-25B Implementation SHA:** `9f77ff182d38f8f2c568d07185605a7b075dcde1`
 **M-25C Status:** PARTIAL — dashboard metadata foundation and reader disclosures are implemented; dashboard intelligence, browser QA and missing metadata remain open.
 **M-25C Implementation SHA:** `c9d3b89488700d01adaa92cf6389eaccb865e9b8`
+**M-25D Status:** PARTIALLY ACHIEVED — DIAGNOSTIC COMPLETE; STRATEGIC
+IMPLEMENTATION SCOPE CORRECTED; IMPLEMENTATION NOT YET AUTHORISED. Diagnostic
+findings are retained; the milestone objective is now public live portfolio
+activation and intelligent reader utilities, not dashboard content generation.
+**M-25D Starting SHA:** `a55ad91a05acb06451c9d61d020974e8c08d6e4b`
 
 ## COMPLETED
 
@@ -80,6 +92,34 @@ dashboard intelligence remain open.
 - Review jurisdiction-specific privacy wording separately before introducing
   any new data collection or consent mechanism.
 - Reconcile external pending work before authorizing the next implementation.
+- Public live portfolio completeness audit: confirm existing GPIR country,
+  intelligence, regulatory and research content is accessible, navigable and
+  discoverable, independent of dashboard coverage.
+- Resolve M-25D dashboard publication-to-country relationship before any
+  dashboard implementation, recognising the dashboard as an already validated
+  publication rather than unvalidated artwork.
+- Resolve M-25D dashboard-to-existing-intelligence relationship only where
+  explicitly evidenced.
+- Reconcile M-25D dashboard identity (dashboard-metadata IDs vs. search-index
+  reference IDs) before any dashboard implementation.
+- Reconcile M-25D image asset-path mismatch before any dashboard implementation.
+- Reconcile M-25D dashboard metadata/content-model schema mismatch before any
+  dashboard implementation.
+- Decide on the empty `pages/dashboards/*.html` route architecture before any
+  dashboard implementation.
+- Decide on dashboard search integration before any dashboard implementation.
+- Design a CURRENT / HISTORICAL content model applicable to dashboards, country
+  intelligence, regulatory information, AML/CFT information, payment
+  developments, research publications, announcements and forecasts; no valid
+  historical content is deleted when superseded.
+- Integrate and activate existing reader utilities (Search, ASK GPIR, Explain,
+  Explore, related content, Source/Evidence, country/dashboard/historical/
+  intelligence navigation) before building new frameworks or infrastructure.
+- Add browser validation for dashboard and reader work if available.
+- Preserve M-18 and M-19 as separate open workstreams (unaffected by M-25D).
+- Do not create dashboards or research content for countries that do not yet
+  have them; existing GPIR content for those countries remains publicly
+  accessible without waiting for dashboard coverage.
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
 

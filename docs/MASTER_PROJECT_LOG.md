@@ -1030,3 +1030,281 @@ are reviewed; no automatic promotion is made.
 M-25C PARTIALLY ACHIEVED. The structured metadata foundation and deterministic
 reader are live; missing source/methodology fields, dashboard route pages and
 browser QA remain outstanding.
+
+## M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader
+
+### Objective
+Activate the existing GPIR portfolio into a stable public reader experience and
+progressively transform the existing utilities into a smart, source-aware,
+context-aware and eventually AI-ready reader experience, running in parallel
+with (not gated on) the dashboard programme. This checkpoint is a governance
+and scope-correction record only; no dashboard, registry, metadata or route
+changes are made.
+
+### Date
+05 September 2026
+
+### Starting SHA
+`a55ad91a05acb06451c9d61d020974e8c08d6e4b`
+
+### Previous milestone
+M-25C — Dashboard Intelligence & Structured Dashboard Reader
+(PARTIALLY ACHIEVED).
+
+### Correction record
+The initial M-25D diagnostic (recorded below, unchanged) was first interpreted
+too narrowly as evidence that existing GPIR dashboards lack validation. A
+representative existing GPIR country dashboard, the Taiwan dashboard
+(Reference ID `VK-GPIR-TWN-INB-C2C-2026-001`), was reviewed directly and
+visibly contains: reference ID, publication date, data period, outlook period,
+version, country, inbound C2C scope, quantitative intelligence, corridor
+intelligence, receiving channels, competitors, providers, payment rails,
+AML/CFT/compliance, payment technology adoption, regulatory developments,
+ISO/accreditation information, 2035 outlook, key insights, data sources,
+forecasting model, update frequency, disclaimer, and explicit
+"DATA SOURCES (Validated & Published)" / "DATA VALIDATED / Authoritative
+Sources" indications. This confirms:
+
+1. The dashboard image is NOT an unvalidated research object.
+2. The dashboard is an already validated GPIR research publication; validation
+   and source research occur BEFORE dashboard publication.
+3. The JPEG/PNG is the visual published representation of that validated
+   research.
+4. The website does not need to independently recreate, OCR, reinterpret,
+   calculate or revalidate the dashboard image.
+5. The website's structured metadata should identify and connect the existing
+   published dashboard to the relevant GPIR country/intelligence/source
+   context only where such relationships can be deterministically established.
+6. Missing structured metadata fields in `dashboard-metadata.json` reflect an
+   information-architecture gap between the website's metadata layer and the
+   richer published dashboard, not evidence that the dashboard itself lacks
+   validation.
+
+**Conclusion:** Diagnostic established a technical publication/reader
+integration gap, not a dashboard research-validation deficiency.
+
+### Corrected core principles recorded
+
+**GPIR content principle.** Existing validated content is published and
+remains part of GPIR. When information is updated, the new validated edition
+becomes CURRENT, the previous edition/content is retained, previous
+information is moved into the appropriate HISTORICAL section, and no valid
+historical research is deleted or retired merely because it has been
+superseded. This applies progressively to dashboards, country intelligence,
+regulatory information, AML/CFT information, payment developments, research
+publications, announcements, forecasts and other versioned GPIR content.
+
+**Dashboard principle.** Dashboard = validated GPIR research publication.
+Dashboard image = view-first visual publication. Underlying GPIR repository =
+evolving intelligence and reader layer. The website connects these layers
+without duplicating or inventing research. Target architecture:
+
+```
+VALIDATED PUBLIC SOURCES
+        ↓
+GPIR RESEARCH / RECONCILIATION
+        ↓
+VALIDATION
+        ↓
+PUBLISHED COUNTRY DASHBOARD (JPEG / PNG)
+        ↓
+CURRENT GPIR EDITION
+        ↓
+SMART READER
+        ↓
+COUNTRY / INTELLIGENCE / SOURCE / HISTORY
+        ↓
+FUTURE VALIDATED EDITION
+```
+
+**Public portfolio principle.** Do not wait until all countries have updated
+dashboards before making GPIR live. Many countries will not yet have a current
+dashboard; their existing GPIR content should still be publicly accessible and
+discoverable now. The dashboard programme and the public repository
+activation programme proceed in parallel.
+
+**Existing-utilities-first principle.** Review and activate the existing
+Search, ASK GPIR, Explain, Explore, related-content, Source/Evidence, country
+navigation, dashboard navigation, historical navigation, intelligence
+navigation and other existing reader utilities. Do not build unnecessary new
+frameworks or infrastructure.
+
+**AI principle.** The deterministic GPIR reader foundation comes first.
+Future generative AI should operate above the validated GPIR repository rather
+than becoming the uncontrolled source of research. Generative AI, external LLM
+APIs, API keys, backend AI infrastructure and databases are not introduced
+under M-25D.
+
+**Historical principle.** Nothing valid is deleted because it is old. When a
+new edition replaces a current publication, the new validated edition becomes
+CURRENT and the previous validated edition(s) move to HISTORICAL, preserving
+reference ID, edition/version, publication date and applicable historical
+context wherever already available.
+
+### Original diagnostic audit (retained unchanged)
+
+#### Prompt objective
+Run a read-only diagnostic audit of the existing dashboard publication records,
+their metadata schema, their image and route assets, and their relationship (or
+lack of one) to the canonical content registry, search index and trusted-source
+registry. Record findings only.
+
+#### Repository audit findings
+
+1. Five existing country dashboard publication records are present in
+   `assets/data/dashboard-metadata.json`: `dashboard-uae`, `dashboard-ksa`,
+   `dashboard-qatar`, `dashboard-india`, `dashboard-singapore`.
+2. Existing dashboard records currently contain publication identity fields
+   (`title`, `country`, `region`, `description`, `edition`, `imagePath`,
+   `pagePath`), while structured evidence/provenance fields on the website's
+   metadata layer (`period`, `direction`, `useCase`, `metric`, `unit`,
+   `source`, `methodology`, `disclaimer`) remain `null`. This reflects the
+   website's metadata layer not yet mirroring the richer published dashboard —
+   see Correction record above — not a validation gap in the dashboard itself.
+3. The dashboard artwork is confirmed to be a view-first visual publication
+   asset. It is not treated as the canonical source of intelligence, and is
+   itself already a validated, published research edition (see Correction
+   record).
+4. No OCR, reconstruction, inference, calculation or independent extraction of
+   research facts from dashboard artwork was performed or proposed.
+5. Canonical GPIR intelligence is confirmed to remain in the underlying
+   repository evidence/content layer (registry, country data, search index),
+   to evolve only as publicly available information is progressively sourced,
+   reconciled and validated.
+6. The dashboard is not yet connected to the relevant existing
+   country/intelligence/evidence layer through any explicit deterministic
+   relationship; this connection is deferred pending an explicit,
+   deterministic mapping.
+7. Diagnostic findings (technical / information-architecture; files inspected
+   in parentheses):
+   - Dashboard metadata schema (`period`, `direction`, `useCase`, `metric`,
+     `unit`, `source`, `methodology`, `disclaimer`) does not match the
+     `dashboardMetadataFields` contract declared in
+     `assets/data/content-model.json` (`direction`, `useCase`, `period`,
+     `currency`, `volume`, `corridor`, `source`, `evidence`, `lastUpdated`,
+     `methodology`). *(`assets/data/dashboard-metadata.json`,
+     `assets/data/content-model.json`)*
+   - `imagePath` values in `dashboard-metadata.json` (e.g.
+     `assets/dashboards/VK-GPIR-GCC-UAE-DB-001.png`) require technical
+     reconciliation against the identified image assets under
+     `assets/images/` (`dashboard-01.jpg`, `dashboard-02.jpg`,
+     `dashboard-03.jpg`, `dashboard-fintech.jpg`, `dashboard-global.jpg`,
+     `dashboard-remittance.jpg`). *(`assets/data/dashboard-metadata.json`,
+     `assets/images/`)*
+   - The four `pages/dashboards/*.html` route placeholders
+     (`apac-dashboard.html`, `europe-dashboard.html`, `global-dashboard.html`,
+     `middle-east-dashboard.html`) remain empty (0 bytes).
+     *(`pages/dashboards/*.html`)*
+   - `assets/data/content-registry.json` `supportedContentTypes` has no
+     `DASHBOARD` content type. *(`assets/data/content-registry.json`)*
+   - No explicit country-to-dashboard relationship entries exist in the
+     canonical registry's country records. *(`assets/data/content-registry.json`)*
+   - Dashboard-related intelligence is already present in
+     `assets/data/search-index.json` (19 matches), citing dashboard reference
+     IDs such as `VK-GPI-APAC-IND-2026-005` and `SGP-2026-006`, which differ
+     from the `dashboard-*` IDs used in `dashboard-metadata.json`.
+     *(`assets/data/search-index.json`)*
+   - `assets/data/trusted-sources.json` is a source-domain verification
+     registry and should not be forced to become a dashboard registry.
+     *(`assets/data/trusted-sources.json`)*
+8. These findings represent architecture/provenance/reader-integration
+   reconciliation requirements, not missing research content and not evidence
+   of dashboard invalidation.
+9. No missing dashboard facts, sources, methodology, period, direction,
+   metrics, volumes or other research fields were populated during this
+   checkpoint.
+10. No new research content was introduced during M-25D.
+11. M-18 and M-19 were not modified. Both remain OPEN.
+12. CNAME, DNS, `fintechosis.com` and the GitHub Pages production domain were
+    not changed.
+
+### Files changed
+- `docs/MASTER_PROJECT_LOG.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/GPIR_BACKLOG.md`
+
+### Implementation completed
+None. This is a documentation-only governance checkpoint recording diagnostic
+findings and a corrected strategic scope; no dashboard, metadata, registry,
+route or content-model files were modified.
+
+### Achievements
+- **ACHIEVED:** M-25D diagnostic audit completed.
+- **ACHIEVED:** Existing dashboard publication model clarified (dashboard =
+  already validated GPIR research publication; validation occurs before
+  publication).
+- **ACHIEVED:** Validated-dashboard principle established.
+- **ACHIEVED:** View-first dashboard principle established.
+- **ACHIEVED:** Historical preservation principle established (CURRENT /
+  HISTORICAL content model).
+- **ACHIEVED:** Strategic priority redirected toward live portfolio activation
+  and intelligent reader utilities, proceeding in parallel with the dashboard
+  programme.
+- **ACHIEVED:** No production content modified.
+- **ACHIEVED:** No research content generated.
+
+### NOT YET ADDED / TO DO
+- Public portfolio completeness audit.
+- Dashboard publication-to-country relationship.
+- Dashboard-to-existing-intelligence relationship where explicitly supported.
+- Historical/current architecture.
+- Reader integration.
+- Utility integration.
+- Dashboard publication presentation controls.
+- Browser QA.
+- Remaining M-25A/M-25B reader tasks.
+- Future country dashboard expansion.
+
+### Deferred work
+- Generative AI.
+- External APIs.
+- Backend.
+- Database.
+- New research content.
+- Dashboard generation for uncovered countries.
+- M-18.
+- M-19.
+- Custom domain migration.
+
+### Validation
+Documentation-only checkpoint; no JSON, JavaScript, CSS or HTML files were
+modified. No validator run is required for this record beyond the diagnostic
+read-only audit already performed.
+
+### Security
+No external APIs, credentials, secrets, cookies, analytics or query storage.
+No code paths were changed.
+
+### Performance
+Not applicable; no runtime files were changed.
+
+### Browser QA
+**BROWSER QA NOT AVAILABLE IN THIS ENVIRONMENT.** No browser interaction,
+responsive or accessibility claim is made.
+
+### Live production verification
+Not performed for this checkpoint; no production-affecting files were changed.
+
+### Git commits
+Governance checkpoint: to be recorded after documentation-only changes are
+validated and committed separately, per checkpoint instructions.
+
+### M-25C inherited pending work
+Missing source/methodology fields, dashboard route pages and browser QA remain
+outstanding.
+
+### M-18 status
+Remain open.
+
+### M-19 status
+Remain open.
+
+### Recommended next milestone
+Dashboard/reader implementation work remains not yet authorised. Any future
+milestone must first resolve the reconciliation items listed under
+NOT YET ADDED / TO DO, prioritising public live portfolio activation and
+existing-utility integration over dashboard content generation.
+
+### Final milestone status
+M-25D PARTIALLY ACHIEVED — DIAGNOSTIC COMPLETE; STRATEGIC IMPLEMENTATION SCOPE
+CORRECTED; IMPLEMENTATION NOT YET AUTHORISED.
