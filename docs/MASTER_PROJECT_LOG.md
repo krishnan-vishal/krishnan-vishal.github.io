@@ -86,6 +86,38 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Next recommended milestone:** Continue consumption, learning and scale using
   the already activated repository; do not begin another audit milestone.
 
+## M-26B — Publicly Connected Intelligence Repository
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `bfb08fb7e12bee4cbd36c6a84921cbc55a981141`.
+- **Objective:** Add the missing public connectivity layer to the already-activated GPIR repository by surfacing deterministic region, country and dashboard links on live pages and reinforcing the reader's ability to traverse the existing content graph without fabricating unsupported relationships.
+- **Strategic transition:** Move from public activation into connected consumption: readers can follow the repository's own relationships rather than being stranded on isolated country or region pages.
+- **Implementation streams:** M-26B.1 Country-page connected intelligence panel; M-26B.2 Region-page connected coverage panel; M-26B.3 Registry-driven cross-link rendering; M-26B.4 Lightweight CSS support for connected reader cards.
+- **Files changed:** `assets/js/script.js`, `assets/css/chapter-page.css`, plus the existing registry and page assets already in the repository. No new content or fabricated relations were introduced.
+- **Functionality added:** Country pages now show a connected GPIR intelligence panel linking to the parent region, published dashboard and related registry items. Region pages show a regional coverage panel linking to active country entries and dashboard status. All links are derived from the canonical `content-registry.json` relationships already validated in the repo.
+- **Validation results:**
+  - `node --check assets/js/script.js` — passed
+  - `node scripts/validate-content.js` — passed
+  - `node scripts/validate-links.js` — passed
+  - `git --no-pager diff --check` — passed
+  - Registry duplicate ID and missing relationship checks — passed
+- **Live HTTP results:**
+  - `https://krishnan-vishal.github.io/` — HTTP 200
+  - `https://krishnan-vishal.github.io/pages/countries/uae.html` — HTTP 200
+  - `https://krishnan-vishal.github.io/pages/regions/apac.html` — HTTP 200
+  - `https://krishnan-vishal.github.io/assets/js/script.js` — HTTP 200
+  - `https://krishnan-vishal.github.io/assets/css/chapter-page.css` — HTTP 200
+  - `https://krishnan-vishal.github.io/assets/data/content-registry.json` — HTTP 200
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **Security results:** No API keys, secrets, external model calls, telemetry or query storage were introduced.
+- **Achieved:** M-26B is implemented and live-verified on production routes. The repository is now a connected public reader using existing registry relationships without fabricated content.
+- **Deferred:** Broader semantic relationship expansion, additional dashboard intake, migration publication integration and custom-domain work remain future milestones, but do not block this M-26B release.
+- **M-18 status:** OPEN.
+- **M-19 status:** OPEN.
+- **CNAME status:** ABSENT.
+- **Custom domain:** DEFERRED.
+- **Next recommended milestone:** Continue with measured reader-graph improvements on the same canonical registry rather than creating a second data layer.
+
 ## M-25E — Existing Dashboard Library Activation & Regional Smart Narrative
 
 - **Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`.

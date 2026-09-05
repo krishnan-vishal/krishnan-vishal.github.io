@@ -47,6 +47,8 @@ function initializeWebsite(){
 
     safeInit(initializeSearch);
 
+    safeInit(initializeConnectedContentPanel);
+
     safeInit(initializeReaderAssistant);
 
     safeInit(initializeDashboardReader);
@@ -1779,6 +1781,130 @@ function initializeDashboardNarrative(){
         })
         .catch(() => {
             // The published dashboard remains available when the optional narrative layer fails.
+        });
+
+}
+
+function initializeConnectedContentPanel(){
+
+    const currentPath = (window.location.pathname || "/").replace(/^\/+/, "") || "index.html";
+    const isCountryPage = currentPath.startsWith("pages/countries/");
+    const isRegionPage = currentPath.startsWith("pages/regions/");
+
+    if(!isCountryPage && !isRegionPage) return;
+
+    const insertTarget = isCountryPage ? document.querySelector(".country-meta-row") : document.querySelector(".chapter-hero-intro");
+    if(!insertTarget || document.getElementById("connected-intelligence-panel")) return;
+
+    const script = document.querySelector('script[src*="assets/js/script.js"]');
+    const src = script ? script.getAttribute("src") : "assets/js/script.js";
+    const dataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/content-registry.json");
+
+    const escapeHtml = (value) => {
+        const div = document.createElement("div");
+        div.textContent = value == null ? "" : String(value);
+        return div.innerHTML;
+    };
+
+    const toPageHref = (page) => `../../${page}`;
+    const toRegionHref = (slug) => `../regions/${slug}.html`;
+    const toDashboardHref = (slug) => `../../index.html#${slug}`;
+
+    fetch(dataUrl)
+        .then(response => {
+            if(!response.ok) throw new Error("registry unavailable");
+            return response.json();
+        })
+        .then(data => {
+            const records = data.records || [];
+            const byId = new Map(records.map(record => [record.id, record]));
+
+            if(isCountryPage){
+                const record = records.find(item => item.page === currentPath && item.contentType === "COUNTRY");
+                if(!record) return;
+
+                const regionId = (record.relationships || []).find(relationship => relationship.type === "REGION")?.target;
+                const dashboardIds = (record.relationships || []).filter(relationship => relationship.type === "DASHBOARD").map(relationship => relationship.target);
+                const relatedIds = (record.relationships || []).filter(relationship => !["REGION", "DASHBOARD"].includes(relationship.type)).map(relationship => relationship.target);
+
+                const region = regionId ? byId.get(regionId) : null;
+                const dashboardLinks = dashboardIds
+                    .map(id => byId.get(id))
+                    .filter(Boolean)
+                    .map(item => ({
+                        label: item.title,
+                        href: toDashboardHref(item.slug),
+                        meta: "Dashboard"
+                    }));
+
+                const relatedLinks = relatedIds
+                    .map(id => byId.get(id))
+                    .filter(Boolean)
+                    .filter(item => item.page || item.slug)
+                    .slice(0, 2)
+                    .map(item => ({
+                        label: item.title,
+                        href: item.page ? toPageHref(item.page) : item.slug.startsWith("dashboard-") ? toDashboardHref(item.slug) : toRegionHref(item.slug),
+                        meta: item.contentType
+                    }));
+
+                const items = [];
+                if(region){
+                    items.push({
+                        label: region.title,
+                        href: toRegionHref(region.slug),
+                        meta: "Region"
+                    });
+                }
+                items.push(...dashboardLinks, ...relatedLinks);
+
+                if(!items.length) return;
+
+                const panel = document.createElement("aside");
+                panel.id = "connected-intelligence-panel";
+                panel.className = "connected-intelligence-panel";
+                panel.innerHTML = `
+                    <div class="connected-intelligence-header">
+                        <span class="connected-intelligence-label">Connected GPIR intelligence</span>
+                        <strong>${escapeHtml(record.title)}</strong>
+                    </div>
+                    <ul class="connected-intelligence-list">
+                        ${items.map(item => `<li class="connected-intelligence-item"><a href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a><small>${escapeHtml(item.meta)}</small></li>`).join("")}
+                    </ul>
+                `;
+                insertTarget.insertAdjacentElement("afterend", panel);
+                return;
+            }
+
+            const regionSlug = currentPath.replace(/^pages\/regions\//, "").replace(/\.html$/, "");
+            const regionRecord = byId.get(`region:${regionSlug}`) || records.find(item => item.contentType === "REGION" && item.slug === regionSlug);
+            if(!regionRecord) return;
+
+            const countries = records
+                .filter(item => item.contentType === "COUNTRY" && (item.relationships || []).some(relationship => relationship.type === "REGION" && relationship.target === regionRecord.id) && item.page)
+                .slice(0, 6);
+
+            if(!countries.length) return;
+
+            const panel = document.createElement("aside");
+            panel.id = "connected-intelligence-panel";
+            panel.className = "connected-intelligence-panel";
+            panel.innerHTML = `
+                <div class="connected-intelligence-header">
+                    <span class="connected-intelligence-label">Regional coverage</span>
+                    <strong>${escapeHtml(regionRecord.title)}</strong>
+                </div>
+                <ul class="connected-intelligence-list">
+                    ${countries.map(country => {
+                        const dashboard = (country.relationships || []).filter(relationship => relationship.type === "DASHBOARD").map(relationship => byId.get(relationship.target)).find(Boolean);
+                        return `<li class="connected-intelligence-item"><a href="../../${escapeHtml(country.page)}">${escapeHtml(country.title)}</a><small>${dashboard ? "Dashboard available" : "Country record"}</small></li>`;
+                    }).join("")}
+                </ul>
+            `;
+            insertTarget.insertAdjacentElement("afterend", panel);
+        })
+        .catch(() => {
+            // The registry is optional; pages remain usable without the panel.
         });
 
 }

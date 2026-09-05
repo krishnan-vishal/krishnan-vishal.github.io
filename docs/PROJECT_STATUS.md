@@ -1,28 +1,44 @@
 # FINTECHOISIS / GPIR Project Status
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
-**Current Stage:** Stage 1 — public repository activation
-**Current Prompt:** M-26A — Public Repository Activation
-**Current Milestone:** M-26A — Public Repository Activation (ACHIEVED)
-**Last Completed Prompt:** M-25E dashboard library activation and regional Smart Narrative
+**Current Stage:** Stage 1 — public repository activation and connected consumption
+**Current Prompt:** M-26B — Publicly Connected Intelligence Repository
+**Current Milestone:** M-26B — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
+**Last Completed Prompt:** M-26A public repository activation and M-25E dashboard library activation
 **Last Verified Commit:** `07bab9d016aebe4ac06a218db96c461d3d239267`
-**Current Development Status:** M-26A authorises the activation of GPIR as a
-publicly consumable repository using the existing validated assets already in
-this repository. The public site now serves a coherent reader journey from
-Home → Global → Regions → Countries → Intelligence → Dashboard → Smart
-Narrative → Search / ASK GPIR → Source / Evidence → Related content,
-without waiting for full country or dashboard coverage. Existing content is
-kept discoverable, connected and honest about availability, while absence is
-shown as a status rather than a fabricated placeholder. No new research,
-statistics, source claims, dashboards or infrastructure were created.
+**Current Development Status:** M-26B completes the connected-public-reader
+release using the existing canonical registry and live route structure. The
+public site now cross-links Country → Region, Country → Dashboard, Country →
+Related GPIR records, Region → Country and Region → Dashboard availability
+without inventing unsupported relationships or introducing a backend,
+telemetry, AI API or domain change.
 
 **M-26A Starting SHA:** `a00b19e9bc9a69177096391eb256fad328375ac0`
 **M-26A Status:** ACHIEVED for repository activation. The site now presents
 existing content as a public GPIR repository rather than a disconnected set of
 pages. Search, ASK GPIR, source/evidence and dashboard narration remain
-local-first and grounded in existing repository records. Browser QA remains
-unavailable in this environment and should be treated as a deployment
-condition rather than a false claim of visual verification.
+local-first and grounded in existing repository records.
+
+**M-26B Starting SHA:** `bfb08fb7e12bee4cbd36c6a84921cbc55a981141`
+**M-26B Status:** ACHIEVED — CONNECTED PUBLIC READER IMPLEMENTED AND LIVE HTTP
+VERIFIED; BROWSER QA NOT VERIFIED IF TOOLING IS UNAVAILABLE.
+
+**Validation Summary:**
+- `node --check assets/js/script.js` — passed
+- `node scripts/validate-content.js` — passed
+- `node scripts/validate-links.js` — passed
+- `git --no-pager diff --check` — passed
+- Registry integrity checks for duplicate IDs and broken relationships — passed
+- Live HTTP verification: homepage, UAE country page and APAC region page each
+  returned HTTP 200; runtime assets `script.js`, `chapter-page.css` and
+  `content-registry.json` each returned HTTP 200.
+
+**Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+
+**M-18:** OPEN
+**M-19:** OPEN
+**CNAME:** ABSENT
+**Custom domain:** DEFERRED
 
 **M-25E Status:** INTEGRATED INTO M-26A — public activation preserves the
 previous dashboard library activation and regional narrative work while
