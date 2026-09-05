@@ -188,6 +188,168 @@
         { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" },
         { "type": "SOURCE", "target": "source:cbuae" }
       ]
+    },
+    {
+      "id": "source:spa-gov-sa",
+      "contentType": "SOURCE",
+      "title": "Saudi Press Agency (SPA)",
+      "slug": "spa-gov-sa",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "spa-gov-sa"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:sama-malaa-openbanking-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Saudi Central Bank licenses Malaa Company under its Open Banking Framework",
+      "slug": "sama-malaa-openbanking-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "sama-malaa-openbanking-2026"
+      },
+      "page": "pages/intelligence/sama-malaa-openbanking-2026.html",
+      "sourceRefs": ["source:spa-gov-sa"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:saudi-arabia" },
+        { "type": "SOURCE", "target": "source:spa-gov-sa" },
+        { "type": "INTELLIGENCE", "target": "intelligence:sama-malaa-openbanking-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:sama-malaa-openbanking-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "Saudi Central Bank licenses Malaa Company under its Open Banking Framework",
+      "slug": "sama-malaa-openbanking-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "sama-malaa-openbanking-2026"
+      },
+      "page": "pages/intelligence/sama-malaa-openbanking-2026.html",
+      "sourceRefs": ["source:spa-gov-sa"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:saudi-arabia" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:sama-malaa-openbanking-2026" },
+        { "type": "SOURCE", "target": "source:spa-gov-sa" }
+      ]
+    },
+    {
+      "id": "source:rbi",
+      "contentType": "SOURCE",
+      "title": "Reserve Bank of India (RBI)",
+      "slug": "rbi",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "rbi"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:rbi-payments-vision-2028",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Reserve Bank of India publishes 'Payments Vision 2028'",
+      "slug": "rbi-payments-vision-2028",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "rbi-payments-vision-2028"
+      },
+      "page": "pages/intelligence/rbi-payments-vision-2028.html",
+      "sourceRefs": ["source:rbi"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:india" },
+        { "type": "SOURCE", "target": "source:rbi" },
+        { "type": "INTELLIGENCE", "target": "intelligence:rbi-payments-vision-2028" }
+      ]
+    },
+    {
+      "id": "intelligence:rbi-payments-vision-2028",
+      "contentType": "INTELLIGENCE",
+      "title": "Reserve Bank of India publishes 'Payments Vision 2028'",
+      "slug": "rbi-payments-vision-2028",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "rbi-payments-vision-2028"
+      },
+      "page": "pages/intelligence/rbi-payments-vision-2028.html",
+      "sourceRefs": ["source:rbi"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:india" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:rbi-payments-vision-2028" },
+        { "type": "SOURCE", "target": "source:rbi" }
+      ]
+    },
+    {
+      "id": "source:mas-sg",
+      "contentType": "SOURCE",
+      "title": "Monetary Authority of Singapore (MAS)",
+      "slug": "mas-sg",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "mas-sg"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:mas-paynow-gen2-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "MAS and ABS chart PayNow 'Generation 2' instant payment enhancements",
+      "slug": "mas-paynow-gen2-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mas-paynow-gen2-2026"
+      },
+      "page": "pages/intelligence/mas-paynow-gen2-2026.html",
+      "sourceRefs": ["source:mas-sg"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:singapore" },
+        { "type": "SOURCE", "target": "source:mas-sg" },
+        { "type": "INTELLIGENCE", "target": "intelligence:mas-paynow-gen2-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:mas-paynow-gen2-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "MAS and ABS chart PayNow 'Generation 2' instant payment enhancements",
+      "slug": "mas-paynow-gen2-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mas-paynow-gen2-2026"
+      },
+      "page": "pages/intelligence/mas-paynow-gen2-2026.html",
+      "sourceRefs": ["source:mas-sg"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:singapore" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:mas-paynow-gen2-2026" },
+        { "type": "SOURCE", "target": "source:mas-sg" }
+      ]
     }
   ]
 }

@@ -584,3 +584,51 @@ reliable prompt-level record, that fact is stated rather than inferred.
   first registry indexing batch are complete, while broad content-factory
   migration remains outstanding.
 - **Commit:** To be recorded after final validation.
+
+## Prompt 23A — GPIR Production Content Factory + First Intelligence Batch
+
+- **Prompt ID:** PROMPT-23A.
+- **Date:** 2026-09-05.
+- **Starting commit:** `c333b782c3075b8749a8a54672f2ec2cf48cf0bb`.
+- **Production URL:** `https://krishnan-vishal.github.io/`.
+- **Objective:** Begin controlled production content development by
+  reconciling existing source-backed intelligence records into the canonical
+  registry without changing the live static presentation architecture.
+- **Tasks completed:** Audited the content model, registry, source registry,
+  announcements, country datasets, published routes, search index, dashboard
+  presentation and M-18/M-19 state. Added source, announcement and intelligence
+  registry identities for SAMA licensing, RBI Payments Vision 2028 and MAS/ABS
+  PayNow Generation 2. Each new identity resolves to an existing trusted source,
+  existing announcement record and existing generated intelligence page.
+- **Tasks not completed:** No new prose, source records, facts, volumes,
+  dashboard metadata, search-index migration, runtime consumer, browser QA,
+  freshness-language rewrite, M-18 ticker fix or M-19 integration was performed.
+  Remaining classified announcements were deferred for later deterministic
+  indexing.
+- **Content records added:** Nine registry records: three sources, three
+  announcements and three intelligence presentation identities.
+- **Registry changes:** Registry increased from 10 to 19 records; no existing
+  IDs were changed and no coming-soon record was activated.
+- **Source changes:** No trusted-source records changed; new registry source
+  identities reference existing SPA, RBI and MAS entries.
+- **Evidence changes:** No substantive evidence was rewritten; existing source
+  URLs, publication dates and retrieval dates remain authoritative in
+  `announcements.json`.
+- **Search changes:** None.
+- **Dashboard changes:** None; metadata gaps remain documented by the content
+  model.
+- **Trust-language changes:** None; unsupported freshness wording remains a
+  separate controlled follow-up.
+- **Validation:** Content validation passed for 10 announcements, 8 trusted
+  sources and 19 registry records. Full repository checks and live HTTP checks
+  are required before final release reporting.
+- **Browser verification:** Not claimed unless browser automation is available.
+- **Known limitations:** The registry remains build-time only; no runtime
+  consumer or generated registry-driven page factory exists. Source trust is a
+  static domain allowlist, not external fact verification.
+- **Next recommended batch:** Deterministically index the remaining existing
+  classified announcement/intelligence pairs after route and source-reference
+  parity checks, then evaluate a separate search-index extension.
+- **Milestone status:** M-23A PARTIAL pending final validation, push and live
+  verification.
+- **Final commit:** To be recorded after validation.

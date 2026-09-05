@@ -109,12 +109,13 @@ to be populated: `COUNTRY`, `REGION`, `ENTITY`, `REGULATOR`, `LICENCE`,
 `RESEARCH`, `INTELLIGENCE`, `ANNOUNCEMENT` and `SOURCE`.
 
 The current pilot indexes five existing active countries (United Arab Emirates,
-India, Saudi Arabia, Qatar and Singapore), their regions, the CBUAE source, and
-one existing announcement plus its generated intelligence page. Announcement
-and intelligence entries may point to the same canonical announcement record
-because they represent two existing presentation surfaces, not duplicated
-substantive content. Countries are added to the registry only when both the
-structured directory record and the published page already exist.
+India, Saudi Arabia, Qatar and Singapore), their regions, four verified source
+identities (CBUAE, SPA, RBI and MAS), and four source-backed announcement and
+intelligence pairs. Announcement and intelligence entries may point to the same
+canonical announcement record because they represent two existing presentation
+surfaces, not duplicated substantive content. Countries are added to the
+registry only when both the structured directory record and the published page
+already exist.
 
 The registry is currently a validated build-time catalog. Runtime pages do not
 load it globally, so the pilot adds no initial page payload. A future

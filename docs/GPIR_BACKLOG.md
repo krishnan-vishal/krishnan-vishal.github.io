@@ -22,6 +22,12 @@ The Prompt 22A foundation increment adds a validated shared vocabulary in
 pages in the canonical registry. It does not migrate page prose, dashboards or
 coming-soon records.
 
+Prompt 23A adds source, announcement and intelligence registry identities for
+three existing classified records: SAMA licensing, RBI Payments Vision 2028
+and MAS/ABS PayNow Generation 2. The records resolve to existing trusted-source
+entries, announcement records and generated intelligence pages; no new facts or
+pages were created.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |

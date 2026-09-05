@@ -23,6 +23,9 @@
 - Build-time GPIR content-factory contract defining shared content types,
   evidence classifications, provenance fields, readiness states,
   reconciliation states and future dashboard metadata.
+- First source-backed registry batch indexed for SAMA licensing, RBI Payments
+  Vision 2028 and MAS/ABS PayNow Generation 2; existing announcement records
+  and generated intelligence routes remain the substantive content source.
 - Registry validation for IDs, types, slugs, source references, relationships
   and page targets.
 - Least-privilege GitHub Actions security/integrity workflow.
@@ -40,6 +43,8 @@
 - Use `assets/data/content-model.json` as the shared contract for the first
   structured content batches; no placeholder record is publishable without
   evidence and review state.
+- Extend the canonical registry with the remaining existing classified
+  announcements only when source identities and generated routes resolve.
 - Extend the page generator to consume registry records only after a second
   pilot proves parity with existing country/intelligence pages.
 - Improve repository search only after measured need and within current
