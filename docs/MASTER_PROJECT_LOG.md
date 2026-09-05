@@ -638,3 +638,51 @@ reliable prompt-level record, that fact is stated rather than inferred.
   returned HTTP 200 on `krishnan-vishal.github.io`. The live registry matched
   the implementation commit and contained all nine new registry identities.
 - **Browser verification:** Not claimed; browser automation was unavailable.
+
+## Prompt 24A — GPIR AI Reader Experience + Existing Utility Activation
+
+- **Prompt ID:** PROMPT-24A.
+- **Date:** 2026-09-05.
+- **Starting commit:** `573641fea15d9472b5639fbb1faa2b4826317dc3`.
+- **Production URL:** `https://krishnan-vishal.github.io/`.
+- **Objective:** Activate existing search and structured content as a safe,
+  local-first reader assistant without adding a model, external AI service or
+  new content.
+- **Existing utilities audited:** Homepage search overlay and lazy search
+  index, announcement intelligence panel, source-trust display, dashboard
+  lightbox, world map, country/region directories, generated intelligence
+  pages, legal pages, i18n and existing keyboard/reduced-motion utilities.
+- **Existing content activated:** The existing search index and canonical
+  content registry are now available through an ASK GPIR mode. Active country
+  coverage is retrieved from the registry, and current-page explanation uses
+  existing headings only.
+- **Search changes:** None to the index or scoring model. ASK GPIR reuses
+  `GPIRContentSearch` and preserves lazy loading.
+- **ASK GPIR implementation:** Added a progressive-enhancement mode inside
+  the existing search dialog with deterministic intent handling for coverage,
+  current-page explanation and indexed-content retrieval.
+- **Explain-this implementation:** “Explain this page” lists headings from
+  the current page and explicitly labels the result as a structural guide,
+  not a generated factual summary.
+- **Related-content implementation:** No new relationship inference was added;
+  retrieved search results remain the only related-content path in this task.
+- **Source/evidence explorer:** Existing intelligence source/evidence panels
+  remain authoritative; ASK GPIR does not rewrite or reinterpret provenance.
+- **Dashboard enhancements:** None; existing dashboard/lightbox behavior was
+  preserved because structured dashboard metadata is not yet available.
+- **AI architecture:** No actual AI model was used. Processing is local and
+  deterministic, with existing static JSON retrieval. No external calls, API
+  keys or secrets were added.
+- **Privacy/security:** Reader queries remain in the page interaction only;
+  no query storage, account, tracking or external submission was introduced.
+- **Performance:** The assistant adds no dependency and reuses the existing
+  lazy search-index load. Registry loading occurs only for the coverage intent.
+- **Tasks not completed:** No generative model, source summarization, broad
+  search taxonomy migration, dashboard metadata migration, browser QA, ticker
+  change, M-19 integration or new content was implemented.
+- **Validation:** Final repository validation and live HTTP verification are
+  required before recording the implementation and final commit.
+- **Browser verification:** Not claimed unless browser automation is available.
+- **Known limitations:** Deterministic intent matching is deliberately narrow;
+  ASK GPIR is an AI-ready reader tool, not a generative chatbot and does not
+  independently verify external facts.

@@ -47,6 +47,8 @@ function initializeWebsite(){
 
     safeInit(initializeSearch);
 
+    safeInit(initializeReaderAssistant);
+
     safeInit(initializeFloatingBackToTop);
 
     safeInit(initializeReadingProgress);
@@ -1325,6 +1327,157 @@ function initializeSearch(){
 
         renderResults(navMatches, contentResult, query);
 
+    });
+
+}
+
+/*=====================================================
+  ASK GPIR READER ASSISTANT
+
+  This is a deterministic retrieval layer, not a generative AI service.
+  It reuses the existing search index and canonical registry, and falls
+  back to headings already present on the current page for explanations.
+=====================================================*/
+
+function initializeReaderAssistant(){
+
+    const overlay = document.getElementById("search-overlay");
+    const panel = overlay && overlay.querySelector(".search-panel");
+    const input = document.getElementById("search-input");
+    const results = document.getElementById("search-results");
+
+    if(!overlay || !panel || !input || !results) return;
+
+    const assistant = document.createElement("section");
+    assistant.className = "gpir-assistant";
+    assistant.hidden = true;
+    assistant.setAttribute("aria-labelledby", "gpir-assistant-title");
+    assistant.innerHTML = `
+        <div class="gpir-assistant-header">
+            <div>
+                <p class="gpir-assistant-kicker">AI-ready reader tool</p>
+                <h2 id="gpir-assistant-title">ASK GPIR</h2>
+            </div>
+            <button type="button" class="gpir-assistant-close" aria-label="Close ASK GPIR">Close</button>
+        </div>
+        <p class="gpir-assistant-note">Local retrieval from published GPIR content. Sources remain authoritative.</p>
+        <div class="gpir-assistant-actions">
+            <button type="button" data-gpir-assistant-example="What countries are currently covered?">Coverage</button>
+            <button type="button" data-gpir-assistant-example="Explain this page">Explain this page</button>
+        </div>
+        <div class="gpir-assistant-answer" aria-live="polite"></div>
+    `;
+
+    const searchHeader = panel.querySelector(".search-panel-header");
+    if(!searchHeader) return;
+
+    const askButton = document.createElement("button");
+    askButton.type = "button";
+    askButton.className = "gpir-assistant-trigger";
+    askButton.textContent = "ASK GPIR";
+    askButton.setAttribute("aria-expanded", "false");
+    askButton.setAttribute("aria-controls", "gpir-assistant");
+    searchHeader.appendChild(askButton);
+    assistant.id = "gpir-assistant";
+    panel.insertBefore(assistant, results);
+
+    const answer = assistant.querySelector(".gpir-assistant-answer");
+    const closeAssistant = () => {
+        assistant.hidden = true;
+        askButton.setAttribute("aria-expanded", "false");
+        askButton.focus();
+    };
+
+    const script = document.querySelector('script[src*="assets/js/script.js"]');
+    const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
+    const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
+    let registryPromise = null;
+
+    const loadRegistry = () => {
+        if(registryPromise) return registryPromise;
+        registryPromise = fetch(dataPrefix + "content-registry.json")
+            .then(response => { if(!response.ok) throw new Error("registry unavailable"); return response.json(); });
+        return registryPromise;
+    };
+
+    const escape = (value) => {
+        const div = document.createElement("div");
+        div.textContent = value == null ? "" : String(value);
+        return div.innerHTML;
+    };
+
+    const resultLinks = (items) => items.map(item => `
+        <li><a href="${escape(item.href)}">${escape(item.title)}</a>${item.meta ? `<small>${escape(item.meta)}</small>` : ""}</li>
+    `).join("");
+
+    const explainCurrentPage = () => {
+        const title = document.querySelector("h1")?.textContent.trim() || document.title;
+        const headings = Array.from(document.querySelectorAll("main h2, main h3, .chapter-content h2, .chapter-content h3"))
+            .map(heading => heading.textContent.trim())
+            .filter(Boolean)
+            .slice(0, 6);
+        const sections = headings.length ? `<ul>${headings.map(heading => `<li>${escape(heading)}</li>`).join("")}</ul>` : "<p>No structured section headings were found on this page.</p>";
+        answer.innerHTML = `<h3>${escape(title)}</h3><p>This page contains the following published sections:</p>${sections}<p class="gpir-assistant-source-note">This explanation is assembled from the current page headings; it is not a generated factual summary.</p>`;
+    };
+
+    const answerQuery = (query) => {
+        const normalized = query.trim().toLowerCase();
+        if(!normalized) return;
+        answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
+
+        if(normalized.includes("explain this") || normalized.includes("summarize this")){
+            explainCurrentPage();
+            return;
+        }
+
+        if(normalized.includes("what countries") || normalized.includes("countries covered")){
+            loadRegistry().then(data => {
+                const countries = (data.records || [])
+                    .filter(record => record.contentType === "COUNTRY" && record.status === "active")
+                    .map(record => ({ title: record.title, href: record.page, meta: "Active country page" }));
+                answer.innerHTML = countries.length
+                    ? `<h3>Active GPIR country coverage</h3><ul>${resultLinks(countries)}</ul><p class="gpir-assistant-source-note">Coverage is read from the canonical content registry.</p>`
+                    : "<p>No active country records are currently indexed.</p>";
+            }).catch(() => { answer.innerHTML = "<p>The canonical content registry is temporarily unavailable.</p>"; });
+            return;
+        }
+
+        if(!window.GPIRContentSearch){
+            answer.innerHTML = "<p>Published content search is unavailable on this page.</p>";
+            return;
+        }
+
+        window.GPIRContentSearch.load().then(() => {
+            const found = window.GPIRContentSearch.search(query, { limit: 6 });
+            if(!found.results.length){
+                answer.innerHTML = `<p>No published GPIR content matched <strong>${escape(query)}</strong>.</p>`;
+                return;
+            }
+            const items = found.results.map(result => ({
+                title: result.pageTitle + (result.sectionTitle && result.sectionTitle !== result.pageTitle ? " — " + result.sectionTitle : ""),
+                href: result.href,
+                meta: [result.type, result.category, result.country].filter(Boolean).join(" · ")
+            }));
+            answer.innerHTML = `<h3>Published GPIR matches</h3><ul>${resultLinks(items)}</ul><p class="gpir-assistant-source-note">Results are retrieved from the static GPIR search index.</p>`;
+        }).catch(() => { answer.innerHTML = "<p>Published content search is temporarily unavailable.</p>"; });
+    };
+
+    askButton.addEventListener("click", () => {
+        assistant.hidden = !assistant.hidden;
+        askButton.setAttribute("aria-expanded", String(!assistant.hidden));
+        if(!assistant.hidden) assistant.querySelector("[data-gpir-assistant-example]")?.focus();
+    });
+
+    assistant.querySelector(".gpir-assistant-close").addEventListener("click", closeAssistant);
+    assistant.querySelectorAll("[data-gpir-assistant-example]").forEach(button => {
+        button.addEventListener("click", () => answerQuery(button.getAttribute("data-gpir-assistant-example")));
+    });
+
+    input.addEventListener("keydown", (event) => {
+        if(event.key === "Enter" && !event.shiftKey && !assistant.hidden){
+            event.preventDefault();
+            answerQuery(input.value);
+        }
     });
 
 }

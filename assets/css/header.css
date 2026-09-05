@@ -590,6 +590,111 @@ nav li{
     height:16px;
 }
 
+.gpir-assistant-trigger{
+    margin-left:auto;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--primary);
+    padding:8px 12px;
+    border-radius:6px;
+    font:inherit;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.04em;
+}
+
+.gpir-assistant-trigger:focus-visible,
+.gpir-assistant-trigger:hover{
+    border-color:var(--accent);
+}
+
+.gpir-assistant{
+    border-bottom:1px solid var(--border);
+    padding:16px 0 18px;
+}
+
+.gpir-assistant[hidden]{
+    display:none;
+}
+
+.gpir-assistant-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+}
+
+.gpir-assistant-kicker,
+.gpir-assistant-note,
+.gpir-assistant-source-note{
+    margin:0;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.gpir-assistant-kicker{
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+}
+
+.gpir-assistant h2,
+.gpir-assistant h3{
+    margin:4px 0 8px;
+    color:var(--primary);
+}
+
+.gpir-assistant h2{
+    font-size:20px;
+}
+
+.gpir-assistant h3{
+    font-size:16px;
+}
+
+.gpir-assistant-close,
+.gpir-assistant-actions button{
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--primary);
+    border-radius:6px;
+    padding:7px 10px;
+    font:inherit;
+    font-size:12px;
+}
+
+.gpir-assistant-close:hover,
+.gpir-assistant-close:focus-visible,
+.gpir-assistant-actions button:hover,
+.gpir-assistant-actions button:focus-visible{
+    border-color:var(--accent);
+}
+
+.gpir-assistant-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:14px 0;
+}
+
+.gpir-assistant-answer ul{
+    display:grid;
+    gap:8px;
+    margin:10px 0 14px;
+    padding-left:18px;
+}
+
+.gpir-assistant-answer li small{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.gpir-assistant-answer a{
+    color:var(--link);
+    font-weight:600;
+}
+
 .search-panel-close:hover{
 
     background:#F7F9FC;

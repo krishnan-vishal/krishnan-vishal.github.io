@@ -28,6 +28,12 @@ and MAS/ABS PayNow Generation 2. The records resolve to existing trusted-source
 entries, announcement records and generated intelligence pages; no new facts or
 pages were created.
 
+Prompt 24A adds a deterministic ASK GPIR reader mode to the existing search
+dialog. It uses the static search index, canonical registry and current-page
+headings only. It is not a generative AI service, stores no queries and makes no
+external model calls. Broader intent coverage, source/evidence expansion and
+dashboard controls remain future work.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
