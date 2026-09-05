@@ -5,7 +5,7 @@
 **Current Prompt:** PROMPT-24A — GPIR AI Reader Experience + Existing Utility Activation
 **Current Milestone:** M-24A — GPIR Reader Experience (PARTIAL)
 **Last Completed Prompt:** PROMPT-23A controlled registry batch
-**Last Verified Commit:** `573641fea15d9472b5639fbb1faa2b4826317dc3`
+**Last Verified Commit:** `4f3a76322baa200c56b9aa88199559f236de780b`
 **Current Development Status:** ASK GPIR deterministic retrieval has been added to the existing search dialog; no external AI model or service is used.
 
 ## COMPLETED

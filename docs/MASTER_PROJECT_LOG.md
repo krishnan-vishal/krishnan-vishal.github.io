@@ -686,3 +686,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Known limitations:** Deterministic intent matching is deliberately narrow;
   ASK GPIR is an AI-ready reader tool, not a generative chatbot and does not
   independently verify external facts.
+- **Implementation commit:** `4f3a76322baa200c56b9aa88199559f236de780b`.
+- **Live verification:** Homepage, representative country/intelligence/legal
+  routes, CSS, JavaScript, search index, announcements and content registry
+  returned HTTP 200 on `krishnan-vishal.github.io`; final URLs did not contain
+  `fintechosis.com`. Deployed markers for ASK GPIR, Explain this page and the
+  assistant CSS were present.
+- **Browser verification:** BROWSER QA NOT AVAILABLE; no browser runtime was
+  present, so no interactive, console, responsive or accessibility claim is
+  made.
+- **Final status:** M-24A PARTIAL; deterministic reader assistance is live,
+  while generative AI, broader relationship tooling and browser QA remain
+  future work.
