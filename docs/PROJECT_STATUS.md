@@ -2,11 +2,14 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-26B — Publicly Connected Intelligence Repository
-**Current Milestone:** M-26B — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
-**Last Completed Prompt:** M-26A public repository activation and M-25E dashboard library activation
-**Last Verified Commit:** `07bab9d016aebe4ac06a218db96c461d3d239267`
-**Current Development Status:** M-26B completes the connected-public-reader
+**Current Prompt:** M-27A.1 — Navigation Hierarchy & Dashboard Gallery Release
+**Current Milestone:** M-27A.1 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
+**Last Completed Prompt:** M-27A.1 navigation hierarchy and dashboard gallery release
+**Last Verified Commit:** To be recorded after the M-27A.1 push
+**Current Development Status:** M-27A.1 completes the canonical geographic
+navigation and registry-driven Dashboard Gallery release using existing assets
+only. The Dashboard Gallery is a presentation/view layer and does not create a
+parallel country hierarchy. M-26B completes the connected-public-reader
 release using the existing canonical registry and live route structure. The
 public site now cross-links Country → Region, Country → Dashboard, Country →
 Related GPIR records, Region → Country and Region → Dashboard availability
@@ -91,6 +94,29 @@ added.
 includes all registry content, ✓ All assets consumed, ✓ No new content created.
 **M-27A Deferred:** Additional regional coverage, source/evidence full feature
 set, historical editions, browser QA, custom domain.
+
+**M-27A.1 Status:** IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED.
+**M-27A.1 Starting SHA:** `2eb7ffa6ccbac76b02e650af4ed9ff03b5b206c9`.
+**M-27A.1 Objective:** Preserve Global -> Region -> Country while making the
+Dashboard Gallery consume existing registry relationships as a view layer.
+**M-27A.1 Implementation:** Existing dashboard identities resolve through
+Dashboard -> Country -> Region using existing metadata, narratives, image
+assets and routes. No new research content was introduced.
+**M-27A.1 Validation:** Both runtime scripts, link validation, content
+validation, registry relationship checks and `git diff --check` passed.
+**M-27A.1 Live HTTP:** Pending push verification for homepage, country page,
+region page, dashboard metadata, narratives, gallery script, main script and
+CSS.
+**M-27A.1 Achieved:** Navigation alignment, registry-driven gallery and
+asset/route preservation.
+**M-27A.1 Partial:** Browser QA remains NOT VERIFIED because browser tooling is
+unavailable.
+**M-27A.1 Deferred:** Custom domain; M-18; M-19; new research and future
+coverage.
+**M-27A.1 Not yet added / to do:** No new content was added; browser QA is the
+remaining release verification task.
+**M-27A.1 Next milestone:** Future governed reader validation or coverage
+expansion under separate authorization.
 
 ## COMPLETED
 

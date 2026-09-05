@@ -51,6 +51,8 @@ function initializeWebsite(){
 
     safeInit(initializeReaderAssistant);
 
+    safeInit(initializeDashboardGallery);
+
     safeInit(initializeDashboardReader);
 
     safeInit(initializeDashboardNarrative);

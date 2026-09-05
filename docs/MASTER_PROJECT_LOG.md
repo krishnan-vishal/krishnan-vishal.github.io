@@ -1720,3 +1720,40 @@ and browser QA remain outstanding.
 - **M-18 status:** OPEN.
 - **M-19 status:** OPEN.
 - **Final commit SHA:** To be recorded after git push with message "M-27A: Align current assets for public consumption".
+
+## M-27A.1 — Navigation Hierarchy & Dashboard Gallery Release
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `2eb7ffa6ccbac76b02e650af4ed9ff03b5b206c9`.
+- **Objective:** Align live navigation and the Dashboard Gallery with the
+  canonical `GLOBAL -> REGION -> COUNTRY -> DASHBOARD / INTELLIGENCE /
+  HISTORICAL` hierarchy without adding content or changing dashboard research.
+- **Implementation:** Regions are the geographic entry point in the Markets
+  menu. The Dashboard Gallery is a registry-driven presentation/view layer over
+  existing dashboard-country-region relationships.
+- **Files changed:** `index.html`, `assets/js/script.js`,
+  `assets/js/generate-dashboard-gallery.js`, `assets/i18n/*.json`,
+  `docs/MASTER_PROJECT_LOG.md`, `docs/PROJECT_STATUS.md` and
+  `docs/GPIR_BACKLOG.md`.
+- **Hierarchy verification:** `dashboard:uae`, `dashboard:ksa`,
+  `dashboard:qatar`, `dashboard:india` and `dashboard:singapore` each resolve
+  through `Dashboard -> Country -> Region`.
+- **Preservation verification:** Existing dashboard IDs, metadata, narratives,
+  image assets, routes, countries, regions and historical assets were retained;
+  no parallel country hierarchy or new registry record was created.
+- **Validation:** JavaScript syntax, internal links, content validation,
+  registry relationship checks and `git diff --check` passed.
+- **Live HTTP verification:** To be recorded after push for the homepage,
+  country page, region page, dashboard metadata, narratives, gallery script,
+  main script and CSS resources.
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
+- **Research scope:** No new research content was introduced.
+- **Achieved:** Canonical navigation and registry-driven gallery are locally
+  validated.
+- **Partial:** Browser-level rendering and interaction verification is pending.
+- **Deferred:** Custom domain, M-18, M-19 and broader future coverage.
+- **Not yet added / to do:** No new countries, dashboards, research or
+  historical editions; browser QA remains outstanding.
+- **Next milestone:** Future governed reader validation or coverage expansion
+  under separate authorization.
