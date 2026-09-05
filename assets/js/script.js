@@ -49,6 +49,8 @@ function initializeWebsite(){
 
     safeInit(initializeReaderAssistant);
 
+    safeInit(initializeDashboardReader);
+
     safeInit(initializeFloatingBackToTop);
 
     safeInit(initializeReadingProgress);
@@ -1555,6 +1557,18 @@ function initializeReaderAssistant(){
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
 
+        if(normalized.includes("dashboard") && (normalized.includes("explain") || normalized.includes("details") || normalized.includes("methodology") || normalized.includes("period") || normalized.includes("country") || normalized.includes("direction") || normalized.includes("use case"))){
+            const dashboardId = window.location.hash.match(/^#(dashboard-[a-z-]+)$/)?.[1] || document.activeElement?.closest?.(".dashboard-card")?.id;
+            const record = (window.GPIRDashboardMetadata || []).find(item => item.dashboardId === dashboardId) || (window.GPIRDashboardMetadata || [])[0];
+            if(!record){
+                answer.innerHTML = "<p>No structured dashboard metadata is available on this page.</p>";
+                return;
+            }
+            const unavailable = "Not available in existing dashboard metadata";
+            answer.innerHTML = `<h3>${dashboardReaderEscape(record.title)} dashboard</h3><dl class="gpir-assistant-dashboard-details"><dt>Country</dt><dd>${dashboardReaderEscape(record.country || unavailable)}</dd><dt>Region</dt><dd>${dashboardReaderEscape(record.region || unavailable)}</dd><dt>Period</dt><dd>${dashboardReaderEscape(record.period || unavailable)}</dd><dt>Direction</dt><dd>${dashboardReaderEscape(record.direction || unavailable)}</dd><dt>Use case</dt><dd>${dashboardReaderEscape(record.useCase || unavailable)}</dd><dt>Metric</dt><dd>${dashboardReaderEscape(record.metric || unavailable)}</dd><dt>Source</dt><dd>${dashboardReaderEscape(record.source || unavailable)}</dd><dt>Methodology</dt><dd>${dashboardReaderEscape(record.methodology || "Methodology not available in existing dashboard metadata")}</dd></dl><p class="gpir-assistant-source-note">This dashboard reader exposes existing metadata only; it does not infer missing values.</p>`;
+            return;
+        }
+
         if(normalized.includes("explain this") || normalized.includes("summarize this")){
             explainCurrentPage();
             return;
@@ -1648,6 +1662,66 @@ function initializeReaderAssistant(){
         }
     });
 
+}
+
+/*=====================================================
+  STRUCTURED DASHBOARD READER
+
+  Reads only the dashboard metadata extracted from existing homepage cards.
+  Null fields remain explicitly unavailable; no dashboard values are inferred.
+=====================================================*/
+
+function initializeDashboardReader(){
+
+    const cards = document.querySelectorAll(".dashboard-card[id]");
+    if(!cards.length) return;
+
+    const script = document.querySelector('script[src*="assets/js/script.js"]');
+    const src = script ? script.getAttribute("src") : "assets/js/script.js";
+    const dataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/dashboard-metadata.json");
+
+    fetch(dataUrl)
+        .then(response => { if(!response.ok) throw new Error("dashboard metadata unavailable"); return response.json(); })
+        .then(data => {
+            window.GPIRDashboardMetadata = data.records || [];
+            const byId = new Map((data.records || []).map(record => [record.dashboardId, record]));
+            cards.forEach(card => {
+                const record = byId.get(card.id);
+                if(!record) return;
+
+                const details = document.createElement("details");
+                details.className = "dashboard-reader-details";
+                details.innerHTML = `
+                    <summary>Dashboard details</summary>
+                    <dl>
+                        <dt>Country</dt><dd>${dashboardReaderEscape(record.country)}</dd>
+                        <dt>Region</dt><dd>${dashboardReaderEscape(record.region)}</dd>
+                        <dt>Edition</dt><dd>${dashboardReaderEscape(record.edition)}</dd>
+                        <dt>Status</dt><dd>${dashboardReaderEscape(record.status)}</dd>
+                        <dt>Period</dt><dd>${dashboardReaderEscape(record.period || "Not available in existing dashboard metadata")}</dd>
+                        <dt>Direction</dt><dd>${dashboardReaderEscape(record.direction || "Not available in existing dashboard metadata")}</dd>
+                        <dt>Use case</dt><dd>${dashboardReaderEscape(record.useCase || "Not available in existing dashboard metadata")}</dd>
+                        <dt>Metric / unit</dt><dd>${dashboardReaderEscape(record.metric || "Not available in existing dashboard metadata")} / ${dashboardReaderEscape(record.unit || "Not available in existing dashboard metadata")}</dd>
+                        <dt>Source</dt><dd>${dashboardReaderEscape(record.source || "Not available in existing dashboard metadata")}</dd>
+                        <dt>Methodology</dt><dd>${dashboardReaderEscape(record.methodology || "Methodology not available in existing dashboard metadata")}</dd>
+                        <dt>Disclaimer</dt><dd>${dashboardReaderEscape(record.disclaimer || "Disclaimer not available in existing dashboard metadata")}</dd>
+                    </dl>
+                    <p class="dashboard-reader-note">Only metadata already present in the dashboard card is shown. Missing fields are not inferred.</p>
+                `;
+                const content = card.querySelector(".dashboard-content");
+                if(content) content.appendChild(details);
+            });
+        })
+        .catch(() => {
+            // Existing dashboard cards remain fully usable when optional metadata fails.
+        });
+
+}
+
+function dashboardReaderEscape(value){
+    const div = document.createElement("div");
+    div.textContent = value == null ? "" : String(value);
+    return div.innerHTML;
 }
 
 /*=====================================================

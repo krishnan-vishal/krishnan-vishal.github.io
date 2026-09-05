@@ -163,6 +163,54 @@
     box-shadow:var(--shadow-lg);
 }
 
+.dashboard-reader-details{
+    margin-top:18px;
+    border-top:1px solid var(--border);
+    padding-top:12px;
+}
+
+.dashboard-reader-details summary{
+    cursor:pointer;
+    color:var(--color-primary);
+    font-weight:700;
+}
+
+.dashboard-reader-details dl{
+    display:grid;
+    grid-template-columns:minmax(110px,.7fr) minmax(0,1.3fr);
+    gap:6px 12px;
+    margin:14px 0 8px;
+    font-size:.86rem;
+}
+
+.dashboard-reader-details dt{
+    color:var(--text-muted);
+    font-weight:700;
+}
+
+.dashboard-reader-details dd{
+    margin:0;
+    color:var(--text-body);
+}
+
+.dashboard-reader-note{
+    margin:10px 0 0;
+    color:var(--text-muted);
+    font-size:.78rem;
+    line-height:1.5;
+}
+
+@media (max-width:560px){
+    .dashboard-reader-details dl{
+        grid-template-columns:1fr;
+        gap:3px;
+    }
+
+    .dashboard-reader-details dd{
+        margin-bottom:7px;
+    }
+}
+
 /*=====================================================
   FEATURED CARD
 ======================================================*/

@@ -16,6 +16,7 @@ const announcementsPath = path.join(DATA_DIR, "announcements.json");
 const sourcesPath = path.join(DATA_DIR, "trusted-sources.json");
 const registryPath = path.join(DATA_DIR, "content-registry.json");
 const modelPath = path.join(DATA_DIR, "content-model.json");
+const dashboardPath = path.join(DATA_DIR, "dashboard-metadata.json");
 
 const errors = [];
 const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOURCE_VERIFICATION_REQUIRED"]);
@@ -58,6 +59,7 @@ const announcements = readJson(announcementsPath);
 const sourceData = readJson(sourcesPath);
 const registryData = readJson(registryPath);
 const contentModel = readJson(modelPath);
+const dashboardData = readJson(dashboardPath);
 const records = Array.isArray(announcements.records) ? announcements.records : [];
 const registry = Array.isArray(sourceData.registry) ? sourceData.registry : [];
 const sourceRegistryIds = new Set();
@@ -85,6 +87,21 @@ validateEnumList(contentModel.dashboardMetadataFields, "content-model.dashboardM
 if(!contentModel.recordRules || typeof contentModel.recordRules !== "object"){
     errors.push("content-model.recordRules: expected an object");
 }
+
+const dashboardRecords = Array.isArray(dashboardData.records) ? dashboardData.records : [];
+const dashboardIds = new Set();
+dashboardRecords.forEach((dashboard, index) => {
+    const label = `dashboard-metadata.records[${index}]`;
+    requiredString(dashboard.dashboardId, `${label}.dashboardId`);
+    if(dashboardIds.has(dashboard.dashboardId)) errors.push(`${label}.dashboardId: duplicate value (${dashboard.dashboardId})`);
+    dashboardIds.add(dashboard.dashboardId);
+    ["title", "country", "region", "edition", "status", "description", "imagePath", "pagePath"].forEach(field => requiredString(dashboard[field], `${label}.${field}`));
+    ["period", "direction", "useCase", "metric", "unit", "source", "methodology", "disclaimer"].forEach(field => {
+        if(dashboard[field] !== null) requiredString(dashboard[field], `${label}.${field}`);
+    });
+    repositoryFileExists(dashboard.imagePath, `${label}.imagePath`);
+    repositoryFileExists(dashboard.pagePath, `${label}.pagePath`);
+});
 
 registry.forEach((source, index) => {
     const label = `trusted-sources.registry[${index}]`;
