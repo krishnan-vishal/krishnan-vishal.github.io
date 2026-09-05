@@ -53,6 +53,35 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Next possible milestone:** Browser-verified dashboard reader QA and a
   separately authorised decision on the empty dashboard route placeholders.
 
+## M-25E.2 — Production Promotion & Closure
+
+- **Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`.
+- **Objective:** Promote the implemented M-25E changes without adding
+  features, research or dashboard artwork, then record the production result.
+- **M-25E.1 control:** Reconciliation remains clear: 123 dashboard assets
+  exist locally and in `origin/main`; no local-only, origin-only or history-
+  only dashboard assets were found. The additional named country references
+  remain absent from Git and were not added.
+- **Validation:** Content, link, JavaScript syntax, JSON relationship/path,
+  duplicate registry ID and `git diff --check` validation passed. The
+  performance audit passed with three pre-existing advisory warnings.
+- **Security:** No API key, secret, external LLM, backend, database,
+  telemetry, query storage, analytics or new dependency was introduced.
+- **Promotion:** Commit `07bab9d016aebe4ac06a218db96c461d3d239267` was created
+  with the requested message and pushed to `origin/main`; local HEAD and
+  `origin/main` matched after push.
+- **Live verification:** Required pages and the representative dashboard image
+  returned HTTP 200. The production `dashboard-narratives.json` URL returned
+  a cached HTTP 404 although the committed file and raw GitHub `main` URL
+  return HTTP 200, indicating a Pages propagation/configuration gap.
+- **Browser QA:** `BROWSER QA NOT AVAILABLE / NOT VERIFIED`.
+- **Status:** M-25E implementation achieved and promoted; production closure
+  remains partial until the Pages narrative JSON URL serves successfully.
+  M-18 and M-19 remain open and custom-domain configuration was untouched.
+- **Next milestone:** Resolve Pages deployment freshness/configuration, rerun
+  live verification, then perform browser-enabled reader QA if tooling becomes
+  available.
+
 ### Prompt history before Prompt 09
 
 - **Prompt ID:** Not available in repository record.

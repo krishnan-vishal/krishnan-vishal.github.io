@@ -111,6 +111,13 @@ gaps and browser QA remain open.
 
 ## M-25E Outcome
 
+M-25E.2 promoted the existing dashboard library activation to `origin/main`
+in commit `07bab9d016aebe4ac06a218db96c461d3d239267`. Validation passed and
+the required production pages and representative image returned HTTP 200, but
+the production narrative JSON URL returned a cached HTTP 404 although the
+committed/raw file is available. Browser QA was unavailable, so production
+closure remains partial pending Pages verification.
+
 M-25E inventories the existing dashboard library and activates the five
 deterministically mapped country dashboards through the existing APAC and
 Middle East/GCC country directories and country pages. The implementation

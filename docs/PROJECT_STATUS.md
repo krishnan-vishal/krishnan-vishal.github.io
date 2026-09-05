@@ -5,7 +5,7 @@
 **Current Prompt:** M-25E — Existing Dashboard Library Activation & Regional Smart Narrative
 **Current Milestone:** M-25E — Existing Dashboard Library Activation & Regional Smart Narrative (PARTIAL)
 **Last Completed Prompt:** M-25C dashboard intelligence milestone
-**Last Verified Commit:** `e062bf22a532e033e27bfe6b7c09c166a7ce0883`
+**Last Verified Commit:** `07bab9d016aebe4ac06a218db96c461d3d239267`
 **Current Development Status:** M-25E implementation authorised from governance
 baseline `e062bf22a532e033e27bfe6b7c09c166a7ce0883` and completed for its
 current scope. The canonical registry now models a `DASHBOARD` content type
@@ -19,13 +19,22 @@ dashboard route architecture, region-record completion for Europe/SEPA, and
 browser QA remain outstanding. M-25E adds deterministic Smart Narratives for
 the five existing country dashboard identities and explicit availability labels
 in the APAC and Middle East/GCC directories; full validation, live verification
-and browser QA remain pending.
+and browser QA remain pending. M-25E.2 promoted the implementation to
+`origin/main`; required production pages and the representative dashboard
+image returned HTTP 200, while the production narrative JSON URL returned a
+cached HTTP 404 despite the committed/raw file being available.
 
 **M-25E Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`
-**M-25E Status:** PARTIAL — five existing country dashboard identities are
+**M-25E Status:** ACHIEVED for implementation and promotion; production closure
+is PARTIAL because the Pages narrative JSON URL returned HTTP 404 and browser
+QA was unavailable. Five existing country dashboard identities are
 activated with deterministic narratives; three migration publication families
 remain preserved but are not promoted to separate dashboard identities; no
 historical edition relationship was inferred.
+**M-25E.2 Commit:** `07bab9d016aebe4ac06a218db96c461d3d239267`
+**M-25E.1 Status:** RECONCILIATION CLEAR — 123 local/origin assets, no
+local-only or origin-only dashboard files, no history-only files, and absent
+screenshot references not added.
 
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are
