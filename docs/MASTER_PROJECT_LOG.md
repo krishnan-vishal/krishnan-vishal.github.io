@@ -698,3 +698,113 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Final status:** M-24A PARTIAL; deterministic reader assistance is live,
   while generative AI, broader relationship tooling and browser QA remain
   future work.
+
+## M-25A — Build Context-Aware GPIR Reader
+
+### Date
+05 September 2026
+
+### Starting Baseline
+`6ac73a99db9b8be205143f4ec9289d52791dfe43`
+
+### Objective
+Extend the deterministic ASK GPIR foundation into a context-aware reader that
+uses existing page context, validated registry relationships and existing source
+metadata without creating research content or calling an external AI service.
+
+### Strategic Decision
+**No new research content. Activate and enhance existing GPIR content and utilities.**
+
+### Existing Assets Used
+Existing ASK GPIR/search dialog, `GPIRContentSearch`, `content-registry.json`,
+`trusted-sources.json`, `announcements.json`, `content-model.json`, existing
+page routes, page headings, registry relationships and static source metadata.
+
+### Implementation
+Changed `assets/js/script.js` only for the application behavior. The assistant
+now loads existing registry, trusted-source and announcement data on demand,
+matches the current route to registry page records, traverses only validated
+relationships, exposes source metadata and supports “Explore this topic”.
+
+### Reader Capabilities Added
+- **ACHIEVED:** Current-page registry context where a published route is indexed.
+- **ACHIEVED:** “Explain this page” now includes existing headings, validated
+  related routes and available source metadata.
+- **ACHIEVED:** “Explore this topic” reuses the existing search index using the
+  current page title.
+- **ACHIEVED:** Coverage lookup remains registry-backed.
+- **PARTIALLY ACHIEVED:** Context is available only for records with a matching
+  registry page and existing relationships.
+
+### Source / Evidence
+**ACHIEVED:** Existing source name, publication title, source URL, publication
+date, retrieval date, content status and source verification date are surfaced
+when present. Missing metadata is labeled unavailable. No evidence was created
+or rewritten.
+
+### Related Content
+**ACHIEVED:** Related page links are traversed only from existing registry
+relationship targets with valid page routes. No lexical or inferred relation is
+created.
+
+### Dashboard Experience
+**DEFERRED:** Dashboard data and UI were not changed. No dashboard relationship
+or metadata was invented; dashboard improvements require structured metadata.
+
+### AI Architecture
+- Actual AI model: **NO**
+- Generative AI: **NO**
+- Deterministic retrieval: **YES**
+- External API: **NO**
+- API key: **NO**
+- Future AI readiness: **YES**, through the existing retrieval/context boundary;
+  a secure future model remains a separate architecture decision.
+
+### Security / Privacy
+No query storage, cookies, analytics, authentication, external submission,
+API keys or secrets were added. Reader processing remains browser-local and
+uses static repository data.
+
+### Validation
+Focused JavaScript syntax validation passed after each application edit. Full
+repository validation, JSON parsing, registry-reference checks, secret checks,
+diff review and live HTTP verification were run before final reporting.
+
+### Live Verification
+- Production URL: `https://krishnan-vishal.github.io/`
+- Homepage, representative country/intelligence/legal routes, dashboard asset,
+  CSS, JavaScript, registry, announcements and search index returned HTTP 200.
+- The deployed script matched the implementation commit byte-for-byte and
+  contained the context, related-content and source/evidence markers. Final
+  URLs did not contain `fintechosis.com`.
+- Final SHA: to be recorded after governance closure commit.
+- GitHub Pages remains operational.
+- `fintechosis.com` and CNAME configuration were untouched.
+
+### Browser QA
+**BROWSER QA NOT AVAILABLE.** No browser runtime was present; no interactive,
+responsive, console or accessibility claim is made.
+
+### ACHIEVEMENTS
+- Context-aware deterministic ASK GPIR route matching.
+- Registry-grounded related content.
+- Source-aware metadata and source URL exposure.
+- Existing-page structural explanation with explicit non-generative wording.
+- Existing search-based topic exploration.
+
+### NOT YET ADDED / TO DO
+- Full generative AI.
+- Advanced multi-hop relationship exploration.
+- Dedicated dashboard metadata and dashboard intelligence.
+- Browser QA and responsive interaction verification.
+- Broader source/evidence answer cards across all search result types.
+- M-18 ticker remediation and M-19 cross-stream reconciliation.
+
+### Known Risks / Limitations
+The assistant is deterministic and intent matching remains narrow. Registry
+coverage is incomplete, dashboard metadata is not consistently structured, and
+source trust remains a static allowlist rather than factual verification.
+
+### Next Recommended Milestone
+M-25B — Source-aware search result cards and validated multi-hop reader
+navigation, followed by browser-enabled QA when a browser runtime is available.

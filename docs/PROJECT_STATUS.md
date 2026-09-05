@@ -2,11 +2,15 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PROMPT-24A — GPIR AI Reader Experience + Existing Utility Activation
-**Current Milestone:** M-24A — GPIR Reader Experience (PARTIAL)
-**Last Completed Prompt:** PROMPT-23A controlled registry batch
+**Current Prompt:** M-25A — Build Context-Aware GPIR Reader
+**Current Milestone:** M-25A — Context-Aware GPIR Reader (PARTIAL)
+**Last Completed Prompt:** M-24A deterministic reader foundation
 **Last Verified Commit:** `4f3a76322baa200c56b9aa88199559f236de780b`
-**Current Development Status:** ASK GPIR deterministic retrieval has been added to the existing search dialog; no external AI model or service is used.
+**Current Development Status:** ASK GPIR now uses existing registry relationships and source metadata for context-aware deterministic reader assistance; browser QA and richer dashboard/source cards remain outstanding.
+
+**M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
+**M-25A Status:** PARTIAL — context-aware relationships and source metadata are
+live; browser QA, broader source cards and dashboard intelligence remain open.
 
 ## COMPLETED
 
@@ -29,6 +33,8 @@
 - Deterministic ASK GPIR reader tool added as a progressive enhancement to the
   existing search dialog; it retrieves indexed content, active country coverage
   and current-page headings without claiming generative AI.
+- Context-aware ASK GPIR extension added using current route matching, validated
+  registry relationships, existing source metadata and topic exploration.
 - Registry validation for IDs, types, slugs, source references, relationships
   and page targets.
 - Least-privilege GitHub Actions security/integrity workflow.
@@ -56,6 +62,8 @@
   templates and data.
 - Expand ASK GPIR intents only from existing structured records and preserve
   the no-external-AI/no-query-storage boundary.
+- Add browser-enabled QA before claiming interactive, responsive or accessibility
+  completion for M-25A.
 - Add low-cost governance/monitoring checks that reflect documented contracts.
 - Reconcile all known pending work before starting another implementation prompt.
 - Reconcile external pending work before authorizing the next implementation.

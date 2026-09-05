@@ -34,6 +34,12 @@ headings only. It is not a generative AI service, stores no queries and makes no
 external model calls. Broader intent coverage, source/evidence expansion and
 dashboard controls remain future work.
 
+M-25A extends that reader mode with route-aware registry context, validated
+related page links, source/provenance metadata and existing-page topic
+exploration. It does not create content, infer relationships, change dashboards
+or call an AI service. M-25A is PARTIAL until browser QA and the remaining
+source/dashboard reader surfaces are completed.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |
