@@ -897,3 +897,136 @@ Remain open.
 
 ### Recommended Next Milestone
 M-25C — Dashboard Intelligence / Structured Dashboard Reader.
+
+## M-25C — Dashboard Intelligence & Structured Dashboard Reader
+
+### Objective
+Structure and expose existing dashboard-card metadata without creating new
+statistics, sources, methodologies, dashboard pages or research claims.
+
+### Date
+05 September 2026
+
+### Starting SHA
+`a4da3c97efd6eee481cd1a2f982899a2990dc03e`
+
+### Previous milestone
+M-25B — Source-Aware Search Cards & Validated Multi-Hop Reader Navigation
+(PARTIALLY ACHIEVED).
+
+### Prompt objective
+Build a deterministic static dashboard reader using only existing dashboard
+content, metadata, assets and validated repository routes.
+
+### Repository audit
+The four `pages/dashboards/*.html` files are empty placeholders. The actual
+published dashboard surfaces are five homepage cards under `#dashboard-gallery`:
+UAE, Saudi Arabia, Qatar, India and Singapore. Each card explicitly contains
+title, country, region, edition, status, description, image path and country
+page path. Period, direction, use case, metric, unit, source, methodology and
+disclaimer are not present in the existing dashboard metadata.
+
+### Dashboard inventory
+Added a five-record build-time inventory in `assets/data/dashboard-metadata.json`.
+Each record corresponds to an existing `dashboard-*` card and existing image and
+country-page paths. Missing fields are `null`; no values were inferred.
+
+### Files changed
+- `assets/data/dashboard-metadata.json`
+- `scripts/validate-content.js`
+- `assets/js/script.js`
+- `assets/css/dashboard.css`
+- `docs/CONTENT_SCHEMA.md`
+- `docs/MASTER_PROJECT_LOG.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/GPIR_BACKLOG.md`
+
+### Implementation completed
+Added dashboard metadata validation, lazy dashboard metadata loading, native
+details disclosures on existing cards, explicit unavailable-field labels and
+deterministic ASK GPIR dashboard-detail intents. Existing images, statistics,
+links and lightbox behavior were preserved.
+
+### Achievements
+- **ACHIEVED:** Existing five dashboard cards are represented deterministically.
+- **ACHIEVED:** Country, region, edition, status and existing description are
+  exposed from existing card metadata.
+- **ACHIEVED:** Missing dashboard fields are explicitly unavailable.
+- **ACHIEVED:** ASK GPIR can answer dashboard-detail requests when metadata is
+  loaded.
+- **ACHIEVED:** Existing dashboard visuals and lightbox remain unchanged.
+
+### Partial achievements
+- **PARTIALLY ACHIEVED:** Source, methodology, period, direction, use-case and
+  metric fields remain unavailable because the existing cards do not contain
+  them.
+- **PARTIALLY ACHIEVED:** Empty `pages/dashboards/*.html` placeholders are not
+  converted into published pages.
+
+### Deferred work
+Dashboard source/evidence enrichment, structured methodology, dashboard search
+cards and richer related-intelligence links require metadata that does not yet
+exist in the repository.
+
+### NOT YET ADDED / TO DO
+- New dashboard facts or values.
+- New methodology or source records.
+- Dashboard route page generation.
+- Dashboard-specific search indexing.
+- Browser QA.
+- M-26 secure generative AI.
+
+### Validation
+Dashboard JSON, content validation, link validation, JavaScript syntax, JSON
+parsing, security checks, forbidden-path checks and performance audit passed.
+The authoritative content validator passed 10 announcements, 8 trusted sources
+and 19 registry records. The broad auxiliary graph audit also reported three
+pre-existing regional subregion IDs and false-positive sourceRef findings from
+its incompatible scan of sourceRefs arrays; no registry/page/dashboard path
+errors were found.
+
+### Security
+No external APIs, credentials, secrets, cookies, analytics or query storage.
+Dashboard metadata is static and loaded lazily.
+
+### Performance
+Dashboard metadata is loaded only on pages containing dashboard cards. Existing
+cards remain usable if the optional request fails.
+
+### Browser QA
+**BROWSER QA NOT AVAILABLE IN THIS ENVIRONMENT.** No browser interaction,
+responsive or accessibility claim is made.
+
+### Live production verification
+Production remains `https://krishnan-vishal.github.io/`. Homepage, dashboard
+metadata, dashboard CSS, dashboard JavaScript, registry, search index, UAE
+dashboard asset and UAE country route returned HTTP 200. Live metadata and
+script hashes matched commit `c9d3b89488700d01adaa92cf6389eaccb865e9b8`. No
+final URL contained `fintechosis.com`; CNAME remained absent.
+
+### Git commits
+Implementation: `c9d3b89488700d01adaa92cf6389eaccb865e9b8`.
+Governance closure: to be recorded after final documentation validation.
+
+### M-25A inherited pending work
+Browser QA, broader source cards, advanced relationship navigation and full
+generative AI remain pending.
+
+### M-25B inherited pending work
+Non-registry source cards, source records without routes, broader evidence
+rendering, advanced multi-hop navigation and browser QA remain pending.
+
+### M-18 status
+Remain open.
+
+### M-19 status
+Remain open.
+
+### Recommended next milestone
+M-26 only after dashboard metadata gaps, browser QA and inherited reader work
+are reviewed; no automatic promotion is made.
+
+### Final milestone status
+M-25C PARTIALLY ACHIEVED. The structured metadata foundation and deterministic
+reader are live; missing source/methodology fields, dashboard route pages and
+browser QA remain outstanding.

@@ -46,6 +46,14 @@ uses only existing registry relationships and repository metadata. M-25B is
 PARTIAL until browser QA and broader non-registry provenance coverage are
 available. M-25C dashboard intelligence remains deferred.
 
+M-25C begins the dashboard reader milestone with five existing homepage cards
+represented in `assets/data/dashboard-metadata.json`. Only existing title,
+country, region, edition, status, description and paths are populated. Missing
+period, direction, use-case, metric, unit, source, methodology and disclaimer
+fields remain explicitly unavailable. The existing dashboard images and lightbox
+are unchanged. M-25C is PARTIAL; dashboard intelligence and browser QA remain
+pending.
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DATA-001 | 2026-08-28 | Expand structured content registry coverage | DATA, CONTENT, SCALING | High | ACTIONABLE | Content owners and verified evidence | Stage 1 | `assets/data/*.json` | Extend the existing country, regulator, licence, rail, company and corridor metadata using the current JSON patterns. | New records validate, use stable IDs, avoid duplication and cite required evidence where applicable. | Not started. | Not available in repository record. | Not available in repository record. | Future Stage 1 milestone |

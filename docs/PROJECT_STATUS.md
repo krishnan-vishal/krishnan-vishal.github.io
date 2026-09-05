@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** M-25A — Build Context-Aware GPIR Reader
-**Current Milestone:** M-25A — Context-Aware GPIR Reader (PARTIAL)
-**Last Completed Prompt:** M-24A deterministic reader foundation
-**Last Verified Commit:** `4f3a76322baa200c56b9aa88199559f236de780b`
-**Current Development Status:** ASK GPIR now uses existing registry relationships and source metadata for context-aware deterministic reader assistance; browser QA and richer dashboard/source cards remain outstanding.
+**Current Prompt:** M-25C — Dashboard Intelligence & Structured Dashboard Reader
+**Current Milestone:** M-25C — Dashboard Intelligence (PARTIAL)
+**Last Completed Prompt:** M-25B source-aware reader milestone
+**Last Verified Commit:** `a4da3c97efd6eee481cd1a2f982899a2990dc03e`
+**Current Development Status:** Five existing homepage dashboard cards now have validated build-time metadata and deterministic reader disclosures; source/methodology fields remain unavailable where the repository does not provide them.
 
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are
@@ -15,6 +15,8 @@ live; browser QA, broader source cards and dashboard intelligence remain open.
 reader navigation are implemented; browser QA, broader registry coverage and
 dashboard intelligence remain open.
 **M-25B Implementation SHA:** `9f77ff182d38f8f2c568d07185605a7b075dcde1`
+**M-25C Status:** PARTIAL — dashboard metadata foundation and reader disclosures are implemented; dashboard intelligence, browser QA and missing metadata remain open.
+**M-25C Implementation SHA:** `c9d3b89488700d01adaa92cf6389eaccb865e9b8`
 
 ## COMPLETED
 

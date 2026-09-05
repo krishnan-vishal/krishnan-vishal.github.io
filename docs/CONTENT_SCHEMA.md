@@ -25,6 +25,17 @@ country, direction, use case, period, currency, volume, corridor, source,
 evidence, last updated and methodology. Existing dashboard presentation remains
 unchanged until a separately authorised data migration proves parity.
 
+**File:** `assets/data/dashboard-metadata.json`
+
+This build-time reader metadata covers the five existing homepage dashboard
+cards. It records only the title, country, region, edition, status, description,
+image path and country-page path already present in those cards. Period,
+direction, use case, metric, unit, source, methodology and disclaimer are
+explicitly `null` because they are not present in the existing dashboard
+metadata. The reader must display those fields as unavailable rather than infer
+them. The empty files under `pages/dashboards/` remain placeholders and are not
+treated as published dashboard pages.
+
 ## Announcements dataset
 
 **File:** `assets/data/announcements.json`
