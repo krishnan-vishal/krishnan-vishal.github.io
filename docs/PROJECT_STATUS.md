@@ -65,6 +65,33 @@ region record, further portfolio content gaps and browser QA remain open.
 **M-25D Governance Baseline SHA:** `e062bf22a532e033e27bfe6b7c09c166a7ce0883`
 **M-25D Starting SHA:** `a55ad91a05acb06451c9d61d020974e8c08d6e4b`
 
+**M-27A Status:** ACHIEVED — CURRENT ASSET CONSUMPTION & LIVE GPIR ALIGNMENT
+INTEGRATED.
+**M-27A Starting SHA:** `479d8d6634b2aee39cc8391d8f91b88e4c7f8eab`
+**M-27A Objective:** Consume existing assets and align into live GPIR reader
+without creating new content or fabricating unsupported relationships.
+**M-27A Implementation:** Registry aligned with complete page references for
+regions; UAE country → region → dashboard → narrative journey complete and
+verified; same pattern extends to India, Saudi Arabia, Qatar, Singapore; all
+validations pass; live HTTP verification complete; no new content created.
+**M-27A Country Coverage:** 6 countries with GPIR records (UAE, India, Saudi
+Arabia, Qatar, Singapore, UK); 5 with published dashboards; 2 active regions;
+all connected through deterministic registry relationships.
+**M-27A Files Changed:** `assets/data/content-registry.json` (region page
+references added), `scripts/m27a-validate.js` (new validation).
+**M-27A Validation:** All checks passed (36/36 checks, 5 JS/content validators,
+git diff check).
+**M-27A HTTP Verification:** Homepage, UAE country, Middle East region, all
+data files, JS and CSS returned HTTP 200.
+**M-27A Security:** No API keys, secrets, external AI, telemetry or backend
+added.
+**M-27A Browser QA:** `NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+**M-27A Achieved:** ✓ Connected reader journeys, ✓ Dashboard metadata/narratives,
+✓ Announcements/intelligence links, ✓ ASK GPIR fully integrated, ✓ Search
+includes all registry content, ✓ All assets consumed, ✓ No new content created.
+**M-27A Deferred:** Additional regional coverage, source/evidence full feature
+set, historical editions, browser QA, custom domain.
+
 ## COMPLETED
 
 - Static HTML/CSS/vanilla JavaScript GitHub Pages architecture.

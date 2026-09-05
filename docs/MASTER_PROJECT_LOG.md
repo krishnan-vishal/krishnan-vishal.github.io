@@ -1686,3 +1686,37 @@ country page and existing search/reader utilities are now connected and
 discoverable using only pre-existing repository content; regional dashboard
 route architecture, region-record completion, further portfolio content gaps
 and browser QA remain outstanding.
+
+## M-27A — Current Asset Consumption & Live GPIR Alignment
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `479d8d6634b2aee39cc8391d8f91b88e4c7f8eab`.
+- **Objective:** Consume the current GPIR assets and align them into the live
+  GPIR reader experience using the existing registry, dashboards, narratives,
+  country pages, region pages, announcements, sources and intelligent
+  cross-referencing — without creating new content, fabricating missing
+  relationships or inventing unsupported material.
+- **Core principle:** Use what already exists. Do not create filler content.
+- **Files changed:** 
+  - `assets/data/content-registry.json` — added page references for
+    region:middle-east and region:apac.
+  - `scripts/m27a-validate.js` — new validation script.
+- **Validation results:**
+  - `node --check assets/js/script.js` — passed
+  - `node scripts/validate-content.js` — passed
+  - `node scripts/validate-links.js` — passed
+  - `git --no-pager diff --check` — passed
+  - `node scripts/m27a-validate.js` — passed (36/36 checks)
+- **Live user journey — UAE proof case:** Country → Region → Dashboard → Narrative → Sources complete and verified end-to-end.
+- **Extended to additional countries:** India, Saudi Arabia, Qatar, Singapore all working with same pattern.
+- **Honest availability states:**
+  - AVAILABLE: UAE, India, Saudi Arabia, Qatar, Singapore (with dashboards)
+  - PARTIALLY AVAILABLE: UK (country record exists, no dashboard)
+  - NOT YET AVAILABLE: Australia, Japan (honest "coming soon" status)
+- **Live HTTP verification:** All key URLs returned HTTP 200.
+- **Security results:** No API keys, secrets, external AI, telemetry or new infrastructure added.
+- **Browser QA status:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **Achieved:** ✓ Registry aligned, ✓ Country readers work end-to-end, ✓ Region readers show dashboard status, ✓ All dashboards have metadata and narratives, ✓ ASK GPIR integrated, ✓ All validations pass, ✓ Live HTTP verified.
+- **M-18 status:** OPEN.
+- **M-19 status:** OPEN.
+- **Final commit SHA:** To be recorded after git push with message "M-27A: Align current assets for public consumption".

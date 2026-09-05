@@ -220,6 +220,7 @@
         "key": "region",
         "value": "middle-east"
       },
+      "page": "pages/regions/middle-east.html",
       "relationships": []
     },
     {
@@ -234,6 +235,7 @@
         "key": "region",
         "value": "apac"
       },
+      "page": "pages/regions/apac.html",
       "relationships": []
     },
     {
