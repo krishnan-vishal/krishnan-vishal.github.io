@@ -2,11 +2,13 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27A.2 — Correct Dashboard Publication Status and Reader Links
-**Current Milestone:** M-27A.2 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
-**Last Completed Prompt:** M-27A.2 dashboard publication status and reader links
-**Last Verified Commit:** `6e9f5d7b9d73519e5e699d6adc8ab22b26b78f5d`
-**Current Development Status:** M-27A.2 separates country editorial status from
+**Current Prompt:** M-27A.3 — Search Result Overlay Close & Navigation UX Fix
+**Current Milestone:** M-27A.3 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
+**Last Completed Prompt:** M-27A.3 search result overlay close and navigation fix
+**Last Verified Commit:** `c818f4f3023ae41a8db183c81fd9159476429dc6`
+**Current Development Status:** M-27A.3 closes and resets the search overlay
+before preserving existing result navigation. Search indexing, ranking, ASK GPIR,
+dashboard architecture and content remain unchanged. M-27A.2 separates country editorial status from
 dashboard publication status and resolves connected dashboard links through
 existing metadata assets. No dashboard research, sources, images, metadata,
 narratives or registry relationships were changed. M-27A.1 completes the canonical geographic
@@ -148,6 +150,32 @@ unavailable.
 remains outstanding.
 **M-27A.2 Next milestone:** Future governed reader validation or coverage
 expansion under separate authorization.
+
+**M-27A.3 Status:** IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED.
+**M-27A.3 Starting SHA:** `a0f897a25fc4450fad139403a38a2d8cb9de9b54`.
+**M-27A.3 Objective:** Close the Search GPIR overlay before normal result
+navigation while preserving the existing routing path.
+**M-27A.3 Root cause:** Normal search results did not invoke the existing
+`close()` reset path; only announcement detail results did.
+**M-27A.3 Correction:** `activateResult()` now invokes `close()` for normal
+results before returning `false`, so native mouse navigation and keyboard Enter
+navigation continue unchanged.
+**M-27A.3 Files:** `assets/js/script.js` only.
+**M-27A.3 Validation:** Runtime syntax, content, link, M-27A (36/36), targeted
+search source assertions and `git diff --check` passed.
+**M-27A.3 Live HTTP:** VERIFIED — GitHub Pages deployed SHA matched
+origin/main. Homepage, UAE country page, Qatar country page,
+`content-search.js` and `script.js` returned HTTP 200. The deployed script
+contains the corrected normal-result `close()` path and preserves keyboard
+navigation.
+**M-27A.3 Achieved:** Overlay close/reset before result navigation.
+**M-27A.3 Partial:** Browser QA remains NOT VERIFIED because browser tooling is
+unavailable.
+**M-27A.3 Deferred:** Custom domain; M-18; M-19; broader reader work.
+**M-27A.3 Not yet added / to do:** No additional UX, design, content, ranking or
+architecture changes; browser QA remains outstanding.
+**M-27A.3 Next milestone:** Future governed reader validation under separate
+authorization.
 
 ## COMPLETED
 

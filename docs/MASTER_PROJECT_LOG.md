@@ -1759,6 +1759,43 @@ and browser QA remain outstanding.
 - **Next milestone:** Future governed reader validation or coverage expansion
   under separate authorization.
 
+## M-27A.3 — Search Result Overlay Close & Navigation UX Fix
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `a0f897a25fc4450fad139403a38a2d8cb9de9b54`.
+- **Objective:** Close and reset the Search GPIR overlay when a reader selects
+  a normal search result while preserving the existing destination navigation.
+- **Root cause:** `activateResult()` only called the existing `close()` method
+  for announcement detail results. Normal result links returned `false`, so
+  native navigation proceeded behind the still-open search overlay.
+- **Correction:** Normal result selection now calls the existing `close()`
+  mechanism before returning `false`, preserving native mouse navigation and
+  the existing keyboard Enter `window.location.href` path.
+- **Files changed:** `assets/js/script.js` only.
+- **Preservation:** Search indexing, ranking, ASK GPIR, navigation hierarchy,
+  dashboard architecture, dashboard research/disclaimers and all content were
+  unchanged. No new dependency, framework, API, content or asset was added.
+- **Validation:** Both JavaScript syntax checks, link validation, content
+  validation, M-27A validation (36/36), targeted mouse/keyboard/manual-close
+  source assertions and `git diff --check` passed.
+- **Live verification:** To be recorded after push for the homepage, country
+  pages, search runtime and deployed close behavior marker.
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
+- **Achieved:** Normal search results close and reset the overlay before the
+  existing navigation continues.
+- **Partial:** Browser-level interaction verification remains unavailable.
+- **Deferred:** Custom domain, M-18, M-19 and broader reader work.
+- **Not yet added / to do:** No additional UX, design, content, ranking or
+  architecture changes; browser QA remains outstanding.
+- **Next milestone:** Future governed reader validation under separate
+  authorization.
+- **Final release commit SHA:** `c818f4f3023ae41a8db183c81fd9159476429dc6`.
+- **Live HTTP verification:** GitHub Pages deployed SHA matched origin/main.
+  Homepage, UAE country page, Qatar country page, `content-search.js` and
+  `script.js` returned HTTP 200. The deployed script contains the corrected
+  normal-result `close()` path and preserves keyboard navigation.
+
 - **Final release commit SHA:** `6e9f5d7b9d73519e5e699d6adc8ab22b26b78f5d`.
 - **Live HTTP verification:** GitHub Pages deployment SHA matched the release.
   Homepage, UAE, KSA, Qatar, India and Singapore country pages, dashboard

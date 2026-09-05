@@ -20,6 +20,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 | M-27A.2 | 2026-09-05 | Correct dashboard publication status and reader links | READER EXPERIENCE, DATA, GOVERNANCE | High | COMPLETED | M-27A.1; existing dashboard metadata and assets | Stage 1 | `assets/js/script.js`, `assets/css/chapter-page.css`, `pages/countries/*.html`, `docs/*.md` | Separate country editorial status from dashboard publication status and resolve connected dashboard links through existing metadata image paths. | Country draft notices remain outside dashboard readers; five published dashboard statuses come from metadata; all five connected links resolve to existing publication assets without homepage fallback. | Implemented, locally validated and live HTTP verified. No dashboard research, source, image, metadata, narrative, registry or historical content changed. | 2026-09-05 | `6e9f5d7b9d73519e5e699d6adc8ab22b26b78f5d` | M-27A.2 |
 
+| M-27A.3 | 2026-09-05 | Search result overlay close and navigation UX fix | READER EXPERIENCE, GOVERNANCE | High | COMPLETED | M-27A.2; existing search close/reset mechanism | Stage 1 | `assets/js/script.js`, `docs/*.md` | Close and reset Search GPIR when a normal result is selected while preserving existing routing, indexing, ranking, ASK GPIR and hierarchy. | Mouse and keyboard result selection invoke the existing close/reset path before navigation; search indexing and ranking remain unchanged; validators pass. | Implemented, locally validated and live HTTP verified. Final release SHA: `c818f4f3023ae41a8db183c81fd9159476429dc6`. | 2026-09-05 | `c818f4f3023ae41a8db183c81fd9159476429dc6` | M-27A.3 |
+
 ## Actionable next work
 
 The Prompt 22A foundation increment adds a validated shared vocabulary in
