@@ -51,6 +51,8 @@ function initializeWebsite(){
 
     safeInit(initializeDashboardReader);
 
+    safeInit(initializeDashboardNarrative);
+
     safeInit(initializeFloatingBackToTop);
 
     safeInit(initializeReadingProgress);
@@ -1473,11 +1475,21 @@ function initializeReaderAssistant(){
             fetch(dataPrefix + "announcements.json").then(response => {
                 if(!response.ok) throw new Error("announcement data unavailable");
                 return response.json();
+            }),
+            fetch(dataPrefix + "dashboard-metadata.json").then(response => {
+                if(!response.ok) throw new Error("dashboard metadata unavailable");
+                return response.json();
+            }),
+            fetch(dataPrefix + "dashboard-narratives.json").then(response => {
+                if(!response.ok) throw new Error("dashboard narratives unavailable");
+                return response.json();
             })
-        ]).then(([registry, sources, announcements]) => ({
+        ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
             registry: registry.records || [],
             sources: sources.registry || [],
-            announcements: announcements.records || []
+            announcements: announcements.records || [],
+            dashboards: dashboards.records || [],
+            narratives: narratives.records || []
         }));
         return contextPromise;
     };
@@ -1557,15 +1569,17 @@ function initializeReaderAssistant(){
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
 
-        if(normalized.includes("dashboard") && (normalized.includes("explain") || normalized.includes("details") || normalized.includes("methodology") || normalized.includes("period") || normalized.includes("country") || normalized.includes("direction") || normalized.includes("use case"))){
+        if(normalized.includes("dashboard") && (normalized.includes("explain") || normalized.includes("details") || normalized.includes("methodology") || normalized.includes("period") || normalized.includes("country") || normalized.includes("direction") || normalized.includes("use case") || normalized.includes("cover") || normalized.includes("show") || normalized.includes("what is"))){
+            loadContext().then(context => {
             const dashboardId = window.location.hash.match(/^#(dashboard-[a-z-]+)$/)?.[1] || document.activeElement?.closest?.(".dashboard-card")?.id;
-            const record = (window.GPIRDashboardMetadata || []).find(item => item.dashboardId === dashboardId) || (window.GPIRDashboardMetadata || [])[0];
+            const requested = context.dashboards.find(item => normalized.includes((item.country || "").toLowerCase().replace(/^republic of |^kingdom of |^state of /, "")));
+            const record = context.dashboards.find(item => item.dashboardId === dashboardId) || requested;
+            const narrative = record && context.narratives.find(item => item.dashboardId === record.dashboardId);
             if(!record){
                 // No on-page dashboard card (e.g. a country page): fall back to the
                 // canonical registry's deterministic COUNTRY→DASHBOARD relationship
                 // so the reader is pointed to the existing homepage dashboard card
                 // instead of a dead end.
-                loadContext().then(context => {
                     const byId = recordById(context.registry);
                     const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
                     const dashboards = currentRecords(context.registry)
@@ -1576,11 +1590,12 @@ function initializeReaderAssistant(){
                     answer.innerHTML = dashboards.length
                         ? `<h3>Country Intelligence Dashboard</h3><p>This page's dashboard is published on the GPIR homepage dashboard gallery.</p><ul>${resultLinks(dashboards.map(dashboard => ({ title: dashboard.title, href: rootPrefix + "index.html#" + dashboard.slug, meta: "Homepage dashboard gallery" })))}</ul><p class="gpir-assistant-source-note">This link comes from a validated GPIR registry relationship, not an inferred match.</p>`
                         : "<p>No structured dashboard metadata is available on this page.</p>";
-                }).catch(() => { answer.innerHTML = "<p>No structured dashboard metadata is available on this page.</p>"; });
                 return;
             }
             const unavailable = "Not available in existing dashboard metadata";
-            answer.innerHTML = `<h3>${dashboardReaderEscape(record.title)} dashboard</h3><dl class="gpir-assistant-dashboard-details"><dt>Country</dt><dd>${dashboardReaderEscape(record.country || unavailable)}</dd><dt>Region</dt><dd>${dashboardReaderEscape(record.region || unavailable)}</dd><dt>Period</dt><dd>${dashboardReaderEscape(record.period || unavailable)}</dd><dt>Direction</dt><dd>${dashboardReaderEscape(record.direction || unavailable)}</dd><dt>Use case</dt><dd>${dashboardReaderEscape(record.useCase || unavailable)}</dd><dt>Metric</dt><dd>${dashboardReaderEscape(record.metric || unavailable)}</dd><dt>Source</dt><dd>${dashboardReaderEscape(record.source || unavailable)}</dd><dt>Methodology</dt><dd>${dashboardReaderEscape(record.methodology || "Methodology not available in existing dashboard metadata")}</dd></dl><p class="gpir-assistant-source-note">This dashboard reader exposes existing metadata only; it does not infer missing values.</p>`;
+            const narrativeMarkup = narrative ? `<h4>GPIR Smart Narrative</h4><p><strong>What this dashboard covers:</strong> ${escape(narrative.coverage)}</p><p><strong>Key intelligence themes:</strong> ${escape(narrative.themes)}</p>${narrative.paymentEcosystem ? `<p><strong>Payment ecosystem:</strong> ${escape(narrative.paymentEcosystem)}</p>` : ""}${narrative.regulatory ? `<p><strong>Regulatory / AML-CFT:</strong> ${escape(narrative.regulatory)}</p>` : ""}${narrative.rails ? `<p><strong>Payment technology / rails:</strong> ${escape(narrative.rails)}</p>` : ""}<p><strong>Reader takeaway:</strong> ${escape(narrative.takeaway)}</p><p><strong>Source / validation context:</strong> ${escape(narrative.sourceContext)}</p>` : "<p>Smart Narrative is limited because no existing structured narrative record is available.</p>";
+            answer.innerHTML = `<h3>${dashboardReaderEscape(record.title)} dashboard</h3>${narrativeMarkup}<dl class="gpir-assistant-dashboard-details"><dt>Country</dt><dd>${dashboardReaderEscape(record.country || unavailable)}</dd><dt>Region</dt><dd>${dashboardReaderEscape(record.region || unavailable)}</dd><dt>Edition</dt><dd>${dashboardReaderEscape(record.edition || unavailable)}</dd><dt>Period</dt><dd>${dashboardReaderEscape(record.period || unavailable)}</dd><dt>Direction</dt><dd>${dashboardReaderEscape(record.direction || unavailable)}</dd><dt>Use case</dt><dd>${dashboardReaderEscape(record.useCase || unavailable)}</dd><dt>Metric</dt><dd>${dashboardReaderEscape(record.metric || unavailable)}</dd><dt>Source</dt><dd>${dashboardReaderEscape(record.source || unavailable)}</dd><dt>Methodology</dt><dd>${dashboardReaderEscape(record.methodology || "Methodology not available in existing dashboard metadata")}</dd></dl><p class="gpir-assistant-source-note">This deterministic reader exposes existing dashboard metadata and source-grounded synthesis only; it does not infer missing values or generate research.</p>`;
+            }).catch(() => { answer.innerHTML = "<p>No structured dashboard metadata is available on this page.</p>"; });
             return;
         }
 
@@ -1737,6 +1752,35 @@ function dashboardReaderEscape(value){
     const div = document.createElement("div");
     div.textContent = value == null ? "" : String(value);
     return div.innerHTML;
+}
+
+function initializeDashboardNarrative(){
+
+    const embeds = document.querySelectorAll(".dashboard-embed[data-dashboard-id]");
+    if(!embeds.length) return;
+
+    const script = document.querySelector('script[src*="assets/js/script.js"]');
+    const src = script ? script.getAttribute("src") : "assets/js/script.js";
+    const dataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/dashboard-narratives.json");
+
+    fetch(dataUrl)
+        .then(response => { if(!response.ok) throw new Error("dashboard narratives unavailable"); return response.json(); })
+        .then(data => {
+            const byId = new Map((data.records || []).map(record => [record.dashboardId, record]));
+            embeds.forEach(embed => {
+                const narrative = byId.get(embed.getAttribute("data-dashboard-id"));
+                if(!narrative) return;
+                const section = document.createElement("section");
+                section.className = "dashboard-smart-narrative";
+                section.setAttribute("aria-labelledby", "dashboard-smart-narrative-title");
+                section.innerHTML = `<p class="dashboard-narrative-kicker">GPIR Smart Narrative</p><h2 id="dashboard-smart-narrative-title">${dashboardReaderEscape(narrative.country)} &mdash; ${dashboardReaderEscape(narrative.edition)}</h2><p><strong>What this dashboard covers:</strong> ${dashboardReaderEscape(narrative.coverage)}</p><p><strong>Key intelligence themes:</strong> ${dashboardReaderEscape(narrative.themes)}</p>${narrative.paymentEcosystem ? `<p><strong>Payment ecosystem:</strong> ${dashboardReaderEscape(narrative.paymentEcosystem)}</p>` : ""}${narrative.regulatory ? `<p><strong>Regulatory / AML-CFT:</strong> ${dashboardReaderEscape(narrative.regulatory)}</p>` : ""}${narrative.rails ? `<p><strong>Payment technology / rails:</strong> ${dashboardReaderEscape(narrative.rails)}</p>` : ""}${narrative.outlook ? `<p><strong>Outlook:</strong> ${dashboardReaderEscape(narrative.outlook)}</p>` : ""}<p><strong>Reader takeaway:</strong> ${dashboardReaderEscape(narrative.takeaway)}</p><p class="dashboard-reader-note"><strong>Source / validation context:</strong> ${dashboardReaderEscape(narrative.sourceContext)}</p>`;
+                embed.insertAdjacentElement("afterend", section);
+            });
+        })
+        .catch(() => {
+            // The published dashboard remains available when the optional narrative layer fails.
+        });
+
 }
 
 /*=====================================================

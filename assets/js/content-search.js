@@ -58,7 +58,7 @@
             category: "Country Dashboard",
             header: "Dashboards",
             country: record.country,
-            text: [record.description, record.edition, record.status].filter(Boolean).join(" · ")
+            text: [record.dashboardId, record.region, "Country Dashboard", record.description, record.edition, record.status].filter(Boolean).join(" · ")
         }));
     }
 

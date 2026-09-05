@@ -16,6 +16,43 @@ reliable prompt-level record, that fact is stated rather than inferred.
 
 ## Historical repository record
 
+## M-25E — Existing Dashboard Library Activation & Regional Smart Narrative
+
+- **Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`.
+- **Objective:** Inventory and activate existing dashboard publications through
+  deterministic country and regional navigation, with source-grounded local
+  reader summaries and no new research generation.
+- **Diagnostic findings:** `assets/dashboards/` contains 123 image files: 63
+  PNG and 60 WebP, representing five country dashboard identities and three
+  existing migration publication families. No additional country dashboard
+  identity was found for the example APAC markets named in the prompt. The
+  five country records already had valid image paths, registry relationships
+  and runtime search integration; country pages and region tiles did not yet
+  expose a shared Smart Narrative or explicit dashboard availability state.
+- **Implementation:** Added `assets/data/dashboard-narratives.json`; rendered
+  it after the existing view-first dashboard image on five country pages;
+  extended ASK GPIR to resolve country dashboard questions and expose the
+  same narrative; and labelled dashboard availability in APAC and
+  Middle East/GCC directory tiles. Dashboard artwork, routes, DNS, CNAME,
+  external services and research content were unchanged.
+- **Inventory:** See [M-25E-DASHBOARD-INVENTORY.md](M-25E-DASHBOARD-INVENTORY.md).
+  Five country dashboard identities are registry-backed; three migration
+  families remain preserved related publication assets without fabricated
+  dashboard identities. No current/historical relationship was inferred.
+- **Smart Narrative:** 5 created from existing metadata and existing page
+  context; unsupported source, methodology, period, metric and outlook fields
+  remain unavailable.
+- **Validation:** Focused JavaScript syntax and narrative JSON parsing passed;
+  full content, link, image-path, duplicate-ID, performance and diff checks,
+  plus browser/live verification, are recorded after implementation.
+- **Security / performance:** No API keys, secrets, external LLM, telemetry,
+  query storage or third-party dependency was introduced. Existing lazy image
+  loading, responsive variants and lightbox presentation remain in use.
+- **Outcome:** Partially achieved pending full validation, live verification
+  and browser QA. M-18 and M-19 remain open and untouched.
+- **Next possible milestone:** Browser-verified dashboard reader QA and a
+  separately authorised decision on the empty dashboard route placeholders.
+
 ### Prompt history before Prompt 09
 
 - **Prompt ID:** Not available in repository record.

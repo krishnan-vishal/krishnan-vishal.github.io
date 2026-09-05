@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader
-**Current Milestone:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader (PARTIAL)
+**Current Prompt:** M-25E — Existing Dashboard Library Activation & Regional Smart Narrative
+**Current Milestone:** M-25E — Existing Dashboard Library Activation & Regional Smart Narrative (PARTIAL)
 **Last Completed Prompt:** M-25C dashboard intelligence milestone
 **Last Verified Commit:** `e062bf22a532e033e27bfe6b7c09c166a7ce0883`
-**Current Development Status:** M-25D implementation authorised from governance
+**Current Development Status:** M-25E implementation authorised from governance
 baseline `e062bf22a532e033e27bfe6b7c09c166a7ce0883` and completed for its
 current scope. The canonical registry now models a `DASHBOARD` content type
 with 5 dashboard records deterministically connected to their existing country
@@ -16,7 +16,16 @@ the existing search UI; and ASK GPIR now connects a country page to its
 existing dashboard via the validated registry relationship. No new research,
 statistics, sources, methodology or dashboard artwork was created. Regional
 dashboard route architecture, region-record completion for Europe/SEPA, and
-browser QA remain outstanding.
+browser QA remain outstanding. M-25E adds deterministic Smart Narratives for
+the five existing country dashboard identities and explicit availability labels
+in the APAC and Middle East/GCC directories; full validation, live verification
+and browser QA remain pending.
+
+**M-25E Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`
+**M-25E Status:** PARTIAL — five existing country dashboard identities are
+activated with deterministic narratives; three migration publication families
+remain preserved but are not promoted to separate dashboard identities; no
+historical edition relationship was inferred.
 
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are

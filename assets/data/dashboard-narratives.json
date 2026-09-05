@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0",
+  "schemaNote": "Deterministic reader summaries assembled only from existing dashboard metadata and existing country publication records. These are not independent research conclusions.",
+  "records": [
+    {
+      "dashboardId": "dashboard-uae",
+      "country": "United Arab Emirates",
+      "edition": "Edition 2026.1",
+      "coverage": "A country dashboard covering the United Arab Emirates within the GCC, with the existing publication focused on remittance-sending activity, outbound corridors, licensed exchange houses, bank rails and the Aani instant payments platform.",
+      "themes": "Remittances, outbound corridors, exchange-house and bank participation, and instant payments are the themes stated in the existing dashboard metadata.",
+      "paymentEcosystem": "The existing publication names licensed exchange houses, bank rails and Aani.",
+      "regulatory": null,
+      "rails": "Aani is the payment rail named in the existing dashboard metadata.",
+      "outlook": null,
+      "takeaway": "Use the dashboard image to examine how the stated remittance and payment-rail themes are presented for the UAE.",
+      "sourceContext": "The dashboard is treated as an existing validated GPIR research publication. Separate source and methodology fields are not available in the existing dashboard metadata."
+    },
+    {
+      "dashboardId": "dashboard-ksa",
+      "country": "Kingdom of Saudi Arabia",
+      "edition": "Edition 2026.1",
+      "coverage": "A country dashboard covering the Kingdom of Saudi Arabia within the GCC, with the existing publication focused on remittances, SAMA oversight, Vision 2030 fintech licensing and the sarie instant payments system.",
+      "themes": "Remittances, supervisory context, fintech licensing and real-time digital payments are the themes stated in the existing dashboard metadata.",
+      "paymentEcosystem": "The existing publication describes a shift from cash toward real-time digital rails in the stated market context.",
+      "regulatory": "SAMA oversight and Vision 2030 fintech licensing are named in the existing dashboard metadata.",
+      "rails": "sarie is the payment rail named in the existing dashboard metadata.",
+      "outlook": null,
+      "takeaway": "Use the dashboard image to examine the relationship between the stated remittance market, licensing context and digital rail transition.",
+      "sourceContext": "The dashboard is treated as an existing validated GPIR research publication. Separate source and methodology fields are not available in the existing dashboard metadata."
+    },
+    {
+      "dashboardId": "dashboard-qatar",
+      "country": "State of Qatar",
+      "edition": "Edition 2026.1",
+      "coverage": "A country dashboard covering the State of Qatar within the GCC, with the existing publication focused on expatriate-workforce share, remittance corridors and the Fawran instant payments rail.",
+      "themes": "Expatriate workforce, remittance corridors and instant payments are the themes stated in the existing dashboard metadata.",
+      "paymentEcosystem": "The existing publication connects the stated expatriate-workforce context with remittance activity through payment infrastructure.",
+      "regulatory": null,
+      "rails": "Fawran is the payment rail named in the existing dashboard metadata.",
+      "outlook": null,
+      "takeaway": "Use the dashboard image to examine how workforce and remittance themes are presented alongside the named instant-payments rail.",
+      "sourceContext": "The dashboard is treated as an existing validated GPIR research publication. Separate source and methodology fields are not available in the existing dashboard metadata."
+    },
+    {
+      "dashboardId": "dashboard-india",
+      "country": "Republic of India",
+      "edition": "Edition 2026.1",
+      "coverage": "A country dashboard covering the Republic of India within APAC, with the existing publication focused on inbound remittances, UPI, RBI-supervised cross-border linkages and overseas acceptance.",
+      "themes": "Inbound remittances, real-time domestic payments and cross-border payment linkages are the themes stated in the existing dashboard metadata.",
+      "paymentEcosystem": "The existing publication identifies UPI as the domestic real-time rail and describes RBI-supervised cross-border linkages.",
+      "regulatory": "RBI supervision is named in the existing dashboard metadata.",
+      "rails": "UPI is the payment rail named in the existing dashboard metadata.",
+      "outlook": null,
+      "takeaway": "Use the dashboard image to examine the stated connection between inbound remittances, UPI and cross-border acceptance.",
+      "sourceContext": "The dashboard is treated as an existing validated GPIR research publication. Separate source and methodology fields are not available in the existing dashboard metadata."
+    },
+    {
+      "dashboardId": "dashboard-singapore",
+      "country": "Republic of Singapore",
+      "edition": "Edition 2026.1",
+      "coverage": "A country dashboard covering the Republic of Singapore within APAC, with the existing publication focused on its regional treasury and fintech role, MAS oversight and domestic-to-cross-border real-time links.",
+      "themes": "Treasury, fintech, supervision and cross-border instant-payment links are the themes stated in the existing dashboard metadata.",
+      "paymentEcosystem": "The existing publication describes Singapore as a regional treasury and fintech hub under MAS oversight.",
+      "regulatory": "MAS oversight is named in the existing dashboard metadata.",
+      "rails": "FAST/PayNow, PayNow-UPI and PayNow-PromptPay are the rails or links named in the existing dashboard metadata.",
+      "outlook": null,
+      "takeaway": "Use the dashboard image to examine the stated domestic and cross-border real-time payment relationships.",
+      "sourceContext": "The dashboard is treated as an existing validated GPIR research publication. Separate source and methodology fields are not available in the existing dashboard metadata."
+    }
+  ]
+}
