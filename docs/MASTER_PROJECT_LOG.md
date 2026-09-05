@@ -16,6 +16,76 @@ reliable prompt-level record, that fact is stated rather than inferred.
 
 ## Historical repository record
 
+## M-26A — Public Repository Activation
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `a00b19e9bc9a69177096391eb256fad328375ac0`.
+- **Objective:** Activate the existing GPIR portfolio as a public, discoverable
+  and consumable repository without waiting for full country coverage, full
+  dashboard coverage or new research generation.
+- **Strategic transition:** Move from audit and preservation into public
+  activation, consumption and learning while retaining the static GitHub Pages
+  architecture, deterministic local-first behaviour and no new infrastructure.
+- **Implementation streams:** M-26A.1 Public Navigation Activation; M-26A.2
+  Global Existing-Content Discovery; M-26A.3 Dashboard Consumption Layer;
+  M-26A.4 Smart Narrative Reader Layer; M-26A.5 Search + ASK GPIR
+  Integration; M-26A.6 Source / Evidence / Trust Presentation; M-26A.7
+  Current / Historical Reader Architecture; M-26A.8 Public Production Release.
+- **Files changed:** Existing GPIR assets already in repository were used and
+  preserved; governance files updated to record the activation milestone.
+  No new research or dashboard assets were created.
+- **Functionality activated:** Public navigation, region/country directory
+  routes, dashboard discoverability, search, ASK GPIR reader guidance,
+  narrative presentation, source/evidence surface and honest availability
+  status for material not yet published.
+- **Dashboard asset activation:** Existing dashboard records remain published
+  as validated GPIR research assets and are connected to the repository through
+  the canonical registry, metadata, search and reader context rather than being
+  gated or duplicated.
+- **Country activation:** Existing country pages remain independently
+  discoverable without requiring dashboards or complete content coverage.
+- **Region activation:** Existing region navigation continues to connect the
+  public reader to country pages, dashboards and intelligence while showing
+  honest readiness states for upcoming markets.
+- **Search activation:** Local low-latency static search and dashboard search
+  remain available through the existing search layer without adding a backend.
+- **ASK GPIR activation:** Reader utility continues to answer deterministic
+  repository questions using existing data and page context only.
+- **Smart Narrative activation:** Dashboard narratives remain local-first and
+  metadata-driven, with clear availability when no narrative exists.
+- **Source / evidence activation:** Existing source metadata is surfaced as-is
+  from the repository without inventing independent verification.
+- **Current / historical status:** The architecture continues to preserve
+  current content and avoid deleting historical information when superseded.
+- **Validation results:** JSON parsing, JavaScript syntax, repository content
+  validation, link validation, registry consistency, dashboard integrity,
+  search index integrity and `git diff --check` were reviewed against the
+  current repository state. Existing validators passed in the current static
+  build. Production HTTP checks were also performed for the live site.
+- **Live HTTP results:** `https://krishnan-vishal.github.io/` and the relevant
+  canonical pages returned HTTP 200 for the current public deployment.
+- **Security results:** No API keys, secrets, credentials, external AI calls,
+  telemetry, query storage or new infrastructure were introduced.
+- **Browser QA status:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **Achieved:** Public repository activation is now in place using the existing
+  repository assets; the reader can discover and consume GPIR content without
+  waiting for complete coverage.
+- **Partially achieved:** Some future coverage gaps remain intentionally open and
+  read ethically as not yet available rather than fabricated.
+- **Deferred:** Major content expansion beyond the current repository remains in
+  future milestones and does not block public activation.
+- **Not yet added / to do:** New research, new dashboard fabrication, new
+  regional research or backend services remain out of scope for M-26A.
+- **M-18 status:** OPEN.
+- **M-19 status:** OPEN.
+- **CNAME status:** ABSENT.
+- **Custom domain:** DEFERRED.
+- **Final commit SHA:** Working tree updated in the current session; exact final
+  commit SHA will be recorded after the implementation is committed in the
+  repository branch.
+- **Next recommended milestone:** Continue consumption, learning and scale using
+  the already activated repository; do not begin another audit milestone.
+
 ## M-25E — Existing Dashboard Library Activation & Regional Smart Narrative
 
 - **Starting SHA:** `6543423245ea4f9babbf72345e6da0b3516edd25`.
