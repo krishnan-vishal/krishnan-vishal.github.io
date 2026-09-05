@@ -629,6 +629,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Next recommended batch:** Deterministically index the remaining existing
   classified announcement/intelligence pairs after route and source-reference
   parity checks, then evaluate a separate search-index extension.
-- **Milestone status:** M-23A PARTIAL pending final validation, push and live
-  verification.
-- **Final commit:** To be recorded after validation.
+- **Milestone status:** M-23A PARTIAL; the controlled registry batch passed
+  validation and live HTTP verification, while broader factory migration
+  remains outstanding.
+- **Implementation commit:** `78544673ac61681170b578dab3d0a46e610c0b35`.
+- **Live verification:** Homepage, representative country/region/intelligence/
+  legal routes, CSS, JS, JSON datasets, content model and content registry
+  returned HTTP 200 on `krishnan-vishal.github.io`. The live registry matched
+  the implementation commit and contained all nine new registry identities.
+- **Browser verification:** Not claimed; browser automation was unavailable.

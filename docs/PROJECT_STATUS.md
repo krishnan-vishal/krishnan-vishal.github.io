@@ -2,11 +2,11 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository  
 **Current Stage:** Stage 1 — scalable registry pilot  
-**Current Prompt:** PROMPT-18 — Surgical Fix: Global Announcements Ticker
-**Current Milestone:** M-18 — Global Announcements Ticker Integrity
-**Last Completed Prompt:** PROMPT-18
-**Last Verified Commit:** `71e35efdc12df0decdcf61bf144863f643ec8ac1`
-**Current Development Status:** Announcement ticker overflow and freshness wording are remediated and validated; protected GPIR functionality remains unchanged.
+**Current Prompt:** PROMPT-23A — GPIR Production Content Factory + First Intelligence Batch
+**Current Milestone:** M-23A — GPIR Production Content Factory (PARTIAL)
+**Last Completed Prompt:** PROMPT-23A controlled registry batch
+**Last Verified Commit:** `78544673ac61681170b578dab3d0a46e610c0b35`
+**Current Development Status:** The first source-backed registry batch is validated and live; broader content-factory migration remains controlled and incomplete.
 
 ## COMPLETED
 
