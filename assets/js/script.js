@@ -1364,6 +1364,7 @@ function initializeReaderAssistant(){
         <div class="gpir-assistant-actions">
             <button type="button" data-gpir-assistant-example="What countries are currently covered?">Coverage</button>
             <button type="button" data-gpir-assistant-example="Explain this page">Explain this page</button>
+            <button type="button" data-gpir-assistant-example="Explore this topic">Explore this topic</button>
         </div>
         <div class="gpir-assistant-answer" aria-live="polite"></div>
     `;
@@ -1391,13 +1392,29 @@ function initializeReaderAssistant(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
-    let registryPromise = null;
+    let contextPromise = null;
 
-    const loadRegistry = () => {
-        if(registryPromise) return registryPromise;
-        registryPromise = fetch(dataPrefix + "content-registry.json")
-            .then(response => { if(!response.ok) throw new Error("registry unavailable"); return response.json(); });
-        return registryPromise;
+    const loadContext = () => {
+        if(contextPromise) return contextPromise;
+        contextPromise = Promise.all([
+            fetch(dataPrefix + "content-registry.json").then(response => {
+                if(!response.ok) throw new Error("registry unavailable");
+                return response.json();
+            }),
+            fetch(dataPrefix + "trusted-sources.json").then(response => {
+                if(!response.ok) throw new Error("source registry unavailable");
+                return response.json();
+            }),
+            fetch(dataPrefix + "announcements.json").then(response => {
+                if(!response.ok) throw new Error("announcement data unavailable");
+                return response.json();
+            })
+        ]).then(([registry, sources, announcements]) => ({
+            registry: registry.records || [],
+            sources: sources.registry || [],
+            announcements: announcements.records || []
+        }));
+        return contextPromise;
     };
 
     const escape = (value) => {
@@ -1410,6 +1427,47 @@ function initializeReaderAssistant(){
         <li><a href="${escape(item.href)}">${escape(item.title)}</a>${item.meta ? `<small>${escape(item.meta)}</small>` : ""}</li>
     `).join("");
 
+    const currentPath = () => window.location.pathname.replace(/^\//, "") || "index.html";
+
+    const currentRecords = (records) => records.filter(record => record.page === currentPath());
+
+    const recordById = (records) => new Map(records.map(record => [record.id, record]));
+
+    const sourceDetails = (record, context) => {
+        const sourceRefs = Array.isArray(record.sourceRefs) ? record.sourceRefs : [];
+        const sourceRecords = sourceRefs.map(id => recordById(context.registry).get(id)).filter(Boolean);
+        const trustedById = new Map(context.sources.map(source => ["source:" + source.id, source]));
+        const announcement = context.announcements.find(item => record.sourceRef && record.sourceRef.value === item.id);
+        const sourceItems = sourceRecords.map(sourceRecord => {
+            const trusted = trustedById.get(sourceRecord.id);
+            return {
+                label: trusted ? `${trusted.organization} (${trusted.sourceType || "Source"})` : sourceRecord.title,
+                href: null,
+                meta: trusted && trusted.lastVerifiedDate ? `Source verified ${trusted.lastVerifiedDate}` : "Verification date unavailable"
+            };
+        });
+        if(announcement && announcement.source){
+            sourceItems.push({
+                label: `${announcement.source.name} · ${announcement.source.publicationTitle}`,
+                href: announcement.source.url,
+                meta: [
+                    announcement.publishedDate ? `Published ${announcement.publishedDate}` : "Publication date unavailable",
+                    announcement.retrievedDate ? `Retrieved ${announcement.retrievedDate}` : "Retrieval date unavailable",
+                    announcement.contentStatus || "Verification status unavailable"
+                ].join(" · ")
+            });
+        }
+        return sourceItems;
+    };
+
+    const relatedRecords = (record, context) => {
+        const byId = recordById(context.registry);
+        return (record.relationships || [])
+            .map(relationship => byId.get(relationship.target))
+            .filter(related => related && related.page && related.id !== record.id)
+            .map(related => ({ title: related.title, href: related.page, meta: related.contentType }));
+    };
+
     const explainCurrentPage = () => {
         const title = document.querySelector("h1")?.textContent.trim() || document.title;
         const headings = Array.from(document.querySelectorAll("main h2, main h3, .chapter-content h2, .chapter-content h3"))
@@ -1417,7 +1475,16 @@ function initializeReaderAssistant(){
             .filter(Boolean)
             .slice(0, 6);
         const sections = headings.length ? `<ul>${headings.map(heading => `<li>${escape(heading)}</li>`).join("")}</ul>` : "<p>No structured section headings were found on this page.</p>";
-        answer.innerHTML = `<h3>${escape(title)}</h3><p>This page contains the following published sections:</p>${sections}<p class="gpir-assistant-source-note">This explanation is assembled from the current page headings; it is not a generated factual summary.</p>`;
+        loadContext().then(context => {
+            const records = currentRecords(context.registry);
+            const related = records.flatMap(record => relatedRecords(record, context));
+            const sources = records.flatMap(record => sourceDetails(record, context));
+            const relatedMarkup = related.length ? `<h4>Related GPIR content</h4><ul>${resultLinks(related)}</ul>` : "";
+            const sourceMarkup = sources.length ? `<h4>Source / evidence</h4><ul>${sources.map(source => `<li>${source.href ? `<a href="${escape(source.href)}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a>` : escape(source.label)}<small>${escape(source.meta)}</small></li>`).join("")}</ul>` : "";
+            answer.innerHTML = `<h3>${escape(title)}</h3><p>This page contains the following published sections:</p>${sections}${relatedMarkup}${sourceMarkup}<p class="gpir-assistant-source-note">The structure and connections above come from this page and validated GPIR records; this is not a generated factual summary.</p>`;
+        }).catch(() => {
+            answer.innerHTML = `<h3>${escape(title)}</h3><p>This page contains the following published sections:</p>${sections}<p class="gpir-assistant-source-note">This explanation is assembled from the current page headings; registry context is unavailable.</p>`;
+        });
     };
 
     const answerQuery = (query) => {
@@ -1431,14 +1498,21 @@ function initializeReaderAssistant(){
         }
 
         if(normalized.includes("what countries") || normalized.includes("countries covered")){
-            loadRegistry().then(data => {
-                const countries = (data.records || [])
+            loadContext().then(context => {
+                const countries = context.registry
                     .filter(record => record.contentType === "COUNTRY" && record.status === "active")
                     .map(record => ({ title: record.title, href: record.page, meta: "Active country page" }));
                 answer.innerHTML = countries.length
                     ? `<h3>Active GPIR country coverage</h3><ul>${resultLinks(countries)}</ul><p class="gpir-assistant-source-note">Coverage is read from the canonical content registry.</p>`
                     : "<p>No active country records are currently indexed.</p>";
             }).catch(() => { answer.innerHTML = "<p>The canonical content registry is temporarily unavailable.</p>"; });
+            return;
+        }
+
+        if(normalized.includes("explore this topic")){
+            const pageTitle = document.querySelector("h1")?.textContent.trim() || document.title;
+            input.value = pageTitle;
+            answerQuery(pageTitle);
             return;
         }
 
