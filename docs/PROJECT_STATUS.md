@@ -5,15 +5,18 @@
 **Current Prompt:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader
 **Current Milestone:** M-25D — Existing GPIR Portfolio Live Activation & Intelligent Reader (PARTIAL)
 **Last Completed Prompt:** M-25C dashboard intelligence milestone
-**Last Verified Commit:** `a55ad91a05acb06451c9d61d020974e8c08d6e4b`
-**Current Development Status:** M-25D diagnostic audit completed and its scope
-corrected. Existing GPIR dashboards are confirmed as already-validated research
-publications (validation precedes publication); the diagnostic findings are a
-technical publication/reader integration gap, not a dashboard
-research-validation deficiency. Strategic priority is now live activation of
-the existing GPIR portfolio and its reader utilities, in parallel with the
-dashboard programme. No dashboard, metadata, registry, route or content-model
-implementation has been authorised yet.
+**Last Verified Commit:** `e062bf22a532e033e27bfe6b7c09c166a7ce0883`
+**Current Development Status:** M-25D implementation authorised from governance
+baseline `e062bf22a532e033e27bfe6b7c09c166a7ce0883` and completed for its
+current scope. The canonical registry now models a `DASHBOARD` content type
+with 5 dashboard records deterministically connected to their existing country
+records; `pages/countries/uk.html` (previously live but unregistered) is now
+connected to the registry; existing dashboards are now discoverable through
+the existing search UI; and ASK GPIR now connects a country page to its
+existing dashboard via the validated registry relationship. No new research,
+statistics, sources, methodology or dashboard artwork was created. Regional
+dashboard route architecture, region-record completion for Europe/SEPA, and
+browser QA remain outstanding.
 
 **M-24A Status:** COMPLETED — deterministic local-first ASK GPIR foundation.
 **M-25A Status:** PARTIAL — context-aware relationships and source metadata are
@@ -24,10 +27,12 @@ dashboard intelligence remain open.
 **M-25B Implementation SHA:** `9f77ff182d38f8f2c568d07185605a7b075dcde1`
 **M-25C Status:** PARTIAL — dashboard metadata foundation and reader disclosures are implemented; dashboard intelligence, browser QA and missing metadata remain open.
 **M-25C Implementation SHA:** `c9d3b89488700d01adaa92cf6389eaccb865e9b8`
-**M-25D Status:** PARTIALLY ACHIEVED — DIAGNOSTIC COMPLETE; STRATEGIC
-IMPLEMENTATION SCOPE CORRECTED; IMPLEMENTATION NOT YET AUTHORISED. Diagnostic
-findings are retained; the milestone objective is now public live portfolio
-activation and intelligent reader utilities, not dashboard content generation.
+**M-25D Status:** PARTIALLY ACHIEVED. Diagnostic complete (retained); strategic
+scope corrected (retained); implementation now delivered for dashboard
+registry connection, UK registry connection, dashboard search discoverability
+and ASK GPIR country↔dashboard linking. Regional dashboard routes, Europe/SEPA
+region record, further portfolio content gaps and browser QA remain open.
+**M-25D Governance Baseline SHA:** `e062bf22a532e033e27bfe6b7c09c166a7ce0883`
 **M-25D Starting SHA:** `a55ad91a05acb06451c9d61d020974e8c08d6e4b`
 
 ## COMPLETED
@@ -94,34 +99,50 @@ activation and intelligent reader utilities, not dashboard content generation.
 - Reconcile external pending work before authorizing the next implementation.
 - Public live portfolio completeness audit: confirm existing GPIR country,
   intelligence, regulatory and research content is accessible, navigable and
-  discoverable, independent of dashboard coverage.
-- Resolve M-25D dashboard publication-to-country relationship before any
-  dashboard implementation, recognising the dashboard as an already validated
-  publication rather than unvalidated artwork.
+  discoverable, independent of dashboard coverage. **PARTIAL:** `uk.html` is
+  now registry-connected; `australia.html`/`japan.html`/`united-kingdom.html`
+  remain 0-byte placeholders with no content to expose.
+- **DONE:** Dashboard publication-to-country relationship — added a
+  `DASHBOARD` content type and 5 records deterministically connected via
+  existing `pagePath`/`page` matches, recognising each dashboard as an already
+  validated publication.
 - Resolve M-25D dashboard-to-existing-intelligence relationship only where
-  explicitly evidenced.
+  explicitly evidenced (not yet done; `search-index.json` reference IDs still
+  differ from `dashboard-*` IDs).
 - Reconcile M-25D dashboard identity (dashboard-metadata IDs vs. search-index
-  reference IDs) before any dashboard implementation.
-- Reconcile M-25D image asset-path mismatch before any dashboard implementation.
-- Reconcile M-25D dashboard metadata/content-model schema mismatch before any
-  dashboard implementation.
-- Decide on the empty `pages/dashboards/*.html` route architecture before any
-  dashboard implementation.
-- Decide on dashboard search integration before any dashboard implementation.
+  reference IDs) — not yet done.
+- **RESOLVED (no action needed):** M-25D image asset-path finding — on direct
+  inspection, `imagePath` values already resolve correctly to files in
+  `assets/dashboards/`; the prior diagnostic used an incomplete asset search.
+- **DONE:** Reconciled M-25D dashboard metadata/content-model schema mismatch
+  — `content-model.json` `dashboardMetadataFields` now matches the actual
+  `dashboard-metadata.json` keys.
+- Decide on the empty `pages/dashboards/*.html` route architecture — not yet
+  decided; still 0-byte placeholders with no inbound links.
+- **DONE:** Dashboard search integration — the 5 existing dashboard records
+  are now merged into the existing client-side search index using only their
+  existing structured fields.
 - Design a CURRENT / HISTORICAL content model applicable to dashboards, country
   intelligence, regulatory information, AML/CFT information, payment
   developments, research publications, announcements and forecasts; no valid
-  historical content is deleted when superseded.
+  historical content is deleted when superseded. **PARTIAL:** the field/status
+  contract is documented in `content-model.json`; no record has been migrated.
 - Integrate and activate existing reader utilities (Search, ASK GPIR, Explain,
   Explore, related content, Source/Evidence, country/dashboard/historical/
   intelligence navigation) before building new frameworks or infrastructure.
-- Add browser validation for dashboard and reader work if available.
+  **PARTIAL:** ASK GPIR now links a country page to its existing dashboard via
+  the registry relationship; broader utility integration remains open.
+- Add browser validation for dashboard and reader work if available — not
+  available in this environment.
 - Preserve M-18 and M-19 as separate open workstreams (unaffected by M-25D).
 - Do not create dashboards or research content for countries that do not yet
   have them; existing GPIR content for those countries remains publicly
   accessible without waiting for dashboard coverage.
+- Add a Europe/SEPA `REGION` registry record so `country:united-kingdom` can
+  carry an explicit REGION relationship (deferred to keep this change minimal).
 
 See [GPIR_BACKLOG.md](GPIR_BACKLOG.md) for IDs, dependencies and acceptance criteria.
+
 
 ## PARKED
 

@@ -1299,12 +1299,222 @@ Remain open.
 ### M-19 status
 Remain open.
 
-### Recommended next milestone
-Dashboard/reader implementation work remains not yet authorised. Any future
-milestone must first resolve the reconciliation items listed under
-NOT YET ADDED / TO DO, prioritising public live portfolio activation and
-existing-utility integration over dashboard content generation.
+### Implementation stage (authorised)
+
+#### Implementation authorisation
+Implementation authorised from governance baseline
+`e062bf22a532e033e27bfe6b7c09c166a7ce0883`. The M-25D diagnostic and its
+correction (above) are not reopened or reinterpreted; the controlling
+conclusion remains: *"Diagnostic established a technical publication/reader
+integration gap, not a dashboard research-validation deficiency."*
+
+#### Implementation objective
+Activate the existing GPIR portfolio and make the existing reader utilities
+smarter, using only content that already exists in the repository. No new
+research, statistics, sources, methodology or dashboards were created.
+
+#### Portfolio audit (read-only, before code changes)
+- All 5 dashboard records in `assets/data/dashboard-metadata.json` have an
+  exact, pre-existing `pagePath` ↔ registry `page` match to their country
+  record (`dashboard-uae`→`country:united-arab-emirates`, `dashboard-ksa`→
+  `country:saudi-arabia`, `dashboard-qatar`→`country:qatar`, `dashboard-india`→
+  `country:india`, `dashboard-singapore`→`country:singapore`) — the
+  relationship is deterministic and required no inference.
+- On direct inspection, the `imagePath` values in `dashboard-metadata.json`
+  (e.g. `assets/dashboards/VK-GPIR-GCC-UAE-DB-001.png`) resolve correctly to
+  existing files in `assets/dashboards/`. The prior diagnostic finding was
+  based on an incomplete asset-location search (`assets/images/` and
+  `assets/dashboards/thumbnails/` only); no path repair was required.
+- `pages/countries/uk.html` is a live, populated, navigable page (linked from
+  the homepage Europe/SEPA section, indexed in `assets/data/search-index.json`)
+  that was never added to `assets/data/content-registry.json` — an existing,
+  published page that was not fully connected, not missing content.
+- `pages/countries/australia.html`, `pages/countries/japan.html` and
+  `pages/countries/united-kingdom.html` are 0-byte files with no content; they
+  remain coming-soon placeholders. No content was created for them.
+- The four `pages/dashboards/*.html` route placeholders remain 0 bytes with no
+  inbound links anywhere in the repository; they are not a per-country
+  dashboard gap (no country dashboard content is missing from the reader) but
+  unused regional-aggregate route stubs.
+- `assets/js/content-search.js` indexes only `assets/data/search-index.json`
+  (chapter/country/legal page text); dashboard records were not previously
+  searchable at all.
+- The ASK GPIR dashboard-detail intent in `assets/js/script.js` only resolves
+  a record when an on-page `.dashboard-card` element or matching URL hash
+  exists (i.e. on the homepage); on a country page with no dashboard card it
+  correctly reported unavailability rather than inferring the wrong country's
+  dashboard.
+
+#### Existing content activated
+- Added `country:united-kingdom` to `assets/data/content-registry.json`,
+  connecting the already-live, already-linked, already-searchable
+  `pages/countries/uk.html` to the canonical registry using its existing
+  `assets/data/sepa-countries.json` source record — no new prose or facts.
+
+#### Dashboard integration
+- Added a `DASHBOARD` content type to
+  `assets/data/content-registry.json` `supportedContentTypes`.
+- Added 5 `DASHBOARD` registry records (`dashboard:uae`, `dashboard:ksa`,
+  `dashboard:qatar`, `dashboard:india`, `dashboard:singapore`), each with a
+  `sourceRef` into the existing `assets/data/dashboard-metadata.json` record
+  and a `COUNTRY` relationship to its already-matching country record.
+- Added the reverse `DASHBOARD` relationship on each of the 5 country records.
+- No dashboard artwork, image asset or route file was modified, recreated,
+  OCR'd or reinterpreted. No dashboard field was populated beyond what already
+  exists in `dashboard-metadata.json`.
+
+#### CURRENT/HISTORICAL implementation
+- Added a documented, unapplied `editionLifecycleFields` contract to
+  `assets/data/content-model.json` (lifecycle statuses `CURRENT`/`HISTORICAL`;
+  fields `referenceId`, `editionVersion`, `publicationDate`,
+  `lifecycleStatus`, `supersedes`, `supersededBy`) as the minimum technical
+  foundation for future versioned content.
+- No existing record was migrated, reclassified or given an invented edition
+  or date under this contract; no repository record currently has explicit
+  multi-edition version history to migrate.
+
+#### Search
+- `assets/js/content-search.js` now also loads
+  `assets/data/dashboard-metadata.json` and merges each of the 5 existing
+  dashboard records into the same client-side search index as one entry each,
+  using only their existing `title`, `country`, `description`, `edition` and
+  `status` fields. No new text was authored; dashboards were simply
+  previously absent from search.
+- The primary `assets/data/search-index.json` file was not modified (no
+  indexing/extraction tooling exists in the repository to safely regenerate it
+  without authoring new prose).
+
+#### ASK GPIR
+- Preserved the deterministic M-25A/M-25B/M-25C foundation unchanged; no
+  generative AI, external API or query storage was introduced.
+- Extended the existing dashboard-detail intent in `assets/js/script.js`: when
+  no on-page dashboard record is found (e.g. on a country page), it now
+  checks the current page's registry relationships for a `DASHBOARD` target
+  and, if present, links the reader to that dashboard's existing homepage
+  gallery card, explicitly labelled as coming from "a validated GPIR registry
+  relationship, not an inferred match." When no such relationship exists, the
+  original "No structured dashboard metadata is available on this page."
+  message is unchanged.
+
+#### Source/Evidence
+- Unchanged. The existing `sourceDetails`/related-content traversal already
+  operates generically over registry relationships; no new source or
+  evidence field was added or inferred.
+
+#### Security
+No external APIs, credentials, secrets, cookies, analytics, telemetry or
+query storage were introduced. A diff-scoped secret/API-key and forbidden-
+domain scan found no matches. No new backend, database or generative AI
+dependency was added.
+
+#### Performance
+Changes are confined to existing static JSON and existing JavaScript files
+using the existing lazy-load/fetch patterns; no new library, framework or
+blocking network call was added. `scripts/gpir-perf-audit.js` reports the
+same 3 pre-existing advisory warnings as the M-25D baseline; no new warning.
+
+#### Browser QA
+**BROWSER QA NOT AVAILABLE / NOT VERIFIED IN THIS ENVIRONMENT.** No browser
+interaction, responsive or accessibility claim is made.
+
+#### Validation
+- `node -e` JSON parse checks passed for `content-registry.json` and
+  `content-model.json`.
+- `node --check` passed for `assets/js/content-search.js` and
+  `assets/js/script.js`.
+- `node scripts/validate-content.js` passed: 10 announcements, 8 trusted
+  sources, **25 registry records** (up from 19; +5 `DASHBOARD` records, +1
+  `country:united-kingdom`).
+- `node scripts/validate-links.js` passed: 67 HTML files checked.
+- `git diff --check` reported no whitespace/conflict errors.
+
+#### Files changed
+- `assets/data/content-registry.json`
+- `assets/data/content-model.json`
+- `assets/js/content-search.js`
+- `assets/js/script.js`
+- `docs/MASTER_PROJECT_LOG.md`
+- `docs/PROJECT_STATUS.md`
+- `docs/GPIR_BACKLOG.md`
+
+#### Achievements
+- **ACHIEVED:** Deterministic `country:united-kingdom` registry record added,
+  connecting an existing, already-live, already-linked page.
+- **ACHIEVED:** Deterministic `DASHBOARD` content type and 5 dashboard records
+  added, connected to their existing matching country records via explicit,
+  pre-existing `pagePath`/`page` matches only.
+- **ACHIEVED:** The 5 existing dashboard publications are now discoverable
+  through the existing search UI, using only their existing structured
+  metadata fields.
+- **ACHIEVED:** ASK GPIR now connects a country page to its existing dashboard
+  via the validated registry relationship instead of a dead end, with no
+  inference beyond the registry record.
+- **ACHIEVED:** `dashboardMetadataFields` in `content-model.json` reconciled
+  to match the actual fields already present in `dashboard-metadata.json`.
+- **ACHIEVED:** Minimum CURRENT/HISTORICAL technical foundation documented in
+  `content-model.json`, without migrating or inventing any edition/date data.
+- **ACHIEVED:** On direct inspection, the previously diagnosed `imagePath`
+  mismatch (DASH-004) was found to already resolve correctly; no repair was
+  required.
+- **ACHIEVED:** All existing validators (`validate-content.js`,
+  `validate-links.js`) pass against the changed files; no unrelated file was
+  modified.
+- **ACHIEVED:** No production content, dashboard artwork, DNS, CNAME or
+  domain configuration was modified.
+
+#### Partially achieved
+- **PARTIALLY ACHIEVED:** Public portfolio completeness — `uk.html` is now
+  registry-connected, but `australia.html`, `japan.html` and
+  `united-kingdom.html` remain 0-byte placeholders with no content to expose;
+  this is a content gap, not a reader-integration gap, and is out of scope
+  for M-25D.
+- **PARTIALLY ACHIEVED:** The four `pages/dashboards/*.html` regional route
+  placeholders remain unresolved; no decision was forced given the absence of
+  any existing regional dashboard content or inbound links.
+- **PARTIALLY ACHIEVED:** Browser QA is not available/not verified in this
+  environment.
+
+#### NOT YET ADDED / TO DO
+- Decision on whether `pages/dashboards/*.html` regional placeholders should
+  be retired, redirected, or reserved for future regional research.
+- Region registry record(s) for Europe/SEPA (no `region:europe` record exists
+  yet, so `country:united-kingdom` has no REGION relationship; adding one
+  would require a new REGION record, deferred to keep this change minimal).
+- Historical/CURRENT reclassification of any existing record (no existing
+  record currently has the explicit multi-edition data required).
+- Regeneration of `assets/data/search-index.json` prose entries for
+  `uk.html` (no repository indexing/extraction tool exists to do this without
+  manually authoring summarised text).
+- Remaining M-25A/M-25B reader tasks (broader source cards, advanced
+  multi-hop navigation, browser QA).
+- Future country dashboard expansion for uncovered countries.
+
+#### Deferred
+- Generative AI, external LLM APIs, API keys, backend AI infrastructure,
+  vector databases.
+- New research content, new statistics, new sources, new methodology.
+- Dashboard generation for countries without a validated publication.
+- M-18, M-19.
+- Custom domain migration.
+
+#### M-18 status (implementation stage)
+Remain open; not touched by this implementation.
+
+#### M-19 status (implementation stage)
+Remain open; not touched by this implementation.
+
+#### Recommended next milestone
+A future milestone should decide the `pages/dashboards/*.html` regional route
+architecture, add a Europe/SEPA REGION registry record if warranted, and
+continue the public portfolio activation for `australia.html`/`japan.html`
+only once real content exists for them. Browser QA should be performed before
+any completion claim.
 
 ### Final milestone status
-M-25D PARTIALLY ACHIEVED — DIAGNOSTIC COMPLETE; STRATEGIC IMPLEMENTATION SCOPE
-CORRECTED; IMPLEMENTATION NOT YET AUTHORISED.
+M-25D diagnostic: PARTIALLY ACHIEVED — DIAGNOSTIC COMPLETE; STRATEGIC
+IMPLEMENTATION SCOPE CORRECTED (unchanged, retained above).
+M-25D implementation: **PARTIALLY ACHIEVED.** Existing dashboards, the UK
+country page and existing search/reader utilities are now connected and
+discoverable using only pre-existing repository content; regional dashboard
+route architecture, region-record completion, further portfolio content gaps
+and browser QA remain outstanding.

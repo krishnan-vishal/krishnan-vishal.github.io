@@ -40,6 +40,28 @@
         return src.replace(/assets\/js\/content-search\.js.*$/, "");
     })();
 
+    const DASHBOARD_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "assets/data/dashboard-metadata.json");
+
+    // Existing dashboard cards are structured records, not indexed prose. Each
+    // published record becomes one search entry from its own already-existing
+    // title/country/region/description/pagePath fields — no new text is
+    // written, and this fails silently (dashboards simply stay unsearched) if
+    // the optional fetch is unavailable, matching the graceful-degradation
+    // pattern used for the primary search index below.
+    function dashboardEntries(data){
+        return (data.records || []).map(record => ({
+            id: "dashboard-" + record.dashboardId,
+            pageTitle: record.title,
+            sectionTitle: "Country Intelligence Dashboard",
+            url: "index.html#" + record.dashboardId,
+            type: "GPIR Dashboard",
+            category: "Country Dashboard",
+            header: "Dashboards",
+            country: record.country,
+            text: [record.description, record.edition, record.status].filter(Boolean).join(" · ")
+        }));
+    }
+
     // Legal/policy text is real and searchable, but shouldn't drown out
     // research content for common words that appear in both.
     const CATEGORY_WEIGHT = {
@@ -57,10 +79,17 @@
     // pattern GPIR's performance architecture avoids.
     function load(){
         if(loadPromise) return loadPromise;
-        loadPromise = fetch(INDEX_URL)
-            .then(r => { if(!r.ok) throw new Error("search index fetch failed"); return r.json(); })
-            .then(data => {
-                entries = (data.entries || []);
+        loadPromise = Promise.all([
+            fetch(INDEX_URL)
+                .then(r => { if(!r.ok) throw new Error("search index fetch failed"); return r.json(); })
+                .then(data => data.entries || []),
+            fetch(DASHBOARD_URL)
+                .then(r => { if(!r.ok) throw new Error("dashboard metadata unavailable"); return r.json(); })
+                .then(dashboardEntries)
+                .catch(() => [])
+        ])
+            .then(([indexEntries, dashboardIndexEntries]) => {
+                entries = indexEntries.concat(dashboardIndexEntries);
                 loaded = true;
             })
             .catch(() => {

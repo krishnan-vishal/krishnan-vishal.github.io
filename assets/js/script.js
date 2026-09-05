@@ -1561,7 +1561,22 @@ function initializeReaderAssistant(){
             const dashboardId = window.location.hash.match(/^#(dashboard-[a-z-]+)$/)?.[1] || document.activeElement?.closest?.(".dashboard-card")?.id;
             const record = (window.GPIRDashboardMetadata || []).find(item => item.dashboardId === dashboardId) || (window.GPIRDashboardMetadata || [])[0];
             if(!record){
-                answer.innerHTML = "<p>No structured dashboard metadata is available on this page.</p>";
+                // No on-page dashboard card (e.g. a country page): fall back to the
+                // canonical registry's deterministic COUNTRY→DASHBOARD relationship
+                // so the reader is pointed to the existing homepage dashboard card
+                // instead of a dead end.
+                loadContext().then(context => {
+                    const byId = recordById(context.registry);
+                    const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
+                    const dashboards = currentRecords(context.registry)
+                        .flatMap(pageRecord => (pageRecord.relationships || []))
+                        .filter(relationship => relationship.type === "DASHBOARD")
+                        .map(relationship => byId.get(relationship.target))
+                        .filter(Boolean);
+                    answer.innerHTML = dashboards.length
+                        ? `<h3>Country Intelligence Dashboard</h3><p>This page's dashboard is published on the GPIR homepage dashboard gallery.</p><ul>${resultLinks(dashboards.map(dashboard => ({ title: dashboard.title, href: rootPrefix + "index.html#" + dashboard.slug, meta: "Homepage dashboard gallery" })))}</ul><p class="gpir-assistant-source-note">This link comes from a validated GPIR registry relationship, not an inferred match.</p>`
+                        : "<p>No structured dashboard metadata is available on this page.</p>";
+                }).catch(() => { answer.innerHTML = "<p>No structured dashboard metadata is available on this page.</p>"; });
                 return;
             }
             const unavailable = "Not available in existing dashboard metadata";

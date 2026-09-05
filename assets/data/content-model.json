@@ -65,18 +65,30 @@
     "notes"
   ],
   "dashboardMetadataFields": [
+    "dashboardId",
+    "title",
     "country",
+    "region",
+    "period",
     "direction",
     "useCase",
-    "period",
-    "currency",
-    "volume",
-    "corridor",
+    "metric",
+    "unit",
     "source",
-    "evidence",
-    "lastUpdated",
-    "methodology"
+    "methodology",
+    "disclaimer",
+    "edition",
+    "status",
+    "description",
+    "imagePath",
+    "pagePath"
   ],
+  "editionLifecycleFields": {
+    "schemaNote": "M-25D foundation only: documents the CURRENT/HISTORICAL contract for future versioned GPIR content (dashboards, country intelligence, regulatory, AML/CFT, payments, research, announcements, forecasts). Not yet applied to any existing record; no existing record has been reclassified or migrated under this contract.",
+    "lifecycleStatuses": ["CURRENT", "HISTORICAL"],
+    "fields": ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy"],
+    "rule": "A record only moves to HISTORICAL when an explicit newer validated edition is recorded; no record is classified as HISTORICAL by age or inference alone, and no record is deleted when superseded."
+  },
   "recordRules": {
     "sourceUrl": "Required when source is supplied; use HTTPS and preserve the original publisher URL.",
     "publicationDate": "Required when the cited source has a publication date; use YYYY-MM or YYYY-MM-DD.",

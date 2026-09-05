@@ -18,7 +18,8 @@
     "RESEARCH",
     "INTELLIGENCE",
     "ANNOUNCEMENT",
-    "SOURCE"
+    "SOURCE",
+    "DASHBOARD"
   ],
   "records": [
     {
@@ -36,7 +37,8 @@
       "page": "pages/countries/uae.html",
       "relationships": [
         { "type": "REGION", "target": "region:middle-east" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" }
+        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" },
+        { "type": "DASHBOARD", "target": "dashboard:uae" }
       ]
     },
     {
@@ -53,7 +55,8 @@
       },
       "page": "pages/countries/india.html",
       "relationships": [
-        { "type": "REGION", "target": "region:apac" }
+        { "type": "REGION", "target": "region:apac" },
+        { "type": "DASHBOARD", "target": "dashboard:india" }
       ]
     },
     {
@@ -70,7 +73,8 @@
       },
       "page": "pages/countries/saudi-arabia.html",
       "relationships": [
-        { "type": "REGION", "target": "region:middle-east" }
+        { "type": "REGION", "target": "region:middle-east" },
+        { "type": "DASHBOARD", "target": "dashboard:ksa" }
       ]
     },
     {
@@ -87,7 +91,8 @@
       },
       "page": "pages/countries/qatar.html",
       "relationships": [
-        { "type": "REGION", "target": "region:middle-east" }
+        { "type": "REGION", "target": "region:middle-east" },
+        { "type": "DASHBOARD", "target": "dashboard:qatar" }
       ]
     },
     {
@@ -104,7 +109,103 @@
       },
       "page": "pages/countries/singapore.html",
       "relationships": [
-        { "type": "REGION", "target": "region:apac" }
+        { "type": "REGION", "target": "region:apac" },
+        { "type": "DASHBOARD", "target": "dashboard:singapore" }
+      ]
+    },
+    {
+      "id": "country:united-kingdom",
+      "contentType": "COUNTRY",
+      "title": "United Kingdom",
+      "slug": "united-kingdom",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/sepa-countries.json",
+        "collection": "countries",
+        "key": "name",
+        "value": "United Kingdom"
+      },
+      "page": "pages/countries/uk.html",
+      "relationships": []
+    },
+    {
+      "id": "dashboard:uae",
+      "contentType": "DASHBOARD",
+      "title": "United Arab Emirates Country Intelligence Dashboard",
+      "slug": "dashboard-uae",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/dashboard-metadata.json",
+        "collection": "records",
+        "key": "dashboardId",
+        "value": "dashboard-uae"
+      },
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:united-arab-emirates" }
+      ]
+    },
+    {
+      "id": "dashboard:ksa",
+      "contentType": "DASHBOARD",
+      "title": "Kingdom of Saudi Arabia Country Intelligence Dashboard",
+      "slug": "dashboard-ksa",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/dashboard-metadata.json",
+        "collection": "records",
+        "key": "dashboardId",
+        "value": "dashboard-ksa"
+      },
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:saudi-arabia" }
+      ]
+    },
+    {
+      "id": "dashboard:qatar",
+      "contentType": "DASHBOARD",
+      "title": "State of Qatar Country Intelligence Dashboard",
+      "slug": "dashboard-qatar",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/dashboard-metadata.json",
+        "collection": "records",
+        "key": "dashboardId",
+        "value": "dashboard-qatar"
+      },
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:qatar" }
+      ]
+    },
+    {
+      "id": "dashboard:india",
+      "contentType": "DASHBOARD",
+      "title": "Republic of India Country Intelligence Dashboard",
+      "slug": "dashboard-india",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/dashboard-metadata.json",
+        "collection": "records",
+        "key": "dashboardId",
+        "value": "dashboard-india"
+      },
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:india" }
+      ]
+    },
+    {
+      "id": "dashboard:singapore",
+      "contentType": "DASHBOARD",
+      "title": "Republic of Singapore Country Intelligence Dashboard",
+      "slug": "dashboard-singapore",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/dashboard-metadata.json",
+        "collection": "records",
+        "key": "dashboardId",
+        "value": "dashboard-singapore"
+      },
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:singapore" }
       ]
     },
     {
