@@ -737,6 +737,36 @@ body.legal-page .chapter-content h2{
 
 }
 
+.dashboard-reader{
+
+    margin-bottom:40px;
+
+}
+
+.dashboard-publication-status{
+
+    margin:0 0 14px;
+
+    color:var(--ink-muted);
+
+    font-size:13px;
+
+    letter-spacing:.02em;
+
+}
+
+.dashboard-publication-status strong{
+
+    color:var(--ink);
+
+}
+
+.dashboard-publication-status span{
+
+    margin-left:8px;
+
+}
+
 .country-meta-row{
 
     display:flex;

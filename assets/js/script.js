@@ -55,6 +55,8 @@ function initializeWebsite(){
 
     safeInit(initializeDashboardReader);
 
+    safeInit(initializeDashboardPublicationStatus);
+
     safeInit(initializeDashboardNarrative);
 
     safeInit(initializeFloatingBackToTop);
@@ -1758,6 +1760,34 @@ function dashboardReaderEscape(value){
     return div.innerHTML;
 }
 
+function initializeDashboardPublicationStatus(){
+
+    const embeds = document.querySelectorAll(".dashboard-embed[data-dashboard-id]");
+    if(!embeds.length) return;
+
+    const script = document.querySelector('script[src*="assets/js/script.js"]');
+    const src = script ? script.getAttribute("src") : "assets/js/script.js";
+    const dataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/dashboard-metadata.json");
+
+    fetch(dataUrl)
+        .then(response => { if(!response.ok) throw new Error("dashboard metadata unavailable"); return response.json(); })
+        .then(data => {
+            const byId = new Map((data.records || []).map(record => [record.dashboardId, record]));
+            embeds.forEach(embed => {
+                const record = byId.get(embed.getAttribute("data-dashboard-id"));
+                if(!record || !record.status) return;
+                const status = document.createElement("p");
+                status.className = "dashboard-publication-status";
+                status.innerHTML = `<strong>Dashboard publication status:</strong> ${dashboardReaderEscape(record.status)}${record.edition ? ` <span>${dashboardReaderEscape(record.edition)}</span>` : ""}`;
+                embed.parentElement.insertBefore(status, embed);
+            });
+        })
+        .catch(() => {
+            // The dashboard remains available when optional status metadata fails.
+        });
+
+}
+
 function initializeDashboardNarrative(){
 
     const embeds = document.querySelectorAll(".dashboard-embed[data-dashboard-id]");
@@ -1801,6 +1831,7 @@ function initializeConnectedContentPanel(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const src = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/content-registry.json");
+    const dashboardMetadataUrl = src.replace(/assets\/js\/script\.js.*$/, "assets/data/dashboard-metadata.json");
 
     const escapeHtml = (value) => {
         const div = document.createElement("div");
@@ -1810,16 +1841,22 @@ function initializeConnectedContentPanel(){
 
     const toPageHref = (page) => `../../${page}`;
     const toRegionHref = (slug) => `../regions/${slug}.html`;
-    const toDashboardHref = (slug) => `../../index.html#${slug}`;
+    const toDashboardHref = (imagePath) => `../../${imagePath}`;
 
-    fetch(dataUrl)
-        .then(response => {
+    Promise.all([
+        fetch(dataUrl).then(response => {
             if(!response.ok) throw new Error("registry unavailable");
             return response.json();
+        }),
+        fetch(dashboardMetadataUrl).then(response => {
+            if(!response.ok) throw new Error("dashboard metadata unavailable");
+            return response.json();
         })
-        .then(data => {
+    ])
+        .then(([data, dashboardMetadata]) => {
             const records = data.records || [];
             const byId = new Map(records.map(record => [record.id, record]));
+            const metadataById = new Map((dashboardMetadata.records || []).map(record => [record.dashboardId, record]));
 
             if(isCountryPage){
                 const record = records.find(item => item.page === currentPath && item.contentType === "COUNTRY");
@@ -1833,9 +1870,11 @@ function initializeConnectedContentPanel(){
                 const dashboardLinks = dashboardIds
                     .map(id => byId.get(id))
                     .filter(Boolean)
+                    .map(item => ({ item, metadata: metadataById.get(item.slug) }))
+                    .filter(({ metadata }) => metadata && metadata.imagePath)
                     .map(item => ({
-                        label: item.title,
-                        href: toDashboardHref(item.slug),
+                        label: item.item.title,
+                        href: toDashboardHref(item.metadata.imagePath),
                         meta: "Dashboard"
                     }));
 
@@ -1846,7 +1885,7 @@ function initializeConnectedContentPanel(){
                     .slice(0, 2)
                     .map(item => ({
                         label: item.title,
-                        href: item.page ? toPageHref(item.page) : item.slug.startsWith("dashboard-") ? toDashboardHref(item.slug) : toRegionHref(item.slug),
+                        href: item.page ? toPageHref(item.page) : item.slug.startsWith("dashboard-") && metadataById.get(item.slug)?.imagePath ? toDashboardHref(metadataById.get(item.slug).imagePath) : toRegionHref(item.slug),
                         meta: item.contentType
                     }));
 

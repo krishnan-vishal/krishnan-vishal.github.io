@@ -2,11 +2,14 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27A.1 — Navigation Hierarchy & Dashboard Gallery Release
-**Current Milestone:** M-27A.1 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
-**Last Completed Prompt:** M-27A.1 navigation hierarchy and dashboard gallery release
-**Last Verified Commit:** `69b928f9952b242c4fd164908394634394a2a89d`
-**Current Development Status:** M-27A.1 completes the canonical geographic
+**Current Prompt:** M-27A.2 — Correct Dashboard Publication Status and Reader Links
+**Current Milestone:** M-27A.2 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
+**Last Completed Prompt:** M-27A.2 dashboard publication status and reader links
+**Last Verified Commit:** `6e9f5d7b9d73519e5e699d6adc8ab22b26b78f5d`
+**Current Development Status:** M-27A.2 separates country editorial status from
+dashboard publication status and resolves connected dashboard links through
+existing metadata assets. No dashboard research, sources, images, metadata,
+narratives or registry relationships were changed. M-27A.1 completes the canonical geographic
 navigation and registry-driven Dashboard Gallery release using existing assets
 only. The Dashboard Gallery is a presentation/view layer and does not create a
 parallel country hierarchy. M-26B completes the connected-public-reader
@@ -116,6 +119,34 @@ coverage.
 **M-27A.1 Not yet added / to do:** No new content was added; browser QA is the
 remaining release verification task.
 **M-27A.1 Next milestone:** Future governed reader validation or coverage
+expansion under separate authorization.
+
+**M-27A.2 Status:** IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED.
+**M-27A.2 Starting SHA:** `dc43cb95e36ce80fe6ba8ca869135a7135ab3d8a`.
+**M-27A.2 Objective:** Separate country editorial status from dashboard
+publication status and correct connected dashboard reader links.
+**M-27A.2 Issue 1:** Country `.draft-notice` markup is outside five
+`.dashboard-reader` boundaries; dashboard status comes from existing
+`dashboard-metadata.json`.
+**M-27A.2 Issue 2:** Connected links now resolve registry dashboard relationships
+through metadata `imagePath` values to existing publication assets instead of
+homepage hash fallbacks.
+**M-27A.2 Validation:** Runtime syntax checks, link validation, content
+validation, M-27A validation (36/36), targeted five-dashboard assertions and
+`git diff --check` passed.
+**M-27A.2 Live HTTP:** VERIFIED — GitHub Pages deployment SHA matched the
+release. Homepage, UAE, KSA, Qatar, India and Singapore country pages,
+dashboard metadata, narratives, gallery runtime, main runtime and CSS all
+returned HTTP 200; deployed bytes matched the committed release files.
+All five connected dashboard links resolve to existing publication assets;
+Qatar no longer resolves to Home.
+**M-27A.2 Achieved:** Status separation and canonical dashboard asset links.
+**M-27A.2 Partial:** Browser QA remains NOT VERIFIED because browser tooling is
+unavailable.
+**M-27A.2 Deferred:** Custom domain; M-18; M-19; future coverage expansion.
+**M-27A.2 Not yet added / to do:** No new research/content/assets; browser QA
+remains outstanding.
+**M-27A.2 Next milestone:** Future governed reader validation or coverage
 expansion under separate authorization.
 
 ## COMPLETED

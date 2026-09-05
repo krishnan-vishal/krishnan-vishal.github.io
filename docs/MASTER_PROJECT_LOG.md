@@ -1758,4 +1758,51 @@ and browser QA remain outstanding.
   historical editions; browser QA remains outstanding.
 - **Next milestone:** Future governed reader validation or coverage expansion
   under separate authorization.
+
+- **Final release commit SHA:** `6e9f5d7b9d73519e5e699d6adc8ab22b26b78f5d`.
+- **Live HTTP verification:** GitHub Pages deployment SHA matched the release.
+  Homepage, UAE, KSA, Qatar, India and Singapore country pages, dashboard
+  metadata, dashboard narratives, gallery runtime, main runtime and CSS all
+  returned HTTP 200. Deployed bytes matched the committed release files.
+- **Dashboard link verification:** All five connected dashboard links resolved
+  to their existing publication assets; Qatar no longer resolved to Home.
 - **Release commit SHA:** `69b928f9952b242c4fd164908394634394a2a89d`.
+
+## M-27A.2 — Correct Dashboard Publication Status and Reader Links
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `dc43cb95e36ce80fe6ba8ca869135a7135ab3d8a`.
+- **Objective:** Separate country editorial status from dashboard publication
+  status and make connected dashboard links resolve to existing published
+  dashboard assets.
+- **Issue 1 root cause/correction:** The generic country `.draft-notice` was
+  directly before each dashboard embed and was read as dashboard status. Each
+  published dashboard now has a `.dashboard-reader` boundary; the country
+  notice remains outside it, and dashboard status is loaded from existing
+  dashboard metadata.
+- **Issue 2 root cause/correction:** Connected links used a homepage hash
+  fallback instead of the existing dashboard publication path. Registry
+  dashboard relationships now resolve through `dashboard-metadata.json` and
+  its existing `imagePath` values.
+- **Files changed:** `assets/js/script.js`, `assets/css/chapter-page.css`,
+  five published dashboard country pages, plus the required governance records.
+- **Preservation:** Existing dashboard disclaimers, research, sources, images,
+  metadata, narratives, registry relationships, country/region content,
+  historical architecture and the Global -> Region -> Country hierarchy were
+  preserved. No new research, content or assets were introduced.
+- **Validation:** Both JavaScript syntax checks, link validation, content
+  validation, M-27A validation (36/36), targeted five-dashboard assertions and
+  `git diff --check` passed.
+- **Live verification:** To be recorded after push for all required pages and
+  runtime/data/CSS resources.
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
+- **Achieved:** Dashboard publication status is separated from country status;
+  all five connected dashboard links resolve to existing publication assets.
+- **Partial:** Browser-level rendering and interaction verification remains
+  unavailable.
+- **Deferred:** Custom domain, M-18, M-19 and future coverage expansion.
+- **Not yet added / to do:** No new research, country, dashboard, source,
+  historical edition or asset was added; browser QA remains outstanding.
+- **Next milestone:** Future governed reader validation or coverage expansion
+  under separate authorization.
