@@ -1084,20 +1084,79 @@ function initializeSearch(){
         "Global Intelligence": "Global Intelligence"
     };
 
-    const contentResultMarkup = (r) => {
+    let readerContextPromise = null;
+
+    const loadReaderContext = () => {
+        if(readerContextPromise) return readerContextPromise;
+        const script = document.querySelector('script[src*="assets/js/script.js"]');
+        const src = script ? script.getAttribute("src") : "assets/js/script.js";
+        const prefix = src.replace(/assets\/js\/script\.js.*$/, "assets/data/");
+        readerContextPromise = Promise.all([
+            fetch(prefix + "content-registry.json").then(response => { if(!response.ok) throw new Error("registry unavailable"); return response.json(); }),
+            fetch(prefix + "trusted-sources.json").then(response => { if(!response.ok) throw new Error("source registry unavailable"); return response.json(); }),
+            fetch(prefix + "announcements.json").then(response => { if(!response.ok) throw new Error("announcement data unavailable"); return response.json(); })
+        ]).then(([registry, sources, announcements]) => ({
+            records: registry.records || [],
+            sources: sources.registry || [],
+            announcements: announcements.records || []
+        }));
+        return readerContextPromise;
+    };
+
+    const registryContextFor = (href, context) => {
+        const record = context.records.find(item => item.page === href);
+        if(!record) return null;
+        const byId = new Map(context.records.map(item => [item.id, item]));
+        const visited = new Set([record.id]);
+        const related = [];
+        let frontier = [record];
+        for(let depth = 0; depth < 2 && frontier.length; depth++){
+            const next = [];
+            frontier.forEach(current => (current.relationships || []).forEach(relationship => {
+                const target = byId.get(relationship.target);
+                if(!target || visited.has(target.id)) return;
+                visited.add(target.id);
+                if(target.page) related.push({ title: target.title, href: target.page, meta: target.contentType });
+                next.push(target);
+            }));
+            frontier = next;
+        }
+        const sourceIds = new Set((record.sourceRefs || []).map(id => id.replace(/^source:/, "")));
+        const announcement = context.announcements.find(item => record.sourceRef && record.sourceRef.value === item.id);
+        const source = context.sources.find(item => sourceIds.has(item.id));
+        return { record, related, announcement, source };
+    };
+
+    const provenanceMarkup = (contextInfo, escapeHtml) => {
+        if(!contextInfo) return "";
+        const { record, announcement, source, related } = contextInfo;
+        const rows = [];
+        if(source) rows.push(`<dt>Source organisation</dt><dd>${escapeHtml(source.organization)}</dd>`, `<dt>Source type</dt><dd>${escapeHtml(source.sourceType || "Unavailable")}</dd>`, `<dt>Verification date</dt><dd>${escapeHtml(source.lastVerifiedDate || "Unavailable")}</dd>`);
+        if(announcement){
+            if(announcement.source?.publicationTitle) rows.push(`<dt>Publication</dt><dd>${escapeHtml(announcement.source.publicationTitle)}</dd>`);
+            rows.push(`<dt>Published</dt><dd>${escapeHtml(announcement.publishedDate || "Unavailable")}</dd>`, `<dt>Retrieved</dt><dd>${escapeHtml(announcement.retrievedDate || "Unavailable")}</dd>`, `<dt>Content status</dt><dd>${escapeHtml(announcement.contentStatus || "Unavailable")}</dd>`);
+            if(announcement.source?.url) rows.push(`<dt>Source URL</dt><dd><a href="${escapeHtml(announcement.source.url)}" target="_blank" rel="noopener noreferrer">View source</a></dd>`);
+        }
+        const evidence = rows.length ? `<details class="search-result-evidence"><summary>Source / Evidence</summary><dl>${rows.join("")}</dl></details>` : "";
+        const relatedMarkup = related.length ? `<details class="search-result-related"><summary>Explore Related</summary><ul>${related.map(item => `<li><a href="${escapeHtml(item.href)}">${escapeHtml(item.title)}</a><small>${escapeHtml(item.meta)}</small></li>`).join("")}</ul></details>` : "";
+        return evidence + relatedMarkup;
+    };
+
+    const contentResultMarkup = (r, context) => {
 
         const location = [r.header, r.category, r.country].filter(Boolean).join(" · ");
+        const contextInfo = registryContextFor(r.href, context);
 
         return `<a class="search-result search-result--content" href="${r.href}">
             <span class="search-result-type">${escapeHtml(TYPE_LABEL[r.type] || r.type)}</span>
             <span class="search-result-title">${escapeHtml(r.pageTitle)}${r.sectionTitle && r.sectionTitle !== r.pageTitle ? " — " + escapeHtml(r.sectionTitle) : ""}</span>
             <span class="search-result-excerpt">${r.excerptHtml}</span>
             <span class="search-result-location">${escapeHtml(location)}</span>
-        </a>`;
+        </a>${provenanceMarkup(contextInfo, escapeHtml)}`;
 
     };
 
-    const renderResults = (navItems, contentResult, query) => {
+    const renderResults = (navItems, contentResult, query, context) => {
 
         activeIndex = -1;
 
@@ -1136,7 +1195,7 @@ function initializeSearch(){
             parts.push(`<p class="search-result-count">${escapeHtml(countLabel)}</p>`);
         }
 
-        contentResults.forEach(r => parts.push(contentResultMarkup(r)));
+        contentResults.forEach(r => parts.push(contentResultMarkup(r, context)));
 
         navItems.forEach(item => parts.push(
             `<a class="search-result" href="${item.href}"${item.intelId ? ` data-intel-id="${item.intelId}"` : ""}>${escapeHtml(item.label)}</a>`
@@ -1200,7 +1259,7 @@ function initializeSearch(){
 
         toggle.setAttribute("aria-expanded","true");
 
-        renderResults(index.slice(0,8), null, "");
+        renderResults(index.slice(0,8), null, "", null);
 
         requestAnimationFrame(() => requestAnimationFrame(() => input.focus()));
 
@@ -1214,7 +1273,7 @@ function initializeSearch(){
                 if(!rawQuery || !overlay.classList.contains("is-open")) return;
                 const navMatches = index.filter(item => item.label.toLowerCase().includes(rawQuery.toLowerCase())).slice(0,6);
                 const contentResult = window.GPIRContentSearch.search(rawQuery, { limit: 8 });
-                renderResults(navMatches, contentResult, rawQuery.toLowerCase());
+                loadReaderContext().then(context => renderResults(navMatches, contentResult, rawQuery.toLowerCase(), context)).catch(() => renderResults(navMatches, contentResult, rawQuery.toLowerCase(), null));
             });
         }
 
@@ -1315,7 +1374,7 @@ function initializeSearch(){
 
         if(!query){
 
-            renderResults(index.slice(0,8), null, "");
+            renderResults(index.slice(0,8), null, "", null);
 
             return;
 
@@ -1325,7 +1384,11 @@ function initializeSearch(){
 
         const contentResult = window.GPIRContentSearch ? window.GPIRContentSearch.search(rawQuery, { limit: 8 }) : null;
 
-        renderResults(navMatches, contentResult, query);
+        if(contentResult && contentResult.results.length){
+            loadReaderContext().then(context => renderResults(navMatches, contentResult, query, context)).catch(() => renderResults(navMatches, contentResult, query, null));
+        } else {
+            renderResults(navMatches, contentResult, query, null);
+        }
 
     });
 
@@ -1513,6 +1576,37 @@ function initializeReaderAssistant(){
             const pageTitle = document.querySelector("h1")?.textContent.trim() || document.title;
             input.value = pageTitle;
             answerQuery(pageTitle);
+            return;
+        }
+
+        if(normalized.includes("what should i read next") || normalized.includes("read next") || normalized.includes("related content")){
+            loadContext().then(context => {
+                const records = currentRecords(context.registry);
+                const next = [];
+                const seen = new Set();
+                records.forEach(record => {
+                    const related = relatedRecords(record, context);
+                    related.forEach(item => {
+                        if(seen.has(item.href)) return;
+                        seen.add(item.href);
+                        next.push(item);
+                    });
+                });
+                answer.innerHTML = next.length
+                    ? `<h3>Suggested next reading</h3><ul>${resultLinks(next.slice(0, 6))}</ul><p class="gpir-assistant-source-note">Suggestions come only from validated GPIR registry relationships.</p>`
+                    : "<p>No validated related GPIR page is available for this record.</p>";
+            }).catch(() => { answer.innerHTML = "<p>Validated related content is temporarily unavailable.</p>"; });
+            return;
+        }
+
+        if(normalized.includes("source") || normalized.includes("evidence")){
+            loadContext().then(context => {
+                const records = currentRecords(context.registry);
+                const sources = records.flatMap(record => sourceDetails(record, context));
+                answer.innerHTML = sources.length
+                    ? `<h3>Source / evidence</h3><ul>${sources.map(source => `<li>${source.href ? `<a href="${escape(source.href)}" target="_blank" rel="noopener noreferrer">${escape(source.label)}</a>` : escape(source.label)}<small>${escape(source.meta)}</small></li>`).join("")}</ul><p class="gpir-assistant-source-note">This metadata comes from existing GPIR records; source trust is not independent factual verification.</p>`
+                    : "<p>No source or evidence metadata is available for this page.</p>";
+            }).catch(() => { answer.innerHTML = "<p>Source and evidence metadata is temporarily unavailable.</p>"; });
             return;
         }
 
