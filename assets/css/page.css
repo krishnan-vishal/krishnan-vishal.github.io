@@ -1723,6 +1723,12 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 }
 
+#market-ribbon .ticker-track:hover{
+
+    animation-play-state:paused;
+
+}
+
 .ticker-item{
     display:inline-flex;
     align-items:center;
@@ -1776,15 +1782,15 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 @keyframes scrollTicker{
 
-    from{
+    0%{
 
-        transform:translateX(100%);
+        transform:translateX(0);
 
     }
 
-    to{
+    100%{
 
-        transform:translateX(-100%);
+        transform:translateX(-50%);
 
     }
 
