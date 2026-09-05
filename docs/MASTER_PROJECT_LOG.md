@@ -1790,6 +1790,51 @@ and browser QA remain outstanding.
   architecture changes; browser QA remains outstanding.
 - **Next milestone:** Future governed reader validation under separate
   authorization.
+- **Final release commit SHA:** `ca4513b9dab7bdfd0d2e52827a15b4b442839090`.
+- **Live HTTP verification:** UAE, Saudi Arabia, Qatar, India and Singapore
+  pages, homepage, dashboard metadata, dashboard narratives, main runtime and
+  content-search runtime returned HTTP 200. All five live pages have no generic
+  draft warning, retain their dashboard readers and preserve canonical
+  Search/Markets routes.
+
+## M-27A.5 — Remove Stale Draft Status from Five Published Country Readers
+
+- **Date:** `2026-09-05`.
+- **Starting SHA:** `a711e9a3cc1cc1bb35263e6445aa739a5b422924`.
+- **Objective:** Remove the stale generic country scaffold warning from all
+  five existing published country readers while preserving dashboard status,
+  disclaimers, research, sources, routes and content.
+- **Root cause:** The same static `.draft-notice` scaffold remained on UAE,
+  Saudi Arabia, Qatar and Singapore after India had been corrected.
+- **Correction:** Removed only the generic `.draft-notice` block from the four
+  remaining pages; India was already clear. Dashboard-reader boundaries and
+  metadata-driven dashboard publication status were unchanged.
+- **Permanent status rule:** Country editorial status is distinct from dashboard
+  publication status. An existing published GPIR country reader with an active
+  associated dashboard/research publication must not display the generic
+  scaffold-level `Draft — Pending Verification` notice. Future genuinely draft
+  country pages require explicit draft designation by the content/status model.
+- **Files changed:** Five country pages as a coordinated set, plus governance
+  records. No runtime, registry, metadata, narrative, search, region, dashboard
+  or asset files changed.
+- **Preservation:** Dashboard disclaimers, research, statistics, sources,
+  images, publication dates, reference IDs, metadata, narratives, routes,
+  Search/Markets canonical routing and Global -> Region -> Country remain
+  unchanged.
+- **Validation:** Standard JavaScript, link, content and M-27A checks,
+  `git diff --check`, route assertions, dashboard-preservation assertions and
+  five-country warning-removal assertions passed.
+- **Browser QA:** `BROWSER QA NOT VERIFIED — BROWSER TOOLING UNAVAILABLE`.
+- **M-18 status:** OPEN. **M-19 status:** OPEN. **Custom domain:** DEFERRED.
+- **Achieved:** Generic stale country draft status removed from all five
+  published readers; dashboard publication architecture unchanged.
+- **Partial:** Browser-level route and rendering verification remains
+  unavailable.
+- **Deferred:** Custom domain, M-18, M-19 and future reader work.
+- **Not yet added / to do:** No new content, research, dashboard, source,
+  metadata, narrative, registry record or asset was added.
+- **Next milestone:** Future governed reader validation under separate
+  authorization.
 - **Final release commit SHA:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`.
 - **Live HTTP verification:** GitHub Pages deployment succeeded. India page,
   homepage, dashboard metadata and content-search runtime returned HTTP 200.

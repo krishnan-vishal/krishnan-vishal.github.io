@@ -200,6 +200,36 @@ present.
 **M-27A.4 Next milestone:** Future governed reader validation under separate
 authorization.
 
+**M-27A.5 Status:** IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED.
+**M-27A.5 Starting SHA:** `a711e9a3cc1cc1bb35263e6445aa739a5b422924`.
+**M-27A.5 Objective:** Remove the stale generic country scaffold warning from
+all five existing published country readers without changing dashboard status,
+research, disclaimers, sources, routes or content.
+**M-27A.5 Root cause/correction:** The shared static `.draft-notice` remained
+on UAE, Saudi Arabia, Qatar and Singapore after India was corrected. The four
+remaining blocks were removed; India was already clear.
+**M-27A.5 Permanent rule:** Country editorial status != Dashboard publication
+status. Published country readers with active associated dashboard/research
+publications do not display the generic scaffold warning. Future genuinely
+draft pages require explicit content/status-model designation.
+**M-27A.5 Validation:** Standard validators, M-27A validation (36/36), five-
+country route/status/dashboard-preservation assertions and `git diff --check`
+passed.
+**M-27A.5 Live HTTP:** Pending push verification for all five country pages,
+homepage, search runtime and dashboard metadata.
+**M-27A.5 Final release SHA:** `ca4513b9dab7bdfd0d2e52827a15b4b442839090`.
+**M-27A.5 Live HTTP:** VERIFIED — all five country pages, homepage, dashboard
+metadata, dashboard narratives, main runtime and content-search runtime
+returned HTTP 200. All five live pages have no generic draft warning, retain
+their dashboard readers and preserve canonical Search/Markets routes.
+**M-27A.5 Achieved:** Pending live verification; dashboard publication
+architecture unchanged.
+**M-27A.5 Partial:** Browser QA remains NOT VERIFIED because browser tooling is
+unavailable.
+**M-27A.5 Deferred:** Custom domain; M-18; M-19; future reader work.
+**M-27A.5 Next milestone:** Future governed reader validation under separate
+authorization.
+
 ## COMPLETED
 
 - Static HTML/CSS/vanilla JavaScript GitHub Pages architecture.
