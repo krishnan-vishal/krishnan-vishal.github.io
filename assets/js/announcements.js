@@ -30,9 +30,11 @@
 (function(){
 
     const DATA_URL = "assets/data/announcements.json";
+    const CONTENT_REGISTRY_URL = "assets/data/content-registry.json";
 
     let records = [];
     let recordsById = {};
+    let contentRegistry = [];
 
     const GLOBE_SVG = '<svg class="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 
@@ -139,7 +141,7 @@
             hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
         });
 
-        el.textContent = `Refreshed: ${label}`;
+        el.textContent = `Last validated publication cycle: ${label} · Refresh automation: Not yet scheduled`;
 
     }
 
@@ -259,27 +261,31 @@
 
     }
 
-    // Related GPIR Intelligence is computed live from what's currently
-    // published (same country or same category, excluding the record
-    // itself) rather than hand-curated, so it can never drift stale as
-    // records are added or retired.
+    // Related intelligence is limited to explicit shared registry
+    // relationships; absent an evidenced relationship, no link is shown.
     function relatedRecords(record){
-        return publishedRecords()
-            .filter(r => r.id !== record.id && (r.country === record.country || r.category === record.category))
-            .slice(0, 3);
+        const byId = new Map(contentRegistry.map(item => [item.id, item]));
+        const registryRecord = byId.get(`announcement:${record.id}`);
+        if(!registryRecord) return [];
+        const targets = new Set((registryRecord.relationships || [])
+            .filter(relationship => relationship.type !== "ANNOUNCEMENT" && relationship.type !== "INTELLIGENCE")
+            .map(relationship => relationship.target));
+        return publishedRecords().filter(candidate => {
+            if(candidate.id === record.id) return false;
+            const candidateRegistryRecord = byId.get(`announcement:${candidate.id}`);
+            return candidateRegistryRecord && (candidateRegistryRecord.relationships || []).some(relationship => targets.has(relationship.target));
+        }).slice(0, 3);
     }
 
     function buildDetailMarkup(record){
 
         const trust = evaluateTrust(record);
         const statusMeta = SOURCE_STATUS_META[trust.sourceStatus] || SOURCE_STATUS_META.SOURCE_REQUIRES_VERIFICATION;
-        const recency = recencyStatus(record.publishedDate);
-
         const badges = `
             <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
             <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
             <span class="intel-badge intel-badge--content">${escapeHtml(CONTENT_STATUS_META[record.contentStatus] || "Content: Under Review")}</span>
-            ${recency ? `<span class="intel-badge intel-badge--recency">${recency}</span>` : ""}
+            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus || "CURRENT")}</span>
         `;
 
         const sourceBlock = buildSourceBlock(record, trust);
@@ -429,12 +435,15 @@
 
     function load(){
 
-        const dataReady = fetch(DATA_URL)
-            .then(r => { if(!r.ok) throw new Error("announcements fetch failed"); return r.json(); })
-            .then(data => {
+        const dataReady = Promise.all([
+            fetch(DATA_URL).then(r => { if(!r.ok) throw new Error("announcements fetch failed"); return r.json(); }),
+            fetch(CONTENT_REGISTRY_URL).then(r => { if(!r.ok) throw new Error("content registry fetch failed"); return r.json(); }).catch(() => ({ records: [] }))
+        ])
+            .then(([data, registryData]) => {
                 records = (data.records || []).filter(r => r && r.id);
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
+                contentRegistry = registryData.records || [];
                 updateLastRefreshDisplay(data.lastRefreshed);
             })
             .catch(() => {

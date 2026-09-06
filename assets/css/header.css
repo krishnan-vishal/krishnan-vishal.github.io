@@ -1276,6 +1276,27 @@ TRUST / SOURCE VERIFICATION LAYER
     color:#5A6579;
 }
 
+.intel-badge--lifecycle{
+
+    background:#eef2f7;
+    color:#0a2540;
+
+}
+
+.intel-reader-view{
+
+    margin-top:24px;
+
+}
+
+.intel-reader-view h4{
+
+    margin:0 0 10px;
+    color:#0a2540;
+    font-size:1rem;
+
+}
+
 .intel-summary-heading{
 
     margin:0 0 4px;

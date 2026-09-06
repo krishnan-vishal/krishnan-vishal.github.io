@@ -130,6 +130,15 @@ KNOWLEDGE PAGE HERO
 
 }
 
+.announcement-archive-freshness{
+
+    margin:18px 0 0;
+    color:#536176;
+    font-size:.92rem;
+    line-height:1.6;
+
+}
+
 .announcement-archive-nav{
 
     display:flex;
@@ -310,6 +319,52 @@ KNOWLEDGE PAGE HERO
 
     color:#2563eb;
     outline:none;
+
+}
+
+.search-result--announcement{
+
+    gap:8px;
+
+}
+
+.search-result--announcement .search-result-type{
+
+    color:#0a2540;
+    font-weight:700;
+    letter-spacing:.05em;
+
+}
+
+.search-result-lifecycle,
+.search-result-action,
+.search-result-source{
+
+    font-size:.82rem;
+    font-weight:600;
+
+}
+
+.search-result-lifecycle{
+
+    color:#536176;
+    text-transform:uppercase;
+
+}
+
+.search-result-action,
+.search-result-source{
+
+    color:#0a2540;
+    text-decoration:none;
+
+}
+
+.search-result-source:hover,
+.search-result-source:focus-visible{
+
+    color:#2563eb;
+    text-decoration:underline;
 
 }
 

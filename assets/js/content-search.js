@@ -67,7 +67,7 @@
 
     function announcementEntries(data){
         return (data.records || [])
-            .filter(record => record.status === "GPIR_CLASSIFIED" && record.lifecycleStatus !== "HISTORICAL" && record.contentStatus !== "CONTENT_UNDER_REVIEW")
+            .filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW")
             .map(record => ({
                 id: "announcement-" + record.id,
                 pageTitle: record.title,
@@ -77,6 +77,12 @@
                 category: [record.category, record.subCategory].filter(Boolean).join(" / "),
                 header: "Global Announcements",
                 country: record.country,
+                region: record.region,
+                subCategory: record.subCategory,
+                publicationDate: record.publicationDate || record.publishedDate,
+                lifecycleStatus: record.lifecycleStatus || "CURRENT",
+                summary: record.summary,
+                source: record.source,
                 text: [record.title, record.tickerHeadline, record.category, record.subCategory, record.country, record.region, record.eventType, record.organisation, record.source && record.source.name, record.source && record.source.publicationTitle, record.publishedDate, record.publicationMonth, record.publicationYear, record.lifecycleStatus, record.summary, record.whyItMatters].filter(Boolean).join(" · ")
             }));
     }

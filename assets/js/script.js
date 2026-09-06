@@ -1157,6 +1157,20 @@ function initializeSearch(){
         const location = [r.header, r.category, r.country].filter(Boolean).join(" · ");
         const contextInfo = registryContextFor(r.href, context);
 
+        if(r.type === "Global Announcement"){
+            const sourceLink = r.source && r.source.url
+                ? `<a class="search-result-source" href="${escapeHtml(r.source.url)}" target="_blank" rel="noopener noreferrer">Original Source →</a>`
+                : "";
+            return `<a class="search-result search-result--content search-result--announcement" href="${r.href}">
+                <span class="search-result-type">GLOBAL ANNOUNCEMENT</span>
+                <span class="search-result-title">${escapeHtml(r.pageTitle)}</span>
+                <span class="search-result-location">${escapeHtml([r.country, r.region].filter(Boolean).join(" / ") || "Global")} · ${escapeHtml(r.category || "Announcement")} · ${escapeHtml(r.publicationDate || "Publication date unavailable")}</span>
+                <span class="search-result-excerpt">${escapeHtml(r.summary || "")}</span>
+                <span class="search-result-lifecycle">${escapeHtml(r.lifecycleStatus || "CURRENT")}</span>
+                <span class="search-result-action">Read GPIR Intelligence →</span>
+            </a>${sourceLink}`;
+        }
+
         return `<a class="search-result search-result--content" href="${r.href}">
             <span class="search-result-type">${escapeHtml(TYPE_LABEL[r.type] || r.type)}</span>
             <span class="search-result-title">${escapeHtml(r.pageTitle)}${r.sectionTitle && r.sectionTitle !== r.pageTitle ? " — " + escapeHtml(r.sectionTitle) : ""}</span>

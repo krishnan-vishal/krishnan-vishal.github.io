@@ -28,6 +28,8 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const ANNOUNCEMENTS_PATH = path.join(ROOT, "assets/data/announcements.json");
 const REGISTRY_PATH = path.join(ROOT, "assets/data/trusted-sources.json");
+const CONTENT_REGISTRY_PATH = path.join(ROOT, "assets/data/content-registry.json");
+const HOMEPAGE_SOURCE_PATH = path.join(ROOT, "index.html");
 const TEMPLATE_SOURCE_PATH = path.join(ROOT, "pages/legal/privacy-policy.html");
 const OUTPUT_DIR = path.join(ROOT, "pages/intelligence");
 const SITEMAP_PATH = path.join(ROOT, "sitemap.xml");
@@ -69,9 +71,9 @@ function formatDate(dateStr){
 function lifecycleFacts(record){
     const facts = [
         ["Event Type", record.eventType],
-        ["Published", record.publicationDate || record.publishedDate],
+        [record.lifecycleStatus === "HISTORICAL" ? "Originally published" : "Published", record.publicationDate || record.publishedDate],
         ["GPIR Refresh Cycle", record.refreshCycle],
-        ["Publication Status", record.lifecycleStatus]
+        ["Publication Status", record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus]
     ].filter(([, value]) => value);
     if(!facts.length) return "";
     return `<dl class="intel-source-list intel-lifecycle-facts">${facts.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl>`;
@@ -184,7 +186,10 @@ function main(){
 
     const announcementsData = JSON.parse(fs.readFileSync(ANNOUNCEMENTS_PATH, "utf8"));
     const registryData = JSON.parse(fs.readFileSync(REGISTRY_PATH, "utf8"));
+    const contentRegistryData = JSON.parse(fs.readFileSync(CONTENT_REGISTRY_PATH, "utf8"));
     const registry = registryData.registry || [];
+    const contentRegistry = contentRegistryData.records || [];
+    const contentRegistryById = new Map(contentRegistry.map(record => [record.id, record]));
     const allRecords = (announcementsData.records || []).filter(r => r && r.id);
     const now = new Date();
 
@@ -202,13 +207,23 @@ function main(){
             return (b.publishedDate || "").localeCompare(a.publishedDate || "");
         });
 
+    const historicalRecords = allRecords
+        .filter(r => r.lifecycleStatus === "HISTORICAL" && r.publicationDate && r.status === "GPIR_CLASSIFIED" && trustByRecordId[r.id].sourceStatus !== "SOURCE_BLOCKED");
+    const publicRecords = publishedRecords.concat(historicalRecords);
     const recordsById = {};
-    publishedRecords.forEach(r => { recordsById[r.id] = r; });
+    publicRecords.forEach(r => { recordsById[r.id] = r; });
 
     function relatedRecords(record){
-        return publishedRecords
-            .filter(r => r.id !== record.id && (r.country === record.country || r.category === record.category))
-            .slice(0, 3);
+        const registryRecord = contentRegistryById.get(`announcement:${record.id}`);
+        if(!registryRecord) return [];
+        const relationshipTargets = new Set((registryRecord.relationships || [])
+            .filter(relationship => relationship.type !== "INTELLIGENCE" && relationship.type !== "ANNOUNCEMENT")
+            .map(relationship => relationship.target));
+        return publicRecords.filter(candidate => {
+            if(candidate.id === record.id) return false;
+            const candidateRegistryRecord = contentRegistryById.get(`announcement:${candidate.id}`);
+            return candidateRegistryRecord && (candidateRegistryRecord.relationships || []).some(relationship => relationshipTargets.has(relationship.target));
+        }).slice(0, 3);
     }
 
     const templateSource = fs.readFileSync(TEMPLATE_SOURCE_PATH, "utf8");
@@ -248,7 +263,7 @@ function main(){
 
     let generatedCount = 0;
 
-    publishedRecords.forEach(record => {
+    publicRecords.forEach(record => {
 
         const trust = trustByRecordId[record.id];
         const url = `${SITE_ORIGIN}/pages/intelligence/${record.id}.html`;
@@ -272,13 +287,11 @@ function main(){
         }[trust.sourceStatus];
 
         const contentStatusLabel = { CONTENT_VERIFIED: "Content: Reviewed by GPIR", CONTENT_UNDER_REVIEW: "Content: Under Review" }[record.contentStatus] || "Content: Under Review";
-        const recency = recencyStatus(record.publishedDate, now);
-
         const badges = `
             <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
             <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
             <span class="intel-badge intel-badge--content">${escapeHtml(contentStatusLabel)}</span>
-            ${recency ? `<span class="intel-badge intel-badge--recency">${recency}</span>` : ""}
+            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus || "CURRENT")}</span>
         `;
 
         let sourceBlock;
@@ -322,7 +335,12 @@ function main(){
             </section>
         ` : "";
 
-        const gpirButton = record.gpirMapping ? `<a class="intel-gpir-link" href="../../${escapeHtml(record.gpirMapping.href)}">Explore Related GPIR Intelligence →</a>` : "";
+        const gpirButton = record.gpirMapping ? `
+            <div class="intel-reader-view">
+                <h4>GPIR Reader View</h4>
+                <a class="intel-gpir-link" href="../../${escapeHtml(record.gpirMapping.href)}">Explore Related GPIR Intelligence →</a>
+            </div>
+        ` : "";
 
         const related = relatedRecords(record);
         const relatedBlock = related.length ? `
@@ -424,7 +442,7 @@ ${reportBlock}
         const finalHtml = headerBlock + heroAndBody + footerBlock;
 
         const outPath = path.join(OUTPUT_DIR, `${record.id}.html`);
-        fs.writeFileSync(outPath, finalHtml, "utf8");
+        fs.writeFileSync(outPath, finalHtml.replace(/[ \t]+$/gm, ""), "utf8");
         generatedCount += 1;
         console.log(`Generated ${outPath} (source status: ${trust.sourceStatus})`);
 
@@ -438,8 +456,19 @@ ${reportBlock}
         skipped.forEach(r => console.log(`  - ${r.id} (status: ${r.status})`));
     }
 
-    updateSitemap(publishedRecords);
-    generateArchive(allRecords, publishedRecords);
+    const homepageSource = fs.readFileSync(HOMEPAGE_SOURCE_PATH, "utf8");
+    const homepageFooterStart = homepageSource.indexOf("<footer id=\"footer\">");
+    if(homepageFooterStart === -1) throw new Error("Homepage footer marker not found");
+    const sharedFooter = homepageSource.slice(homepageFooterStart, homepageSource.indexOf("</html>", homepageFooterStart));
+    const sharedFooterBlock = sharedFooter.replace(/(href|src)=\"([^\"]+)\"/g, (match, attribute, value) => {
+        if(/^(https?:|mailto:)/.test(value)) return match;
+        if(value === "index.html") return `${attribute}=\"../../index.html\"`;
+        if(value.startsWith("#")) return `${attribute}=\"../../index.html${value}\"`;
+        return `${attribute}=\"../../${value}\"`;
+    });
+
+    updateSitemap(publicRecords);
+    generateArchive(allRecords, publishedRecords, sharedFooterBlock);
 
 }
 
@@ -468,7 +497,7 @@ function archiveCard(record){
     </li>`;
 }
 
-function generateArchive(allRecords, publishedRecords){
+function generateArchive(allRecords, publishedRecords, footerBlock){
     const current = publishedRecords.filter(record => record.lifecycleStatus === "CURRENT");
     const historical = allRecords.filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate);
     const byYear = {};
@@ -512,7 +541,8 @@ function generateArchive(allRecords, publishedRecords){
 <title>Global Announcements | FINTECHOISIS — GPIR</title>
 <link rel="stylesheet" href="../../assets/css/global.css">
 <link rel="stylesheet" href="../../assets/css/page.css">
-<link rel="stylesheet" href="../../assets/css/chapter-page.css">
+    <link rel="stylesheet" href="../../assets/css/chapter-page.css">
+    <link rel="stylesheet" href="../../assets/css/footer.css">
 </head>
 <body>
   <header class="header">
@@ -535,6 +565,7 @@ function generateArchive(allRecords, publishedRecords){
         <span class="chapter-part-tag">Reader Archive</span>
         <h1>Global Announcements</h1>
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
+        <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> ${escapeHtml(formatDate(allRecords.map(record => record.retrievedDate).filter(Boolean).sort().pop()))} · <strong>Refresh automation:</strong> Not yet scheduled</p>
       </div>
     </section>
     <div class="container announcement-archive-wrap">
@@ -556,15 +587,10 @@ function generateArchive(allRecords, publishedRecords){
       ${pendingMarkup}
     </div>
   </main>
-  <footer id="footer">
-    <div class="container">
-      <p class="footer-disclaimer">GPIR records are published only when the underlying source and publication detail are validated. Records still under source or date verification remain excluded from the public alerts archive.</p>
-      <p><a href="../../index.html">Return to GPIR home</a></p>
-    </div>
-  </footer>
+    ${footerBlock}
 </body>
 </html>`;
-    fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html, "utf8");
+    fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
     console.log(`Generated ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
 }
 
