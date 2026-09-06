@@ -290,3 +290,9 @@ change to the current external-resource or browser-storage model.
 When an item changes, update its status, outcome, completion date, commit and
 milestone in the same prompt log entry. Superseded items remain in this file
 with status `SUPERSEDED`; they are not silently removed.
+
+## M-27B.3 — Final Human Live Acceptance Record
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-27B.3 | 2026-09-06 | Final human live acceptance of World Map repair | READER EXPERIENCE, PERFORMANCE, NAVIGATION, GOVERNANCE | High | ACHIEVED | M-27B.2 implementation and deployment; owner public-browser test | Stage 1 | `docs/MASTER_PROJECT_LOG.md`, `docs/PROJECT_STATUS.md`, `docs/GPIR_BACKLOG.md` | Record successful human acceptance of the deployed World Map without changing production implementation. | Public browser confirms five active country markers, six region legend destinations, responsive interaction, resolved initial lag and resolved India/UAE/Qatar hit-area conflict. | Human public-browser acceptance completed with PASS at `https://krishnan-vishal.github.io/`. Automated browser execution remained unavailable in Codespace; no automated browser claim is made. M-27B.2 is finalized as ACHIEVED. | 2026-09-06 | `30260a7`; governance record `d42df24` | M-27B.3 |

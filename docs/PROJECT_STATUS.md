@@ -2,9 +2,9 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27B.2 — WORLD MAP INTERACTION & PERFORMANCE REPAIR
-**Current Milestone:** M-27B.2 — IMPLEMENTED, PUSHED, LIVE HTTP VERIFIED; BROWSER RUNTIME PENDING
-**Last Completed Prompt:** M-27B.2 World Map interaction and performance repair
+**Current Prompt:** M-27B.3 — FINAL HUMAN LIVE ACCEPTANCE RECORD
+**Current Milestone:** M-27B.3 — ACHIEVED — LIVE BROWSER ACCEPTANCE COMPLETE
+**Last Completed Prompt:** M-27B.3 Final human live acceptance
 **Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
 **Current Development Status:** M-27A.4 removes only the stale India country-page
 scaffold warning. India Search and Markets routes resolve to the same canonical
@@ -530,3 +530,35 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   backend, framework, API or database was added.
 - **Next goal:** Perform browser acceptance and live interaction verification
   when browser tooling is available.
+
+## M-27B.3 — Final Human Live Acceptance Record
+
+- **Date:** `2026-09-06`.
+- **Public URL tested:** `https://krishnan-vishal.github.io/`.
+- **Acceptance source:** Repository owner human testing in the actual public
+  browser after deployment. This is not automated Codespace browser execution.
+- **Automated browser execution:** `UNAVAILABLE`.
+- **Human public-browser acceptance:** **COMPLETED — PASS**.
+- **Country markers:** India, UAE, Saudi Arabia, Qatar and Singapore all
+  worked in the live browser.
+- **Region legend:** Middle East, Asia Pacific, Europe, LATAM, Americas and
+  Africa all worked in the live browser.
+- **Performance:** Initial map lag was gone; marker selection lag was gone; and
+  the India/UAE/Qatar selection conflict was gone.
+- **M-27B.2 final status:** **ACHIEVED** through the evidence chain
+  `diagnostic -> implementation -> repository validation -> deployment -> live
+  HTTP/resource verification -> human public-browser acceptance -> PASS`.
+- **Production commit:** `30260a7`.
+- **Prior governance commit:** `d42df24`.
+- **Achievement:** The World Map now functions as a responsive reader-
+  navigation layer: marker -> Country Intelligence -> existing dashboard where
+  published; region legend -> existing canonical Region page.
+- **Preserved:** Dashboard content, country intelligence and historical/current
+  architecture remain unchanged. Australia remains coming soon. No fabricated
+  dashboard or country content and no new routing architecture were added.
+- **Deferred/open:** M-18 Global Announcements Ticker Integrity remains OPEN;
+  M-19 Cross-Stream Reconciliation remains OPEN; custom domain/DNS, visitor
+  measurement and subscription/digest infrastructure remain deferred.
+- **Next goal:** Select the next reader-experience objective from the existing
+  GPIR backlog after review and authorization. No next objective is implemented
+  by this record.

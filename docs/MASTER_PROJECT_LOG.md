@@ -2037,3 +2037,38 @@ and browser QA remain outstanding.
   historical edition or asset was added; browser QA remains outstanding.
 - **Next milestone:** Future governed reader validation or coverage expansion
   under separate authorization.
+
+## M-27B.3 — Final Human Live Acceptance Record
+
+- **Date:** `2026-09-06`.
+- **Status:** **ACHIEVED — LIVE BROWSER ACCEPTANCE COMPLETE.**
+- **Public URL tested:** `https://krishnan-vishal.github.io/`.
+- **Evidence source:** The repository owner performed the browser test against
+  the actual public GitHub Pages deployment after M-27B.2 was deployed.
+- **Automated browser execution:** `UNAVAILABLE` in Codespace.
+- **Human public-browser acceptance:** **COMPLETED — PASS**.
+- **Country marker results:** India, UAE, Saudi Arabia, Qatar and Singapore
+  all worked.
+- **Region legend results:** Middle East, Asia Pacific, Europe, LATAM,
+  Americas and Africa all worked.
+- **Performance results:** Initial map lag was gone; marker selection lag was
+  gone; and the India/UAE/Qatar selection conflict was gone.
+- **M-27B.2 final status:** **ACHIEVED**. Evidence chain:
+  `diagnostic -> implementation -> repository validation -> deployment -> live
+  HTTP/resource verification -> human public-browser acceptance -> PASS`.
+- **Production commit:** `30260a7`.
+- **Governance commit:** `d42df24`.
+- **Architecture result:** The map now operates as a responsive reader-
+  navigation layer: country marker -> existing Country Intelligence page ->
+  existing connected dashboard where published; region legend -> existing
+  canonical Region page.
+- **Preservation:** Dashboard content, Country Intelligence content and
+  historical/current architecture were preserved. Australia remains
+  coming-soon. No fabricated dashboard, country content or routing architecture
+  was introduced.
+- **Open/deferred:** M-18 Global Announcements Ticker Integrity remains OPEN;
+  M-19 Cross-Stream Reconciliation remains OPEN; custom domain/DNS, visitor
+  measurement and subscription/digest infrastructure remain deferred.
+- **Next goal:** Review and authorize the next available reader-experience
+  objective from the existing GPIR backlog. No next objective is implemented
+  by this acceptance record.
