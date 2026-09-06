@@ -150,7 +150,7 @@
         // One malformed record building its own card must not blank the
         // rest of the ticker -- skip that record rather than letting a
         // single throw abort the whole .map() before assignment.
-        track.innerHTML = publishedRecords().map(record => {
+        const sequenceHTML = publishedRecords().map(record => {
 
             try{
 
@@ -179,6 +179,8 @@
             }
 
         }).join("");
+
+        track.innerHTML = sequenceHTML + sequenceHTML;
 
         track.querySelectorAll("[data-intel-id]").forEach(link => {
             link.addEventListener("click", (e) => {
