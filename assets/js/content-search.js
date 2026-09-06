@@ -41,6 +41,7 @@
     })();
 
     const DASHBOARD_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "assets/data/dashboard-metadata.json");
+    const ANNOUNCEMENTS_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "assets/data/announcements.json");
 
     // Existing dashboard cards are structured records, not indexed prose. Each
     // published record becomes one search entry from its own already-existing
@@ -60,6 +61,22 @@
             country: record.country,
             text: [record.dashboardId, record.region, "Country Dashboard", record.description, record.edition, record.status].filter(Boolean).join(" · ")
         }));
+    }
+
+    function announcementEntries(data){
+        return (data.records || [])
+            .filter(record => record.status === "GPIR_CLASSIFIED" && record.lifecycleStatus !== "HISTORICAL" && record.contentStatus !== "CONTENT_UNDER_REVIEW")
+            .map(record => ({
+                id: "announcement-" + record.id,
+                pageTitle: record.title,
+                sectionTitle: "Global Announcement",
+                url: "pages/intelligence/" + record.id + ".html",
+                type: "Global Announcement",
+                category: [record.category, record.subCategory].filter(Boolean).join(" / "),
+                header: "Global Announcements",
+                country: record.country,
+                text: [record.title, record.tickerHeadline, record.category, record.subCategory, record.country, record.region, record.eventType, record.organisation, record.source && record.source.name, record.source && record.source.publicationTitle, record.publishedDate, record.publicationMonth, record.publicationYear, record.lifecycleStatus, record.summary, record.whyItMatters].filter(Boolean).join(" · ")
+            }));
     }
 
     // Legal/policy text is real and searchable, but shouldn't drown out
@@ -86,10 +103,14 @@
             fetch(DASHBOARD_URL)
                 .then(r => { if(!r.ok) throw new Error("dashboard metadata unavailable"); return r.json(); })
                 .then(dashboardEntries)
+                .catch(() => []),
+            fetch(ANNOUNCEMENTS_URL)
+                .then(r => { if(!r.ok) throw new Error("announcement data unavailable"); return r.json(); })
+                .then(announcementEntries)
                 .catch(() => [])
         ])
-            .then(([indexEntries, dashboardIndexEntries]) => {
-                entries = indexEntries.concat(dashboardIndexEntries);
+            .then(([indexEntries, dashboardIndexEntries, announcementIndexEntries]) => {
+                entries = indexEntries.concat(dashboardIndexEntries, announcementIndexEntries);
                 loaded = true;
             })
             .catch(() => {

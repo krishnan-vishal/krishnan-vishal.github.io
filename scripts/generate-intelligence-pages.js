@@ -66,6 +66,17 @@ function formatDate(dateStr){
     return dateStr;
 }
 
+function lifecycleFacts(record){
+    const facts = [
+        ["Event Type", record.eventType],
+        ["Published", record.publicationDate || record.publishedDate],
+        ["GPIR Refresh Cycle", record.refreshCycle],
+        ["Publication Status", record.lifecycleStatus]
+    ].filter(([, value]) => value);
+    if(!facts.length) return "";
+    return `<dl class="intel-source-list intel-lifecycle-facts">${facts.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl>`;
+}
+
 function recencyStatus(dateStr, now){
     if(!dateStr) return null;
     const parts = dateStr.split("-").map(n => parseInt(n,10));
@@ -184,7 +195,7 @@ function main(){
     // publishedRecords()): GPIR_CLASSIFIED and not trust-blocked. Records
     // that don't clear this bar don't get a public page either.
     const publishedRecords = allRecords
-        .filter(r => r.status === "GPIR_CLASSIFIED" && trustByRecordId[r.id].sourceStatus !== "SOURCE_BLOCKED")
+        .filter(r => r.status === "GPIR_CLASSIFIED" && r.lifecycleStatus !== "HISTORICAL" && r.contentStatus !== "CONTENT_UNDER_REVIEW" && trustByRecordId[r.id].sourceStatus !== "SOURCE_BLOCKED")
         .sort((a, b) => {
             const rank = categoryPriority(a) - categoryPriority(b);
             if(rank !== 0) return rank;
@@ -301,6 +312,7 @@ function main(){
         }
 
         const summaryBlock = record.summary ? `<p class="intel-summary">${escapeHtml(record.summary)}</p>` : "";
+        const lifecycleBlock = lifecycleFacts(record);
         const whyBlock = record.whyItMatters ? `
             <section id="why-it-matters">
                 <div class="intel-why">
@@ -380,6 +392,8 @@ function main(){
 
     <div class="intel-badges">${badges}</div>
 
+    ${lifecycleBlock}
+
     <h2 class="intel-summary-heading">GPIR Summary</h2>
     ${summaryBlock}
 
@@ -425,7 +439,34 @@ ${reportBlock}
     }
 
     updateSitemap(publishedRecords);
+    generateArchive(allRecords, publishedRecords);
 
+}
+
+function archiveCard(record){
+    return `<li><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a><small>${escapeHtml([record.country, record.category, record.publicationDate || record.publishedDate].filter(Boolean).join(" · "))}</small></li>`;
+}
+
+function generateArchive(allRecords, publishedRecords){
+    const current = publishedRecords.filter(record => record.lifecycleStatus === "CURRENT");
+    const historical = allRecords.filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate);
+    const byYear = {};
+    historical.forEach(record => {
+        const year = record.publicationYear || record.publicationDate.slice(0, 4);
+        const month = record.publicationMonth || record.publicationDate.slice(5, 7);
+        if(!byYear[year]) byYear[year] = {};
+        if(!byYear[year][month]) byYear[year][month] = [];
+        byYear[year][month].push(record);
+    });
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const historicalMarkup = Object.keys(byYear).sort().reverse().map(year => `<section><h3>${escapeHtml(year)}</h3>${Object.keys(byYear[year]).sort().reverse().map(month => `<h4>${monthNames[Number(month) - 1] || escapeHtml(month)}</h4><ul>${byYear[year][month].map(archiveCard).join("")}</ul>`).join("")}</section>`).join("");
+    const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
+    const pendingMarkup = pending.length ? `<section><h2>Awaiting Verification</h2><p>These discovery records remain outside the published archive until source and publication-date verification is complete.</p><ul>${pending.map(record => `<li>${escapeHtml(record.title)}</li>`).join("")}</ul></section>` : "";
+    const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Global Announcements | FINTECHOISIS — GPIR</title><link rel="stylesheet" href="../../assets/css/global.css"><link rel="stylesheet" href="../../assets/css/page.css"></head>
+<body><main class="chapter-body"><div class="container"><p><a href="../../index.html">Home</a> / Global Announcements</p><h1>Global Announcements</h1><p>Source-linked GPIR announcements preserved as current and historical publications.</p><section><h2>Current Alerts</h2><ul>${current.map(archiveCard).join("")}</ul></section><section><h2>Historical Publications</h2>${historicalMarkup || "<p>No validated superseded publications are currently recorded.</p>"}</section>${pendingMarkup}</div></main></body></html>`;
+    fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html, "utf8");
+    console.log(`Generated ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
 }
 
 // Keeps sitemap.xml's pages/intelligence/* entries in exact sync with
@@ -444,9 +485,17 @@ function updateSitemap(published){
 
     const urlBlockRe = /\n?    <url>\s*\n\s*<loc>[^<]*<\/loc>[\s\S]*?<\/url>\n/g;
     sitemap = sitemap.replace(urlBlockRe, (block) => block.includes("/pages/intelligence/") ? "" : block);
+    sitemap = sitemap.replace(/\n{4,}/g, "\n\n\n");
 
     const today = new Date().toISOString().slice(0, 10);
-    const entries = published.map(r => `
+    const archiveEntry = `
+    <url>
+        <loc>${SITE_ORIGIN}/pages/intelligence/index.html</loc>
+        <lastmod>${today}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>`;
+    const entries = archiveEntry + published.map(r => `
     <url>
         <loc>${SITE_ORIGIN}/pages/intelligence/${r.id}.html</loc>
         <lastmod>${r.lastUpdated || r.retrievedDate || today}</lastmod>

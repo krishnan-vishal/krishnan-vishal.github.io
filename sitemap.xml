@@ -277,6 +277,12 @@
 
 
     <url>
+        <loc>https://krishnan-vishal.github.io/pages/intelligence/index.html</loc>
+        <lastmod>2026-09-06</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
         <loc>https://krishnan-vishal.github.io/pages/intelligence/cbuae-payment-token-2026.html</loc>
         <lastmod>2026-08-14</lastmod>
         <changefreq>monthly</changefreq>

@@ -1572,10 +1572,61 @@ function initializeReaderAssistant(){
         });
     };
 
+    const answerAnnouncementQuery = (normalized, context) => {
+        const records = context.announcements.filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW");
+        const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+        const monthIndex = monthNames.findIndex(month => normalized.includes(month));
+        const yearMatch = normalized.match(/\b(20\d{2})\b/);
+        const categoryTerms = [
+            ["aml", record => /aml|cft/i.test(`${record.category} ${record.subCategory}`)],
+            ["regulatory", record => /regulatory/i.test(`${record.category} ${record.subCategory}`)],
+            ["payment infrastructure", record => /payment infrastructure|payment infrastructure/i.test(`${record.category} ${record.subCategory}`)],
+            ["m&a", record => /m&a|acquisition/i.test(`${record.category} ${record.eventType}`)],
+            ["stablecoin", record => /stablecoin/i.test(`${record.title} ${record.subCategory} ${record.summary}`)],
+            ["cross-border", record => /cross-border/i.test(`${record.category} ${record.subCategory} ${record.title}`)]
+        ];
+        const countryTerms = ["india", "singapore", "uae", "united arab emirates", "saudi arabia", "qatar"];
+        const country = countryTerms.find(term => normalized.includes(term));
+        const category = categoryTerms.find(([term]) => normalized.includes(term));
+        let matches = records.filter(record => {
+            if(normalized.includes("historical") && record.lifecycleStatus !== "HISTORICAL") return false;
+            if(normalized.includes("current") && record.lifecycleStatus !== "CURRENT") return false;
+            if(country){
+                const location = `${record.country} ${record.region}`.toLowerCase();
+                const locationMatch = country === "uae" ? /uae|united arab emirates/.test(location) : location.includes(country);
+                if(!locationMatch) return false;
+            }
+            if(category && !category[1](record)) return false;
+            if(monthIndex !== -1 && record.publicationMonth !== String(monthIndex + 1).padStart(2, "0")) return false;
+            if(yearMatch && record.publicationYear !== yearMatch[1]) return false;
+            return true;
+        });
+        matches.sort((a, b) => (b.publicationDate || b.publishedDate || "").localeCompare(a.publicationDate || a.publishedDate || ""));
+        if(normalized.includes("recent")) matches = matches.slice(0, 6);
+        const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
+        if(!matches.length){
+            answer.innerHTML = `<p>No published announcements matched <strong>${escape(query)}</strong>.</p>`;
+            return true;
+        }
+        const items = matches.map(record => {
+            const source = record.source && record.source.url ? ` · <a href="${escape(record.source.url)}" target="_blank" rel="noopener noreferrer">Original source</a>` : "";
+            return `<li><a href="${escape(rootPrefix + "pages/intelligence/" + record.id + ".html")}">${escape(record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
+        }).join("");
+        answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the structured announcement records; no factual summary was generated.</p>`;
+        return true;
+    };
+
     const answerQuery = (query) => {
         const normalized = query.trim().toLowerCase();
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
+
+        if(/\bannouncements?\b/.test(normalized)){
+            loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(() => {
+                answer.innerHTML = "<p>Published announcement records are temporarily unavailable.</p>";
+            });
+            return;
+        }
 
         if(normalized.includes("dashboard") && (normalized.includes("explain") || normalized.includes("details") || normalized.includes("methodology") || normalized.includes("period") || normalized.includes("country") || normalized.includes("direction") || normalized.includes("use case") || normalized.includes("cover") || normalized.includes("show") || normalized.includes("what is"))){
             loadContext().then(context => {

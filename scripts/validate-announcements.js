@@ -1,0 +1,88 @@
+#!/usr/bin/env node
+/*
+ * M-18 structured announcement and intelligence contract check.
+ * This validates repository relationships and publication invariants locally;
+ * it does not verify external source facts or perform network ingestion.
+ */
+
+const fs = require("fs");
+const path = require("path");
+
+const ROOT = path.resolve(__dirname, "..");
+const readJson = file => JSON.parse(fs.readFileSync(path.join(ROOT, file), "utf8"));
+const announcements = readJson("assets/data/announcements.json").records || [];
+const registry = readJson("assets/data/content-registry.json").records || [];
+const pagesDir = path.join(ROOT, "pages", "intelligence");
+const errors = [];
+const ids = new Set();
+const requiredLifecycleFields = ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"];
+const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
+const byRegistryId = new Map(registry.map(record => [record.id, record]));
+const classified = announcements.filter(record => record.status === "GPIR_CLASSIFIED");
+const registryAnnouncements = registry.filter(record => record.contentType === "ANNOUNCEMENT");
+const registryIntelligence = registry.filter(record => record.contentType === "INTELLIGENCE");
+
+function fail(message){ errors.push(message); }
+function exists(relativePath){ return fs.existsSync(path.join(ROOT, relativePath)); }
+function escapeHtml(value){
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+announcements.forEach(record => {
+    if(ids.has(record.id)) fail(`duplicate announcement id: ${record.id}`);
+    ids.add(record.id);
+    requiredLifecycleFields.forEach(field => {
+        if(!(field in record)) fail(`${record.id}: missing lifecycle field ${field}`);
+    });
+    if(!["CURRENT", "HISTORICAL"].includes(record.lifecycleStatus)) fail(`${record.id}: invalid lifecycleStatus`);
+    if(record.publicationDate !== null && !datePattern.test(record.publicationDate)) fail(`${record.id}: invalid publicationDate`);
+    if(record.status === "GPIR_CLASSIFIED"){
+        if(!record.publicationDate) fail(`${record.id}: published record has no publication date`);
+        if(!record.source || !/^https:\/\//i.test(record.source.url || "")) fail(`${record.id}: published record has no HTTPS source URL`);
+        if(!exists(`pages/intelligence/${record.id}.html`)) fail(`${record.id}: missing intelligence page`);
+        else {
+            const page = fs.readFileSync(path.join(ROOT, "pages/intelligence", `${record.id}.html`), "utf8");
+            if(record.source.url && !page.includes(record.source.url)) fail(`${record.id}: original source URL missing from intelligence page`);
+            if(record.summary && !page.includes(escapeHtml(record.summary))) fail(`${record.id}: GPIR summary missing from intelligence page`);
+            if(record.whyItMatters && !page.includes(escapeHtml(record.whyItMatters))) fail(`${record.id}: Why It Matters content missing from intelligence page`);
+        }
+    }
+    if(record.status !== "GPIR_CLASSIFIED" && record.lifecycleStatus === "HISTORICAL") fail(`${record.id}: unresolved record cannot be historical`);
+});
+
+classified.forEach(record => {
+    const announcement = byRegistryId.get(`announcement:${record.id}`);
+    const intelligence = byRegistryId.get(`intelligence:${record.id}`);
+    if(!announcement) fail(`${record.id}: missing registry ANNOUNCEMENT record`);
+    if(!intelligence) fail(`${record.id}: missing registry INTELLIGENCE record`);
+    if(announcement && announcement.sourceRef.value !== record.id) fail(`${record.id}: announcement registry sourceRef mismatch`);
+    if(intelligence && intelligence.sourceRef.value !== record.id) fail(`${record.id}: intelligence registry sourceRef mismatch`);
+    if(announcement && !announcement.relationships.some(item => item.target === `intelligence:${record.id}`)) fail(`${record.id}: announcement missing intelligence relationship`);
+    if(intelligence && !intelligence.relationships.some(item => item.target === `announcement:${record.id}`)) fail(`${record.id}: intelligence missing announcement relationship`);
+});
+
+registryAnnouncements.forEach(record => {
+    if(!ids.has(record.sourceRef && record.sourceRef.value)) fail(`${record.id}: registry ANNOUNCEMENT does not map to announcements.json`);
+});
+
+const contentSearch = fs.readFileSync(path.join(ROOT, "assets/js/content-search.js"), "utf8");
+const script = fs.readFileSync(path.join(ROOT, "assets/js/script.js"), "utf8");
+const announcementsRuntime = fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8");
+const pageGenerator = fs.readFileSync(path.join(ROOT, "scripts/generate-intelligence-pages.js"), "utf8");
+const refreshFoundation = fs.readFileSync(path.join(ROOT, "scripts/refresh-announcements.js"), "utf8");
+const pageFiles = fs.readdirSync(pagesDir).filter(file => file.endsWith(".html") && file !== "index.html");
+if(pageFiles.length !== classified.length) fail(`intelligence page count mismatch: ${pageFiles.length} pages for ${classified.length} published records`);
+if(!contentSearch.includes("announcementEntries") || !contentSearch.includes("ANNOUNCEMENTS_URL")) fail("search does not load structured announcements");
+if(!script.includes("answerAnnouncementQuery") || !/announcements\?/.test(script)) fail("ASK GPIR announcement resolver is missing");
+if(!announcementsRuntime.includes("status !== \"GPIR_CLASSIFIED\"") || !announcementsRuntime.includes("lifecycleStatus === \"HISTORICAL\"") || !announcementsRuntime.includes("contentStatus === \"CONTENT_UNDER_REVIEW\"")) fail("ticker publication filter is incomplete");
+if(!pageGenerator.includes("generateArchive") || !exists("pages/intelligence/index.html")) fail("generated announcement archive is missing");
+if(!refreshFoundation.includes("REPORT_ONLY") || !refreshFoundation.includes("NOT_SCHEDULED") || !refreshFoundation.includes("recordsMutated: 0")) fail("refresh foundation must remain report-only and unscheduled");
+if(!fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8").includes("track.innerHTML = sequenceHTML + sequenceHTML")) fail("ticker duplication contract is missing");
+
+if(errors.length){
+    console.error(`M-18 announcement validation failed with ${errors.length} error(s):`);
+    errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+}
+
+console.log(`M-18 announcement validation passed: ${announcements.length} records, ${classified.length} published, ${registryAnnouncements.length} registry announcements, ${registryIntelligence.length} intelligence records, ${pageFiles.length} pages.`);

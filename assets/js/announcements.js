@@ -91,6 +91,8 @@
         return records
             .filter(r => {
                 if(r.status !== "GPIR_CLASSIFIED") return false;
+                if(r.lifecycleStatus === "HISTORICAL") return false;
+                if(r.contentStatus === "CONTENT_UNDER_REVIEW") return false;
                 return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
             })
             .sort((a, b) => {

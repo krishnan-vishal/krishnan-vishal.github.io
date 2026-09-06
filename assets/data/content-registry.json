@@ -453,6 +453,256 @@
         { "type": "ANNOUNCEMENT", "target": "announcement:mas-paynow-gen2-2026" },
         { "type": "SOURCE", "target": "source:mas-sg" }
       ]
+    },
+    {
+      "id": "source:newsonair-gov-in",
+      "contentType": "SOURCE",
+      "title": "NewsOnAir (Government of India / Prasar Bharati)",
+      "slug": "newsonair-gov-in",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "newsonair-gov-in"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:favara-upi-maldives-india-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Favara-UPI cross-border payment corridor goes live between Maldives and India",
+      "slug": "favara-upi-maldives-india-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "favara-upi-maldives-india-2026"
+      },
+      "page": "pages/intelligence/favara-upi-maldives-india-2026.html",
+      "sourceRefs": ["source:newsonair-gov-in"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:india" },
+        { "type": "REGION", "target": "region:apac" },
+        { "type": "SOURCE", "target": "source:newsonair-gov-in" },
+        { "type": "INTELLIGENCE", "target": "intelligence:favara-upi-maldives-india-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:favara-upi-maldives-india-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "Favara-UPI cross-border payment corridor goes live between Maldives and India",
+      "slug": "favara-upi-maldives-india-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "favara-upi-maldives-india-2026"
+      },
+      "page": "pages/intelligence/favara-upi-maldives-india-2026.html",
+      "sourceRefs": ["source:newsonair-gov-in"],
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:india" },
+        { "type": "REGION", "target": "region:apac" },
+        { "type": "ANNOUNCEMENT", "target": "announcement:favara-upi-maldives-india-2026" },
+        { "type": "SOURCE", "target": "source:newsonair-gov-in" }
+      ]
+    },
+    {
+      "id": "source:swift",
+      "contentType": "SOURCE",
+      "title": "Swift",
+      "slug": "swift",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "swift"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:swift-payments-scheme-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Swift launches cross-border payments scheme for consumer-originated transfers",
+      "slug": "swift-payments-scheme-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "swift-payments-scheme-2026"
+      },
+      "page": "pages/intelligence/swift-payments-scheme-2026.html",
+      "sourceRefs": ["source:swift"],
+      "relationships": [
+        { "type": "SOURCE", "target": "source:swift" },
+        { "type": "INTELLIGENCE", "target": "intelligence:swift-payments-scheme-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:swift-payments-scheme-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "Swift launches cross-border payments scheme for consumer-originated transfers",
+      "slug": "swift-payments-scheme-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "swift-payments-scheme-2026"
+      },
+      "page": "pages/intelligence/swift-payments-scheme-2026.html",
+      "sourceRefs": ["source:swift"],
+      "relationships": [
+        { "type": "ANNOUNCEMENT", "target": "announcement:swift-payments-scheme-2026" },
+        { "type": "SOURCE", "target": "source:swift" }
+      ]
+    },
+    {
+      "id": "source:mastercard",
+      "contentType": "SOURCE",
+      "title": "Mastercard",
+      "slug": "mastercard",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "mastercard"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:mastercard-stablecoin-settlement-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Mastercard expands settlement capabilities to include regulated stablecoins",
+      "slug": "mastercard-stablecoin-settlement-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mastercard-stablecoin-settlement-2026"
+      },
+      "page": "pages/intelligence/mastercard-stablecoin-settlement-2026.html",
+      "sourceRefs": ["source:mastercard"],
+      "relationships": [
+        { "type": "SOURCE", "target": "source:mastercard" },
+        { "type": "INTELLIGENCE", "target": "intelligence:mastercard-stablecoin-settlement-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:mastercard-stablecoin-settlement-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "Mastercard expands settlement capabilities to include regulated stablecoins",
+      "slug": "mastercard-stablecoin-settlement-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mastercard-stablecoin-settlement-2026"
+      },
+      "page": "pages/intelligence/mastercard-stablecoin-settlement-2026.html",
+      "sourceRefs": ["source:mastercard"],
+      "relationships": [
+        { "type": "ANNOUNCEMENT", "target": "announcement:mastercard-stablecoin-settlement-2026" },
+        { "type": "SOURCE", "target": "source:mastercard" }
+      ]
+    },
+    {
+      "id": "announcement:mastercard-bvnk-acquisition-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Mastercard completes acquisition of BVNK to advance stablecoin infrastructure",
+      "slug": "mastercard-bvnk-acquisition-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mastercard-bvnk-acquisition-2026"
+      },
+      "page": "pages/intelligence/mastercard-bvnk-acquisition-2026.html",
+      "sourceRefs": ["source:mastercard"],
+      "relationships": [
+        { "type": "SOURCE", "target": "source:mastercard" },
+        { "type": "INTELLIGENCE", "target": "intelligence:mastercard-bvnk-acquisition-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:mastercard-bvnk-acquisition-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "Mastercard completes acquisition of BVNK to advance stablecoin infrastructure",
+      "slug": "mastercard-bvnk-acquisition-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "mastercard-bvnk-acquisition-2026"
+      },
+      "page": "pages/intelligence/mastercard-bvnk-acquisition-2026.html",
+      "sourceRefs": ["source:mastercard"],
+      "relationships": [
+        { "type": "ANNOUNCEMENT", "target": "announcement:mastercard-bvnk-acquisition-2026" },
+        { "type": "SOURCE", "target": "source:mastercard" }
+      ]
+    },
+    {
+      "id": "source:fatf",
+      "contentType": "SOURCE",
+      "title": "Financial Action Task Force (FATF)",
+      "slug": "fatf",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "fatf"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:fatf-r16-consultation-2026",
+      "contentType": "ANNOUNCEMENT",
+      "title": "FATF opens consultation on strengthened payment-transparency standards",
+      "slug": "fatf-r16-consultation-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "fatf-r16-consultation-2026"
+      },
+      "page": "pages/intelligence/fatf-r16-consultation-2026.html",
+      "sourceRefs": ["source:fatf"],
+      "relationships": [
+        { "type": "SOURCE", "target": "source:fatf" },
+        { "type": "INTELLIGENCE", "target": "intelligence:fatf-r16-consultation-2026" }
+      ]
+    },
+    {
+      "id": "intelligence:fatf-r16-consultation-2026",
+      "contentType": "INTELLIGENCE",
+      "title": "FATF opens consultation on strengthened payment-transparency standards",
+      "slug": "fatf-r16-consultation-2026",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "fatf-r16-consultation-2026"
+      },
+      "page": "pages/intelligence/fatf-r16-consultation-2026.html",
+      "sourceRefs": ["source:fatf"],
+      "relationships": [
+        { "type": "ANNOUNCEMENT", "target": "announcement:fatf-r16-consultation-2026" },
+        { "type": "SOURCE", "target": "source:fatf" }
+      ]
     }
   ]
 }
