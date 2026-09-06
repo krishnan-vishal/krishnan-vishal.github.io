@@ -6,9 +6,9 @@
 **Current Milestone:** M-18 Phase 1 — IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING
 **Last Completed Prompt:** M-27B.3 Final human live acceptance
 **Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
-**Current Release Commit:** `49751cdf215071d550d58682b31dafc397fad446`
-**Release Status:** M-18.4A — IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING
-**Release Summary:** GPIR archive, announcement-aware normal Search, announcement-first ranking, deterministic ASK GPIR reconciliation and the repository-side validation pass are live on `origin/main`; browser acceptance remains pending because browser tooling is unavailable in this environment.
+**Current Release Commit:** `51210bec14750deb7bbda9e27cd5ad513aa1c797`
+**Release Status:** M-18.4B — IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING
+**Release Summary:** Announcement freshness wording, lifecycle-aware reader structure, registry-backed related intelligence, structured Search cards, historical searchability and shared GPIR footer integration are live on `origin/main`; browser acceptance remains pending because browser tooling is unavailable in this environment.
 **Current Development Status:** M-27A.4 removes only the stale India country-page
 scaffold warning. India Search and Markets routes resolve to the same canonical
 page; dashboard publication architecture and content remain unchanged. M-27A.3 closes and resets the search overlay

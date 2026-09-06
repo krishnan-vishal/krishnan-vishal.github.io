@@ -2197,3 +2197,20 @@ and browser QA remain outstanding.
 - **M-18.5 status:** `FOUNDATION ONLY / NOT SCHEDULED`.
 - **Overall M-18 status:** `OPEN` pending browser acceptance and the separate M-18.5 architecture milestone.
 - **Next milestone:** `M-18.5 — GLOBAL ANNOUNCEMENT REFRESH ARCHITECTURE`.
+
+## M-18.4B — Final Reader Intelligence Refinement
+
+- **Date:** `2026-09-06`.
+- **Objective:** Correct the remaining M-18.4A reader issues without rebuilding the announcement system, changing ticker architecture, introducing generative AI or inventing data.
+- **Issues addressed:** Replaced stale refresh wording with `Last validated publication cycle` and `Refresh automation: Not yet scheduled`; made intelligence pages explicitly structured around GPIR Summary, Why It Matters, GPIR Reader View, Source and related intelligence; made lifecycle labels explicit without treating age as historical; improved announcement Search cards; restricted related intelligence to explicit registry relationships; and reused the homepage footer architecture for archive and intelligence pages.
+- **FATF benchmark:** The FATF payment-transparency announcement retains its source-verified status, confidence, content status, lifecycle, summary, why-it-matters text, publication metadata, original source and GPIR reader mapping.
+- **Archive state:** 9 validated current records remain in Current Alerts, Qatar remains Awaiting Verification, and Historical Publications remains an honest zero-history state.
+- **Trust/provenance:** Announcement source organisation, publication title, original URL, publication date, retrieval date, source verification and content status remain sourced from existing structured records. No source-verification-required record was published.
+- **Files changed:** Announcement/archive/search/reader scope only: `assets/css/header.css`, `assets/css/page.css`, `assets/js/announcements.js`, `assets/js/content-search.js`, `assets/js/script.js`, `index.html`, generated `pages/intelligence/*.html`, `scripts/generate-intelligence-pages.js`, and `scripts/test-announcement-intent.js`.
+- **Validation:** Targeted announcement contract checks passed; announcement, content, link and M-27A validators passed; all required JavaScript syntax checks passed; `git diff --check` passed.
+- **Production commit:** `51210bec14750deb7bbda9e27cd5ad513aa1c797` — `M-18.4B Finalise announcement reader intelligence`.
+- **Live HTTP:** Homepage, Global Announcements archive and FATF intelligence page returned HTTP 200. Deployed bytes contain the archive sections, truthful freshness architecture, FATF reader structure and shared footer classes.
+- **Browser acceptance:** Required human browser acceptance was not available in this environment. No visual, mobile, ticker-motion, Search, ASK GPIR or homepage-regression browser pass is claimed from HTTP evidence.
+- **M-18.4B status:** `IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING`.
+- **Overall M-18 status:** `OPEN`; M-18 is not closed by this release.
+- **M-18.5 readiness:** The current report-only foundation remains `FOUNDATION ONLY / NOT SCHEDULED`; no crawler, backend, scheduled ingestion or GitHub Actions refresh was added.
