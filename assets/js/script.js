@@ -1166,6 +1166,47 @@ function initializeSearch(){
 
     };
 
+    const resolveAnnouncementIntent = (rawQuery) => {
+        const query = String(rawQuery || "").trim().toLowerCase();
+        if(!query || !/\bannouncements?\b/.test(query)) return { mode: "GENERAL" };
+
+        const normalized = query.replace(/[^\p{L}\p{N}\s&-]/gu, " ");
+        const intent = {
+            mode: "ANNOUNCEMENT",
+            lifecycle: null,
+            country: null,
+            month: null,
+            year: null,
+            category: null,
+            sourceText: null
+        };
+        const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+        const monthIndex = monthNames.findIndex(month => normalized.includes(month));
+        if(monthIndex !== -1) intent.month = String(monthIndex + 1).padStart(2, "0");
+
+        const yearMatch = normalized.match(/\b(20\d{2})\b/);
+        if(yearMatch) intent.year = yearMatch[1];
+
+        if(/\bhistorical\b/.test(normalized)) intent.lifecycle = "HISTORICAL";
+        else if(/\bcurrent\b/.test(normalized)) intent.lifecycle = "CURRENT";
+
+        if(/\bindia\b/.test(normalized)) intent.country = "India";
+        else if(/\buae\b|united arab emirates/.test(normalized)) intent.country = "United Arab Emirates";
+        else if(/\bsingapore\b/.test(normalized)) intent.country = "Singapore";
+        else if(/\bsaudi arabia\b/.test(normalized)) intent.country = "Saudi Arabia";
+        else if(/\bqatar\b/.test(normalized)) intent.country = "Qatar";
+        else if(/\bglobal\b/.test(normalized)) intent.country = "Global";
+
+        if(/\baml\b|cft/.test(normalized)) intent.category = "AML / CFT";
+        else if(/\bregulatory\b/.test(normalized)) intent.category = "Regulatory";
+        else if(/\bpayment infrastructure\b/.test(normalized)) intent.category = "Payment Infrastructure";
+        else if(/\bm&a\b|\bacquisition\b/.test(normalized)) intent.category = "M&A";
+        else if(/\blicensing\b/.test(normalized)) intent.category = "Licensing";
+        else if(/\bfatf\b/.test(normalized)) intent.sourceText = "FATF";
+
+        return intent;
+    };
+
     const renderResults = (navItems, contentResult, query, context) => {
 
         activeIndex = -1;
@@ -1175,6 +1216,13 @@ function initializeSearch(){
         const hasAny = contentResults.length > 0 || navItems.length > 0;
 
         if(!hasAny){
+
+            if(contentResult && contentResult.intent === "ANNOUNCEMENT"){
+                resultsEl.innerHTML = query
+                    ? `<p class="search-empty">No published announcements matched “${escapeHtml(query)}”.</p>`
+                    : `<p class="search-empty">No published announcements matched the current query.</p>`;
+                return;
+            }
 
             const hintNone = window.GPIRI18n ? window.GPIRI18n.t("search.hint_none") : "No matches for “{query}” — try a market, payment rail or chapter title.";
 
@@ -1199,9 +1247,10 @@ function initializeSearch(){
         }
 
         if(query && (contentResults.length || navItems.length)){
-            const countLabel = window.GPIRI18n
-                ? window.GPIRI18n.t("search.results_count").replace("{count}", contentTotal + navItems.length)
-                : `${contentTotal + navItems.length} GPIR results`;
+            const isAnnouncementIntent = contentResult && contentResult.intent === "ANNOUNCEMENT";
+            const countLabel = isAnnouncementIntent
+                ? `GPIR GLOBAL ANNOUNCEMENTS · ${contentTotal} RESULT${contentTotal === 1 ? "" : "S"}`
+                : (window.GPIRI18n ? window.GPIRI18n.t("search.results_count").replace("{count}", contentTotal + navItems.length) : `${contentTotal + navItems.length} GPIR results`);
             parts.push(`<p class="search-result-count">${escapeHtml(countLabel)}</p>`);
         }
 

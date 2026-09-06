@@ -27,6 +27,7 @@
 (function(){
 
     const INDEX_URL = (function(){
+        if(typeof document === "undefined") return "assets/data/search-index.json";
         const script = document.currentScript ||
             document.querySelector('script[src*="assets/js/content-search.js"]');
         const src = script ? script.getAttribute("src") : "assets/js/content-search.js";
@@ -34,6 +35,7 @@
     })();
 
     const PAGE_PREFIX = (function(){
+        if(typeof document === "undefined") return "";
         const script = document.currentScript ||
             document.querySelector('script[src*="assets/js/content-search.js"]');
         const src = script ? script.getAttribute("src") : "assets/js/content-search.js";
@@ -199,16 +201,84 @@
 
     }
 
+    function resolveAnnouncementIntent(rawQuery){
+        const query = String(rawQuery || "").trim().toLowerCase();
+        if(!query || !/\bannouncements?\b/.test(query)) return { mode: "GENERAL" };
+
+        const normalized = query.replace(/[^\p{L}\p{N}\s&-]/gu, " ");
+        const intent = {
+            mode: "ANNOUNCEMENT",
+            lifecycle: null,
+            country: null,
+            month: null,
+            year: null,
+            category: null,
+            sourceText: null
+        };
+
+        const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+        const monthIndex = monthNames.findIndex(month => normalized.includes(month));
+        if(monthIndex !== -1) intent.month = String(monthIndex + 1).padStart(2, "0");
+
+        const yearMatch = normalized.match(/\b(20\d{2})\b/);
+        if(yearMatch) intent.year = yearMatch[1];
+
+        if(/\bhistorical\b/.test(normalized)) intent.lifecycle = "HISTORICAL";
+        else if(/\bcurrent\b/.test(normalized)) intent.lifecycle = "CURRENT";
+
+        if(/\bindia\b/.test(normalized)) intent.country = "India";
+        else if(/\buae\b|united arab emirates/.test(normalized)) intent.country = "United Arab Emirates";
+        else if(/\bsingapore\b/.test(normalized)) intent.country = "Singapore";
+        else if(/\bsaudi arabia\b/.test(normalized)) intent.country = "Saudi Arabia";
+        else if(/\bqatar\b/.test(normalized)) intent.country = "Qatar";
+        else if(/\bglobal\b/.test(normalized)) intent.country = "Global";
+
+        if(/\baml\b|cft/.test(normalized)) intent.category = "AML / CFT";
+        else if(/\bregulatory\b/.test(normalized)) intent.category = "Regulatory";
+        else if(/\bpayment infrastructure\b/.test(normalized)) intent.category = "Payment Infrastructure";
+        else if(/\bm&a\b|\bacquisition\b/.test(normalized)) intent.category = "M&A";
+        else if(/\blicensing\b/.test(normalized)) intent.category = "Licensing";
+        else if(/\bpayments?\b/.test(normalized) && !/\bpayment infrastructure\b/.test(normalized)) intent.category = "Payments";
+
+        if(/\bfatf\b/.test(normalized)) intent.sourceText = "FATF";
+
+        return intent;
+    }
+
+    function entryMatchesAnnouncementIntent(entry, intent){
+        if(!intent || intent.mode !== "ANNOUNCEMENT") return true;
+
+        const countryText = `${entry.country || ""} ${entry.region || ""}`.toLowerCase();
+        const categoryText = `${entry.category || ""} ${entry.subCategory || ""}`.toLowerCase();
+        const sourceText = `${entry.organisation || ""} ${(entry.source && entry.source.name) || ""} ${(entry.source && entry.source.publicationTitle) || ""} ${entry.text || ""}`.toLowerCase();
+
+        if(intent.country && !countryText.includes(intent.country.toLowerCase())) return false;
+        if(intent.category && !categoryText.includes(intent.category.toLowerCase())) return false;
+        if(intent.lifecycle && entry.lifecycleStatus !== intent.lifecycle) return false;
+        if(intent.month && entry.publicationMonth !== intent.month) return false;
+        if(intent.year && entry.publicationYear !== intent.year) return false;
+        if(intent.sourceText && !sourceText.includes(intent.sourceText.toLowerCase())) return false;
+
+        return true;
+    }
+
     function search(query, opts){
 
         opts = opts || {};
         const limit = opts.limit || 12;
 
-        if(!loaded || !query || !query.trim()) return { results: [], total: 0 };
+        if(!loaded || !query || !query.trim()) return { results: [], total: 0, intent: "GENERAL" };
 
+        const intent = resolveAnnouncementIntent(query);
         const words = tokenize(query);
 
-        const scored = entries
+        let filteredEntries = entries;
+        if(intent.mode === "ANNOUNCEMENT"){
+            filteredEntries = entries.filter(entry => entry.type === "Global Announcement" && entryMatchesAnnouncementIntent(entry, intent));
+            if(!filteredEntries.length) return { results: [], total: 0, intent: intent.mode };
+        }
+
+        const scored = filteredEntries
             .map(entry => ({ entry, score: scoreEntry(entry, query, words) }))
             .filter(r => r.score > 0)
             .sort((a, b) => b.score - a.score);
@@ -225,19 +295,24 @@
             header: entry.header,
             country: entry.country,
             excerptHtml: buildExcerpt(entry.text, query, words),
-            score
+            score,
+            intent: intent.mode
         }));
 
-        return { results, total };
+        return { results, total, intent: intent.mode };
 
     }
 
-    window.GPIRContentSearch = {
+    const api = {
         load,
         search,
         isReady: () => loaded,
         isLoading: () => !!loadPromise && !loaded && !failed,
-        hasFailed: () => failed
+        hasFailed: () => failed,
+        resolveAnnouncementIntent
     };
+
+    if(typeof window !== "undefined") window.GPIRContentSearch = api;
+    if(typeof module !== "undefined") module.exports = { ...api, resolveAnnouncementIntent, search };
 
 })();

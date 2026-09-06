@@ -444,7 +444,28 @@ ${reportBlock}
 }
 
 function archiveCard(record){
-    return `<li><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a><small>${escapeHtml([record.country, record.category, record.publicationDate || record.publishedDate].filter(Boolean).join(" · "))}</small></li>`;
+    const flagMarkup = record.countryCode
+        ? `<img class="flag-icon" src="../../assets/icons/flags/${escapeHtml(record.countryCode)}.svg" alt="" loading="lazy">`
+        : '<svg class="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+    const summary = record.summary || record.tickerHeadline || record.title;
+    const pubDate = formatDate(record.publicationDate || record.publishedDate);
+    return `
+    <li class="announcement-archive-card">
+      <div class="announcement-card-flag">${flagMarkup}</div>
+      <div class="announcement-card-body">
+        <div class="announcement-card-meta-row">
+          <span>${escapeHtml(record.country || "Global")}</span>
+          <span>${escapeHtml(record.category || "Announcement")}</span>
+          <span>${escapeHtml(pubDate)}</span>
+        </div>
+        <h3><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a></h3>
+        <p class="announcement-card-summary">${escapeHtml(summary)}</p>
+        <div class="announcement-card-status-row">
+          <span class="announcement-card-status">${escapeHtml(record.lifecycleStatus || "CURRENT")}</span>
+          ${record.source && record.source.url ? `<a class="announcement-card-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Original Source</a>` : ""}
+        </div>
+      </div>
+    </li>`;
 }
 
 function generateArchive(allRecords, publishedRecords){
@@ -459,12 +480,90 @@ function generateArchive(allRecords, publishedRecords){
         byYear[year][month].push(record);
     });
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const historicalMarkup = Object.keys(byYear).sort().reverse().map(year => `<section><h3>${escapeHtml(year)}</h3>${Object.keys(byYear[year]).sort().reverse().map(month => `<h4>${monthNames[Number(month) - 1] || escapeHtml(month)}</h4><ul>${byYear[year][month].map(archiveCard).join("")}</ul>`).join("")}</section>`).join("");
+    const historicalMarkup = Object.keys(byYear).sort().reverse().map(year => `
+        <section class="announcement-year-group" id="historical-${year}">
+            <h3>${escapeHtml(year)}</h3>
+            ${Object.keys(byYear[year]).sort().reverse().map(month => `
+                <div class="announcement-month-group">
+                    <h4>${escapeHtml(monthNames[Number(month) - 1] || month)}</h4>
+                    <ul class="announcement-archive-list">${byYear[year][month].map(record => `
+                        <li class="announcement-archive-card">
+                          <div class="announcement-card-flag">${record.countryCode ? `<img class="flag-icon" src="../../assets/icons/flags/${escapeHtml(record.countryCode)}.svg" alt="" loading="lazy">` : '<svg class="icon-globe" ...></svg>'}</div>
+                          <div class="announcement-card-body">
+                            <div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span><span>${escapeHtml(formatDate(record.publicationDate || record.publishedDate))}</span></div>
+                            <h3><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a></h3>
+                            <p class="announcement-card-summary">${escapeHtml(record.summary || record.whyItMatters || record.title)}</p>
+                            <div class="announcement-card-status-row"><span class="announcement-card-status">${escapeHtml(record.lifecycleStatus || "HISTORICAL")}</span><a class="announcement-card-link" href="${escapeHtml(record.id)}.html">View intelligence page</a></div>
+                          </div>
+                        </li>
+                    `).join("")}</ul>
+                </div>
+            `).join("")}
+        </section>
+    `).join("") || "<p>No validated superseded publications are currently recorded.</p>";
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
-    const pendingMarkup = pending.length ? `<section><h2>Awaiting Verification</h2><p>These discovery records remain outside the published archive until source and publication-date verification is complete.</p><ul>${pending.map(record => `<li>${escapeHtml(record.title)}</li>`).join("")}</ul></section>` : "";
+    const pendingMarkup = pending.length ? `<section id="awaiting-verification" class="announcement-archive-section"><h2>Awaiting Verification</h2><p>These records are excluded from published alerts until source and publication-date verification is complete.</p><ul class="announcement-archive-list announcement-archive-list--pending">${pending.map(record => `<li class="announcement-archive-card announcement-archive-card--pending"><div class="announcement-card-body"><div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span></div><h3>${escapeHtml(record.tickerHeadline || record.title)}</h3><p class="announcement-card-summary">${escapeHtml(record.summary || "Source and publication-date verification remain pending.")}</p></div></li>`).join("")}</ul></section>` : "";
+    const archiveNav = historical.length ? `<nav class="announcement-archive-nav" aria-label="Historical announcements navigation"><span>Jump to:</span>${Object.keys(byYear).sort().reverse().map(year => `<a href="#historical-${year}">${escapeHtml(year)}</a>`).join("")}</nav>` : "";
     const html = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Global Announcements | FINTECHOISIS — GPIR</title><link rel="stylesheet" href="../../assets/css/global.css"><link rel="stylesheet" href="../../assets/css/page.css"></head>
-<body><main class="chapter-body"><div class="container"><p><a href="../../index.html">Home</a> / Global Announcements</p><h1>Global Announcements</h1><p>Source-linked GPIR announcements preserved as current and historical publications.</p><section><h2>Current Alerts</h2><ul>${current.map(archiveCard).join("")}</ul></section><section><h2>Historical Publications</h2>${historicalMarkup || "<p>No validated superseded publications are currently recorded.</p>"}</section>${pendingMarkup}</div></main></body></html>`;
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Announcements | FINTECHOISIS — GPIR</title>
+<link rel="stylesheet" href="../../assets/css/global.css">
+<link rel="stylesheet" href="../../assets/css/page.css">
+<link rel="stylesheet" href="../../assets/css/chapter-page.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="brand"><a href="../../index.html" class="brand-link" aria-label="FINTECHOISIS — Global Payments Intelligence Repository"><img src="../../assets/branding/logos/fo-mark.svg" alt="" class="brand-logo"><div class="brand-text"><h1>FINTECHOISIS</h1><div class="brand-repository"><span class="repository-pill">GPIR</span><span class="repository-text">Global Payments Intelligence Repository</span></div></div></a></div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../index.html#about">GPIR</a></li>
+          <li><a href="../../index.html#global">Markets</a></li>
+          <li><a href="../../pages/chapters/payment-infrastructure.html">Research</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main class="chapter-body">
+    <section class="chapter-hero">
+      <div class="container">
+        <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><strong>Global Announcements</strong></div>
+        <span class="chapter-part-tag">Reader Archive</span>
+        <h1>Global Announcements</h1>
+        <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
+      </div>
+    </section>
+    <div class="container announcement-archive-wrap">
+      <nav class="announcement-archive-nav" aria-label="Archive sections">
+        <span>Jump to:</span>
+        <a href="#current-alerts">Current Alerts</a>
+        <a href="#historical-publications">Historical Publications</a>
+        ${pending.length ? `<a href="#awaiting-verification">Awaiting Verification</a>` : ""}
+      </nav>
+      <section id="current-alerts" class="announcement-archive-section">
+        <h2>Current Alerts</h2>
+        <ul class="announcement-archive-list">${current.map(archiveCard).join("")}</ul>
+      </section>
+      <section id="historical-publications" class="announcement-archive-section">
+        <h2>Historical Publications</h2>
+        ${archiveNav}
+        ${historicalMarkup}
+      </section>
+      ${pendingMarkup}
+    </div>
+  </main>
+  <footer id="footer">
+    <div class="container">
+      <p class="footer-disclaimer">GPIR records are published only when the underlying source and publication detail are validated. Records still under source or date verification remain excluded from the public alerts archive.</p>
+      <p><a href="../../index.html">Return to GPIR home</a></p>
+    </div>
+  </footer>
+</body>
+</html>`;
     fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html, "utf8");
     console.log(`Generated ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
 }
