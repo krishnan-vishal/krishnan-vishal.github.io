@@ -2,8 +2,8 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27B.3 — FINAL HUMAN LIVE ACCEPTANCE RECORD
-**Current Milestone:** M-27B.3 — ACHIEVED — LIVE BROWSER ACCEPTANCE COMPLETE
+**Current Prompt:** M-18 — GLOBAL ANNOUNCEMENTS TICKER INTEGRITY
+**Current Milestone:** M-18 — IMPLEMENTED / LIVE ACCEPTANCE PENDING
 **Last Completed Prompt:** M-27B.3 Final human live acceptance
 **Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
 **Current Development Status:** M-27A.4 removes only the stale India country-page
@@ -562,3 +562,41 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - **Next goal:** Select the next reader-experience objective from the existing
   GPIR backlog after review and authorization. No next objective is implemented
   by this record.
+
+## M-18 — Global Announcements Ticker Integrity
+
+- **Date:** `2026-09-06`.
+- **Objective:** Remove the deterministic blank interval in the public Global
+  Announcements ticker without changing announcement data or card semantics.
+- **Defect confirmed:** The renderer produced one announcement sequence while
+  the marquee animation swept through the full single-sequence track before
+  restarting, leaving a blank interval.
+- **Implementation:** `renderTicker()` now stores the existing ordered card
+  sequence once and assigns `sequenceHTML + sequenceHTML` to the same track.
+  The scoped `#market-ribbon` animation now runs from `translateX(0)` to
+  `translateX(-50%)`, making the second sequence a seamless continuation.
+- **Files changed:** `assets/js/announcements.js` and
+  `assets/css/page.css` only. No announcement JSON, registry, source,
+  homepage, World Map, country, region or dashboard file changed.
+- **Data preservation:** 10 announcement records, IDs, content, ordering and
+  source references are unchanged.
+- **Validation:** `node --check assets/js/announcements.js`,
+  `node --check assets/js/script.js`, content validation, link validation,
+  targeted M-18 contract checks, data baseline comparison, performance audit
+  review and `git diff --check` passed. The performance audit reported three
+  pre-existing advisory warnings unrelated to M-18.
+- **Production commit:** `8c1ba3c` (`M-18 Fix global announcements ticker
+  continuity`), pushed to `origin/main`.
+- **Live HTTP/resource verification:** Homepage, ticker JavaScript, ticker CSS
+  and announcement data returned HTTP 200. Deployed bytes contain the doubled
+  renderer, 0-to-−50% animation endpoints and 10 records.
+- **Automated browser execution:** `UNAVAILABLE`.
+- **Human live acceptance:** Not supplied for M-18; continuous visual ticker
+  behavior remains pending browser verification.
+- **Status:** **IMPLEMENTED / LIVE ACCEPTANCE PENDING**. M-18 is not closed
+  solely by static validation or HTTP checks.
+- **Deferred/open:** M-19 Cross-Stream Reconciliation remains OPEN; custom
+  domain/DNS, visitor measurement and subscription/digest infrastructure remain
+  deferred. No new content or routing architecture was added.
+- **Next goal:** Obtain human or automated browser confirmation that the ticker
+  transitions directly between duplicated sequences with no blank interval.

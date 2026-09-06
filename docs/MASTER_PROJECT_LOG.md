@@ -2072,3 +2072,45 @@ and browser QA remain outstanding.
 - **Next goal:** Review and authorize the next available reader-experience
   objective from the existing GPIR backlog. No next objective is implemented
   by this acceptance record.
+
+## M-18 — Global Announcements Ticker Integrity
+
+- **Date:** `2026-09-06`.
+- **Status:** **IMPLEMENTED / LIVE ACCEPTANCE PENDING.**
+- **Objective:** Repair the public Global Announcements ticker's deterministic
+  blank interval while preserving the existing announcement data, ordering,
+  card markup, content and design.
+- **Defect/root cause:** The async `renderTicker()` path replaced the track with
+  one ordered card sequence. The existing announcement animation then swept
+  beyond that sequence before restarting, exposing a deterministic blank period.
+  The earlier duplicator in `fx-ticker.js` ran before the async announcement
+  render and was overwritten, so it did not solve the defect.
+- **Implementation:** `renderTicker()` now assigns the rendered sequence twice
+  (`sequenceHTML + sequenceHTML`). The announcement-only `scrollTicker`
+  animation in `assets/css/page.css` now runs from `translateX(0)` to
+  `translateX(-50%)`.
+- **Files changed:** `assets/js/announcements.js` and
+  `assets/css/page.css` only.
+- **Preservation:** The 10 existing announcement records, identities, content,
+  ordering, source references, related content, World Map workstream, M-19 and
+  custom-domain configuration were unchanged. No new announcement or source
+  was created.
+- **Validation:** JavaScript syntax, content validation, link validation,
+  targeted doubled-sequence and animation-endpoint checks, announcement data
+  baseline comparison, performance audit review and `git diff --check` passed.
+  The performance audit's three warnings were pre-existing and unrelated.
+- **Release:** Commit `8c1ba3c`, `M-18 Fix global announcements ticker
+  continuity`, pushed to `origin/main`.
+- **Live HTTP verification:** Public homepage, ticker script, ticker CSS and
+  announcement data returned HTTP 200. Deployed bytes confirmed the doubled
+  renderer, 0-to-−50% animation and 10-record data set.
+- **Automated browser execution:** `UNAVAILABLE`.
+- **Human browser acceptance:** Not available for M-18. The visual no-blank
+  interval result remains pending and is not claimed from HTTP evidence.
+- **Achievement:** Production implementation, repository validation and live
+  resource verification complete.
+- **Partial/deferred:** M-18 remains open for runtime acceptance; M-19 remains
+  OPEN; custom domain/DNS, visitor measurement and subscription/digest
+  infrastructure remain deferred.
+- **Next goal:** Obtain browser confirmation of continuous visual ticker
+  transition and then close M-18 only if that acceptance passes.
