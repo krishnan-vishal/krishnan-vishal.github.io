@@ -2114,3 +2114,62 @@ and browser QA remain outstanding.
   infrastructure remain deferred.
 - **Next goal:** Obtain browser confirmation of continuous visual ticker
   transition and then close M-18 only if that acceptance passes.
+
+## M-18 Phase 1 — Global Announcements Intelligence
+
+- **Date:** `2026-09-06`.
+- **Status:** **IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING.**
+- **Diagnostic:** The baseline contained 10 announcements: 9
+  `GPIR_CLASSIFIED` and 1 `SOURCE_VERIFICATION_REQUIRED`. Nine classified
+  records had permanent intelligence pages, but only four announcement and four
+  intelligence identities were in the canonical registry. The static search
+  index had no announcement entries, ASK GPIR had no announcement-specific
+  resolver, and no scheduled ingestion mechanism existed.
+- **Existing capabilities reused:** Trust-engine publication filtering, the
+  existing announcement renderer/ticker, source-linked intelligence generator,
+  canonical registry, static content search, deterministic ASK GPIR shell,
+  trusted-source registry, sitemap generation and existing validators.
+- **Implementation:** Added explicit lifecycle/publication fields to all 10
+  records using only existing dates and stable IDs; kept all records `CURRENT`
+  because no validated superseding cycle exists. Added 5 missing source
+  identities and 5 missing announcement/intelligence pairs to the registry for
+  the 9 published records. Extended content search and ASK GPIR with structured
+  announcement retrieval. Added the generated `pages/intelligence/index.html`
+  archive with Current Alerts, Historical Publications and Awaiting Verification
+  sections. Added lifecycle facts to generated intelligence pages and a
+  report-only refresh foundation that does not mutate content or claim a
+  cadence.
+- **Data integrity:** Original announcement IDs, content, ordering, source
+  references and URLs remain unchanged. The Qatar verification-required record
+  has no invented publication date, source, page, registry identity or archive
+  placement.
+- **Phase status:** M-18.1 ticker continuity `IMPLEMENTED / LIVE ACCEPTANCE
+  PENDING`; M-18.2 data/lifecycle `IMPLEMENTED / VALIDATED`; M-18.3 historical
+  archive `IMPLEMENTED / LIVE HTTP VERIFIED`, with no validated historical
+  records currently available; M-18.4 search plus ASK GPIR `IMPLEMENTED /
+  STATICALLY VALIDATED`; M-18.5 automated refresh `FOUNDATION ONLY / NOT
+  SCHEDULED`.
+- **Files changed:** `assets/data/announcements.json`,
+  `assets/data/content-model.json`, `assets/data/content-registry.json`,
+  `assets/js/announcements.js`, `assets/js/content-search.js`,
+  `assets/js/script.js`, `index.html`, `pages/intelligence/*`,
+  `scripts/generate-intelligence-pages.js`, `scripts/validate-announcements.js`,
+  `scripts/refresh-announcements.js` and `sitemap.xml`.
+- **Validation:** All edited JavaScript syntax checks, targeted M-18
+  announcement validation, content validation, link validation, M-27A
+  validation and `git diff --check` passed. The performance audit reported
+  three pre-existing advisory warnings unrelated to this work.
+- **Release:** Production commit `52c3ce6`, pushed to `origin/main`.
+- **Live verification:** Homepage, generated archive, representative
+  intelligence page, announcement data, content registry, content search and
+  ASK GPIR runtime assets returned HTTP 200. Public bytes contain the Phase 1
+  archive, lifecycle contract, search extension and deterministic resolver.
+- **Browser acceptance:** Automated browser execution is unavailable and human
+  browser acceptance was not supplied. No visual or interaction acceptance is
+  claimed from HTTP evidence.
+- **Overall M-18:** **OPEN / IMPLEMENTED-PENDING.** M-18 is not fully achieved.
+- **Deferred:** Verified scheduled ingestion, 8-hour cadence claims, historical
+  supersession records, browser acceptance, M-19, custom domain/DNS, visitor
+  measurement and subscription/digest infrastructure.
+- **Next goal:** Browser-validate the archive, ticker, search and ASK GPIR;
+  then make a separate architecture decision for scheduled ingestion.

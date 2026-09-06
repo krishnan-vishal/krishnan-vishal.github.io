@@ -2,8 +2,8 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-18 — GLOBAL ANNOUNCEMENTS TICKER INTEGRITY
-**Current Milestone:** M-18 — IMPLEMENTED / LIVE ACCEPTANCE PENDING
+**Current Prompt:** M-18 — GLOBAL ANNOUNCEMENTS INTELLIGENCE PHASE 1
+**Current Milestone:** M-18 Phase 1 — IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING
 **Last Completed Prompt:** M-27B.3 Final human live acceptance
 **Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
 **Current Development Status:** M-27A.4 removes only the stale India country-page
@@ -600,3 +600,49 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   deferred. No new content or routing architecture was added.
 - **Next goal:** Obtain human or automated browser confirmation that the ticker
   transitions directly between duplicated sequences with no blank interval.
+
+## M-18 Phase 1 — Global Announcements Intelligence
+
+- **Date:** `2026-09-06`.
+- **Status:** **IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING.**
+- **Diagnostic findings:** 10 announcement records exist; 9 are
+  `GPIR_CLASSIFIED`; 1 remains `SOURCE_VERIFICATION_REQUIRED`; 9 classified
+  records have intelligence pages; only 4 announcement/intelligence pairs were
+  previously represented in the registry; the static search index had no
+  announcement entries; ASK GPIR had no announcement resolver; and no scheduled
+  ingestion mechanism exists.
+- **Implementation:** Applied explicit lifecycle/publication metadata without
+  inventing dates or supersession; reconciled 9 published records into the
+  canonical registry; extended existing search and ASK GPIR retrieval; added a
+  generated current/historical archive; exposed the archive from the homepage;
+  and added a report-only refresh foundation.
+- **Phase status:** M-18.1 ticker continuity remains `IMPLEMENTED / LIVE
+  ACCEPTANCE PENDING` from `8c1ba3c`; M-18.2 data/lifecycle is implemented and
+  validated; M-18.3 archive is implemented with 9 current and 0 historical
+  publications; M-18.4 search/ASK GPIR is implemented and statically validated;
+  M-18.5 refresh is `FOUNDATION ONLY / NOT SCHEDULED`.
+- **Preservation:** Existing announcement content, ordering, source URLs,
+  summaries, Why It Matters text, intelligence pages, World Map, dashboards,
+  country/region content and M-19 were preserved. The unresolved Qatar record
+  remains outside publication until source/date verification is complete.
+- **Files changed:** Announcement data/model/registry, announcement and search
+  runtime consumers, ASK GPIR runtime, homepage archive link, intelligence page
+  generator/output, sitemap, targeted validators, and report-only refresh
+  tooling. No DNS, CNAME, dashboard, World Map or M-19 file changed.
+- **Validation:** Edited JavaScript syntax, targeted announcement validator,
+  content validator, link validator, M-27A validator and `git diff --check`
+  passed. Performance audit passed with three pre-existing advisory warnings.
+- **Production commit:** `52c3ce6` (`M-18 Phase 1 Global Announcements
+  intelligence layer`), pushed to `origin/main`.
+- **Live HTTP verification:** Homepage, archive, representative intelligence
+  page, announcement data, registry, content-search.js and script.js returned
+  HTTP 200. Deployed bytes contain the archive, lifecycle data, announcement
+  search entries and ASK GPIR resolver.
+- **Automated browser execution:** `UNAVAILABLE`.
+- **Human browser acceptance:** Not supplied for this phase. Visual archive,
+  search and ASK GPIR interaction remain pending browser verification.
+- **Overall M-18:** Not achieved. Phase 1 is implemented with live resource
+  verification, but M-18 remains open until browser acceptance and a future
+  verified refresh architecture are addressed.
+- **Next goal:** Perform browser acceptance, then separately authorize any
+  scheduled ingestion work; do not claim real-time or 8-hour refresh.
