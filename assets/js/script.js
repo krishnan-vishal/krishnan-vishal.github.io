@@ -1532,35 +1532,36 @@ function initializeReaderAssistant(){
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
     let contextPromise = null;
 
+    // Each dataset settles independently (never rejects the shared
+    // Promise.all) so an unrelated dataset failing can't take down
+    // announcements.json with it -- mirrors the isolation already used
+    // by assets/js/content-search.js for its optional datasets.
+    const settleDataset = (url, label) => fetch(url)
+        .then(response => {
+            if(!response.ok) throw new Error(`${label} unavailable (HTTP ${response.status})`);
+            return response.json();
+        })
+        .then(data => ({ ok: true, data }))
+        .catch(error => {
+            console.error(`[GPIR] ASK GPIR context dataset failed: ${label}`, error);
+            return { ok: false, data: null };
+        });
+
     const loadContext = () => {
         if(contextPromise) return contextPromise;
         contextPromise = Promise.all([
-            fetch(dataPrefix + "content-registry.json").then(response => {
-                if(!response.ok) throw new Error("registry unavailable");
-                return response.json();
-            }),
-            fetch(dataPrefix + "trusted-sources.json").then(response => {
-                if(!response.ok) throw new Error("source registry unavailable");
-                return response.json();
-            }),
-            fetch(dataPrefix + "announcements.json").then(response => {
-                if(!response.ok) throw new Error("announcement data unavailable");
-                return response.json();
-            }),
-            fetch(dataPrefix + "dashboard-metadata.json").then(response => {
-                if(!response.ok) throw new Error("dashboard metadata unavailable");
-                return response.json();
-            }),
-            fetch(dataPrefix + "dashboard-narratives.json").then(response => {
-                if(!response.ok) throw new Error("dashboard narratives unavailable");
-                return response.json();
-            })
+            settleDataset(dataPrefix + "content-registry.json", "content registry"),
+            settleDataset(dataPrefix + "trusted-sources.json", "trusted source registry"),
+            settleDataset(dataPrefix + "announcements.json", "announcement data"),
+            settleDataset(dataPrefix + "dashboard-metadata.json", "dashboard metadata"),
+            settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives")
         ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
-            registry: registry.records || [],
-            sources: sources.registry || [],
-            announcements: announcements.records || [],
-            dashboards: dashboards.records || [],
-            narratives: narratives.records || []
+            registry: registry.ok ? (registry.data.records || []) : [],
+            sources: sources.ok ? (sources.data.registry || []) : [],
+            announcements: announcements.ok ? (announcements.data.records || []) : [],
+            announcementsAvailable: announcements.ok,
+            dashboards: dashboards.ok ? (dashboards.data.records || []) : [],
+            narratives: narratives.ok ? (narratives.data.records || []) : []
         }));
         return contextPromise;
     };
@@ -1636,6 +1637,13 @@ function initializeReaderAssistant(){
     };
 
     const answerAnnouncementQuery = (normalized, context) => {
+        // A genuine announcements.json failure is reported honestly and must
+        // never be presented the same as a query that simply matched zero
+        // records (see loadContext()'s per-dataset settleDataset()).
+        if(!context.announcementsAvailable){
+            answer.innerHTML = "<p>Published announcement records are temporarily unavailable.</p>";
+            return true;
+        }
         const records = context.announcements.filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW");
         const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
         const monthIndex = monthNames.findIndex(month => normalized.includes(month));
@@ -1668,7 +1676,7 @@ function initializeReaderAssistant(){
         if(normalized.includes("recent")) matches = matches.slice(0, 6);
         const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
         if(!matches.length){
-            answer.innerHTML = `<p>No published announcements matched <strong>${escape(query)}</strong>.</p>`;
+            answer.innerHTML = `<p>No published announcements matched <strong>${escape(normalized)}</strong>.</p>`;
             return true;
         }
         const items = matches.map(record => {
@@ -1685,7 +1693,10 @@ function initializeReaderAssistant(){
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
 
         if(/\bannouncements?\b/.test(normalized)){
-            loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(() => {
+            loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(error => {
+                // loadContext() no longer rejects on a single dataset failure;
+                // reaching this is an unexpected error, not a normal degraded state.
+                console.error("[GPIR] ASK GPIR announcement resolver failed unexpectedly:", error);
                 answer.innerHTML = "<p>Published announcement records are temporarily unavailable.</p>";
             });
             return;
