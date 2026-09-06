@@ -105,27 +105,45 @@ function svgEl(tag, attrs){
     return el;
 }
 
+function scheduleFrame(callback){
+    if (window.requestAnimationFrame) window.requestAnimationFrame(callback);
+    else window.setTimeout(callback, 0);
+}
+
 function buildLandDots(svg, step){
     step = step || 3;
     var polys = getPolygons();
-    var frag = document.createDocumentFragment();
-    var idx = 0;
-    for (var lat = 74; lat >= -56; lat -= step){
-        for (var lon = -178; lon <= 178; lon += step){
-            var isLand = false;
-            for (var p = 0; p < polys.length; p++){
-                if (pointInPolygon([lon, lat], polys[p])) { isLand = true; break; }
+    var latitudes = [];
+    for (var lat = 74; lat >= -56; lat -= step) latitudes.push(lat);
+
+    return new Promise(function(resolve){
+        var rowIndex = 0;
+        var idx = 0;
+        var buildChunk = function(){
+            var frag = document.createDocumentFragment();
+            var end = Math.min(rowIndex + 4, latitudes.length);
+            for (; rowIndex < end; rowIndex++){
+                var currentLat = latitudes[rowIndex];
+                for (var lon = -178; lon <= 178; lon += step){
+                    var isLand = false;
+                    for (var p = 0; p < polys.length; p++){
+                        if (pointInPolygon([lon, currentLat], polys[p])) { isLand = true; break; }
+                    }
+                    if (isLand){
+                        var pt = project(lon, currentLat);
+                        var shade = 0.10 + (Math.sin(idx * 12.9898) * 0.5 + 0.5) * 0.08;
+                        var dot = svgEl("circle", { cx: pt.x.toFixed(1), cy: pt.y.toFixed(1), r: 1.1, fill: "rgba(230,225,215," + shade.toFixed(2) + ")" });
+                        frag.appendChild(dot);
+                    }
+                    idx++;
+                }
             }
-            if (isLand){
-                var pt = project(lon, lat);
-                var shade = 0.10 + (Math.sin(idx * 12.9898) * 0.5 + 0.5) * 0.08;
-                var dot = svgEl("circle", { cx: pt.x.toFixed(1), cy: pt.y.toFixed(1), r: 1.1, fill: "rgba(230,225,215," + shade.toFixed(2) + ")" });
-                frag.appendChild(dot);
-            }
-            idx++;
-        }
-    }
-    svg.appendChild(frag);
+            svg.appendChild(frag);
+            if (rowIndex < latitudes.length) scheduleFrame(buildChunk);
+            else resolve();
+        };
+        buildChunk();
+    });
 }
 
 function buildCorridorArcs(svg, byName, skipFlowDots){
@@ -300,47 +318,47 @@ function buildMap(root, svg, markerLayer, tooltip, legendItems, reduceMotion){
     var perf = window.GPIRPerf || { tier: "STANDARD" };
     var skipFlowDots = reduceMotion || perf.tier === "CONSTRAINED";
 
-    try{
-        buildLandDots(svg, getDotStep(perf.tier));
-    } catch(e){
-        root.classList.add("world-map-canvas--error");
-        return;
-    }
+    var landDots = buildLandDots(svg, getDotStep(perf.tier));
+    var countryData = fetch("assets/data/world-map-countries.json")
+        .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); });
 
-    fetch("assets/data/world-map-countries.json")
-        .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
-        .then(function(data){
+    Promise.all([landDots, countryData])
+        .then(function(results){
+            var data = results[1];
             var countries = data.countries || [];
             var byName = {};
             countries.forEach(function(c){ byName[c.name] = c; });
 
-            buildCorridorArcs(svg, byName, skipFlowDots);
-            buildMarkers(markerLayer, tooltip, countries, reduceMotion);
+            scheduleFrame(function(){
+                buildCorridorArcs(svg, byName, skipFlowDots);
+                buildMarkers(markerLayer, tooltip, countries, reduceMotion);
 
-            if (legendItems){
-                var regionsPresent = {};
-                countries.forEach(function(c){ regionsPresent[c.region] = true; });
+                if (legendItems){
+                    var regionsPresent = {};
+                    countries.forEach(function(c){ regionsPresent[c.region] = true; });
 
-                Object.keys(REGION_COLOR).forEach(function(region){
-                    if (!regionsPresent[region]) return;
-                    var el = document.createElement("span");
-                    el.className = "wm-legend-item";
-                    var dot = document.createElement("span");
-                    dot.className = "wm-legend-dot";
-                    dot.style.background = REGION_COLOR[region];
-                    el.appendChild(dot);
-                    el.appendChild(document.createTextNode(REGION_LEGEND_LABEL[region]));
-                    legendItems.appendChild(el);
-                });
+                    Object.keys(REGION_COLOR).forEach(function(region){
+                        if (!regionsPresent[region]) return;
+                        var el = document.createElement("a");
+                        el.className = "wm-legend-item";
+                        el.href = REGION_DIRECTORY[region];
+                        var dot = document.createElement("span");
+                        dot.className = "wm-legend-dot";
+                        dot.style.background = REGION_COLOR[region];
+                        el.appendChild(dot);
+                        el.appendChild(document.createTextNode(REGION_LEGEND_LABEL[region]));
+                        legendItems.appendChild(el);
+                    });
 
-                var activeEl = document.createElement("span");
-                activeEl.className = "wm-legend-item wm-legend-item--active";
-                var activeDot = document.createElement("span");
-                activeDot.className = "wm-legend-dot wm-legend-dot--ring";
-                activeEl.appendChild(activeDot);
-                activeEl.appendChild(document.createTextNode("Active — click to open"));
-                legendItems.appendChild(activeEl);
-            }
+                    var activeEl = document.createElement("span");
+                    activeEl.className = "wm-legend-item wm-legend-item--active";
+                    var activeDot = document.createElement("span");
+                    activeDot.className = "wm-legend-dot wm-legend-dot--ring";
+                    activeEl.appendChild(activeDot);
+                    activeEl.appendChild(document.createTextNode("Active — click to explore"));
+                    legendItems.appendChild(activeEl);
+                }
+            });
         })
         .catch(function(){
             root.classList.add("world-map-canvas--error");

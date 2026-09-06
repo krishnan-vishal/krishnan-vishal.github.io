@@ -240,7 +240,7 @@
 
     position:absolute;
 
-    inset:-10px;
+    inset:-7px;
 }
 
 .wm-marker-dot{
@@ -484,6 +484,10 @@
     font-weight:600;
 
     white-space:nowrap;
+
+    text-decoration:none;
+
+    cursor:pointer;
 }
 
 .wm-legend-item--active{
