@@ -2173,3 +2173,27 @@ and browser QA remain outstanding.
   measurement and subscription/digest infrastructure.
 - **Next goal:** Browser-validate the archive, ticker, search and ASK GPIR;
   then make a separate architecture decision for scheduled ingestion.
+
+## M-18.4A — Production Release + Live Acceptance
+
+- **Date:** `2026-09-06`.
+- **Objective:** Complete the M-18.4A production release for the GPIR-styled Global Announcements archive and announcement-aware search, then verify the live GitHub Pages deployment without claiming browser acceptance from HTTP alone.
+- **Defects confirmed:** Archive page remained a raw generator stub; generic GPIR results outranked structured announcement entries; ASK GPIR and normal Search did not share the same deterministic announcement intent contract; trailing whitespace remained in the generated archive output.
+- **Implementation:** Integrated the GPIR-styled archive into the generator and live page output, added deterministic announcement-intent detection before broad relevance scoring, aligned ASK GPIR with the same announcement contract, preserved existing lifecycle/source trust rules, and added the targeted Node validation script for announcement-intent coverage.
+- **Files changed:** `index.html`, `scripts/generate-intelligence-pages.js`, `assets/css/page.css`, `assets/js/content-search.js`, `assets/js/script.js`, `scripts/test-announcement-intent.js`.
+- **Validation results:** `node scripts/test-announcement-intent.js` passed (`11/11` checks); `node --check assets/js/announcements.js` passed; `node --check assets/js/content-search.js` passed; `node --check assets/js/script.js` passed; `node scripts/validate-announcements.js` passed; `node scripts/validate-content.js` passed; `node scripts/validate-links.js` passed; `node scripts/m27a-validate.js` passed; `git diff --check` passed.
+- **Production commit:** `49751cdf215071d550d58682b31dafc397fad446` — `M-18.4A Integrate announcement archive and search intent`.
+- **Push status:** `origin/main` updated successfully.
+- **Live HTTP verification:** `https://krishnan-vishal.github.io/` returned HTTP 200; `https://krishnan-vishal.github.io/pages/intelligence/index.html` returned HTTP 200; deployed HTML contains the Global Announcements archive content and the GPIR layout labels.
+- **Browser acceptance:** `BROWSER TOOLING UNAVAILABLE` in this environment; browser verification of archive layout, search results, ASK GPIR, and ticker movement remains pending and is not claimed from HTTP evidence alone.
+- **Search acceptance:** Static checks passed for the required announcement queries; live browser acceptance remains pending because browser automation is unavailable.
+- **Archive acceptance:** Live HTTP confirms the deployed archive page is present and served; visual GPIR browser acceptance remains pending.
+- **ASK GPIR acceptance:** Live HTTP served the site and the deterministic resolver logic remained aligned with the same announcement contract; browser-confirmed resulting content remains pending.
+- **M-18.1 status:** `IMPLEMENTED / LIVE ACCEPTANCE PENDING`.
+- **M-18.2 status:** `ACHIEVED`.
+- **M-18.3 status:** `IMPLEMENTED / LIVE HTTP VERIFIED`.
+- **M-18.4 status:** `IMPLEMENTED / STATICALLY VALIDATED`.
+- **M-18.4A status:** `IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING`.
+- **M-18.5 status:** `FOUNDATION ONLY / NOT SCHEDULED`.
+- **Overall M-18 status:** `OPEN` pending browser acceptance and the separate M-18.5 architecture milestone.
+- **Next milestone:** `M-18.5 — GLOBAL ANNOUNCEMENT REFRESH ARCHITECTURE`.
