@@ -2,9 +2,9 @@
 
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
-**Current Prompt:** M-27A.4 — India Country Status & Search Route Consistency Fix
-**Current Milestone:** M-27A.4 — IMPLEMENTATION COMPLETE — PENDING/LIVE VERIFIED
-**Last Completed Prompt:** M-27A.4 India country status correction
+**Current Prompt:** M-27B.2 — WORLD MAP INTERACTION & PERFORMANCE REPAIR
+**Current Milestone:** M-27B.2 — IMPLEMENTED, PUSHED, LIVE HTTP VERIFIED; BROWSER RUNTIME PENDING
+**Last Completed Prompt:** M-27B.2 World Map interaction and performance repair
 **Last Verified Commit:** `4a7720af2c678cfebad8a8d1f3c5cdd3eea57957`
 **Current Development Status:** M-27A.4 removes only the stale India country-page
 scaffold warning. India Search and Markets routes resolve to the same canonical
@@ -49,6 +49,53 @@ VERIFIED; BROWSER QA NOT VERIFIED IF TOOLING IS UNAVAILABLE.
 **M-19:** OPEN
 **CNAME:** ABSENT
 **Custom domain:** DEFERRED
+
+**M-27C Phase 1 Status:** ACHIEVED — DIAGNOSTIC / ARCHITECTURE GATE COMPLETE.
+NO PRODUCTION IMPLEMENTATION AUTHORISED.
+
+**M-27C Phase 1 Objective:** Translate live-reader observations into verified
+architecture findings, root causes, safe implementation boundaries and a
+controlled roadmap for reader-intelligence improvements.
+
+**M-27C Phase 1 Architecture:** GPIR remains a static GitHub Pages site using
+HTML, CSS, vanilla JavaScript and JSON. There is no backend, database, public
+API, analytics provider or subscription platform.
+
+**M-27C Phase 1 Findings:** The dashboard lightbox is the correct future
+foundation but lacks reader controls; the announcement marquee needs a
+deterministic measured two-copy loop; Home/hash navigation needs one shared
+sticky-header-aware contract; CURRENT/HISTORICAL is documented but not fully
+applied; no legitimate unique visitor measurement exists; subscription and
+weekly digest infrastructure do not exist; World Map routing is not yet
+registry-canonical and map interaction can feel sluggish; and mega-menu hover
+behaviour is too sensitive for calm passive reading.
+
+**M-27C Phase 1 Pending Objectives:** M-27C.1 dashboard reader controls;
+M-27C.2 deterministic announcement ticker; M-27C.3 navigation contract;
+M-27C.4 immutable historical architecture; M-27C.5 privacy-preserving
+visitor measurement; M-27C.6 subscription and weekly digest; M-27C.7 canonical
+World Map routing; M-27C.8 intent-driven mega-menu behaviour.
+
+**M-27C Phase 1 Preservation:** M-27A.2 dashboard status separation,
+disclaimer preservation, dashboard boundary correction and five existing
+dashboard publication links remain completed. M-27A.3 Search GPIR overlay
+close-before-navigation remains completed. Neither is pending M-27C work.
+
+**M-27C Phase 1 Not Added:** No analytics provider, subscription provider,
+subscriber storage, double opt-in, external LLM/API, backend, database,
+dashboard research/image/metadata/narrative/disclaimer, country research,
+historical migration, new research content or production reader code was
+added. M-18 and M-19 remain OPEN; custom domain/CNAME remains deferred; and
+browser automation remains unavailable/not verified.
+
+**M-27C Phase 1 Files:** Only `docs/MASTER_PROJECT_LOG.md`,
+`docs/PROJECT_STATUS.md` and `docs/GPIR_BACKLOG.md` are changed by this
+documentation update.
+
+**M-27C Phase 1 Next Action:** Review and commit this governance update
+separately, then proceed to M-27B.1 — LIVE READER INTERACTION DIAGNOSTIC.
+M-27B.1 remains DIAGNOSE ONLY; no recommendation may be implemented until
+separately authorised.
 
 **M-25E Status:** INTEGRATED INTO M-26A — public activation preserves the
 previous dashboard library activation and regional narrative work while
@@ -434,3 +481,52 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   `71e35efdc12df0decdcf61bf144863f643ec8ac1`.
 
 **LAST UPDATED:** 2026-08-28
+
+## M-27B.2 — World Map Interaction & Performance Repair
+
+- **Date:** `2026-09-06`.
+- **Status:** **IMPLEMENTED, PUSHED, LIVE HTTP VERIFIED; BROWSER RUNTIME PENDING.**
+- **Objective:** Make the existing World Map a responsive, deliberate navigation
+  layer without changing its visual concept, country content, dashboards or
+  canonical route architecture.
+- **Implementation:** Initial land-dot generation now yields across animation
+  frames in small batches; corridor, marker and legend composition waits for
+  the scheduled land/data work. Existing dots, arcs, markers, tooltips and
+  animation remain present.
+- **Interaction:** Active India, UAE, Saudi Arabia, Qatar and Singapore
+  markers retain their existing country-page URLs. Region legend entries are
+  now keyboard-accessible anchors to the existing Middle East, APAC, Europe,
+  LATAM, Americas and Africa directory pages.
+- **Hit areas:** Invisible marker padding was reduced from `inset:-10px` to
+  `inset:-7px`, preserving visible marker size and geographic positions while
+  removing the diagnosed target overlap.
+- **Caption:** The map caption now accurately says `Tap a market to explore
+  country intelligence`; active markers still navigate to the country reader,
+  which exposes the connected dashboard where published.
+- **Australia:** Preserved as `coming_soon` with no dashboard, registry record
+  or invented route. Its existing zero-byte country file remains a separate
+  deferred data/content gap.
+- **Files changed:** `assets/js/world-map.js`, `assets/css/global.css` and
+  `index.html`. Governance records were updated separately after release.
+- **Validation:** JavaScript syntax, content validation, internal link
+  validation, M-27A validation (36/36), map interaction contract, performance
+  audit review and `git diff --check` passed. The performance audit reported
+  three pre-existing advisory warnings unrelated to this change.
+- **Release commit:** `30260a7` (`M-27B.2 World Map interaction and performance repair`).
+- **Push:** `origin/main` updated successfully.
+- **Live verification:** Homepage, India and UAE country pages, APAC and Middle
+  East region pages, map JavaScript and map data returned HTTP 200. Deployed
+  script bytes contain the scheduled build and region-link implementation; the
+  deployed homepage contains the corrected caption.
+- **Browser QA:** `BROWSER EXECUTION UNAVAILABLE`. Hover, click/tap latency,
+  keyboard activation and visual regression remain pending runtime validation.
+- **Achieved:** Authorized source implementation, repository validation, push,
+  and live HTTP/resource verification.
+- **Partial:** Full success criteria remain pending browser-level interaction
+  evidence.
+- **Deferred:** Australia publication, browser automation, and any redesign or
+  new content remain deferred.
+- **Not added:** No new routes, dashboards, registry records, research,
+  backend, framework, API or database was added.
+- **Next goal:** Perform browser acceptance and live interaction verification
+  when browser tooling is available.

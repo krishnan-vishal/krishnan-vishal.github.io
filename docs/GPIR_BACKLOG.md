@@ -26,6 +26,49 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 | M-27A.5 | 2026-09-05 | Remove stale draft status from five published country readers | READER EXPERIENCE, GOVERNANCE | High | COMPLETED | M-27A.4; active published country/dashboard readers | Stage 1 | `pages/countries/*.html`, `docs/*.md` | Remove only the generic scaffold warning from UAE, Saudi Arabia, Qatar, India and Singapore while keeping country editorial status separate from dashboard publication status. | No generic warning remains on the five pages; dashboard readers, disclaimers, research, routes, metadata, narratives and canonical Search/Markets paths remain unchanged; future draft status requires explicit designation. | Implemented, locally validated and live HTTP verified. Final release SHA: `ca4513b9dab7bdfd0d2e52827a15b4b442839090`. | 2026-09-05 | `ca4513b9dab7bdfd0d2e52827a15b4b442839090` | M-27A.5 |
 
+## M-27C Phase 1 — Reader Intelligence Architecture Gate
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-27C-P1 | 2026-09-06 | Reader Intelligence Architecture Gate | READER EXPERIENCE, ARCHITECTURE, GOVERNANCE, PRIVACY | High | ACHIEVED | M-27A.5; live-reader observations; existing static architecture | Stage 1 | `docs/MASTER_PROJECT_LOG.md`, `docs/PROJECT_STATUS.md`, `docs/GPIR_BACKLOG.md` | Record verified root causes, safe boundaries and a controlled roadmap for dashboard reader controls, ticker continuity, navigation, historical preservation, visitor measurement, subscription, World Map routing and mega-menu intent behaviour. | Findings and constraints are recorded; no production implementation or data migration occurs; M-18/M-19 and protected content remain separate; next diagnostic is M-27B.1. | Diagnostic / architecture gate complete. No production implementation authorised. | 2026-09-06 | Documentation-only update; no implementation commit | M-27C Phase 1 |
+
+## M-27C Pending Objectives
+
+The M-27C Phase 1 gate is complete, but the following objectives remain
+pending and require separate review and authorisation before implementation:
+
+| ID | Objective | Status | Safe boundary |
+|---|---|---|---|
+| M-27C.1 | Dashboard Reader Controls | ACTIONABLE | Extend the existing lightbox with zoom, zoom-out, reset, fit, pan, fullscreen, keyboard/accessibility support and reduced-motion handling. Preserve images, research, metadata, narratives and disclaimers. |
+| M-27C.2 | Global Announcement Ticker | ACTIONABLE | Replace the non-measured marquee boundary with a deterministic two-copy track using exact content width, responsive recalculation, appropriate pause behaviour and reduced-motion fallback. M-18 remains separately governed. |
+| M-27C.3 | Navigation | ACTIONABLE | Establish one contract for Home-to-top, hash destinations, sticky-header offset, initial hash load, `hashchange` and browser history. Preserve existing routes and Search GPIR. |
+| M-27C.4 | Historical Architecture | ACTIONABLE | Apply immutable version/lifecycle fields: `CURRENT`, `HISTORICAL`, `referenceId`, `recordId`, `canonicalId`, `editionVersion`, `publicationDate`, `lifecycleStatus`, `supersedes` and `supersededBy`. Never delete superseded information. |
+| M-27C.5 | Visitor Measurement | ACTIONABLE | Select and document legitimate privacy-preserving measurement. Do not fabricate visitor numbers or claim unique visitors without a provider-defined methodology. |
+| M-27C.6 | Subscription | ACTIONABLE | Define subscription page, email capture, interests, double opt-in, unsubscribe, privacy/legal controls and repository-history-based weekly digest delivery. |
+| M-27C.7 | World Map | ACTIONABLE | Resolve existing map markers through canonical `GLOBAL -> REGION -> COUNTRY -> EXISTING INTELLIGENCE -> DASHBOARD` relationships without duplicate routes or new research. |
+| M-27C.8 | Mega-menu | ACTIONABLE | Implement deliberate pointer intent with opening delay, close grace period, stable in-menu movement, keyboard access and touch compatibility without changing hierarchy. |
+
+### M-27C Permanent UX Principle
+
+> Intent-driven interaction: GPIR should remain visually calm during passive
+> reading. Interactive components should respond predictably to deliberate
+> reader intent and should not compete for attention through excessive hover
+> sensitivity, animation, automatic expansion or unsolicited movement.
+
+The intended reader flow is `CALM -> DISCOVER -> INTENTION -> INTERACT ->
+INTELLIGENCE -> NAVIGATE`.
+
+### M-27C Deferred Controls
+
+No visitor analytics provider, subscription provider, subscriber data
+architecture, external LLM/API, backend, database or historical migration is
+approved by this gate. Dashboard research, images, metadata, narratives,
+disclaimers, country research, registry relationships, search ranking, M-18,
+M-19, CNAME/domain configuration and existing content remain preserved.
+
+The next action is **M-27B.1 — LIVE READER INTERACTION DIAGNOSTIC**, diagnose
+only. Its recommendations must not be implemented until separately authorised.
+
 ## Actionable next work
 
 The Prompt 22A foundation increment adds a validated shared vocabulary in
@@ -235,6 +278,12 @@ change to the current external-resource or browser-storage model.
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | TICKER-001 | 2026-08-28 | Repair announcement ticker overflow and freshness wording | FIX, READER EXPERIENCE, CONTENT INTEGRITY | High | COMPLETED | Existing ticker markup/data/CSS/JS | Stage 1 | `index.html`, `assets/css/page.css` | Keep long announcement cards inside the allocated ribbon and avoid implying continuous ingestion. | Scoped overflow contract passes; truthful status is displayed; content, animation, pause and reduced-motion behavior remain preserved. | Replaced the unsupported status claim with `Verified Dataset` and added scoped min-width/max-content rules to the announcement ribbon. | 2026-08-28 | `71e35efdc12df0decdcf61bf144863f643ec8ac1` | M-18 |
+
+## M-27B.2 — World Map Interaction & Performance Repair
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-27B.2 | 2026-09-06 | World Map interaction and performance repair | READER EXPERIENCE, PERFORMANCE, NAVIGATION, GOVERNANCE | High | PARTIAL — BROWSER RUNTIME PENDING | M-27B.1 diagnostic; explicit implementation authorization | Stage 1 | `assets/js/world-map.js`, `assets/css/global.css`, `index.html` | Schedule initial map construction, preserve active country routing, activate existing region legend routes and remove marker hit-area ambiguity without new content or routes. | Map build no longer performs the full initial land-dot workload in one blocking turn; five active country markers retain canonical country destinations; six region legends are keyboard-accessible canonical links; no invented content or routes; validators pass; browser and live verification recorded separately. | Implemented and pushed. Land-dot work is frame-scheduled, region legend links are active, hit-area padding is reduced, caption is accurate, Australia remains coming soon. Repository validators and live HTTP/resource verification passed. Browser runtime acceptance remains pending because tooling is unavailable. | 2026-09-06 | `30260a7` | M-27B.2 |
 
 ## Backlog maintenance
 

@@ -1759,6 +1759,118 @@ and browser QA remain outstanding.
 - **Next milestone:** Future governed reader validation or coverage expansion
   under separate authorization.
 
+## M-27B.2 — World Map Interaction & Performance Repair
+
+- **Date:** `2026-09-06`.
+- **Status:** **IMPLEMENTED, PUSHED, LIVE HTTP VERIFIED; BROWSER RUNTIME PENDING.**
+- **Objective:** Repair the existing World Map interaction and initial-build
+  responsiveness without redesigning the map or creating a second route model.
+- **Root-cause repair:** Land-dot construction now yields across animation
+  frames; country data loading runs alongside it; corridor, marker and legend
+  composition is scheduled after both are ready. This preserves the final map
+  layers while reducing the chance that first construction blocks deliberate
+  reader interaction.
+- **Interaction repair:** Existing active marker URLs for India, UAE, Saudi
+  Arabia, Qatar and Singapore remain unchanged. The six dynamic region legend
+  items now use semantic anchors and existing canonical routes. Hover remains
+  tooltip-only; active marker click remains native country-page navigation.
+- **Hit-area repair:** Marker invisible padding changed from `inset:-10px` to
+  `inset:-7px`, retaining marker geometry and visual styling while reducing
+  ambiguity between nearby UAE, Qatar and India targets.
+- **Semantic repair:** The caption now describes the actual first destination:
+  `Tap a market to explore country intelligence`.
+- **Preservation:** Existing country pages, region pages, dashboard metadata,
+  dashboard relationships, research, images, historical/current architecture,
+  Search, Markets navigation and Australia coming-soon state were preserved.
+  No routes, content, dashboards, registry records or external services were
+  added.
+- **Files changed:** `assets/js/world-map.js`, `assets/css/global.css` and
+  `index.html` only for production; governance files were appended separately.
+- **Validation:** `node --check assets/js/world-map.js`, content validation,
+  link validation, M-27A validation (36/36), map interaction contract,
+  performance audit review and `git diff --check` passed. Performance audit
+  warnings were pre-existing advisory items outside this change.
+- **Release:** Commit `30260a7`, message `M-27B.2 World Map interaction and
+  performance repair`, pushed to `origin/main`.
+- **Live verification:** Public HTTP 200 checks passed for homepage, India and
+  UAE country pages, APAC and Middle East region pages, map JavaScript and map
+  data. Deployed bytes confirmed the scheduled map build, region anchors and
+  updated caption.
+- **Browser validation:** `BROWSER EXECUTION UNAVAILABLE`. Runtime hover,
+  click/tap, keyboard, latency and visual regression evidence remains pending.
+- **Achievement:** Source repair, validation, push and live HTTP verification
+  complete.
+- **Partial:** M-27B.2 cannot be marked fully achieved until browser runtime
+  acceptance is available.
+- **Next goal:** Execute the twelve-country/region interaction matrix in a real
+  browser and record observed latency and destinations.
+
+## M-27C Phase 1 — Reader Intelligence Architecture Gate
+
+- **Date:** `2026-09-06`.
+- **Status:** **ACHIEVED — DIAGNOSTIC / ARCHITECTURE GATE COMPLETE. NO
+  PRODUCTION IMPLEMENTATION AUTHORISED.**
+- **Objective:** Translate live-reader observations into verified architecture
+  findings, root causes, safe implementation boundaries and a controlled
+  roadmap for the next reader-intelligence improvements.
+- **Architecture baseline:** GPIR remains a static GitHub Pages site using
+  HTML, CSS, vanilla JavaScript and JSON. There is no backend, database,
+  public API, analytics provider or subscription platform.
+- **Live acceptance findings recorded:** The dashboard lightbox opens images
+  but lacks zoom, zoom-out, reset, fit-to-view, pan and fullscreen controls;
+  the protected view-first publication remains deterrence only, never DRM;
+  the Global Announcements marquee has uneven movement, lag perception,
+  blank-gap/jump behaviour and asynchronous render/duplication interaction;
+  Home can land below the intended top position because of sticky header and
+  pre-Home ribbons; the visitor counter remains in an empty/Updating state;
+  subscription and weekly digest infrastructure does not exist; historical
+  preservation is required for all superseded GPIR intelligence; World Map
+  selections do not consistently use canonical country routing and can feel
+  sluggish/stuck; and mega-menu pointer behaviour is too sensitive.
+- **Architecture findings:** The existing lightbox is the correct future
+  foundation; the ticker requires a deterministic two-copy measured loop;
+  Home and hash destinations require one sticky-header-aware navigation
+  contract; CURRENT/HISTORICAL is documented but not fully applied; no
+  legitimate unique-visitor measurement exists; no subscriber or digest
+  infrastructure exists; World Map routing is not yet registry-canonical;
+  and mega-menu interaction requires deliberate pointer intent.
+- **Completed M-27A fixes preserved:** M-27A.2 separated dashboard
+  publication status from country editorial status, preserved disclaimers,
+  kept the generic country warning outside the dashboard reader boundary and
+  corrected the five UAE, Saudi Arabia, Qatar, India and Singapore dashboard
+  links to existing publication assets. M-27A.3 closes the Search GPIR
+  overlay before normal mouse or keyboard navigation. These are completed
+  fixes, not pending M-27C work.
+- **Pending objectives:** M-27C.1 Dashboard Reader Controls; M-27C.2 Global
+  Announcement Ticker; M-27C.3 Navigation; M-27C.4 Historical Architecture;
+  M-27C.5 Visitor Measurement; M-27C.6 Subscription; M-27C.7 World Map; and
+  M-27C.8 Mega-menu intent behaviour.
+- **Permanent UX principle proposed:** “Intent-driven interaction: GPIR should
+  remain visually calm during passive reading. Interactive components should
+  respond predictably to deliberate reader intent and should not compete for
+  attention through excessive hover sensitivity, animation, automatic
+  expansion or unsolicited movement.” The desired flow is
+  `CALM -> DISCOVER -> INTENTION -> INTERACT -> INTELLIGENCE -> NAVIGATE`.
+- **Deferred / not authorised:** No analytics provider, subscription
+  provider, subscriber data architecture, external LLM/API, backend,
+  database, dashboard research/image/disclaimer change, country research
+  change, historical migration or new research content was introduced. M-18,
+  M-19, custom domain/CNAME and browser automation remain open, deferred or
+  unavailable as previously recorded.
+- **Files changed:** `docs/MASTER_PROJECT_LOG.md`,
+  `docs/PROJECT_STATUS.md` and `docs/GPIR_BACKLOG.md` only.
+- **Production status:** No HTML, CSS, JavaScript, JSON, image, dashboard,
+  country, registry, search, domain or subscription production file changed.
+- **Next action:** After this documentation update is reviewed and committed
+  separately, proceed to **M-27B.1 — LIVE READER INTERACTION DIAGNOSTIC**.
+  M-27B.1 remains diagnose only; its recommendations require separate
+  authorisation before implementation.
+- **Control rule:** Future work must preserve
+  `DIAGNOSE -> REVIEW -> AUTHORISE -> IMPLEMENT -> VALIDATE -> PUSH -> LIVE
+  VERIFY -> MASTER CONTROL LOG`. No “fixed” status is valid until
+  implementation is validated, committed, pushed and live behaviour is
+  verified where browser testing is available.
+
 ## M-27A.3 — Search Result Overlay Close & Navigation UX Fix
 
 - **Date:** `2026-09-05`.
