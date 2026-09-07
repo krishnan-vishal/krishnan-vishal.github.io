@@ -18,6 +18,7 @@ const registryPath = path.join(DATA_DIR, "content-registry.json");
 const modelPath = path.join(DATA_DIR, "content-model.json");
 const dashboardPath = path.join(DATA_DIR, "dashboard-metadata.json");
 const candidatesPath = path.join(DATA_DIR, "intelligence-candidates.json");
+const countriesPath = path.join(DATA_DIR, "country-intelligence.json");
 
 const errors = [];
 const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOURCE_VERIFICATION_REQUIRED"]);
@@ -64,6 +65,7 @@ const registryData = readJson(registryPath);
 const contentModel = readJson(modelPath);
 const dashboardData = readJson(dashboardPath);
 const candidateData = readJson(candidatesPath);
+const countryData = readJson(countriesPath);
 const records = Array.isArray(announcements.records) ? announcements.records : [];
 const registry = Array.isArray(sourceData.registry) ? sourceData.registry : [];
 const sourceRegistryIds = new Set();
@@ -147,6 +149,28 @@ candidates.forEach((candidate, index) => {
         if(candidate[field] !== null && candidate[field] !== undefined) dateField(candidate[field], `${label}.${field}`);
     });
     if(!candidate.audit || typeof candidate.audit !== "object") errors.push(`${label}.audit: expected provenance metadata`);
+});
+
+const countryRecords = Array.isArray(countryData.records) ? countryData.records : [];
+const countryIds = new Set();
+const countryCodes = new Set();
+countryRecords.forEach((country, index) => {
+    const label = `country-intelligence.records[${index}]`;
+    ["id", "name", "isoAlpha2", "isoAlpha3", "region", "regionId", "subregion", "currency", "lifecycleStatus", "publicationStatus", "page", "pageMode", "intelligenceAvailability", "historicalAvailability"].forEach(field => requiredString(country[field], `${label}.${field}`));
+    if(countryIds.has(country.id)) errors.push(`${label}.id: duplicate id (${country.id})`);
+    if(countryCodes.has(country.isoAlpha2)) errors.push(`${label}.isoAlpha2: duplicate code (${country.isoAlpha2})`);
+    countryIds.add(country.id);
+    countryCodes.add(country.isoAlpha2);
+    if(!allowedLifecycleStatuses.has(country.lifecycleStatus)) errors.push(`${label}.lifecycleStatus: unsupported lifecycle`);
+    if(!allowedPublicationStatuses.has(country.publicationStatus)) errors.push(`${label}.publicationStatus: unsupported publication status`);
+    if(!["NATIVE", "GENERATED"].includes(country.pageMode)) errors.push(`${label}.pageMode: expected NATIVE or GENERATED`);
+    repositoryFileExists(country.page, `${label}.page`);
+    if(!country.sections || typeof country.sections !== "object") errors.push(`${label}.sections: expected availability map`);
+    if(!Array.isArray(country.sourceReferences)) errors.push(`${label}.sourceReferences: expected an array`);
+});
+
+candidates.forEach((candidate, index) => {
+    if(candidate.countryId && !countryIds.has(candidate.countryId)) errors.push(`intelligence-candidates.candidates[${index}].countryId: unknown country`);
 });
 
 const recordIds = new Set();
@@ -303,5 +327,5 @@ if(errors.length){
     errors.forEach(error => console.error(`- ${error}`));
     process.exitCode = 1;
 } else {
-    console.log(`GPIR content validation passed: ${records.length} announcements, ${candidates.length} intelligence candidates, ${registry.length} trusted sources, and ${contentRegistry.length} registry records.`);
+    console.log(`GPIR content validation passed: ${records.length} announcements, ${candidates.length} intelligence candidates, ${countryRecords.length} country records, ${registry.length} trusted sources, and ${contentRegistry.length} registry records.`);
 }

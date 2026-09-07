@@ -163,3 +163,14 @@ The registry is currently a validated build-time catalog. Runtime pages do not
 load it globally, so the pilot adds no initial page payload. A future
 generator may consume it only after the registry contract and migration pilot
 are extended and validated.
+
+## Country intelligence metadata
+
+**File:** `assets/data/country-intelligence.json`
+
+M22 provides one canonical metadata record per country without duplicating
+country-page prose. Stable ISO identity, GPIR region/subregion, currency,
+lifecycle, availability and permanent page references support future regional
+aggregation and discovery filters. Existing pages are `NATIVE`; a future
+`GENERATED` page remains a separately validated, country-specific extension.
+Section availability is metadata only: unavailable material remains absent.

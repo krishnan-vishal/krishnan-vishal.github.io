@@ -17,6 +17,7 @@ const DATA_DIR = path.join(ROOT, "assets", "data");
 const SOURCES_PATH = path.join(DATA_DIR, "trusted-sources.json");
 const ANNOUNCEMENTS_PATH = path.join(DATA_DIR, "announcements.json");
 const CANDIDATES_PATH = path.join(DATA_DIR, "intelligence-candidates.json");
+const COUNTRIES_PATH = path.join(DATA_DIR, "country-intelligence.json");
 
 function readJson(filePath) {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -44,7 +45,7 @@ function candidateId(sourceId, sourceUrl) {
     return `candidate-${sourceId}-${fingerprint}`;
 }
 
-function buildCandidate(source, item, retrievedAt) {
+function buildCandidate(source, item, retrievedAt, country) {
     const sourceUrl = canonicalUrl(item.url);
     const publicationDate = dateOnly(item.publicationDate);
     return {
@@ -55,6 +56,9 @@ function buildCandidate(source, item, retrievedAt) {
         status: "PENDING_HUMAN_REVIEW",
         contentStatus: "CONTENT_UNDER_REVIEW",
         sourceOrgId: source.id,
+        countryId: country ? country.id : null,
+        countryIsoAlpha2: country ? country.isoAlpha2 : null,
+        region: country ? country.region : null,
         sourceName: source.organization || source.id,
         sourceUrl,
         title: item.title,
@@ -78,6 +82,7 @@ async function main() {
     const sources = readJson(SOURCES_PATH).registry || [];
     const published = readJson(ANNOUNCEMENTS_PATH).records || [];
     const queue = readJson(CANDIDATES_PATH);
+    const countries = readJson(COUNTRIES_PATH).records || [];
     const existingCandidates = Array.isArray(queue.candidates) ? queue.candidates : [];
     const knownUrls = new Set([
         ...existingCandidates.map(candidate => canonicalUrl(candidate.sourceUrl)),
@@ -90,6 +95,7 @@ async function main() {
     reports.forEach(report => {
         if (report.status !== "RETRIEVED_REVIEW_REQUIRED") return;
         const source = sourceById.get(report.sourceId);
+        const country = source ? countries.find(record => record.name === source.country) : null;
         if (!source) return;
 
         (report.discovered || []).forEach(item => {
@@ -97,7 +103,7 @@ async function main() {
             if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) return;
             if (knownUrls.has(sourceUrl)) return;
             knownUrls.add(sourceUrl);
-            additions.push(buildCandidate(source, item, report.retrievedAt));
+            additions.push(buildCandidate(source, item, report.retrievedAt, country));
         });
     });
 

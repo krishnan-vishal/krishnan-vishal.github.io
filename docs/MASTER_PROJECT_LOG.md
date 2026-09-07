@@ -2248,3 +2248,15 @@ and browser QA remain outstanding.
   and failures leave current/historical publications untouched.
 - **Deferred:** No endpoints were invented, and no AI classification, automatic
   publication, backend, database or public live feed was added.
+
+## M-22 — Country Intelligence Scale Foundation
+
+- **Date:** `2026-09-07`; **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Implementation:** Added canonical metadata for six existing country pages:
+  ISO identity, GPIR regional aggregation, lifecycle, section availability and
+  native/generated-page mode. The content gate validates the model and M21
+  candidate proposals can associate trusted country sources deterministically.
+- **Preservation:** Existing country pages, URLs, market-specific prose, M20
+  lifecycle boundaries and M21 human-review publication controls are unchanged.
+- **Deferred:** No broad country population, page generation, navigation or
+  search redesign is introduced.
