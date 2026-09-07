@@ -98,6 +98,21 @@ API, analytics provider or subscription platform.
 - **Deferred:** Source endpoint expansion remains human-configured; no AI
   classification, automatic publication, backend or live public feed exists.
 
+## M-23 — Global Announcements Continuous Intelligence
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Capability:** Activates the existing M21 two-hour proposal workflow with
+  verified official RSS sources: RBI press releases, RBI notifications and ECB
+  Market Information Dissemination (MID).
+- **Safety and provenance:** Each discovered candidate records its source
+  authority, original official item URL, final approved discovery endpoint,
+  source publication date when supplied and retrieval timestamp. Candidates
+  remain `DEVELOPING`, `NOT_PUBLISHED` and pending human review; no public
+  announcement, Search GPIR or ASK GPIR path is changed.
+- **Deferred:** Additional authorities and any human-reviewed promotion of a
+  candidate into validated CURRENT intelligence remain controlled later work.
+
 **M-27C Phase 1 Findings:** The dashboard lightbox is the correct future
 foundation but lacks reader controls; the announcement marquee needs a
 deterministic measured two-copy loop; Home/hash navigation needs one shared

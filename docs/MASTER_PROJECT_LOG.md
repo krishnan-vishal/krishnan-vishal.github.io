@@ -2260,3 +2260,18 @@ and browser QA remain outstanding.
   lifecycle boundaries and M21 human-review publication controls are unchanged.
 - **Deferred:** No broad country population, page generation, navigation or
   search redesign is introduced.
+
+## M-23 — Global Announcements Continuous Intelligence
+
+- **Date:** `2026-09-07`; **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Implementation:** Activated the existing M21 scheduled proposal flow with
+  the manually verified official RSS endpoints for RBI press releases, RBI
+  notifications and ECB MID. Candidate provenance now records source authority,
+  official item URL, final approved endpoint, source date when available and
+  retrieval timestamp.
+- **Preservation:** The report-only refresh reader, trusted-domain/redirect
+  boundary, deterministic deduplication, proposal branch/PR review, lifecycle
+  controls and static publication architecture remain unchanged. Search GPIR
+  and ASK GPIR continue to consume only approved published announcements.
+- **Deferred:** Broader source expansion and human-reviewed candidate promotion
+  are separate controlled milestones; no automatic publication was introduced.

@@ -45,7 +45,7 @@ function candidateId(sourceId, sourceUrl) {
     return `candidate-${sourceId}-${fingerprint}`;
 }
 
-function buildCandidate(source, item, retrievedAt, country) {
+function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
     const sourceUrl = canonicalUrl(item.url);
     const publicationDate = dateOnly(item.publicationDate);
     return {
@@ -56,11 +56,13 @@ function buildCandidate(source, item, retrievedAt, country) {
         status: "PENDING_HUMAN_REVIEW",
         contentStatus: "CONTENT_UNDER_REVIEW",
         sourceOrgId: source.id,
+        sourceAuthority: source.organization || source.id,
         countryId: country ? country.id : null,
         countryIsoAlpha2: country ? country.isoAlpha2 : null,
         region: country ? country.region : null,
         sourceName: source.organization || source.id,
         sourceUrl,
+        discoveryEndpoint,
         title: item.title,
         summary: item.summary || null,
         sourcePublicationDate: publicationDate,
@@ -73,6 +75,7 @@ function buildCandidate(source, item, retrievedAt, country) {
         audit: {
             discoveredAt: retrievedAt,
             sourceValidatedAt: retrievedAt,
+            discoveryEndpoint,
             reviewState: "PENDING_HUMAN_REVIEW"
         }
     };
@@ -103,7 +106,13 @@ async function main() {
             if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) return;
             if (knownUrls.has(sourceUrl)) return;
             knownUrls.add(sourceUrl);
-            additions.push(buildCandidate(source, item, report.retrievedAt, country));
+            additions.push(buildCandidate(
+                source,
+                item,
+                report.retrievedAt,
+                country,
+                report.finalUrl || report.endpoint
+            ));
         });
     });
 
