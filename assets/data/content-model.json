@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "schemaNote": "GPIR content-factory contract. This file defines shared vocabulary and metadata requirements for future records; it does not publish content or replace the existing country, announcement, source or registry datasets.",
   "contentTypes": [
     "COUNTRY",
@@ -84,10 +84,11 @@
     "pagePath"
   ],
   "editionLifecycleFields": {
-    "schemaNote": "Defines the CURRENT/HISTORICAL contract for versioned GPIR content. Phase 1 applies explicit lifecycle metadata to the existing announcement records without reclassifying any record as HISTORICAL by age or inference.",
-    "lifecycleStatuses": ["CURRENT", "HISTORICAL"],
-    "fields": ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"],
-    "rule": "A record only moves to HISTORICAL when an explicit newer validated edition is recorded; no record is classified as HISTORICAL by age or inference alone, and no record is deleted when superseded."
+    "schemaNote": "Defines the GPIR CURRENT/DEVELOPING/HISTORICAL lifecycle contract for versioned content. Lifecycle, publication, validation and source-trust states remain separate so unreviewed material cannot be represented as validated current intelligence.",
+    "lifecycleStatuses": ["CURRENT", "DEVELOPING", "HISTORICAL"],
+    "publicationStatuses": ["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"],
+    "fields": ["referenceId", "editionVersion", "effectiveDate", "publicationDate", "validationDate", "publicationStatus", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"],
+    "rule": "CURRENT is the primary public state only after GPIR classification and content validation. DEVELOPING is reviewable but not public validated intelligence. A record only moves to HISTORICAL when an explicit newer validated edition is recorded; preserve the prior record, its original source URL and reciprocal supersedes/supersededBy lineage. No record is classified as HISTORICAL by age or inference alone."
   },
   "recordRules": {
     "sourceUrl": "Required when source is supplied; use HTTPS and preserve the original publisher URL.",

@@ -76,6 +76,22 @@ editorial refresh process. It is not a claim that the site has a live feed.
 | `gpirMapping` | recommended | Existing chapter relationship with a repository-relative `href`. |
 | `relatedCountryHref` | optional | Existing country-page relationship or `null`. |
 
+### Intelligence lifecycle
+
+`lifecycleStatus` is separate from editorial `status`, GPIR `contentStatus`,
+and source trust. It supports `CURRENT`, `DEVELOPING`, and `HISTORICAL`.
+`CURRENT` is the primary public state only when it is also GPIR-classified and
+content-verified. `DEVELOPING` records remain reviewable but are excluded from
+public validated intelligence. `HISTORICAL` records remain accessible at their
+existing permanent URLs and sitemap entries.
+
+For new versioned records, use stable `referenceId`, optional `editionVersion`,
+`effectiveDate`, `publicationDate`, `validationDate`, and `publicationStatus`
+(`PUBLISHED`, `NOT_PUBLISHED`, or `ARCHIVED`). When an edition replaces another,
+preserve both and set reciprocal `supersedes` / `supersededBy` IDs. Legacy
+records without the new optional dates or publication state remain valid; do
+not invent migration data.
+
 Dates are calendar dates, not guessed timestamps. URLs must be HTTPS and must
 be traceable to the named source. A missing or unverified source is represented
 explicitly and is never replaced with a placeholder URL.
@@ -92,8 +108,10 @@ domain is correct.
 
 ## Publishing rules
 
-1. Only `GPIR_CLASSIFIED` records can generate public ticker cards and static
-   intelligence pages.
+1. Only `CURRENT`, `GPIR_CLASSIFIED`, content-verified records can generate
+   public ticker cards and primary static intelligence pages. Validated
+   `HISTORICAL` records retain their permanent pages and archive/sitemap
+   discoverability. `DEVELOPING` records do not publish as CURRENT intelligence.
 2. High-risk or unresolved material remains pending human review.
 3. `SOURCE_VERIFIED` requires a registry match, HTTPS, and no detected
    lookalike-domain flags. Source trust does not equal content verification.

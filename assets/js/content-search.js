@@ -67,7 +67,7 @@
 
     function announcementEntries(data){
         return (data.records || [])
-            .filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW")
+            .filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW" && record.lifecycleStatus !== "DEVELOPING")
             .map(record => ({
                 id: "announcement-" + record.id,
                 pageTitle: record.title,

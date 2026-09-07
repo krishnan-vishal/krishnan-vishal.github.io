@@ -299,6 +299,12 @@ with status `SUPERSEDED`; they are not silently removed.
 
 ## M-18 — Global Announcements Ticker Integrity
 
+## M-20 — Intelligence Lifecycle Foundation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-20 | 2026-09-07 | Establish deterministic CURRENT / DEVELOPING / HISTORICAL intelligence lifecycle | ARCHITECTURE, DATA, CONTENT INTEGRITY, GOVERNANCE | High | IMPLEMENTED / PENDING CI | M-18-4C protections merged to `main` | Stage 1 | `content-model.json`, announcement data/validators, generation and search | Add a backward-compatible lifecycle contract that keeps review state, publication state, validation and source trust distinct. | Developing material is excluded from public CURRENT intelligence; historical records retain reciprocal lineage, URLs and sitemap discoverability; legacy records remain valid. | Implemented on `work/m20-intelligence-lifecycle-foundation`; CI and PR review pending. | 2026-09-07 | Pending commit | M-20 |
+
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | M-18 | 2026-09-06 | Fix global announcements ticker continuity | READER EXPERIENCE, PERFORMANCE, CONTENT INTEGRITY | High | IMPLEMENTED / LIVE ACCEPTANCE PENDING | Existing announcements renderer, data and scoped ticker CSS | Stage 1 | `assets/js/announcements.js`, `assets/css/page.css` | Remove the deterministic blank interval by rendering the unchanged ordered announcement sequence twice and animating the doubled track from 0 to -50%. | Existing 10 records, IDs, content, order and source references remain unchanged; doubled sequences are identical; validators pass; live resources deploy; browser confirms no blank interval before achievement. | Production fix implemented and pushed. Static validation, data comparison and live HTTP/resource verification passed. Automated browser execution is unavailable, so visual continuity remains pending and M-18 is not closed. | 2026-09-06 | `8c1ba3c` | M-18 |

@@ -64,6 +64,26 @@ controlled roadmap for reader-intelligence improvements.
 HTML, CSS, vanilla JavaScript and JSON. There is no backend, database, public
 API, analytics provider or subscription platform.
 
+## M-20 — Intelligence Lifecycle Foundation
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Capability:** The shared lifecycle vocabulary now distinguishes `CURRENT`,
+  `DEVELOPING` and `HISTORICAL`, while preserving separate editorial,
+  validation, publication and source-trust states.
+- **Publication boundary:** Developing records remain excluded from the ticker,
+  primary generated pages and structured announcement search. Historical records
+  retain stable URLs, reciprocal lineage validation and sitemap preservation.
+- **Compatibility:** Existing valid records retain their fields and URLs; only
+  the already-unpublished Qatar review record is explicitly labelled
+  `DEVELOPING`. No historical record, source URL or validated content was
+  removed or rewritten.
+- **Preserved safeguards:** M-18-4C trusted redirect boundaries, report-only
+  refresh, historical sitemap retention, atomic generation and last-known-good
+  publication behavior remain unchanged.
+- **Deferred:** No immutable edition snapshots, scheduled ingestion, backend,
+  database, AI runtime or UI redesign is introduced.
+
 **M-27C Phase 1 Findings:** The dashboard lightbox is the correct future
 foundation but lacks reader controls; the announcement marquee needs a
 deterministic measured two-copy loop; Home/hash navigation needs one shared

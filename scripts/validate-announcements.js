@@ -17,6 +17,8 @@ const errors = [];
 const ids = new Set();
 const requiredLifecycleFields = ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"];
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
+const lifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
+const publicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
 const byRegistryId = new Map(registry.map(record => [record.id, record]));
 const classified = announcements.filter(record => record.status === "GPIR_CLASSIFIED");
 const registryAnnouncements = registry.filter(record => record.contentType === "ANNOUNCEMENT");
@@ -34,8 +36,22 @@ announcements.forEach(record => {
     requiredLifecycleFields.forEach(field => {
         if(!(field in record)) fail(`${record.id}: missing lifecycle field ${field}`);
     });
-    if(!["CURRENT", "HISTORICAL"].includes(record.lifecycleStatus)) fail(`${record.id}: invalid lifecycleStatus`);
+    if(!lifecycleStatuses.has(record.lifecycleStatus)) fail(`${record.id}: invalid lifecycleStatus`);
     if(record.publicationDate !== null && !datePattern.test(record.publicationDate)) fail(`${record.id}: invalid publicationDate`);
+    ["effectiveDate", "validationDate"].forEach(field => {
+        if(field in record && record[field] !== null && !datePattern.test(record[field])) fail(`${record.id}: invalid ${field}`);
+    });
+    if("publicationStatus" in record && !publicationStatuses.has(record.publicationStatus)) fail(`${record.id}: invalid publicationStatus`);
+    if(record.lifecycleStatus === "DEVELOPING"){
+        if(record.status === "GPIR_CLASSIFIED") fail(`${record.id}: DEVELOPING record cannot be GPIR_CLASSIFIED`);
+        if(record.contentStatus !== "CONTENT_UNDER_REVIEW") fail(`${record.id}: DEVELOPING record must remain CONTENT_UNDER_REVIEW`);
+        if(record.publicationStatus && record.publicationStatus !== "NOT_PUBLISHED") fail(`${record.id}: DEVELOPING record must be NOT_PUBLISHED`);
+    }
+    if(record.lifecycleStatus === "HISTORICAL"){
+        if(record.status !== "GPIR_CLASSIFIED") fail(`${record.id}: HISTORICAL record must retain GPIR_CLASSIFIED evidence`);
+        if(record.publicationStatus && record.publicationStatus !== "ARCHIVED") fail(`${record.id}: HISTORICAL record must be ARCHIVED`);
+        if(!record.supersededBy) fail(`${record.id}: HISTORICAL record must name its validated successor`);
+    }
     if(record.status === "GPIR_CLASSIFIED"){
         if(!record.publicationDate) fail(`${record.id}: published record has no publication date`);
         if(!record.source || !/^https:\/\//i.test(record.source.url || "")) fail(`${record.id}: published record has no HTTPS source URL`);
@@ -48,6 +64,20 @@ announcements.forEach(record => {
         }
     }
     if(record.status !== "GPIR_CLASSIFIED" && record.lifecycleStatus === "HISTORICAL") fail(`${record.id}: unresolved record cannot be historical`);
+});
+
+const announcementsById = new Map(announcements.map(record => [record.id, record]));
+announcements.forEach(record => {
+    if(record.supersedes){
+        const predecessor = announcementsById.get(record.supersedes);
+        if(!predecessor) fail(`${record.id}: supersedes target does not exist (${record.supersedes})`);
+        else if(predecessor.supersededBy !== record.id) fail(`${record.id}: supersedes link is not reciprocal`);
+    }
+    if(record.supersededBy){
+        const successor = announcementsById.get(record.supersededBy);
+        if(!successor) fail(`${record.id}: supersededBy target does not exist (${record.supersededBy})`);
+        else if(successor.supersedes !== record.id) fail(`${record.id}: supersededBy link is not reciprocal`);
+    }
 });
 
 classified.forEach(record => {
@@ -74,7 +104,7 @@ const pageFiles = fs.readdirSync(pagesDir).filter(file => file.endsWith(".html")
 if(pageFiles.length !== classified.length) fail(`intelligence page count mismatch: ${pageFiles.length} pages for ${classified.length} published records`);
 if(!contentSearch.includes("announcementEntries") || !contentSearch.includes("ANNOUNCEMENTS_URL")) fail("search does not load structured announcements");
 if(!script.includes("answerAnnouncementQuery") || !/announcements\?/.test(script)) fail("ASK GPIR announcement resolver is missing");
-if(!announcementsRuntime.includes("status !== \"GPIR_CLASSIFIED\"") || !announcementsRuntime.includes("lifecycleStatus === \"HISTORICAL\"") || !announcementsRuntime.includes("contentStatus === \"CONTENT_UNDER_REVIEW\"")) fail("ticker publication filter is incomplete");
+if(!announcementsRuntime.includes("status !== \"GPIR_CLASSIFIED\"") || !announcementsRuntime.includes("lifecycleStatus !== \"CURRENT\"") || !announcementsRuntime.includes("contentStatus === \"CONTENT_UNDER_REVIEW\"")) fail("ticker publication filter is incomplete");
 if(!pageGenerator.includes("generateArchive") || !exists("pages/intelligence/index.html")) fail("generated announcement archive is missing");
 if(!refreshFoundation.includes("REPORT_ONLY") || !refreshFoundation.includes("NOT_SCHEDULED") || !refreshFoundation.includes("recordsMutated: 0")) fail("refresh foundation must remain report-only and unscheduled");
 if(!fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8").includes("track.innerHTML = sequenceHTML + sequenceHTML")) fail("ticker duplication contract is missing");

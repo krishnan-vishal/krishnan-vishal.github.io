@@ -229,7 +229,7 @@ function main(){
     // publishedRecords()): GPIR_CLASSIFIED and not trust-blocked. Records
     // that don't clear this bar don't get a public page either.
     const publishedRecords = allRecords
-        .filter(r => r.status === "GPIR_CLASSIFIED" && r.lifecycleStatus !== "HISTORICAL" && r.contentStatus !== "CONTENT_UNDER_REVIEW" && trustByRecordId[r.id].sourceStatus !== "SOURCE_BLOCKED")
+        .filter(r => r.status === "GPIR_CLASSIFIED" && r.lifecycleStatus === "CURRENT" && r.contentStatus !== "CONTENT_UNDER_REVIEW" && trustByRecordId[r.id].sourceStatus !== "SOURCE_BLOCKED")
         .sort((a, b) => {
             const rank = categoryPriority(a) - categoryPriority(b);
             if(rank !== 0) return rank;
@@ -582,7 +582,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
         </section>
     `).join("") || "<p>No validated superseded publications are currently recorded.</p>";
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
-    const pendingMarkup = pending.length ? `<section id="awaiting-verification" class="announcement-archive-section"><h2>Awaiting Verification</h2><p>These records are excluded from published alerts until source and publication-date verification is complete.</p><ul class="announcement-archive-list announcement-archive-list--pending">${pending.map(record => `<li class="announcement-archive-card announcement-archive-card--pending"><div class="announcement-card-body"><div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span></div><h3>${escapeHtml(record.tickerHeadline || record.title)}</h3><p class="announcement-card-summary">${escapeHtml(record.summary || "Source and publication-date verification remain pending.")}</p></div></li>`).join("")}</ul></section>` : "";
+    const pendingMarkup = pending.length ? `<section id="awaiting-verification" class="announcement-archive-section"><h2>Awaiting Verification</h2><p>Developing records are excluded from published alerts until source, content and publication validation are complete.</p><ul class="announcement-archive-list announcement-archive-list--pending">${pending.map(record => `<li class="announcement-archive-card announcement-archive-card--pending"><div class="announcement-card-body"><div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span><span>${escapeHtml(record.lifecycleStatus || "DEVELOPING")}</span></div><h3>${escapeHtml(record.tickerHeadline || record.title)}</h3><p class="announcement-card-summary">${escapeHtml(record.summary || "Source and publication-date verification remain pending.")}</p></div></li>`).join("")}</ul></section>` : "";
     const archiveNav = historical.length ? `<nav class="announcement-archive-nav" aria-label="Historical announcements navigation"><span>Jump to:</span>${Object.keys(byYear).sort().reverse().map(year => `<a href="#historical-${year}">${escapeHtml(year)}</a>`).join("")}</nav>` : "";
 
     // Reuses the same shared head/header markup as every generated intelligence
@@ -650,7 +650,7 @@ function updateSitemap(published, allRecords, outputPath){
         .map(record => `${SITE_ORIGIN}/pages/intelligence/${record.id}.html`));
     const retainedHistoricalUrls = new Set();
 
-    const urlBlockRe = /\n?    <url>\s*\n\s*<loc>[^<]*<\/loc>[\s\S]*?<\/url>\n/g;
+    const urlBlockRe = /\r?\n?    <url>\s*\r?\n\s*<loc>[^<]*<\/loc>[\s\S]*?<\/url>\r?\n/g;
     sitemap = sitemap.replace(urlBlockRe, block => {
         if(!block.includes("/pages/intelligence/")) return block;
         const loc = (block.match(/<loc>\s*([^<]+)\s*<\/loc>/) || [])[1];
