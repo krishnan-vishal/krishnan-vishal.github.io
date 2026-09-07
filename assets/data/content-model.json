@@ -92,7 +92,7 @@
   },
   "candidateIntelligenceFields": {
     "schemaNote": "Non-public proposal records discovered from configured trusted endpoints. Candidate records are deterministic review inputs, not published GPIR intelligence.",
-    "fields": ["id", "referenceId", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceName", "sourceUrl", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
+    "fields": ["id", "referenceId", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
     "rule": "Candidates must remain DEVELOPING, NOT_PUBLISHED, PENDING_HUMAN_REVIEW and CONTENT_UNDER_REVIEW until an explicit human-reviewed publication workflow creates a separate validated GPIR record."
   },
   "countryIntelligenceFields": {

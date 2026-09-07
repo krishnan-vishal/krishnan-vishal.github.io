@@ -104,7 +104,10 @@ Each registry entry has a stable `id`, a named organisation, one or more
 `officialDomains`, a numeric trust `tier`, and a `sourceType`. The runtime trust
 engine compares the hostname of a record's URL with these domains. Registry
 membership is a domain ownership check, not a claim that every page on that
-domain is correct.
+domain is correct. An optional `refreshEndpoint` is an explicitly verified
+HTTPS RSS, Atom or JSON endpoint. It carries its endpoint type, scope and
+verification date, is checked against the same official-domain allowlist after
+redirects, and remains candidate-only.
 
 ## Publishing rules
 
@@ -127,8 +130,9 @@ The dev-time contract check is `node scripts/validate-content.js`.
 **File:** `assets/data/intelligence-candidates.json`
 
 M21 uses this non-public queue for deterministic discoveries from explicitly
-configured trusted endpoints. Each candidate keeps the approved source identity
-and URL, retrieval timestamp, available source publication date, lifecycle,
+configured trusted endpoints. Each candidate keeps the approved source identity,
+source authority, original item URL, final discovery endpoint, retrieval
+timestamp, available source publication date, lifecycle,
 publication state, review state and null lineage until a human review creates a
 separate validated record. Candidates must be `DEVELOPING`, `NOT_PUBLISHED`,
 `PENDING_HUMAN_REVIEW` and `CONTENT_UNDER_REVIEW`; they are not ticker, search,

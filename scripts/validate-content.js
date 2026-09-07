@@ -25,6 +25,7 @@ const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOU
 const allowedContentStatuses = new Set(["CONTENT_VERIFIED", "CONTENT_UNDER_REVIEW"]);
 const allowedLifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
 const allowedPublicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
+const allowedRefreshEndpointTypes = new Set(["RSS", "ATOM", "JSON"]);
 const allowedRegistryStatuses = new Set(["active", "coming_soon", "draft", "archived", "GPIR_CLASSIFIED"]);
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
 const idPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -118,6 +119,14 @@ registry.forEach((source, index) => {
     if(!Array.isArray(source.officialDomains) || source.officialDomains.length === 0){
         errors.push(`${label}.officialDomains: expected at least one domain`);
     }
+    if(source.refreshEndpoint !== undefined){
+        requiredString(source.refreshEndpoint, `${label}.refreshEndpoint`);
+        if(!/^https:\/\//i.test(source.refreshEndpoint || "")) errors.push(`${label}.refreshEndpoint: must use HTTPS`);
+        if(!sourceUrlAllowed(source.refreshEndpoint, source)) errors.push(`${label}.refreshEndpoint: outside approved source domains`);
+        if(!allowedRefreshEndpointTypes.has(source.refreshEndpointType)) errors.push(`${label}.refreshEndpointType: expected RSS, ATOM or JSON`);
+        requiredString(source.refreshScope, `${label}.refreshScope`);
+        dateField(source.endpointVerifiedDate, `${label}.endpointVerifiedDate`);
+    }
 });
 
 function sourceUrlAllowed(url, source) {
@@ -136,7 +145,7 @@ candidates.forEach((candidate, index) => {
     requiredString(candidate.id, `${label}.id`);
     if(candidateIds.has(candidate.id)) errors.push(`${label}.id: duplicate id (${candidate.id})`);
     candidateIds.add(candidate.id);
-    ["referenceId", "sourceOrgId", "sourceName", "sourceUrl", "title", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "retrievedAt"].forEach(field => requiredString(candidate[field], `${label}.${field}`));
+    ["referenceId", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "retrievedAt"].forEach(field => requiredString(candidate[field], `${label}.${field}`));
     if(candidate.lifecycleStatus !== "DEVELOPING") errors.push(`${label}.lifecycleStatus: candidates must be DEVELOPING`);
     if(candidate.publicationStatus !== "NOT_PUBLISHED") errors.push(`${label}.publicationStatus: candidates must be NOT_PUBLISHED`);
     if(candidate.status !== "PENDING_HUMAN_REVIEW") errors.push(`${label}.status: candidates must be PENDING_HUMAN_REVIEW`);
@@ -145,6 +154,8 @@ candidates.forEach((candidate, index) => {
     const source = registry.find(item => item.id === candidate.sourceOrgId);
     if(!source) errors.push(`${label}.sourceOrgId: not present in trusted source registry (${candidate.sourceOrgId})`);
     else if(!sourceUrlAllowed(candidate.sourceUrl, source)) errors.push(`${label}.sourceUrl: outside approved source domains`);
+    if(!/^https:\/\//i.test(candidate.discoveryEndpoint || "")) errors.push(`${label}.discoveryEndpoint: must use HTTPS`);
+    else if(source && !sourceUrlAllowed(candidate.discoveryEndpoint, source)) errors.push(`${label}.discoveryEndpoint: outside approved source domains`);
     ["sourcePublicationDate", "effectiveDate", "validationDate"].forEach(field => {
         if(candidate[field] !== null && candidate[field] !== undefined) dateField(candidate[field], `${label}.${field}`);
     });
