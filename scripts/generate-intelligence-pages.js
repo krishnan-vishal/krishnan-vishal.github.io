@@ -468,7 +468,9 @@ ${reportBlock}
     });
 
     updateSitemap(publicRecords);
-    generateArchive(allRecords, publishedRecords, sharedFooterBlock);
+    generateArchive(allRecords, publishedRecords, sharedFooterBlock, headerBlockTemplate, {
+        TEMPLATE_TITLE_TAG, TEMPLATE_DESCRIPTION, TEMPLATE_CANONICAL_URL, TEMPLATE_OG_TWITTER_TITLE
+    });
 
 }
 
@@ -497,7 +499,7 @@ function archiveCard(record){
     </li>`;
 }
 
-function generateArchive(allRecords, publishedRecords, footerBlock){
+function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers){
     const current = publishedRecords.filter(record => record.lifecycleStatus === "CURRENT");
     const historical = allRecords.filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate);
     const byYear = {};
@@ -533,41 +535,30 @@ function generateArchive(allRecords, publishedRecords, footerBlock){
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
     const pendingMarkup = pending.length ? `<section id="awaiting-verification" class="announcement-archive-section"><h2>Awaiting Verification</h2><p>These records are excluded from published alerts until source and publication-date verification is complete.</p><ul class="announcement-archive-list announcement-archive-list--pending">${pending.map(record => `<li class="announcement-archive-card announcement-archive-card--pending"><div class="announcement-card-body"><div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span></div><h3>${escapeHtml(record.tickerHeadline || record.title)}</h3><p class="announcement-card-summary">${escapeHtml(record.summary || "Source and publication-date verification remain pending.")}</p></div></li>`).join("")}</ul></section>` : "";
     const archiveNav = historical.length ? `<nav class="announcement-archive-nav" aria-label="Historical announcements navigation"><span>Jump to:</span>${Object.keys(byYear).sort().reverse().map(year => `<a href="#historical-${year}">${escapeHtml(year)}</a>`).join("")}</nav>` : "";
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Global Announcements | FINTECHOISIS — GPIR</title>
-<link rel="stylesheet" href="../../assets/css/global.css">
-<link rel="stylesheet" href="../../assets/css/page.css">
-    <link rel="stylesheet" href="../../assets/css/chapter-page.css">
-    <link rel="stylesheet" href="../../assets/css/footer.css">
-</head>
-<body>
-  <header class="header">
-    <div class="container header-container">
-      <div class="brand"><a href="../../index.html" class="brand-link" aria-label="FINTECHOISIS — Global Payments Intelligence Repository"><img src="../../assets/branding/logos/fo-mark.svg" alt="" class="brand-logo"><div class="brand-text"><h1>FINTECHOISIS</h1><div class="brand-repository"><span class="repository-pill">GPIR</span><span class="repository-text">Global Payments Intelligence Repository</span></div></div></a></div>
-      <nav class="main-nav" aria-label="Main navigation">
-        <ul>
-          <li><a href="../../index.html">Home</a></li>
-          <li><a href="../../index.html#about">GPIR</a></li>
-          <li><a href="../../index.html#global">Markets</a></li>
-          <li><a href="../../pages/chapters/payment-infrastructure.html">Research</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-  <main class="chapter-body">
-    <section class="chapter-hero">
-      <div class="container">
+
+    // Reuses the same shared head/header markup as every generated intelligence
+    // detail page (extracted from pages/legal/privacy-policy.html) instead of a
+    // hand-rolled minimal <head> -- fixes the archive rendering with raw/default
+    // browser styling because it was missing header.css, typography.css and the
+    // rest of the shared CSS stack.
+    const archiveUrl = `${SITE_ORIGIN}/pages/intelligence/index.html`;
+    const archiveDescription = "A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.";
+    let archiveHeaderBlock = headerBlockTemplate;
+    archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_TITLE_TAG).join("<title>Global Announcements | FINTECHOISIS — GPIR</title>");
+    archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_DESCRIPTION).join(escapeHtml(archiveDescription));
+    archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_CANONICAL_URL).join(archiveUrl);
+    archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_OG_TWITTER_TITLE).join('content="Global Announcements">');
+
+    const html = `${archiveHeaderBlock}<section class="chapter-hero">
+    <div class="container">
         <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><strong>Global Announcements</strong></div>
         <span class="chapter-part-tag">Reader Archive</span>
         <h1>Global Announcements</h1>
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
         <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> ${escapeHtml(formatDate(allRecords.map(record => record.retrievedDate).filter(Boolean).sort().pop()))} · <strong>Refresh automation:</strong> Not yet scheduled</p>
-      </div>
-    </section>
+    </div>
+</section>
+<section class="chapter-body">
     <div class="container announcement-archive-wrap">
       <nav class="announcement-archive-nav" aria-label="Archive sections">
         <span>Jump to:</span>
@@ -586,8 +577,8 @@ function generateArchive(allRecords, publishedRecords, footerBlock){
       </section>
       ${pendingMarkup}
     </div>
-  </main>
-    ${footerBlock}
+</section>
+${footerBlock}
 </body>
 </html>`;
     fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
