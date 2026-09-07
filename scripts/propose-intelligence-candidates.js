@@ -45,12 +45,36 @@ function candidateId(sourceId, sourceUrl) {
     return `candidate-${sourceId}-${fingerprint}`;
 }
 
+const PAYMENT_RELEVANCE = /\b(payment|payments|payment system|payment service|payment rail|payment infrastructure|remittance|money movement|money transfer|instant payment|real-time payment|rtp|a2a|account-to-account|clearing|settlement|card|wallet|open banking|open finance|cbdc|central bank digital currency|digital currency|stablecoin|tokeni[sz]ed money|financial crime|anti-money laundering|money laundering|aml|cft|kyc|kyb|sanction|fraud|financial market infrastructure|fintech|cross-border|foreign exchange|\bfx\b)\b/i;
+
+function normalizedEventTitle(value) {
+    return String(value || "")
+        .toLowerCase()
+        .replace(/&amp;/g, "and")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+}
+
+function eventFingerprint(item) {
+    const title = normalizedEventTitle(item.title);
+    const publicationDate = dateOnly(item.publicationDate) || "undated";
+    return crypto.createHash("sha256")
+        .update(`${title}\n${publicationDate}`)
+        .digest("hex")
+        .slice(0, 24);
+}
+
+function isPaymentsRelevant(item) {
+    return PAYMENT_RELEVANCE.test(`${item.title || ""}\n${item.summary || ""}`);
+}
+
 function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
     const sourceUrl = canonicalUrl(item.url);
     const publicationDate = dateOnly(item.publicationDate);
     return {
         id: candidateId(source.id, sourceUrl),
         referenceId: candidateId(source.id, sourceUrl),
+        eventFingerprint: eventFingerprint(item),
         lifecycleStatus: "DEVELOPING",
         publicationStatus: "NOT_PUBLISHED",
         status: "PENDING_HUMAN_REVIEW",
@@ -94,6 +118,10 @@ async function main() {
     const sourceById = new Map(sources.map(source => [source.id, source]));
     const reports = await inspectSources(sources);
     const additions = [];
+    const knownEventFingerprints = new Set(existingCandidates
+        .map(candidate => candidate.eventFingerprint)
+        .filter(Boolean));
+    const counters = { nonRelevant: 0, duplicateUrl: 0, duplicateEvent: 0 };
 
     reports.forEach(report => {
         if (report.status !== "RETRIEVED_REVIEW_REQUIRED") return;
@@ -104,8 +132,21 @@ async function main() {
         (report.discovered || []).forEach(item => {
             const sourceUrl = canonicalUrl(item.url);
             if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) return;
-            if (knownUrls.has(sourceUrl)) return;
+            if (!isPaymentsRelevant(item)) {
+                counters.nonRelevant += 1;
+                return;
+            }
+            if (knownUrls.has(sourceUrl)) {
+                counters.duplicateUrl += 1;
+                return;
+            }
+            const fingerprint = eventFingerprint(item);
+            if (knownEventFingerprints.has(fingerprint)) {
+                counters.duplicateEvent += 1;
+                return;
+            }
             knownUrls.add(sourceUrl);
+            knownEventFingerprints.add(fingerprint);
             additions.push(buildCandidate(
                 source,
                 item,
@@ -131,16 +172,23 @@ async function main() {
         publicPublicationMutationAllowed: false,
         proposalCandidatesAdded: additions.length,
         existingCandidateCount: existingCandidates.length,
+        skipped: counters,
+        discoveryTarget: "<=24 hours where source availability and endpoint reliability permit; not universal real-time coverage",
         sourceReports: reports.map(result => ({
             sourceId: result.sourceId,
             status: result.status,
-            discoveredCount: (result.discovered || []).length
+            discoveredCount: (result.discovered || []).length,
+            finalUrl: result.finalUrl || null
         }))
     };
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 }
 
-main().catch(error => {
-    console.error(error.message);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch(error => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant };

@@ -40,7 +40,26 @@ jobs:
           fi
 
       - name: Discover proposal-only intelligence candidates
-        run: node scripts/propose-intelligence-candidates.js
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/propose-intelligence-candidates.js | tee "$RUNNER_TEMP/intelligence-proposal-report.json"
+
+      - name: Report source coverage and health
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/intelligence-proposal-report.json" ]; then
+            {
+              echo "## GPIR intelligence discovery report"
+              echo '```json'
+              cat "$RUNNER_TEMP/intelligence-proposal-report.json"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## GPIR intelligence discovery report" >> "$GITHUB_STEP_SUMMARY"
+            echo "Discovery did not produce a report; public GPIR content was not changed." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Validate a changed candidate queue
         id: candidate_change

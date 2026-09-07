@@ -92,8 +92,14 @@
   },
   "candidateIntelligenceFields": {
     "schemaNote": "Non-public proposal records discovered from configured trusted endpoints. Candidate records are deterministic review inputs, not published GPIR intelligence.",
-    "fields": ["id", "referenceId", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
+    "fields": ["id", "referenceId", "eventFingerprint", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
     "rule": "Candidates must remain DEVELOPING, NOT_PUBLISHED, PENDING_HUMAN_REVIEW and CONTENT_UNDER_REVIEW until an explicit human-reviewed publication workflow creates a separate validated GPIR record."
+  },
+  "sourceRegistryFields": {
+    "schemaNote": "Optional operational metadata for verified discovery sources. It is configuration and workflow observability only; it never changes publication state.",
+    "sourceTypes": ["CENTRAL_BANK", "FINANCIAL_REGULATOR", "PAYMENTS_REGULATOR", "AML_FIU_AUTHORITY", "NATIONAL_PAYMENT_INFRASTRUCTURE", "GOVERNMENT_FINANCIAL_AUTHORITY", "SUPRANATIONAL_FINANCIAL_AUTHORITY", "TRUSTED_PAYMENT_INDUSTRY_SOURCE"],
+    "fields": ["country", "isoCountryCode", "region", "organization", "sourceType", "officialDomains", "refreshEndpoint", "refreshEndpointType", "topicCoverage", "sourceTrustStatus", "active", "retrievalPriority", "targetDiscoveryHours", "lastSuccessfulRetrieval", "lastAttemptedRetrieval", "healthStatus"],
+    "rule": "Only manually verified official endpoints may be active. Health and retrieval observations are workflow reporting metadata, not a reason to alter validated CURRENT or HISTORICAL publications."
   },
   "countryIntelligenceFields": {
     "schemaNote": "Canonical metadata for native and future generated country intelligence. Section availability is metadata only and must not fabricate country research.",

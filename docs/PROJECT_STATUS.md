@@ -113,6 +113,25 @@ API, analytics provider or subscription platform.
 - **Deferred:** Additional authorities and any human-reviewed promotion of a
   candidate into validated CURRENT intelligence remain controlled later work.
 
+## M-23.1 — Global Intelligence Radar Expansion
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Capability:** The existing M21 scheduler now reports a rolling `<=24-hour`
+  discovery target where official endpoint availability permits, filters for
+  payment-relevant material, and deduplicates both canonical URLs and stable
+  title/date event fingerprints before proposing candidates.
+- **Initial coverage:** M23 sources are retained and the official HKMA JSON
+  press-release endpoint adds APAC regulatory/payment-security coverage. The
+  data-driven registry records region, ISO/jurisdiction, topics, priority,
+  active state and honest workflow health/readiness metadata for active feeds.
+- **Boundaries:** Discovery is not validation or publication. Failed sources are
+  reported individually while healthy sources continue; the static public site,
+  CURRENT/HISTORICAL records, Search GPIR and ASK GPIR remain unchanged.
+- **Deferred:** Expansion towards broader regional coverage is configuration-led
+  and limited to future manually verified official endpoints. GPIR makes no
+  universal real-time-coverage claim.
+
 **M-27C Phase 1 Findings:** The dashboard lightbox is the correct future
 foundation but lacks reader controls; the announcement marquee needs a
 deterministic measured two-copy loop; Home/hash navigation needs one shared
