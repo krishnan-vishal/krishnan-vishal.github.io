@@ -26,6 +26,7 @@ const allowedContentStatuses = new Set(["CONTENT_VERIFIED", "CONTENT_UNDER_REVIE
 const allowedLifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
 const allowedPublicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
 const allowedRefreshEndpointTypes = new Set(["RSS", "ATOM", "JSON"]);
+const allowedSourceHealthStatuses = new Set(["UNOBSERVED", "HEALTHY", "DELAYED", "FAILING", "INACTIVE"]);
 const allowedRegistryStatuses = new Set(["active", "coming_soon", "draft", "archived", "GPIR_CLASSIFIED"]);
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
 const idPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -126,6 +127,13 @@ registry.forEach((source, index) => {
         if(!allowedRefreshEndpointTypes.has(source.refreshEndpointType)) errors.push(`${label}.refreshEndpointType: expected RSS, ATOM or JSON`);
         requiredString(source.refreshScope, `${label}.refreshScope`);
         dateField(source.endpointVerifiedDate, `${label}.endpointVerifiedDate`);
+        ["sourceTrustStatus", "retrievalPriority", "healthStatus", "region"].forEach(field => requiredString(source[field], `${label}.${field}`));
+        if(source.active !== true && source.active !== false) errors.push(`${label}.active: expected boolean`);
+        if(!Number.isInteger(source.targetDiscoveryHours) || source.targetDiscoveryHours < 1 || source.targetDiscoveryHours > 24) errors.push(`${label}.targetDiscoveryHours: expected whole hours from 1 to 24`);
+        if(!allowedSourceHealthStatuses.has(source.healthStatus)) errors.push(`${label}.healthStatus: unsupported health state`);
+        ["lastSuccessfulRetrieval", "lastAttemptedRetrieval"].forEach(field => {
+            if(source[field] !== null) requiredString(source[field], `${label}.${field}`);
+        });
     }
 });
 
@@ -145,7 +153,7 @@ candidates.forEach((candidate, index) => {
     requiredString(candidate.id, `${label}.id`);
     if(candidateIds.has(candidate.id)) errors.push(`${label}.id: duplicate id (${candidate.id})`);
     candidateIds.add(candidate.id);
-    ["referenceId", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "retrievedAt"].forEach(field => requiredString(candidate[field], `${label}.${field}`));
+    ["referenceId", "eventFingerprint", "sourceOrgId", "sourceAuthority", "sourceName", "sourceUrl", "discoveryEndpoint", "title", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "retrievedAt"].forEach(field => requiredString(candidate[field], `${label}.${field}`));
     if(candidate.lifecycleStatus !== "DEVELOPING") errors.push(`${label}.lifecycleStatus: candidates must be DEVELOPING`);
     if(candidate.publicationStatus !== "NOT_PUBLISHED") errors.push(`${label}.publicationStatus: candidates must be NOT_PUBLISHED`);
     if(candidate.status !== "PENDING_HUMAN_REVIEW") errors.push(`${label}.status: candidates must be PENDING_HUMAN_REVIEW`);

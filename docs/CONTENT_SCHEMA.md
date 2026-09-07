@@ -109,6 +109,13 @@ HTTPS RSS, Atom or JSON endpoint. It carries its endpoint type, scope and
 verification date, is checked against the same official-domain allowlist after
 redirects, and remains candidate-only.
 
+M23.1 adds optional operational registry metadata for jurisdiction/ISO code,
+region, topic coverage, active state, retrieval priority, a rolling discovery
+target, and honest health observations. The target is discovery within 24 hours
+where source availability permits; it is not a real-time coverage guarantee.
+Discovery provenance is not validation provenance: published attribution must
+prefer the original authoritative source after human review.
+
 ## Publishing rules
 
 1. Only `CURRENT`, `GPIR_CLASSIFIED`, content-verified records can generate
@@ -138,6 +145,12 @@ separate validated record. Candidates must be `DEVELOPING`, `NOT_PUBLISHED`,
 `PENDING_HUMAN_REVIEW` and `CONTENT_UNDER_REVIEW`; they are not ticker, search,
 archive or generated-page inputs. Candidate IDs are a stable hash of source ID
 and canonical source URL, preventing repeated proposal noise.
+
+The proposal builder applies a deterministic payments-relevance boundary and a
+separate normalized title/date event fingerprint. This keeps unrelated feed
+items out and prevents repeated URLs or a matching event discovered through a
+second approved source from becoming duplicate candidate records. No AI-only
+similarity determines event identity.
 
 ## Canonical content registry
 

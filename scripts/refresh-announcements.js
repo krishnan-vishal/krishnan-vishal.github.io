@@ -54,7 +54,8 @@ function extractFeedItems(text, contentType = "") {
             const parsed = JSON.parse(text);
             const records = Array.isArray(parsed)
                 ? parsed
-                : (parsed.items || parsed.records || parsed.results || []);
+                : (parsed.items || parsed.records || parsed.results ||
+                    (parsed.result && (parsed.result.records || parsed.result.items)) || []);
 
             for (const item of records) {
                 if (!item || typeof item !== "object") continue;

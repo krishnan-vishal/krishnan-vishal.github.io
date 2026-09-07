@@ -2275,3 +2275,20 @@ and browser QA remain outstanding.
   and ASK GPIR continue to consume only approved published announcements.
 - **Deferred:** Broader source expansion and human-reviewed candidate promotion
   are separate controlled milestones; no automatic publication was introduced.
+
+## M-23.1 — Global Intelligence Radar Expansion
+
+- **Date:** `2026-09-07`; **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Implementation:** Reused the existing M21 scheduler and candidate queue;
+  introduced registry-ready operational metadata, a rolling <=24-hour discovery
+  target, deterministic payments relevance and title/date event fingerprints.
+  Added the verified official HKMA JSON press-release endpoint alongside the
+  existing RBI and ECB feeds.
+- **Safety:** URL and event deduplication are incremental; source failures stay
+  isolated and are reported in the workflow summary. Discovery sources remain
+  distinct from authoritative validation sources, all candidates stay
+  DEVELOPING/non-public, and public pages/search/ASK GPIR consume only reviewed
+  publication records.
+- **Limit:** GPIR does not claim universal real-time coverage. Additional
+  regional sources require manual endpoint verification and configuration; no
+  backend, database, AI runtime, personal mailbox or second scheduler exists.
