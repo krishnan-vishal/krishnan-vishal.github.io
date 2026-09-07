@@ -21,6 +21,8 @@ const dashboardPath = path.join(DATA_DIR, "dashboard-metadata.json");
 const errors = [];
 const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOURCE_VERIFICATION_REQUIRED"]);
 const allowedContentStatuses = new Set(["CONTENT_VERIFIED", "CONTENT_UNDER_REVIEW"]);
+const allowedLifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
+const allowedPublicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
 const allowedRegistryStatuses = new Set(["active", "coming_soon", "draft", "archived", "GPIR_CLASSIFIED"]);
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
 const idPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -129,6 +131,22 @@ records.forEach((record, index) => {
         if(record[field] !== null) requiredString(record[field], `${label}.${field}`);
     });
     ["publishedDate", "retrievedDate"].forEach(field => dateField(record[field], `${label}.${field}`));
+    if(!allowedLifecycleStatuses.has(record.lifecycleStatus)) errors.push(`${label}.lifecycleStatus: unsupported lifecycle (${record.lifecycleStatus})`);
+    ["effectiveDate", "validationDate"].forEach(field => {
+        if(field in record) dateField(record[field], `${label}.${field}`);
+    });
+    if("publicationStatus" in record && !allowedPublicationStatuses.has(record.publicationStatus)) errors.push(`${label}.publicationStatus: unsupported publication status (${record.publicationStatus})`);
+
+    if(record.lifecycleStatus === "DEVELOPING"){
+        if(record.status === "GPIR_CLASSIFIED") errors.push(`${label}: DEVELOPING records cannot be GPIR_CLASSIFIED`);
+        if(record.contentStatus !== "CONTENT_UNDER_REVIEW") errors.push(`${label}: DEVELOPING records must remain CONTENT_UNDER_REVIEW`);
+        if(record.publicationStatus && record.publicationStatus !== "NOT_PUBLISHED") errors.push(`${label}: DEVELOPING records must be NOT_PUBLISHED`);
+    }
+    if(record.lifecycleStatus === "HISTORICAL"){
+        if(record.status !== "GPIR_CLASSIFIED") errors.push(`${label}: HISTORICAL records must retain GPIR_CLASSIFIED publication evidence`);
+        if(record.publicationStatus && record.publicationStatus !== "ARCHIVED") errors.push(`${label}: HISTORICAL records must be ARCHIVED`);
+    }
+    if(record.lifecycleStatus === "CURRENT" && record.publicationStatus && record.publicationStatus !== "PUBLISHED") errors.push(`${label}: CURRENT records must be PUBLISHED when publicationStatus is supplied`);
 
     if(record.status === "GPIR_CLASSIFIED"){
         ["tickerHeadline", "summary"].forEach(field => requiredString(record[field], `${label}.${field}`));

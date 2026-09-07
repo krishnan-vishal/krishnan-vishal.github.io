@@ -2214,3 +2214,21 @@ and browser QA remain outstanding.
 - **M-18.4B status:** `IMPLEMENTED / LIVE BROWSER ACCEPTANCE PENDING`.
 - **Overall M-18 status:** `OPEN`; M-18 is not closed by this release.
 - **M-18.5 readiness:** The current report-only foundation remains `FOUNDATION ONLY / NOT SCHEDULED`; no crawler, backend, scheduled ingestion or GitHub Actions refresh was added.
+
+## M-20 — Intelligence Lifecycle Foundation
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Objective:** Establish deterministic, backward-compatible lifecycle support
+  for `CURRENT`, `DEVELOPING` and `HISTORICAL` GPIR intelligence without
+  changing the static public architecture or existing URLs.
+- **Implementation:** Extended the shared content-model vocabulary and content
+  documentation; made the existing unvalidated Qatar review record explicitly
+  `DEVELOPING`; added lifecycle, publication-state, optional effective/validation
+  date and reciprocal-lineage checks; and made ticker, generator and search
+  consume only eligible CURRENT records while retaining historical discovery.
+- **Preservation:** Existing validated records and URLs remain unchanged.
+  M-18-4C redirect protection, report-only refresh, historical sitemap
+  preservation and rollback-safe generation remain intact.
+- **Deferred:** Immutable edition/version snapshots and new scheduled ingestion
+  are deliberately excluded from M-20.
