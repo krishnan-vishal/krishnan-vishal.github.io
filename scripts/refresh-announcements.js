@@ -1,45 +1,254 @@
 #!/usr/bin/env node
 /*
- * Deterministic announcement refresh foundation.
+ * GPIR M18 announcement refresh engine.
  *
- * This command is report-only: it reads the approved trusted-source registry,
- * checks only an explicitly configured refreshEndpoint when one exists, and
- * never mutates announcements.json or creates publication records. The current
- * repository has no configured endpoints or scheduled ingestion workflow, so
- * the normal report is an honest machine-readable NOT_CONFIGURED result.
+ * SAFETY CONTRACT
+ * ---------------
+ * 1. Trusted-source registry is authoritative.
+ * 2. Only explicitly configured refreshEndpoint values are fetched.
+ * 3. Endpoint host must belong to the source officialDomains.
+ * 4. RSS/Atom/JSON are supported without third-party packages.
+ * 5. Retrieval is REPORT_ONLY until records pass GPIR publication validation.
+ * 6. Existing announcements are NEVER mutated by this script.
+ * 7. A failed refresh NEVER removes or downgrades an existing publication.
+ * 8. No arbitrary web discovery or fallback scraping is performed.
  */
 
 const fs = require("fs");
 const path = require("path");
+const { URL } = require("url");
 
 const ROOT = path.resolve(__dirname, "..");
-const trustedSources = JSON.parse(fs.readFileSync(path.join(ROOT, "assets/data/trusted-sources.json"), "utf8")).registry || [];
-const announcements = JSON.parse(fs.readFileSync(path.join(ROOT, "assets/data/announcements.json"), "utf8")).records || [];
 
-async function inspectSource(source){
-    const endpoint = source.refreshEndpoint || null;
-    if(!endpoint) return { sourceId: source.id, officialDomains: source.officialDomains, endpoint: null, status: "NOT_CONFIGURED", discovered: [] };
-    try{
-        const response = await fetch(endpoint, { signal: AbortSignal.timeout(10000) });
-        return { sourceId: source.id, officialDomains: source.officialDomains, endpoint, status: response.ok ? "ENDPOINT_REACHABLE_REVIEW_REQUIRED" : "ENDPOINT_UNAVAILABLE", httpStatus: response.status, discovered: [] };
-    } catch(error){
-        return { sourceId: source.id, officialDomains: source.officialDomains, endpoint, status: "ENDPOINT_UNAVAILABLE", error: error.message, discovered: [] };
+const trustedSources = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "assets/data/trusted-sources.json"), "utf8")
+).registry || [];
+
+const announcements = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "assets/data/announcements.json"), "utf8")
+).records || [];
+
+function hostAllowed(endpoint, officialDomains = []) {
+    try {
+        const hostname = new URL(endpoint).hostname.toLowerCase();
+
+        return officialDomains.some(domain => {
+            const clean = String(domain)
+                .replace(/^https?:\/\//, "")
+                .replace(/^www\./, "")
+                .split("/")[0]
+                .toLowerCase();
+
+            return hostname === clean || hostname.endsWith("." + clean);
+        });
+    } catch {
+        return false;
     }
 }
 
-Promise.all(trustedSources.map(inspectSource)).then(results => {
+function extractFeedItems(text, contentType = "") {
+    const items = [];
+
+    if (/json/i.test(contentType) || /^\s*[\[{]/.test(text)) {
+        try {
+            const parsed = JSON.parse(text);
+            const records = Array.isArray(parsed)
+                ? parsed
+                : (parsed.items || parsed.records || parsed.results || []);
+
+            for (const item of records) {
+                if (!item || typeof item !== "object") continue;
+
+                const title = item.title || item.headline || item.name;
+                const url = item.url || item.link || item.guid;
+                const date =
+                    item.pubDate ||
+                    item.published ||
+                    item.publicationDate ||
+                    item.date ||
+                    item.updated;
+
+                if (title && url) {
+                    items.push({
+                        title: String(title).trim(),
+                        url: String(url).trim(),
+                        publicationDate: date ? String(date) : null,
+                        summary: String(
+                            item.summary || item.description || item.excerpt || ""
+                        ).trim()
+                    });
+                }
+            }
+
+            return items;
+        } catch {
+            return [];
+        }
+    }
+
+    const xmlItems = text.match(/<(item|entry)\b[\s\S]*?<\/\1>/gi) || [];
+
+    for (const block of xmlItems) {
+        const title =
+            (block.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1];
+
+        const linkMatch =
+            block.match(/<link[^>]+href=["']([^"']+)["']/i) ||
+            block.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+
+        const pubDate =
+            (block.match(/<(pubDate|published|updated|dc:date)[^>]*>([\s\S]*?)<\/\1>/i) || [])[2];
+
+        const summary =
+            (block.match(/<(description|summary|content)[^>]*>([\s\S]*?)<\/\1>/i) || [])[2];
+
+        if (title && linkMatch) {
+            items.push({
+                title: decodeEntities(title.replace(/<[^>]+>/g, "").trim()),
+                url: decodeEntities((linkMatch[1] || "").trim()),
+                publicationDate: pubDate ? decodeEntities(pubDate.trim()) : null,
+                summary: summary
+                    ? decodeEntities(summary.replace(/<[^>]+>/g, "").trim())
+                    : ""
+            });
+        }
+    }
+
+    return items;
+}
+
+function decodeEntities(value) {
+    return value
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&#x27;/g, "'");
+}
+
+async function inspectSource(source) {
+    const endpoint = source.refreshEndpoint || null;
+
+    if (!endpoint) {
+        return {
+            sourceId: source.id,
+            sourceName: source.name || source.id,
+            officialDomains: source.officialDomains || [],
+            endpoint: null,
+            status: "NOT_CONFIGURED",
+            discovered: []
+        };
+    }
+
+    if (!hostAllowed(endpoint, source.officialDomains || [])) {
+        return {
+            sourceId: source.id,
+            sourceName: source.name || source.id,
+            officialDomains: source.officialDomains || [],
+            endpoint,
+            status: "BLOCKED_DOMAIN_NOT_TRUSTED",
+            discovered: []
+        };
+    }
+
+    try {
+        const response = await fetch(endpoint, {
+            headers: {
+                "User-Agent": "FINTECHOISIS-GPIR-Refresh/1.0",
+                "Accept": "application/rss+xml, application/atom+xml, application/json, text/xml, text/plain;q=0.8"
+            },
+            signal: AbortSignal.timeout(15000)
+        });
+
+        // fetch follows redirects by default. The final destination is a new
+        // untrusted input and must meet the same approved-domain rule as the
+        // configured endpoint before its response body is accepted.
+        if (!hostAllowed(response.url, source.officialDomains || [])) {
+            return {
+                sourceId: source.id,
+                sourceName: source.name || source.id,
+                officialDomains: source.officialDomains || [],
+                endpoint,
+                finalUrl: response.url,
+                status: "BLOCKED_REDIRECT_DOMAIN_NOT_TRUSTED",
+                discovered: []
+            };
+        }
+
+        if (!response.ok) {
+            return {
+                sourceId: source.id,
+                sourceName: source.name || source.id,
+                officialDomains: source.officialDomains || [],
+                endpoint,
+                finalUrl: response.url,
+                status: "ENDPOINT_UNAVAILABLE",
+                httpStatus: response.status,
+                discovered: []
+            };
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        const body = await response.text();
+        const discovered = extractFeedItems(body, contentType).slice(0, 25);
+
+        return {
+            sourceId: source.id,
+            sourceName: source.name || source.id,
+            officialDomains: source.officialDomains || [],
+            endpoint,
+            finalUrl: response.url,
+            status: "RETRIEVED_REVIEW_REQUIRED",
+            httpStatus: response.status,
+            contentType,
+            retrievedAt: new Date().toISOString(),
+            discovered
+        };
+    } catch (error) {
+        return {
+            sourceId: source.id,
+            sourceName: source.name || source.id,
+            officialDomains: source.officialDomains || [],
+            endpoint,
+            status: "ENDPOINT_UNAVAILABLE",
+            error: error.message,
+            discovered: []
+        };
+    }
+}
+
+async function main() {
+    const results = await Promise.all(trustedSources.map(inspectSource));
+
+    const configured = results.filter(
+        r => r.status !== "NOT_CONFIGURED"
+    );
+
+    const retrieved = results.filter(
+        r => r.status === "RETRIEVED_REVIEW_REQUIRED"
+    );
+
     const report = {
-        schemaVersion: "1.0",
+        schemaVersion: "2.0",
         generatedAt: new Date().toISOString(),
         mode: "REPORT_ONLY",
         cadence: "NOT_SCHEDULED",
         sourceCount: trustedSources.length,
+        configuredSourceCount: configured.length,
+        retrievedSourceCount: retrieved.length,
         existingAnnouncementCount: announcements.length,
         recordsMutated: 0,
+        publicationMutationAllowed: false,
+        safetyRule:
+            "Existing validated publications remain untouched unless a later publication-validation workflow explicitly approves replacement.",
         sources: results
     };
+
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
-}).catch(error => {
+}
+
+main().catch(error => {
     console.error(error.message);
     process.exitCode = 1;
 });
