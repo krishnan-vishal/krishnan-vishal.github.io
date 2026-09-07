@@ -84,6 +84,20 @@ API, analytics provider or subscription platform.
 - **Deferred:** No immutable edition snapshots, scheduled ingestion, backend,
   database, AI runtime or UI redesign is introduced.
 
+## M-21 — Continuous Intelligence Pipeline Foundation
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Capability:** A two-hour GitHub Actions workflow inspects only configured
+  official machine-readable endpoints and writes only a proposal-only candidate
+  queue on an automation branch.
+- **Safety:** Candidates are deterministic `DEVELOPING`, `NOT_PUBLISHED`,
+  `PENDING_HUMAN_REVIEW` and `CONTENT_UNDER_REVIEW` records. They are excluded
+  from public site inputs; failures and no-change runs leave the static site and
+  `main` untouched.
+- **Deferred:** Source endpoint expansion remains human-configured; no AI
+  classification, automatic publication, backend or live public feed exists.
+
 **M-27C Phase 1 Findings:** The dashboard lightbox is the correct future
 foundation but lacks reader controls; the announcement marquee needs a
 deterministic measured two-copy loop; Home/hash navigation needs one shared

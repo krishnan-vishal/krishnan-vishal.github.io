@@ -17,6 +17,7 @@ const sourcesPath = path.join(DATA_DIR, "trusted-sources.json");
 const registryPath = path.join(DATA_DIR, "content-registry.json");
 const modelPath = path.join(DATA_DIR, "content-model.json");
 const dashboardPath = path.join(DATA_DIR, "dashboard-metadata.json");
+const candidatesPath = path.join(DATA_DIR, "intelligence-candidates.json");
 
 const errors = [];
 const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOURCE_VERIFICATION_REQUIRED"]);
@@ -62,6 +63,7 @@ const sourceData = readJson(sourcesPath);
 const registryData = readJson(registryPath);
 const contentModel = readJson(modelPath);
 const dashboardData = readJson(dashboardPath);
+const candidateData = readJson(candidatesPath);
 const records = Array.isArray(announcements.records) ? announcements.records : [];
 const registry = Array.isArray(sourceData.registry) ? sourceData.registry : [];
 const sourceRegistryIds = new Set();
@@ -114,6 +116,37 @@ registry.forEach((source, index) => {
     if(!Array.isArray(source.officialDomains) || source.officialDomains.length === 0){
         errors.push(`${label}.officialDomains: expected at least one domain`);
     }
+});
+
+function sourceUrlAllowed(url, source) {
+    try {
+        const hostname = new URL(url).hostname.toLowerCase();
+        return (source.officialDomains || []).some(domain => hostname === domain || hostname.endsWith(`.${domain}`));
+    } catch {
+        return false;
+    }
+}
+
+const candidates = Array.isArray(candidateData.candidates) ? candidateData.candidates : [];
+const candidateIds = new Set();
+candidates.forEach((candidate, index) => {
+    const label = `intelligence-candidates.candidates[${index}]`;
+    requiredString(candidate.id, `${label}.id`);
+    if(candidateIds.has(candidate.id)) errors.push(`${label}.id: duplicate id (${candidate.id})`);
+    candidateIds.add(candidate.id);
+    ["referenceId", "sourceOrgId", "sourceName", "sourceUrl", "title", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "retrievedAt"].forEach(field => requiredString(candidate[field], `${label}.${field}`));
+    if(candidate.lifecycleStatus !== "DEVELOPING") errors.push(`${label}.lifecycleStatus: candidates must be DEVELOPING`);
+    if(candidate.publicationStatus !== "NOT_PUBLISHED") errors.push(`${label}.publicationStatus: candidates must be NOT_PUBLISHED`);
+    if(candidate.status !== "PENDING_HUMAN_REVIEW") errors.push(`${label}.status: candidates must be PENDING_HUMAN_REVIEW`);
+    if(candidate.contentStatus !== "CONTENT_UNDER_REVIEW") errors.push(`${label}.contentStatus: candidates must be CONTENT_UNDER_REVIEW`);
+    if(!/^https:\/\//i.test(candidate.sourceUrl || "")) errors.push(`${label}.sourceUrl: must use HTTPS`);
+    const source = registry.find(item => item.id === candidate.sourceOrgId);
+    if(!source) errors.push(`${label}.sourceOrgId: not present in trusted source registry (${candidate.sourceOrgId})`);
+    else if(!sourceUrlAllowed(candidate.sourceUrl, source)) errors.push(`${label}.sourceUrl: outside approved source domains`);
+    ["sourcePublicationDate", "effectiveDate", "validationDate"].forEach(field => {
+        if(candidate[field] !== null && candidate[field] !== undefined) dateField(candidate[field], `${label}.${field}`);
+    });
+    if(!candidate.audit || typeof candidate.audit !== "object") errors.push(`${label}.audit: expected provenance metadata`);
 });
 
 const recordIds = new Set();
@@ -270,5 +303,5 @@ if(errors.length){
     errors.forEach(error => console.error(`- ${error}`));
     process.exitCode = 1;
 } else {
-    console.log(`GPIR content validation passed: ${records.length} announcements, ${registry.length} trusted sources, and ${contentRegistry.length} registry records.`);
+    console.log(`GPIR content validation passed: ${records.length} announcements, ${candidates.length} intelligence candidates, ${registry.length} trusted sources, and ${contentRegistry.length} registry records.`);
 }

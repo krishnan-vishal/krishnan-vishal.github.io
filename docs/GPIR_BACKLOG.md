@@ -299,6 +299,12 @@ with status `SUPERSEDED`; they are not silently removed.
 
 ## M-18 — Global Announcements Ticker Integrity
 
+## M-21 — Continuous Intelligence Pipeline Foundation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-21 | 2026-09-07 | Establish scheduled, trusted-source candidate discovery | AUTOMATION, INTELLIGENCE, SECURITY, GOVERNANCE | High | IMPLEMENTED / PENDING CI | M-18-4C safeguards and M-20 lifecycle model | Stage 1 | refresh/proposal scripts, candidate queue, GitHub Actions | Discover only configured official machine-readable endpoints and propose deduplicated DEVELOPING candidates for review. | Every candidate is non-public, source-bound, deduplicated and review-gated; no-change runs create no PR; failures preserve public content. | Implemented on `work/m21-continuous-intelligence-pipeline`; CI and PR review pending. | 2026-09-07 | Pending commit | M-21 |
+
 ## M-20 — Intelligence Lifecycle Foundation
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

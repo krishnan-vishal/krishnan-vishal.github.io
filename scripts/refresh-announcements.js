@@ -218,8 +218,12 @@ async function inspectSource(source) {
     }
 }
 
+async function inspectSources(sources = trustedSources) {
+    return Promise.all(sources.map(inspectSource));
+}
+
 async function main() {
-    const results = await Promise.all(trustedSources.map(inspectSource));
+    const results = await inspectSources();
 
     const configured = results.filter(
         r => r.status !== "NOT_CONFIGURED"
@@ -248,7 +252,11 @@ async function main() {
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 }
 
-main().catch(error => {
-    console.error(error.message);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch(error => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = { hostAllowed, inspectSource, inspectSources };

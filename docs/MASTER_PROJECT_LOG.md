@@ -2232,3 +2232,19 @@ and browser QA remain outstanding.
   preservation and rollback-safe generation remain intact.
 - **Deferred:** Immutable edition/version snapshots and new scheduled ingestion
   are deliberately excluded from M-20.
+
+## M-21 — Continuous Intelligence Pipeline Foundation
+
+- **Date:** `2026-09-07`.
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Objective:** Reduce manual source inspection through scheduled, trusted,
+  deterministic candidate discovery while keeping the public GPIR site static.
+- **Implementation:** Kept `refresh-announcements.js` report-only; added a
+  candidate-only proposal builder, validated non-public candidate queue and a
+  two-hour GitHub Actions workflow that updates only an automation proposal
+  branch and pull request when genuinely new candidates exist.
+- **Safety:** Candidate source URLs are approved-domain checked, redirect-safe
+  refresh reports are reused, candidate IDs deduplicate unchanged feed items,
+  and failures leave current/historical publications untouched.
+- **Deferred:** No endpoints were invented, and no AI classification, automatic
+  publication, backend, database or public live feed was added.
