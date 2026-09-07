@@ -90,6 +90,11 @@
     "fields": ["referenceId", "editionVersion", "effectiveDate", "publicationDate", "validationDate", "publicationStatus", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"],
     "rule": "CURRENT is the primary public state only after GPIR classification and content validation. DEVELOPING is reviewable but not public validated intelligence. A record only moves to HISTORICAL when an explicit newer validated edition is recorded; preserve the prior record, its original source URL and reciprocal supersedes/supersededBy lineage. No record is classified as HISTORICAL by age or inference alone."
   },
+  "candidateIntelligenceFields": {
+    "schemaNote": "Non-public proposal records discovered from configured trusted endpoints. Candidate records are deterministic review inputs, not published GPIR intelligence.",
+    "fields": ["id", "referenceId", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceName", "sourceUrl", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
+    "rule": "Candidates must remain DEVELOPING, NOT_PUBLISHED, PENDING_HUMAN_REVIEW and CONTENT_UNDER_REVIEW until an explicit human-reviewed publication workflow creates a separate validated GPIR record."
+  },
   "recordRules": {
     "sourceUrl": "Required when source is supplied; use HTTPS and preserve the original publisher URL.",
     "publicationDate": "Required when the cited source has a publication date; use YYYY-MM or YYYY-MM-DD.",

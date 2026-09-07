@@ -122,6 +122,19 @@ domain is correct.
 
 The dev-time contract check is `node scripts/validate-content.js`.
 
+## Candidate intelligence queue
+
+**File:** `assets/data/intelligence-candidates.json`
+
+M21 uses this non-public queue for deterministic discoveries from explicitly
+configured trusted endpoints. Each candidate keeps the approved source identity
+and URL, retrieval timestamp, available source publication date, lifecycle,
+publication state, review state and null lineage until a human review creates a
+separate validated record. Candidates must be `DEVELOPING`, `NOT_PUBLISHED`,
+`PENDING_HUMAN_REVIEW` and `CONTENT_UNDER_REVIEW`; they are not ticker, search,
+archive or generated-page inputs. Candidate IDs are a stable hash of source ID
+and canonical source URL, preventing repeated proposal noise.
+
 ## Canonical content registry
 
 **File:** `assets/data/content-registry.json`

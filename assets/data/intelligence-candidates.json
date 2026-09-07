@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "1.0",
+  "schemaNote": "GPIR candidate intelligence queue. This non-public, proposal-only dataset is populated only by the deterministic trusted-source discovery workflow. Candidates are DEVELOPING, NOT_PUBLISHED and CONTENT_UNDER_REVIEW until a human review creates or updates a separately governed published record. Existing validated announcements are never modified by this queue.",
+  "candidates": []
+}
