@@ -161,12 +161,28 @@ async function inspectSource(source) {
             signal: AbortSignal.timeout(15000)
         });
 
+        // fetch follows redirects by default. The final destination is a new
+        // untrusted input and must meet the same approved-domain rule as the
+        // configured endpoint before its response body is accepted.
+        if (!hostAllowed(response.url, source.officialDomains || [])) {
+            return {
+                sourceId: source.id,
+                sourceName: source.name || source.id,
+                officialDomains: source.officialDomains || [],
+                endpoint,
+                finalUrl: response.url,
+                status: "BLOCKED_REDIRECT_DOMAIN_NOT_TRUSTED",
+                discovered: []
+            };
+        }
+
         if (!response.ok) {
             return {
                 sourceId: source.id,
                 sourceName: source.name || source.id,
                 officialDomains: source.officialDomains || [],
                 endpoint,
+                finalUrl: response.url,
                 status: "ENDPOINT_UNAVAILABLE",
                 httpStatus: response.status,
                 discovered: []
@@ -182,6 +198,7 @@ async function inspectSource(source) {
             sourceName: source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint,
+            finalUrl: response.url,
             status: "RETRIEVED_REVIEW_REQUIRED",
             httpStatus: response.status,
             contentType,

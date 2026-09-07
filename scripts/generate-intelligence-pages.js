@@ -35,6 +35,35 @@ const OUTPUT_DIR = path.join(ROOT, "pages/intelligence");
 const SITEMAP_PATH = path.join(ROOT, "sitemap.xml");
 const SITE_ORIGIN = "https://krishnan-vishal.github.io";
 
+function promoteStagedArtifacts(stagingRoot, artifacts){
+    const backupRoot = path.join(stagingRoot, "backup");
+    const backups = new Map();
+
+    fs.mkdirSync(backupRoot, { recursive: true });
+
+    artifacts.forEach(({ target }, index) => {
+        if(fs.existsSync(target)){
+            const backupPath = path.join(backupRoot, String(index));
+            fs.copyFileSync(target, backupPath);
+            backups.set(target, backupPath);
+        }
+    });
+
+    try {
+        artifacts.forEach(({ staged, target }) => fs.copyFileSync(staged, target));
+    } catch(error) {
+        // A promotion failure restores every prior artifact, including files
+        // already copied during this promotion. This keeps the previous
+        // generated publication set intact rather than leaving a partial set.
+        artifacts.forEach(({ target }) => {
+            const backupPath = backups.get(target);
+            if(backupPath) fs.copyFileSync(backupPath, target);
+            else fs.rmSync(target, { force: true });
+        });
+        throw error;
+    }
+}
+
 /*=====================================================
   PORTED PURE LOGIC (assets/js/trust-engine.js, assets/js/announcements.js)
   Re-implemented here without any DOM dependency so trust status and
@@ -259,10 +288,14 @@ function main(){
         }
     });
 
-    if(!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    const stagingRoot = path.join(ROOT, `.gpir-intelligence-stage-${process.pid}-${Date.now()}`);
+    const stagedOutputDir = path.join(stagingRoot, "pages", "intelligence");
+    const stagedSitemapPath = path.join(stagingRoot, "sitemap.xml");
+    fs.mkdirSync(stagedOutputDir, { recursive: true });
 
     let generatedCount = 0;
 
+    try {
     publicRecords.forEach(record => {
 
         const trust = trustByRecordId[record.id];
@@ -441,10 +474,10 @@ ${reportBlock}
 
         const finalHtml = headerBlock + heroAndBody + footerBlock;
 
-        const outPath = path.join(OUTPUT_DIR, `${record.id}.html`);
+        const outPath = path.join(stagedOutputDir, `${record.id}.html`);
         fs.writeFileSync(outPath, finalHtml.replace(/[ \t]+$/gm, ""), "utf8");
         generatedCount += 1;
-        console.log(`Generated ${outPath} (source status: ${trust.sourceStatus})`);
+        console.log(`Staged ${path.join(OUTPUT_DIR, `${record.id}.html`)} (source status: ${trust.sourceStatus})`);
 
     });
 
@@ -467,10 +500,26 @@ ${reportBlock}
         return `${attribute}=\"../../${value}\"`;
     });
 
-    updateSitemap(publicRecords);
+    const sitemapStaged = updateSitemap(publicRecords, allRecords, stagedSitemapPath);
     generateArchive(allRecords, publishedRecords, sharedFooterBlock, headerBlockTemplate, {
         TEMPLATE_TITLE_TAG, TEMPLATE_DESCRIPTION, TEMPLATE_CANONICAL_URL, TEMPLATE_OG_TWITTER_TITLE
+    }, stagedOutputDir);
+
+    const artifacts = publicRecords.map(record => ({
+        staged: path.join(stagedOutputDir, `${record.id}.html`),
+        target: path.join(OUTPUT_DIR, `${record.id}.html`)
+    }));
+    artifacts.push({
+        staged: path.join(stagedOutputDir, "index.html"),
+        target: path.join(OUTPUT_DIR, "index.html")
     });
+    if(sitemapStaged) artifacts.push({ staged: stagedSitemapPath, target: SITEMAP_PATH });
+
+    promoteStagedArtifacts(stagingRoot, artifacts);
+    console.log(`Promoted ${artifacts.length} complete generated artifact(s).`);
+    } finally {
+        fs.rmSync(stagingRoot, { recursive: true, force: true });
+    }
 
 }
 
@@ -499,7 +548,7 @@ function archiveCard(record){
     </li>`;
 }
 
-function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers){
+function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers, outputDir){
     const current = publishedRecords.filter(record => record.lifecycleStatus === "CURRENT");
     const historical = allRecords.filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate);
     const byYear = {};
@@ -581,26 +630,36 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 ${footerBlock}
 </body>
 </html>`;
-    fs.writeFileSync(path.join(OUTPUT_DIR, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
-    console.log(`Generated ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
+    fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
+    console.log(`Staged ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
 }
 
-// Keeps sitemap.xml's pages/intelligence/* entries in exact sync with
-// whatever this run actually published -- strips any prior entries for
-// this section, then appends one fresh <url> per currently-published
-// record, so a record that's since been withdrawn (e.g. later trust-
-// blocked) doesn't leave a stale sitemap entry behind.
-function updateSitemap(published){
+// Rebuilds current entries while retaining an existing sitemap entry for a
+// record now marked HISTORICAL. A later source/trust reclassification must
+// not make a previously published historical URL undiscoverable.
+function updateSitemap(published, allRecords, outputPath){
 
     if(!fs.existsSync(SITEMAP_PATH)){
         console.log("sitemap.xml not found -- skipping sitemap update.");
-        return;
+        return false;
     }
 
     let sitemap = fs.readFileSync(SITEMAP_PATH, "utf8");
+    const historicalUrls = new Set(allRecords
+        .filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate)
+        .map(record => `${SITE_ORIGIN}/pages/intelligence/${record.id}.html`));
+    const retainedHistoricalUrls = new Set();
 
     const urlBlockRe = /\n?    <url>\s*\n\s*<loc>[^<]*<\/loc>[\s\S]*?<\/url>\n/g;
-    sitemap = sitemap.replace(urlBlockRe, (block) => block.includes("/pages/intelligence/") ? "" : block);
+    sitemap = sitemap.replace(urlBlockRe, block => {
+        if(!block.includes("/pages/intelligence/")) return block;
+        const loc = (block.match(/<loc>\s*([^<]+)\s*<\/loc>/) || [])[1];
+        if(loc && historicalUrls.has(loc)){
+            retainedHistoricalUrls.add(loc);
+            return block;
+        }
+        return "";
+    });
     sitemap = sitemap.replace(/\n{4,}/g, "\n\n\n");
 
     const today = new Date().toISOString().slice(0, 10);
@@ -611,7 +670,9 @@ function updateSitemap(published){
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>`;
-    const entries = archiveEntry + published.map(r => `
+    const entries = archiveEntry + published
+        .filter(record => !retainedHistoricalUrls.has(`${SITE_ORIGIN}/pages/intelligence/${record.id}.html`))
+        .map(r => `
     <url>
         <loc>${SITE_ORIGIN}/pages/intelligence/${r.id}.html</loc>
         <lastmod>${r.lastUpdated || r.retrievedDate || today}</lastmod>
@@ -621,12 +682,13 @@ function updateSitemap(published){
 
     if(!sitemap.includes("</urlset>")){
         console.log("sitemap.xml has no </urlset> closing tag -- skipping sitemap update.");
-        return;
+        return false;
     }
 
     sitemap = sitemap.replace("</urlset>", entries + "\n\n</urlset>");
-    fs.writeFileSync(SITEMAP_PATH, sitemap, "utf8");
-    console.log(`sitemap.xml updated with ${published.length} pages/intelligence/* entries.`);
+    fs.writeFileSync(outputPath, sitemap, "utf8");
+    console.log(`Staged sitemap with ${published.length} current/public entries and ${retainedHistoricalUrls.size} retained historical entry/entries.`);
+    return true;
 
 }
 
