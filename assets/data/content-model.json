@@ -95,6 +95,11 @@
     "fields": ["id", "referenceId", "lifecycleStatus", "publicationStatus", "status", "contentStatus", "sourceOrgId", "sourceName", "sourceUrl", "title", "summary", "sourcePublicationDate", "sourcePublicationDateRaw", "effectiveDate", "validationDate", "retrievedAt", "supersedes", "supersededBy", "audit"],
     "rule": "Candidates must remain DEVELOPING, NOT_PUBLISHED, PENDING_HUMAN_REVIEW and CONTENT_UNDER_REVIEW until an explicit human-reviewed publication workflow creates a separate validated GPIR record."
   },
+  "countryIntelligenceFields": {
+    "schemaNote": "Canonical metadata for native and future generated country intelligence. Section availability is metadata only and must not fabricate country research.",
+    "fields": ["id", "name", "isoAlpha2", "isoAlpha3", "region", "regionId", "subregion", "currency", "lifecycleStatus", "publicationStatus", "page", "pageMode", "intelligenceAvailability", "historicalAvailability", "sections", "sourceReferences", "supersedes", "supersededBy"],
+    "rule": "Keep native pages intact. Future GENERATED pages may use this contract only after country-specific source and lifecycle validation."
+  },
   "recordRules": {
     "sourceUrl": "Required when source is supplied; use HTTPS and preserve the original publisher URL.",
     "publicationDate": "Required when the cited source has a publication date; use YYYY-MM or YYYY-MM-DD.",

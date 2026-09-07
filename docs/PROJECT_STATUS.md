@@ -683,3 +683,15 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   verified refresh architecture are addressed.
 - **Next goal:** Perform browser acceptance, then separately authorize any
   scheduled ingestion work; do not claim real-time or 8-hour refresh.
+
+## M-22 — Country Intelligence Scale Foundation
+
+- **Status:** **IMPLEMENTED / PENDING CI AND PR REVIEW.**
+- **Capability:** Canonical country metadata gives existing and future country
+  intelligence stable ISO identity, GPIR regional grouping, lifecycle,
+  availability and permanent page references.
+- **Compatibility:** Six existing country pages remain native and unchanged.
+  Future M21 candidates can carry deterministic country/region references;
+  no candidate can publish country content without human review.
+- **Deferred:** 200-country population, generated country pages, navigation and
+  search redesign remain separate controlled work.
