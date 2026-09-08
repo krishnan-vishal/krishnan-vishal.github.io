@@ -164,6 +164,624 @@
       "tier": 1,
       "sourceType": "International Standard-Setting Body",
       "lastVerifiedDate": "2026-08-14"
+    },
+    {
+      "id": "rba",
+      "organization": "Reserve Bank of Australia",
+      "officialDomains": [
+        "rba.gov.au"
+      ],
+      "country": "Australia",
+      "isoCountryCode": "AU",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.rba.gov.au/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bangladesh-bank",
+      "organization": "Bangladesh Bank",
+      "officialDomains": [
+        "bb.org.bd"
+      ],
+      "country": "Bangladesh",
+      "isoCountryCode": "BD",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bb.org.bd/en/index.php",
+      "discoveryPage": "https://www.bb.org.bd/en/index.php",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "nbc",
+      "organization": "National Bank of Cambodia",
+      "officialDomains": [
+        "nbc.gov.kh"
+      ],
+      "country": "Cambodia",
+      "isoCountryCode": "KH",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://nbc.gov.kh/english./index.php",
+      "discoveryPage": "https://nbc.gov.kh/english./index.php",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "pboc",
+      "organization": "People’s Bank of China",
+      "officialDomains": [
+        "pbc.gov.cn"
+      ],
+      "country": "China",
+      "isoCountryCode": "CN",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.pbc.gov.cn/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bank-indonesia",
+      "organization": "Bank Indonesia",
+      "officialDomains": [
+        "bi.go.id"
+      ],
+      "country": "Indonesia",
+      "isoCountryCode": "ID",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.bi.go.id/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "boj",
+      "organization": "Bank of Japan",
+      "officialDomains": [
+        "boj.or.jp"
+      ],
+      "country": "Japan",
+      "isoCountryCode": "JP",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.boj.or.jp/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bnm",
+      "organization": "Bank Negara Malaysia",
+      "officialDomains": [
+        "bnm.gov.my"
+      ],
+      "country": "Malaysia",
+      "isoCountryCode": "MY",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.bnm.gov.my/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "mongolbank",
+      "organization": "Bank of Mongolia",
+      "officialDomains": [
+        "mongolbank.mn"
+      ],
+      "country": "Mongolia",
+      "isoCountryCode": "MN",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.mongolbank.mn/mn/",
+      "discoveryPage": "https://www.mongolbank.mn/mn/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "nrb",
+      "organization": "Nepal Rastra Bank",
+      "officialDomains": [
+        "nrb.org.np"
+      ],
+      "country": "Nepal",
+      "isoCountryCode": "NP",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.nrb.org.np/",
+      "discoveryPage": "https://www.nrb.org.np/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "rbnz",
+      "organization": "Reserve Bank of New Zealand",
+      "officialDomains": [
+        "rbnz.govt.nz"
+      ],
+      "country": "New Zealand",
+      "isoCountryCode": "NZ",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.rbnz.govt.nz/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "sbp",
+      "organization": "State Bank of Pakistan",
+      "officialDomains": [
+        "sbp.org.pk"
+      ],
+      "country": "Pakistan",
+      "isoCountryCode": "PK",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.sbp.org.pk/",
+      "discoveryPage": "https://www.sbp.org.pk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bsp",
+      "organization": "Bangko Sentral ng Pilipinas",
+      "officialDomains": [
+        "bsp.gov.ph"
+      ],
+      "country": "Philippines",
+      "isoCountryCode": "PH",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.bsp.gov.ph/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bok",
+      "organization": "Bank of Korea",
+      "officialDomains": [
+        "bok.or.kr"
+      ],
+      "country": "South Korea",
+      "isoCountryCode": "KR",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.bok.or.kr/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "cbsl",
+      "organization": "Central Bank of Sri Lanka",
+      "officialDomains": [
+        "cbsl.gov.lk"
+      ],
+      "country": "Sri Lanka",
+      "isoCountryCode": "LK",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.cbsl.gov.lk/",
+      "discoveryPage": "https://www.cbsl.gov.lk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "cbc-taiwan",
+      "organization": "Central Bank of the Republic of China (Taiwan)",
+      "officialDomains": [
+        "cbc.gov.tw"
+      ],
+      "country": "Taiwan",
+      "isoCountryCode": "TW",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.cbc.gov.tw/tw/mp-1.html",
+      "discoveryPage": "https://www.cbc.gov.tw/tw/mp-1.html",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bot",
+      "organization": "Bank of Thailand",
+      "officialDomains": [
+        "bot.or.th"
+      ],
+      "country": "Thailand",
+      "isoCountryCode": "TH",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.bot.or.th/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "sbv",
+      "organization": "State Bank of Vietnam",
+      "officialDomains": [
+        "sbv.gov.vn"
+      ],
+      "country": "Vietnam",
+      "isoCountryCode": "VN",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bis.org/about/organisation/members",
+      "discoveryPage": "https://www.sbv.gov.vn/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "npci",
+      "organization": "National Payments Corporation of India",
+      "officialDomains": [
+        "npci.org.in"
+      ],
+      "country": "India",
+      "isoCountryCode": "IN",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Payment Infrastructure / Operator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.npci.org.in/",
+      "discoveryPage": "https://www.npci.org.in/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "payments-nz",
+      "organization": "Payments NZ",
+      "officialDomains": [
+        "paymentsnz.co.nz"
+      ],
+      "country": "New Zealand",
+      "isoCountryCode": "NZ",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "Payment Infrastructure / Operator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.paymentsnz.co.nz/",
+      "discoveryPage": "https://www.paymentsnz.co.nz/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "austrac",
+      "organization": "AUSTRAC",
+      "officialDomains": [
+        "austrac.gov.au"
+      ],
+      "country": "Australia",
+      "isoCountryCode": "AU",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "AML / FIU",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.austrac.gov.au/",
+      "discoveryPage": "https://www.austrac.gov.au/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "bfiu",
+      "organization": "Bangladesh Financial Intelligence Unit",
+      "officialDomains": [
+        "bfiu.org.bd"
+      ],
+      "country": "Bangladesh",
+      "isoCountryCode": "BD",
+      "region": "APAC",
+      "tier": 1,
+      "sourceType": "AML / FIU",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bb.org.bd/en/index.php",
+      "discoveryPage": "https://www.bb.org.bd/en/index.php",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "sfa",
+      "organization": "Singapore FinTech Association",
+      "officialDomains": [
+        "singaporefintech.org"
+      ],
+      "country": "Singapore",
+      "isoCountryCode": "SG",
+      "region": "APAC",
+      "tier": 3,
+      "sourceType": "Fintech Association",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://singaporefintech.org/news/",
+      "discoveryPage": "https://singaporefintech.org/news/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": true,
+      "discoveryStatus": "ACTIVE",
+      "discoveryNote": "Publisher-advertised RSS fetched and parsed; robots policy reviewed 2026-09-08. Metadata-only secondary discovery; human original-source review required.",
+      "refreshEndpoint": "https://singaporefintech.org/news/feed/",
+      "refreshEndpointType": "RSS",
+      "refreshScope": "Public association news metadata only",
+      "endpointVerifiedDate": "2026-09-08",
+      "retrievalPriority": "NORMAL",
+      "targetDiscoveryHours": 24,
+      "lastSuccessfulRetrieval": null,
+      "lastAttemptedRetrieval": null,
+      "healthStatus": "UNOBSERVED"
+    },
+    {
+      "id": "fintech-australia",
+      "organization": "FinTech Australia",
+      "officialDomains": [
+        "fintechaustralia.org.au"
+      ],
+      "country": "Australia",
+      "isoCountryCode": "AU",
+      "region": "APAC",
+      "tier": 3,
+      "sourceType": "Fintech Association",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.fintechaustralia.org.au/fintech-australia-news",
+      "discoveryPage": "https://www.fintechaustralia.org.au/fintech-australia-news",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": true,
+      "discoveryStatus": "ACTIVE",
+      "discoveryNote": "Publisher-advertised RSS fetched and parsed; robots policy reviewed 2026-09-08. Metadata-only secondary discovery; human original-source review required.",
+      "refreshEndpoint": "https://www.fintechaustralia.org.au/fintech-australia-news?format=rss",
+      "refreshEndpointType": "RSS",
+      "refreshScope": "Public association news metadata only",
+      "endpointVerifiedDate": "2026-09-08",
+      "retrievalPriority": "NORMAL",
+      "targetDiscoveryHours": 24,
+      "lastSuccessfulRetrieval": null,
+      "lastAttemptedRetrieval": null,
+      "healthStatus": "UNOBSERVED"
+    },
+    {
+      "id": "fintech-japan",
+      "organization": "Fintech Association of Japan",
+      "officialDomains": [
+        "fintechjapan.org"
+      ],
+      "country": "Japan",
+      "isoCountryCode": "JP",
+      "region": "APAC",
+      "tier": 3,
+      "sourceType": "Fintech Association",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://fintechjapan.org/",
+      "discoveryPage": "https://fintechjapan.org/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "ftahk",
+      "organization": "FinTech Association of Hong Kong",
+      "officialDomains": [
+        "ftahk.org"
+      ],
+      "country": "Hong Kong",
+      "isoCountryCode": "HK",
+      "region": "APAC",
+      "tier": 3,
+      "sourceType": "Fintech Association",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://ftahk.org/",
+      "discoveryPage": "https://ftahk.org/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "aftech",
+      "organization": "Asosiasi Fintech Indonesia",
+      "officialDomains": [
+        "fintech.id"
+      ],
+      "country": "Indonesia",
+      "isoCountryCode": "ID",
+      "region": "APAC",
+      "tier": 3,
+      "sourceType": "Fintech Association",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://fintech.id/id",
+      "discoveryPage": "https://fintech.id/id",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "fxc-intelligence",
+      "organization": "FXC Intelligence",
+      "officialDomains": [
+        "fxcintel.com"
+      ],
+      "country": "Global",
+      "isoCountryCode": null,
+      "region": "Global",
+      "tier": 3,
+      "sourceType": "Payments Intelligence",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.fxcintel.com/",
+      "discoveryPage": "https://www.fxcintel.com/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "the-paypers",
+      "organization": "The Paypers",
+      "officialDomains": [
+        "thepaypers.com"
+      ],
+      "country": "Global",
+      "isoCountryCode": null,
+      "region": "Global",
+      "tier": 3,
+      "sourceType": "Payments News",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://thepaypers.com/",
+      "discoveryPage": "https://thepaypers.com/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+    },
+    {
+      "id": "reuters",
+      "organization": "Reuters",
+      "officialDomains": [
+        "reuters.com"
+      ],
+      "country": "Global",
+      "isoCountryCode": null,
+      "region": "Global",
+      "tier": 3,
+      "sourceType": "Financial News",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.reuters.com/",
+      "discoveryPage": "https://www.reuters.com/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Discovery reference only: automated access unavailable/restricted; no verified permission-free feed. No paywall or access bypass."
+    },
+    {
+      "id": "bloomberg",
+      "organization": "Bloomberg",
+      "officialDomains": [
+        "bloomberg.com"
+      ],
+      "country": "Global",
+      "isoCountryCode": null,
+      "region": "Global",
+      "tier": 3,
+      "sourceType": "Financial News",
+      "sourceRole": "SECONDARY",
+      "lastVerifiedDate": "2026-09-08",
+      "verificationUrl": "https://www.bloomberg.com/",
+      "discoveryPage": "https://www.bloomberg.com/",
+      "sourceTrustStatus": "DISCOVERY_ONLY",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Discovery reference only: automated access unavailable/restricted; no verified permission-free feed. No paywall or access bypass."
     }
   ]
 }

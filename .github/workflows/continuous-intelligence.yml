@@ -37,6 +37,8 @@ jobs:
           if git ls-remote --exit-code --heads origin automation/intelligence-candidates >/dev/null 2>&1; then
             git fetch origin automation/intelligence-candidates
             git switch --track -c automation/intelligence-candidates origin/automation/intelligence-candidates
+            # Keep proposal records while running the latest reviewed discovery code.
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' merge --no-edit origin/main
           fi
 
       - name: Discover proposal-only intelligence candidates

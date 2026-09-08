@@ -168,6 +168,14 @@ candidates.forEach((candidate, index) => {
         if(candidate[field] !== null && candidate[field] !== undefined) dateField(candidate[field], `${label}.${field}`);
     });
     if(!candidate.audit || typeof candidate.audit !== "object") errors.push(`${label}.audit: expected provenance metadata`);
+    if(candidate.sourceRole !== undefined) {
+        if(!["PRIMARY", "SECONDARY"].includes(candidate.sourceRole)) errors.push(`${label}.sourceRole: invalid source role`);
+        if(candidate.sourceRole !== (source && source.sourceRole || "PRIMARY")) errors.push(`${label}.sourceRole: registry mismatch`);
+        if(candidate.validationStatus !== "AWAITING_HUMAN_VALIDATION") errors.push(`${label}.validationStatus: human validation required`);
+        if(!candidate.discoveredVia || candidate.discoveredVia.sourceOrgId !== candidate.sourceOrgId || candidate.discoveredVia.sourceUrl !== candidate.sourceUrl) errors.push(`${label}.discoveredVia: discovery provenance mismatch`);
+        if(candidate.sourceRole === "SECONDARY" && candidate.originalSource !== null) errors.push(`${label}.originalSource: unresolved secondary discovery must not claim original authority`);
+        if(candidate.sourceRole === "SECONDARY" && candidate.summary !== null) errors.push(`${label}.summary: secondary discovery must not reproduce article content`);
+    }
 });
 
 const countryRecords = Array.isArray(countryData.records) ? countryData.records : [];
