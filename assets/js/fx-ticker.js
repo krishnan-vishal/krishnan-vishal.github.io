@@ -172,11 +172,14 @@ function renderTicker(){
     const html = pairs.map(record => {
 
         const rate = typeof record.mid === "number" ? record.mid : record.last;
+        const change = typeof record.percentageChange === "number" && isFinite(record.percentageChange)
+            ? `<span class="fx-ticker-change">${fxFormatChange(record.percentageChange)}</span>`
+            : "";
 
         return `<a class="fx-ticker-item ${fxDirectionClass(record.direction)}" href="${pagePrefix}pages/fx/pairs/${fxPairSlug(record.pair)}.html">` +
             `<span class="fx-ticker-pair">${fxEscapeHtml(record.pair)}</span>` +
             `<span class="fx-ticker-rate">${fxFormatRate(rate, record.pair)}</span>` +
-            `<span class="fx-ticker-change">${fxFormatChange(record.percentageChange)}</span>` +
+            change +
             `</a>`;
 
     }).join("");
@@ -186,12 +189,21 @@ function renderTicker(){
     if(updated){
 
         const generatedAt = fxSnapshotCache.generatedAt ? new Date(fxSnapshotCache.generatedAt) : null;
-        updated.textContent = generatedAt && !isNaN(generatedAt.getTime())
-            ? "Updated " + generatedAt.toLocaleString("en-GB", {
-                day: "2-digit", month: "short", year: "numeric",
-                hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
-            }).replace("Sept", "Sep")
-            : "";
+        if(generatedAt && !isNaN(generatedAt.getTime())){
+            const dateText = generatedAt.toLocaleDateString("en-GB", {
+                day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata"
+            }).replace("Sept", "Sep");
+            const timeText = generatedAt.toLocaleTimeString("en-GB", {
+                hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata"
+            }) + " IST";
+            updated.setAttribute("datetime", generatedAt.toISOString());
+            updated.setAttribute("aria-label", `FX snapshot generated ${dateText} at ${timeText}`);
+            updated.innerHTML = `<span>${dateText}</span><span>${timeText}</span>`;
+        } else {
+            updated.textContent = "";
+            updated.removeAttribute("datetime");
+            updated.removeAttribute("aria-label");
+        }
 
     }
 
