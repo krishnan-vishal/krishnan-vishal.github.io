@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- GPIR Performance Tier — local device/network hints only, never
+     transmitted. Sets data-gpir-perf on <html> before first paint so
+     CSS and later scripts (world map, dashboards) can scale visual
+     complexity to what this device/connection can reasonably carry. -->
+<script>
+(function(){
+    try{
+        var nav = navigator;
+        var mem = nav.deviceMemory;
+        var cores = nav.hardwareConcurrency;
+        var conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+        var saveData = !!(conn && conn.saveData);
+        var effType = conn && conn.effectiveType;
+        var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        var lowMem = typeof mem === "number" && mem <= 2;
+        var lowCores = typeof cores === "number" && cores <= 2;
+        var slowNet = saveData || effType === "slow-2g" || effType === "2g" || effType === "3g";
+
+        var tier = "standard";
+        if (lowMem || lowCores || slowNet) tier = "constrained";
+        else if (typeof mem === "number" && mem >= 8 && typeof cores === "number" && cores >= 8 && !slowNet) tier = "high";
+
+        document.documentElement.setAttribute("data-gpir-perf", tier);
+        if (reduceMotion) document.documentElement.setAttribute("data-gpir-motion", "reduced");
+
+        window.GPIRPerf = {
+            tier: tier.toUpperCase(),
+            saveData: saveData,
+            effectiveType: effType || null,
+            deviceMemory: (typeof mem === "number") ? mem : null,
+            hardwareConcurrency: (typeof cores === "number") ? cores : null,
+            reduceMotion: reduceMotion
+        };
+    } catch(e){
+        document.documentElement.setAttribute("data-gpir-perf", "standard");
+        window.GPIRPerf = { tier: "STANDARD", saveData: false, effectiveType: null, deviceMemory: null, hardwareConcurrency: null, reduceMotion: false };
+    }
+})();
+</script>
+
+
+<title>USD/CHF — FX Intelligence | FINTECHOISIS — GPIR</title>
+<meta name="description" content="USD/CHF live pricing, previous-business-day variance, weekly trend and historical observations from GPIR.">
+
+<link rel="canonical" href="https://krishnan-vishal.github.io/pages/fx/pairs/usd-chf.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="FINTECHOISIS | GPIR">
+<meta property="og:title" content="USD/CHF — FX Intelligence">
+<meta property="og:description" content="USD/CHF live pricing, previous-business-day variance, weekly trend and historical observations from GPIR.">
+<meta property="og:url" content="https://krishnan-vishal.github.io/pages/fx/pairs/usd-chf.html">
+<meta property="og:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="USD/CHF — FX Intelligence">
+<meta name="twitter:description" content="USD/CHF live pricing, previous-business-day variance, weekly trend and historical observations from GPIR.">
+<meta name="twitter:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
+
+
+<link rel="icon" href="../../../assets/favicon/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="../../../assets/favicon/apple-touch-icon.png">
+
+<link rel="stylesheet" href="../../../assets/css/variables.css?v=20260822c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="../../../assets/css/typography.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/layout.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/components.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/responsive.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/header.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/hero.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/architecture.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/intelligence-library.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/payments-timeline.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/market.css?v=20260908c">
+<link rel="stylesheet" href="../../../assets/css/command-centre.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/purpose.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/knowledge.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/research.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/dashboard.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/global.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/observatory.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/cards.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/country-intelligence.css?v=20260815">
+<link rel="stylesheet" href="../../../assets/css/about.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/footer.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/chapter-page.css?v=20260822c">
+<link rel="stylesheet" href="../../../assets/css/site-polish.css?v=20260822c">
+
+<link rel="stylesheet" href="../../../assets/css/content-protection.css?v=20260822c">
+
+</head>
+<body class="legal-page">
+
+<a href="#chapter-content" class="skip-link">Skip to main content</a>
+
+    <header class="header">
+
+        <div class="container header-container">
+
+            <div class="brand">
+
+    <a
+    href="../../../index.html"
+    class="brand-link"
+    aria-label="FINTECHOISIS — Global Payments Intelligence Repository">
+
+        <img
+            src="../../../assets/branding/logos/fo-mark.svg"
+            alt=""
+            class="brand-logo">
+
+        <div class="brand-text">
+
+        <h1>FINTECHOISIS</h1>
+
+    <div class="brand-repository">
+
+        <span class="repository-pill">
+            GPIR
+        </span>
+
+        <span class="repository-text">
+            Global Payments Intelligence Repository
+        </span>
+
+    </div>
+
+</div>
+
+    </a>
+
+</div>
+
+ <nav class="main-nav" id="main-nav">
+
+<ul>
+<li><a href="../../../index.html#home">Home</a></li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#about" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.gpir">GPIR</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed">
+
+        <div class="mega-menu-inner mega-menu-inner--headed">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M20 22H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.gpir.col1_heading">About GPIR</strong><small data-i18n="menu.gpir.col1_sub">What GPIR is</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#about"><strong>About GPIR</strong><small>The independent knowledge platform behind GPIR.</small></a></li>
+                    <li><a href="../../../index.html#global"><strong>Global Coverage</strong><small>150+ countries mapped across the payments ecosystem.</small></a></li>
+                    <li class="mega-item-soon"><strong>Repository Framework <span class="soon-tag">Soon</span></strong><small>How the repository is structured end to end.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.gpir.col2_heading">Knowledge Structure</strong><small data-i18n="menu.gpir.col2_sub">How it's organised</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#research"><strong>Chapters</strong><small>The full GPIR research desk across verticals, infrastructure and strategy.</small></a></li>
+                    <li class="mega-item-soon"><strong>Knowledge Domains <span class="soon-tag">Soon</span></strong><small>The domains GPIR organises intelligence around.</small></li>
+                    <li class="mega-item-soon"><strong>Intelligence Layers <span class="soon-tag">Soon</span></strong><small>How raw sources become structured intelligence.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.gpir.col3_heading">Discovery</strong><small data-i18n="menu.gpir.col3_sub">Find what you need</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#dashboard-gallery"><strong>Global Intelligence</strong><small>Visual intelligence from published datasets and institutional sources.</small></a></li>
+                    <li><a href="../../../index.html#market-gallery"><strong>Country Intelligence</strong><small>Country-level dashboards across the GPIR coverage map.</small></a></li>
+                    <li><a href="../../../pages/chapters/industry-participants.html"><strong>Industry Intelligence</strong><small>Named institutions facilitating global cross-border flows.</small></a></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../index.html#repository"><span data-i18n="menu.gpir.cta">Explore GPIR Repository</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#global" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.markets">Markets</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed mega-menu--wide">
+
+        <div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--4col">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.markets.col1_heading">Global Markets</strong><small data-i18n="menu.markets.col1_sub">Size &amp; growth</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#market-cross-border"><strong>Cross-Border Payments Market</strong><small>Correspondent banking, corridors and FX settlement.</small></a></li>
+                    <li><a href="../../../pages/chapters/industry-future-state.html"><strong>Forecasts</strong><small>The sector&rsquo;s biggest transformation, modelled to 2040.</small></a></li>
+                    <li class="mega-item-soon"><strong>Market Size &amp; Growth <span class="soon-tag">Soon</span></strong><small>Global payments market sizing and CAGR.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.markets.col2_heading">Regions</strong><small data-i18n="menu.markets.col2_sub">Regional coverage</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#region-americas"><strong>Americas</strong><small>Northern America, Caribbean and South America — 14 markets, cross-linked to LATAM.</small></a></li>
+                    <li><a href="../../../index.html#region-europe"><strong>Europe / SEPA</strong><small>41-country SEPA scope, UK, Faster Payments and Open Banking.</small></a></li>
+                    <li><a href="../../../index.html#region-gcc"><strong>Middle East / GCC</strong><small>GCC, Levant, Mesopotamia, Iran/Persian Gulf and Arabian Peninsula &mdash; 13 markets, UAE/Saudi/Qatar cross-linked to existing records.</small></a></li>
+                    <li><a href="../../../index.html#region-africa"><strong>Africa</strong><small>North, West, Central, East and Southern Africa — 55 markets.</small></a></li>
+                    <li><a href="../../../index.html#region-apac"><strong>APAC</strong><small>Banking infrastructure, payment rails, wallets and fintechs.</small></a></li>
+                    <li><a href="../../../index.html#region-latam"><strong>LATAM</strong><small>Latin America payments, remittances, digital banking and fintech.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><path d="M7 14h.01M11 14h.01"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.markets.col3_heading">Country Intelligence</strong><small data-i18n="menu.markets.col3_sub">Per-market profiles</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/countries/uae.html"><strong>United Arab Emirates</strong><small>Payment rails, regulation and fintech ecosystem.</small></a></li>
+                    <li><a href="../../../pages/countries/saudi-arabia.html"><strong>Saudi Arabia</strong><small>SAMA oversight, Vision 2030 fintech licensing and sarie instant payments.</small></a></li>
+                    <li><a href="../../../pages/countries/qatar.html"><strong>Qatar</strong><small>QCB oversight, Fawran instant payments and dense South Asia remittance corridors.</small></a></li>
+                    <li><a href="../../../pages/countries/india.html"><strong>India</strong><small>UPI, RBI oversight and remittance corridors.</small></a></li>
+                    <li><a href="../../../pages/countries/singapore.html"><strong>Singapore</strong><small>MAS, real-time rails and cross-border linkages.</small></a></li>
+                    <li><a href="../../../pages/countries/uk.html"><strong>United Kingdom</strong><small>Faster Payments, CHAPS, Open Banking and FCA oversight.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M3 12a9 4.2 0 0 0 18 0"/><path d="M12 3v18"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.markets.col4_heading">Global</strong><small data-i18n="menu.markets.col4_sub">All markets</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#global"><strong>Global Coverage</strong><small>150+ countries mapped across the payments ecosystem.</small></a></li>
+                    <li><a href="../../../index.html#market-regulatory"><strong>Regulatory Landscape</strong><small>Payment regulations, licensing and digital identity.</small></a></li>
+                    <li><a href="../../../pages/chapters/payment-infrastructure.html"><strong>Payment Infrastructure</strong><small>The rails that move money today, and what replaces them.</small></a></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../index.html#market-gallery"><span data-i18n="menu.markets.cta">Explore All Countries</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#market-cross-border" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.money_movement">Money Movement</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed mega-menu--wide">
+
+        <div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--4col">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.money.col1_heading">Use Cases</strong><small data-i18n="menu.money.col1_sub">Flow types</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/trade-payments.html"><strong>B2B Payments</strong><small>Trade and supply-chain settlement between businesses.</small></a></li>
+                    <li class="mega-item-soon"><strong>B2C &amp; C2B <span class="soon-tag">Soon</span></strong><small>Business-to-consumer and consumer-to-business flows.</small></li>
+                    <li class="mega-item-soon"><strong>P2P <span class="soon-tag">Soon</span></strong><small>Peer-to-peer payment flows.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.money.col2_heading">Payment Flows</strong><small data-i18n="menu.money.col2_sub">How money moves</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#market-cross-border"><strong>Cross-Border Payments</strong><small>Correspondent banking, corridors and FX settlement.</small></a></li>
+                    <li class="mega-item-soon"><strong>Domestic Payments <span class="soon-tag">Soon</span></strong><small>Local clearing, settlement and last-mile payout.</small></li>
+                    <li class="mega-item-soon"><strong>Settlement <span class="soon-tag">Soon</span></strong><small>How payments clear and settle across rails.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M3 12a9 4.2 0 0 0 18 0"/><path d="M12 3v18"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.money.col3_heading">Corridors</strong><small data-i18n="menu.money.col3_sub">By destination</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/remittances-diaspora.html"><strong>Diaspora Corridors</strong><small>Cross-border transfers for family, education and small-business support.</small></a></li>
+                    <li><a href="../../../pages/chapters/corridor-factbook.html"><strong>Major Corridors</strong><small>Corridor-by-corridor economics and competitive dynamics.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.money.col4_heading">Financial Intelligence</strong><small data-i18n="menu.money.col4_sub">Pricing &amp; risk</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#fx-ribbon"><strong>FX &amp; Pricing</strong><small>Live FX rates and pricing intelligence.</small></a></li>
+                    <li class="mega-item-soon"><strong>Liquidity &amp; Netting <span class="soon-tag">Soon</span></strong><small>Prefunding, liquidity management and multilateral netting.</small></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../index.html#market-cross-border"><span data-i18n="menu.money.cta">Explore Global Money Movement</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#market-networks" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.ecosystem">Ecosystem</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed mega-menu--wide">
+
+        <div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--4col">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 2 21 8 3 8"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.ecosystem.col1_heading">Banking</strong><small data-i18n="menu.ecosystem.col1_sub">Institutions</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Central Banks <span class="soon-tag">Soon</span></strong><small>Central bank oversight of payment systems.</small></li>
+                    <li class="mega-item-soon"><strong>Commercial &amp; Correspondent Banks <span class="soon-tag">Soon</span></strong><small>Correspondent and commercial banking participants.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.ecosystem.col2_heading">Payments &amp; Acceptance</strong><small data-i18n="menu.ecosystem.col2_sub">Providers</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>PSPs &amp; MTOs <span class="soon-tag">Soon</span></strong><small>Payment service providers, processors and money transfer operators.</small></li>
+                    <li class="mega-item-soon"><strong>Acquirers &amp; Merchants <span class="soon-tag">Soon</span></strong><small>Acceptance-side participants and payment facilitators.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.ecosystem.col3_heading">Digital Finance</strong><small data-i18n="menu.ecosystem.col3_sub">Wallets &amp; apps</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/wallets-mobile-money.html"><strong>Wallets &amp; Super Apps</strong><small>Wallets, mobile money and super apps.</small></a></li>
+                    <li class="mega-item-soon"><strong>Embedded Finance &amp; BaaS <span class="soon-tag">Soon</span></strong><small>Banking-as-a-service and embedded financial products.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.ecosystem.col4_heading">Infrastructure</strong><small data-i18n="menu.ecosystem.col4_sub">Rails &amp; tech</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/payment-infrastructure.html"><strong>Payment Infrastructure</strong><small>The rails that move money today, and what replaces them.</small></a></li>
+                    <li><a href="../../../pages/chapters/industry-participants.html"><strong>Industry Participants</strong><small>Banks, fintechs, networks and wallets analysed together.</small></a></li>
+                    <li><a href="../../../pages/chapters/top-companies.html"><strong>Technology Providers</strong><small>Named institutions facilitating global cross-border flows.</small></a></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../pages/chapters/industry-participants.html"><span data-i18n="menu.ecosystem.cta">Explore the Payments Ecosystem</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../pages/chapters/cards-intelligence.html" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.cards">Cards</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed mega-menu--wide">
+
+        <div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--4col">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.cards.col1_heading">Foundations &amp; Ecosystem</strong><small data-i18n="menu.cards.col1_sub">Core concepts</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Foundations <span class="soon-tag">Soon</span></strong><small>Core concepts, card types and lifecycle fundamentals.</small></li>
+                    <li class="mega-item-soon"><strong>Ecosystem <span class="soon-tag">Soon</span></strong><small>Issuers, acquirers, processors and scheme participants.</small></li>
+                    <li class="mega-item-soon"><strong>Global Players <span class="soon-tag">Soon</span></strong><small>Major card networks and scheme operators worldwide.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.cards.col2_heading">Market Intelligence</strong><small data-i18n="menu.cards.col2_sub">Business &amp; strategy</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Market Intelligence <span class="soon-tag">Soon</span></strong><small>Adoption, penetration and market share by region.</small></li>
+                    <li class="mega-item-soon"><strong>Business &amp; Economics <span class="soon-tag">Soon</span></strong><small>Interchange, fees and the economics of card issuing.</small></li>
+                    <li class="mega-item-soon"><strong>Strategic Intelligence <span class="soon-tag">Soon</span></strong><small>Competitive dynamics across card networks.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M6 10H4M6 14H4M20 10h-2M20 14h-2M10 6V4M14 6V4M10 20v-2M14 20v-2"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.cards.col3_heading">Technology</strong><small data-i18n="menu.cards.col3_sub">Processing &amp; innovation</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Technology <span class="soon-tag">Soon</span></strong><small>Chip, contactless and tokenisation standards.</small></li>
+                    <li class="mega-item-soon"><strong>API &amp; Processing <span class="soon-tag">Soon</span></strong><small>Authorization, clearing and settlement infrastructure.</small></li>
+                    <li class="mega-item-soon"><strong>Innovation <span class="soon-tag">Soon</span></strong><small>Emerging card form factors and next-generation capabilities.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 9.5 8 11 4.5-1.5 8-6 8-11V5z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.cards.col4_heading">Risk &amp; Research</strong><small data-i18n="menu.cards.col4_sub">Regulation &amp; sources</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Risk &amp; Regulation <span class="soon-tag">Soon</span></strong><small>Fraud, security standards and regulatory oversight.</small></li>
+                    <li class="mega-item-soon"><strong>Research <span class="soon-tag">Soon</span></strong><small>Deep-dive, source-linked intelligence on card networks.</small></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../pages/chapters/cards-intelligence.html"><span data-i18n="menu.cards.cta">Explore Cards Intelligence</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#market-networks" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.technology">Technology</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed">
+
+        <div class="mega-menu-inner mega-menu-inner--headed">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.technology.col1_heading">Payment Rails</strong><small data-i18n="menu.technology.col1_sub">Real-time &amp; messaging</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/rtp-directory.html"><strong>RTP &amp; Instant Payments</strong><small>Real-time payment systems by region and corridor.</small></a></li>
+                    <li class="mega-item-soon"><strong>SWIFT <span class="soon-tag">Soon</span></strong><small>Correspondent banking messaging infrastructure.</small></li>
+                    <li class="mega-item-soon"><strong>Local Payment Rails <span class="soon-tag">Soon</span></strong><small>Domestic instant and batch payment rails.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><polyline points="9 13 7 22 12 19 17 22 15 13"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.technology.col2_heading">Standards</strong><small data-i18n="menu.technology.col2_sub">Interoperability</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>ISO 20022 &amp; ISO 8583 <span class="soon-tag">Soon</span></strong><small>Global messaging standards for payments.</small></li>
+                    <li class="mega-item-soon"><strong>EMV &amp; PCI DSS <span class="soon-tag">Soon</span></strong><small>Card and data-security standards.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.technology.col3_heading">Digital Technology</strong><small data-i18n="menu.technology.col3_sub">What's next</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/stablecoins-cbdcs.html"><strong>Stablecoins &amp; CBDCs</strong><small>Stablecoins, CBDCs and tokenised deposits.</small></a></li>
+                    <li class="mega-item-soon"><strong>Tokenization &amp; Open Banking <span class="soon-tag">Soon</span></strong><small>Account tokenisation and open banking APIs.</small></li>
+                    <li class="mega-item-soon"><strong>AI &amp; Blockchain <span class="soon-tag">Soon</span></strong><small>AI-driven payments infrastructure and distributed ledgers.</small></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../pages/chapters/payment-infrastructure.html"><span data-i18n="menu.technology.cta">Explore Payment Technology</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#market-regulatory" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.regulation_risk">Regulation &amp; Risk</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed">
+
+        <div class="mega-menu-inner mega-menu-inner--headed">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M5 7l-3 7a4 4 0 0 0 8 0z"/><path d="M19 7l-3 7a4 4 0 0 0 8 0z"/><path d="M5 7h14"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.regulation.col1_heading">Regulatory</strong><small data-i18n="menu.regulation.col1_sub">Landscape</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#market-regulatory"><strong>Regulatory Landscape</strong><small>Payment regulations, licensing and digital identity.</small></a></li>
+                    <li><a href="../../../index.html#observatory"><strong>Regulatory Updates</strong><small>Structured tracking of regulatory and policy shifts.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.regulation.col2_heading">Compliance</strong><small data-i18n="menu.regulation.col2_sub">Controls</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>AML / KYC <span class="soon-tag">Soon</span></strong><small>Anti-money-laundering and identity verification frameworks.</small></li>
+                    <li class="mega-item-soon"><strong>Sanctions &amp; FATF <span class="soon-tag">Soon</span></strong><small>Global standards for AML and counter-terrorist financing.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><polyline points="9 13 7 22 12 19 17 22 15 13"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.regulation.col3_heading">Risk</strong><small data-i18n="menu.regulation.col3_sub">Fraud &amp; ops</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li class="mega-item-soon"><strong>Fraud &amp; Cybersecurity <span class="soon-tag">Soon</span></strong><small>Fraud typologies and cybersecurity risk in payments.</small></li>
+                    <li class="mega-item-soon"><strong>Operational Risk <span class="soon-tag">Soon</span></strong><small>Chargebacks, disputes and operational resilience.</small></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../index.html#market-regulatory"><span data-i18n="menu.regulation.cta">Explore Regulatory Landscape</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega">
+
+    <a href="../../../index.html#dashboard-gallery" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.intelligence">Intelligence</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed">
+
+        <div class="mega-menu-inner mega-menu-inner--headed">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.intelligence.col1_heading">Data &amp; Visuals</strong><small data-i18n="menu.intelligence.col1_sub">Visual intelligence</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#command-centre"><strong>Command Centre</strong><small>Executive newsroom across payments, regulation and markets.</small></a></li>
+                    <li><a href="../../../index.html#dashboard-gallery"><strong>Dashboards</strong><small>Visual intelligence from published datasets and institutional sources.</small></a></li>
+                    <li><a href="../../../index.html#market-gallery"><strong>Market Data</strong><small>Thematic market intelligence across payment domains.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M3 12a9 4.2 0 0 0 18 0"/><path d="M12 3v18"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.intelligence.col2_heading">Market Intelligence</strong><small data-i18n="menu.intelligence.col2_sub">Corridors &amp; pricing</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/corridor-factbook.html"><strong>Corridor Intelligence</strong><small>Corridor-by-corridor economics and competitive dynamics.</small></a></li>
+                    <li><a href="../../../index.html#fx-ribbon"><strong>Pricing &amp; FX</strong><small>Live FX rates and pricing intelligence.</small></a></li>
+                    <li class="mega-item-soon"><strong>Volume Intelligence <span class="soon-tag">Soon</span></strong><small>Payment volume and flow intelligence.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><polyline points="9 13 7 22 12 19 17 22 15 13"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.intelligence.col3_heading">Strategic Intelligence</strong><small data-i18n="menu.intelligence.col3_sub">Outlook</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/top-companies.html"><strong>Competitive Intelligence</strong><small>Named institutions facilitating global cross-border flows.</small></a></li>
+                    <li><a href="../../../pages/chapters/industry-future-state.html"><strong>Forecasts</strong><small>The sector&rsquo;s biggest transformation, modelled to 2040.</small></a></li>
+                </ul>
+
+                <a class="mega-col-cta" href="../../../index.html#command-centre"><span data-i18n="menu.intelligence.cta">Explore the Command Centre</span> →</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</li>
+
+<li class="nav-item-mega nav-more-item" data-nav-more>
+
+    <a href="../../../index.html#about" class="nav-mega-trigger nav-more-trigger" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="nav.more">More</span>
+        <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </a>
+
+    <div class="mega-menu mega-menu--headed mega-menu--wide mega-menu--more">
+
+        <div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--4col">
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.more.col1_heading">Resources</strong><small data-i18n="menu.more.col1_sub">Reference &amp; visuals</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#research"><strong>Research Desk</strong><small>The full GPIR research desk across verticals, infrastructure and strategy.</small></a></li>
+                    <li><a href="../../../index.html#payments-timeline"><strong>Timelines</strong><small>The payments narrative from 1944 to 2040 and beyond.</small></a></li>
+                    <li><a href="../../../index.html#architecture-library"><strong>Architecture Library</strong><small>Executive reference diagrams for payment rails and infrastructure.</small></a></li>
+                    <li><a href="../../../index.html#intelligence-library"><strong>Charts &amp; Maps</strong><small>GPIR&rsquo;s executive infographic archive.</small></a></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.more.col2_heading">Directory</strong><small data-i18n="menu.more.col2_sub">Who's who</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/chapters/top-companies.html"><strong>Industry Directory</strong><small>Named institutions facilitating global cross-border flows.</small></a></li>
+                    <li><a href="../../../pages/chapters/industry-participants.html"><strong>Industry Participants</strong><small>Banks, fintechs, networks and wallets analysed together.</small></a></li>
+                    <li class="mega-item-soon"><strong>Banks &amp; FinTechs <span class="soon-tag">Soon</span></strong><small>A structured directory of banks, PSPs and MTOs.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                    <span class="mega-col-heading"><strong>FINTECHOISIS</strong><small data-i18n="menu.more.col3_sub">About the platform</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../index.html#about"><strong>About FINTECHOISIS</strong><small>The independent knowledge platform behind GPIR.</small></a></li>
+                    <li><a href="../../../index.html#founder"><strong>Founder</strong><small>Founder &amp; Editorial Curator of GPIR.</small></a></li>
+                    <li class="mega-item-soon"><strong>Research Methodology <span class="soon-tag">Soon</span></strong><small>How intelligence is sourced, verified and structured.</small></li>
+                </ul>
+
+            </div>
+
+            <div class="mega-col mega-col--headed">
+
+                <div class="mega-col-header">
+                    <span class="mega-col-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4v15a2 2 0 0 0 2 2h15a2 2 0 0 1-2-2z"/><path d="M9 7h6M9 11h6"/></svg></span>
+                    <span class="mega-col-heading"><strong data-i18n="menu.more.col4_heading">Legal</strong><small data-i18n="menu.more.col4_sub">Policies</small></span>
+                </div>
+
+                <ul class="mega-col-desc-list">
+                    <li><a href="../../../pages/legal/privacy-policy.html"><strong>Privacy Policy</strong><small>How FINTECHOISIS collects, uses and protects information.</small></a></li>
+                    <li><a href="../../../pages/legal/terms-of-use.html"><strong>Terms of Use</strong><small>The terms governing use of the GPIR platform.</small></a></li>
+                    <li><a href="../../../pages/legal/cookie-policy.html"><strong>Cookie Policy</strong><small>How cookies and similar technologies are used.</small></a></li>
+                    <li><a href="../../../pages/legal/disclaimer.html"><strong>Disclaimer</strong><small>Important disclosures about GPIR&rsquo;s research.</small></a></li>
+                    <li><a href="../../../pages/legal/copyright-ip-policy.html"><strong>Copyright &amp; IP</strong><small>Copyright and intellectual property policy.</small></a></li>
+                </ul>
+
+            </div>
+
+        </div>
+
+        <ul class="nav-more-list"></ul>
+
+    </div>
+
+</li>
+</ul>
+
+<div class="header-tools">
+
+    <a href="../../../index.html#research"
+       class="repository-btn">
+
+        Repository →
+
+    </a>
+
+</div>
+
+</nav>
+
+<button
+    type="button"
+    class="search-toggle"
+    id="search-toggle"
+    data-i18n-aria-label="nav.search_aria"
+    aria-label="Search GPIR"
+    aria-haspopup="dialog"
+    aria-controls="search-overlay"
+    aria-expanded="false">
+
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+
+</button>
+
+<button
+    type="button"
+    class="nav-toggle"
+    data-i18n-aria-label="nav.menu_toggle_aria" aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="main-nav">
+
+    <span></span>
+    <span></span>
+    <span></span>
+
+</button>
+
+<div class="header-actions">
+
+
+    </div>
+
+</div>
+
+    </header>
+
+<div class="search-overlay" id="search-overlay" aria-hidden="true">
+
+    <div class="search-overlay-backdrop" data-search-close></div>
+
+    <div class="search-panel" role="dialog" aria-modal="true" data-i18n-aria-label="search.title" aria-label="Search GPIR">
+
+        <div class="search-panel-header">
+            <span class="search-panel-title" data-i18n="search.title">Search GPIR</span>
+            <button type="button" class="search-panel-close" data-search-close data-i18n-aria-label="search.close_aria" aria-label="Close search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="search-input-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                data-i18n-placeholder="search.placeholder" placeholder="Search countries, corridors, banks, payment rails, reports, regulations…"
+                autocomplete="off"
+                aria-label="Search GPIR">
+        </div>
+
+        <div class="search-results" id="search-results" aria-live="polite"></div>
+
+    </div>
+
+</div>
+
+
+<section class="chapter-hero fx-page-hero">
+    <div class="container">
+        <div class="chapter-breadcrumb"><a href="../../../index.html">Home</a><span>/</span><a href="../index.html">FX Pricing &amp; Treasury</a><span>/</span><strong>USD/CHF</strong></div>
+        <span class="chapter-part-tag">FX Pricing &amp; Treasury</span>
+        <h1>USD/CHF FX Intelligence</h1>
+        <p class="chapter-hero-intro">Current reference rate, business-day variance and source attribution for USD/CHF.</p>
+        <nav class="fx-subnav" aria-label="FX Pricing & Treasury sections"><a href="../index.html">Live FX</a><a href="../explorer.html" aria-current="page">Currency Explorer</a><a href="../treasury.html">Treasury Intelligence</a><a href="../weekly.html">Weekly Trends</a><a href="../historical.html">Historical</a></nav>
+    </div>
+</section>
+<section class="chapter-body fx-page-body">
+    <div class="container">
+        <div class="fx-pair-detail" data-fx-view="pair-detail" data-fx-pair="USD/CHF" data-fx-first-snapshot-date="2026-09-08" aria-live="polite">
+            <p class="fx-loading">Loading USD/CHF…</p>
+        </div>
+        <p class="fx-disclaimer">FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice.</p>
+    </div>
+</section>
+<footer id="footer">
+
+    <div class="footer-container">
+
+    <div class="footer-top">
+
+        <div class="footer-brand">
+
+            <a href="../../../index.html" class="footer-brand-link" aria-label="FINTECHOISIS — Global Payments Intelligence Repository">
+
+                <img src="../../../assets/branding/logos/fo-logo-horizontal.svg" alt="FINTECHOISIS" class="footer-logo" loading="lazy">
+
+            </a>
+
+            <p class="footer-headline" data-i18n="footer.headline">
+                The Independent Knowledge Platform
+                for Global Payments Intelligence
+            </p>
+
+            <p class="footer-subtext" data-i18n="footer.subtext">
+                GPIR — Global Payments Intelligence Repository.
+            </p>
+
+            <a href="../../../index.html#research" class="footer-cta"><span data-i18n="footer.explore_repository">Explore Repository</span> →</a>
+
+        </div>
+
+        <div class="footer-grid">
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.gpir.heading">GPIR</h4>
+                <ul>
+                    <li><a href="../../../index.html#about" data-i18n="footer.nav.gpir.about">About GPIR</a></li>
+                    <li><a href="../../../index.html#repository" data-i18n="footer.nav.gpir.repository">Repository</a></li>
+                    <li><a href="#" data-i18n="footer.nav.gpir.methodology">Methodology</a></li>
+                    <li><a href="#" data-i18n="footer.nav.gpir.sources">Sources &amp; References</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.markets.heading">Markets</h4>
+                <ul>
+                    <li><a href="../../../index.html#global" data-i18n="footer.nav.markets.global">Global</a></li>
+                    <li><a href="../../../index.html#region-americas" data-i18n="footer.nav.markets.americas">Americas</a></li>
+                    <li><a href="../../../index.html#region-europe" data-i18n="footer.nav.markets.europe">Europe / SEPA</a></li>
+                    <li><a href="../../../index.html#region-gcc" data-i18n="footer.nav.markets.gcc">Middle East / GCC</a></li>
+                    <li><a href="../../../index.html#region-africa" data-i18n="footer.nav.markets.africa">Africa</a></li>
+                    <li><a href="../../../index.html#region-apac" data-i18n="footer.nav.markets.apac">APAC</a></li>
+
+                    <li><a href="../../../index.html#region-latam" data-i18n="footer.nav.markets.latam">LATAM</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.money.heading">Money Movement</h4>
+                <ul>
+                    <li><a href="../../../index.html#market-cross-border" data-i18n="footer.nav.money.crossborder">Cross-Border Payments</a></li>
+                    <li><a href="../../chapters/remittances-diaspora.html" data-i18n="footer.nav.money.remittances">Remittances</a></li>
+                    <li><a href="../../chapters/trade-payments.html" data-i18n="footer.nav.money.b2b">B2B Payments</a></li>
+                    <li><a href="#" data-i18n="footer.nav.money.settlement">Settlement</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.ecosystem.heading">Ecosystem</h4>
+                <ul>
+                    <li><a href="../../chapters/wallets-mobile-money.html" data-i18n="footer.nav.ecosystem.wallets">Wallets</a></li>
+                    <li><a href="../../chapters/payment-infrastructure.html" data-i18n="footer.nav.ecosystem.infrastructure">Payment Infrastructure</a></li>
+                    <li><a href="#" data-i18n="footer.nav.ecosystem.banks">Banks</a></li>
+                    <li><a href="#" data-i18n="footer.nav.ecosystem.fintechs">FinTechs</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.rails.heading">Rails &amp; Infrastructure</h4>
+                <ul>
+                    <li><a href="../../chapters/rtp-directory.html" data-i18n="footer.nav.rails.rtp">RTP</a></li>
+                    <li><a href="../../chapters/stablecoins-cbdcs.html" data-i18n="footer.nav.rails.stablecoins">Digital Assets / Stablecoins</a></li>
+                    <li><a href="#" data-i18n="footer.nav.rails.swift">SWIFT</a></li>
+                    <li><a href="#" data-i18n="footer.nav.rails.cards">Cards</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.intelligence.heading">Intelligence</h4>
+                <ul>
+                    <li><a href="../../../index.html#command-centre" data-i18n="footer.nav.intelligence.command">Command Centre</a></li>
+                    <li><a href="../../../index.html#dashboard-gallery" data-i18n="footer.nav.intelligence.dashboards">Dashboards</a></li>
+                    <li><a href="../../../index.html#market-gallery" data-i18n="footer.nav.intelligence.marketdata">Market Data</a></li>
+                    <li><a href="../../chapters/corridor-factbook.html" data-i18n="footer.nav.intelligence.corridor">Corridor Intelligence</a></li>
+                    <li><a href="../../chapters/industry-future-state.html" data-i18n="footer.nav.intelligence.forecasts">Forecasts</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.regulation.heading">Regulation</h4>
+                <ul>
+                    <li><a href="../../../index.html#market-regulatory" data-i18n="footer.nav.regulation.landscape">Regulatory Landscape</a></li>
+                    <li><a href="../../../index.html#observatory" data-i18n="footer.nav.regulation.updates">Regulatory Updates</a></li>
+                    <li><a href="#" data-i18n="footer.nav.regulation.amlkyc">AML / KYC</a></li>
+                    <li><a href="#" data-i18n="footer.nav.regulation.licensing">Licensing</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4 data-i18n="footer.nav.resources.heading">Resources</h4>
+                <ul>
+                    <li><a href="../../../index.html#research" data-i18n="footer.nav.resources.research">Research</a></li>
+                    <li><a href="../../../index.html#payments-timeline" data-i18n="footer.nav.resources.timelines">Timelines</a></li>
+                    <li><a href="../../../index.html#architecture-library" data-i18n="footer.nav.resources.architecture">Architecture Library</a></li>
+                    <li><a href="../../../index.html#intelligence-library" data-i18n="footer.nav.resources.charts">Charts &amp; Maps</a></li>
+                    <li><a href="#" data-i18n="footer.nav.resources.reports">Reports</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer-utility">
+
+        <div class="footer-metrics-row">
+
+            <div class="footer-metric">
+                <span class="footer-metric-label" data-i18n="footer.visitors">Visitors</span>
+                <strong class="footer-metric-value" id="footer-visitor-count" data-i18n="footer.updating">Updating</strong>
+                <span class="footer-metric-desc" data-i18n="footer.global_visitors">Global Visitors</span>
+            </div>
+
+            <div class="footer-identity">
+                <span class="footer-identity-name">FINTECHOISIS &middot; GPIR</span>
+                <span class="footer-identity-desc" data-i18n="footer.identity_desc">Global Payments Intelligence Repository</span>
+                <span class="footer-identity-flag"><img class="flag-icon" src="../../../assets/icons/flags/in.svg" alt="Based in India" loading="lazy"></span>
+            </div>
+
+            <div class="footer-metric">
+                <span class="footer-metric-label" data-i18n="footer.followers">Followers</span>
+                <strong class="footer-metric-value" id="footer-follower-count" data-i18n="footer.updating">Updating</strong>
+                <span class="footer-metric-desc" data-i18n="footer.linkedin_followers">LinkedIn Followers</span>
+            </div>
+
+        </div>
+
+        <div class="footer-utility-divider"></div>
+
+        <div class="footer-personal-row">
+
+            <span class="footer-utility-label" data-i18n="footer.personal_intelligence">Personal Intelligence</span>
+
+            <div class="footer-personal-links">
+
+                <a href="https://www.linkedin.com/in/krishnan-vishal" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10.5" r="2"/><path d="M6 16c0-2 1.5-3.2 3-3.2s3 1.2 3 3.2"/><path d="M15 9.5v5.5M15 9.5h1.6a1.9 1.9 0 0 1 1.9 1.9V15"/></svg>
+                    <span data-i18n="footer.linkedin">LinkedIn</span>
+                </a>
+
+                <a href="https://vnk1979.blogspot.com" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 13.5h7M8.5 17h5"/></svg>
+                    <span data-i18n="footer.personal_blog">Personal Blog</span>
+                </a>
+
+                <a href="https://github.com/krishnan-vishal/krishnan-vishal.github.io" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span data-i18n="footer.github">GitHub</span>
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="footer-utility-divider"></div>
+
+        <div class="footer-global-row">
+
+            <span class="footer-utility-label" data-i18n="footer.global_utilities">Global Utilities</span>
+
+            <div class="footer-utility-controls">
+
+                <div class="footer-select">
+                    <label for="footer-currency-select" class="footer-select-label" data-i18n="footer.currency">Currency</label>
+                    <select id="footer-currency-select" class="footer-select-input" aria-label="Select display currency for the FX ticker">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="JPY">JPY</option>
+                        <option value="CNY">CNY</option>
+                        <option value="INR">INR</option>
+                        <option value="AUD">AUD</option>
+                        <option value="CAD">CAD</option>
+                        <option value="CHF">CHF</option>
+                        <option value="SGD">SGD</option>
+                        <option value="HKD">HKD</option>
+                        <option value="AED">AED</option>
+                        <option value="SAR">SAR</option>
+                        <option value="QAR">QAR</option>
+                        <option value="KWD">KWD</option>
+                        <option value="BHD">BHD</option>
+                        <option value="OMR">OMR</option>
+                        <option value="NZD">NZD</option>
+                        <option value="ZAR">ZAR</option>
+                        <option value="BRL">BRL</option>
+                    </select>
+                </div>
+
+                <div class="footer-select">
+                    <label for="footer-language-select" class="footer-select-label" data-i18n="footer.language">Language</label>
+                    <select id="footer-language-select" class="footer-select-input" aria-label="Select interface language">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="ar">العربية</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="pt">Português</option>
+                        <option value="ru">Русский</option>
+                        <option value="ur">اردو</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="de">Deutsch</option>
+                        <option value="ja">日本語</option>
+                        <option value="it">Italiano</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <p class="footer-language-notice" id="footer-language-notice" hidden></p>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+        <p class="footer-compliance" data-i18n="footer.compliance">
+            GPIR | Global Payments Intelligence Repository
+            — Independent, evidence-based intelligence on global payments,
+            financial infrastructure and money movement.
+        </p>
+
+        <div class="footer-divider"></div>
+
+        <div class="footer-legal-row">
+
+            <div class="footer-legal-links">
+
+                <a href="../../../pages/legal/privacy-policy.html" data-i18n="footer.privacy_policy">Privacy Policy</a>
+
+                <a href="../../../pages/legal/disclaimer.html" data-i18n="footer.disclaimer">Disclaimer</a>
+
+                <a href="../../../pages/legal/terms-of-use.html" data-i18n="footer.terms_of_use">Terms of Use</a>
+
+                <a href="../../../pages/legal/copyright-ip-policy.html" data-i18n="footer.copyright">Copyright</a>
+
+                <a href="../../../pages/legal/cookie-policy.html">Cookie Policy</a>
+
+            </div>
+
+            <div class="footer-legal-meta">
+
+                <span data-i18n="footer.rights_reserved">© 2026 FINTECHOISIS. All Rights Reserved.</span>
+
+                <a href="../../../index.html#home" class="back-top" data-i18n="footer.back_to_top">↑ Back to Top</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</footer>
+
+<script src="../../../assets/js/fx-ticker.js?v=20260908c"></script>
+
+<script src="../../../assets/js/i18n.js?v=20260822c"></script>
+
+<script src="../../../assets/js/footer-utilities.js?v=20260822c"></script>
+
+<script src="../../../assets/js/content-search.js?v=20260822c"></script>
+
+<script src="../../../assets/js/script.js?v=20260822c"></script>
+
+<script src="../../../assets/js/content-protection.js?v=20260822c"></script>
+<script src="../../../assets/js/fx-app.js?v=20260908c"></script>
+
+</body>
+
+</html>

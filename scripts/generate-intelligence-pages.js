@@ -34,6 +34,29 @@ const TEMPLATE_SOURCE_PATH = path.join(ROOT, "pages/legal/privacy-policy.html");
 const OUTPUT_DIR = path.join(ROOT, "pages/intelligence");
 const SITEMAP_PATH = path.join(ROOT, "sitemap.xml");
 const SITE_ORIGIN = "https://krishnan-vishal.github.io";
+const DISCOVERY_WORKFLOW_PATH = path.join(ROOT, ".github/workflows/continuous-intelligence.yml");
+
+// Reads the actual scheduled cadence from the existing continuous-
+// intelligence workflow (deterministic build metadata) instead of a
+// second hand-maintained copy that could silently drift out of sync
+// with the real schedule. This describes candidate DISCOVERY only --
+// publication into announcements.json always remains a separate,
+// human-reviewed step, and this label must never claim otherwise.
+function describeDiscoveryCadence(){
+    try{
+        const workflowText = fs.readFileSync(DISCOVERY_WORKFLOW_PATH, "utf8");
+        const cronMatch = workflowText.match(/cron:\s*"([^"]+)"/);
+        if(!cronMatch) return "on a scheduled GitHub Actions cadence";
+        const everyNHours = cronMatch[1].match(/^0\s+\*\/(\d+)\s+\*\s+\*\s+\*$/);
+        if(everyNHours){
+            const hours = everyNHours[1];
+            return `every ${hours} hour${hours === "1" ? "" : "s"}`;
+        }
+        return `on a scheduled GitHub Actions cadence (${cronMatch[1]})`;
+    } catch {
+        return "on a scheduled GitHub Actions cadence";
+    }
+}
 
 function promoteStagedArtifacts(stagingRoot, artifacts){
     const backupRoot = path.join(stagingRoot, "backup");
@@ -604,7 +627,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
         <span class="chapter-part-tag">Reader Archive</span>
         <h1>Global Announcements</h1>
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
-        <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> ${escapeHtml(formatDate(allRecords.map(record => record.retrievedDate).filter(Boolean).sort().pop()))} · <strong>Refresh automation:</strong> Not yet scheduled</p>
+        <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> ${escapeHtml(formatDate(allRecords.map(record => record.retrievedDate).filter(Boolean).sort().pop()))} · <strong>Candidate discovery automation:</strong> Scheduled ${escapeHtml(describeDiscoveryCadence())} via GitHub Actions · publication remains human-reviewed</p>
     </div>
 </section>
 <section class="chapter-body">

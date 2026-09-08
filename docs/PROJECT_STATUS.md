@@ -2,53 +2,92 @@
 
 ## Current handoff
 
-- **Milestone:** M24 — Global Intelligence Coverage & Reader Integration.
-- **Category / owner:** Intelligence / Reader Capability; Vishal Krishnan.
-- **Objective:** Expand the existing GPIR intelligence radar beyond APAC (GCC,
-  Europe/UK, North America, LATAM, Africa, CIS/Central Asia gaps) and connect
-  qualified intelligence more completely across Global Announcements, Country/
-  Region association, Search GPIR and ASK GPIR, using only the existing
-  architecture. Does not rebuild M20–M23.1A, Search GPIR, ASK GPIR or GPIR-OPS-01.
-- **Working branch:** `work/m24-global-intelligence-reader-integration`.
-- **Base:** `origin/main` at `8a3726e` (includes merged GPIR-OPS-01, PR #311).
-- **Implementation status:** READY FOR REVIEW. Completion date: PENDING owner merge.
-- **Completed:** Added `region:europe`/`region:americas`/`region:latam`/`region:africa`
-  registry records over the existing sepa/americas/latam/africa country-metadata
-  files and existing `pages/regions/*.html`; gave `country:united-kingdom` its
-  first REGION relationship (closes backlog `REGION-002`); added 46 new
-  trusted-source registry entries (GCC, Europe/UK, North America, LATAM, Africa,
-  CIS/Central Asia) as inactive/manual-discovery-only — no new machine-readable
-  endpoint is claimed because this session's network egress was unavailable to
-  live-verify one; extended the deterministic payments-relevance keyword set
-  (payment orchestration, ISO 20022, acquiring, PSP/MSB/MTO, payment licensing);
-  added a read-only `scripts/gpir-source-health-report.js`; added
-  `scripts/test-m24-reader-integration.js` proving an existing qualified record
-  (`rbi-payments-vision-2028`) already connects to Global Announcements,
-  Country/Region association, Search GPIR indexing, ASK GPIR context and
-  lifecycle/provenance without duplication, plus dedup, source-failure isolation
-  and historical-retention checks against the newly expanded registry.
-- **Files modified:** `assets/data/content-registry.json`,
-  `assets/data/trusted-sources.json`, `scripts/propose-intelligence-candidates.js`,
-  `scripts/test-intelligence-radar.js`, `docs/PROJECT_STATUS.md`,
-  `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`.
-- **Files created:** `scripts/gpir-source-health-report.js`,
-  `scripts/test-m24-reader-integration.js`.
-- **Local validation:** See the M24 milestone entry in
+- **Milestone:** M28-FX — FX Pricing & Treasury Intelligence.
+- **Category / owner:** Reader Experience / Data / Automation; Vishal Krishnan.
+- **Objective:** A compact automated FX ticker plus a full FX Pricing & Treasury
+  reader section (Currency Explorer, Treasury Intelligence, Weekly Trends,
+  immutable daily Historical archive) built on a provider-adapter architecture
+  with no fabricated/synthetic/stale-as-live rates. M24–M27 were already
+  occupied milestone numbers (verified against this log and the backlog before
+  choosing M28).
+- **Working branch:** `work/m28-fx-pricing-treasury-intelligence` (local only —
+  this milestone's instructions explicitly said not to push/create a PR).
+- **Base:** `origin/main` at `27df7c5` (includes the merged Global Announcements
+  freshness fix, PR #322).
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED, NOT PUSHED.
+  Completion date: PENDING owner review of the local branch.
+- **Completed:** Provider-adapter architecture (`scripts/fx/providers/` —
+  `reference.js` real, keyless, reusing the same `open.er-api.com` endpoint
+  the pre-existing client-side ticker already called in production;
+  `xe.js`/`ibrlive.js`/`lseg.js`/`bloomberg.js` genuine contract stubs that
+  report `NO_PROVIDER_CONFIGURED` cleanly and refuse to guess at an
+  unverified vendor request shape); previous-business-day variance engine
+  with weekend/holiday-aware rollover (`scripts/fx/business-day.js`);
+  deterministic normalization/validation with anomaly quarantine
+  (`scripts/fx/normalize-validate.js`); snapshot orchestrator with provider
+  failover and one-time-per-day historical freezing that never overwrites an
+  existing archive file (`scripts/fx/generate-fx-snapshot.js`); deterministic
+  weekly-observation engine with no invented commentary
+  (`scripts/fx/weekly-summary.js`); CI-style validator
+  (`scripts/validate-fx.js`); an 8-group regression suite
+  (`scripts/test-fx.js`); a static page generator producing the Live FX hub,
+  Currency Explorer, Treasury Intelligence, Weekly Trends, Historical archive
+  and one page per featured pair (`scripts/generate-fx-pages.js`,
+  `pages/fx/**`); a redesigned compact homepage ticker reading the generated
+  snapshot instead of fetching a provider directly from the browser
+  (`assets/js/fx-ticker.js`), a lazy-loading reader app for all FX views
+  (`assets/js/fx-app.js`), and menu/ribbon integration into the existing
+  mega-menu and `#fx-ribbon` (no redundant top-level menu added); a scheduled
+  GitHub Actions workflow (`.github/workflows/fx-market-data.yml`); and
+  `docs/FX_PRICING_TREASURY.md`.
+- **No-Credential Mode verified for real, not simulated:** this session had no
+  provider credentials and no network egress (confirmed by a live
+  `EGRESS_BLOCKED`/HTTP 403 result from `scripts/fx/generate-fx-snapshot.js`
+  itself). The committed `assets/data/fx/current.json` is the genuine output
+  of that real run — every record `dataStatus: NO_PROVIDER_CONFIGURED`, every
+  rate field `null` — not a placeholder. The same code will reach the
+  keyless reference provider successfully once run on a GitHub Actions
+  runner with normal internet access.
+- **Files modified:** `index.html` (mega-menu entries, `#fx-ribbon` heading/
+  link, cache-bust version bumps), `assets/js/fx-ticker.js`,
+  `assets/css/market.css`, `docs/PROJECT_STATUS.md`,
+  `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`, plus a version-string
+  bump applied mechanically to 80 existing pages that already load
+  `fx-ticker.js`/`market.css`.
+- **Files created:** `assets/data/fx/fx-config.json`,
+  `scripts/fx/business-day.js`, `scripts/fx/normalize-validate.js`,
+  `scripts/fx/ticker-format.js`, `scripts/fx/weekly-summary.js`,
+  `scripts/fx/generate-fx-snapshot.js`,
+  `scripts/fx/providers/{index,reference,xe,ibrlive,lseg,bloomberg,licensed-provider-base}.js`,
+  `scripts/validate-fx.js`, `scripts/test-fx.js`, `scripts/generate-fx-pages.js`,
+  `assets/js/fx-app.js`, `pages/fx/{index,explorer,treasury,weekly,historical}.html`,
+  `pages/fx/pairs/*.html` (26 pages, one per featured pair),
+  `docs/FX_PRICING_TREASURY.md`. Generated data artifacts:
+  `assets/data/fx/current.json`, `assets/data/fx/weekly-summary.json`.
+- **Governance correction applied:** `fx-market-data.yml` initially committed
+  validated snapshots directly to `main`; this was corrected before any push
+  to align with `continuous-intelligence.yml`'s existing branch/PR review
+  pattern — it now pushes to `automation/fx-snapshot` and proposes a PR,
+  degrading gracefully (branch pushed, warning logged) rather than failing
+  the run if PR auto-creation is unavailable. `main` is never written
+  directly. See `docs/FX_PRICING_TREASURY.md`'s "Publication model" section.
+- **Local validation:** See the M28-FX milestone entry in
   [MASTER_PROJECT_LOG.md](MASTER_PROJECT_LOG.md) for the full command list and
-  results.
-- **Remote handoff / PR / Actions:** See the M24 milestone entry for branch/
-  commit/PR state; GitHub Actions and Vishal review/merge remain required. No
-  worker merge is authorized.
-- **Constraints / production impact:** Data/script/documentation only; no
-  runtime page, hosting, DNS, CNAME or workflow file changed. No new public
-  announcement was published. No fabricated source, endpoint or validation
-  result was introduced.
-- **Reconciled production baseline:** M20–M23.1A and GPIR-OPS-01 are merged.
-  `CNAME` at `origin/main` still contains `fintechoisis.com`. DNS ownership and
-  live browser acceptance were not independently re-audited by this milestone.
+  results — all passed.
+- **Remote handoff / PR / Actions:** None — not pushed, no PR, per this
+  milestone's explicit instruction. The branch exists only in this local
+  checkout; Vishal must push/PR/merge it, or ask for that explicitly.
+- **Constraints / production impact:** No DNS/hosting/CNAME change. The
+  homepage ticker's visual behavior and data source changed (see above); no
+  existing GPIR navigation, header, footer, design language, validator or
+  deployment architecture was replaced.
+- **Reconciled production baseline:** M20–M27C, GPIR-OPS-01 and the Global
+  Announcements freshness fix (PR #322) are merged. `CNAME` at `origin/main`
+  still contains `fintechoisis.com`.
 
-The master log's 2026-09-08 M24 entry supersedes stale current-status claims
-below. Those snapshots remain as historical evidence, not active development gates.
+The master log's 2026-09-08 M28-FX entry supersedes stale current-status
+claims below. Those snapshots remain as historical evidence, not active
+development gates.
 
 ## Earlier status snapshot — retained for history
 

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "schemaNote": "GPIR FX Pricing & Treasury configuration. featuredPairs is the curated ticker/homepage universe -- it is data, not code, so it can be expanded without touching any script. providerPriority mirrors scripts/fx/providers/index.js's PROVIDER_PRIORITY order and exists here only so reader-facing pages and scripts/validate-fx.js can describe/check it without importing Node modules into a browser context.",
+  "featuredPairs": [
+    "USD/INR", "EUR/INR", "GBP/INR", "AED/INR", "SGD/INR", "AUD/INR", "CAD/INR", "JPY/INR", "CNY/INR",
+    "EUR/USD", "GBP/USD", "USD/JPY", "USD/CNY", "USD/CHF", "USD/CAD", "USD/HKD", "USD/AED", "USD/SGD",
+    "USD/SAR", "USD/QAR", "USD/KWD", "USD/BHD", "USD/OMR",
+    "EUR/GBP", "AUD/USD", "NZD/USD"
+  ],
+  "providerPriority": ["lseg", "bloomberg", "xe", "ibrlive", "reference-open-er-api"],
+  "providerLabels": {
+    "lseg": "LSEG licensed market-data feed",
+    "bloomberg": "Bloomberg licensed market-data feed",
+    "xe": "XE Currency Data API",
+    "ibrlive": "IBRLive API",
+    "reference-open-er-api": "Open Exchange Rate API (reference rates, not executable quotes)"
+  },
+  "refreshFrequencyMinutes": 60,
+  "staleAfterMinutesByProviderType": {
+    "live": 60,
+    "reference": 1440,
+    "fallback": 4320
+  },
+  "extremeMovePercentThreshold": 8,
+  "maxLookbackDaysForPreviousBusinessClose": 10,
+  "disclaimer": "FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice."
+}

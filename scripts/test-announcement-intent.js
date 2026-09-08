@@ -66,7 +66,9 @@ historicalRecords.forEach(record => {
   assert(fs.existsSync(pagePath), `${record.id} historical page must remain searchable and present`);
   assert(fs.readFileSync(pagePath, "utf8").includes("ARCHIVED PUBLICATION"), `${record.id} historical page must display ARCHIVED PUBLICATION`);
 });
-assert(archiveHtml.includes("Last validated publication cycle:") && archiveHtml.includes("Refresh automation:</strong> Not yet scheduled"), "archive must use truthful freshness wording");
+const freshnessLine = (archiveHtml.match(/<p class="announcement-archive-freshness">.*?<\/p>/s) || [""])[0];
+assert(freshnessLine.includes("Last validated publication cycle:") && freshnessLine.includes("Candidate discovery automation:</strong> Scheduled every 2 hours via GitHub Actions") && freshnessLine.includes("publication remains human-reviewed"), "archive must truthfully reflect the existing scheduled discovery automation without claiming automatic publication");
+assert(!freshnessLine.includes("Refresh automation:</strong> Not yet scheduled") && !/real-time|live feed|continuous(?!\s+intelligence)/i.test(freshnessLine), "freshness line must not claim automation is unscheduled when it is, or overclaim real-time/continuous/live coverage");
 assert(!archiveHtml.includes("Verified Dataset") && !archiveHtml.includes("Refreshed:"), "archive must not present stale data as a current refresh");
 assert(announcements.records.every(record => fs.existsSync(path.join(ROOT, "pages/intelligence", `${record.id}.html`)) || record.status !== "GPIR_CLASSIFIED"), "published announcement search targets must resolve");
 const fatf = announcements.records.find(record => record.id === "fatf-r16-consultation-2026");
