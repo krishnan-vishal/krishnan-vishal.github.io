@@ -185,10 +185,12 @@ function renderTicker(){
 
     if(updated){
 
-        const label = window.GPIRI18n ? window.GPIRI18n.t("ticker.last_updated") : "Last Updated";
         const generatedAt = fxSnapshotCache.generatedAt ? new Date(fxSnapshotCache.generatedAt) : null;
         updated.textContent = generatedAt && !isNaN(generatedAt.getTime())
-            ? label + ": " + generatedAt.toLocaleString()
+            ? "Updated " + generatedAt.toLocaleString("en-GB", {
+                day: "2-digit", month: "short", year: "numeric",
+                hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
+            }).replace("Sept", "Sep")
             : "";
 
     }

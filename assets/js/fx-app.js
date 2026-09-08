@@ -49,6 +49,19 @@
         return `${glyph} ${sign}${value.toFixed(2)}%`;
     }
 
+    function formatObservationDate(value){
+        if(!value) return "the first published snapshot";
+        const date = new Date(`${value}T00:00:00Z`);
+        if(isNaN(date.getTime())) return escapeHtml(value);
+        return date.toLocaleDateString("en-GB", {
+            day: "2-digit", month: "short", year: "numeric", timeZone: "UTC"
+        }).replace("Sept", "Sep");
+    }
+
+    function buildingHistoryMessage(snapshot){
+        return `Building observation history — first GPIR snapshot published ${formatObservationDate(snapshot && snapshot.publicationDate)}.`;
+    }
+
     function directionClass(direction){
         if(direction === "up") return "fx-up";
         if(direction === "down") return "fx-down";
@@ -199,18 +212,21 @@
     function renderWeekly(){
         const list = document.getElementById("fx-weekly-list");
         if(!list) return;
-        fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] })).then(data => {
+        Promise.all([
+            fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] })),
+            loadCurrentSnapshot()
+        ]).then(([data, snapshot]) => {
             const summaries = data.summaries || [];
             if(!summaries.length){
-                list.innerHTML = `<p class="fx-empty-note">No weekly summaries are available yet -- GPIR builds these from archived daily closes, and no day has been archived yet.</p>`;
+                list.innerHTML = `<p class="fx-empty-note">${buildingHistoryMessage(snapshot)}</p>`;
                 return;
             }
             list.innerHTML = summaries.map(summary => `
                 <a class="fx-weekly-card" href="${pagePrefix()}pages/fx/pairs/${pairSlug(summary.pair)}.html">
                     <span class="fx-pair-card-pair">${escapeHtml(summary.pair)}</span>
-                    <span class="fx-weekly-completeness">${escapeHtml(summary.dataCompleteness)}</span>
+                    <span class="fx-weekly-completeness">${summary.dataCompleteness === "NO_DATA" ? "Building history" : escapeHtml(summary.dataCompleteness)}</span>
                     ${summary.weeklyChangePercent !== null ? `<span class="fx-pair-card-change">${formatPercent(summary.weeklyChangePercent)}</span>` : `<span class="fx-pair-card-change">—</span>`}
-                    <p class="fx-weekly-statement">${escapeHtml((summary.statements || [])[0] || "Insufficient history for a weekly observation.")}</p>
+                    <p class="fx-weekly-statement">${summary.dataCompleteness === "NO_DATA" ? buildingHistoryMessage(snapshot) : escapeHtml((summary.statements || [])[0] || "Weekly observation pending.")}</p>
                 </a>
             `).join("");
         });
@@ -296,22 +312,26 @@
             const rate = Number.isFinite(record.mid) ? record.mid : record.last;
             const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? (record.ask - record.bid).toFixed(4) : "N/A";
             const rows = [
-                ["LAST / MID", formatRate(rate, pair)],
-                ["BID", formatRate(record.bid, pair)],
-                ["ASK", formatRate(record.ask, pair)],
-                ["SPREAD", spread],
-                ["SPOT", formatRate(record.spot, pair)],
-                ["TOM", formatRate(record.tom, pair)],
-                ["CASH BUY", formatRate(record.cashBuy, pair)],
-                ["CASH SELL", formatRate(record.cashSell, pair)],
-                ["Previous Business Day Close", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair)} (${escapeHtml(record.previousBusinessDate)})` : "—"],
-                ["Absolute Variance", Number.isFinite(record.absoluteChange) ? record.absoluteChange.toFixed(4) : "—"],
-                ["Percentage Variance", formatPercent(record.percentageChange)],
-                ["Rate Type", record.rateType === "derived-cross" ? "Derived cross-rate" : "Provider-native"],
-                ["Provider", record.provider || "None configured"],
-                ["Timestamp (UTC)", record.timestamp ? new Date(record.timestamp).toISOString() : "N/A"],
-                ["GPIR Retrieved", record.gpirRetrievedAt ? new Date(record.gpirRetrievedAt).toISOString() : "N/A"]
+                ["LAST / MID", formatRate(rate, pair), ""],
+                ["BID", formatRate(record.bid, pair), Number.isFinite(record.bid) ? "" : "fx-detail-row--unavailable"],
+                ["ASK", formatRate(record.ask, pair), Number.isFinite(record.ask) ? "" : "fx-detail-row--unavailable"],
+                ["SPREAD", spread, spread === "N/A" ? "fx-detail-row--unavailable" : ""],
+                ["SPOT", formatRate(record.spot, pair), Number.isFinite(record.spot) ? "" : "fx-detail-row--unavailable"],
+                ["TOM", formatRate(record.tom, pair), Number.isFinite(record.tom) ? "" : "fx-detail-row--unavailable"],
+                ["CASH BUY", formatRate(record.cashBuy, pair), Number.isFinite(record.cashBuy) ? "" : "fx-detail-row--unavailable"],
+                ["CASH SELL", formatRate(record.cashSell, pair), Number.isFinite(record.cashSell) ? "" : "fx-detail-row--unavailable"],
+                ["Previous Business Day Close", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair)} (${escapeHtml(record.previousBusinessDate)})` : "—", record.previousBusinessDate ? "" : "fx-detail-row--pending"],
+                ["Absolute Variance", Number.isFinite(record.absoluteChange) ? record.absoluteChange.toFixed(4) : "—", Number.isFinite(record.absoluteChange) ? "" : "fx-detail-row--pending"],
+                ["Percentage Variance", formatPercent(record.percentageChange), Number.isFinite(record.percentageChange) ? "" : "fx-detail-row--pending"],
+                ["Rate Type", record.rateType === "derived-cross" ? "Derived cross-rate" : "Provider-native", ""],
+                ["Provider", record.provider || "None configured", ""],
+                ["Timestamp (UTC)", record.timestamp ? new Date(record.timestamp).toISOString() : "N/A", ""],
+                ["GPIR Retrieved", record.gpirRetrievedAt ? new Date(record.gpirRetrievedAt).toISOString() : "N/A", ""]
             ];
+
+            const hasUnavailableMarketFields = [record.bid, record.ask, record.spot, record.tom, record.cashBuy, record.cashSell]
+                .some(value => !Number.isFinite(value));
+            const hasPendingVariance = !record.previousBusinessDate || !Number.isFinite(record.absoluteChange) || !Number.isFinite(record.percentageChange);
 
             const sourceLegsNote = record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
                 ? `<p class="fx-source-legs">Derived from: ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} (${escapeHtml(record.provider)}). This is a GPIR-computed cross-rate, not a provider-native quote.</p>`
@@ -327,13 +347,15 @@
                     ${statusBadge(record.dataStatus)}
                 </div>
                 <table class="fx-detail-table"><tbody>
-                    ${rows.map(([label, value]) => `<tr><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}
+                    ${rows.map(([label, value, rowClass]) => `<tr${rowClass ? ` class="${rowClass}"` : ""}><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}
                 </tbody></table>
+                ${hasUnavailableMarketFields ? `<p class="fx-data-note">Bid/Ask, Spot/TOM and Cash Buy/Sell are unavailable from the current reference-rate provider. These fields will populate when an authorised market-data source supporting them is configured.</p>` : ""}
+                ${hasPendingVariance ? `<p class="fx-variance-note">Variance becomes available after the next valid business-day snapshot.</p>` : ""}
                 ${sourceLegsNote}
                 <section class="fx-weekly-section">
                     <h3>7-day trend</h3>
-                    ${sparklinePoints.length ? buildSparkline(sparklinePoints) : "<p class=\"fx-empty-note\">Insufficient archived history for a 7-day trend yet.</p>"}
-                    ${summary ? `<p>${escapeHtml((summary.statements || [])[0] || "")}</p><p>${escapeHtml((summary.statements || [])[1] || "")}</p>` : ""}
+                    ${sparklinePoints.length ? buildSparkline(sparklinePoints) : `<p class="fx-empty-note">${buildingHistoryMessage(snapshot)}</p>`}
+                    ${summary && summary.dataCompleteness !== "NO_DATA" ? `<p>${escapeHtml((summary.statements || [])[0] || "")}</p><p>${escapeHtml((summary.statements || [])[1] || "")}</p>` : ""}
                 </section>
                 <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View the GPIR Historical Archive for this pair's past daily observations →</a></p>
             `;
