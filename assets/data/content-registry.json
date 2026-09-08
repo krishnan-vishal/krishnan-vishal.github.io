@@ -126,7 +126,9 @@
         "value": "United Kingdom"
       },
       "page": "pages/countries/uk.html",
-      "relationships": []
+      "relationships": [
+        { "type": "REGION", "target": "region:europe" }
+      ]
     },
     {
       "id": "dashboard:uae",
@@ -236,6 +238,68 @@
         "value": "apac"
       },
       "page": "pages/regions/apac.html",
+      "relationships": []
+    },
+    {
+      "id": "region:europe",
+      "contentType": "REGION",
+      "title": "Europe / SEPA",
+      "slug": "europe",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/sepa-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "europe"
+      },
+      "page": "pages/regions/europe.html",
+      "relationships": [
+        { "type": "COUNTRY", "target": "country:united-kingdom" }
+      ]
+    },
+    {
+      "id": "region:americas",
+      "contentType": "REGION",
+      "title": "Americas (North America / Caribbean)",
+      "slug": "americas",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/americas-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "americas"
+      },
+      "page": "pages/regions/americas.html",
+      "relationships": []
+    },
+    {
+      "id": "region:latam",
+      "contentType": "REGION",
+      "title": "LATAM",
+      "slug": "latam",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/latam-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "latam"
+      },
+      "page": "pages/regions/latam.html",
+      "relationships": []
+    },
+    {
+      "id": "region:africa",
+      "contentType": "REGION",
+      "title": "Africa",
+      "slug": "africa",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/africa-countries.json",
+        "collection": "region",
+        "key": "region",
+        "value": "africa"
+      },
+      "page": "pages/regions/africa.html",
       "relationships": []
     },
     {

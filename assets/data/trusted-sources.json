@@ -4,7 +4,9 @@
     {
       "id": "cbuae",
       "organization": "Central Bank of the UAE (CBUAE)",
-      "officialDomains": ["centralbank.ae"],
+      "officialDomains": [
+        "centralbank.ae"
+      ],
       "country": "United Arab Emirates",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
@@ -13,7 +15,9 @@
     {
       "id": "spa-gov-sa",
       "organization": "Saudi Press Agency (SPA)",
-      "officialDomains": ["spa.gov.sa"],
+      "officialDomains": [
+        "spa.gov.sa"
+      ],
       "country": "Saudi Arabia",
       "tier": 2,
       "sourceType": "Official Government News Agency",
@@ -22,7 +26,9 @@
     {
       "id": "newsonair-gov-in",
       "organization": "NewsOnAir (Government of India / Prasar Bharati)",
-      "officialDomains": ["newsonair.gov.in"],
+      "officialDomains": [
+        "newsonair.gov.in"
+      ],
       "country": "India",
       "tier": 2,
       "sourceType": "Official Government News Agency",
@@ -31,7 +37,10 @@
     {
       "id": "rbi",
       "organization": "Reserve Bank of India (RBI)",
-      "officialDomains": ["rbi.org.in", "rbidocs.rbi.org.in"],
+      "officialDomains": [
+        "rbi.org.in",
+        "rbidocs.rbi.org.in"
+      ],
       "country": "India",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
@@ -40,7 +49,10 @@
     {
       "id": "rbi-press-releases",
       "organization": "Reserve Bank of India (RBI)",
-      "officialDomains": ["rbi.org.in", "rbidocs.rbi.org.in"],
+      "officialDomains": [
+        "rbi.org.in",
+        "rbidocs.rbi.org.in"
+      ],
       "country": "India",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
@@ -51,7 +63,13 @@
       "endpointVerifiedDate": "2026-09-07",
       "isoCountryCode": "IN",
       "region": "South Asia",
-      "topicCoverage": ["PAYMENTS_REGULATION", "BANKING_REGULATION", "AML_CFT", "CBDC", "FX_INFRASTRUCTURE"],
+      "topicCoverage": [
+        "PAYMENTS_REGULATION",
+        "BANKING_REGULATION",
+        "AML_CFT",
+        "CBDC",
+        "FX_INFRASTRUCTURE"
+      ],
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": true,
       "retrievalPriority": "HIGH",
@@ -63,7 +81,10 @@
     {
       "id": "rbi-notifications",
       "organization": "Reserve Bank of India (RBI)",
-      "officialDomains": ["rbi.org.in", "rbidocs.rbi.org.in"],
+      "officialDomains": [
+        "rbi.org.in",
+        "rbidocs.rbi.org.in"
+      ],
       "country": "India",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
@@ -74,7 +95,12 @@
       "endpointVerifiedDate": "2026-09-07",
       "isoCountryCode": "IN",
       "region": "South Asia",
-      "topicCoverage": ["PAYMENTS_REGULATION", "LICENSING", "AML_CFT", "FX_INFRASTRUCTURE"],
+      "topicCoverage": [
+        "PAYMENTS_REGULATION",
+        "LICENSING",
+        "AML_CFT",
+        "FX_INFRASTRUCTURE"
+      ],
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": true,
       "retrievalPriority": "HIGH",
@@ -86,7 +112,9 @@
     {
       "id": "ecb-mid",
       "organization": "European Central Bank (ECB)",
-      "officialDomains": ["ecb.europa.eu"],
+      "officialDomains": [
+        "ecb.europa.eu"
+      ],
       "country": "European Union",
       "tier": 1,
       "sourceType": "Central Bank / Payment Infrastructure",
@@ -97,7 +125,12 @@
       "endpointVerifiedDate": "2026-09-07",
       "isoCountryCode": null,
       "region": "Europe / SEPA",
-      "topicCoverage": ["PAYMENT_INFRASTRUCTURE", "CLEARING_SETTLEMENT", "CBDC", "FINANCIAL_MARKET_INFRASTRUCTURE"],
+      "topicCoverage": [
+        "PAYMENT_INFRASTRUCTURE",
+        "CLEARING_SETTLEMENT",
+        "CBDC",
+        "FINANCIAL_MARKET_INFRASTRUCTURE"
+      ],
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": true,
       "retrievalPriority": "HIGH",
@@ -109,7 +142,10 @@
     {
       "id": "hkma-press-releases",
       "organization": "Hong Kong Monetary Authority (HKMA)",
-      "officialDomains": ["hkma.gov.hk", "api.hkma.gov.hk"],
+      "officialDomains": [
+        "hkma.gov.hk",
+        "api.hkma.gov.hk"
+      ],
       "country": "Hong Kong",
       "tier": 1,
       "sourceType": "Central Bank / Financial Regulator",
@@ -120,7 +156,14 @@
       "endpointVerifiedDate": "2026-09-07",
       "isoCountryCode": "HK",
       "region": "APAC",
-      "topicCoverage": ["PAYMENTS_REGULATION", "PAYMENT_SECURITY", "AML_CFT", "CARDS", "WALLETS", "FINTECH"],
+      "topicCoverage": [
+        "PAYMENTS_REGULATION",
+        "PAYMENT_SECURITY",
+        "AML_CFT",
+        "CARDS",
+        "WALLETS",
+        "FINTECH"
+      ],
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": true,
       "retrievalPriority": "HIGH",
@@ -132,7 +175,9 @@
     {
       "id": "mas-sg",
       "organization": "Monetary Authority of Singapore (MAS)",
-      "officialDomains": ["mas.gov.sg"],
+      "officialDomains": [
+        "mas.gov.sg"
+      ],
       "country": "Singapore",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
@@ -141,7 +186,9 @@
     {
       "id": "swift",
       "organization": "Swift",
-      "officialDomains": ["swift.com"],
+      "officialDomains": [
+        "swift.com"
+      ],
       "country": "Global",
       "tier": 2,
       "sourceType": "Payment Network",
@@ -150,7 +197,9 @@
     {
       "id": "mastercard",
       "organization": "Mastercard",
-      "officialDomains": ["mastercard.com"],
+      "officialDomains": [
+        "mastercard.com"
+      ],
       "country": "Global",
       "tier": 2,
       "sourceType": "Payment Network",
@@ -159,7 +208,9 @@
     {
       "id": "fatf",
       "organization": "Financial Action Task Force (FATF)",
-      "officialDomains": ["fatf-gafi.org"],
+      "officialDomains": [
+        "fatf-gafi.org"
+      ],
       "country": "Global",
       "tier": 1,
       "sourceType": "International Standard-Setting Body",
@@ -782,6 +833,880 @@
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
       "discoveryNote": "Discovery reference only: automated access unavailable/restricted; no verified permission-free feed. No paywall or access bypass."
+    },
+    {
+      "id": "cbb-bahrain",
+      "organization": "Central Bank of Bahrain (CBB)",
+      "officialDomains": [
+        "cbb.gov.bh"
+      ],
+      "country": "Bahrain",
+      "isoCountryCode": "BH",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbb.gov.bh/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbo-oman",
+      "organization": "Central Bank of Oman (CBO)",
+      "officialDomains": [
+        "cbo.gov.om"
+      ],
+      "country": "Oman",
+      "isoCountryCode": "OM",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbo.gov.om/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbk-kuwait",
+      "organization": "Central Bank of Kuwait (CBK)",
+      "officialDomains": [
+        "cbk.gov.kw"
+      ],
+      "country": "Kuwait",
+      "isoCountryCode": "KW",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbk.gov.kw/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "qcb-qatar",
+      "organization": "Qatar Central Bank (QCB)",
+      "officialDomains": [
+        "qcb.gov.qa"
+      ],
+      "country": "Qatar",
+      "isoCountryCode": "QA",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.qcb.gov.qa/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbj-jordan",
+      "organization": "Central Bank of Jordan (CBJ)",
+      "officialDomains": [
+        "cbj.gov.jo"
+      ],
+      "country": "Jordan",
+      "isoCountryCode": "JO",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbj.gov.jo/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbe-egypt",
+      "organization": "Central Bank of Egypt (CBE)",
+      "officialDomains": [
+        "cbe.org.eg"
+      ],
+      "country": "Egypt",
+      "isoCountryCode": "EG",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbe.org.eg/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bdl-lebanon",
+      "organization": "Banque du Liban (Central Bank of Lebanon)",
+      "officialDomains": [
+        "bdl.gov.lb"
+      ],
+      "country": "Lebanon",
+      "isoCountryCode": "LB",
+      "region": "Middle East / GCC",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bdl.gov.lb/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "boe-uk",
+      "organization": "Bank of England",
+      "officialDomains": [
+        "bankofengland.co.uk"
+      ],
+      "country": "United Kingdom",
+      "isoCountryCode": "GB",
+      "region": "SEPA / UK",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bankofengland.co.uk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "fca-uk",
+      "organization": "Financial Conduct Authority (FCA)",
+      "officialDomains": [
+        "fca.org.uk"
+      ],
+      "country": "United Kingdom",
+      "isoCountryCode": "GB",
+      "region": "SEPA / UK",
+      "tier": 1,
+      "sourceType": "Financial Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.fca.org.uk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "psr-uk",
+      "organization": "Payment Systems Regulator (PSR)",
+      "officialDomains": [
+        "psr.org.uk"
+      ],
+      "country": "United Kingdom",
+      "isoCountryCode": "GB",
+      "region": "SEPA / UK",
+      "tier": 1,
+      "sourceType": "Financial Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.psr.org.uk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "eba-eu",
+      "organization": "European Banking Authority (EBA)",
+      "officialDomains": [
+        "eba.europa.eu"
+      ],
+      "country": "European Union",
+      "isoCountryCode": null,
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Financial Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.eba.europa.eu/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "banque-de-france",
+      "organization": "Banque de France",
+      "officialDomains": [
+        "banque-france.fr"
+      ],
+      "country": "France",
+      "isoCountryCode": "FR",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.banque-france.fr/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bundesbank",
+      "organization": "Deutsche Bundesbank",
+      "officialDomains": [
+        "bundesbank.de"
+      ],
+      "country": "Germany",
+      "isoCountryCode": "DE",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bundesbank.de/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "banca-ditalia",
+      "organization": "Banca d'Italia",
+      "officialDomains": [
+        "bancaditalia.it"
+      ],
+      "country": "Italy",
+      "isoCountryCode": "IT",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bancaditalia.it/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "banco-de-espana",
+      "organization": "Banco de España",
+      "officialDomains": [
+        "bde.es"
+      ],
+      "country": "Spain",
+      "isoCountryCode": "ES",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bde.es/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "dnb-netherlands",
+      "organization": "De Nederlandsche Bank (DNB)",
+      "officialDomains": [
+        "dnb.nl"
+      ],
+      "country": "Netherlands",
+      "isoCountryCode": "NL",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.dnb.nl/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "nbb-belgium",
+      "organization": "National Bank of Belgium (NBB)",
+      "officialDomains": [
+        "nbb.be"
+      ],
+      "country": "Belgium",
+      "isoCountryCode": "BE",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.nbb.be/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "snb-switzerland",
+      "organization": "Swiss National Bank (SNB)",
+      "officialDomains": [
+        "snb.ch"
+      ],
+      "country": "Switzerland",
+      "isoCountryCode": "CH",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.snb.ch/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "riksbank-sweden",
+      "organization": "Sveriges Riksbank",
+      "officialDomains": [
+        "riksbank.se"
+      ],
+      "country": "Sweden",
+      "isoCountryCode": "SE",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.riksbank.se/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "norges-bank",
+      "organization": "Norges Bank",
+      "officialDomains": [
+        "norges-bank.no"
+      ],
+      "country": "Norway",
+      "isoCountryCode": "NO",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.norges-bank.no/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "nationalbanken-denmark",
+      "organization": "Danmarks Nationalbank",
+      "officialDomains": [
+        "nationalbanken.dk"
+      ],
+      "country": "Denmark",
+      "isoCountryCode": "DK",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.nationalbanken.dk/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "nbp-poland",
+      "organization": "Narodowy Bank Polski (NBP)",
+      "officialDomains": [
+        "nbp.pl"
+      ],
+      "country": "Poland",
+      "isoCountryCode": "PL",
+      "region": "Europe / SEPA",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.nbp.pl/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "epc-sepa",
+      "organization": "European Payments Council (EPC)",
+      "officialDomains": [
+        "europeanpaymentscouncil.eu"
+      ],
+      "country": "European Union",
+      "isoCountryCode": null,
+      "region": "Europe / SEPA",
+      "tier": 2,
+      "sourceType": "Payment Infrastructure / Operator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.europeanpaymentscouncil.eu/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "federal-reserve",
+      "organization": "Board of Governors of the Federal Reserve System",
+      "officialDomains": [
+        "federalreserve.gov"
+      ],
+      "country": "United States",
+      "isoCountryCode": "US",
+      "region": "North America",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.federalreserve.gov/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "fincen-us",
+      "organization": "Financial Crimes Enforcement Network (FinCEN)",
+      "officialDomains": [
+        "fincen.gov"
+      ],
+      "country": "United States",
+      "isoCountryCode": "US",
+      "region": "North America",
+      "tier": 1,
+      "sourceType": "AML / FIU",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.fincen.gov/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "the-clearing-house",
+      "organization": "The Clearing House (RTP network operator)",
+      "officialDomains": [
+        "theclearinghouse.org"
+      ],
+      "country": "United States",
+      "isoCountryCode": "US",
+      "region": "North America",
+      "tier": 2,
+      "sourceType": "Payment Infrastructure / Operator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.theclearinghouse.org/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bank-of-canada",
+      "organization": "Bank of Canada",
+      "officialDomains": [
+        "bankofcanada.ca"
+      ],
+      "country": "Canada",
+      "isoCountryCode": "CA",
+      "region": "North America",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bankofcanada.ca/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "fintrac-canada",
+      "organization": "Financial Transactions and Reports Analysis Centre of Canada (FINTRAC)",
+      "officialDomains": [
+        "fintrac-canafe.gc.ca"
+      ],
+      "country": "Canada",
+      "isoCountryCode": "CA",
+      "region": "North America",
+      "tier": 1,
+      "sourceType": "AML / FIU",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.fintrac-canafe.gc.ca/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "payments-canada",
+      "organization": "Payments Canada",
+      "officialDomains": [
+        "payments.ca"
+      ],
+      "country": "Canada",
+      "isoCountryCode": "CA",
+      "region": "North America",
+      "tier": 2,
+      "sourceType": "Payment Infrastructure / Operator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.payments.ca/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "banxico-mexico",
+      "organization": "Banco de México (Banxico)",
+      "officialDomains": [
+        "banxico.org.mx"
+      ],
+      "country": "Mexico",
+      "isoCountryCode": "MX",
+      "region": "North America",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.banxico.org.mx/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bcb-brazil",
+      "organization": "Banco Central do Brasil (BCB)",
+      "officialDomains": [
+        "bcb.gov.br"
+      ],
+      "country": "Brazil",
+      "isoCountryCode": "BR",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bcb.gov.br/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bcra-argentina",
+      "organization": "Banco Central de la República Argentina (BCRA)",
+      "officialDomains": [
+        "bcra.gob.ar"
+      ],
+      "country": "Argentina",
+      "isoCountryCode": "AR",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bcra.gob.ar/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bcentral-chile",
+      "organization": "Banco Central de Chile",
+      "officialDomains": [
+        "bcentral.cl"
+      ],
+      "country": "Chile",
+      "isoCountryCode": "CL",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bcentral.cl/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "banrep-colombia",
+      "organization": "Banco de la República (Colombia)",
+      "officialDomains": [
+        "banrep.gov.co"
+      ],
+      "country": "Colombia",
+      "isoCountryCode": "CO",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.banrep.gov.co/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bcrp-peru",
+      "organization": "Banco Central de Reserva del Perú (BCRP)",
+      "officialDomains": [
+        "bcrp.gob.pe"
+      ],
+      "country": "Peru",
+      "isoCountryCode": "PE",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bcrp.gob.pe/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bcu-uruguay",
+      "organization": "Banco Central del Uruguay (BCU)",
+      "officialDomains": [
+        "bcu.gub.uy"
+      ],
+      "country": "Uruguay",
+      "isoCountryCode": "UY",
+      "region": "LATAM",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bcu.gub.uy/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "sarb-south-africa",
+      "organization": "South African Reserve Bank (SARB)",
+      "officialDomains": [
+        "resbank.co.za"
+      ],
+      "country": "South Africa",
+      "isoCountryCode": "ZA",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.resbank.co.za/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbn-nigeria",
+      "organization": "Central Bank of Nigeria (CBN)",
+      "officialDomains": [
+        "cbn.gov.ng"
+      ],
+      "country": "Nigeria",
+      "isoCountryCode": "NG",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbn.gov.ng/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbk-kenya",
+      "organization": "Central Bank of Kenya (CBK)",
+      "officialDomains": [
+        "centralbank.go.ke"
+      ],
+      "country": "Kenya",
+      "isoCountryCode": "KE",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.centralbank.go.ke/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bog-ghana",
+      "organization": "Bank of Ghana",
+      "officialDomains": [
+        "bog.gov.gh"
+      ],
+      "country": "Ghana",
+      "isoCountryCode": "GH",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bog.gov.gh/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bank-al-maghrib",
+      "organization": "Bank Al-Maghrib (Central Bank of Morocco)",
+      "officialDomains": [
+        "bkam.ma"
+      ],
+      "country": "Morocco",
+      "isoCountryCode": "MA",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bkam.ma/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bot-tanzania",
+      "organization": "Bank of Tanzania",
+      "officialDomains": [
+        "bot.go.tz"
+      ],
+      "country": "Tanzania",
+      "isoCountryCode": "TZ",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bot.go.tz/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bou-uganda",
+      "organization": "Bank of Uganda",
+      "officialDomains": [
+        "bou.or.ug"
+      ],
+      "country": "Uganda",
+      "isoCountryCode": "UG",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bou.or.ug/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "bnr-rwanda",
+      "organization": "National Bank of Rwanda (BNR)",
+      "officialDomains": [
+        "bnr.rw"
+      ],
+      "country": "Rwanda",
+      "isoCountryCode": "RW",
+      "region": "Africa",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.bnr.rw/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "nbk-kazakhstan",
+      "organization": "National Bank of Kazakhstan",
+      "officialDomains": [
+        "nationalbank.kz"
+      ],
+      "country": "Kazakhstan",
+      "isoCountryCode": "KZ",
+      "region": "CIS / Central Asia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.nationalbank.kz/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+    },
+    {
+      "id": "cbu-uzbekistan",
+      "organization": "Central Bank of the Republic of Uzbekistan",
+      "officialDomains": [
+        "cbu.uz"
+      ],
+      "country": "Uzbekistan",
+      "isoCountryCode": "UZ",
+      "region": "CIS / Central Asia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "sourceRole": "PRIMARY",
+      "lastVerifiedDate": "2026-09-08",
+      "discoveryPage": "https://www.cbu.uz/",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
     }
   ]
 }

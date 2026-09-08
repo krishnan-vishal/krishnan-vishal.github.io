@@ -2,39 +2,52 @@
 
 ## Current handoff
 
-- **Milestone:** GPIR-OPS-01 — Cloud-First Development, Tool Handoff & Master Control.
-- **Category / owner:** Platform / Operations / Governance; Vishal Krishnan.
-- **Objective:** Make development cloud-first, tool-neutral and recoverable through
-  GitHub branches, preserving human approval and production independence.
-- **Working branch:** `work/gpir-ops-01-cloud-handoff-master-control`.
-- **Base:** `origin/main` at `7190552`, fetched 2026-09-08; clean before branch creation.
+- **Milestone:** M24 — Global Intelligence Coverage & Reader Integration.
+- **Category / owner:** Intelligence / Reader Capability; Vishal Krishnan.
+- **Objective:** Expand the existing GPIR intelligence radar beyond APAC (GCC,
+  Europe/UK, North America, LATAM, Africa, CIS/Central Asia gaps) and connect
+  qualified intelligence more completely across Global Announcements, Country/
+  Region association, Search GPIR and ASK GPIR, using only the existing
+  architecture. Does not rebuild M20–M23.1A, Search GPIR, ASK GPIR or GPIR-OPS-01.
+- **Working branch:** `work/m24-global-intelligence-reader-integration`.
+- **Base:** `origin/main` at `8a3726e` (includes merged GPIR-OPS-01, PR #311).
 - **Implementation status:** READY FOR REVIEW. Completion date: PENDING owner merge.
-- **Completed:** Inspected existing governance, reused the status/log/backlog model,
-  consolidated start/continue/submit/complete/recover SOP, added common worker
-  handoff/approval rules and reconciled recent milestones against Git history and
-  GitHub check metadata. No new repository governance document or framework.
-- **Files modified:** `AGENTS.md`, `docs/DEVELOPMENT_GOVERNANCE.md`,
-  `docs/PROJECT_STATUS.md`, `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`.
-- **Files created:** None in the repository.
-- **Local validation:** PASS — git diff --check; six added relative Markdown links/anchors; five-file documentation-only scope; high-confidence secret scan and manual private-data/diff review. Existing runtime/publication files are unchanged.
-- **Latest implementation commit:** `60115c7`; find by subject
-  `GPIR-OPS-01 Establish cloud-first tool-neutral development control` on this branch.
-- **Remote handoff / PR / Actions:** PUSH FAILED / NOT CREATED / NOT RUN.
-- **Known blocker:** Branch push exited 1 without diagnostic output on 2026-09-08.
-  Earlier local credential-store failures are known, but this attempt's cause is
-  unconfirmed. Remote lookup found no branch. Do not infer remote durability from
-  a local commit. Recovery bundle is BCP only; no claim of cloud handoff completion.
-- **Remaining / next dependency:** Restore authenticated push, prepare/create PR;
-  GitHub Actions and Vishal review/merge. No worker merge is authorized.
-- **Constraints / production impact:** Documentation only; no runtime, data,
-  lifecycle, source, hosting, DNS, CNAME or workflow changes. Existing Pages and
-  last-known-good production remain independent of AI/development tools.
-- **Reconciled production baseline:** M20–M23.1A are merged; M23.1A is PR #305,
-  implementation `42fb2a6`, merge `14b3815`. `CNAME` at `7190552` contains
-  `fintechoisis.com`; Pages deployment and integrity checks succeeded for that
-  commit. DNS ownership and live browser acceptance were not independently audited.
+- **Completed:** Added `region:europe`/`region:americas`/`region:latam`/`region:africa`
+  registry records over the existing sepa/americas/latam/africa country-metadata
+  files and existing `pages/regions/*.html`; gave `country:united-kingdom` its
+  first REGION relationship (closes backlog `REGION-002`); added 46 new
+  trusted-source registry entries (GCC, Europe/UK, North America, LATAM, Africa,
+  CIS/Central Asia) as inactive/manual-discovery-only — no new machine-readable
+  endpoint is claimed because this session's network egress was unavailable to
+  live-verify one; extended the deterministic payments-relevance keyword set
+  (payment orchestration, ISO 20022, acquiring, PSP/MSB/MTO, payment licensing);
+  added a read-only `scripts/gpir-source-health-report.js`; added
+  `scripts/test-m24-reader-integration.js` proving an existing qualified record
+  (`rbi-payments-vision-2028`) already connects to Global Announcements,
+  Country/Region association, Search GPIR indexing, ASK GPIR context and
+  lifecycle/provenance without duplication, plus dedup, source-failure isolation
+  and historical-retention checks against the newly expanded registry.
+- **Files modified:** `assets/data/content-registry.json`,
+  `assets/data/trusted-sources.json`, `scripts/propose-intelligence-candidates.js`,
+  `scripts/test-intelligence-radar.js`, `docs/PROJECT_STATUS.md`,
+  `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`.
+- **Files created:** `scripts/gpir-source-health-report.js`,
+  `scripts/test-m24-reader-integration.js`.
+- **Local validation:** See the M24 milestone entry in
+  [MASTER_PROJECT_LOG.md](MASTER_PROJECT_LOG.md) for the full command list and
+  results.
+- **Remote handoff / PR / Actions:** See the M24 milestone entry for branch/
+  commit/PR state; GitHub Actions and Vishal review/merge remain required. No
+  worker merge is authorized.
+- **Constraints / production impact:** Data/script/documentation only; no
+  runtime page, hosting, DNS, CNAME or workflow file changed. No new public
+  announcement was published. No fabricated source, endpoint or validation
+  result was introduced.
+- **Reconciled production baseline:** M20–M23.1A and GPIR-OPS-01 are merged.
+  `CNAME` at `origin/main` still contains `fintechoisis.com`. DNS ownership and
+  live browser acceptance were not independently re-audited by this milestone.
 
-The master log's 2026-09-08 reconciliation supersedes stale current-status claims
+The master log's 2026-09-08 M24 entry supersedes stale current-status claims
 below. Those snapshots remain as historical evidence, not active development gates.
 
 ## Earlier status snapshot — retained for history
