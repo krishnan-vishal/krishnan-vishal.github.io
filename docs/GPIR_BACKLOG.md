@@ -346,3 +346,15 @@ with status `SUPERSEDED`; they are not silently removed.
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | M-23.1 | 2026-09-07 | Scale continuous Global Intelligence Radar controls | AUTOMATION, INTELLIGENCE, SCALING, SECURITY | High | IMPLEMENTED / PENDING CI | M-23 merged source activation | Stage 1 | trusted-source registry, candidate proposal builder, workflow, content contract | Establish bounded, data-driven source readiness, payment relevance and deterministic event identity without a second scheduler or publication system. | Rolling <=24-hour target is documented without a real-time claim; healthy sources continue after failures; only relevant, new, non-public candidates are proposed; public current/historical content remains untouched. | Adds HKMA official JSON press releases, registry operational metadata, relevance filtering, event-fingerprint deduplication and workflow source-health reporting. Wider verified source coverage is deferred. | 2026-09-07 | Pending commit | M-23.1 |
+
+## GPIR-OPS-01 — operations control
+
+- Raised: 2026-09-08. Category: GOVERNANCE / AUTOMATION. Owner: Vishal Krishnan.
+- Status: IN PROGRESS; review readiness is tracked in PROJECT_STATUS.md.
+- Objective: cloud-first, tool-neutral GitHub branch handoff; preserve production isolation and human approval.
+- Branch: `work/gpir-ops-01-cloud-handoff-master-control`; base `7190552`.
+- Acceptance: existing governance extended; durable handoff fields and recovery SOP discoverable through AGENTS; recent milestones reconciled without fabrication; documentation checks pass; branch/PR/Actions states recorded honestly.
+- Delivered: documentation implementation in AGENTS and the existing governance/status/master-log/backlog files; no new service or framework.
+- Remaining: final review, commit/push, PR, Actions and owner approval. Completion date/PR: PENDING.
+- Blocker: authentication may prevent local push; no claim of remote durability before confirmed.
+- Next dependency: authenticated GitHub handoff and human-controlled merge. No application feature work authorized by this item.
