@@ -245,13 +245,49 @@ TICKER AREA
 
     align-items:center;
 
-    gap:18px;
+    gap:0;
 
-    padding:0 18px;
+    padding:0 8px;
 
     white-space:nowrap;
 
     animation:tickerMove 60s linear infinite;
+
+}
+
+#fx-ribbon .market-title{
+
+    padding:0 12px;
+    font-size:10px;
+    letter-spacing:.55px;
+
+}
+
+#fx-ribbon .market-time{
+
+    justify-content:flex-start;
+    gap:8px;
+    min-width:0;
+    padding:0 10px;
+    font-size:10px;
+    line-height:1.2;
+    white-space:nowrap;
+
+}
+
+#fx-ribbon .market-time a{
+
+    color:#ffffff;
+    font-weight:600;
+    text-decoration:none;
+
+}
+
+#fx-ribbon .market-time a:hover,
+#fx-ribbon .market-time a:focus-visible{
+
+    color:var(--color-primary);
+    text-decoration:underline;
 
 }
 
@@ -658,9 +694,9 @@ carried by glyph + text, never colour alone.
 
     display:inline-flex;
     align-items:center;
-    gap:6px;
-    padding:0 14px;
-    font-size:13px;
+    gap:5px;
+    padding:0 9px;
+    font-size:12px;
     line-height:1;
     color:#ffffff;
     text-decoration:none;
@@ -737,10 +773,10 @@ carried by glyph + text, never colour alone.
     gap:4px;
     padding:14px 16px;
     border-radius:10px;
-    border:1px solid rgba(0,0,0,.08);
-    background:var(--color-surface, #fff);
+    border:1px solid #d9d4c7;
+    background:#fbf8f0;
     text-decoration:none;
-    color:inherit;
+    color:#0b2742;
     transition:transform .15s ease, box-shadow .15s ease;
 
 }
@@ -820,7 +856,11 @@ carried by glyph + text, never colour alone.
 }
 
 .fx-status-badge--live{ color:#1a9d63; }
-.fx-status-badge--reference{ color:#7a5c00; }
+.fx-status-badge--reference{
+    color:#0b2742;
+    background:#d4af37;
+    border-color:#b58d1d;
+}
 .fx-status-badge--delayed{ color:#a15c00; }
 .fx-status-badge--stale,
 .fx-status-badge--provider_unavailable_served_last_known_good{ color:#c94141; }
@@ -908,9 +948,10 @@ carried by glyph + text, never colour alone.
     gap:4px;
     padding:12px 14px;
     border-radius:10px;
-    border:1px solid rgba(0,0,0,.08);
+    border:1px solid #d9d4c7;
+    background:#fbf8f0;
     text-decoration:none;
-    color:inherit;
+    color:#0b2742;
     width:100%;
 
 }
@@ -941,9 +982,10 @@ carried by glyph + text, never colour alone.
     gap:4px;
     padding:14px 16px;
     border-radius:10px;
-    border:1px solid rgba(0,0,0,.08);
+    border:1px solid #d9d4c7;
+    background:#fbf8f0;
     text-decoration:none;
-    color:inherit;
+    color:#0b2742;
 
 }
 
@@ -1020,6 +1062,35 @@ carried by glyph + text, never colour alone.
 
 }
 
+.fx-detail-row--unavailable th,
+.fx-detail-row--unavailable td,
+.fx-detail-row--pending th,
+.fx-detail-row--pending td{
+
+    color:#68717c;
+
+}
+
+.fx-detail-row--unavailable td,
+.fx-detail-row--pending td{
+
+    font-weight:500;
+
+}
+
+.fx-data-note,
+.fx-variance-note{
+
+    margin:8px 0 0;
+    padding:9px 12px;
+    border-left:3px solid #d4af37;
+    background:#fbf8f0;
+    color:#4a5568;
+    font-size:13px;
+    line-height:1.5;
+
+}
+
 .fx-pair-detail-header{
 
     display:flex;
@@ -1092,9 +1163,9 @@ carried by glyph + text, never colour alone.
 
     .fx-ticker-item{
 
-        padding:0 10px;
+        padding:0 8px;
         font-size:12px;
-        gap:4px;
+        gap:3px;
 
     }
 

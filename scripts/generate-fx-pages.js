@@ -76,7 +76,8 @@ function loadTemplate(){
     if(heroIdx === -1 || footerIdx === -1){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
-    const headerBlockTemplate = templateSource.slice(0, heroIdx);
+    const headerBlockTemplate = templateSource.slice(0, heroIdx)
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260908b");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -86,8 +87,8 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260908a"></script>`
-    );
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260908b"></script>`
+    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260908b");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
     const TEMPLATE_CANONICAL_URL = "https://krishnan-vishal.github.io/pages/legal/privacy-policy.html";
@@ -174,8 +175,13 @@ ${footerBlock}`;
 
 function main(){
     const config = readJson(CONFIG_PATH);
+    const currentSnapshot = readJson(path.join(ROOT, "assets/data/fx/current.json"));
     const pairs = config.featuredPairs || [];
     const historyDates = listHistoryDates();
+    const firstSnapshotDate = [currentSnapshot.publicationDate, ...historyDates].filter(Boolean).sort()[0];
+    const formattedFirstSnapshotDate = firstSnapshotDate
+        ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${firstSnapshotDate}T00:00:00Z`)).replace("Sept", "Sep")
+        : "the first published snapshot";
     const template = loadTemplate();
 
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -265,7 +271,7 @@ function main(){
             const [, m, d] = date.split("-");
             return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}">${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}</a></li>`;
         }).join("")}</ul></section>`;
-    }).join("") || `<p class="fx-empty-note">No daily historical snapshots have been frozen yet. GPIR freezes the previous day's validated snapshot the first time a new day's generation run completes -- see docs/FX_PRICING_TREASURY.md.</p>`;
+    }).join("") || `<p class="fx-empty-note">Building observation history — first GPIR snapshot published ${escapeHtml(formattedFirstSnapshotDate)}.</p>`;
     const historicalHtml = assemblePage({
         template,
         title: "FX Historical Archive",
