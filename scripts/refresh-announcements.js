@@ -82,11 +82,12 @@ function extractFeedItems(text, contentType = "") {
             }
 
             return items;
-        } catch {
-            return [];
+        } catch (error) {
+            throw new Error(`SOURCE_PARSE_FAILED: ${error.message}`);
         }
     }
 
+    if (!/<(?:rss|feed|rdf:RDF)\b/i.test(text)) throw new Error("SOURCE_PARSE_FAILED: expected RSS, Atom or JSON");
     const xmlItems = text.match(/<(item|entry)\b[\s\S]*?<\/\1>/gi) || [];
 
     for (const block of xmlItems) {
@@ -105,17 +106,22 @@ function extractFeedItems(text, contentType = "") {
 
         if (title && linkMatch) {
             items.push({
-                title: decodeEntities(title.replace(/<[^>]+>/g, "").trim()),
-                url: decodeEntities((linkMatch[1] || "").trim()),
-                publicationDate: pubDate ? decodeEntities(pubDate.trim()) : null,
+                title: feedText(title),
+                url: feedText(linkMatch[1] || ""),
+                publicationDate: pubDate ? feedText(pubDate) : null,
                 summary: summary
-                    ? decodeEntities(summary.replace(/<[^>]+>/g, "").trim())
+                    ? feedText(summary)
                     : ""
             });
         }
     }
 
     return items;
+}
+
+function feedText(value) {
+    return decodeEntities(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+        .replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
 
 function decodeEntities(value) {
@@ -131,13 +137,13 @@ function decodeEntities(value) {
 async function inspectSource(source) {
     const endpoint = source.refreshEndpoint || null;
 
-    if (!endpoint) {
+    if (!endpoint || source.active === false) {
         return {
             sourceId: source.id,
             sourceName: source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint: null,
-            status: "NOT_CONFIGURED",
+            status: source.discoveryStatus === "SOURCE_UNSUPPORTED" ? "SOURCE_UNSUPPORTED" : "NOT_CONFIGURED",
             discovered: []
         };
     }
@@ -212,7 +218,7 @@ async function inspectSource(source) {
             sourceName: source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint,
-            status: "ENDPOINT_UNAVAILABLE",
+            status: error.message.startsWith("SOURCE_PARSE_FAILED:") ? "SOURCE_PARSE_FAILED" : "ENDPOINT_UNAVAILABLE",
             error: error.message,
             discovered: []
         };
@@ -260,4 +266,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { hostAllowed, inspectSource, inspectSources };
+module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems };

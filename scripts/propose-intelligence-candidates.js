@@ -45,13 +45,11 @@ function candidateId(sourceId, sourceUrl) {
     return `candidate-${sourceId}-${fingerprint}`;
 }
 
-const PAYMENT_RELEVANCE = /\b(payment|payments|payment system|payment service|payment rail|payment infrastructure|remittance|money movement|money transfer|instant payment|real-time payment|rtp|a2a|account-to-account|clearing|settlement|card|wallet|open banking|open finance|cbdc|central bank digital currency|digital currency|stablecoin|tokeni[sz]ed money|financial crime|anti-money laundering|money laundering|aml|cft|kyc|kyb|sanction|fraud|financial market infrastructure|fintech|cross-border|foreign exchange|\bfx\b)\b/i;
-
 function normalizedEventTitle(value) {
     return String(value || "")
         .toLowerCase()
         .replace(/&amp;/g, "and")
-        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
         .trim();
 }
 
@@ -65,12 +63,20 @@ function eventFingerprint(item) {
 }
 
 function isPaymentsRelevant(item) {
-    return PAYMENT_RELEVANCE.test(`${item.title || ""}\n${item.summary || ""}`);
+    const text = `${item.title || ""}\n${item.summary || ""}`;
+    const specific = /\b(payments?|remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money)\b/i;
+    const generic = /\b(earnings|stock market|investment outlook|government securit(?:y|ies)|dated securities|reference rates|insurance|mortgage|lending)\b/i;
+    if (generic.test(item.title || "") && !specific.test(item.title || "")) return false;
+    return specific.test(text) || (/\b(clearing|settlement|interoperability|sanctions?|aml|cft|kyc|kyb|fraud|digital assets?|digital banking|foreign exchange|fx|fintech)\b/i.test(text)
+        && /\b(payments?|remittances?|money movement|cross-border|infrastructure|payment networks?)\b/i.test(text));
 }
 
 function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
     const sourceUrl = canonicalUrl(item.url);
     const publicationDate = dateOnly(item.publicationDate);
+    if (!String(item.title || "").trim() || !sourceUrl || !sourceUrl.startsWith("https://")) {
+        throw new Error(`CANDIDATE_VALIDATION_FAILED: ${source.id}: non-empty title and HTTPS item URL required`);
+    }
     return {
         id: candidateId(source.id, sourceUrl),
         referenceId: candidateId(source.id, sourceUrl),
@@ -81,14 +87,18 @@ function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
         contentStatus: "CONTENT_UNDER_REVIEW",
         sourceOrgId: source.id,
         sourceAuthority: source.organization || source.id,
+        discoveredVia: { sourceOrgId: source.id, sourceUrl, discoveryEndpoint },
+        sourceRole: source.sourceRole || "PRIMARY",
+        originalSource: source.sourceRole === "SECONDARY" ? null : { sourceOrgId: source.id, sourceUrl },
+        validationStatus: "AWAITING_HUMAN_VALIDATION",
         countryId: country ? country.id : null,
-        countryIsoAlpha2: country ? country.isoAlpha2 : null,
-        region: country ? country.region : null,
+        countryIsoAlpha2: country ? country.isoAlpha2 : source.isoCountryCode || null,
+        region: country ? country.region : source.region || null,
         sourceName: source.organization || source.id,
         sourceUrl,
         discoveryEndpoint,
         title: item.title,
-        summary: item.summary || null,
+        summary: source.sourceRole === "SECONDARY" ? null : item.summary || null,
         sourcePublicationDate: publicationDate,
         sourcePublicationDateRaw: item.publicationDate || null,
         effectiveDate: null,
@@ -98,7 +108,7 @@ function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
         supersededBy: null,
         audit: {
             discoveredAt: retrievedAt,
-            sourceValidatedAt: retrievedAt,
+            sourceDomainCheckedAt: retrievedAt,
             discoveryEndpoint,
             reviewState: "PENDING_HUMAN_REVIEW"
         }
@@ -121,7 +131,7 @@ async function main() {
     const knownEventFingerprints = new Set(existingCandidates
         .map(candidate => candidate.eventFingerprint)
         .filter(Boolean));
-    const counters = { nonRelevant: 0, duplicateUrl: 0, duplicateEvent: 0 };
+    const counters = { nonRelevant: 0, duplicateUrl: 0, duplicateEvent: 0, queueCapacity: 0 };
 
     reports.forEach(report => {
         if (report.status !== "RETRIEVED_REVIEW_REQUIRED") return;
@@ -143,6 +153,11 @@ async function main() {
             const fingerprint = eventFingerprint(item);
             if (knownEventFingerprints.has(fingerprint)) {
                 counters.duplicateEvent += 1;
+                return;
+            }
+            // Stop admitting new records, never truncate retained intelligence.
+            if (existingCandidates.length + additions.length >= 5000) {
+                counters.queueCapacity += 1;
                 return;
             }
             knownUrls.add(sourceUrl);
@@ -176,7 +191,8 @@ async function main() {
         discoveryTarget: "<=24 hours where source availability and endpoint reliability permit; not universal real-time coverage",
         sourceReports: reports.map(result => ({
             sourceId: result.sourceId,
-            status: result.status,
+            status: result.status === "RETRIEVED_REVIEW_REQUIRED" && !(result.discovered || []).some(isPaymentsRelevant)
+                ? "NO_RELEVANT_ITEMS" : result.status,
             discoveredCount: (result.discovered || []).length,
             finalUrl: result.finalUrl || null
         }))
@@ -191,4 +207,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate };

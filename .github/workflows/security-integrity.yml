@@ -27,6 +27,9 @@ jobs:
       - name: Validate structured content
         run: node scripts/validate-content.js
 
+      - name: Test intelligence discovery contracts
+        run: node scripts/test-intelligence-radar.js
+
       - name: Validate internal HTML links
         run: node scripts/validate-links.js
 

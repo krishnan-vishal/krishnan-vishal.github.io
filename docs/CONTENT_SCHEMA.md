@@ -152,6 +152,28 @@ items out and prevents repeated URLs or a matching event discovered through a
 second approved source from becoming duplicate candidate records. No AI-only
 similarity determines event identity.
 
+M23.1A unwraps XML CDATA before stripping markup, so RSS titles remain intact.
+Generated empty titles and non-HTTPS candidate links are genuine failures;
+validation is not suppressed. The existing proposal branch incorporates reviewed
+main changes before discovery so it cannot indefinitely run an obsolete parser.
+
+Sources may declare `sourceRole` (`PRIMARY` or `SECONDARY`), `verificationUrl`,
+`discoveryPage`, `discoveryStatus` and `discoveryNote`. A known source without an
+approved feed is inactive / `SOURCE_UNSUPPORTED`, not an invented RSS endpoint.
+New candidates retain `discoveredVia`, `sourceRole`, `originalSource` and
+`validationStatus: AWAITING_HUMAN_VALIDATION`. Secondary originals remain null
+until human resolution, and secondary article summaries are not copied into the
+queue. Domain checks use `audit.sourceDomainCheckedAt`, not a misleading content
+validation timestamp. Existing legacy candidate provenance remains valid.
+
+The queue admits at most 5,000 records and reports capacity deferrals without
+deleting retained records or marking deferred items as seen. Review is required
+to manage capacity; no age-based archival or removal of published intelligence
+is introduced. Identical URLs and normalized title/date events remain deduplicated;
+non-Latin titles retain their characters. The existing two-hour scheduler and
+availability-dependent 24-hour target remain unchanged. Language coverage of the
+deterministic relevance vocabulary is still primarily English.
+
 ## Canonical content registry
 
 **File:** `assets/data/content-registry.json`
