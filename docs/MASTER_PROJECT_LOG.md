@@ -2406,3 +2406,10 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - Validation: PASS — git diff --check; six added relative Markdown links/anchors; five documentation-only paths; high-confidence secret scan and manual private-data/diff review.
 - Existing generation/publication contracts remain intact by unchanged-file scope; runtime tests were not rerun for documentation-only edits.
 - Commit/push/PR: pending submission. Actions: NOT RUN. Vishal approval remains required.
+
+### GPIR-OPS-01 — submission checkpoint
+
+- Date: 2026-09-08. Implementation commit: 60115c7. Status: READY FOR REVIEW.
+- Push failed with exit 1 and no diagnostic output; remote branch lookup returned no branch. Cause of this attempt is unconfirmed; prior local credential-store failures are known.
+- PR: NOT CREATED; GitHub Actions: NOT RUN. Branch remains local, not a durable cloud handoff.
+- Remaining: authenticated push and PR, Actions, then Vishal review/merge. A recovery bundle is BCP only. Production unchanged.
