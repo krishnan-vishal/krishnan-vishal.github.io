@@ -77,7 +77,7 @@ function loadTemplate(){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
     const headerBlockTemplate = templateSource.slice(0, heroIdx)
-        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260908b");
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260908c");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -87,8 +87,8 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260908b"></script>`
-    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260908b");
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260908c"></script>`
+    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260908c");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
     const TEMPLATE_CANONICAL_URL = "https://krishnan-vishal.github.io/pages/legal/privacy-policy.html";
@@ -154,7 +154,7 @@ function subNav(active, depth){
 function assemblePage({ template, title, description, urlPath, heroTitle, heroIntro, breadcrumbLabel, activeNav, depth, bodyHtml }){
     const headerBlock = buildHeaderBlock(template, { title, description, urlPath, depth });
     const footerBlock = rewriteForDepth(template.footerBlock, depth);
-    const html = `${headerBlock}<section class="chapter-hero">
+    const html = `${headerBlock}<section class="chapter-hero fx-page-hero">
     <div class="container">
         ${breadcrumb(breadcrumbLabel, depth)}
         <span class="chapter-part-tag">FX Pricing &amp; Treasury</span>
@@ -163,7 +163,7 @@ function assemblePage({ template, title, description, urlPath, heroTitle, heroIn
         ${subNav(activeNav, depth)}
     </div>
 </section>
-<section class="chapter-body">
+<section class="chapter-body fx-page-body">
     <div class="container">
 ${bodyHtml}
         ${DISCLAIMER_HTML}
@@ -194,7 +194,7 @@ function main(){
         description: "Compact live FX pricing, currency-pair intelligence, weekly trends and immutable daily historical rates from GPIR.",
         urlPath: "pages/fx/index.html",
         heroTitle: "FX Pricing & Treasury",
-        heroIntro: "A curated universe of currency pairs with previous-business-day variance, source attribution and freshness status. GPIR does not attempt to render every currency in the world simultaneously -- see Currency Explorer for full search.",
+        heroIntro: `Current GPIR reference rates, status and business-day variance for ${pairs.length} covered currency pairs.`,
         breadcrumbLabel: "Live FX",
         activeNav: "Live FX",
         depth: 2,
@@ -212,7 +212,7 @@ function main(){
         description: "Search and select any GPIR-covered currency pair for full pricing, spread, spot/TOM/cash and variance detail.",
         urlPath: "pages/fx/explorer.html",
         heroTitle: "Currency Explorer",
-        heroIntro: "Search by currency code or pair (USD, INR, EUR/USD, AED/INR) to open a pair's full FX intelligence view.",
+        heroIntro: "Search by currency code or pair to open its current GPIR FX intelligence view.",
         breadcrumbLabel: "Currency Explorer",
         activeNav: "Currency Explorer",
         depth: 2,
@@ -231,7 +231,7 @@ function main(){
         description: "Treasury-relevant FX groupings: GCC pegged/managed currencies, major crosses and USD funding pairs from GPIR's curated universe.",
         urlPath: "pages/fx/treasury.html",
         heroTitle: "Treasury Intelligence",
-        heroIntro: "Curated groupings of the featured FX universe relevant to corporate and payments treasury workflows -- GCC pegged/managed currencies, major crosses and USD funding pairs.",
+        heroIntro: "Treasury-focused groupings for GCC currencies, INR corridors, major crosses and USD funding pairs.",
         breadcrumbLabel: "Treasury Intelligence",
         activeNav: "Treasury Intelligence",
         depth: 2,
@@ -248,11 +248,11 @@ function main(){
         description: "Deterministic weekly quantitative FX observations per currency pair -- open, high, low, change and range, computed from GPIR's own archived history.",
         urlPath: "pages/fx/weekly.html",
         heroTitle: "Weekly FX Trends",
-        heroIntro: "Deterministic quantitative observations only -- GPIR does not attribute a cause to a price movement unless a properly sourced record explains one.",
+        heroIntro: "Validated GPIR observations only, with no inferred market drivers or synthetic trends.",
         breadcrumbLabel: "Weekly Trends",
         activeNav: "Weekly Trends",
         depth: 2,
-        bodyHtml: `        <div id="fx-weekly-list" class="fx-weekly-list" data-fx-view="weekly" aria-live="polite">
+        bodyHtml: `        <div id="fx-weekly-list" class="fx-weekly-list" data-fx-view="weekly" data-fx-first-snapshot-date="${escapeHtml(firstSnapshotDate)}" aria-live="polite">
             <p class="fx-loading">Loading weekly summaries…</p>
         </div>`
     });
@@ -278,7 +278,7 @@ function main(){
         description: "Immutable daily FX snapshots by year and month, and per-pair historical observations.",
         urlPath: "pages/fx/historical.html",
         heroTitle: "FX Historical Archive",
-        heroIntro: "Daily snapshots are immutable once frozen -- a normal refresh run never rewrites a previously published day. Select a date or a currency pair to view its recorded rates.",
+        heroIntro: "Select an immutable daily snapshot to view its recorded GPIR reference rates.",
         breadcrumbLabel: "Historical",
         activeNav: "Historical",
         depth: 2,
@@ -297,11 +297,11 @@ function main(){
             description: `${pair} live pricing, previous-business-day variance, weekly trend and historical observations from GPIR.`,
             urlPath: `pages/fx/pairs/${slug}.html`,
             heroTitle: `${pair} FX Intelligence`,
-            heroIntro: `Pricing, previous-business-day variance, weekly trend and source attribution for ${pair}.`,
+            heroIntro: `Current reference rate, business-day variance and source attribution for ${pair}.`,
             breadcrumbLabel: pair,
             activeNav: "Currency Explorer",
             depth: 3,
-            bodyHtml: `        <div class="fx-pair-detail" data-fx-view="pair-detail" data-fx-pair="${escapeHtml(pair)}" aria-live="polite">
+            bodyHtml: `        <div class="fx-pair-detail" data-fx-view="pair-detail" data-fx-pair="${escapeHtml(pair)}" data-fx-first-snapshot-date="${escapeHtml(firstSnapshotDate)}" aria-live="polite">
             <p class="fx-loading">Loading ${escapeHtml(pair)}…</p>
         </div>`
         });

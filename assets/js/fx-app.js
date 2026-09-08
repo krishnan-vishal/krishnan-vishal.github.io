@@ -49,6 +49,10 @@
         return `${glyph} ${sign}${value.toFixed(2)}%`;
     }
 
+    function formatCardVariance(value){
+        return Number.isFinite(value) ? formatPercent(value) : "Variance pending";
+    }
+
     function formatObservationDate(value){
         if(!value) return "the first published snapshot";
         const date = new Date(`${value}T00:00:00Z`);
@@ -58,8 +62,8 @@
         }).replace("Sept", "Sep");
     }
 
-    function buildingHistoryMessage(snapshot){
-        return `Building observation history — first GPIR snapshot published ${formatObservationDate(snapshot && snapshot.publicationDate)}.`;
+    function buildingHistoryMessage(snapshot, firstSnapshotDate){
+        return `Building observation history — first GPIR snapshot published ${formatObservationDate(firstSnapshotDate || (snapshot && snapshot.publicationDate))}.`;
     }
 
     function directionClass(direction){
@@ -112,7 +116,7 @@
                 <a class="fx-pair-card ${directionClass(record.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
                     <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
                     <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
-                    <span class="fx-pair-card-change">${formatPercent(record.percentageChange)}</span>
+                    <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
                     ${statusBadge(record.dataStatus)}
                 </a>
             `).join("");
@@ -144,7 +148,7 @@
                         <li role="option"><a href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
                             <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
                             <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
-                            <span class="fx-pair-card-change">${formatPercent(record.percentageChange)}</span>
+                            <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
                             ${statusBadge(record.dataStatus)}
                         </a></li>
                     `).join("")
@@ -197,7 +201,8 @@
                             <a class="fx-pair-card ${directionClass(record.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
                                 <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
                                 <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
-                                <span class="fx-pair-card-change">${formatPercent(record.percentageChange)}</span>
+                                <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
+                                ${statusBadge(record.dataStatus)}
                             </a>
                         `).join("")}
                     </div>
@@ -212,23 +217,31 @@
     function renderWeekly(){
         const list = document.getElementById("fx-weekly-list");
         if(!list) return;
+        const firstSnapshotDate = list.getAttribute("data-fx-first-snapshot-date");
         Promise.all([
             fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] })),
             loadCurrentSnapshot()
         ]).then(([data, snapshot]) => {
             const summaries = data.summaries || [];
             if(!summaries.length){
-                list.innerHTML = `<p class="fx-empty-note">${buildingHistoryMessage(snapshot)}</p>`;
+                list.innerHTML = `<p class="fx-empty-note">${buildingHistoryMessage(snapshot, firstSnapshotDate)}</p>`;
                 return;
             }
-            list.innerHTML = summaries.map(summary => `
-                <a class="fx-weekly-card" href="${pagePrefix()}pages/fx/pairs/${pairSlug(summary.pair)}.html">
-                    <span class="fx-pair-card-pair">${escapeHtml(summary.pair)}</span>
-                    <span class="fx-weekly-completeness">${summary.dataCompleteness === "NO_DATA" ? "Building history" : escapeHtml(summary.dataCompleteness)}</span>
-                    ${summary.weeklyChangePercent !== null ? `<span class="fx-pair-card-change">${formatPercent(summary.weeklyChangePercent)}</span>` : `<span class="fx-pair-card-change">—</span>`}
-                    <p class="fx-weekly-statement">${summary.dataCompleteness === "NO_DATA" ? buildingHistoryMessage(snapshot) : escapeHtml((summary.statements || [])[0] || "Weekly observation pending.")}</p>
-                </a>
-            `).join("");
+            const recordsByPair = new Map((snapshot.pairs || []).map(record => [record.pair, record]));
+            const sinceDate = formatObservationDate(firstSnapshotDate || snapshot.publicationDate);
+            list.innerHTML = summaries.map(summary => {
+                const record = recordsByPair.get(summary.pair);
+                const isBuilding = !Number.isFinite(summary.weeklyChangePercent);
+                return `
+                    <a class="fx-weekly-card ${directionClass(summary.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(summary.pair)}.html">
+                        <span class="fx-pair-card-pair">${escapeHtml(summary.pair)}</span>
+                        ${statusBadge(record && record.dataStatus)}
+                        <span class="fx-weekly-completeness">${isBuilding ? "Building history" : `7D ${formatPercent(summary.weeklyChangePercent)}`}</span>
+                        ${isBuilding
+                            ? `<p class="fx-weekly-statement">Since ${sinceDate}</p>`
+                            : `<p class="fx-weekly-metrics">High ${formatRate(summary.high, summary.pair)} · Low ${formatRate(summary.low, summary.pair)}</p>`}
+                    </a>`;
+            }).join("");
         });
     }
 
@@ -299,6 +312,7 @@
         const container = document.querySelector('[data-fx-view="pair-detail"]');
         if(!container) return;
         const pair = container.getAttribute("data-fx-pair");
+        const firstSnapshotDate = container.getAttribute("data-fx-first-snapshot-date");
 
         Promise.all([loadCurrentSnapshot(), fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] }))]).then(([snapshot, weeklyData]) => {
             const record = (snapshot.pairs || []).find(item => item.pair === pair);
@@ -337,8 +351,8 @@
                 ? `<p class="fx-source-legs">Derived from: ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} (${escapeHtml(record.provider)}). This is a GPIR-computed cross-rate, not a provider-native quote.</p>`
                 : "";
 
-            const sparklinePoints = summary && summary.dataCompleteness !== "NO_DATA"
-                ? [{ rate: summary.weeklyStartLevel }, { rate: summary.latestRate }]
+            const sparklinePoints = summary && Array.isArray(summary.observations)
+                ? summary.observations.filter(point => Number.isFinite(point.rate))
                 : [];
 
             container.innerHTML = `
@@ -354,7 +368,7 @@
                 ${sourceLegsNote}
                 <section class="fx-weekly-section">
                     <h3>7-day trend</h3>
-                    ${sparklinePoints.length ? buildSparkline(sparklinePoints) : `<p class="fx-empty-note">${buildingHistoryMessage(snapshot)}</p>`}
+                    ${sparklinePoints.length ? buildSparkline(sparklinePoints) : `<p class="fx-empty-note">${buildingHistoryMessage(snapshot, firstSnapshotDate)}</p>`}
                     ${summary && summary.dataCompleteness !== "NO_DATA" ? `<p>${escapeHtml((summary.statements || [])[0] || "")}</p><p>${escapeHtml((summary.statements || [])[1] || "")}</p>` : ""}
                 </section>
                 <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View the GPIR Historical Archive for this pair's past daily observations →</a></p>
