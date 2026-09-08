@@ -563,6 +563,92 @@
       }
     },
     {
+      "id": "candidate-hkma-press-releases-8a74f881fbc6e64a",
+      "referenceId": "candidate-hkma-press-releases-8a74f881fbc6e64a",
+      "eventFingerprint": "fd58c43ba8683dddf9fd5261",
+      "lifecycleStatus": "DEVELOPING",
+      "publicationStatus": "NOT_PUBLISHED",
+      "status": "PENDING_HUMAN_REVIEW",
+      "contentStatus": "CONTENT_UNDER_REVIEW",
+      "sourceOrgId": "hkma-press-releases",
+      "sourceAuthority": "Hong Kong Monetary Authority (HKMA)",
+      "discoveredVia": {
+        "sourceOrgId": "hkma-press-releases",
+        "sourceUrl": "https://www.hkma.gov.hk/eng/news-and-media/press-releases/2026/09/20260904-6/",
+        "discoveryEndpoint": "https://api.hkma.gov.hk/public/press-releases?lang=en&offset=0"
+      },
+      "sourceRole": "PRIMARY",
+      "originalSource": {
+        "sourceOrgId": "hkma-press-releases",
+        "sourceUrl": "https://www.hkma.gov.hk/eng/news-and-media/press-releases/2026/09/20260904-6/"
+      },
+      "validationStatus": "AWAITING_HUMAN_VALIDATION",
+      "countryId": null,
+      "countryIsoAlpha2": "HK",
+      "region": "APAC",
+      "sourceName": "Hong Kong Monetary Authority (HKMA)",
+      "sourceUrl": "https://www.hkma.gov.hk/eng/news-and-media/press-releases/2026/09/20260904-6/",
+      "discoveryEndpoint": "https://api.hkma.gov.hk/public/press-releases?lang=en&offset=0",
+      "title": "HKMA reminds public to stay alert to phishing scams targeting binding of payment cards to contactless mobile payment services",
+      "summary": null,
+      "sourcePublicationDate": "2026-09-04",
+      "sourcePublicationDateRaw": "2026-09-04",
+      "effectiveDate": null,
+      "validationDate": null,
+      "retrievedAt": "2026-09-08T14:03:26.173Z",
+      "supersedes": null,
+      "supersededBy": null,
+      "audit": {
+        "discoveredAt": "2026-09-08T14:03:26.173Z",
+        "sourceDomainCheckedAt": "2026-09-08T14:03:26.173Z",
+        "discoveryEndpoint": "https://api.hkma.gov.hk/public/press-releases?lang=en&offset=0",
+        "reviewState": "PENDING_HUMAN_REVIEW"
+      }
+    },
+    {
+      "id": "candidate-rbi-notifications-33bc63a42c2f569e",
+      "referenceId": "candidate-rbi-notifications-33bc63a42c2f569e",
+      "eventFingerprint": "ad5275091e656680c69ea2be",
+      "lifecycleStatus": "DEVELOPING",
+      "publicationStatus": "NOT_PUBLISHED",
+      "status": "PENDING_HUMAN_REVIEW",
+      "contentStatus": "CONTENT_UNDER_REVIEW",
+      "sourceOrgId": "rbi-notifications",
+      "sourceAuthority": "Reserve Bank of India (RBI)",
+      "discoveredVia": {
+        "sourceOrgId": "rbi-notifications",
+        "sourceUrl": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13696&Mode=0",
+        "discoveryEndpoint": "https://www.rbi.org.in/notifications_rss.xml"
+      },
+      "sourceRole": "PRIMARY",
+      "originalSource": {
+        "sourceOrgId": "rbi-notifications",
+        "sourceUrl": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13696&Mode=0"
+      },
+      "validationStatus": "AWAITING_HUMAN_VALIDATION",
+      "countryId": "country:india",
+      "countryIsoAlpha2": "IN",
+      "region": "APAC",
+      "sourceName": "Reserve Bank of India (RBI)",
+      "sourceUrl": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13696&Mode=0",
+      "discoveryEndpoint": "https://www.rbi.org.in/notifications_rss.xml",
+      "title": "Review of Circulars issued under Foreign Exchange Management Act, 1999 (FEMA)",
+      "summary": "RBI/2026-27/254 A.P. (DIR Series) Circular No. 21 September 08, 2026 To All Authorised Persons Madam / Sir, Review of Circulars issued under Foreign Exchange Management Act, 1999 (FEMA) In pursuance of the Reserve Bank&rsquo;s ongoing initiative to rationalise the regulatory framework under the Foreign Exchange Management Act, 1999 (FEMA), a comprehensive review of circulars issued since June 01, 2000, is underway. 2. In furtherance of the aforementioned initiative, seven circulars as listed at Annex , that have ceased to be operative owing to subsequent regulatory amendments, redundancy, overlap or supersession by newer directives, are being withdrawn. 3. Authorised Persons may bring the contents of this circular to the notice of their constituents concerned. 4. The directions contained in this circular have been issued under Section 10(4) and Section 11(1) of the FEMA, 1999 (42 of 1999) and are without prejudice to permissions / approvals, if any, required under any other law. Yours faithfully, (Dr. Aditya Gaiha) Chief General Manager-in-Charge Annex List of A.P. (DIR Series) Circulars superseded Sr. No. Subject AP (DIR) Series Circular No. Date 1 External Commercial Borrowings (ECB) Policy - Issuance of Rupee denominated bonds overseas 17 29.09.2015 2 External Commercial Borrowings (ECB) in Indian Rupees 25 03.09.2014 3 External Commercial Borrowings (ECB) Policy &ndash; Liberalisation of definition of Infrastructure Sector 85 06.01.2014 4 Borrowing and Lending in Rupees - Investments by persons resident outside India in the tax free, secured, redeemable, non-convertible bonds 81 24.12.2013 5 External Commercial Borrowings (ECB) Policy &ndash; Import of Services, Technical know-how and License Fees 119 26.06.2013 6 Money Transfer Service Scheme - List of Sub Agents 49 07.11.2012 7 External Commercial Borrowings Policy &ndash; ECB by Small Industries Development Bank of India 48 06.11.2012",
+      "sourcePublicationDate": "2026-09-08",
+      "sourcePublicationDateRaw": "Tue, 08 Sep 2026 18:25:00",
+      "effectiveDate": null,
+      "validationDate": null,
+      "retrievedAt": "2026-09-08T14:03:26.093Z",
+      "supersedes": null,
+      "supersededBy": null,
+      "audit": {
+        "discoveredAt": "2026-09-08T14:03:26.093Z",
+        "sourceDomainCheckedAt": "2026-09-08T14:03:26.093Z",
+        "discoveryEndpoint": "https://www.rbi.org.in/notifications_rss.xml",
+        "reviewState": "PENDING_HUMAN_REVIEW"
+      }
+    },
+    {
       "id": "candidate-rbi-notifications-6d4b779b12602284",
       "referenceId": "candidate-rbi-notifications-6d4b779b12602284",
       "eventFingerprint": "500204c30d7a4650ec951aff",
