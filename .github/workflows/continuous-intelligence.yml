@@ -95,13 +95,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           if gh pr list --head automation/intelligence-candidates --base main --state open --json number --jq 'length > 0' | grep -qx true; then
             echo "Updated existing candidate proposal pull request."
-          else
-            gh pr create \
-              --base main \
-              --head automation/intelligence-candidates \
-              --title "M-21 Propose trusted intelligence candidates" \
-              --body "Automated M-21 discovery found new trusted-source candidates. These records are DEVELOPING, NOT_PUBLISHED and require human review; no public GPIR publication was changed."
+            exit 0
           fi
+          # The candidate branch above is already pushed and is real,
+          # human-reviewable output regardless of what happens below --
+          # opening the PR is a convenience wrapper around it, not the
+          # discovery/validation work itself. A repository whose Settings >
+          # Actions > General > Workflow permissions does not have "Allow
+          # GitHub Actions to create and approve pull requests" enabled
+          # will reject PR creation from this token; that is a repository
+          # setting, not a discovery/validation failure, so it must not
+          # fail the whole scheduled run (which would make every run look
+          # like discovery itself is broken and leave the reader-facing
+          # freshness status looking permanently stale).
+          if gh pr create \
+            --base main \
+            --head automation/intelligence-candidates \
+            --title "M-21 Propose trusted intelligence candidates" \
+            --body "Automated M-21 discovery found new trusted-source candidates. These records are DEVELOPING, NOT_PUBLISHED and require human review; no public GPIR publication was changed."; then
+            exit 0
+          fi
+          echo "::warning::Candidate discovery succeeded and pushed automation/intelligence-candidates, but this token could not open the pull request (commonly: Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\" is disabled for this repository). Open the PR manually from that branch, or enable that setting, to complete human review."
+          echo "## GPIR candidate branch pushed, PR not auto-created" >> "$GITHUB_STEP_SUMMARY"
+          echo "automation/intelligence-candidates was pushed with new candidates, but this token is not permitted to open pull requests. Open it manually, or enable Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\"." >> "$GITHUB_STEP_SUMMARY"
