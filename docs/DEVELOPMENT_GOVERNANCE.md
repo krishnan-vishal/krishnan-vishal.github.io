@@ -149,10 +149,96 @@ responsive layout.
 
 ## Current development gate
 
-**Current milestone:** M-10 PARTIAL — Scalable GPIR Content Registry Foundation.
+The current milestone and handoff are maintained in
+[PROJECT_STATUS.md](PROJECT_STATUS.md#current-handoff). Historical milestone
+records remain in [MASTER_PROJECT_LOG.md](MASTER_PROJECT_LOG.md); open requirements
+remain in [GPIR_BACKLOG.md](GPIR_BACKLOG.md). Do not interpret older snapshots as
+current approval to implement unrelated work.
 
-**Current objective:** Complete the scalable registry foundation only after
-pending external work has been reconciled.
+## Cloud-first development and handoff SOP
 
-**Next development gate:** Reconcile all known pending work before starting the
-next implementation prompt.
+[AGENTS.md](../AGENTS.md) is the primary worker contract. Vishal Krishnan owns GPIR
+and gives the objective and final approval. ChatGPT may consolidate the prompt;
+Codex, Copilot, Claude, a Codespace, another approved worker or a human may implement
+it. None owns project state. The GitHub working branch is the universal handoff;
+reviewed main is authoritative production state.
+
+Use an approved cloud environment with Git, Node and GitHub authentication scoped
+to the task. No particular IDE, AI provider, Codespace or office computer is
+required. Authenticate through the platform's supported flow; never store tokens,
+passwords, private keys or private conversation transcripts in the repository.
+GitHub CLI is optional. Git and the GitHub web interface remain sufficient.
+
+1. **Start new work:** Fetch origin, inspect `git status --short`, read AGENTS,
+   current handoff, backlog and relevant master-log entries. Preserve unrelated
+   changes; use a clean checkout if necessary. Confirm no equivalent work is
+   already active. Create the owner-requested branch from latest `origin/main`
+   with `git switch -c <working-branch> origin/main`. Never develop on main.
+2. **Continue work:** Fetch origin, locate the existing branch with
+   `git branch -r`, then switch to its tracking branch. For a new checkout use
+   `git switch --track origin/<working-branch>`. For an existing clean checkout,
+   inspect divergence and use `git pull --ff-only`; stop on divergence and
+   reconcile without reset or force-push. Read that branch's handoff, diff and
+   recent commits before editing. Do not start a replacement branch for the same
+   milestone simply because the worker changed.
+3. **Checkpoint and hand off:** Update the current handoff fields below, append
+   significant outcomes to the master log and reconcile the backlog. Commit and
+   push to the working branch at coherent checkpoints and before a tool/session
+   ends. Incomplete work may be explicitly labelled IN PROGRESS on its branch;
+   pushing does not approve or publish it. Compare `git rev-parse HEAD` with
+   `git ls-remote origin refs/heads/<working-branch>` before reporting a durable
+   handoff. Never claim cloud recovery readiness for local-only work.
+4. **Submit:** Run only relevant existing deterministic checks plus
+   `git diff --check`, review the diff for secrets and unintended scope, record
+   results, commit and `git push -u origin <working-branch>`. Create or prepare
+   the PR into main using GitHub's UI or approved CLI. Include objective, files,
+   validation, limitations and handoff. Record the actual PR link once known.
+   Mark READY FOR REVIEW after implementation and local checks, keeping remote
+   push, PR and Actions states explicit. Never report pending CI as passed.
+5. **Complete:** GitHub Actions must pass; Vishal reviews and authorizes the
+   human-controlled merge. Only after merge record COMPLETE, the actual merge
+   commit/date and production verification where available. Main follows the
+   existing GitHub Pages process. This SOP grants no worker permission to merge.
+6. **Recover:** Authenticate in a replacement approved environment, clone
+   `https://github.com/krishnan-vishal/krishnan-vishal.github.io.git`, fetch origin,
+   locate/switch the working branch and inspect the handoff. Continue from the
+   committed state. If a push failed, record the blocker and preserve work in
+   the current environment; a local patch/bundle is optional BCP only, not the
+   normal operating chain. Restore approved authentication before resuming the
+   push; do not work around access controls.
+
+### Minimal handoff format
+
+Use the existing `PROJECT_STATUS.md` current handoff, scoped to the working
+branch. Do not create competing tool-specific state files. Capture:
+
+- Milestone ID/name, objective, owner, working branch and base branch/SHA.
+- Implementation status; completed work; remaining work and next dependency.
+- Architectural/publication constraints and files changed.
+- Commands actually run and their results; separate local checks from Actions.
+- Latest known implementation commit, remote synchronization state and PR URL.
+- Blockers, approval required and production impact.
+
+Use UNKNOWN / NOT RECORDED for missing historical evidence and PENDING for
+future actions. A commit cannot include its own SHA; the committing change can
+identify its implementation by branch and commit subject, then a later checkpoint
+records the SHA without amending history. Git log and PR metadata remain the
+exact commit references. Preserve prior master-log entries; append corrections.
+
+### Tool loss and production isolation
+
+Loss of a development tool must not become loss of project state. Codex limits,
+Copilot/Claude outages, an expired Codespace, vanished Cloud Shell or unavailable
+office PC all use the same replacement-worker recovery sequence above. If all
+AI services are unavailable, humans use the same repository instructions and
+published GPIR remains operational.
+
+The production chain remains reviewed main -> existing deterministic controls
+and GitHub Pages -> `https://fintechoisis.com/`. No hosting, DNS, CNAME, ownership
+or production architecture changes are part of this SOP. Keep the last-known-good
+publication, permanent historical intelligence, lineage and lifecycle controls.
+Never weaken validators, expose secrets, delete history, force-push shared
+branches, publish unvalidated intelligence or add an AI/runtime service dependency.
+No auto-merge, competing scheduler, paid service or new orchestration framework
+is introduced. Repository policy does not claim that uninspected GitHub branch
+protection or account settings have been configured.

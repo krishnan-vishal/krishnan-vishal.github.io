@@ -2292,3 +2292,117 @@ and browser QA remain outstanding.
 - **Limit:** GPIR does not claim universal real-time coverage. Additional
   regional sources require manual endpoint verification and configuration; no
   backend, database, AI runtime, personal mailbox or second scheduler exists.
+
+## GPIR-OPS-01 — implementation opened
+
+- Date: 2026-09-08. Category: Platform / Operations / Governance. Status: IN PROGRESS.
+- Owner objective: repository-native cloud-first handoff and master control, with no production change.
+- Branch: work/gpir-ops-01-cloud-handoff-master-control; base origin/main at 7190552.
+- Existing governance/status/backlog inspected; no equivalent cloud-first SOP found.
+- Validation, commit, push, PR and owner approval: PENDING. Completion date: NOT RECORDED.
+
+## 2026-09-08 — Master control reconciliation
+
+This appended evidence record supersedes older pending/current claims without rewriting
+those historical entries. Dates below are merge dates from Git, not invented live
+acceptance dates. GitHub check-run metadata was read on 2026-09-08. MERGED means the
+scoped increment is integrated; deferred work is not implicitly complete.
+
+### M20 — Intelligence Lifecycle Foundation
+
+- Category: Intelligence / Governance. Status: MERGED. Completion/merge date: 2026-09-07.
+- Branch: `work/m20-intelligence-lifecycle-foundation`; implementation: `cb48a93`; merge: `2637411`.
+- PR: [#293](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/293).
+- Capability/outcome: Lifecycle vocabulary and historical-page retention.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34102096309) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: No deletion; future immutable editions remain deferred.
+
+### M21 — Continuous Intelligence Pipeline Foundation
+
+- Category: Automation. Status: MERGED. Completion/merge date: 2026-09-07.
+- Branch: `work/m21-continuous-intelligence-pipeline`; implementation: `50fdb20`; merge: `a7d5f14`.
+- PR: [#295](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/295).
+- Capability/outcome: Two-hour candidate proposal workflow; human publication boundary.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34103335430) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: No automatic publication; endpoint expansion was deferred.
+
+### M22 — Country Intelligence Scale Foundation
+
+- Category: Data / Scaling. Status: MERGED. Completion/merge date: 2026-09-07.
+- Branch: `work/m22-country-intelligence-scale`; implementation: `a771932`; merge: `8857210`.
+- PR: [#298](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/298).
+- Capability/outcome: Six-country canonical metadata and candidate association.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34104514472) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: Broad country population remains separate work.
+
+### M23 — Global Announcements Continuous Intelligence activation
+
+- Category: Intelligence / Automation. Status: MERGED. Completion/merge date: 2026-09-07.
+- Branch: `work/m23-global-announcements-live-intelligence`; implementation: `317aef0`; merge: `0975f3c`.
+- PR: [#300](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/300).
+- Capability/outcome: RBI and ECB official feeds activated for candidate discovery.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34106657046) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: Source availability and human review remain constraints.
+
+### M23.1 — Global Intelligence Radar Expansion
+
+- Category: Intelligence / Scaling. Status: MERGED. Completion/merge date: 2026-09-07.
+- Branch: `work/m23-1-global-intelligence-radar`; implementation: `a411fbd`; merge: `3450537`.
+- PR: [#302](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/302).
+- Capability/outcome: HKMA endpoint, relevance and event deduplication.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34110235738) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: Scheduled discovery subsequently failed; M23.1A provides repair.
+
+### M23.1A — Radar Repair + APAC Discovery Expansion
+
+- Category: Fix / Intelligence. Status: MERGED. Completion/merge date: 2026-09-08.
+- Branch: `work/m23-1a-radar-repair-apac`; implementation: `42fb2a6`; merge: `14b3815`.
+- PR: [#305](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/305).
+- Capability/outcome: CDATA title repair, 30 source additions and secondary provenance.
+- Gate: [Security and Integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34187112399) at the merge commit; Pages build/deploy checks also succeeded.
+- Production impact: existing static Pages architecture retained; candidate discovery does not publish unvalidated intelligence.
+- Deferred/open items and next objective: Most new sources are manual references; English relevance and queue capacity remain limits.
+
+M23.1 scheduled discovery failures are separately evidenced by [run 34180581113](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34180581113). A successful integrity/deploy gate is not evidence that every subsequent scheduled source retrieval succeeded. Post-repair scheduled-discovery acceptance: NOT RECORDED in this reconciliation.
+
+### Custom domain — FINTECHOISIS production configuration
+
+- Category: Platform / Production. Milestone ID: NOT RECORDED.
+- Status: CNAME COMMITTED / PAGES DEPLOYED. Commit date: 2026-09-08.
+- Commit: `7190552` (Create CNAME); branch observed: main; PR: NOT RECORDED.
+- Outcome/production impact: CNAME contains `fintechoisis.com`; custom-domain configuration exists in the repository. No DNS changes were made by GPIR-OPS-01.
+- Gate: [integrity succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34188429808); [Pages build/deploy succeeded](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/34188428988).
+- Open/next: DNS ownership, exact external activation time and separate live-browser acceptance are UNKNOWN / NOT RECORDED; do not infer them from CNAME alone.
+
+### Earlier cloud-first recovery / development transition
+
+- Category: Platform / Operations. Status: NOT RECORDED as a completed repository milestone.
+- Milestone ID, completion date, branch, commit, PR and gate: UNKNOWN / NOT RECORDED.
+- Evidence: prior log entries mention Codespace limitations, but do not establish a completed cloud-first operating transition.
+- Outcome/production impact: no historical migration or platform setting is claimed.
+- Next objective: GPIR-OPS-01 documents the shared operating model; actual environment authentication remains a platform prerequisite.
+
+### GPIR-OPS-01 — Cloud-First Development, Tool Handoff & Master Control
+
+- Category: Platform / Operations / Governance. Owner: Vishal Krishnan.
+- Objective: make development cloud-first, tool-neutral and recoverable while preserving GitHub authority, human publication control and AI-independent production.
+- Status: IN PROGRESS; implementation date: 2026-09-08; completion date: PENDING MERGE.
+- Branch: `work/gpir-ops-01-cloud-handoff-master-control`; base: `origin/main` at `7190552`.
+- Implementation commit: PENDING (resolve by the requested commit subject on this branch); PR: NOT CREATED; Actions: NOT RUN.
+- Delivered: common handoff in PROJECT_STATUS, consolidated SOP and approval model in DEVELOPMENT_GOVERNANCE, AGENTS discovery pointers, this evidence reconciliation and backlog entry.
+- Files modified: AGENTS.md; docs/DEVELOPMENT_GOVERNANCE.md; docs/PROJECT_STATUS.md; docs/MASTER_PROJECT_LOG.md; docs/GPIR_BACKLOG.md. Files created: none in repository.
+- Validation: PENDING final documentation review.
+- Production impact: NONE; runtime, data, validators, workflows, hosting, DNS and CNAME unchanged.
+- Blocker/next dependency: local GitHub authentication previously failed; validate then attempt push and PR. GitHub Actions and Vishal approval remain required. No merge authorized.
+
+### GPIR-OPS-01 — local review readiness
+
+- Date: 2026-09-08. Status: READY FOR REVIEW, not COMPLETE.
+- Validation: PASS — git diff --check; six added relative Markdown links/anchors; five documentation-only paths; high-confidence secret scan and manual private-data/diff review.
+- Existing generation/publication contracts remain intact by unchanged-file scope; runtime tests were not rerun for documentation-only edits.
+- Commit/push/PR: pending submission. Actions: NOT RUN. Vishal approval remains required.

@@ -1,5 +1,44 @@
 # FINTECHOISIS / GPIR Project Status
 
+## Current handoff
+
+- **Milestone:** GPIR-OPS-01 — Cloud-First Development, Tool Handoff & Master Control.
+- **Category / owner:** Platform / Operations / Governance; Vishal Krishnan.
+- **Objective:** Make development cloud-first, tool-neutral and recoverable through
+  GitHub branches, preserving human approval and production independence.
+- **Working branch:** `work/gpir-ops-01-cloud-handoff-master-control`.
+- **Base:** `origin/main` at `7190552`, fetched 2026-09-08; clean before branch creation.
+- **Implementation status:** READY FOR REVIEW. Completion date: PENDING owner merge.
+- **Completed:** Inspected existing governance, reused the status/log/backlog model,
+  consolidated start/continue/submit/complete/recover SOP, added common worker
+  handoff/approval rules and reconciled recent milestones against Git history and
+  GitHub check metadata. No new repository governance document or framework.
+- **Files modified:** `AGENTS.md`, `docs/DEVELOPMENT_GOVERNANCE.md`,
+  `docs/PROJECT_STATUS.md`, `docs/MASTER_PROJECT_LOG.md`, `docs/GPIR_BACKLOG.md`.
+- **Files created:** None in the repository.
+- **Local validation:** PASS — git diff --check; six added relative Markdown links/anchors; five-file documentation-only scope; high-confidence secret scan and manual private-data/diff review. Existing runtime/publication files are unchanged.
+- **Latest implementation commit:** PENDING; find by subject
+  `GPIR-OPS-01 Establish cloud-first tool-neutral development control` on this branch.
+- **Remote handoff / PR / Actions:** PENDING push / NOT CREATED / NOT RUN.
+- **Known blocker:** Prior local GitHub authentication failed. This milestone's
+  push will be attempted after validation; do not infer remote durability from a
+  local commit. An authenticated replacement cloud worker can continue once the
+  branch is available remotely. Local fallback output is BCP only.
+- **Remaining / next dependency:** Validate, commit, push, prepare/create PR;
+  GitHub Actions and Vishal review/merge. No worker merge is authorized.
+- **Constraints / production impact:** Documentation only; no runtime, data,
+  lifecycle, source, hosting, DNS, CNAME or workflow changes. Existing Pages and
+  last-known-good production remain independent of AI/development tools.
+- **Reconciled production baseline:** M20–M23.1A are merged; M23.1A is PR #305,
+  implementation `42fb2a6`, merge `14b3815`. `CNAME` at `7190552` contains
+  `fintechoisis.com`; Pages deployment and integrity checks succeeded for that
+  commit. DNS ownership and live browser acceptance were not independently audited.
+
+The master log's 2026-09-08 reconciliation supersedes stale current-status claims
+below. Those snapshots remain as historical evidence, not active development gates.
+
+## Earlier status snapshot — retained for history
+
 **PROJECT:** FINTECHOSIS — Global Payments Intelligence Repository
 **Current Stage:** Stage 1 — public repository activation and connected consumption
 **Current Prompt:** M-18 — GLOBAL ANNOUNCEMENTS INTELLIGENCE PHASE 1

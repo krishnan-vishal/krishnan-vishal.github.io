@@ -23,6 +23,20 @@ Run applicable checks before release readiness; never weaken validation to pass 
 
 ## Branch, History, and Knowledge Integrity
 
+Vishal Krishnan is the GPIR Owner and final approval authority. All workers use
+the same contract. Normal development is cloud-first; local computers and Git
+bundles are BCP/recovery options, never required production infrastructure.
+Read the current handoff in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md),
+the backlog and master log before work. Follow the start/continue/submit/recover
+SOP in [docs/DEVELOPMENT_GOVERNANCE.md](docs/DEVELOPMENT_GOVERNANCE.md).
+At sensible checkpoints, update the repository handoff, commit and push the
+working branch. Confirm the remote SHA before claiming a handoff is durable;
+record push/authentication failures explicitly. Essential state must not exist
+only in an AI session or ephemeral environment. Workers may implement, validate,
+commit, push working branches and prepare PRs within the owner's objective.
+Final merge and publication approval remain human-controlled; workers never
+independently merge main, alter domain ownership or bypass integrity controls.
+
 Never work directly on `main`; use feature/work branches. Never reset, force-push, rewrite, or delete Git or content history. Never merge or push to `main` without explicit project-owner instruction and successful required validation.
 
 Validated GPIR knowledge is append-oriented. Never silently overwrite or delete it. Preserve the prior state when information changes and establish explicit lineage, including `supersedes`/`supersededBy` where applicable. `CURRENT`, `DEVELOPING`, and `HISTORICAL` states must remain distinguishable and historical records discoverable.
