@@ -50,6 +50,9 @@ async function regressionTests() {
     for (const title of ["New cross-border FX infrastructure", "Wallet network acquisition", "AML requirements for remittances", "Payment API security", "Stablecoin settlement", "Open banking payment initiation"]) {
         assert.equal(isPaymentsRelevant({title}), true, title);
     }
+    for (const title of ["Regulator sets out payment orchestration guidance", "Authority publishes ISO 20022 migration timeline", "New rules for card acquiring services", "PSP licensing framework opens for applications", "Central bank confirms MTO registration requirements"]) {
+        assert.equal(isPaymentsRelevant({title}), true, title);
+    }
     const registry = require("../assets/data/trusted-sources.json").registry;
     const source = registry.find(s => s.id === "rbi-press-releases");
     const candidate = buildCandidate(source, item, "2026-09-08T00:00:00.000Z", null, source.refreshEndpoint);
