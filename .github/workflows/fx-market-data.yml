@@ -1,14 +1,12 @@
 name: GPIR FX Market Data Refresh
 
-# Governance note (M28-FX): FX rates are objective, deterministically
-# validated market data, not editorial classification -- unlike the
-# candidate-intelligence pipeline (continuous-intelligence.yml), which
-# proposes editorial content for human review via PR, this workflow
-# commits a validated snapshot directly to main. This publish model is
-# a deliberate architectural choice for this milestone and should be
-# confirmed by the GPIR owner (see docs/FX_PRICING_TREASURY.md); if a
-# PR-gated model is preferred instead, mirror continuous-intelligence.yml's
-# branch+PR steps here.
+# Governance note (M28-FX correction): FX snapshots are generated and
+# validated by this workflow, but publication is NEVER a direct write
+# to main -- this mirrors continuous-intelligence.yml's existing
+# branch/PR review pattern rather than the earlier (superseded)
+# direct-commit design. A validated snapshot is pushed to a dedicated
+# automation branch and offered as a pull request for human review;
+# main is only ever updated by that PR being reviewed and merged.
 
 on:
   schedule:
@@ -21,6 +19,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: gpir-fx-market-data
@@ -28,7 +27,7 @@ concurrency:
 
 jobs:
   refresh-fx-snapshot:
-    name: Generate and validate the FX snapshot
+    name: Generate, validate and propose an FX snapshot
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,11 +35,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Reuse an open proposal branch when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin automation/fx-snapshot >/dev/null 2>&1; then
+            git fetch origin automation/fx-snapshot
+            git switch --track -c automation/fx-snapshot origin/automation/fx-snapshot
+            # Keep proposal records while running the latest reviewed generation code.
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' merge --no-edit origin/main
+          fi
 
       - name: Generate the FX snapshot
         env:
@@ -73,22 +84,60 @@ jobs:
       - name: Regenerate FX pages
         run: node scripts/generate-fx-pages.js
 
-      - name: Validate the generated FX data
-        run: node scripts/validate-fx.js
-
-      - name: Validate the wider structured-content contract
-        run: node scripts/validate-content.js
-
-      - name: Commit and push if changed
+      - name: Validate a changed snapshot
+        id: fx_change
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet -- assets/data/fx pages/fx; then
-            echo "No FX data change this run."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+          node scripts/validate-fx.js
+          node scripts/validate-content.js
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push the proposal branch
+        if: steps.fx_change.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(git branch --show-current)" = "main" ]; then
+            git switch -c automation/fx-snapshot
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- assets/data/fx pages/fx
           git commit -m "M28-FX Refresh FX market snapshot"
-          git push origin HEAD:main
+          git push origin HEAD:automation/fx-snapshot
+
+      - name: Create a proposal pull request when needed
+        if: steps.fx_change.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          if gh pr list --head automation/fx-snapshot --base main --state open --json number --jq 'length > 0' | grep -qx true; then
+            echo "Updated existing FX snapshot proposal pull request."
+            exit 0
+          fi
+          # The proposal branch above is already pushed and is real,
+          # human-reviewable output regardless of what happens below --
+          # opening the PR is a convenience wrapper around it, not the
+          # generation/validation work itself. A repository whose
+          # Settings > Actions > General > Workflow permissions does not
+          # have "Allow GitHub Actions to create and approve pull
+          # requests" enabled will reject PR creation from this token;
+          # that is a repository setting, not a generation/validation
+          # failure, so it must not fail the whole scheduled run.
+          if gh pr create \
+            --base main \
+            --head automation/fx-snapshot \
+            --title "M28-FX Refresh FX market snapshot" \
+            --body "Automated FX snapshot refresh: generated, normalized and validated candidate/current FX data and regenerated FX pages. No publication to main happens automatically -- this snapshot is proposed for human review and merge, consistent with GPIR's existing continuous-intelligence.yml review pattern."; then
+            exit 0
+          fi
+          echo "::warning::FX snapshot branch automation/fx-snapshot was pushed, but this token could not open the pull request (commonly: Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\" is disabled for this repository). Open the PR manually from that branch, or enable that setting, to complete human review."
+          echo "## GPIR FX snapshot branch pushed, PR not auto-created" >> "$GITHUB_STEP_SUMMARY"
+          echo "automation/fx-snapshot was pushed with a validated snapshot, but this token is not permitted to open pull requests. Open it manually, or enable Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\". main is unaffected either way -- last-known-good production data remains live until a human merges the review PR." >> "$GITHUB_STEP_SUMMARY"

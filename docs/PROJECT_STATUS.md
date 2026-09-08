@@ -64,11 +64,13 @@
   `pages/fx/pairs/*.html` (26 pages, one per featured pair),
   `docs/FX_PRICING_TREASURY.md`. Generated data artifacts:
   `assets/data/fx/current.json`, `assets/data/fx/weekly-summary.json`.
-- **Governance decision flagged for owner confirmation:** `fx-market-data.yml`
-  commits a validated snapshot directly to `main` rather than via a review PR
-  (unlike `continuous-intelligence.yml`'s editorial-candidate model) — see
-  `docs/FX_PRICING_TREASURY.md`'s "Governance decision" section for the
-  reasoning and how to switch to a PR-gated model if preferred.
+- **Governance correction applied:** `fx-market-data.yml` initially committed
+  validated snapshots directly to `main`; this was corrected before any push
+  to align with `continuous-intelligence.yml`'s existing branch/PR review
+  pattern — it now pushes to `automation/fx-snapshot` and proposes a PR,
+  degrading gracefully (branch pushed, warning logged) rather than failing
+  the run if PR auto-creation is unavailable. `main` is never written
+  directly. See `docs/FX_PRICING_TREASURY.md`'s "Publication model" section.
 - **Local validation:** See the M28-FX milestone entry in
   [MASTER_PROJECT_LOG.md](MASTER_PROJECT_LOG.md) for the full command list and
   results — all passed.

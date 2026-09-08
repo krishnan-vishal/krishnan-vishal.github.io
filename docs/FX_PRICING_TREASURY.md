@@ -18,6 +18,9 @@ scheduled GitHub Action (.github/workflows/fx-market-data.yml)
   -> assets/data/fx/history/YYYY/MM/YYYY-MM-DD.json (frozen once, on
      the first run of a new UTC day)
   -> scripts/generate-fx-pages.js (static page shells)
+  -> automation/fx-snapshot branch pushed, pull request proposed (see
+     "Publication model" below -- never a direct write to main)
+  -> human review and merge into main -> GitHub Pages deploy
   -> static GPIR front end (assets/js/fx-ticker.js, assets/js/fx-app.js)
 ```
 
@@ -135,19 +138,30 @@ refresh run only ever writes `current.json`; a correction to a
 previously frozen day requires an explicit, separate, human-reviewed
 change -- never an automatic overwrite.
 
-## Governance decision requiring owner confirmation
+## Publication model: review branch + PR, never a direct write to main
 
-`fx-market-data.yml` commits a validated snapshot **directly to
-`main`** rather than proposing it via a review PR (the model
-`continuous-intelligence.yml` uses for editorial candidate intelligence).
-This is a deliberate choice for this milestone: FX rates are objective,
-deterministically validated market data, not editorial classification,
-and the ticker's value depends on updating without a human approving
-every refresh. Per `docs/DEVELOPMENT_GOVERNANCE.md`, an architectural
-publication-control decision like this should be confirmed by the GPIR
-owner. If a PR-gated model is preferred instead, mirror
-`continuous-intelligence.yml`'s branch+PR steps in
-`fx-market-data.yml`.
+`fx-market-data.yml` never commits or pushes to `main`. It mirrors
+`continuous-intelligence.yml`'s existing pattern: a validated snapshot
+is pushed to the dedicated `automation/fx-snapshot` branch (reusing
+that branch across runs the same way `continuous-intelligence.yml`
+reuses `automation/intelligence-candidates`), and the workflow then
+attempts to open a pull request from it for human review and merge.
+`main` -- and therefore production -- is only ever updated by that PR
+being reviewed and merged; a scheduled run that finds no change simply
+does nothing.
+
+If the repository's Settings > Actions > General > Workflow
+permissions does not have "Allow GitHub Actions to create and approve
+pull requests" enabled, PR creation fails with a permission error from
+GitHub, not a code defect. The workflow does not treat that as a
+run failure: it still pushes `automation/fx-snapshot` (a human can open
+the PR manually from that branch, or the setting can be enabled so
+future runs open it automatically) and records a warning plus a step
+summary note rather than failing the job -- exactly the same
+degrade-gracefully behaviour already established for
+`continuous-intelligence.yml`'s own PR-creation step. Either way,
+`main` and last-known-good production data are unaffected until a
+human explicitly merges the review PR.
 
 ## Validation and tests
 
