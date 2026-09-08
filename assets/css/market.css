@@ -34,6 +34,10 @@ FINTECHOISIS
     background:#071A2F;
 
     border-bottom:1px solid rgba(255,255,255,.08);
+
+    /* Significantly more compact than the shared 64px ribbon height --
+       the FX ticker is a single dense line, not a card strip. */
+    height:40px;
 }
 
 #market-ribbon{
@@ -261,6 +265,15 @@ TICKER AREA
 }
 
 #fx-ribbon .ticker-track:hover{
+
+    animation-play-state:paused;
+
+}
+
+/* Keyboard equivalent of the :hover pause above -- FX ticker items are
+   real links (see assets/js/fx-ticker.js), so tabbing into one must
+   pause the marquee exactly like hovering it does. */
+#fx-ribbon .ticker-track:focus-within{
 
     animation-play-state:paused;
 
@@ -633,5 +646,464 @@ gap:8px;
 font-size:13px;
 
 }
+
+}
+/*=====================================================
+GPIR FX PRICING & TREASURY (M28-FX)
+Compact ticker items + shared page components. Direction is always
+carried by glyph + text, never colour alone.
+======================================================*/
+
+.fx-ticker-item{
+
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:0 14px;
+    font-size:13px;
+    line-height:1;
+    color:#ffffff;
+    text-decoration:none;
+    border-right:1px solid rgba(255,255,255,.12);
+    transition:color var(--transition-normal);
+
+}
+
+.fx-ticker-item:last-child{
+
+    border-right:none;
+
+}
+
+.fx-ticker-item:hover,
+.fx-ticker-item:focus-visible{
+
+    color:var(--color-primary);
+
+}
+
+.fx-ticker-item:focus-visible{
+
+    outline:2px solid var(--color-primary);
+    outline-offset:2px;
+    border-radius:2px;
+
+}
+
+.fx-ticker-pair{
+
+    color:#9CA3AF;
+    font-weight:600;
+
+}
+
+.fx-ticker-rate{
+
+    color:#D4AF37;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+
+}
+
+.fx-ticker-change{
+
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+
+}
+
+.fx-up{ color:#3ECF8E; }
+.fx-down{ color:#F27878; }
+.fx-unchanged,
+.fx-no-comparison{ color:#B8C5D6; }
+
+/*-----------------------------------------------------
+  Pair grid / cards (Live FX hub, Explorer, Treasury groupings)
+-----------------------------------------------------*/
+
+.fx-pair-grid{
+
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+    gap:12px;
+    margin:18px 0;
+
+}
+
+.fx-pair-card{
+
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:14px 16px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,.08);
+    background:var(--color-surface, #fff);
+    text-decoration:none;
+    color:inherit;
+    transition:transform .15s ease, box-shadow .15s ease;
+
+}
+
+.fx-pair-card:hover,
+.fx-pair-card:focus-visible{
+
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+
+}
+
+.fx-pair-card:focus-visible{
+
+    outline:2px solid var(--color-primary);
+    outline-offset:2px;
+
+}
+
+.fx-pair-card--static{
+
+    cursor:default;
+
+}
+
+.fx-pair-card--static:hover{
+
+    transform:none;
+    box-shadow:none;
+
+}
+
+.fx-pair-card-pair{
+
+    font-weight:700;
+    font-size:14px;
+
+}
+
+.fx-pair-card-rate{
+
+    font-variant-numeric:tabular-nums;
+    font-size:16px;
+    font-weight:600;
+
+}
+
+.fx-pair-card-change{
+
+    font-size:13px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+
+}
+
+.fx-pair-card.fx-up .fx-pair-card-change{ color:#1a9d63; }
+.fx-pair-card.fx-down .fx-pair-card-change{ color:#c94141; }
+.fx-pair-card.fx-unchanged .fx-pair-card-change,
+.fx-pair-card.fx-no-comparison .fx-pair-card-change{ color:#6b7280; }
+
+/*-----------------------------------------------------
+  Data-status badges -- text label always present, colour is a hint only
+-----------------------------------------------------*/
+
+.fx-status-badge{
+
+    display:inline-block;
+    align-self:flex-start;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid currentColor;
+
+}
+
+.fx-status-badge--live{ color:#1a9d63; }
+.fx-status-badge--reference{ color:#7a5c00; }
+.fx-status-badge--delayed{ color:#a15c00; }
+.fx-status-badge--stale,
+.fx-status-badge--provider_unavailable_served_last_known_good{ color:#c94141; }
+.fx-status-badge--historical{ color:#4a5568; }
+.fx-status-badge--no_provider_configured{ color:#4a5568; }
+
+/*-----------------------------------------------------
+  FX Pricing & Treasury sub-navigation
+-----------------------------------------------------*/
+
+.fx-subnav{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:14px;
+
+}
+
+.fx-subnav a{
+
+    padding:6px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.25);
+    color:inherit;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:600;
+
+}
+
+.fx-subnav a[aria-current="page"]{
+
+    background:var(--color-primary);
+    border-color:var(--color-primary);
+    color:#fff;
+
+}
+
+/*-----------------------------------------------------
+  Explorer
+-----------------------------------------------------*/
+
+.fx-explorer-label{
+
+    display:block;
+    font-weight:600;
+    margin-bottom:6px;
+
+}
+
+.fx-explorer-search{
+
+    width:100%;
+    max-width:420px;
+    padding:10px 14px;
+    font-size:15px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,.15);
+    margin-bottom:18px;
+
+}
+
+.fx-explorer-results{
+
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:10px;
+
+}
+
+.fx-explorer-results li{
+
+    display:flex;
+
+}
+
+.fx-explorer-results a{
+
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,.08);
+    text-decoration:none;
+    color:inherit;
+    width:100%;
+
+}
+
+/*-----------------------------------------------------
+  Treasury groupings / Weekly / Historical / pair detail
+-----------------------------------------------------*/
+
+.fx-treasury-group{
+
+    margin:24px 0;
+
+}
+
+.fx-weekly-list{
+
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:14px;
+    margin:18px 0;
+
+}
+
+.fx-weekly-card{
+
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:14px 16px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,.08);
+    text-decoration:none;
+    color:inherit;
+
+}
+
+.fx-weekly-statement{
+
+    font-size:13px;
+    color:#4a5568;
+    margin:6px 0 0;
+
+}
+
+.fx-weekly-completeness{
+
+    font-size:10px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:#6b7280;
+
+}
+
+.fx-history-nav{
+
+    display:grid;
+    gap:18px;
+    margin:18px 0;
+
+}
+
+.fx-history-date-list{
+
+    list-style:none;
+    margin:8px 0 0;
+    padding:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+
+}
+
+.fx-history-date-list a{
+
+    padding:6px 12px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,.1);
+    text-decoration:none;
+    color:inherit;
+    font-size:13px;
+
+}
+
+.fx-detail-table{
+
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+
+}
+
+.fx-detail-table th,
+.fx-detail-table td{
+
+    text-align:left;
+    padding:8px 12px;
+    border-bottom:1px solid rgba(0,0,0,.08);
+    font-size:14px;
+
+}
+
+.fx-detail-table th{
+
+    color:#6b7280;
+    font-weight:600;
+    width:45%;
+
+}
+
+.fx-pair-detail-header{
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:8px;
+
+}
+
+.fx-sparkline{
+
+    width:100%;
+    max-width:280px;
+    height:56px;
+    color:var(--color-primary);
+    margin:10px 0;
+
+}
+
+.fx-source-legs{
+
+    font-size:13px;
+    color:#6b7280;
+
+}
+
+.fx-history-link{
+
+    margin-top:20px;
+
+}
+
+.fx-loading,
+.fx-empty-note{
+
+    color:#6b7280;
+    font-size:14px;
+
+}
+
+.fx-disclaimer{
+
+    margin-top:32px;
+    padding-top:16px;
+    border-top:1px solid rgba(0,0,0,.08);
+    font-size:12px;
+    color:#6b7280;
+
+}
+
+.fx-status-note{
+
+    font-size:12px;
+    color:#6b7280;
+    margin-top:10px;
+
+}
+
+@media (prefers-reduced-motion: reduce){
+
+    .fx-pair-card{
+
+        transition:none;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .fx-ticker-item{
+
+        padding:0 10px;
+        font-size:12px;
+        gap:4px;
+
+    }
+
+    .fx-pair-grid,
+    .fx-weekly-list,
+    .fx-explorer-results{
+
+        grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+
+    }
 
 }

@@ -1,0 +1,94 @@
+name: GPIR FX Market Data Refresh
+
+# Governance note (M28-FX): FX rates are objective, deterministically
+# validated market data, not editorial classification -- unlike the
+# candidate-intelligence pipeline (continuous-intelligence.yml), which
+# proposes editorial content for human review via PR, this workflow
+# commits a validated snapshot directly to main. This publish model is
+# a deliberate architectural choice for this milestone and should be
+# confirmed by the GPIR owner (see docs/FX_PRICING_TREASURY.md); if a
+# PR-gated model is preferred instead, mirror continuous-intelligence.yml's
+# branch+PR steps here.
+
+on:
+  schedule:
+    # Hourly, matching assets/data/fx/fx-config.json's
+    # refreshFrequencyMinutes. A daily reference-rate feed does not
+    # benefit from more frequent polling; a future licensed live feed
+    # can lower this once configured.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gpir-fx-market-data
+  cancel-in-progress: false
+
+jobs:
+  refresh-fx-snapshot:
+    name: Generate and validate the FX snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate the FX snapshot
+        env:
+          # Present only if configured as a repository/organization
+          # secret -- absent by default, in which case the licensed
+          # provider adapters cleanly report NO_PROVIDER_CONFIGURED
+          # and the always-available reference tier is used instead.
+          # Never echoed to logs; scripts/fx/providers/*.js only ever
+          # check for presence, never print the value.
+          FX_LSEG_API_KEY: ${{ secrets.FX_LSEG_API_KEY }}
+          FX_LSEG_API_SECRET: ${{ secrets.FX_LSEG_API_SECRET }}
+          FX_BLOOMBERG_API_KEY: ${{ secrets.FX_BLOOMBERG_API_KEY }}
+          FX_XE_API_KEY: ${{ secrets.FX_XE_API_KEY }}
+          FX_IBRLIVE_API_KEY: ${{ secrets.FX_IBRLIVE_API_KEY }}
+        run: node scripts/fx/generate-fx-snapshot.js | tee "$RUNNER_TEMP/fx-snapshot-report.json"
+
+      - name: Report snapshot generation
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/fx-snapshot-report.json" ]; then
+            {
+              echo "## GPIR FX snapshot report"
+              echo '```json'
+              cat "$RUNNER_TEMP/fx-snapshot-report.json"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Regenerate FX pages
+        run: node scripts/generate-fx-pages.js
+
+      - name: Validate the generated FX data
+        run: node scripts/validate-fx.js
+
+      - name: Validate the wider structured-content contract
+        run: node scripts/validate-content.js
+
+      - name: Commit and push if changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- assets/data/fx pages/fx; then
+            echo "No FX data change this run."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- assets/data/fx pages/fx
+          git commit -m "M28-FX Refresh FX market snapshot"
+          git push origin HEAD:main

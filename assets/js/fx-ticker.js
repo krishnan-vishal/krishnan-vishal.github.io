@@ -12,18 +12,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /*=====================================================
   LIVE FX RATES
+
+  Reads the pre-generated, GitHub-Actions-produced snapshot
+  (assets/data/fx/current.json) instead of calling a market-data
+  provider directly from the browser -- see docs/FX_PRICING_TREASURY.md
+  for the full pipeline. This keeps any future licensed provider's
+  credentials server-side (GitHub Actions Secrets only) and lets the
+  ticker show previous-business-day variance, which a raw per-refresh
+  live fetch cannot compute on its own.
+
+  Compact single-line format per pair: "USD/INR 88.2000 ▲ +0.34%".
+  Direction is always carried by the ▲/▼/— glyph, never colour alone.
+  Each item is a real link to that pair's FX intelligence view, so it
+  is keyboard-focusable (see the :focus-within pause rule in
+  assets/css/market.css) and works with screen readers.
 ======================================================*/
 
-const currencies = [
-    "USD","EUR","GBP","INR","BDT","PKR","AED","SAR","KWD",
-    "QAR","BHD","OMR","JPY","SGD","MYR","THB","CNY",
-    "KRW","AUD","CAD","CHF","ZAR","NGN","MXN","BRL"
-];
-
-// Base currency the ticker displays pairs against. A footer utility
-// (Currency selector) can change this via setFxBaseCurrency(); it's a
-// genuine re-fetch against the same live API, not a fabricated
-// conversion of already-displayed values.
+// Reordering preference only (which featured pairs surface first) --
+// the underlying data is the same static snapshot for every visitor,
+// never a fresh live re-fetch keyed to the chosen currency.
 let fxBaseCurrency = (function(){
     try{
         return localStorage.getItem("gpir-currency") || "USD";
@@ -31,6 +38,48 @@ let fxBaseCurrency = (function(){
         return "USD";
     }
 })();
+
+function fxDataPrefix(){
+    const script = document.querySelector('script[src*="assets/js/fx-ticker.js"]');
+    const src = script ? script.getAttribute("src") : "assets/js/fx-ticker.js";
+    return src.replace(/assets\/js\/fx-ticker\.js.*$/, "assets/data/fx/");
+}
+
+function fxPagePrefix(){
+    return fxDataPrefix().replace(/assets\/data\/fx\/$/, "");
+}
+
+function fxPairSlug(pair){
+    return pair.toLowerCase().replace("/", "-");
+}
+
+function fxEscapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+}
+
+function fxFormatRate(value, pair){
+    if(typeof value !== "number" || !isFinite(value)) return "N/A";
+    const decimals = pair && (pair.indexOf("JPY") === 0 || pair.slice(-3) === "JPY") ? 2 : 4;
+    return value.toFixed(decimals);
+}
+
+function fxFormatChange(percentageChange){
+    if(typeof percentageChange !== "number" || !isFinite(percentageChange)) return "—";
+    const glyph = percentageChange > 0 ? "▲" : percentageChange < 0 ? "▼" : "—";
+    const sign = percentageChange > 0 ? "+" : "";
+    return glyph + " " + sign + percentageChange.toFixed(2) + "%";
+}
+
+function fxDirectionClass(direction){
+    if(direction === "up") return "fx-up";
+    if(direction === "down") return "fx-down";
+    if(direction === "unchanged") return "fx-unchanged";
+    return "fx-no-comparison";
+}
+
+let fxSnapshotCache = null;
 
 function initializeFxTicker(){
 
@@ -40,12 +89,14 @@ function initializeFxTicker(){
 
     loadRates();
 
-    setInterval(loadRates, 60000);
+    // The generated snapshot refreshes on a GitHub Actions schedule
+    // (see fx-config.json / .github/workflows/fx-market-data.yml), not
+    // every 60 seconds -- re-checking that often would just re-fetch an
+    // unchanged static file. A periodic re-fetch still catches a
+    // snapshot that updated while the page has been open.
+    setInterval(loadRates, 15 * 60 * 1000);
 
-    // Re-render immediately on a language change so the "Last Updated" /
-    // error label reflects the new language without waiting for the
-    // next scheduled refresh.
-    document.addEventListener("gpir:languagechange", loadRates);
+    document.addEventListener("gpir:languagechange", renderTicker);
 
 }
 
@@ -55,7 +106,7 @@ function setFxBaseCurrency(code){
 
     fxBaseCurrency = code;
 
-    loadRates();
+    renderTicker();
 
 }
 
@@ -63,58 +114,82 @@ async function loadRates(){
 
     const track = document.getElementById("fxTicker");
 
-    const updated = document.getElementById("lastUpdated");
-
     if(!track) return;
 
     try{
 
-        const response = await fetch(`https://open.er-api.com/v6/latest/${fxBaseCurrency}`);
+        const response = await fetch(fxDataPrefix() + "current.json");
 
-        const data = await response.json();
+        if(!response.ok) throw new Error("FX snapshot fetch failed: HTTP " + response.status);
 
-        let html = "";
+        fxSnapshotCache = await response.json();
 
-        for(const code of currencies){
-
-            if(code === fxBaseCurrency) continue;
-
-            html += `
-
-                <span class="ticker-item">
-
-                    <span class="pair">${fxBaseCurrency}/${code}</span>
-                    <span class="rate">${data.rates[code].toFixed(4)}</span>
-                    <span class="separator">│</span>
-
-                </span>
-`;
-
-        }
-
-        track.innerHTML = html + html;
-
-        if(updated){
-
-            const label = window.GPIRI18n ? window.GPIRI18n.t("ticker.last_updated") : "Last Updated";
-            updated.textContent =
-                label + ": " + new Date().toLocaleTimeString();
-
-        }
+        renderTicker();
 
     } catch(err){
 
         console.error(err);
 
         const unableText = window.GPIRI18n ? window.GPIRI18n.t("ticker.unable_to_load") : "Unable to load exchange rates.";
-        track.innerHTML =
-            `<span class="ticker-item">${unableText}</span>`;
+        track.innerHTML = `<span class="fx-ticker-item">${fxEscapeHtml(unableText)}</span>`;
 
-        if(updated){
+        const updated = document.getElementById("lastUpdated");
+        if(updated) updated.textContent = "";
 
-            updated.textContent = "";
+    }
 
-        }
+}
+
+function renderTicker(){
+
+    const track = document.getElementById("fxTicker");
+
+    const updated = document.getElementById("lastUpdated");
+
+    if(!track || !fxSnapshotCache) return;
+
+    const pairs = Array.isArray(fxSnapshotCache.pairs) ? fxSnapshotCache.pairs.slice() : [];
+
+    if(!pairs.length){
+
+        const unavailableText = window.GPIRI18n ? window.GPIRI18n.t("ticker.unable_to_load") : "FX snapshot unavailable.";
+        track.innerHTML = `<span class="fx-ticker-item">${fxEscapeHtml(unavailableText)}</span>`;
+        if(updated) updated.textContent = "";
+        return;
+
+    }
+
+    // Reordering only -- pairs involving the reader's chosen currency
+    // surface first within the same curated, already-fetched snapshot.
+    pairs.sort((a, b) => {
+        const aMatch = a.base === fxBaseCurrency || a.quote === fxBaseCurrency ? 0 : 1;
+        const bMatch = b.base === fxBaseCurrency || b.quote === fxBaseCurrency ? 0 : 1;
+        return aMatch - bMatch;
+    });
+
+    const pagePrefix = fxPagePrefix();
+
+    const html = pairs.map(record => {
+
+        const rate = typeof record.mid === "number" ? record.mid : record.last;
+
+        return `<a class="fx-ticker-item ${fxDirectionClass(record.direction)}" href="${pagePrefix}pages/fx/pairs/${fxPairSlug(record.pair)}.html">` +
+            `<span class="fx-ticker-pair">${fxEscapeHtml(record.pair)}</span>` +
+            `<span class="fx-ticker-rate">${fxFormatRate(rate, record.pair)}</span>` +
+            `<span class="fx-ticker-change">${fxFormatChange(record.percentageChange)}</span>` +
+            `</a>`;
+
+    }).join("");
+
+    track.innerHTML = html + html;
+
+    if(updated){
+
+        const label = window.GPIRI18n ? window.GPIRI18n.t("ticker.last_updated") : "Last Updated";
+        const generatedAt = fxSnapshotCache.generatedAt ? new Date(fxSnapshotCache.generatedAt) : null;
+        updated.textContent = generatedAt && !isNaN(generatedAt.getTime())
+            ? label + ": " + generatedAt.toLocaleString()
+            : "";
 
     }
 

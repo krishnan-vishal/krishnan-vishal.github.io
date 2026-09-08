@@ -1,0 +1,447 @@
+{
+  "generatedAt": "2026-09-08T08:40:13.061Z",
+  "summaries": [
+    {
+      "pair": "USD/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/INR."
+      ]
+    },
+    {
+      "pair": "EUR/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for EUR/INR."
+      ]
+    },
+    {
+      "pair": "GBP/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for GBP/INR."
+      ]
+    },
+    {
+      "pair": "AED/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for AED/INR."
+      ]
+    },
+    {
+      "pair": "SGD/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for SGD/INR."
+      ]
+    },
+    {
+      "pair": "AUD/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for AUD/INR."
+      ]
+    },
+    {
+      "pair": "CAD/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for CAD/INR."
+      ]
+    },
+    {
+      "pair": "JPY/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for JPY/INR."
+      ]
+    },
+    {
+      "pair": "CNY/INR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for CNY/INR."
+      ]
+    },
+    {
+      "pair": "EUR/USD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for EUR/USD."
+      ]
+    },
+    {
+      "pair": "GBP/USD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for GBP/USD."
+      ]
+    },
+    {
+      "pair": "USD/JPY",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/JPY."
+      ]
+    },
+    {
+      "pair": "USD/CNY",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/CNY."
+      ]
+    },
+    {
+      "pair": "USD/CHF",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/CHF."
+      ]
+    },
+    {
+      "pair": "USD/CAD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/CAD."
+      ]
+    },
+    {
+      "pair": "USD/HKD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/HKD."
+      ]
+    },
+    {
+      "pair": "USD/AED",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/AED."
+      ]
+    },
+    {
+      "pair": "USD/SGD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/SGD."
+      ]
+    },
+    {
+      "pair": "USD/SAR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/SAR."
+      ]
+    },
+    {
+      "pair": "USD/QAR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/QAR."
+      ]
+    },
+    {
+      "pair": "USD/KWD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/KWD."
+      ]
+    },
+    {
+      "pair": "USD/BHD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/BHD."
+      ]
+    },
+    {
+      "pair": "USD/OMR",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for USD/OMR."
+      ]
+    },
+    {
+      "pair": "EUR/GBP",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for EUR/GBP."
+      ]
+    },
+    {
+      "pair": "AUD/USD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for AUD/USD."
+      ]
+    },
+    {
+      "pair": "NZD/USD",
+      "kind": "DATA_OBSERVATION",
+      "dataCompleteness": "NO_DATA",
+      "observedDays": 0,
+      "weeklyStartLevel": null,
+      "latestRate": null,
+      "high": null,
+      "low": null,
+      "weeklyChange": null,
+      "weeklyChangePercent": null,
+      "direction": null,
+      "rangePercent": null,
+      "statements": [
+        "No archived daily closes are available yet for NZD/USD."
+      ]
+    }
+  ]
+}
