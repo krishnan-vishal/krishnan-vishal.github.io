@@ -85,15 +85,14 @@
         return { sourceStatus: "SOURCE_REQUIRES_VERIFICATION", confidence: "UNVERIFIED", reasons: ["TRUST_ENGINE_UNAVAILABLE"] };
     }
 
-    // Only editorially-classified records (GPIR_CLASSIFIED — GPIR found
-    // and reviewed a real primary source) reach the live ticker, and a
-    // record the trust engine resolves to SOURCE_BLOCKED is withheld
-    // even if it was previously classified, as a fail-safe.
+    // Published records remain available to Search, ASK GPIR and detail
+    // retrieval forever. The 24-hour ticker window is a separate
+    // presentation rule below; expiry never deletes intelligence.
     function publishedRecords(){
         return records
             .filter(r => {
                 if(r.status !== "GPIR_CLASSIFIED") return false;
-                if(r.lifecycleStatus !== "CURRENT") return false;
+                if(r.lifecycleStatus === "DEVELOPING") return false;
                 if(r.contentStatus === "CONTENT_UNDER_REVIEW") return false;
                 return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
             })
@@ -102,6 +101,21 @@
                 if(rank !== 0) return rank;
                 return (b.publishedDate || "").localeCompare(a.publishedDate || "");
             });
+    }
+
+    function liveRecords(){
+        const lifecycle = window.GPIRAnnouncementLifecycle;
+        if(!lifecycle) return [];
+        return publishedRecords().filter(record => lifecycle.isLive(record, new Date()));
+    }
+
+    function tickerTime(record){
+        const instant = window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.publicationInstant(record);
+        return instant ? instant.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) : "--:--";
+    }
+
+    function tickerLocation(record){
+        return String(record.countryCode || record.region || record.country || "GLOBAL").toUpperCase();
     }
 
     // Ticker priority order, most to least urgent — new/unlisted
@@ -166,7 +180,12 @@
         // One malformed record building its own card must not blank the
         // rest of the ticker -- skip that record rather than letting a
         // single throw abort the whole .map() before assignment.
-        const sequenceHTML = publishedRecords().map(record => {
+        const currentLiveRecords = liveRecords();
+        if(!currentLiveRecords.length){
+            track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No validated announcements in the latest 24-hour window · View historical intelligence →</a>';
+            return;
+        }
+        const sequenceHTML = currentLiveRecords.map(record => {
 
             try{
 
@@ -181,12 +200,11 @@
                 // left-click to open the faster in-page panel instead --
                 // ctrl/cmd/middle-click and "open in new tab" fall
                 // through to the real page untouched.
-                return `<a href="pages/intelligence/${escapeHtml(record.id)}.html" class="ticker-card${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
-                    <span class="ticker-flag">${flagMarkup(record)}</span>
-                    <span class="ticker-body">
-                        <span class="ticker-meta"><span class="ticker-country">${escapeHtml(record.country)}</span><span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span></span>
-                        <span class="ticker-headline">${escapeHtml(record.tickerHeadline || record.title)}</span>
-                    </span>
+                return `<a href="pages/intelligence/${escapeHtml(record.id)}.html" class="ticker-card ticker-card--compact${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
+                    <time datetime="${escapeHtml((record.publicationDate || record.publishedDate) + "T" + record.publicationTime)}">${escapeHtml(tickerTime(record))}</time>
+                    <span class="ticker-country">${escapeHtml(tickerLocation(record))}</span>
+                    <span class="ticker-headline">${escapeHtml(record.headline || record.tickerHeadline || record.title)}</span>
+                    <span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span>
                 </a>`;
 
             } catch(err){
@@ -297,7 +315,7 @@
             <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
             <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
             <span class="intel-badge intel-badge--content">${escapeHtml(CONTENT_STATUS_META[record.contentStatus] || "Content: Under Review")}</span>
-            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus || "CURRENT")}</span>
+            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.isLive(record, new Date()) ? "LIVE · LATEST 24H" : "ARCHIVED · HISTORICAL INTELLIGENCE")}</span>
         `;
 
         const sourceBlock = buildSourceBlock(record, trust);
@@ -492,6 +510,7 @@
         openDetail,
         closeDetail,
         getRecords: () => publishedRecords(),
+        getLiveRecords: () => liveRecords(),
         getAllRecords: () => records.slice(),
         getRecordById: (id) => recordsById[id] || null,
         evaluateTrust

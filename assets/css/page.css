@@ -1994,6 +1994,49 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 }
 
+#market-ribbon .ticker-card--compact{
+    display:inline-grid;
+    grid-template-columns:auto auto minmax(180px, auto) auto;
+    align-items:center;
+    gap:7px;
+    min-height:30px;
+    padding:3px 12px;
+    margin:0 8px 0 0;
+    border:0;
+    border-right:1px solid rgba(11,39,66,.18);
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    color:#0b2742;
+    text-decoration:none;
+    vertical-align:middle;
+}
+
+#market-ribbon .ticker-card--compact time,
+#market-ribbon .ticker-card--compact .ticker-country,
+#market-ribbon .ticker-card--compact .ticker-tag{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.04em;
+}
+
+#market-ribbon .ticker-card--compact .ticker-headline{
+    max-width:420px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:12px;
+}
+
+#market-ribbon .ticker-empty{
+    display:inline-flex;
+    align-items:center;
+    min-height:30px;
+    padding:3px 12px;
+    color:#0b2742;
+    font-size:12px;
+    text-decoration:none;
+}
+
 /* Set by initializeTickerVisibilityPause() in script.js when the ribbon
    is scrolled off-screen or the tab is backgrounded. */
 #market-ribbon .ticker-track.gpir-ticker-paused{
@@ -2089,3 +2132,33 @@ GLOBAL FIAT EXCHANGE MONITOR
     color:#777;
 
 }
+
+.announcement-dashboard-heading,
+.announcement-dashboard-filters,
+.announcement-card-meta-row,
+.announcement-card-status-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.announcement-dashboard-filters{
+    padding:16px;
+    margin:24px 0;
+    border:1px solid var(--border-color, #d8dee8);
+    border-radius:12px;
+}
+
+.announcement-dashboard-filters label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.announcement-dashboard-filters select,
+.announcement-dashboard-filters input,
+.announcement-dashboard-filters button{min-height:40px;padding:7px 10px}
+.announcement-dashboard-stats{margin-bottom:24px;line-height:1.8}
+.announcement-dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(256px,1fr));gap:16px}
+.announcement-dashboard-group{margin-top:28px}
+.announcement-dashboard-group>h3{font-size:15px;color:var(--text-muted, #536172)}
+.announcement-dashboard-card{padding:16px;margin:12px 0;border:1px solid var(--border-color, #d8dee8);border-radius:12px;background:var(--surface, #fff)}
+.announcement-dashboard-card h4,.announcement-dashboard-card p{margin:6px 0}
+.announcement-dashboard-pending{margin-top:32px;padding:16px;background:var(--surface-muted, #f5f7fa)}

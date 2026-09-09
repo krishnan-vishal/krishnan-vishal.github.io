@@ -229,8 +229,34 @@ async function inspectSources(sources = trustedSources) {
     return Promise.all(sources.map(inspectSource));
 }
 
+function dateOnly(value) {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
+}
+
+function parseWindow(argv = process.argv.slice(2)) {
+    const read = name => {
+        const arg = argv.find(value => value.startsWith(`--${name}=`));
+        return arg ? dateOnly(arg.slice(name.length + 3)) : null;
+    };
+    return { from: read("from"), to: read("to") };
+}
+
+function filterDiscoveredByDate(results, from, to) {
+    return results.map(result => ({
+        ...result,
+        discovered: (result.discovered || []).filter(item => {
+            const date = dateOnly(item.publicationDate);
+            return date && (!from || date >= from) && (!to || date <= to);
+        })
+    }));
+}
+
 async function main() {
-    const results = await inspectSources();
+    const window = parseWindow();
+    const rawResults = await inspectSources();
+    const results = filterDiscoveredByDate(rawResults, window.from, window.to);
 
     const configured = results.filter(
         r => r.status !== "NOT_CONFIGURED"
@@ -244,11 +270,13 @@ async function main() {
         schemaVersion: "2.0",
         generatedAt: new Date().toISOString(),
         mode: "REPORT_ONLY",
-        cadence: "NOT_SCHEDULED",
+        cadence: "EVERY_2_HOURS_VIA_EXISTING_WORKFLOW",
+        backfillWindow: window,
         sourceCount: trustedSources.length,
         configuredSourceCount: configured.length,
         retrievedSourceCount: retrieved.length,
         existingAnnouncementCount: announcements.length,
+        recordsDiscovered: results.reduce((count, result) => count + (result.discovered || []).length, 0),
         recordsMutated: 0,
         publicationMutationAllowed: false,
         safetyRule:
@@ -266,4 +294,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems };
+module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems, dateOnly, parseWindow, filterDiscoveredByDate };

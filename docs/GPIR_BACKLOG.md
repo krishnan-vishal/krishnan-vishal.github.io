@@ -361,3 +361,8 @@ with status `SUPERSEDED`; they are not silently removed.
 - Remaining: final review, commit/push, PR, Actions and owner approval. Completion date/PR: PENDING.
 - Blocker: authentication may prevent local push; no claim of remote durability before confirmed.
 - Next dependency: authenticated GitHub handoff and human-controlled merge. No application feature work authorized by this item.
+## Global Announcements Intelligence Engine — implemented, owner review pending (2026-09-09)
+
+- Exact 24-hour validated live ticker and retained repository archive implemented.
+- Region/country/category/subcategory/date filters, counts, source validation, Search and ASK GPIR integration implemented.
+- Backfill discovery remains proposal-only; expand configured trusted-source adapters in later governed milestones to reduce explicit regional coverage gaps.

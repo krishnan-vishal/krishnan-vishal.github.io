@@ -1648,40 +1648,33 @@ function initializeReaderAssistant(){
         const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
         const monthIndex = monthNames.findIndex(month => normalized.includes(month));
         const yearMatch = normalized.match(/\b(20\d{2})\b/);
-        const categoryTerms = [
-            ["aml", record => /aml|cft/i.test(`${record.category} ${record.subCategory}`)],
-            ["regulatory", record => /regulatory/i.test(`${record.category} ${record.subCategory}`)],
-            ["payment infrastructure", record => /payment infrastructure|payment infrastructure/i.test(`${record.category} ${record.subCategory}`)],
-            ["m&a", record => /m&a|acquisition/i.test(`${record.category} ${record.eventType}`)],
-            ["stablecoin", record => /stablecoin/i.test(`${record.title} ${record.subCategory} ${record.summary}`)],
-            ["cross-border", record => /cross-border/i.test(`${record.category} ${record.subCategory} ${record.title}`)]
-        ];
-        const countryTerms = ["india", "singapore", "uae", "united arab emirates", "saudi arabia", "qatar"];
-        const country = countryTerms.find(term => normalized.includes(term));
-        const category = categoryTerms.find(([term]) => normalized.includes(term));
+        const registryLocations = (context.registry || []).filter(record => record.contentType === "COUNTRY" || record.contentType === "REGION").flatMap(record => [record.title, record.name]).filter(Boolean);
+        const requestedLocation = [...new Set([...records.flatMap(record => [record.country, record.region]).filter(Boolean), ...registryLocations, "Australia", "Brazil", "GCC"])]
+            .sort((left, right) => right.length - left.length)
+            .find(location => normalized.includes(location.toLowerCase()));
+        const queryTokens = normalized.split(/[^\p{L}\p{N}&-]+/u).filter(token => token.length > 2 && !["the","and","for","show","latest","recent","announcement","announcements","update","updates","change","changes"].includes(token));
         let matches = records.filter(record => {
-            if(normalized.includes("historical") && record.lifecycleStatus !== "HISTORICAL") return false;
-            if(normalized.includes("current") && record.lifecycleStatus !== "CURRENT") return false;
-            if(country){
-                const location = `${record.country} ${record.region}`.toLowerCase();
-                const locationMatch = country === "uae" ? /uae|united arab emirates/.test(location) : location.includes(country);
-                if(!locationMatch) return false;
-            }
-            if(category && !category[1](record)) return false;
+            const displayStatus = record.displayLifecycleStatus || record.lifecycleStatus;
+            if((normalized.includes("historical") || normalized.includes("archive")) && displayStatus !== "ARCHIVED" && displayStatus !== "HISTORICAL") return false;
+            if((normalized.includes("live") || normalized.includes("latest 24")) && displayStatus !== "LIVE") return false;
+            if(requestedLocation && !`${record.country} ${record.region}`.toLowerCase().includes(requestedLocation.toLowerCase())) return false;
             if(monthIndex !== -1 && record.publicationMonth !== String(monthIndex + 1).padStart(2, "0")) return false;
             if(yearMatch && record.publicationYear !== yearMatch[1]) return false;
-            return true;
+            if(/\b(historical|archive|live|latest 24)\b/.test(normalized) && queryTokens.every(token => ["show","historical","archive","live"].includes(token))) return true;
+            const text = [record.headline, record.title, record.tickerHeadline, record.summary, record.whyItMatters, record.country, record.region, record.category, record.subcategory, record.subCategory, record.eventType, record.organisation, record.sourceName, record.gpirSection, record.gpirSubsection, ...(record.tags || []), ...(record.keywords || [])].filter(Boolean).join(" ").toLowerCase();
+            record.__askScore = queryTokens.reduce((score, token) => score + (text.includes(token) ? 1 : 0), 0);
+            return queryTokens.length === 0 || record.__askScore >= Math.max(1, Math.ceil(queryTokens.length * 0.6));
         });
-        matches.sort((a, b) => (b.publicationDate || b.publishedDate || "").localeCompare(a.publicationDate || a.publishedDate || ""));
-        if(normalized.includes("recent")) matches = matches.slice(0, 6);
+        matches.sort((a, b) => (b.__askScore || 0) - (a.__askScore || 0) || (b.publicationDate || b.publishedDate || "").localeCompare(a.publicationDate || a.publishedDate || ""));
+        if(normalized.includes("recent") || normalized.includes("latest")) matches = matches.slice(0, 6);
         const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
         if(!matches.length){
-            answer.innerHTML = `<p>No published announcements matched <strong>${escape(normalized)}</strong>.</p>`;
+            answer.innerHTML = "<p>No validated GPIR announcement record is available for this query.</p>";
             return true;
         }
         const items = matches.map(record => {
             const source = record.source && record.source.url ? ` · <a href="${escape(record.source.url)}" target="_blank" rel="noopener noreferrer">Original source</a>` : "";
-            return `<li><a href="${escape(rootPrefix + "pages/intelligence/" + record.id + ".html")}">${escape(record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
+            return `<li><a href="${escape(rootPrefix + "pages/intelligence/" + record.id + ".html")}">${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
         }).join("");
         answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the structured announcement records; no factual summary was generated.</p>`;
         return true;
@@ -1692,7 +1685,8 @@ function initializeReaderAssistant(){
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
 
-        if(/\bannouncements?\b/.test(normalized)){
+        const looksLikeAnnouncementQuery = /\b(announcements?|regulation|regulatory|licen[cs](?:e|ing)|stablecoin|aml|cft|sanction|payments?|remittance|cross-border|pix|cbdc|fintech)\b/.test(normalized) && /\b(latest|recent|update|change|expansion|launch|regulation|licen[cs](?:e|ing)|september|august|20\d{2}|india|singapore|australia|brazil|gcc|uae|qatar|rbi)\b/.test(normalized);
+        if(/\bannouncements?\b/.test(normalized) || looksLikeAnnouncementQuery){
             loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(error => {
                 // loadContext() no longer rejects on a single dataset failure;
                 // reaching this is an unexpected error, not a normal degraded state.
