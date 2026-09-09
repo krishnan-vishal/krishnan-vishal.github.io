@@ -242,3 +242,40 @@ branches, publish unvalidated intelligence or add an AI/runtime service dependen
 No auto-merge, competing scheduler, paid service or new orchestration framework
 is introduced. Repository policy does not claim that uninspected GitHub branch
 protection or account settings have been configured.
+
+### Global Announcements production contract
+
+The existing two-hour continuous-intelligence workflow is the sole automated
+announcement schedule. It discovers from the approved trusted-source matrix,
+records per-source health, applies the deterministic publication gate, regenerates
+static reader/search artifacts and pushes changed output only to
+`automation/intelligence-candidates`. It never pushes or merges `main`.
+
+Automatic classification is limited to active `VERIFIED_OFFICIAL` Tier-1 primary
+sources whose current cycle is healthy and whose item has an official HTTPS URL,
+a source publication date, explicit high-confidence payments relevance, complete
+canonical fields and no URL/event duplicate. A failure of any rule keeps the item
+non-public. Tier-2/Tier-3, association/media, ambiguous, incomplete, stale and
+failed-source material remains in review or quarantine. A publication date without
+a verified time never receives an inferred time or live-ticker placement.
+
+Published records are append-oriented. Their original source, candidate reference,
+retrieval/validation evidence, lifecycle, lineage and permanent detail URL remain
+available after 24-hour live retirement. Generated pages use server-rendered content
+as the last-known-good reader; browser JavaScript may enhance filters but must not be
+the only copy of public intelligence. No AI service, database, external runtime,
+secret or second publication path is part of this contract.
+
+Approved source acquisition is configuration-led and ordered: RSS/Atom, official
+API, official JSON/XML, official public release index, permitted deterministic HTML
+change monitoring, then manual candidate fallback. Adding a source means validating
+and appending registry/configuration metadata and an endpoint/parser profile where
+needed; it does not authorize a new scheduler or publication system.
+
+Past, present and future share the same record model. Past means retained validated
+history/backfill; present means a validated record whose exact timestamp is within
+the 24-hour display window; future means only a source-declared effective date,
+deadline, consultation, migration or planned launch. Future is never a prediction.
+Upstream failure records AMBER/RED/STALE health as appropriate, retries only within
+bounded controls, quarantines unsafe output and leaves the last-known-good reader,
+archive, Search GPIR and ASK GPIR corpus unchanged.

@@ -17,6 +17,7 @@ const errors = [];
 const ids = new Set();
 const requiredLifecycleFields = ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"];
 const requiredIntelligenceFields = ["headline", "subcategory", "publicationTime", "sourceName", "sourceUrl", "sourceType", "retrievedAt", "validatedAt", "validationStatus", "displayLifecycleStatus", "gpirSection", "gpirSubsection", "tags", "keywords", "sourceAuthorityLevel"];
+const requiredCanonicalFields = ["recordId", "tickerHeadline", "summary", "sourceOrgId", "trustTier", "country", "region", "category", "subCategory", "paymentDomain", "publishedDate", "retrievedAt", "validatedAt", "status", "lifecycleStatus", "publicationStatus", "contentStatus", "validationStatus", "supersedes", "supersededBy", "relatedRecords", "acquisitionMethod", "sourceHealth"];
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
 const lifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
 const publicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
@@ -40,6 +41,16 @@ announcements.forEach(record => {
     requiredIntelligenceFields.forEach(field => {
         if(!(field in record)) fail(`${record.id}: missing intelligence field ${field}`);
     });
+    if(record.recordId){
+        requiredCanonicalFields.forEach(field => {
+            if(!(field in record)) fail(`${record.id}: missing canonical production field ${field}`);
+        });
+        if(record.recordId !== record.id) fail(`${record.id}: recordId alias mismatch`);
+        if(!/^T1$/.test(record.trustTier || "")) fail(`${record.id}: automatic production record must retain T1 trust tier`);
+        if(!record.summary || record.summary.length < 40) fail(`${record.id}: source-derived summary is missing or too short`);
+        if(!Array.isArray(record.relatedRecords)) fail(`${record.id}: relatedRecords must be an array`);
+        if(!record.sourceHealth || record.sourceHealth.state !== "GREEN") fail(`${record.id}: published source-health evidence must be GREEN`);
+    }
     if(!lifecycleStatuses.has(record.lifecycleStatus)) fail(`${record.id}: invalid lifecycleStatus`);
     if(record.publicationDate !== null && !datePattern.test(record.publicationDate)) fail(`${record.id}: invalid publicationDate`);
     ["effectiveDate", "validationDate"].forEach(field => {
@@ -114,7 +125,16 @@ if(!script.includes("answerAnnouncementQuery") || !/announcements\?/.test(script
 if(!announcementsRuntime.includes("status !== \"GPIR_CLASSIFIED\"") || !announcementsRuntime.includes("GPIRAnnouncementLifecycle") || !announcementsRuntime.includes("contentStatus === \"CONTENT_UNDER_REVIEW\"")) fail("ticker publication filter is incomplete");
 if(!pageGenerator.includes("generateArchive") || !exists("pages/intelligence/index.html")) fail("generated announcement archive is missing");
 if(!refreshFoundation.includes("REPORT_ONLY") || !refreshFoundation.includes("EVERY_2_HOURS_VIA_EXISTING_WORKFLOW") || !refreshFoundation.includes("recordsMutated: 0")) fail("refresh foundation must remain report-only under the existing two-hour workflow");
-if(!fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8").includes("track.innerHTML = sequenceHTML + sequenceHTML")) fail("ticker duplication contract is missing");
+const tickerSource = fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8");
+if(!tickerSource.includes("track.innerHTML = sequenceHTML;")) fail("single-sequence ticker contract is missing");
+if(tickerSource.includes("sequenceHTML + sequenceHTML")) fail("ticker must not duplicate its announcement sequence");
+const archivePage = fs.readFileSync(path.join(pagesDir, "index.html"), "utf8");
+if(!archivePage.includes("data-live") || !archivePage.includes("data-latest") || !archivePage.includes("data-archive")) fail("archive lifecycle sections are incomplete");
+if(/data-(?:live|latest|archive)><\/div>/.test(archivePage)) fail("archive must include a server-rendered fallback rather than blank data containers");
+if(!archivePage.includes("Publication dataset updated:")) fail("archive dynamic publication timestamp is missing");
+if(archivePage.includes("Last validated publication cycle: 14 August 2026")) fail("archive contains the retired hardcoded validation date");
+const workflowSource = fs.readFileSync(path.join(ROOT, ".github/workflows/continuous-intelligence.yml"), "utf8");
+if(!workflowSource.includes("publish-intelligence-candidates.js") || !workflowSource.includes("generate-intelligence-pages.js")) fail("scheduled workflow is missing the deterministic publication/generation gate");
 
 if(errors.length){
     console.error(`M-18 announcement validation failed with ${errors.length} error(s):`);

@@ -179,13 +179,25 @@ async function inspectSource(source) {
     }
 
     try {
-        const response = await fetch(endpoint, {
-            headers: {
-                "User-Agent": "FINTECHOISIS-GPIR-Refresh/1.0",
-                "Accept": "application/rss+xml, application/atom+xml, application/json, text/xml, text/plain;q=0.8"
-            },
-            signal: AbortSignal.timeout(15000)
-        });
+        let response;
+        let lastError;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+                response = await fetch(endpoint, {
+                    headers: {
+                        "User-Agent": "FINTECHOISIS-GPIR-Refresh/1.0",
+                        "Accept": "application/rss+xml, application/atom+xml, application/json, text/xml, text/plain;q=0.8"
+                    },
+                    signal: AbortSignal.timeout(20000)
+                });
+                if (response.status !== 429 && response.status < 500) break;
+                lastError = new Error(`HTTP_${response.status}`);
+            } catch (error) {
+                lastError = error;
+            }
+            if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 250 * (2 ** attempt)));
+        }
+        if (!response || response.status === 429 || response.status >= 500) throw lastError || new Error("ENDPOINT_UNAVAILABLE");
 
         // fetch follows redirects by default. The final destination is a new
         // untrusted input and must meet the same approved-domain rule as the
