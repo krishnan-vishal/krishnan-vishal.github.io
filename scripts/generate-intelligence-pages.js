@@ -123,9 +123,9 @@ function formatDate(dateStr){
 function lifecycleFacts(record){
     const facts = [
         ["Event Type", record.eventType],
-        [record.lifecycleStatus === "HISTORICAL" ? "Originally published" : "Published", record.publicationDate || record.publishedDate],
+        [(record.displayLifecycleStatus === "ARCHIVED" || record.lifecycleStatus === "HISTORICAL") ? "Originally published" : "Published", record.publicationDate || record.publishedDate],
         ["GPIR Refresh Cycle", record.refreshCycle],
-        ["Publication Status", record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus]
+        ["Publication Status", (record.displayLifecycleStatus === "ARCHIVED" || record.lifecycleStatus === "HISTORICAL") ? "ARCHIVED PUBLICATION" : (record.displayLifecycleStatus || record.lifecycleStatus)]
     ].filter(([, value]) => value);
     if(!facts.length) return "";
     return `<dl class="intel-source-list intel-lifecycle-facts">${facts.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl>`;
@@ -347,7 +347,7 @@ function main(){
             <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
             <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
             <span class="intel-badge intel-badge--content">${escapeHtml(contentStatusLabel)}</span>
-            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(record.lifecycleStatus === "HISTORICAL" ? "ARCHIVED PUBLICATION" : record.lifecycleStatus || "CURRENT")}</span>
+            <span class="intel-badge intel-badge--lifecycle">${escapeHtml((record.displayLifecycleStatus === "ARCHIVED" || record.lifecycleStatus === "HISTORICAL") ? "ARCHIVED PUBLICATION" : record.displayLifecycleStatus || record.lifecycleStatus || "CURRENT")}</span>
         `;
 
         let sourceBlock;
@@ -572,41 +572,7 @@ function archiveCard(record){
 }
 
 function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers, outputDir){
-    const current = publishedRecords.filter(record => record.lifecycleStatus === "CURRENT");
-    const historical = allRecords.filter(record => record.lifecycleStatus === "HISTORICAL" && record.publicationDate);
-    const byYear = {};
-    historical.forEach(record => {
-        const year = record.publicationYear || record.publicationDate.slice(0, 4);
-        const month = record.publicationMonth || record.publicationDate.slice(5, 7);
-        if(!byYear[year]) byYear[year] = {};
-        if(!byYear[year][month]) byYear[year][month] = [];
-        byYear[year][month].push(record);
-    });
-    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const historicalMarkup = Object.keys(byYear).sort().reverse().map(year => `
-        <section class="announcement-year-group" id="historical-${year}">
-            <h3>${escapeHtml(year)}</h3>
-            ${Object.keys(byYear[year]).sort().reverse().map(month => `
-                <div class="announcement-month-group">
-                    <h4>${escapeHtml(monthNames[Number(month) - 1] || month)}</h4>
-                    <ul class="announcement-archive-list">${byYear[year][month].map(record => `
-                        <li class="announcement-archive-card">
-                          <div class="announcement-card-flag">${record.countryCode ? `<img class="flag-icon" src="../../assets/icons/flags/${escapeHtml(record.countryCode)}.svg" alt="" loading="lazy">` : '<svg class="icon-globe" ...></svg>'}</div>
-                          <div class="announcement-card-body">
-                            <div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span><span>${escapeHtml(formatDate(record.publicationDate || record.publishedDate))}</span></div>
-                            <h3><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a></h3>
-                            <p class="announcement-card-summary">${escapeHtml(record.summary || record.whyItMatters || record.title)}</p>
-                            <div class="announcement-card-status-row"><span class="announcement-card-status">${escapeHtml(record.lifecycleStatus || "HISTORICAL")}</span><a class="announcement-card-link" href="${escapeHtml(record.id)}.html">View intelligence page</a></div>
-                          </div>
-                        </li>
-                    `).join("")}</ul>
-                </div>
-            `).join("")}
-        </section>
-    `).join("") || "<p>No validated superseded publications are currently recorded.</p>";
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
-    const pendingMarkup = pending.length ? `<section id="awaiting-verification" class="announcement-archive-section"><h2>Awaiting Verification</h2><p>Developing records are excluded from published alerts until source, content and publication validation are complete.</p><ul class="announcement-archive-list announcement-archive-list--pending">${pending.map(record => `<li class="announcement-archive-card announcement-archive-card--pending"><div class="announcement-card-body"><div class="announcement-card-meta-row"><span>${escapeHtml(record.country || "Global")}</span><span>${escapeHtml(record.category || "Announcement")}</span><span>${escapeHtml(record.lifecycleStatus || "DEVELOPING")}</span></div><h3>${escapeHtml(record.tickerHeadline || record.title)}</h3><p class="announcement-card-summary">${escapeHtml(record.summary || "Source and publication-date verification remain pending.")}</p></div></li>`).join("")}</ul></section>` : "";
-    const archiveNav = historical.length ? `<nav class="announcement-archive-nav" aria-label="Historical announcements navigation"><span>Jump to:</span>${Object.keys(byYear).sort().reverse().map(year => `<a href="#historical-${year}">${escapeHtml(year)}</a>`).join("")}</nav>` : "";
 
     // Reuses the same shared head/header markup as every generated intelligence
     // detail page (extracted from pages/legal/privacy-policy.html) instead of a
@@ -632,29 +598,27 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 </section>
 <section class="chapter-body">
     <div class="container announcement-archive-wrap">
-      <nav class="announcement-archive-nav" aria-label="Archive sections">
-        <span>Jump to:</span>
-        <a href="#current-alerts">Current Alerts</a>
-        <a href="#historical-publications">Historical Publications</a>
-        ${pending.length ? `<a href="#awaiting-verification">Awaiting Verification</a>` : ""}
-      </nav>
-      <section id="current-alerts" class="announcement-archive-section">
-        <h2>Current Alerts</h2>
-        <ul class="announcement-archive-list">${current.map(archiveCard).join("")}</ul>
+      <section class="announcement-dashboard" data-announcement-dashboard data-source="../../assets/data/announcements.json">
+        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 24 hours. All older validated records remain searchable and discoverable here.</p></div><strong data-counts>Loading validated records…</strong></div>
+        <form class="announcement-dashboard-filters" aria-label="Announcement archive filters" onsubmit="return false">
+          ${["region", "country", "category", "subcategory"].map(field => `<label>${escapeHtml(field.charAt(0).toUpperCase() + field.slice(1))}<select data-filter="${field}"><option value="">All</option></select></label>`).join("")}
+          <label>From date<input type="date" data-filter="from"></label><label>To date<input type="date" data-filter="to"></label>
+          <button type="button" data-reset>Reset filters</button>
+        </form>
+        <div class="announcement-dashboard-stats" data-stats aria-live="polite"></div>
+        <section id="latest-24-hours"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live></div></section>
+        <section id="historical-publications"><h2>Repository archive</h2><div data-archive></div></section>
+        ${pending.length ? `<p class="announcement-dashboard-pending"><strong>${pending.length}</strong> developing record(s) remain excluded from public results pending source and publication validation.</p>` : ""}
       </section>
-      <section id="historical-publications" class="announcement-archive-section">
-        <h2>Historical Publications</h2>
-        ${archiveNav}
-        ${historicalMarkup}
-      </section>
-      ${pendingMarkup}
     </div>
 </section>
 ${footerBlock}
+<script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
+<script src="../../assets/js/announcement-dashboard.js?v=20260909a"></script>
 </body>
 </html>`;
     fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
-    console.log(`Staged ${path.join(OUTPUT_DIR, "index.html")} (current: ${current.length}, historical: ${historical.length})`);
+    console.log(`Staged ${path.join(OUTPUT_DIR, "index.html")} (published: ${publishedRecords.length}, developing: ${pending.length})`);
 }
 
 // Rebuilds current entries while retaining an existing sitemap entry for a
@@ -708,7 +672,7 @@ function updateSitemap(published, allRecords, outputPath){
         return false;
     }
 
-    sitemap = sitemap.replace("</urlset>", entries + "\n\n</urlset>");
+    sitemap = sitemap.replace("</urlset>", entries + "\n\n</urlset>").replace(/\n{4,}/g, "\n\n\n");
     fs.writeFileSync(outputPath, sitemap, "utf8");
     console.log(`Staged sitemap with ${published.length} current/public entries and ${retainedHistoricalUrls.size} retained historical entry/entries.`);
     return true;

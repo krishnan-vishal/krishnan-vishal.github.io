@@ -2,6 +2,18 @@
 
 ## Current handoff
 
+- **Milestone:** Global Announcements Intelligence Engine — live-to-archive lifecycle.
+- **Category / owner:** Intelligence / Reader Experience / Automation; Vishal Krishnan.
+- **Objective:** Enforce a verified exact 24-hour live window, retain older validated records in a filterable repository archive, and extend deterministic Search / ASK GPIR retrieval without changing human publication control.
+- **Working branch:** `work/global-announcements-intelligence-archive` from `origin/main` at `5c45990`.
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PENDING COMMIT, PUSH AND PR.
+- **Completed:** Pure live/archive lifecycle; compact homepage ticker; full accepted-record aliases; filterable archive dashboard and counts; original-source preservation; Search/ASK expansion; bounded report-only backfill controls; relevance/deduplication/geography/date/LKG tests. Date-only legacy records are archived because no source time is invented.
+- **Backfill audit (latest run, 2026-08-15 through 2026-09-09):** 88 registry sources evaluated, 6 configured endpoints, 42 in-window source items discovered, 5 relevant candidate proposals, 37 rejected as non-relevant, 5 routed to backfill/archive review, 0 public records mutated or accepted for publication. Only APAC yielded proposals; HKMA was temporarily unavailable and 82 source entries remain unconfigured/unsupported, so coverage gaps remain explicit.
+- **Validation:** Announcement lifecycle, ASK intent/resilience, announcement/content/link validation passed. Full repository validation and Actions pending at this checkpoint.
+- **Publication state:** No merge. Human validation remains required before any candidate can enter the public dataset.
+
+## Superseded M28-FX Final Scale handoff
+
 - **Milestone:** M28-FX Final Scale & Variance Pass.
 - **Category / owner:** Scaling / Reader Experience / Data / Automation; Vishal Krishnan.
 - **Objective:** Automatic previous-business-day variance from validated GPIR observations, compact regional Live FX grid, full active-provider currency universe with deterministic cross-rates, and reusable pair-intelligence presentation hooks.

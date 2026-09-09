@@ -116,6 +116,14 @@ function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
 }
 
 async function main() {
+    const argv = process.argv.slice(2);
+    const reportOnly = argv.includes("--report-only");
+    const argumentDate = name => {
+        const argument = argv.find(value => value.startsWith(`--${name}=`));
+        return argument ? dateOnly(argument.slice(name.length + 3)) : null;
+    };
+    const from = argumentDate("from");
+    const to = argumentDate("to");
     const sources = readJson(SOURCES_PATH).registry || [];
     const published = readJson(ANNOUNCEMENTS_PATH).records || [];
     const queue = readJson(CANDIDATES_PATH);
@@ -139,7 +147,10 @@ async function main() {
         const country = source ? countries.find(record => record.name === source.country) : null;
         if (!source) return;
 
-        (report.discovered || []).forEach(item => {
+        (report.discovered || []).filter(item => {
+            const date = dateOnly(item.publicationDate);
+            return date && (!from || date >= from) && (!to || date <= to);
+        }).forEach(item => {
             const sourceUrl = canonicalUrl(item.url);
             if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) return;
             if (!isPaymentsRelevant(item)) {
@@ -172,7 +183,7 @@ async function main() {
         });
     });
 
-    if (additions.length) {
+    if (additions.length && !reportOnly) {
         const candidates = existingCandidates.concat(additions).sort((left, right) => left.id.localeCompare(right.id));
         const nextQueue = {
             ...queue,
@@ -182,10 +193,21 @@ async function main() {
     }
 
     const report = {
-        mode: "CANDIDATE_PROPOSAL_ONLY",
+        mode: reportOnly ? "CANDIDATE_BACKFILL_REPORT_ONLY" : "CANDIDATE_PROPOSAL_ONLY",
         recordsMutated: 0,
         publicPublicationMutationAllowed: false,
         proposalCandidatesAdded: additions.length,
+        backfillWindow: { from, to },
+        recordsDiscovered: reports.reduce((count, result) => count + (result.discovered || []).filter(item => {
+            const date = dateOnly(item.publicationDate);
+            return date && (!from || date >= from) && (!to || date <= to);
+        }).length, 0),
+        recordsRejected: Object.values(counters).reduce((sum, count) => sum + count, 0),
+        backfilledCandidates: additions.filter(candidate => candidate.sourcePublicationDate && to && candidate.sourcePublicationDate < to).length,
+        sourcesEvaluated: reports.length,
+        configuredSources: reports.filter(result => !["NOT_CONFIGURED", "SOURCE_UNSUPPORTED"].includes(result.status)).length,
+        sourcesUsed: [...new Set(additions.map(candidate => candidate.sourceOrgId))].sort(),
+        coverageByRegion: [...additions.reduce((map, candidate) => map.set(candidate.region || "Unmapped", (map.get(candidate.region || "Unmapped") || 0) + 1), new Map()).entries()].sort(([left], [right]) => left.localeCompare(right)).map(([region, count]) => ({ region, count })),
         existingCandidateCount: existingCandidates.length,
         skipped: counters,
         discoveryTarget: "<=24 hours where source availability and endpoint reliability permit; not universal real-time coverage",
@@ -207,4 +229,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly };

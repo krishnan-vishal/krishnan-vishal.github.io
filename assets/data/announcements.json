@@ -47,7 +47,35 @@
         "subHeader": "Digital Currency & Stablecoins",
         "href": "pages/chapters/stablecoins-cbdcs.html"
       },
-      "relatedCountryHref": "pages/countries/uae.html"
+      "relatedCountryHref": "pages/countries/uae.html",
+      "headline": "UAE Central Bank Payment Token Services Regulation moves into operational phase",
+      "subcategory": "Digital Currency / Stablecoins",
+      "publicationTime": null,
+      "sourceName": "Central Bank of the UAE (CBUAE)",
+      "sourceUrl": "https://rulebook.centralbank.ae/en/rulebook/payment-token-services-regulation",
+      "sourceType": "Central Bank / Regulator",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Technology",
+      "gpirSubsection": "Digital Currency & Stablecoins",
+      "tags": [
+        "Regulatory",
+        "Digital Currency / Stablecoins",
+        "Regulation",
+        "United Arab Emirates",
+        "Middle East"
+      ],
+      "keywords": [
+        "Regulatory",
+        "Digital Currency / Stablecoins",
+        "Regulation",
+        "United Arab Emirates",
+        "Middle East",
+        "Central Bank of the UAE (CBUAE)"
+      ],
+      "sourceAuthorityLevel": 1
     },
     {
       "id": "sama-malaa-openbanking-2026",
@@ -95,7 +123,34 @@
         "subHeader": "Payment Infrastructure",
         "href": "pages/chapters/payment-infrastructure.html"
       },
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "Saudi Central Bank licenses Malaa Company under its Open Banking Framework",
+      "subcategory": "Payment Infrastructure",
+      "publicationTime": null,
+      "sourceName": "Saudi Press Agency (SPA), reporting a Saudi Central Bank (SAMA) licensing decision",
+      "sourceUrl": "https://www.spa.gov.sa/en/N2639494",
+      "sourceType": "Official Government News Agency",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Ecosystem",
+      "gpirSubsection": "Payment Infrastructure",
+      "tags": [
+        "Licensing",
+        "Payment Infrastructure",
+        "Saudi Arabia",
+        "Middle East"
+      ],
+      "keywords": [
+        "Licensing",
+        "Payment Infrastructure",
+        "Saudi Arabia",
+        "Middle East",
+        "Saudi Central Bank (SAMA)",
+        "Saudi Press Agency (SPA), reporting a Saudi Central Bank (SAMA) licensing decision"
+      ],
+      "sourceAuthorityLevel": 2
     },
     {
       "id": "favara-upi-maldives-india-2026",
@@ -143,7 +198,36 @@
         "subHeader": "Remittances & Diaspora",
         "href": "pages/chapters/remittances-diaspora.html"
       },
-      "relatedCountryHref": "pages/countries/india.html"
+      "relatedCountryHref": "pages/countries/india.html",
+      "headline": "Favara-UPI cross-border payment corridor goes live between Maldives and India",
+      "subcategory": "Remittances",
+      "publicationTime": null,
+      "sourceName": "Maldives Monetary Authority (MMA), reported via India's official press service",
+      "sourceUrl": "https://newsonair.gov.in/favara-upi-cross-border-payment-corridor-goes-live-between-maldives-and-india/",
+      "sourceType": "Official Government News Agency",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Money Movement",
+      "gpirSubsection": "Remittances & Diaspora",
+      "tags": [
+        "Cross-Border Payments",
+        "Remittances",
+        "Market Development",
+        "India",
+        "APAC"
+      ],
+      "keywords": [
+        "Cross-Border Payments",
+        "Remittances",
+        "Market Development",
+        "India",
+        "APAC",
+        "Maldives Monetary Authority (MMA)",
+        "Maldives Monetary Authority (MMA), reported via India's official press service"
+      ],
+      "sourceAuthorityLevel": 2
     },
     {
       "id": "rbi-payments-vision-2028",
@@ -191,7 +275,35 @@
         "subHeader": "Strategic Intelligence & Forecasts",
         "href": "pages/chapters/industry-future-state.html"
       },
-      "relatedCountryHref": "pages/countries/india.html"
+      "relatedCountryHref": "pages/countries/india.html",
+      "headline": "Reserve Bank of India publishes 'Payments Vision 2028'",
+      "subcategory": "Market Development",
+      "publicationTime": null,
+      "sourceName": "Reserve Bank of India (RBI)",
+      "sourceUrl": "https://rbidocs.rbi.org.in/rdocs/PressRelease/PDFs/PR23394679F82680DB42A8928D7EA5BA3FD14B.PDF",
+      "sourceType": "Central Bank / Regulator",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Intelligence",
+      "gpirSubsection": "Strategic Intelligence & Forecasts",
+      "tags": [
+        "Regulatory",
+        "Market Development",
+        "Policy Framework",
+        "India",
+        "APAC"
+      ],
+      "keywords": [
+        "Regulatory",
+        "Market Development",
+        "Policy Framework",
+        "India",
+        "APAC",
+        "Reserve Bank of India (RBI)"
+      ],
+      "sourceAuthorityLevel": 1
     },
     {
       "id": "mas-paynow-gen2-2026",
@@ -239,7 +351,35 @@
         "subHeader": "RTP / Instant Payments",
         "href": "pages/chapters/rtp-directory.html"
       },
-      "relatedCountryHref": "pages/countries/singapore.html"
+      "relatedCountryHref": "pages/countries/singapore.html",
+      "headline": "MAS and ABS chart PayNow 'Generation 2' instant payment enhancements",
+      "subcategory": "RTP / Instant Payments",
+      "publicationTime": null,
+      "sourceName": "Monetary Authority of Singapore (MAS) and Association of Banks in Singapore (ABS)",
+      "sourceUrl": "https://www.mas.gov.sg/news/media-releases/2026/mas-and-abs-chart-instant-payments-enhancements-with-paynow-generation-2-study",
+      "sourceType": "Central Bank / Regulator",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Technology",
+      "gpirSubsection": "RTP / Instant Payments",
+      "tags": [
+        "Payment Infrastructure",
+        "RTP / Instant Payments",
+        "Consultation",
+        "Singapore",
+        "APAC"
+      ],
+      "keywords": [
+        "Payment Infrastructure",
+        "RTP / Instant Payments",
+        "Consultation",
+        "Singapore",
+        "APAC",
+        "Monetary Authority of Singapore (MAS) and Association of Banks in Singapore (ABS)"
+      ],
+      "sourceAuthorityLevel": 1
     },
     {
       "id": "swift-payments-scheme-2026",
@@ -287,7 +427,33 @@
         "subHeader": "Cross-Border Payments",
         "href": "pages/chapters/corridor-factbook.html"
       },
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "Swift launches cross-border payments scheme for consumer-originated transfers",
+      "subcategory": "Payment Infrastructure",
+      "publicationTime": null,
+      "sourceName": "Swift",
+      "sourceUrl": "https://www.swift.com/news-events/press-releases/swift-accelerates-transformation-consumer-payments-banks-roll-out-new-framework-retail-transactions",
+      "sourceType": "Payment Network",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Money Movement",
+      "gpirSubsection": "Cross-Border Payments",
+      "tags": [
+        "Cross-Border Payments",
+        "Payment Infrastructure",
+        "Product Launch",
+        "Global"
+      ],
+      "keywords": [
+        "Cross-Border Payments",
+        "Payment Infrastructure",
+        "Product Launch",
+        "Global",
+        "Swift"
+      ],
+      "sourceAuthorityLevel": 2
     },
     {
       "id": "mastercard-stablecoin-settlement-2026",
@@ -335,7 +501,33 @@
         "subHeader": "Digital Currency & Stablecoins",
         "href": "pages/chapters/stablecoins-cbdcs.html"
       },
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "Mastercard expands settlement capabilities to include regulated stablecoins",
+      "subcategory": "Digital Currency / Stablecoins",
+      "publicationTime": null,
+      "sourceName": "Mastercard",
+      "sourceUrl": "https://www.mastercard.com/global/en/news-and-trends/press/2026/june/mastercard-expands-settlement-capabilities-to-include-stablecoin.html",
+      "sourceType": "Payment Network",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Technology",
+      "gpirSubsection": "Digital Currency & Stablecoins",
+      "tags": [
+        "Payments",
+        "Digital Currency / Stablecoins",
+        "Product Expansion",
+        "Global"
+      ],
+      "keywords": [
+        "Payments",
+        "Digital Currency / Stablecoins",
+        "Product Expansion",
+        "Global",
+        "Mastercard"
+      ],
+      "sourceAuthorityLevel": 2
     },
     {
       "id": "mastercard-bvnk-acquisition-2026",
@@ -383,7 +575,33 @@
         "subHeader": "Industry Participants",
         "href": "pages/chapters/industry-participants.html"
       },
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "Mastercard completes acquisition of BVNK to advance stablecoin infrastructure",
+      "subcategory": "Digital Currency / Stablecoins",
+      "publicationTime": null,
+      "sourceName": "Mastercard",
+      "sourceUrl": "https://www.mastercard.com/us/en/news-and-trends/press/2026/august/mastercard-completes-acquisition-of-bvnk-to-advance-global-stabl.html",
+      "sourceType": "Payment Network",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Ecosystem",
+      "gpirSubsection": "Industry Participants",
+      "tags": [
+        "M&A",
+        "Digital Currency / Stablecoins",
+        "Acquisition",
+        "Global"
+      ],
+      "keywords": [
+        "M&A",
+        "Digital Currency / Stablecoins",
+        "Acquisition",
+        "Global",
+        "Mastercard"
+      ],
+      "sourceAuthorityLevel": 2
     },
     {
       "id": "fatf-r16-consultation-2026",
@@ -431,7 +649,33 @@
         "subHeader": "Regulatory Landscape",
         "href": "index.html#market-regulatory"
       },
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "FATF opens consultation on strengthened payment-transparency standards",
+      "subcategory": "Regulatory",
+      "publicationTime": null,
+      "sourceName": "Financial Action Task Force (FATF)",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/Fatfrecommendations/R16-Public-Consultation-June-2026.html",
+      "sourceType": "International Standard-Setting Body",
+      "retrievedAt": "2026-08-14",
+      "validatedAt": "2026-08-14",
+      "validationStatus": "VALIDATED",
+      "displayLifecycleStatus": "ARCHIVED",
+      "gpirSection": "Regulation & Risk",
+      "gpirSubsection": "Regulatory Landscape",
+      "tags": [
+        "AML / CFT",
+        "Regulatory",
+        "Public Consultation",
+        "Global"
+      ],
+      "keywords": [
+        "AML / CFT",
+        "Regulatory",
+        "Public Consultation",
+        "Global",
+        "Financial Action Task Force (FATF)"
+      ],
+      "sourceAuthorityLevel": 1
     },
     {
       "id": "qcb-cross-border-pending",
@@ -473,8 +717,35 @@
       "summary": "GPIR's discovery layer identified reported activity relating to Qatar Central Bank cross-border settlement and open banking interoperability initiatives, but a single authoritative primary source with a verifiable publication date could not be confirmed at time of review.",
       "whyItMatters": null,
       "gpirMapping": null,
-      "relatedCountryHref": null
+      "relatedCountryHref": null,
+      "headline": "Qatar cross-border settlement and open banking developments",
+      "subcategory": "Cross-Border Payments",
+      "publicationTime": null,
+      "sourceName": null,
+      "sourceUrl": null,
+      "sourceType": null,
+      "retrievedAt": "2026-08-14",
+      "validatedAt": null,
+      "validationStatus": "AWAITING_VALIDATION",
+      "displayLifecycleStatus": "NOT_PUBLISHED",
+      "gpirSection": null,
+      "gpirSubsection": null,
+      "tags": [
+        "Regulatory",
+        "Cross-Border Payments",
+        "Qatar",
+        "Middle East"
+      ],
+      "keywords": [
+        "Regulatory",
+        "Cross-Border Payments",
+        "Qatar",
+        "Middle East"
+      ],
+      "sourceAuthorityLevel": null
     }
   ],
-  "lastRefreshed": "2026-08-14T00:00:00Z"
+  "lastRefreshed": "2026-08-14T00:00:00Z",
+  "schemaVersion": "3.0",
+  "liveDisplayWindowHours": 24
 }
