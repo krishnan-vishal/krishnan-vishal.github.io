@@ -2,15 +2,23 @@
 
 ## Current handoff
 
-- **Milestone:** Global Announcements Intelligence Engine — live-to-archive lifecycle.
+- **Milestone:** Global Announcements — authoritative source activation and freshness.
 - **Category / owner:** Intelligence / Reader Experience / Automation; Vishal Krishnan.
-- **Objective:** Enforce a verified exact 24-hour live window, retain older validated records in a filterable repository archive, and extend deterministic Search / ASK GPIR retrieval without changing human publication control.
+- **Objective:** Activate only live-verified official machine-readable announcement sources across the global coverage grid, expose actionable source health, and perform a bounded report-only freshness/backfill pass without changing the human publication gate.
+- **Working branch:** `work/global-announcements-source-activation` from `origin/main` at `1fdc381` (merged PR #336).
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMITTED ON THE WORK BRANCH / PENDING OWNER REVIEW.
+- **Source activation:** Seven existing Tier-1 authorities were activated from their publisher-advertised feeds: Reserve Bank of Australia, Bank of England, Federal Reserve Board, Bank of Canada, Banco Central do Brasil, South African Reserve Bank and National Bank of Kazakhstan. The registry now has 13 active machine-readable sources across APAC, South Asia, Europe, North America, LATAM, Africa, CIS and Oceania. GCC / Middle East remains an explicit zero-endpoint gap because no reliable supported official feed was verified.
+- **Health and isolation:** Static and live reports expose source id, geography, source/endpoint type, machine-readable status, fetch/parser status, failure reason, last successful fetch and last candidate production. Per-source retrieval remains isolated; one timeout or parse failure cannot abort other sources. Relative source URLs are normalized only against their configured official endpoint, and the unusual NBK feed shape has an explicit non-inferential parser profile.
+- **Backfill audit (2026-08-15 through 2026-09-09):** 88 registry sources evaluated; 13 endpoints configured; 87 in-window source items discovered; 5 relevant proposals; 82 rejected as non-relevant; 0 URL/event duplicates and 0 invalid source URLs; all 5 proposals are older than the live window and therefore route to archive review; 0 public records mutated. HKMA timed out during the latest run while all seven newly activated feeds parsed successfully.
+- **Current lifecycle:** 0 live, 9 archived and 1 developing/awaiting validation. Search GPIR / ASK GPIR announcement intent and resilience tests pass with the lifecycle and publication gate unchanged.
+- **Validation:** Source activation contract, radar/parser isolation, announcement lifecycle, Search/ASK intent, announcement/content validation, edited-script syntax and whitespace checks passed locally. Remote Actions and owner review remain pending.
+- **Publication state:** No merge. The existing two-hour candidate workflow and human validation gate are unchanged; report-only/backfill execution cannot mutate public announcement records.
+
+## Superseded Global Announcements lifecycle handoff
+
+- **Milestone:** Global Announcements Intelligence Engine — live-to-archive lifecycle.
 - **Working branch:** `work/global-announcements-intelligence-archive` from `origin/main` at `5c45990`.
-- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PENDING COMMIT, PUSH AND PR.
-- **Completed:** Pure live/archive lifecycle; compact homepage ticker; full accepted-record aliases; filterable archive dashboard and counts; original-source preservation; Search/ASK expansion; bounded report-only backfill controls; relevance/deduplication/geography/date/LKG tests. Date-only legacy records are archived because no source time is invented.
-- **Backfill audit (latest run, 2026-08-15 through 2026-09-09):** 88 registry sources evaluated, 6 configured endpoints, 42 in-window source items discovered, 5 relevant candidate proposals, 37 rejected as non-relevant, 5 routed to backfill/archive review, 0 public records mutated or accepted for publication. Only APAC yielded proposals; HKMA was temporarily unavailable and 82 source entries remain unconfigured/unsupported, so coverage gaps remain explicit.
-- **Validation:** Announcement lifecycle, ASK intent/resilience, announcement/content/link validation passed. Full repository validation and Actions pending at this checkpoint.
-- **Publication state:** No merge. Human validation remains required before any candidate can enter the public dataset.
+- **Outcome:** Merged through PR #336; exact 24-hour lifecycle, archive, Search/ASK retrieval and report-only backfill foundation now form the base of the current source-activation pass.
 
 ## Superseded M28-FX Final Scale handoff
 

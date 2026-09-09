@@ -33,7 +33,7 @@ console.log("GPIR intelligence radar contract passed.");
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { extractFeedItems, inspectSources } = require("./refresh-announcements.js");
+const { extractFeedItems, inspectSources, normalizeDiscoveredItems } = require("./refresh-announcements.js");
 const { buildCandidate } = require("./propose-intelligence-candidates.js");
 
 async function regressionTests() {
@@ -44,6 +44,12 @@ async function regressionTests() {
     assert.equal(item.url, "https://www.rbi.org.in/fixture");
     assert.throws(() => extractFeedItems("<html>Access blocked</html>"), /SOURCE_PARSE_FAILED/);
     assert.throws(() => extractFeedItems("{broken", "application/json"), /SOURCE_PARSE_FAILED/);
+    const relative = normalizeDiscoveredItems({}, [{title:"Payment system update",url:"/release/1",publicationDate:"2026-09-09",summary:""}], "https://www.resbank.co.za/feed");
+    assert.equal(relative[0].url, "https://www.resbank.co.za/release/1", "official relative links must resolve against the fetched endpoint origin");
+    const nbk = normalizeDiscoveredItems({parserProfile:"NBK_DESCRIPTION_TITLE"}, [{title:"Fri, 04 Sep 2026 13:47:00 +0500",url:"/en/news/1",publicationDate:null,summary:"Payment system update"}], "https://nationalbank.kz/rss_news_english.xml");
+    assert.equal(nbk[0].title, "Payment system update");
+    assert.equal(nbk[0].publicationDate, "Fri, 04 Sep 2026 13:47:00 +0500");
+    assert.equal(nbk[0].url, "https://nationalbank.kz/en/news/1");
     for (const title of ["Government securities auction", "Euro foreign exchange reference rates", "Bank earnings rise", "Fintech lending investment outlook", "Insurance stock market outlook"]) {
         assert.equal(isPaymentsRelevant({title, summary:"Settlement date and interest payment details."}), false, title);
     }
