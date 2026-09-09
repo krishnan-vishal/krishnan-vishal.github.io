@@ -1077,6 +1077,288 @@
           "target": "region:apac"
         }
       ]
+    },
+    {
+      "id": "source:bank-of-canada",
+      "contentType": "SOURCE",
+      "title": "Bank of Canada",
+      "slug": "bank-of-canada",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "bank-of-canada"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:bank-of-canada-880c0ba5490f610a",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Bank of Canada joins BIS Project Agorá to test improvements in wholesale cross-border payments",
+      "slug": "bank-of-canada-880c0ba5490f610a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "bank-of-canada-880c0ba5490f610a"
+      },
+      "page": "pages/intelligence/bank-of-canada-880c0ba5490f610a.html",
+      "sourceRefs": [
+        "source:bank-of-canada"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:bank-of-canada"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:bank-of-canada-880c0ba5490f610a"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:bank-of-canada-880c0ba5490f610a",
+      "contentType": "INTELLIGENCE",
+      "title": "Bank of Canada joins BIS Project Agorá to test improvements in wholesale cross-border payments",
+      "slug": "bank-of-canada-880c0ba5490f610a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "bank-of-canada-880c0ba5490f610a"
+      },
+      "page": "pages/intelligence/bank-of-canada-880c0ba5490f610a.html",
+      "sourceRefs": [
+        "source:bank-of-canada"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:bank-of-canada-880c0ba5490f610a"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:bank-of-canada"
+        }
+      ]
+    },
+    {
+      "id": "source:bcb-brazil",
+      "contentType": "SOURCE",
+      "title": "Banco Central do Brasil (BCB)",
+      "slug": "bcb-brazil",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "bcb-brazil"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:bcb-brazil-fd6fd378fb1d12f4",
+      "contentType": "ANNOUNCEMENT",
+      "title": "BC reforça combate a fraudes com novas regras para transferências de ativos virtuais",
+      "slug": "bcb-brazil-fd6fd378fb1d12f4",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "bcb-brazil-fd6fd378fb1d12f4"
+      },
+      "page": "pages/intelligence/bcb-brazil-fd6fd378fb1d12f4.html",
+      "sourceRefs": [
+        "source:bcb-brazil"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:bcb-brazil"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:bcb-brazil-fd6fd378fb1d12f4"
+        },
+        {
+          "type": "REGION",
+          "target": "region:latam"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:bcb-brazil-fd6fd378fb1d12f4",
+      "contentType": "INTELLIGENCE",
+      "title": "BC reforça combate a fraudes com novas regras para transferências de ativos virtuais",
+      "slug": "bcb-brazil-fd6fd378fb1d12f4",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "bcb-brazil-fd6fd378fb1d12f4"
+      },
+      "page": "pages/intelligence/bcb-brazil-fd6fd378fb1d12f4.html",
+      "sourceRefs": [
+        "source:bcb-brazil"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:bcb-brazil-fd6fd378fb1d12f4"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:bcb-brazil"
+        },
+        {
+          "type": "REGION",
+          "target": "region:latam"
+        }
+      ]
+    },
+    {
+      "id": "source:boe-uk",
+      "contentType": "SOURCE",
+      "title": "Bank of England",
+      "slug": "boe-uk",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "boe-uk"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:boe-uk-4148cdf8b8ea203b",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Bank of England launches policy statement and draft rules on regulating systemic stablecoins",
+      "slug": "boe-uk-4148cdf8b8ea203b",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "boe-uk-4148cdf8b8ea203b"
+      },
+      "page": "pages/intelligence/boe-uk-4148cdf8b8ea203b.html",
+      "sourceRefs": [
+        "source:boe-uk"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:boe-uk"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:boe-uk-4148cdf8b8ea203b"
+        },
+        {
+          "type": "COUNTRY",
+          "target": "country:united-kingdom"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:boe-uk-4148cdf8b8ea203b",
+      "contentType": "INTELLIGENCE",
+      "title": "Bank of England launches policy statement and draft rules on regulating systemic stablecoins",
+      "slug": "boe-uk-4148cdf8b8ea203b",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "boe-uk-4148cdf8b8ea203b"
+      },
+      "page": "pages/intelligence/boe-uk-4148cdf8b8ea203b.html",
+      "sourceRefs": [
+        "source:boe-uk"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:boe-uk-4148cdf8b8ea203b"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:boe-uk"
+        },
+        {
+          "type": "COUNTRY",
+          "target": "country:united-kingdom"
+        }
+      ]
+    },
+    {
+      "id": "announcement:boe-uk-592fbe257073d5ea",
+      "contentType": "ANNOUNCEMENT",
+      "title": "The Retail Payments Infrastructure Board launches consultation on the next generation UK payments infrastructure",
+      "slug": "boe-uk-592fbe257073d5ea",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "boe-uk-592fbe257073d5ea"
+      },
+      "page": "pages/intelligence/boe-uk-592fbe257073d5ea.html",
+      "sourceRefs": [
+        "source:boe-uk"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:boe-uk"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:boe-uk-592fbe257073d5ea"
+        },
+        {
+          "type": "COUNTRY",
+          "target": "country:united-kingdom"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:boe-uk-592fbe257073d5ea",
+      "contentType": "INTELLIGENCE",
+      "title": "The Retail Payments Infrastructure Board launches consultation on the next generation UK payments infrastructure",
+      "slug": "boe-uk-592fbe257073d5ea",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "boe-uk-592fbe257073d5ea"
+      },
+      "page": "pages/intelligence/boe-uk-592fbe257073d5ea.html",
+      "sourceRefs": [
+        "source:boe-uk"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:boe-uk-592fbe257073d5ea"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:boe-uk"
+        },
+        {
+          "type": "COUNTRY",
+          "target": "country:united-kingdom"
+        }
+      ]
     }
   ]
 }

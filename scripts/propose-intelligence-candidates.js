@@ -72,7 +72,7 @@ function eventFingerprint(item) {
 
 function isPaymentsRelevant(item) {
     const text = `${item.title || ""}\n${item.summary || ""}`;
-    const specific = /\b(payments?|remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure))\b/i;
+    const specific = /\b(payments?|remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure)|ativos? virtuais|transfer[eê]ncias?)\b/i;
     const generic = /\b(earnings|stock market|investment outlook|government securit(?:y|ies)|dated securities|reference rates|insurance|mortgage|lending)\b/i;
     if (generic.test(item.title || "") && !specific.test(item.title || "")) return false;
     return specific.test(text) || (/\b(clearing|settlement|interoperability|sanctions?|aml|cft|kyc|kyb|fraud|digital assets?|digital banking|foreign exchange|fx|fintech)\b/i.test(text)
@@ -132,6 +132,15 @@ function healthStateFor(report) {
     return "UNSUPPORTED";
 }
 
+function unsupportedFailureReason(source, report = {}) {
+    if (report.failureReason) return report.failureReason;
+    if (source.active === true && source.refreshEndpoint) return null;
+    if (source.sourceTrustStatus !== "VERIFIED_OFFICIAL") return "NON_AUTHORITATIVE_DISCOVERY_SOURCE";
+    if (!source.discoveryPage) return "NO_APPROVED_DISCOVERY_PAGE";
+    if (!hostAllowed(source.discoveryPage, source.officialDomains || [])) return "DISCOVERY_PAGE_OUTSIDE_APPROVED_DOMAIN";
+    return "NO_SAFE_DETERMINISTIC_ACQUISITION_METHOD";
+}
+
 function tallyBy(records, field) {
     return Object.fromEntries([...records.reduce((map, record) => {
         const value = String(record[field] || "UNCLASSIFIED");
@@ -140,7 +149,7 @@ function tallyBy(records, field) {
     }, new Map()).entries()].sort(([left], [right]) => left.localeCompare(right)));
 }
 
-function buildSourceHealthSnapshot(sources, reports, candidates, additions, previous = {}) {
+function buildSourceHealthSnapshot(sources, reports, candidates, additions, previous = {}, published = []) {
     const previousById = new Map((previous.sources || []).map(source => [source.sourceId, source]));
     const reportById = new Map(reports.map(report => [report.sourceId, report]));
     const candidateTimes = candidates.concat(additions).reduce((map, candidate) => {
@@ -148,35 +157,51 @@ function buildSourceHealthSnapshot(sources, reports, candidates, additions, prev
         if (candidate.sourceOrgId && timestamp && (!map.get(candidate.sourceOrgId) || timestamp > map.get(candidate.sourceOrgId))) map.set(candidate.sourceOrgId, timestamp);
         return map;
     }, new Map());
-    const acceptedCounts = additions.reduce((map, candidate) => map.set(candidate.sourceOrgId, (map.get(candidate.sourceOrgId) || 0) + 1), new Map());
+    const acceptedCounts = candidates.concat(additions).reduce((map, candidate) => map.set(candidate.sourceOrgId, (map.get(candidate.sourceOrgId) || 0) + 1), new Map());
+    const publishedCounts = published.reduce((map, record) => {
+        const sourceId = record.sourceOrgId || record.sourceId;
+        if (sourceId) map.set(sourceId, (map.get(sourceId) || 0) + 1);
+        return map;
+    }, new Map());
     const sourceRows = sources.map(source => {
         const report = reportById.get(source.id) || {};
         const prior = previousById.get(source.id) || {};
         const state = healthStateFor(report);
+        const publicationDates = (report.discovered || []).map(item => dateOnly(item.publicationDate)).filter(Boolean).sort();
+        const acquisitionMethod = source.acquisitionMethod || ({ RSS: "RSS", ATOM: "ATOM", JSON: "OFFICIAL_API", HTML: "OFFICIAL_HTML_INDEX" })[source.refreshEndpointType] || "MANUAL_EXCEPTION";
         return {
             sourceId: source.id,
+            organization: source.organization,
             sourceName: source.organization,
             region: canonicalRegion(source.region),
             country: source.country || "UNCLASSIFIED",
             sourceType: source.sourceType || "UNCLASSIFIED",
+            trustTier: `T${source.tier || "UNCLASSIFIED"}`,
+            officialDomain: (source.officialDomains || [])[0] || null,
             endpoint: source.refreshEndpoint || null,
             endpointType: source.refreshEndpointType || null,
+            acquisitionMethod,
             active: source.active === true,
+            activationStatus: source.active === true && source.refreshEndpoint ? (state === "GREEN" || state === "STALE" ? "ACTIVE" : "DEGRADED") : "UNSUPPORTED",
             healthState: state,
+            healthStatus: state,
             fetchStatus: report.status || "NOT_CONFIGURED",
             parserStatus: report.parserStatus || "NOT_RUN",
             lastSuccessfulFetch: report.lastSuccessfulFetch || prior.lastSuccessfulFetch || source.lastSuccessfulRetrieval || null,
+            lastPublicationSeen: publicationDates.pop() || prior.lastPublicationSeen || null,
             lastCandidateDetected: candidateTimes.get(source.id) || prior.lastCandidateDetected || null,
             recordsDiscovered: (report.discovered || []).length,
+            recordsQualified: acceptedCounts.get(source.id) || 0,
             recordsAccepted: acceptedCounts.get(source.id) || 0,
-            failureReason: report.failureReason || null
+            recordsPublished: publishedCounts.get(source.id) || 0,
+            failureReason: unsupportedFailureReason(source, report)
         };
     });
     const countState = state => sourceRows.filter(source => source.healthState === state).length;
     return {
         schemaVersion: "1.0",
         generatedAt: new Date().toISOString(),
-        mode: "OPERATIONAL_SNAPSHOT",
+        mode: "SOURCE_COVERAGE_AND_HEALTH_SNAPSHOT",
         counts: {
             registered: sourceRows.length,
             active: sourceRows.filter(source => source.active && source.endpoint).length,
@@ -346,7 +371,7 @@ async function main() {
         const allowedPath = path.join(DATA_DIR, "source-health.json");
         if (requestedPath !== allowedPath) throw new Error("Source-health output must be assets/data/source-health.json");
         const previous = fs.existsSync(allowedPath) ? readJson(allowedPath) : {};
-        fs.writeFileSync(allowedPath, JSON.stringify(buildSourceHealthSnapshot(sources, reports, existingCandidates, additions, previous), null, 2) + "\n", "utf8");
+        fs.writeFileSync(allowedPath, JSON.stringify(buildSourceHealthSnapshot(sources, reports, existingCandidates, additions, previous, published), null, 2) + "\n", "utf8");
     }
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 }
@@ -358,4 +383,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion, healthStateFor, buildSourceHealthSnapshot };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion, healthStateFor, unsupportedFailureReason, buildSourceHealthSnapshot };

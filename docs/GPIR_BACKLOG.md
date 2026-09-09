@@ -373,3 +373,8 @@ with status `SUPERSEDED`; they are not silently removed.
 - Exact 24-hour validated live ticker and retained repository archive implemented.
 - Region/country/category/subcategory/date filters, counts, source validation, Search and ASK GPIR integration implemented.
 - Backfill discovery remains proposal-only; expand configured trusted-source adapters in later governed milestones to reduce explicit regional coverage gaps.
+## M29 — Global Source Network Activation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M-29 | 2026-09-09 | Activate approved global source network | AUTOMATION, INTELLIGENCE, GOVERNANCE | Critical | IMPLEMENTED / REVIEW PENDING | Merged PR #343 production recovery | Stage 1 | trusted-source registry, acquisition, coverage, publication, archive, Search/ASK corpus | Activate safe deterministic acquisition for already-approved sources and flow real qualifying records through the existing canonical pipeline. | Functioning acquisition only counts as active; all 88 sources appear in machine-readable coverage; failures isolate; strict Tier-1 gate; bounded backfill; permanent pages/archive/Search/ASK; no FX or infrastructure change. | 43/88 sources active across 33 countries/jurisdictions; 211 dated records fetched, 13 admitted, 4 strictly published across three regions; 14 retained for review; 0 live / 14 archive / 1 developing. Commit/PR/Actions/owner merge pending. | PENDING | PENDING | M29 |

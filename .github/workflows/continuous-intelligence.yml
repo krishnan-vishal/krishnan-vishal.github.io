@@ -86,6 +86,7 @@ jobs:
           fi
           node scripts/validate-content.js
           node scripts/validate-announcements.js
+          node scripts/validate-source-coverage.js
           node scripts/test-announcement-lifecycle.js
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
