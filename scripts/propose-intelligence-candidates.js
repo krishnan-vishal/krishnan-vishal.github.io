@@ -123,6 +123,76 @@ function buildCandidate(source, item, retrievedAt, country, discoveryEndpoint) {
     };
 }
 
+function healthStateFor(report) {
+    if (!report.endpoint) return "UNSUPPORTED";
+    if (["BLOCKED_DOMAIN_NOT_TRUSTED", "BLOCKED_REDIRECT_DOMAIN_NOT_TRUSTED", "SOURCE_PARSE_FAILED"].includes(report.status)) return "RED";
+    if (report.status === "ENDPOINT_UNAVAILABLE") return "AMBER";
+    if (report.status === "RETRIEVED_REVIEW_REQUIRED" && !(report.discovered || []).length) return "STALE";
+    if (report.status === "RETRIEVED_REVIEW_REQUIRED") return "GREEN";
+    return "UNSUPPORTED";
+}
+
+function tallyBy(records, field) {
+    return Object.fromEntries([...records.reduce((map, record) => {
+        const value = String(record[field] || "UNCLASSIFIED");
+        map.set(value, (map.get(value) || 0) + 1);
+        return map;
+    }, new Map()).entries()].sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function buildSourceHealthSnapshot(sources, reports, candidates, additions, previous = {}) {
+    const previousById = new Map((previous.sources || []).map(source => [source.sourceId, source]));
+    const reportById = new Map(reports.map(report => [report.sourceId, report]));
+    const candidateTimes = candidates.concat(additions).reduce((map, candidate) => {
+        const timestamp = candidate.retrievedAt || candidate.audit && candidate.audit.discoveredAt;
+        if (candidate.sourceOrgId && timestamp && (!map.get(candidate.sourceOrgId) || timestamp > map.get(candidate.sourceOrgId))) map.set(candidate.sourceOrgId, timestamp);
+        return map;
+    }, new Map());
+    const acceptedCounts = additions.reduce((map, candidate) => map.set(candidate.sourceOrgId, (map.get(candidate.sourceOrgId) || 0) + 1), new Map());
+    const sourceRows = sources.map(source => {
+        const report = reportById.get(source.id) || {};
+        const prior = previousById.get(source.id) || {};
+        const state = healthStateFor(report);
+        return {
+            sourceId: source.id,
+            sourceName: source.organization,
+            region: canonicalRegion(source.region),
+            country: source.country || "UNCLASSIFIED",
+            sourceType: source.sourceType || "UNCLASSIFIED",
+            endpoint: source.refreshEndpoint || null,
+            endpointType: source.refreshEndpointType || null,
+            active: source.active === true,
+            healthState: state,
+            fetchStatus: report.status || "NOT_CONFIGURED",
+            parserStatus: report.parserStatus || "NOT_RUN",
+            lastSuccessfulFetch: report.lastSuccessfulFetch || prior.lastSuccessfulFetch || source.lastSuccessfulRetrieval || null,
+            lastCandidateDetected: candidateTimes.get(source.id) || prior.lastCandidateDetected || null,
+            recordsDiscovered: (report.discovered || []).length,
+            recordsAccepted: acceptedCounts.get(source.id) || 0,
+            failureReason: report.failureReason || null
+        };
+    });
+    const countState = state => sourceRows.filter(source => source.healthState === state).length;
+    return {
+        schemaVersion: "1.0",
+        generatedAt: new Date().toISOString(),
+        mode: "OPERATIONAL_SNAPSHOT",
+        counts: {
+            registered: sourceRows.length,
+            active: sourceRows.filter(source => source.active && source.endpoint).length,
+            healthy: countState("GREEN"),
+            degraded: countState("AMBER"),
+            failed: countState("RED"),
+            stale: countState("STALE"),
+            unsupported: countState("UNSUPPORTED")
+        },
+        byRegion: tallyBy(sourceRows, "region"),
+        byCountry: tallyBy(sourceRows, "country"),
+        bySourceType: tallyBy(sourceRows, "sourceType"),
+        sources: sourceRows
+    };
+}
+
 async function main() {
     const argv = process.argv.slice(2);
     const reportOnly = argv.includes("--report-only");
@@ -132,6 +202,7 @@ async function main() {
     };
     const from = argumentDate("from");
     const to = argumentDate("to");
+    const healthOutputArg = argv.find(value => value.startsWith("--health-output="));
     const sources = readJson(SOURCES_PATH).registry || [];
     const published = readJson(ANNOUNCEMENTS_PATH).records || [];
     const queue = readJson(CANDIDATES_PATH);
@@ -270,6 +341,13 @@ async function main() {
             finalUrl: result.finalUrl || null
         }))
     };
+    if (healthOutputArg) {
+        const requestedPath = path.resolve(ROOT, healthOutputArg.slice("--health-output=".length));
+        const allowedPath = path.join(DATA_DIR, "source-health.json");
+        if (requestedPath !== allowedPath) throw new Error("Source-health output must be assets/data/source-health.json");
+        const previous = fs.existsSync(allowedPath) ? readJson(allowedPath) : {};
+        fs.writeFileSync(allowedPath, JSON.stringify(buildSourceHealthSnapshot(sources, reports, existingCandidates, additions, previous), null, 2) + "\n", "utf8");
+    }
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 }
 
@@ -280,4 +358,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion, healthStateFor, buildSourceHealthSnapshot };

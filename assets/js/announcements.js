@@ -167,7 +167,7 @@
             hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
         });
 
-        el.textContent = `Last validated publication cycle: ${label} · Candidate discovery automation: Scheduled ${DISCOVERY_CADENCE_LABEL} via GitHub Actions · publication remains human-reviewed`;
+        el.textContent = `Publication dataset updated: ${label} · Discovery and deterministic Tier-1 validation: Scheduled ${DISCOVERY_CADENCE_LABEL} via GitHub Actions · changes remain pull-request controlled`;
 
     }
 
@@ -214,7 +214,10 @@
 
         }).join("");
 
-        track.innerHTML = sequenceHTML + sequenceHTML;
+        // A single canonical sequence prevents duplicate headlines and
+        // duplicate focus targets. The compact strip is horizontally
+        // scrollable instead of cloning records for an infinite animation.
+        track.innerHTML = sequenceHTML;
 
         track.querySelectorAll("[data-intel-id]").forEach(link => {
             link.addEventListener("click", (e) => {

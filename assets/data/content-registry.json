@@ -36,9 +36,18 @@
       },
       "page": "pages/countries/uae.html",
       "relationships": [
-        { "type": "REGION", "target": "region:middle-east" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" },
-        { "type": "DASHBOARD", "target": "dashboard:uae" }
+        {
+          "type": "REGION",
+          "target": "region:middle-east"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:cbuae-payment-token-2026"
+        },
+        {
+          "type": "DASHBOARD",
+          "target": "dashboard:uae"
+        }
       ]
     },
     {
@@ -55,8 +64,14 @@
       },
       "page": "pages/countries/india.html",
       "relationships": [
-        { "type": "REGION", "target": "region:apac" },
-        { "type": "DASHBOARD", "target": "dashboard:india" }
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        },
+        {
+          "type": "DASHBOARD",
+          "target": "dashboard:india"
+        }
       ]
     },
     {
@@ -73,8 +88,14 @@
       },
       "page": "pages/countries/saudi-arabia.html",
       "relationships": [
-        { "type": "REGION", "target": "region:middle-east" },
-        { "type": "DASHBOARD", "target": "dashboard:ksa" }
+        {
+          "type": "REGION",
+          "target": "region:middle-east"
+        },
+        {
+          "type": "DASHBOARD",
+          "target": "dashboard:ksa"
+        }
       ]
     },
     {
@@ -91,8 +112,14 @@
       },
       "page": "pages/countries/qatar.html",
       "relationships": [
-        { "type": "REGION", "target": "region:middle-east" },
-        { "type": "DASHBOARD", "target": "dashboard:qatar" }
+        {
+          "type": "REGION",
+          "target": "region:middle-east"
+        },
+        {
+          "type": "DASHBOARD",
+          "target": "dashboard:qatar"
+        }
       ]
     },
     {
@@ -109,8 +136,14 @@
       },
       "page": "pages/countries/singapore.html",
       "relationships": [
-        { "type": "REGION", "target": "region:apac" },
-        { "type": "DASHBOARD", "target": "dashboard:singapore" }
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        },
+        {
+          "type": "DASHBOARD",
+          "target": "dashboard:singapore"
+        }
       ]
     },
     {
@@ -127,7 +160,10 @@
       },
       "page": "pages/countries/uk.html",
       "relationships": [
-        { "type": "REGION", "target": "region:europe" }
+        {
+          "type": "REGION",
+          "target": "region:europe"
+        }
       ]
     },
     {
@@ -143,7 +179,10 @@
         "value": "dashboard-uae"
       },
       "relationships": [
-        { "type": "COUNTRY", "target": "country:united-arab-emirates" }
+        {
+          "type": "COUNTRY",
+          "target": "country:united-arab-emirates"
+        }
       ]
     },
     {
@@ -159,7 +198,10 @@
         "value": "dashboard-ksa"
       },
       "relationships": [
-        { "type": "COUNTRY", "target": "country:saudi-arabia" }
+        {
+          "type": "COUNTRY",
+          "target": "country:saudi-arabia"
+        }
       ]
     },
     {
@@ -175,7 +217,10 @@
         "value": "dashboard-qatar"
       },
       "relationships": [
-        { "type": "COUNTRY", "target": "country:qatar" }
+        {
+          "type": "COUNTRY",
+          "target": "country:qatar"
+        }
       ]
     },
     {
@@ -191,7 +236,10 @@
         "value": "dashboard-india"
       },
       "relationships": [
-        { "type": "COUNTRY", "target": "country:india" }
+        {
+          "type": "COUNTRY",
+          "target": "country:india"
+        }
       ]
     },
     {
@@ -207,7 +255,10 @@
         "value": "dashboard-singapore"
       },
       "relationships": [
-        { "type": "COUNTRY", "target": "country:singapore" }
+        {
+          "type": "COUNTRY",
+          "target": "country:singapore"
+        }
       ]
     },
     {
@@ -254,7 +305,10 @@
       },
       "page": "pages/regions/europe.html",
       "relationships": [
-        { "type": "COUNTRY", "target": "country:united-kingdom" }
+        {
+          "type": "COUNTRY",
+          "target": "country:united-kingdom"
+        }
       ]
     },
     {
@@ -329,11 +383,22 @@
         "value": "cbuae-payment-token-2026"
       },
       "page": "pages/intelligence/cbuae-payment-token-2026.html",
-      "sourceRefs": ["source:cbuae"],
+      "sourceRefs": [
+        "source:cbuae"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:united-arab-emirates" },
-        { "type": "SOURCE", "target": "source:cbuae" },
-        { "type": "INTELLIGENCE", "target": "intelligence:cbuae-payment-token-2026" }
+        {
+          "type": "COUNTRY",
+          "target": "country:united-arab-emirates"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:cbuae"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:cbuae-payment-token-2026"
+        }
       ]
     },
     {
@@ -349,11 +414,22 @@
         "value": "cbuae-payment-token-2026"
       },
       "page": "pages/intelligence/cbuae-payment-token-2026.html",
-      "sourceRefs": ["source:cbuae"],
+      "sourceRefs": [
+        "source:cbuae"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:united-arab-emirates" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:cbuae-payment-token-2026" },
-        { "type": "SOURCE", "target": "source:cbuae" }
+        {
+          "type": "COUNTRY",
+          "target": "country:united-arab-emirates"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:cbuae-payment-token-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:cbuae"
+        }
       ]
     },
     {
@@ -383,11 +459,22 @@
         "value": "sama-malaa-openbanking-2026"
       },
       "page": "pages/intelligence/sama-malaa-openbanking-2026.html",
-      "sourceRefs": ["source:spa-gov-sa"],
+      "sourceRefs": [
+        "source:spa-gov-sa"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:saudi-arabia" },
-        { "type": "SOURCE", "target": "source:spa-gov-sa" },
-        { "type": "INTELLIGENCE", "target": "intelligence:sama-malaa-openbanking-2026" }
+        {
+          "type": "COUNTRY",
+          "target": "country:saudi-arabia"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:spa-gov-sa"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:sama-malaa-openbanking-2026"
+        }
       ]
     },
     {
@@ -403,11 +490,22 @@
         "value": "sama-malaa-openbanking-2026"
       },
       "page": "pages/intelligence/sama-malaa-openbanking-2026.html",
-      "sourceRefs": ["source:spa-gov-sa"],
+      "sourceRefs": [
+        "source:spa-gov-sa"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:saudi-arabia" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:sama-malaa-openbanking-2026" },
-        { "type": "SOURCE", "target": "source:spa-gov-sa" }
+        {
+          "type": "COUNTRY",
+          "target": "country:saudi-arabia"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:sama-malaa-openbanking-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:spa-gov-sa"
+        }
       ]
     },
     {
@@ -437,11 +535,22 @@
         "value": "rbi-payments-vision-2028"
       },
       "page": "pages/intelligence/rbi-payments-vision-2028.html",
-      "sourceRefs": ["source:rbi"],
+      "sourceRefs": [
+        "source:rbi"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:india" },
-        { "type": "SOURCE", "target": "source:rbi" },
-        { "type": "INTELLIGENCE", "target": "intelligence:rbi-payments-vision-2028" }
+        {
+          "type": "COUNTRY",
+          "target": "country:india"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:rbi"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:rbi-payments-vision-2028"
+        }
       ]
     },
     {
@@ -457,11 +566,22 @@
         "value": "rbi-payments-vision-2028"
       },
       "page": "pages/intelligence/rbi-payments-vision-2028.html",
-      "sourceRefs": ["source:rbi"],
+      "sourceRefs": [
+        "source:rbi"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:india" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:rbi-payments-vision-2028" },
-        { "type": "SOURCE", "target": "source:rbi" }
+        {
+          "type": "COUNTRY",
+          "target": "country:india"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:rbi-payments-vision-2028"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:rbi"
+        }
       ]
     },
     {
@@ -491,11 +611,22 @@
         "value": "mas-paynow-gen2-2026"
       },
       "page": "pages/intelligence/mas-paynow-gen2-2026.html",
-      "sourceRefs": ["source:mas-sg"],
+      "sourceRefs": [
+        "source:mas-sg"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:singapore" },
-        { "type": "SOURCE", "target": "source:mas-sg" },
-        { "type": "INTELLIGENCE", "target": "intelligence:mas-paynow-gen2-2026" }
+        {
+          "type": "COUNTRY",
+          "target": "country:singapore"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:mas-sg"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:mas-paynow-gen2-2026"
+        }
       ]
     },
     {
@@ -511,11 +642,22 @@
         "value": "mas-paynow-gen2-2026"
       },
       "page": "pages/intelligence/mas-paynow-gen2-2026.html",
-      "sourceRefs": ["source:mas-sg"],
+      "sourceRefs": [
+        "source:mas-sg"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:singapore" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:mas-paynow-gen2-2026" },
-        { "type": "SOURCE", "target": "source:mas-sg" }
+        {
+          "type": "COUNTRY",
+          "target": "country:singapore"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:mas-paynow-gen2-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:mas-sg"
+        }
       ]
     },
     {
@@ -545,12 +687,26 @@
         "value": "favara-upi-maldives-india-2026"
       },
       "page": "pages/intelligence/favara-upi-maldives-india-2026.html",
-      "sourceRefs": ["source:newsonair-gov-in"],
+      "sourceRefs": [
+        "source:newsonair-gov-in"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:india" },
-        { "type": "REGION", "target": "region:apac" },
-        { "type": "SOURCE", "target": "source:newsonair-gov-in" },
-        { "type": "INTELLIGENCE", "target": "intelligence:favara-upi-maldives-india-2026" }
+        {
+          "type": "COUNTRY",
+          "target": "country:india"
+        },
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:newsonair-gov-in"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:favara-upi-maldives-india-2026"
+        }
       ]
     },
     {
@@ -566,12 +722,26 @@
         "value": "favara-upi-maldives-india-2026"
       },
       "page": "pages/intelligence/favara-upi-maldives-india-2026.html",
-      "sourceRefs": ["source:newsonair-gov-in"],
+      "sourceRefs": [
+        "source:newsonair-gov-in"
+      ],
       "relationships": [
-        { "type": "COUNTRY", "target": "country:india" },
-        { "type": "REGION", "target": "region:apac" },
-        { "type": "ANNOUNCEMENT", "target": "announcement:favara-upi-maldives-india-2026" },
-        { "type": "SOURCE", "target": "source:newsonair-gov-in" }
+        {
+          "type": "COUNTRY",
+          "target": "country:india"
+        },
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        },
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:favara-upi-maldives-india-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:newsonair-gov-in"
+        }
       ]
     },
     {
@@ -601,10 +771,18 @@
         "value": "swift-payments-scheme-2026"
       },
       "page": "pages/intelligence/swift-payments-scheme-2026.html",
-      "sourceRefs": ["source:swift"],
+      "sourceRefs": [
+        "source:swift"
+      ],
       "relationships": [
-        { "type": "SOURCE", "target": "source:swift" },
-        { "type": "INTELLIGENCE", "target": "intelligence:swift-payments-scheme-2026" }
+        {
+          "type": "SOURCE",
+          "target": "source:swift"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:swift-payments-scheme-2026"
+        }
       ]
     },
     {
@@ -620,10 +798,18 @@
         "value": "swift-payments-scheme-2026"
       },
       "page": "pages/intelligence/swift-payments-scheme-2026.html",
-      "sourceRefs": ["source:swift"],
+      "sourceRefs": [
+        "source:swift"
+      ],
       "relationships": [
-        { "type": "ANNOUNCEMENT", "target": "announcement:swift-payments-scheme-2026" },
-        { "type": "SOURCE", "target": "source:swift" }
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:swift-payments-scheme-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:swift"
+        }
       ]
     },
     {
@@ -653,10 +839,18 @@
         "value": "mastercard-stablecoin-settlement-2026"
       },
       "page": "pages/intelligence/mastercard-stablecoin-settlement-2026.html",
-      "sourceRefs": ["source:mastercard"],
+      "sourceRefs": [
+        "source:mastercard"
+      ],
       "relationships": [
-        { "type": "SOURCE", "target": "source:mastercard" },
-        { "type": "INTELLIGENCE", "target": "intelligence:mastercard-stablecoin-settlement-2026" }
+        {
+          "type": "SOURCE",
+          "target": "source:mastercard"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:mastercard-stablecoin-settlement-2026"
+        }
       ]
     },
     {
@@ -672,10 +866,18 @@
         "value": "mastercard-stablecoin-settlement-2026"
       },
       "page": "pages/intelligence/mastercard-stablecoin-settlement-2026.html",
-      "sourceRefs": ["source:mastercard"],
+      "sourceRefs": [
+        "source:mastercard"
+      ],
       "relationships": [
-        { "type": "ANNOUNCEMENT", "target": "announcement:mastercard-stablecoin-settlement-2026" },
-        { "type": "SOURCE", "target": "source:mastercard" }
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:mastercard-stablecoin-settlement-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:mastercard"
+        }
       ]
     },
     {
@@ -691,10 +893,18 @@
         "value": "mastercard-bvnk-acquisition-2026"
       },
       "page": "pages/intelligence/mastercard-bvnk-acquisition-2026.html",
-      "sourceRefs": ["source:mastercard"],
+      "sourceRefs": [
+        "source:mastercard"
+      ],
       "relationships": [
-        { "type": "SOURCE", "target": "source:mastercard" },
-        { "type": "INTELLIGENCE", "target": "intelligence:mastercard-bvnk-acquisition-2026" }
+        {
+          "type": "SOURCE",
+          "target": "source:mastercard"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:mastercard-bvnk-acquisition-2026"
+        }
       ]
     },
     {
@@ -710,10 +920,18 @@
         "value": "mastercard-bvnk-acquisition-2026"
       },
       "page": "pages/intelligence/mastercard-bvnk-acquisition-2026.html",
-      "sourceRefs": ["source:mastercard"],
+      "sourceRefs": [
+        "source:mastercard"
+      ],
       "relationships": [
-        { "type": "ANNOUNCEMENT", "target": "announcement:mastercard-bvnk-acquisition-2026" },
-        { "type": "SOURCE", "target": "source:mastercard" }
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:mastercard-bvnk-acquisition-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:mastercard"
+        }
       ]
     },
     {
@@ -743,10 +961,18 @@
         "value": "fatf-r16-consultation-2026"
       },
       "page": "pages/intelligence/fatf-r16-consultation-2026.html",
-      "sourceRefs": ["source:fatf"],
+      "sourceRefs": [
+        "source:fatf"
+      ],
       "relationships": [
-        { "type": "SOURCE", "target": "source:fatf" },
-        { "type": "INTELLIGENCE", "target": "intelligence:fatf-r16-consultation-2026" }
+        {
+          "type": "SOURCE",
+          "target": "source:fatf"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:fatf-r16-consultation-2026"
+        }
       ]
     },
     {
@@ -762,10 +988,94 @@
         "value": "fatf-r16-consultation-2026"
       },
       "page": "pages/intelligence/fatf-r16-consultation-2026.html",
-      "sourceRefs": ["source:fatf"],
+      "sourceRefs": [
+        "source:fatf"
+      ],
       "relationships": [
-        { "type": "ANNOUNCEMENT", "target": "announcement:fatf-r16-consultation-2026" },
-        { "type": "SOURCE", "target": "source:fatf" }
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:fatf-r16-consultation-2026"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:fatf"
+        }
+      ]
+    },
+    {
+      "id": "source:hkma-press-releases",
+      "contentType": "SOURCE",
+      "title": "Hong Kong Monetary Authority (HKMA)",
+      "slug": "hkma-press-releases",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "hkma-press-releases"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:hkma-press-releases-8a74f881fbc6e64a",
+      "contentType": "ANNOUNCEMENT",
+      "title": "HKMA reminds public to stay alert to phishing scams targeting binding of payment cards to contactless mobile payment services",
+      "slug": "hkma-press-releases-8a74f881fbc6e64a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "hkma-press-releases-8a74f881fbc6e64a"
+      },
+      "page": "pages/intelligence/hkma-press-releases-8a74f881fbc6e64a.html",
+      "sourceRefs": [
+        "source:hkma-press-releases"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:hkma-press-releases"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:hkma-press-releases-8a74f881fbc6e64a"
+        },
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:hkma-press-releases-8a74f881fbc6e64a",
+      "contentType": "INTELLIGENCE",
+      "title": "HKMA reminds public to stay alert to phishing scams targeting binding of payment cards to contactless mobile payment services",
+      "slug": "hkma-press-releases-8a74f881fbc6e64a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "hkma-press-releases-8a74f881fbc6e64a"
+      },
+      "page": "pages/intelligence/hkma-press-releases-8a74f881fbc6e64a.html",
+      "sourceRefs": [
+        "source:hkma-press-releases"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:hkma-press-releases-8a74f881fbc6e64a"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:hkma-press-releases"
+        },
+        {
+          "type": "REGION",
+          "target": "region:apac"
+        }
       ]
     }
   ]

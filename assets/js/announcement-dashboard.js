@@ -43,7 +43,10 @@
         const selected = filtered(records);
         const parts = lifecycle.partition(selected, asOf);
         root.querySelector("[data-counts]").textContent = `${parts.live.length} live · ${parts.archive.length} archived · ${parts.developing.length} awaiting validation`;
-        root.querySelector("[data-live]").innerHTML = parts.live.length ? parts.live.map(card).join("") : '<p class="ticker-empty">No validated announcements are inside the latest 24-hour window.</p>';
+        root.querySelector("[data-live]").innerHTML = parts.live.length ? parts.live.map(card).join("") : '<p class="ticker-empty">No new validated announcements in the current 24-hour window.</p>';
+        const latest = [...selected].filter(lifecycle.isPublished).sort((left, right) => dateFor(right).localeCompare(dateFor(left))).slice(0, 6);
+        const latestRoot = root.querySelector("[data-latest]");
+        if(latestRoot) latestRoot.innerHTML = latest.length ? latest.map(card).join("") : "<p>No validated intelligence is available.</p>";
 
         const groups = new Map();
         parts.archive.forEach(record => {

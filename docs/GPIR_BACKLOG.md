@@ -362,6 +362,12 @@ with status `SUPERSEDED`; they are not silently removed.
 - Remaining: final review, commit/push, PR, Actions and owner approval. Completion date/PR: PENDING.
 - Blocker: authentication may prevent local push; no claim of remote durability before confirmed.
 - Next dependency: authenticated GitHub handoff and human-controlled merge. No application feature work authorized by this item.
+
+## Global Announcements permanent production recovery
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GA-PROD-01 | 2026-09-09 | Permanent source-to-intelligence production recovery | AUTOMATION, INTELLIGENCE, READER EXPERIENCE, GOVERNANCE | Critical | IMPLEMENTED / LOCALLY VALIDATED / REVIEW PENDING | M-18 lifecycle, M-21 discovery, merged PR #338 source matrix | Stage 1 | announcement discovery, publication gate, generator, reader, search/ASK, workflow | Close the candidate-to-publication break without source expansion, fabricated intelligence, runtime AI, direct-main automation or blank reader states. | Strict healthy Tier-1 gate; canonical append-only records; exact 24-hour lifecycle; permanent archive; server-rendered fallback; source health; retry/backoff; idempotent tests; one branch/PR. | One qualified HKMA record promoted from a real controlled backfill; five candidates retained non-public; 0 live / 10 archive / 1 developing; deterministic repository checks and local browser QA passed; push, PR, Actions and owner review remain pending. | PENDING | PENDING | Global Announcements Production Recovery |
 ## Global Announcements Intelligence Engine — implemented, owner review pending (2026-09-09)
 
 - Exact 24-hour validated live ticker and retained repository archive implemented.
