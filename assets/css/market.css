@@ -538,23 +538,35 @@ LAST UPDATED
 
 }
 
+/* Just a compact archive link now (no freshness text) -- shrink to
+   content instead of the fixed 128px column the old three-line status
+   block needed, so the ticker keeps the space. */
 #market-ribbon .market-time{
 
-    flex-direction:column;
+    min-width:0;
 
-    gap:1px;
-
-    min-width:128px;
-
-    max-width:128px;
-
-    font-size:10px;
+    max-width:110px;
 
     padding:0 12px;
 
-    text-align:center;
+    font-size:11px;
 
-    line-height:1.3;
+    white-space:nowrap;
+}
+
+#market-ribbon .ticker-archive-link{
+
+    color:#B8C5D6;
+
+    text-decoration:none;
+
+}
+
+#market-ribbon .ticker-archive-link:hover,
+#market-ribbon .ticker-archive-link:focus-visible{
+
+    color:#ffffff;
+
 }
 
 .ticker-last-refresh{
@@ -664,7 +676,8 @@ height:40px;
 }
 
 #fx-ribbon .market-title,
-#fx-ribbon .market-time{
+#fx-ribbon .market-time,
+#market-ribbon .market-time{
 
 display:flex;
 
