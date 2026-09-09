@@ -569,13 +569,6 @@ LAST UPDATED
 
 }
 
-.ticker-last-refresh{
-
-    color:rgba(255,255,255,.4);
-
-    font-size:9px;
-}
-
 /* GLOBAL ANNOUNCEMENTS is longer text than LIVE FX RATES, and this
    row's title/refresh sections were eating enough width at the shared
    .market-title/.market-time sizing that the scrolling ticker itself

@@ -140,37 +140,6 @@
         return idx === -1 ? CATEGORY_PRIORITY.length : idx;
     }
 
-    // Candidate discovery automation runs on the cadence configured in
-    // .github/workflows/continuous-intelligence.yml (currently every 2
-    // hours). scripts/generate-intelligence-pages.js derives the same
-    // fact from that workflow file at build time for the static archive
-    // page; this runtime copy cannot read the workflow YAML itself
-    // (GitHub Pages does not serve dotfiles without a .nojekyll marker,
-    // which this repository does not have), so it is a plain, human-
-    // maintained string that must be kept in sync with that cron if it
-    // ever changes. It only describes DISCOVERY -- publication into
-    // announcements.json always remains a separate, human-reviewed step.
-    const DISCOVERY_CADENCE_LABEL = "every 2 hours";
-
-    function updateLastRefreshDisplay(lastRefreshed){
-
-        const el = document.getElementById("tickerLastRefresh");
-
-        if(!el || !lastRefreshed) return;
-
-        const d = new Date(lastRefreshed);
-
-        if(isNaN(d.getTime())) return;
-
-        const label = d.toLocaleString("en-GB", {
-            day: "numeric", month: "short", year: "numeric",
-            hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
-        });
-
-        el.textContent = `Last validated publication cycle: ${label} · Candidate discovery automation: Scheduled ${DISCOVERY_CADENCE_LABEL} via GitHub Actions · publication remains human-reviewed`;
-
-    }
-
     function renderTicker(){
 
         const track = document.getElementById("announcementTicker");
@@ -484,7 +453,6 @@
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
                 contentRegistry = registryData.records || [];
-                updateLastRefreshDisplay(data.lastRefreshed);
             })
             .catch(() => {
                 // A failed feed must not break the rest of the page — the ticker
