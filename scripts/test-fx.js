@@ -40,6 +40,11 @@ assert.strictEqual(missingClose.previousBusinessClose, null);
 const holidayLookback = resolvePreviousBusinessDate("2026-09-09", ["2026-09-07", "2026-09-08"], ["2026-09-08"]);
 assert.strictEqual(holidayLookback, "2026-09-07", "a declared holiday must be skipped even though it is a weekday with data");
 
+const sameDayRejected = resolvePreviousBusinessClose("2026-09-08", { "2026-09-08": 94.6 });
+assert.strictEqual(sameDayRejected.previousBusinessDate, null, "a second snapshot from the same provider business day must never become the variance baseline");
+const previousDayClose = resolvePreviousBusinessClose("2026-09-09", { "2026-09-08": 94.6 });
+assert.deepStrictEqual(previousDayClose, { previousBusinessDate: "2026-09-08", previousBusinessClose: 94.6 }, "the prior validated business day must resolve automatically");
+
 console.log("PASS business-day: weekend rollover, missing-close and holiday handling are correct.");
 
 /* ---------------------------------------------------------------------
@@ -58,6 +63,10 @@ assert.strictEqual(noComparison.percentageChange, null);
 const unchanged = computeVariance(94.70, 94.70);
 assert.strictEqual(unchanged.direction, "unchanged");
 assert.strictEqual(unchanged.percentageChange, 0);
+
+const negativeVariance = computeVariance(94.50, 94.70);
+assert.strictEqual(negativeVariance.direction, "down");
+assert.ok(negativeVariance.percentageChange < 0, "a lower current observation must produce a negative percentage variance");
 
 console.log("PASS variance: absolute/percentage change and the no-comparison case are correct.");
 
@@ -163,13 +172,19 @@ async function providerTests(){
         ok: true,
         json: async () => ({ result: "success", time_last_update_utc: "Tue, 08 Sep 2026 00:00:01 +0000", rates: { INR: 88.20, AED: 3.6725 } })
     });
-    const okRecords = await referenceProvider.fetchPairs(["USD/INR", "AED/INR"], { fetchImpl: mockFetchOk, retrievedAt: "2026-09-08T00:05:00Z" });
+    const okRecords = await referenceProvider.fetchPairs(["USD/INR", "AED/INR", "AED/USD"], { fetchImpl: mockFetchOk, retrievedAt: "2026-09-08T00:05:00Z" });
     const usdInr = okRecords.find(record => record.pair === "USD/INR");
     const aedInr = okRecords.find(record => record.pair === "AED/INR");
+    const aedUsd = okRecords.find(record => record.pair === "AED/USD");
     assert.strictEqual(usdInr.rateType, "provider-native");
     assert.strictEqual(aedInr.rateType, "derived-cross");
     assert.ok(Math.abs(aedInr.mid - (88.20 / 3.6725)) < 1e-9);
     assert.deepStrictEqual(aedInr.sourceLegs.map(leg => leg.pair), ["USD/AED", "USD/INR"]);
+    assert.strictEqual(aedUsd.rateType, "derived-cross", "a GPIR-computed reciprocal must be labelled derived rather than provider-native");
+    assert.deepStrictEqual(aedUsd.sourceLegs.map(leg => leg.pair), ["USD/AED"]);
+    assert.deepStrictEqual(okRecords.currencyUniverse.currencies, ["AED", "INR", "USD"], "the complete validated provider currency universe must survive alongside the curated pair records");
+    assert.strictEqual(okRecords.currencyUniverse.rates.USD, 1);
+    assert.strictEqual(okRecords.currencyUniverse.validationStatus, "VALIDATED");
 
     // Provider failure (network/HTTP error) must reject cleanly so the
     // orchestrator's priority walk can move to the next provider,
@@ -221,6 +236,7 @@ function weeklySummaryTest(){
         { date: "2026-09-01", rate: 87.90 }, { date: "2026-09-07", rate: 88.20 }
     ]);
     assert.strictEqual(summary.direction, "up");
+    assert.deepStrictEqual(summary.observations.map(point => point.date), ["2026-09-01", "2026-09-07"], "weekly evidence must retain only the genuine observations used in its calculation");
     assert.ok(summary.statements.every(statement => !/because|due to|driven by|amid/i.test(statement)), "weekly statements must never imply causation");
 
     const empty = buildWeeklySummary("USD/INR", []);

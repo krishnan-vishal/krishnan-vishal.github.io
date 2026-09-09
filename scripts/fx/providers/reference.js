@@ -22,9 +22,8 @@
  * currency (USD); every other featured pair is then computed from
  * that one response:
  *   - base === anchor:  provider-native (the API's own quote)
- *   - quote === anchor: provider-native (reciprocal of the API's own
- *                        quote for the same two currencies -- no third
- *                        currency is introduced, so this is not a cross)
+ *   - quote === anchor: derived-cross (a deterministic reciprocal of
+ *                        one supplied anchor leg)
  *   - neither is anchor: derived-cross, with both anchor legs recorded
  *     as sourceLegs so it is never presented as a provider-native rate
  */
@@ -74,7 +73,7 @@ async function fetchPairs(pairs, options = {}){
         return Number.isFinite(value) ? value : null;
     };
 
-    return pairs.map(pair => {
+    const records = pairs.map(pair => {
         const [base, quote] = pair.split("/");
         const baseRate = rateAgainstAnchor(base);
         const quoteRate = rateAgainstAnchor(quote);
@@ -90,16 +89,18 @@ async function fetchPairs(pairs, options = {}){
         }
 
         const mid = quoteRate / baseRate;
-        const isDirect = base === ANCHOR || quote === ANCHOR;
+        // The endpoint directly supplies ANCHOR/QUOTE. QUOTE/ANCHOR is
+        // still deterministic, but it is a GPIR-computed reciprocal and
+        // must not be labelled provider-native.
+        const isDirect = base === ANCHOR;
 
         return {
             pair, base, quote, timestamp: providerTimestamp,
             provider: id, providerType,
             rateType: isDirect ? "provider-native" : "derived-cross",
-            sourceLegs: isDirect ? null : [
-                { pair: `${ANCHOR}/${base}`, provider: id },
-                { pair: `${ANCHOR}/${quote}`, provider: id }
-            ],
+            sourceLegs: isDirect ? null : [base, quote]
+                .filter(code => code !== ANCHOR)
+                .map(code => ({ pair: `${ANCHOR}/${code}`, provider: id })),
             mid, last: mid,
             // A daily reference-rate feed does not publish a bid/ask
             // spread, spot/TOM distinction or cash buy/sell -- these
@@ -109,6 +110,25 @@ async function fetchPairs(pairs, options = {}){
             providerRetrievedAt: providerTimestamp, gpirRetrievedAt: retrievedAt
         };
     });
+
+    // Preserve the provider's complete validated common-base table for
+    // Currency Explorer. This adds one O(n) dataset to the snapshot instead
+    // of materialising O(n²) pair records or static pages.
+    const rates = Object.fromEntries(Object.entries({ ...data.rates, [ANCHOR]: 1 })
+        .filter(([code, value]) => /^[A-Z]{3}$/.test(code) && Number.isFinite(value) && value > 0)
+        .sort(([left], [right]) => left.localeCompare(right)));
+    records.currencyUniverse = {
+        commonBase: ANCHOR,
+        rates,
+        currencies: Object.keys(rates),
+        provider: id,
+        providerType,
+        timestamp: providerTimestamp,
+        providerRetrievedAt: providerTimestamp,
+        gpirRetrievedAt: retrievedAt,
+        validationStatus: "VALIDATED"
+    };
+    return records;
 }
 
 module.exports = { id, providerType, envVarNames, isConfigured, fetchPairs };

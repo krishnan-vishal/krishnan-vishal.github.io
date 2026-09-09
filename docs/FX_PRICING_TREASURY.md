@@ -36,8 +36,8 @@ check (mirrors `scripts/validate-content.js`).
 All under `assets/data/fx/` (this repository's convention is
 `assets/data/`, not a top-level `data/` directory):
 
-- `fx-config.json` -- `featuredPairs` (the curated ticker/Explorer
-  universe; expand this list without touching any script),
+- `fx-config.json` -- `featuredPairs` (the curated ticker/indexed-page
+  universe) and `marketRegions` (its GPIR regional presentation groups),
   `providerPriority`, per-providerType staleness thresholds, the
   extreme-movement threshold, and the reader-facing disclaimer text.
 - `current.json` -- the latest snapshot. `status` is always `"current"`;
@@ -48,7 +48,10 @@ All under `assets/data/fx/` (this repository's convention is
   have (no TOM/spot/cash from a reference-only source, no bid/ask
   spread, etc.) is `null`, rendered "N/A" by the front end. A computed
   cross-rate is always `rateType: "derived-cross"` with `sourceLegs`
-  recorded; it is never presented as a provider-native quote.
+  recorded; it is never presented as a provider-native quote. When the
+  active adapter supplies a validated common-base table, `currencyUniverse`
+  retains those rates, currencies, provider/timestamp metadata and the
+  genuine previous-business-day table for on-demand Explorer calculations.
 - `history/YYYY/MM/YYYY-MM-DD.json` -- one immutable frozen daily
   snapshot (`status: "historical"`). `scripts/fx/generate-fx-snapshot.js`'s
   `freezeOutgoingSnapshotIfNewDay()` writes this the first time a run
@@ -56,8 +59,9 @@ All under `assets/data/fx/` (this repository's convention is
   `current.json`, and **never overwrites an existing file** -- see
   `scripts/test-fx.js`'s historical-immutability test.
 - `weekly-summary.json` -- deterministic quantitative observations only
-  (open/high/low/close/range/direction) computed from the last 7
-  archived closes per pair, via `scripts/fx/weekly-summary.js`. Never
+  (open/high/low/close/range/direction plus the exact observations used)
+  computed from the last 7 validated business-day closes per pair, including
+  the latest current observation when valid, via `scripts/fx/weekly-summary.js`. Never
   editorial/market-driver commentary; a pair with fewer than 2 archived
   closes reports `dataCompleteness: "NO_DATA"` / `"INSUFFICIENT_HISTORY"`
   rather than a manufactured figure.
@@ -110,20 +114,15 @@ never committed and never sent to the browser:
 
 No secret is required for the site to function -- see No-Credential Mode.
 
-## No-Credential Mode (mandatory, and the current real state)
+## No-Credential Mode (mandatory)
 
-This repository currently has none of the above credentials configured,
-and this development session's own network egress was blocked, so
-`assets/data/fx/current.json` as committed by this milestone reflects
-the **genuine** result of running `generate-fx-snapshot.js` with no
-provider reachable: every record's `dataStatus` is
-`NO_PROVIDER_CONFIGURED` and every rate field is `null`. This is not a
-placeholder or a simulated state -- it is what the real code produces
-when it cannot reach any provider, exactly as required. On a GitHub
-Actions runner (which has normal internet access), the same code will
-reach the keyless reference provider successfully -- that endpoint is
-already proven in production via the pre-existing client-side ticker
-this milestone replaced.
+The licensed provider credentials remain optional. If none is configured,
+the keyless reference adapter is attempted. If it is also unreachable and a
+last-known-good snapshot exists, the pipeline serves it explicitly as stale;
+on a first-ever unreachable run it writes the honest
+`NO_PROVIDER_CONFIGURED` state with null rates. The committed snapshot on
+`main` may therefore be a genuine reference observation produced by GitHub
+Actions even though no licensed credential exists.
 
 The UI never breaks or blanks in this state: the ticker/Explorer/pair
 pages render their normal structure with "N/A" values and a
@@ -183,7 +182,8 @@ human explicitly merges the review PR.
   `assets/data/fx/current.json` (no direct provider call from the
   browser), pauses on hover and keyboard focus, respects
   `prefers-reduced-motion`, links each pair to its FX intelligence page.
-- `pages/fx/index.html` (Live FX), `explorer.html` (Currency Explorer),
+- `pages/fx/index.html` (compact regional market table), `explorer.html`
+  (full active-provider currency universe with on-demand direct/cross-rate Pair Intelligence),
   `treasury.html` (Treasury Intelligence -- deterministic groupings:
   GCC pegged/managed currencies, INR corridor pairs, USD funding
   pairs, major crosses), `weekly.html` (Weekly Trends), `historical.html`
@@ -192,18 +192,17 @@ human explicitly merges the review PR.
   provider/timestamp table, a dependency-free inline-SVG 7-day
   sparkline, and a link into the Historical archive).
 - Every page loads its data on demand (`assets/js/fx-app.js`), never
-  embeds the dataset inline -- the homepage only ever loads the small
-  featured-pairs `current.json`, not history.
+  embeds the dataset inline. Currency Explorer derives pair views from one
+  O(n) common-base table rather than materialising O(n²) records/pages and
+  fetches at most seven history snapshots only after a pair is selected.
 - The mandated disclaimer appears on every FX page.
 
 ## Known gaps / deferred (stated honestly)
 
 - No licensed live provider is integrated (see Provider adapters --
   requires a real licence and a future implementation, not a guess).
-- Per-pair historical drill-down currently links to the Historical
-  archive rather than fetching every archived day inline (avoids an
-  N-file fetch on the pair page); a pair-scoped history view is a
-  reasonable follow-on once real multi-day history exists.
+- The pair view limits trend retrieval to seven listed immutable snapshots;
+  the Historical page remains the complete date-by-date archive.
 - `assets/i18n/*.json` was not extended with new FX-page translation
   keys this milestone (consistent with how country/dashboard/
   announcement-archive body content is not i18n-tagged either -- only

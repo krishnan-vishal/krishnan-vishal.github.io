@@ -2,6 +2,22 @@
 
 ## Current handoff
 
+- **Milestone:** M28-FX Final Scale & Variance Pass.
+- **Category / owner:** Scaling / Reader Experience / Data / Automation; Vishal Krishnan.
+- **Objective:** Automatic previous-business-day variance from validated GPIR observations, compact regional Live FX grid, full active-provider currency universe with deterministic cross-rates, and reusable pair-intelligence presentation hooks.
+- **Working branch:** `work/m28-fx-final-scale-variance`.
+- **Base:** `origin/main` at `7a77bfa` (includes merged M28-FX Compact Market UX, PR #332).
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PENDING COMMIT, PUSH, PR AND ACTIONS.
+- **Completed:** Variance history now keys closes by provider observation business date and accepts only `VALIDATED` records, preventing same-day scheduler runs or quarantined observations from becoming a false baseline. Weekend/holiday and bounded lookback behavior remain deterministic. Weekly summaries retain their genuine source observations and include the latest validated current point without interpolation.
+- **Scale foundation:** The active reference adapter preserves its complete validated USD common-base currency table in `current.json` on the next scheduled generation. Currency Explorer selects any two supplied currencies and calculates a direct or derived reference deterministically in one reusable client-side view; the 26 curated static pair pages remain the bounded indexed set.
+- **Reader presentation:** Live FX uses compact `PAIR | RATE | PREV-DAY Δ | STATUS` tables grouped by the existing GPIR market-region vocabulary. Pair intelligence exposes rate, variance, source, timestamp, freshness, classification, genuine market fields only, history-derived trend/high/low, methodology, and explicitly empty future module hooks.
+- **Data integrity:** No current/history market observation was edited or generated in this implementation branch. No variance or trend was fabricated. Provider attribution remains the actual adapter id. Licensed LSEG/Bloomberg/XE/IBRLive stubs remain unconfigured contracts and are never presented as sources unless they genuinely supply a future observation.
+- **Files changed:** FX configuration, browser app/styles, reference provider, business-day/snapshot/weekly engines, FX validator/tests/page generator, generated FX HTML, and GPIR handoff/governance documentation only.
+- **Local validation:** FX regression suite, FX validator, edited JavaScript syntax, link validation, `git diff --check`, and local browser runtime checks for regional filtering plus direct/derived Explorer rendering passed. Actions: PENDING.
+- **Publication state:** No merge. Commit, remote SHA and PR URL PENDING at this documentation checkpoint.
+
+## Superseded M28-FX foundation handoff
+
 - **Milestone:** M28-FX — FX Pricing & Treasury Intelligence.
 - **Category / owner:** Reader Experience / Data / Automation; Vishal Krishnan.
 - **Objective:** A compact automated FX ticker plus a full FX Pricing & Treasury
