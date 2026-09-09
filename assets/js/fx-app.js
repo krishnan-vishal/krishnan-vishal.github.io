@@ -99,6 +99,54 @@
         return fetchJson(dataPrefix() + "fx-config.json").catch(() => ({ featuredPairs: [] }));
     }
 
+    function referenceClassification(record){
+        return record && record.rateType === "derived-cross" ? "DERIVED REFERENCE" : "DIRECT REFERENCE";
+    }
+
+    function deriveUniverseRecord(snapshot, pair, ratesOverride){
+        const universe = snapshot && snapshot.currencyUniverse;
+        if(!universe || universe.validationStatus !== "VALIDATED" || !universe.rates) return null;
+        const [base, quote] = pair.split("/");
+        const rates = ratesOverride || universe.rates;
+        const baseRate = rates[base];
+        const quoteRate = rates[quote];
+        if(!Number.isFinite(baseRate) || !Number.isFinite(quoteRate) || base === quote) return null;
+        const rate = quoteRate / baseRate;
+        const direct = base === universe.commonBase;
+        const previousRates = ratesOverride ? null : universe.previousBusinessRates;
+        const previousRate = previousRates && Number.isFinite(previousRates[base]) && Number.isFinite(previousRates[quote])
+            ? previousRates[quote] / previousRates[base]
+            : null;
+        const absoluteChange = Number.isFinite(previousRate) ? rate - previousRate : null;
+        const percentageChange = Number.isFinite(previousRate) && previousRate !== 0 ? (absoluteChange / previousRate) * 100 : null;
+        return {
+            pair, base, quote, mid: rate, last: rate,
+            bid: null, ask: null, spot: null, tom: null, cashBuy: null, cashSell: null,
+            timestamp: universe.timestamp,
+            providerRetrievedAt: universe.providerRetrievedAt,
+            gpirRetrievedAt: universe.gpirRetrievedAt,
+            provider: universe.provider,
+            providerType: universe.providerType,
+            rateType: direct ? "provider-native" : "derived-cross",
+            sourceLegs: direct ? null : [
+                { pair: `${universe.commonBase}/${base}`, provider: universe.provider },
+                { pair: `${universe.commonBase}/${quote}`, provider: universe.provider }
+            ],
+            previousBusinessDate: previousRate === null ? null : universe.previousBusinessDate,
+            previousBusinessClose: previousRate,
+            absoluteChange,
+            percentageChange,
+            direction: absoluteChange > 0 ? "up" : absoluteChange < 0 ? "down" : absoluteChange === 0 ? "unchanged" : null,
+            dataStatus: universe.dataStatus === "STALE" ? "STALE" : "REFERENCE",
+            validationStatus: "VALIDATED",
+            anomalies: []
+        };
+    }
+
+    function findOrDeriveRecord(snapshot, pair){
+        return (snapshot.pairs || []).find(item => item.pair === pair) || deriveUniverseRecord(snapshot, pair);
+    }
+
     /*-----------------------------------------------------
       LIVE FX HUB
     -----------------------------------------------------*/
@@ -106,20 +154,44 @@
         const grid = document.getElementById("fx-live-grid");
         const statusEl = document.getElementById("fx-live-status");
         if(!grid) return;
-        loadCurrentSnapshot().then(snapshot => {
+        Promise.all([loadCurrentSnapshot(), loadConfig()]).then(([snapshot, config]) => {
             const pairs = snapshot.pairs || [];
             if(!pairs.length){
                 grid.innerHTML = `<p class="fx-empty-note">No FX snapshot is available yet. See docs/FX_PRICING_TREASURY.md for how a provider is configured and the first snapshot generated.</p>`;
                 return;
             }
-            grid.innerHTML = pairs.map(record => `
-                <a class="fx-pair-card ${directionClass(record.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
-                    <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
-                    <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
-                    <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
-                    ${statusBadge(record.dataStatus)}
-                </a>
-            `).join("");
+            const recordsByPair = new Map(pairs.map(record => [record.pair, record]));
+            const regions = config.marketRegions || { GLOBAL: pairs.map(record => record.pair) };
+            const regionNames = Object.keys(regions);
+            grid.innerHTML = `<div class="fx-region-filters" role="group" aria-label="Filter FX markets by region">
+                <button type="button" class="fx-region-filter is-active" data-fx-region="ALL">ALL</button>
+                ${regionNames.map(region => `<button type="button" class="fx-region-filter" data-fx-region="${escapeHtml(region)}"${(regions[region] || []).some(pair => recordsByPair.has(pair)) ? "" : " disabled title=\"No curated market pairs in the current snapshot\""}>${escapeHtml(region)}</button>`).join("")}
+            </div>
+            <div class="fx-market-regions">${regionNames.map(region => {
+                const records = (regions[region] || []).map(pair => recordsByPair.get(pair)).filter(Boolean);
+                if(!records.length) return "";
+                return `<section class="fx-market-region" data-fx-market-region="${escapeHtml(region)}">
+                    <h2>${escapeHtml(region)}</h2>
+                    <div class="fx-market-table" role="table" aria-label="${escapeHtml(region)} FX market">
+                        <div class="fx-market-row fx-market-row--head" role="row"><span>Pair</span><span>Rate</span><span>Prev-day Δ</span><span>Status</span></div>
+                        ${records.map(record => `<a class="fx-market-row ${directionClass(record.direction)}" role="row" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
+                            <strong>${escapeHtml(record.pair)}</strong>
+                            <span>${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
+                            <span class="fx-market-variance">${formatCardVariance(record.percentageChange)}</span>
+                            <span>${escapeHtml(referenceClassification(record))}</span>
+                        </a>`).join("")}
+                    </div>
+                </section>`;
+            }).join("")}</div>`;
+            grid.addEventListener("click", event => {
+                const button = event.target.closest("[data-fx-region]");
+                if(!button) return;
+                grid.querySelectorAll("[data-fx-region]").forEach(item => item.classList.toggle("is-active", item === button));
+                const selected = button.getAttribute("data-fx-region");
+                grid.querySelectorAll("[data-fx-market-region]").forEach(section => {
+                    section.hidden = selected !== "ALL" && section.getAttribute("data-fx-market-region") !== selected;
+                });
+            });
             if(statusEl){
                 const generated = snapshot.generatedAt ? new Date(snapshot.generatedAt).toLocaleString("en-GB", { timeZone: "UTC", timeZoneName: "short" }) : "unavailable";
                 statusEl.textContent = `Latest GPIR market snapshot generated: ${generated}. ${snapshot.providerUsed ? "Source: " + snapshot.providerUsed : "No provider configured for this snapshot."}`;
@@ -131,32 +203,40 @@
       CURRENCY EXPLORER
     -----------------------------------------------------*/
     function renderExplorer(){
-        const input = document.getElementById("fx-explorer-search");
-        const results = document.getElementById("fx-explorer-results");
-        if(!input || !results) return;
+        const baseSelect = document.getElementById("fx-explorer-base");
+        const quoteSelect = document.getElementById("fx-explorer-quote");
+        const form = document.getElementById("fx-explorer-form");
+        const detail = document.getElementById("fx-explorer-detail");
+        if(!baseSelect || !quoteSelect || !form || !detail) return;
 
-        Promise.all([loadCurrentSnapshot(), loadConfig()]).then(([snapshot]) => {
-            const pairs = snapshot.pairs && snapshot.pairs.length ? snapshot.pairs : [];
+        loadCurrentSnapshot().then(snapshot => {
+            const universe = snapshot.currencyUniverse;
+            const currencies = universe && Array.isArray(universe.currencies)
+                ? universe.currencies
+                : Array.from(new Set((snapshot.pairs || []).flatMap(record => [record.base, record.quote]))).sort();
+            if(!currencies.length){
+                detail.innerHTML = `<p class="fx-empty-note">No validated currency universe is available in the current snapshot.</p>`;
+                return;
+            }
+            const options = currencies.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(code)}</option>`).join("");
+            baseSelect.innerHTML = options;
+            quoteSelect.innerHTML = options;
+            const requested = new URLSearchParams(window.location.search).get("pair");
+            const [requestedBase, requestedQuote] = requested && /^[A-Z]{3}-[A-Z]{3}$/.test(requested) ? requested.split("-") : ["USD", "INR"];
+            baseSelect.value = currencies.includes(requestedBase) ? requestedBase : currencies[0];
+            quoteSelect.value = currencies.includes(requestedQuote) ? requestedQuote : currencies.find(code => code !== baseSelect.value) || currencies[0];
 
-            const render = (query) => {
-                const normalized = query.trim().toUpperCase();
-                const matches = !normalized ? pairs : pairs.filter(record =>
-                    record.pair.includes(normalized) || record.base === normalized || record.quote === normalized
-                );
-                results.innerHTML = matches.length
-                    ? matches.map(record => `
-                        <li role="option"><a href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
-                            <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
-                            <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
-                            <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
-                            ${statusBadge(record.dataStatus)}
-                        </a></li>
-                    `).join("")
-                    : `<li class="fx-empty-note">No pair in the current GPIR FX universe matches "${escapeHtml(query)}".</li>`;
+            const show = () => {
+                if(baseSelect.value === quoteSelect.value){
+                    detail.innerHTML = `<p class="fx-empty-note">Choose two different currencies.</p>`;
+                    return;
+                }
+                const pair = `${baseSelect.value}/${quoteSelect.value}`;
+                history.replaceState(null, "", `?pair=${baseSelect.value}-${quoteSelect.value}`);
+                renderPairIntelligence(detail, snapshot, pair, null);
             };
-
-            render("");
-            input.addEventListener("input", () => render(input.value));
+            form.addEventListener("submit", event => { event.preventDefault(); show(); });
+            show();
         });
     }
 
@@ -308,71 +388,93 @@
     /*-----------------------------------------------------
       PAIR DETAIL VIEW
     -----------------------------------------------------*/
+    function freshnessLabel(snapshot, record){
+        if(!record.timestamp || !snapshot.generatedAt) return "Unavailable";
+        const ageHours = Math.max(0, (Date.parse(snapshot.generatedAt) - Date.parse(record.timestamp)) / 3600000);
+        return `${ageHours.toFixed(1)} hours old at snapshot generation`;
+    }
+
+    function renderWeeklyEvidence(target, snapshot, pair, points){
+        if(points.length < 2){
+            target.innerHTML = `<p class="fx-empty-note">${buildingHistoryMessage(snapshot, null)}</p>`;
+            return;
+        }
+        const values = points.map(point => point.rate);
+        const first = values[0];
+        const last = values[values.length - 1];
+        const change = ((last - first) / first) * 100;
+        target.innerHTML = `${buildSparkline(points)}<p>7-day movement: ${formatPercent(change)}. Weekly high ${formatRate(Math.max(...values), pair)} · low ${formatRate(Math.min(...values), pair)} across ${points.length} genuine GPIR observation(s).</p>`;
+    }
+
+    function loadUniverseHistory(snapshot, pair){
+        const dates = (snapshot.historyDates || []).slice(-7);
+        return Promise.all(dates.map(date => {
+            const [year, month] = date.split("-");
+            return fetchJson(`${dataPrefix()}history/${year}/${month}/${date}.json`).catch(() => null);
+        })).then(items => {
+            const observationsByBusinessDay = new Map();
+            items.filter(Boolean).forEach(item => {
+                const record = deriveUniverseRecord(item, pair);
+                const observationDate = record && record.timestamp ? record.timestamp.slice(0, 10) : null;
+                if(record && observationDate && Number.isFinite(record.mid)) observationsByBusinessDay.set(observationDate, { date: observationDate, rate: record.mid });
+            });
+            const current = deriveUniverseRecord(snapshot, pair);
+            const currentDate = current && current.timestamp ? current.timestamp.slice(0, 10) : null;
+            if(current && currentDate && Number.isFinite(current.mid)) observationsByBusinessDay.set(currentDate, { date: currentDate, rate: current.mid });
+            return Array.from(observationsByBusinessDay.values()).sort((left, right) => left.date.localeCompare(right.date)).slice(-7);
+        });
+    }
+
+    function renderPairIntelligence(container, snapshot, pair, summary){
+        const record = findOrDeriveRecord(snapshot, pair);
+        if(!record){
+            container.innerHTML = `<p class="fx-empty-note">No validated common-base data is available for ${escapeHtml(pair)}.</p>`;
+            return;
+        }
+        const rate = Number.isFinite(record.mid) ? record.mid : record.last;
+        const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? (record.ask - record.bid).toFixed(4) : "N/A";
+        const hasPendingVariance = !record.previousBusinessDate || !Number.isFinite(record.percentageChange);
+        const rows = [
+            ["CURRENT REFERENCE RATE", formatRate(rate, pair), ""],
+            ["PREVIOUS BUSINESS DAY", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair)} (${escapeHtml(record.previousBusinessDate)})` : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
+            ["PREV-DAY VARIANCE", Number.isFinite(record.percentageChange) ? formatPercent(record.percentageChange) : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
+            ["CLASSIFICATION", referenceClassification(record), ""],
+            ["PROVIDER / SOURCE", record.provider || "None configured", ""],
+            ["OBSERVATION (UTC)", record.timestamp ? new Date(record.timestamp).toISOString() : "N/A", ""],
+            ["SOURCE FRESHNESS", freshnessLabel(snapshot, record), ""],
+            ["BID", formatRate(record.bid, pair), Number.isFinite(record.bid) ? "" : "fx-detail-row--unavailable"],
+            ["ASK", formatRate(record.ask, pair), Number.isFinite(record.ask) ? "" : "fx-detail-row--unavailable"],
+            ["SPREAD", spread, spread === "N/A" ? "fx-detail-row--unavailable" : ""],
+            ["SPOT", formatRate(record.spot, pair), Number.isFinite(record.spot) ? "" : "fx-detail-row--unavailable"],
+            ["TOM", formatRate(record.tom, pair), Number.isFinite(record.tom) ? "" : "fx-detail-row--unavailable"],
+            ["CASH BUY / SELL", `${formatRate(record.cashBuy, pair)} / ${formatRate(record.cashSell, pair)}`, Number.isFinite(record.cashBuy) && Number.isFinite(record.cashSell) ? "" : "fx-detail-row--unavailable"]
+        ];
+        const sourceLegsNote = record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
+            ? `<p class="fx-source-legs">Deterministically derived from ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} using validated ${escapeHtml(record.provider)} common-base rates. It is not a provider-native or executable quote.</p>`
+            : "";
+        container.innerHTML = `<div class="fx-pair-detail-header"><h2>${escapeHtml(pair)}</h2><span class="fx-reference-class">${referenceClassification(record)}</span></div>
+            <table class="fx-detail-table"><tbody>${rows.map(([label, value, rowClass]) => `<tr${rowClass ? ` class="${rowClass}"` : ""}><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}</tbody></table>
+            <p class="fx-data-note">Bid/Ask, Spot/TOM and Cash pricing appear only when the authorised source genuinely supplies them. No executable price is inferred from reference or cross-rate data.</p>
+            ${hasPendingVariance ? `<p class="fx-variance-note">Variance pending until an earlier validated GPIR business-day observation exists.</p>` : ""}
+            ${sourceLegsNote}
+            <section class="fx-weekly-section"><h3>7-day trend</h3><div data-fx-weekly-evidence><p class="fx-loading">Loading validated observations…</p></div></section>
+            <section class="fx-future-modules" aria-label="Future FX intelligence modules">
+                ${["REGIONAL CONTEXT", "CONSUMER / REMITTANCE INTELLIGENCE", "COMPETITION INTELLIGENCE", "TREASURY INTELLIGENCE"].map(name => `<div data-fx-module="${escapeHtml(name.toLowerCase().replace(/[^a-z]+/g, "-"))}"><h3>${escapeHtml(name)}</h3><p>Data hook reserved. No intelligence is published in this module yet.</p></div>`).join("")}
+            </section>
+            <p class="fx-methodology-note"><strong>Methodology:</strong> Direct references reproduce a validated provider common-base rate. Derived references divide two validated rates sharing that base. Variance and trends use only earlier validated GPIR business-day observations; missing days are not interpolated.</p>
+            <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View immutable GPIR Historical observations →</a></p>`;
+        const weeklyTarget = container.querySelector("[data-fx-weekly-evidence]");
+        const summaryPoints = summary && Array.isArray(summary.observations) ? summary.observations.filter(point => Number.isFinite(point.rate)) : [];
+        if(summaryPoints.length) renderWeeklyEvidence(weeklyTarget, snapshot, pair, summaryPoints);
+        else loadUniverseHistory(snapshot, pair).then(points => renderWeeklyEvidence(weeklyTarget, snapshot, pair, points));
+    }
+
     function renderPairDetail(){
         const container = document.querySelector('[data-fx-view="pair-detail"]');
         if(!container) return;
         const pair = container.getAttribute("data-fx-pair");
-        const firstSnapshotDate = container.getAttribute("data-fx-first-snapshot-date");
-
         Promise.all([loadCurrentSnapshot(), fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] }))]).then(([snapshot, weeklyData]) => {
-            const record = (snapshot.pairs || []).find(item => item.pair === pair);
-            const summary = (weeklyData.summaries || []).find(item => item.pair === pair);
-
-            if(!record){
-                container.innerHTML = `<p class="fx-empty-note">No current snapshot data is available yet for ${escapeHtml(pair)}.</p>`;
-                return;
-            }
-
-            const rate = Number.isFinite(record.mid) ? record.mid : record.last;
-            const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? (record.ask - record.bid).toFixed(4) : "N/A";
-            const rows = [
-                ["LAST / MID", formatRate(rate, pair), ""],
-                ["BID", formatRate(record.bid, pair), Number.isFinite(record.bid) ? "" : "fx-detail-row--unavailable"],
-                ["ASK", formatRate(record.ask, pair), Number.isFinite(record.ask) ? "" : "fx-detail-row--unavailable"],
-                ["SPREAD", spread, spread === "N/A" ? "fx-detail-row--unavailable" : ""],
-                ["SPOT", formatRate(record.spot, pair), Number.isFinite(record.spot) ? "" : "fx-detail-row--unavailable"],
-                ["TOM", formatRate(record.tom, pair), Number.isFinite(record.tom) ? "" : "fx-detail-row--unavailable"],
-                ["CASH BUY", formatRate(record.cashBuy, pair), Number.isFinite(record.cashBuy) ? "" : "fx-detail-row--unavailable"],
-                ["CASH SELL", formatRate(record.cashSell, pair), Number.isFinite(record.cashSell) ? "" : "fx-detail-row--unavailable"],
-                ["Previous Business Day Close", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair)} (${escapeHtml(record.previousBusinessDate)})` : "—", record.previousBusinessDate ? "" : "fx-detail-row--pending"],
-                ["Absolute Variance", Number.isFinite(record.absoluteChange) ? record.absoluteChange.toFixed(4) : "—", Number.isFinite(record.absoluteChange) ? "" : "fx-detail-row--pending"],
-                ["Percentage Variance", formatPercent(record.percentageChange), Number.isFinite(record.percentageChange) ? "" : "fx-detail-row--pending"],
-                ["Rate Type", record.rateType === "derived-cross" ? "Derived cross-rate" : "Provider-native", ""],
-                ["Provider", record.provider || "None configured", ""],
-                ["Timestamp (UTC)", record.timestamp ? new Date(record.timestamp).toISOString() : "N/A", ""],
-                ["GPIR Retrieved", record.gpirRetrievedAt ? new Date(record.gpirRetrievedAt).toISOString() : "N/A", ""]
-            ];
-
-            const hasUnavailableMarketFields = [record.bid, record.ask, record.spot, record.tom, record.cashBuy, record.cashSell]
-                .some(value => !Number.isFinite(value));
-            const hasPendingVariance = !record.previousBusinessDate || !Number.isFinite(record.absoluteChange) || !Number.isFinite(record.percentageChange);
-
-            const sourceLegsNote = record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
-                ? `<p class="fx-source-legs">Derived from: ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} (${escapeHtml(record.provider)}). This is a GPIR-computed cross-rate, not a provider-native quote.</p>`
-                : "";
-
-            const sparklinePoints = summary && Array.isArray(summary.observations)
-                ? summary.observations.filter(point => Number.isFinite(point.rate))
-                : [];
-
-            container.innerHTML = `
-                <div class="fx-pair-detail-header">
-                    <h2>${escapeHtml(pair)}</h2>
-                    ${statusBadge(record.dataStatus)}
-                </div>
-                <table class="fx-detail-table"><tbody>
-                    ${rows.map(([label, value, rowClass]) => `<tr${rowClass ? ` class="${rowClass}"` : ""}><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}
-                </tbody></table>
-                ${hasUnavailableMarketFields ? `<p class="fx-data-note">Bid/Ask, Spot/TOM and Cash Buy/Sell are unavailable from the current reference-rate provider. These fields will populate when an authorised market-data source supporting them is configured.</p>` : ""}
-                ${hasPendingVariance ? `<p class="fx-variance-note">Variance becomes available after the next valid business-day snapshot.</p>` : ""}
-                ${sourceLegsNote}
-                <section class="fx-weekly-section">
-                    <h3>7-day trend</h3>
-                    ${sparklinePoints.length ? buildSparkline(sparklinePoints) : `<p class="fx-empty-note">${buildingHistoryMessage(snapshot, firstSnapshotDate)}</p>`}
-                    ${summary && summary.dataCompleteness !== "NO_DATA" ? `<p>${escapeHtml((summary.statements || [])[0] || "")}</p><p>${escapeHtml((summary.statements || [])[1] || "")}</p>` : ""}
-                </section>
-                <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View the GPIR Historical Archive for this pair's past daily observations →</a></p>
-            `;
+            renderPairIntelligence(container, snapshot, pair, (weeklyData.summaries || []).find(item => item.pair === pair));
         });
     }
 

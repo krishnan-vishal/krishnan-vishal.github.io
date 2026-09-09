@@ -66,14 +66,56 @@ function loadHistoricalCloses(){
                 if(!snapshot || !Array.isArray(snapshot.pairs)) continue;
                 snapshot.pairs.forEach(record => {
                     const referenceRate = Number.isFinite(record.mid) ? record.mid : record.last;
-                    if(!record.pair || !Number.isFinite(referenceRate)) return;
+                    const observationDate = record.timestamp && !Number.isNaN(Date.parse(record.timestamp))
+                        ? utcDateOnly(record.timestamp)
+                        : null;
+                    if(record.validationStatus !== "VALIDATED" || !record.pair || !observationDate || !Number.isFinite(referenceRate)) return;
                     if(!closesByPair[record.pair]) closesByPair[record.pair] = {};
-                    closesByPair[record.pair][snapshot.publicationDate] = referenceRate;
+                    // Key by the provider observation day, not the scheduler run
+                    // day. Two GPIR snapshots of the same provider business day
+                    // can therefore never become a false variance comparison.
+                    closesByPair[record.pair][observationDate] = referenceRate;
                 });
             }
         }
     }
     return closesByPair;
+}
+
+function listHistoricalSnapshots(){
+    const snapshots = [];
+    if(!fs.existsSync(HISTORY_DIR)) return snapshots;
+    for(const year of fs.readdirSync(HISTORY_DIR)){
+        const yearDir = path.join(HISTORY_DIR, year);
+        if(!fs.statSync(yearDir).isDirectory()) continue;
+        for(const month of fs.readdirSync(yearDir)){
+            const monthDir = path.join(yearDir, month);
+            if(!fs.statSync(monthDir).isDirectory()) continue;
+            for(const file of fs.readdirSync(monthDir)){
+                if(!/^\d{4}-\d{2}-\d{2}\.json$/.test(file)) continue;
+                const snapshot = readJsonIfExists(path.join(monthDir, file), null);
+                if(snapshot) snapshots.push(snapshot);
+            }
+        }
+    }
+    return snapshots.sort((left, right) => String(left.publicationDate).localeCompare(String(right.publicationDate)));
+}
+
+function findPreviousValidatedUniverse(currentObservationDate, historicalSnapshots, maxLookbackDays){
+    const byObservationDate = {};
+    historicalSnapshots.forEach(snapshot => {
+        const universe = snapshot.currencyUniverse;
+        if(!universe || universe.validationStatus !== "VALIDATED" || !universe.timestamp || !universe.rates) return;
+        const observationDate = utcDateOnly(universe.timestamp);
+        byObservationDate[observationDate] = universe;
+    });
+    const { previousBusinessDate } = resolvePreviousBusinessClose(
+        currentObservationDate,
+        Object.fromEntries(Object.keys(byObservationDate).map(date => [date, 1])),
+        [],
+        maxLookbackDays
+    );
+    return previousBusinessDate ? { date: previousBusinessDate, universe: byObservationDate[previousBusinessDate] } : null;
 }
 
 /*
@@ -100,9 +142,17 @@ function freezeOutgoingSnapshotIfNewDay(outgoingSnapshot, todayDate){
  * -- purely deterministic quantitative observations (see
  * scripts/fx/weekly-summary.js), never editorial commentary.
  */
-function writeWeeklySummaries(pairs, historicalCloses, generatedAt){
+function writeWeeklySummaries(pairs, historicalCloses, generatedAt, currentRecords = []){
+    const currentByPair = new Map(currentRecords
+        .filter(record => record.validationStatus === "VALIDATED")
+        .map(record => [record.pair, record]));
     const summaries = pairs.map(pair => {
-        const closesForPair = historicalCloses[pair] || {};
+        const closesForPair = { ...(historicalCloses[pair] || {}) };
+        const current = currentByPair.get(pair);
+        const currentRate = current && (Number.isFinite(current.mid) ? current.mid : current.last);
+        if(current && current.timestamp && Number.isFinite(currentRate)){
+            closesForPair[utcDateOnly(current.timestamp)] = currentRate;
+        }
         const points = Object.keys(closesForPair)
             .sort()
             .slice(-7)
@@ -123,18 +173,19 @@ async function runProviderPriority(pairs, options){
         }
         try{
             const records = await provider.fetchPairs(pairs, options);
+            const currencyUniverse = records.currencyUniverse || null;
             const usable = records.filter(record => record.dataStatus !== "NO_PROVIDER_CONFIGURED");
             if(usable.length === 0){
                 attempts.push({ provider: provider.id, status: "NO_USABLE_RECORDS" });
                 continue;
             }
             attempts.push({ provider: provider.id, status: "SUCCEEDED", recordCount: usable.length });
-            return { records, attempts, providerUsed: provider.id };
+            return { records, currencyUniverse, attempts, providerUsed: provider.id };
         } catch(error){
             attempts.push({ provider: provider.id, status: "FAILED", error: error.message });
         }
     }
-    return { records: null, attempts, providerUsed: null };
+    return { records: null, currencyUniverse: null, attempts, providerUsed: null };
 }
 
 async function generateSnapshot(options = {}){
@@ -151,8 +202,9 @@ async function generateSnapshot(options = {}){
     const previousSnapshot = readJsonIfExists(CURRENT_PATH, null);
     const freezeResult = freezeOutgoingSnapshotIfNewDay(previousSnapshot, todayDate);
 
-    const { records: fetchedRecords, attempts, providerUsed } = await runProviderPriority(pairs, { fetchImpl, env, retrievedAt });
+    const { records: fetchedRecords, currencyUniverse: fetchedUniverse, attempts, providerUsed } = await runProviderPriority(pairs, { fetchImpl, env, retrievedAt });
     const historicalCloses = loadHistoricalCloses();
+    const historicalSnapshots = listHistoricalSnapshots();
 
     let pairRecords;
     let dataStatus;
@@ -161,8 +213,11 @@ async function generateSnapshot(options = {}){
         pairRecords = fetchedRecords.map(fields => {
             const providerType = fields.providerType;
             const closesForPair = historicalCloses[fields.pair] || {};
+            const observationDate = fields.timestamp && !Number.isNaN(Date.parse(fields.timestamp))
+                ? utcDateOnly(fields.timestamp)
+                : todayDate;
             const { previousBusinessDate, previousBusinessClose } = resolvePreviousBusinessClose(
-                todayDate, closesForPair, [], config.maxLookbackDaysForPreviousBusinessClose
+                observationDate, closesForPair, [], config.maxLookbackDaysForPreviousBusinessClose
             );
             const referenceRate = Number.isFinite(fields.mid) ? fields.mid : fields.last;
             const variance = computeVariance(referenceRate, previousBusinessClose);
@@ -210,6 +265,23 @@ async function generateSnapshot(options = {}){
         dataStatus = "NO_PROVIDER_CONFIGURED";
     }
 
+    let currencyUniverse = fetchedUniverse;
+    if(currencyUniverse){
+        const observationDate = utcDateOnly(currencyUniverse.timestamp);
+        const previous = findPreviousValidatedUniverse(
+            observationDate,
+            historicalSnapshots,
+            config.maxLookbackDaysForPreviousBusinessClose
+        );
+        currencyUniverse = {
+            ...currencyUniverse,
+            previousBusinessDate: previous ? previous.date : null,
+            previousBusinessRates: previous ? previous.universe.rates : null
+        };
+    } else if(!fetchedRecords && previousSnapshot && previousSnapshot.currencyUniverse){
+        currencyUniverse = { ...previousSnapshot.currencyUniverse, dataStatus: "STALE" };
+    }
+
     const snapshot = {
         schemaVersion: "1.0",
         publicationDate: todayDate,
@@ -218,12 +290,14 @@ async function generateSnapshot(options = {}){
         dataStatus,
         providerUsed,
         providerAttempts: attempts,
+        historyDates: historicalSnapshots.map(item => item.publicationDate).filter(Boolean),
+        currencyUniverse,
         pairs: pairRecords
     };
 
     fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(CURRENT_PATH, JSON.stringify(snapshot, null, 2) + "\n", "utf8");
-    const weeklySummaries = writeWeeklySummaries(pairs, historicalCloses, retrievedAt);
+    const weeklySummaries = writeWeeklySummaries(pairs, historicalCloses, retrievedAt, pairRecords);
 
     return { snapshot, freezeResult, weeklySummaries };
 }

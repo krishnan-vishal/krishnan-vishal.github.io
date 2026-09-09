@@ -48,6 +48,19 @@ function validateConfig(config){
     if(!Array.isArray(config.providerPriority) || config.providerPriority.length === 0){
         errors.push("fx-config.json: providerPriority must be a non-empty array");
     }
+    const requiredRegions = ["GLOBAL", "APAC", "SOUTH ASIA", "GCC / MIDDLE EAST", "AFRICA", "LATAM", "CIS", "EUROPE", "NORTH AMERICA", "OCEANIA"];
+    const assignedPairs = [];
+    requiredRegions.forEach(region => {
+        if(!config.marketRegions || !Array.isArray(config.marketRegions[region])){
+            errors.push(`fx-config.json.marketRegions.${region}: expected an array`);
+            return;
+        }
+        assignedPairs.push(...config.marketRegions[region]);
+    });
+    config.featuredPairs.forEach(pair => {
+        const assignments = assignedPairs.filter(item => item === pair).length;
+        if(assignments !== 1) errors.push(`fx-config.json.marketRegions: ${pair} must be assigned exactly once (found ${assignments})`);
+    });
     if(typeof config.disclaimer !== "string" || !config.disclaimer.trim()){
         errors.push("fx-config.json: disclaimer must be a non-empty string");
     }
@@ -82,6 +95,35 @@ function validateSnapshotPairs(records, label, options){
     });
 }
 
+function validateCurrencyUniverse(universe, label){
+    if(universe == null) return;
+    if(typeof universe !== "object" || Array.isArray(universe)){
+        errors.push(`${label}.currencyUniverse: expected an object or null`);
+        return;
+    }
+    if(!/^[A-Z]{3}$/.test(universe.commonBase || "")) errors.push(`${label}.currencyUniverse.commonBase: malformed currency code`);
+    if(!universe.provider || typeof universe.provider !== "string") errors.push(`${label}.currencyUniverse.provider: provider attribution is required`);
+    if(universe.validationStatus !== "VALIDATED") errors.push(`${label}.currencyUniverse.validationStatus: must be VALIDATED before publication`);
+    if(!universe.rates || typeof universe.rates !== "object" || Array.isArray(universe.rates)){
+        errors.push(`${label}.currencyUniverse.rates: expected a common-base rate object`);
+        return;
+    }
+    const rateCodes = Object.keys(universe.rates);
+    rateCodes.forEach(code => {
+        if(!/^[A-Z]{3}$/.test(code) || !Number.isFinite(universe.rates[code]) || universe.rates[code] <= 0){
+            errors.push(`${label}.currencyUniverse.rates.${code}: expected a positive finite rate under an ISO-style three-letter code`);
+        }
+    });
+    if(!Array.isArray(universe.currencies) || universe.currencies.join("|") !== rateCodes.sort().join("|")){
+        errors.push(`${label}.currencyUniverse.currencies: must exactly list the published common-base rate codes`);
+    }
+    if(universe.previousBusinessRates != null){
+        if(!universe.previousBusinessDate || typeof universe.previousBusinessRates !== "object"){
+            errors.push(`${label}.currencyUniverse: previous rates require a previousBusinessDate and rate object`);
+        }
+    }
+}
+
 function validateCurrent(){
     if(!fs.existsSync(CURRENT_PATH)){
         warnings.push("assets/data/fx/current.json does not exist yet -- no snapshot has been generated in this checkout.");
@@ -98,6 +140,7 @@ function validateCurrent(){
         errors.push(`current.json.status: expected "current", got ${JSON.stringify(current.status)}`);
     }
     validateSnapshotPairs(current.pairs, "current.json", { now: new Date(current.generatedAt || Date.now()) });
+    validateCurrencyUniverse(current.currencyUniverse, "current.json");
 }
 
 function validateHistory(){
@@ -128,6 +171,7 @@ function validateHistory(){
                     errors.push(`${label}: publicationDate (${snapshot.publicationDate}) must match the filename date (${expectedDate})`);
                 }
                 validateSnapshotPairs(snapshot.pairs, label, { now: new Date(snapshot.generatedAt || Date.now()) });
+                validateCurrencyUniverse(snapshot.currencyUniverse, label);
             }
         }
     }
@@ -153,4 +197,4 @@ if(require.main === module){
     main();
 }
 
-module.exports = { validateConfig, validateSnapshotPairs, validateCurrent, validateHistory };
+module.exports = { validateConfig, validateSnapshotPairs, validateCurrencyUniverse, validateCurrent, validateHistory };

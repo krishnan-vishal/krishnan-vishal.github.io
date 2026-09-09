@@ -54,8 +54,8 @@ if (failed) {
   process.exit(1);
 }
 
-const currentRecords = announcements.records.filter(record => record.status === "GPIR_CLASSIFIED" && record.lifecycleStatus !== "HISTORICAL");
-const historicalRecords = announcements.records.filter(record => record.lifecycleStatus === "HISTORICAL");
+const currentRecords = announcements.records.filter(record => record.status === "GPIR_CLASSIFIED" && record.displayLifecycleStatus === "LIVE");
+const historicalRecords = announcements.records.filter(record => record.status === "GPIR_CLASSIFIED" && record.displayLifecycleStatus === "ARCHIVED");
 currentRecords.forEach(record => {
   const page = fs.readFileSync(path.join(ROOT, "pages/intelligence", `${record.id}.html`), "utf8");
   assert(!page.includes("ARCHIVED PUBLICATION"), `${record.id} must not display ARCHIVED PUBLICATION`);
@@ -195,7 +195,7 @@ async function askGpirAnnouncementQuery(datasetAvailability, query){
 async function runAskGpirResilienceTests(){
   const countListItems = (html) => (html.match(/<li>/g) || []).length;
   const isUnavailable = (html) => html.includes("temporarily unavailable");
-  const isNoMatch = (html) => html.includes("No published announcements matched");
+  const isNoMatch = (html) => html.includes("No validated GPIR announcement record is available for this query");
 
   const scenarios = [
     ["A: registry failure", { registry: false }, "show india announcements", html => {
@@ -222,13 +222,28 @@ async function runAskGpirResilienceTests(){
       assert(!isUnavailable(html), "F: baseline query with all datasets available must not be unavailable");
       assert(countListItems(html) === 3, "F: baseline regulatory announcement query must return the 3 published records");
     }],
-    ["G: historical query with no historical records", {}, "show historical announcements", html => {
+    ["G: historical query returns retained archive", {}, "show historical announcements", html => {
       assert(!isUnavailable(html), "G: historical query must not report unavailable when announcements.json is fine");
-      assert(isNoMatch(html) && countListItems(html) === 0, "G: historical query must return zero results (no historical records exist)");
+      assert(!isNoMatch(html) && countListItems(html) === 9, "G: historical query must return all 9 validated archived records");
     }],
     ["H: Qatar verification-pending record excluded", {}, "show qatar announcements", html => {
       assert(!isUnavailable(html), "H: Qatar query must not report unavailable when announcements.json is fine");
       assert(isNoMatch(html) && countListItems(html) === 0, "H: SOURCE_VERIFICATION_REQUIRED Qatar record must remain excluded from published results");
+    }],
+    ["I: implicit RBI event query", {}, "RBI cross-border payment changes September 2026", html => {
+      assert(isNoMatch(html), "I: implicit RBI query must route to deterministic announcements and return the governed no-record answer");
+    }],
+    ["J: implicit stablecoin query", {}, "Singapore stablecoin regulation", html => {
+      assert(isNoMatch(html), "J: implicit Singapore stablecoin query must return the governed no-record answer");
+    }],
+    ["K: implicit licensing query", {}, "latest payment licensing change in Australia", html => {
+      assert(isNoMatch(html), "K: implicit Australia licensing query must return the governed no-record answer");
+    }],
+    ["L: implicit AML query", {}, "AML updates in GCC", html => {
+      assert(isNoMatch(html), "L: implicit GCC AML query must return the governed no-record answer");
+    }],
+    ["M: implicit PIX query", {}, "PIX international expansion Brazil", html => {
+      assert(isNoMatch(html), "M: implicit Brazil PIX query must return the governed no-record answer");
     }]
   ];
 
@@ -245,7 +260,7 @@ async function runAskGpirResilienceTests(){
 
 runAskGpirResilienceTests().then(() => {
   if (process.exitCode) process.exit(1);
-  console.log(`Announcement intent validation passed: ${tests.length} checks, plus ASK GPIR resilience scenarios A-H.`);
+  console.log(`Announcement intent validation passed: ${tests.length} checks, plus ASK GPIR resilience and implicit-query scenarios A-M.`);
 }).catch(error => {
   console.error("ASK GPIR resilience regression harness crashed:", error);
   process.exit(1);

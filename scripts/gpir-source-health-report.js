@@ -30,13 +30,46 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCES_PATH = path.join(ROOT, "assets", "data", "trusted-sources.json");
+const CANDIDATES_PATH = path.join(ROOT, "assets", "data", "intelligence-candidates.json");
 
 function readJson(filePath) {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function canonicalRegion(value) {
+    const region = String(value || "UNCLASSIFIED");
+    if (/sepa|europe|united kingdom/i.test(region)) return "Europe";
+    if (/middle east|gcc/i.test(region)) return "GCC / Middle East";
+    if (/cis|central asia/i.test(region)) return "CIS";
+    return region;
+}
+
+function buildSourceHealthRecord(source, lastCandidateBySource = new Map()) {
+    return {
+        sourceId: source.id,
+        region: canonicalRegion(source.region),
+        country: source.country || "UNCLASSIFIED",
+        sourceType: source.sourceType || "UNCLASSIFIED",
+        endpoint: source.refreshEndpoint || null,
+        endpointType: source.refreshEndpointType || null,
+        machineReadableStatus: source.refreshEndpoint ? "CONFIGURED" : "UNAVAILABLE",
+        lastSuccessfulFetch: source.lastSuccessfulRetrieval || null,
+        lastCandidateProduced: lastCandidateBySource.get(source.id) || null,
+        fetchStatus: source.healthStatus || "UNOBSERVED",
+        parserStatus: source.refreshEndpoint ? "CONFIGURED_NOT_RUN" : "NOT_CONFIGURED",
+        failureReason: source.discoveryStatus === "SOURCE_UNSUPPORTED" ? source.discoveryNote || "SOURCE_UNSUPPORTED" : null,
+        active: source.active === true
+    };
+}
+
 function main() {
     const registry = readJson(SOURCES_PATH).registry || [];
+    const candidates = fs.existsSync(CANDIDATES_PATH) ? (readJson(CANDIDATES_PATH).candidates || []) : [];
+    const lastCandidateBySource = candidates.reduce((map, candidate) => {
+        const timestamp = candidate.retrievedAt || (candidate.audit && candidate.audit.discoveredAt);
+        if(candidate.sourceOrgId && timestamp && (!map.get(candidate.sourceOrgId) || timestamp > map.get(candidate.sourceOrgId))) map.set(candidate.sourceOrgId, timestamp);
+        return map;
+    }, new Map());
 
     const configured = registry.filter(s => s.refreshEndpoint);
     const active = configured.filter(s => s.active === true);
@@ -46,7 +79,7 @@ function main() {
 
     const byRegion = new Map();
     registry.forEach(source => {
-        const region = source.region || "UNCLASSIFIED";
+        const region = canonicalRegion(source.region);
         if (!byRegion.has(region)) byRegion.set(region, { total: 0, active: 0, unsupported: 0 });
         const bucket = byRegion.get(region);
         bucket.total += 1;
@@ -86,6 +119,7 @@ function main() {
             duplicateIds,
             consistent: duplicateIds.length === 0
         },
+        sources: registry.map(source => buildSourceHealthRecord(source, lastCandidateBySource)),
         note: "This report is read-only and static; it does not fetch any endpoint. " +
             "Live retrieval outcomes are recorded by scripts/refresh-announcements.js and " +
             "scripts/propose-intelligence-candidates.js at run time, and a single source's " +
@@ -99,4 +133,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { main };
+module.exports = { main, canonicalRegion, buildSourceHealthRecord };

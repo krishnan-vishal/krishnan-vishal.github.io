@@ -77,7 +77,7 @@ function loadTemplate(){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
     const headerBlockTemplate = templateSource.slice(0, heroIdx)
-        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260908c");
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260909a");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -87,7 +87,7 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260908c"></script>`
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260909a"></script>`
     ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260908c");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
@@ -194,11 +194,11 @@ function main(){
         description: "Compact live FX pricing, currency-pair intelligence, weekly trends and immutable daily historical rates from GPIR.",
         urlPath: "pages/fx/index.html",
         heroTitle: "FX Pricing & Treasury",
-        heroIntro: `Current GPIR reference rates, status and business-day variance for ${pairs.length} covered currency pairs.`,
+        heroIntro: `Current GPIR reference rates, status and business-day variance for ${pairs.length} curated market pairs.`,
         breadcrumbLabel: "Live FX",
         activeNav: "Live FX",
         depth: 2,
-        bodyHtml: `        <div id="fx-live-grid" class="fx-pair-grid" data-fx-view="live" aria-live="polite">
+        bodyHtml: `        <div id="fx-live-grid" class="fx-market-grid" data-fx-view="live" aria-live="polite">
             <p class="fx-loading">Loading the latest GPIR FX snapshot…</p>
         </div>
         <p class="fx-status-note" id="fx-live-status"></p>`
@@ -209,17 +209,22 @@ function main(){
     const explorerHtml = assemblePage({
         template,
         title: "Currency Explorer",
-        description: "Search and select any GPIR-covered currency pair for full pricing, spread, spot/TOM/cash and variance detail.",
+        description: "Select any two currencies in the active validated provider universe for deterministic direct or cross-rate intelligence.",
         urlPath: "pages/fx/explorer.html",
         heroTitle: "Currency Explorer",
-        heroIntro: "Search by currency code or pair to open its current GPIR FX intelligence view.",
+        heroIntro: "Select any two currencies supplied by the active validated provider. Cross-rates are calculated deterministically without generating thousands of pages.",
         breadcrumbLabel: "Currency Explorer",
         activeNav: "Currency Explorer",
         depth: 2,
         bodyHtml: `        <div class="fx-explorer" data-fx-view="explorer">
-            <label for="fx-explorer-search" class="fx-explorer-label">Search a currency or pair</label>
-            <input type="search" id="fx-explorer-search" class="fx-explorer-search" placeholder="e.g. USD, INR, EUR/USD" autocomplete="off">
-            <ul id="fx-explorer-results" class="fx-explorer-results" role="listbox" aria-label="Matching currency pairs"></ul>
+            <form id="fx-explorer-form" class="fx-explorer-form">
+                <label for="fx-explorer-base" class="fx-explorer-label">Base currency</label>
+                <select id="fx-explorer-base" class="fx-explorer-select" aria-label="Base currency"></select>
+                <label for="fx-explorer-quote" class="fx-explorer-label">Quote currency</label>
+                <select id="fx-explorer-quote" class="fx-explorer-select" aria-label="Quote currency"></select>
+                <button type="submit" class="fx-explorer-submit">View pair intelligence</button>
+            </form>
+            <div id="fx-explorer-detail" class="fx-pair-detail" aria-live="polite"></div>
         </div>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "explorer.html"), explorerHtml, "utf8");

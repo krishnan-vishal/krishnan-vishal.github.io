@@ -2,6 +2,42 @@
 
 ## Current handoff
 
+- **Milestone:** Global Announcements — authoritative source activation and freshness.
+- **Category / owner:** Intelligence / Reader Experience / Automation; Vishal Krishnan.
+- **Objective:** Activate only live-verified official machine-readable announcement sources across the global coverage grid, expose actionable source health, and perform a bounded report-only freshness/backfill pass without changing the human publication gate.
+- **Working branch:** `work/global-announcements-source-activation` from `origin/main` at `1fdc381` (merged PR #336).
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMITTED ON THE WORK BRANCH / PENDING OWNER REVIEW.
+- **Source activation:** Seven existing Tier-1 authorities were activated from their publisher-advertised feeds: Reserve Bank of Australia, Bank of England, Federal Reserve Board, Bank of Canada, Banco Central do Brasil, South African Reserve Bank and National Bank of Kazakhstan. The registry now has 13 active machine-readable sources across APAC, South Asia, Europe, North America, LATAM, Africa, CIS and Oceania. GCC / Middle East remains an explicit zero-endpoint gap because no reliable supported official feed was verified.
+- **Health and isolation:** Static and live reports expose source id, geography, source/endpoint type, machine-readable status, fetch/parser status, failure reason, last successful fetch and last candidate production. Per-source retrieval remains isolated; one timeout or parse failure cannot abort other sources. Relative source URLs are normalized only against their configured official endpoint, and the unusual NBK feed shape has an explicit non-inferential parser profile.
+- **Backfill audit (2026-08-15 through 2026-09-09):** 88 registry sources evaluated; 13 endpoints configured; 87 in-window source items discovered; 5 relevant proposals; 82 rejected as non-relevant; 0 URL/event duplicates and 0 invalid source URLs; all 5 proposals are older than the live window and therefore route to archive review; 0 public records mutated. HKMA timed out during the latest run while all seven newly activated feeds parsed successfully.
+- **Current lifecycle:** 0 live, 9 archived and 1 developing/awaiting validation. Search GPIR / ASK GPIR announcement intent and resilience tests pass with the lifecycle and publication gate unchanged.
+- **Validation:** Source activation contract, radar/parser isolation, announcement lifecycle, Search/ASK intent, announcement/content validation, edited-script syntax and whitespace checks passed locally. Remote Actions and owner review remain pending.
+- **Publication state:** No merge. The existing two-hour candidate workflow and human validation gate are unchanged; report-only/backfill execution cannot mutate public announcement records.
+
+## Superseded Global Announcements lifecycle handoff
+
+- **Milestone:** Global Announcements Intelligence Engine — live-to-archive lifecycle.
+- **Working branch:** `work/global-announcements-intelligence-archive` from `origin/main` at `5c45990`.
+- **Outcome:** Merged through PR #336; exact 24-hour lifecycle, archive, Search/ASK retrieval and report-only backfill foundation now form the base of the current source-activation pass.
+
+## Superseded M28-FX Final Scale handoff
+
+- **Milestone:** M28-FX Final Scale & Variance Pass.
+- **Category / owner:** Scaling / Reader Experience / Data / Automation; Vishal Krishnan.
+- **Objective:** Automatic previous-business-day variance from validated GPIR observations, compact regional Live FX grid, full active-provider currency universe with deterministic cross-rates, and reusable pair-intelligence presentation hooks.
+- **Working branch:** `work/m28-fx-final-scale-variance`.
+- **Base:** `origin/main` at `7a77bfa` (includes merged M28-FX Compact Market UX, PR #332).
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PENDING COMMIT, PUSH, PR AND ACTIONS.
+- **Completed:** Variance history now keys closes by provider observation business date and accepts only `VALIDATED` records, preventing same-day scheduler runs or quarantined observations from becoming a false baseline. Weekend/holiday and bounded lookback behavior remain deterministic. Weekly summaries retain their genuine source observations and include the latest validated current point without interpolation.
+- **Scale foundation:** The active reference adapter preserves its complete validated USD common-base currency table in `current.json` on the next scheduled generation. Currency Explorer selects any two supplied currencies and calculates a direct or derived reference deterministically in one reusable client-side view; the 26 curated static pair pages remain the bounded indexed set.
+- **Reader presentation:** Live FX uses compact `PAIR | RATE | PREV-DAY Δ | STATUS` tables grouped by the existing GPIR market-region vocabulary. Pair intelligence exposes rate, variance, source, timestamp, freshness, classification, genuine market fields only, history-derived trend/high/low, methodology, and explicitly empty future module hooks.
+- **Data integrity:** No current/history market observation was edited or generated in this implementation branch. No variance or trend was fabricated. Provider attribution remains the actual adapter id. Licensed LSEG/Bloomberg/XE/IBRLive stubs remain unconfigured contracts and are never presented as sources unless they genuinely supply a future observation.
+- **Files changed:** FX configuration, browser app/styles, reference provider, business-day/snapshot/weekly engines, FX validator/tests/page generator, generated FX HTML, and GPIR handoff/governance documentation only.
+- **Local validation:** FX regression suite, FX validator, edited JavaScript syntax, link validation, `git diff --check`, and local browser runtime checks for regional filtering plus direct/derived Explorer rendering passed. Actions: PENDING.
+- **Publication state:** No merge. Commit, remote SHA and PR URL PENDING at this documentation checkpoint.
+
+## Superseded M28-FX foundation handoff
+
 - **Milestone:** M28-FX — FX Pricing & Treasury Intelligence.
 - **Category / owner:** Reader Experience / Data / Automation; Vishal Krishnan.
 - **Objective:** A compact automated FX ticker plus a full FX Pricing & Treasury

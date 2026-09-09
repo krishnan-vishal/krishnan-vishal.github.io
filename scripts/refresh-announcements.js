@@ -121,7 +121,7 @@ function extractFeedItems(text, contentType = "") {
 
 function feedText(value) {
     return decodeEntities(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-        .replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+        .replace(/<[^>]+>/g, " ")).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function decodeEntities(value) {
@@ -132,6 +132,25 @@ function decodeEntities(value) {
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
         .replace(/&#x27;/g, "'");
+}
+
+function normalizeDiscoveredItems(source, items, responseUrl) {
+    return (items || []).map(item => {
+        let url;
+        try {
+            url = new URL(item.url, responseUrl).href;
+        } catch {
+            return null;
+        }
+
+        if (source.parserProfile === "NBK_DESCRIPTION_TITLE") {
+            const timestamp = String(item.title || "").trim();
+            if (Number.isNaN(Date.parse(timestamp)) || !String(item.summary || "").trim()) return null;
+            return { ...item, title: String(item.summary).trim(), summary: "", publicationDate: timestamp, url };
+        }
+
+        return { ...item, url };
+    }).filter(Boolean);
 }
 
 async function inspectSource(source) {
@@ -198,7 +217,7 @@ async function inspectSource(source) {
 
         const contentType = response.headers.get("content-type") || "";
         const body = await response.text();
-        const discovered = extractFeedItems(body, contentType).slice(0, 25);
+        const discovered = normalizeDiscoveredItems(source, extractFeedItems(body, contentType), response.url).slice(0, 25);
 
         return {
             sourceId: source.id,
@@ -226,29 +245,83 @@ async function inspectSource(source) {
 }
 
 async function inspectSources(sources = trustedSources) {
-    return Promise.all(sources.map(inspectSource));
+    const results = await Promise.all(sources.map(inspectSource));
+    return results.map((result, index) => {
+        const source = sources[index];
+        return {
+            ...result,
+            region: source.region || "UNCLASSIFIED",
+            country: source.country || "UNCLASSIFIED",
+            sourceType: source.sourceType || "UNCLASSIFIED",
+            endpointType: source.refreshEndpointType || null,
+            machineReadableStatus: source.refreshEndpoint ? "CONFIGURED" : "UNAVAILABLE",
+            active: source.active === true,
+            parserStatus: result.status === "RETRIEVED_REVIEW_REQUIRED" ? "PARSED" : (result.status === "SOURCE_PARSE_FAILED" ? "FAILED" : "NOT_RUN"),
+            failureReason: result.error || (result.status === "ENDPOINT_UNAVAILABLE" ? `HTTP_${result.httpStatus || "UNAVAILABLE"}` : null),
+            lastSuccessfulFetch: result.retrievedAt || source.lastSuccessfulRetrieval || null,
+            lastCandidateProduced: null
+        };
+    });
+}
+
+function dateOnly(value) {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
+}
+
+function parseWindow(argv = process.argv.slice(2)) {
+    const read = name => {
+        const arg = argv.find(value => value.startsWith(`--${name}=`));
+        return arg ? dateOnly(arg.slice(name.length + 3)) : null;
+    };
+    return { from: read("from"), to: read("to") };
+}
+
+function filterDiscoveredByDate(results, from, to) {
+    return results.map(result => ({
+        ...result,
+        discovered: (result.discovered || []).filter(item => {
+            const date = dateOnly(item.publicationDate);
+            return date && (!from || date >= from) && (!to || date <= to);
+        })
+    }));
 }
 
 async function main() {
-    const results = await inspectSources();
+    const window = parseWindow();
+    const rawResults = await inspectSources();
+    const results = filterDiscoveredByDate(rawResults, window.from, window.to);
 
     const configured = results.filter(
-        r => r.status !== "NOT_CONFIGURED"
+        r => r.machineReadableStatus === "CONFIGURED"
     );
 
     const retrieved = results.filter(
         r => r.status === "RETRIEVED_REVIEW_REQUIRED"
     );
 
+    const candidatesPath = path.join(ROOT, "assets/data/intelligence-candidates.json");
+    const candidates = fs.existsSync(candidatesPath) ? (JSON.parse(fs.readFileSync(candidatesPath, "utf8")).candidates || []) : [];
+    const lastCandidateBySource = candidates.reduce((map, candidate) => {
+        const sourceId = candidate.sourceOrgId;
+        const timestamp = candidate.retrievedAt || (candidate.audit && candidate.audit.discoveredAt);
+        if (sourceId && timestamp && (!map.get(sourceId) || timestamp > map.get(sourceId))) map.set(sourceId, timestamp);
+        return map;
+    }, new Map());
+    results.forEach(result => { result.lastCandidateProduced = lastCandidateBySource.get(result.sourceId) || null; });
+
     const report = {
         schemaVersion: "2.0",
         generatedAt: new Date().toISOString(),
         mode: "REPORT_ONLY",
-        cadence: "NOT_SCHEDULED",
+        cadence: "EVERY_2_HOURS_VIA_EXISTING_WORKFLOW",
+        backfillWindow: window,
         sourceCount: trustedSources.length,
         configuredSourceCount: configured.length,
         retrievedSourceCount: retrieved.length,
         existingAnnouncementCount: announcements.length,
+        recordsDiscovered: results.reduce((count, result) => count + (result.discovered || []).length, 0),
         recordsMutated: 0,
         publicationMutationAllowed: false,
         safetyRule:
@@ -266,4 +339,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems };
+module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems, normalizeDiscoveredItems, dateOnly, parseWindow, filterDiscoveredByDate };
