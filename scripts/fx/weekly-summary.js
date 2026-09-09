@@ -32,6 +32,7 @@ function buildWeeklySummary(pair, dailyCloses){
             weeklyChangePercent: null,
             direction: null,
             rangePercent: null,
+            observations: points,
             statements: points.length === 0
                 ? [`No archived daily closes are available yet for ${pair}.`]
                 : [`Only one archived daily close is available for ${pair}; a weekly comparison requires at least two.`]
@@ -65,6 +66,7 @@ function buildWeeklySummary(pair, dailyCloses){
         weeklyChangePercent,
         direction,
         rangePercent,
+        observations: points,
         statements
     };
 }

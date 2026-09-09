@@ -15,6 +15,18 @@
     "ibrlive": "IBRLive API",
     "reference-open-er-api": "Open Exchange Rate API (reference rates, not executable quotes)"
   },
+  "marketRegions": {
+    "GLOBAL": ["EUR/USD", "GBP/USD", "EUR/GBP"],
+    "APAC": ["USD/JPY", "USD/CNY", "USD/HKD", "USD/SGD", "CNY/INR", "SGD/INR", "JPY/INR"],
+    "SOUTH ASIA": ["USD/INR", "EUR/INR", "GBP/INR", "AED/INR", "AUD/INR", "CAD/INR"],
+    "GCC / MIDDLE EAST": ["USD/AED", "USD/SAR", "USD/QAR", "USD/KWD", "USD/BHD", "USD/OMR"],
+    "AFRICA": [],
+    "LATAM": [],
+    "CIS": [],
+    "EUROPE": ["USD/CHF"],
+    "NORTH AMERICA": ["USD/CAD"],
+    "OCEANIA": ["AUD/USD", "NZD/USD"]
+  },
   "refreshFrequencyMinutes": 60,
   "staleAfterMinutesByProviderType": {
     "live": 60,

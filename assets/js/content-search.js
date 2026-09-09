@@ -70,20 +70,20 @@
             .filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW" && record.lifecycleStatus !== "DEVELOPING")
             .map(record => ({
                 id: "announcement-" + record.id,
-                pageTitle: record.title,
+                pageTitle: record.headline || record.title,
                 sectionTitle: "Global Announcement",
                 url: "pages/intelligence/" + record.id + ".html",
                 type: "Global Announcement",
-                category: [record.category, record.subCategory].filter(Boolean).join(" / "),
+                category: [record.category, record.subcategory || record.subCategory].filter(Boolean).join(" / "),
                 header: "Global Announcements",
                 country: record.country,
                 region: record.region,
-                subCategory: record.subCategory,
+                subCategory: record.subcategory || record.subCategory,
                 publicationDate: record.publicationDate || record.publishedDate,
-                lifecycleStatus: record.lifecycleStatus || "CURRENT",
+                lifecycleStatus: record.displayLifecycleStatus || record.lifecycleStatus || "CURRENT",
                 summary: record.summary,
                 source: record.source,
-                text: [record.title, record.tickerHeadline, record.category, record.subCategory, record.country, record.region, record.eventType, record.organisation, record.source && record.source.name, record.source && record.source.publicationTitle, record.publishedDate, record.publicationMonth, record.publicationYear, record.lifecycleStatus, record.summary, record.whyItMatters].filter(Boolean).join(" · ")
+                text: [record.headline, record.title, record.tickerHeadline, record.category, record.subcategory, record.subCategory, record.country, record.region, record.eventType, record.organisation, record.sourceName, record.source && record.source.name, record.source && record.source.publicationTitle, record.publicationDate, record.publishedDate, record.publicationMonth, record.publicationYear, record.displayLifecycleStatus, record.lifecycleStatus, record.gpirSection, record.gpirSubsection, ...(record.tags || []), ...(record.keywords || []), record.summary, record.whyItMatters].filter(Boolean).join(" · ")
             }));
     }
 
@@ -319,6 +319,6 @@
     };
 
     if(typeof window !== "undefined") window.GPIRContentSearch = api;
-    if(typeof module !== "undefined") module.exports = { ...api, resolveAnnouncementIntent, search };
+    if(typeof module !== "undefined") module.exports = { ...api, resolveAnnouncementIntent, search, announcementEntries };
 
 })();
