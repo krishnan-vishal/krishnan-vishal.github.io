@@ -180,12 +180,22 @@
         // One malformed record building its own card must not blank the
         // rest of the ticker -- skip that record rather than letting a
         // single throw abort the whole .map() before assignment.
+        //
+        // The 24-hour live window can genuinely be empty (nothing was
+        // validated in the last day) without the ticker itself having
+        // no honest content to show. Prefer live records when there are
+        // any; otherwise fall back to the full published set rather than
+        // leaving the ticker permanently blank -- each card still opens
+        // its real detail panel, which labels itself ARCHIVED (not LIVE)
+        // via GPIRAnnouncementLifecycle.isLive() for a non-live record,
+        // so nothing here claims a freshness the data doesn't have.
         const currentLiveRecords = liveRecords();
-        if(!currentLiveRecords.length){
+        const tickerRecords = currentLiveRecords.length ? currentLiveRecords : publishedRecords();
+        if(!tickerRecords.length){
             track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No validated announcements in the latest 24-hour window · View historical intelligence →</a>';
             return;
         }
-        const sequenceHTML = currentLiveRecords.map(record => {
+        const sequenceHTML = tickerRecords.map(record => {
 
             try{
 
