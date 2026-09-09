@@ -140,37 +140,6 @@
         return idx === -1 ? CATEGORY_PRIORITY.length : idx;
     }
 
-    // Candidate discovery automation runs on the cadence configured in
-    // .github/workflows/continuous-intelligence.yml (currently every 2
-    // hours). scripts/generate-intelligence-pages.js derives the same
-    // fact from that workflow file at build time for the static archive
-    // page; this runtime copy cannot read the workflow YAML itself
-    // (GitHub Pages does not serve dotfiles without a .nojekyll marker,
-    // which this repository does not have), so it is a plain, human-
-    // maintained string that must be kept in sync with that cron if it
-    // ever changes. It only describes DISCOVERY -- publication into
-    // announcements.json always remains a separate, human-reviewed step.
-    const DISCOVERY_CADENCE_LABEL = "every 2 hours";
-
-    function updateLastRefreshDisplay(lastRefreshed){
-
-        const el = document.getElementById("tickerLastRefresh");
-
-        if(!el || !lastRefreshed) return;
-
-        const d = new Date(lastRefreshed);
-
-        if(isNaN(d.getTime())) return;
-
-        const label = d.toLocaleString("en-GB", {
-            day: "numeric", month: "short", year: "numeric",
-            hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
-        });
-
-        el.textContent = `Publication dataset updated: ${label} · Discovery and deterministic Tier-1 validation: Scheduled ${DISCOVERY_CADENCE_LABEL} via GitHub Actions · changes remain pull-request controlled`;
-
-    }
-
     function renderTicker(){
 
         const track = document.getElementById("announcementTicker");
@@ -180,12 +149,22 @@
         // One malformed record building its own card must not blank the
         // rest of the ticker -- skip that record rather than letting a
         // single throw abort the whole .map() before assignment.
+        //
+        // The 24-hour live window can genuinely be empty (nothing was
+        // validated in the last day) without the ticker itself having
+        // no honest content to show. Prefer live records when there are
+        // any; otherwise fall back to the full published set rather than
+        // leaving the ticker permanently blank -- each card still opens
+        // its real detail panel, which labels itself ARCHIVED (not LIVE)
+        // via GPIRAnnouncementLifecycle.isLive() for a non-live record,
+        // so nothing here claims a freshness the data doesn't have.
         const currentLiveRecords = liveRecords();
-        if(!currentLiveRecords.length){
+        const tickerRecords = currentLiveRecords.length ? currentLiveRecords : publishedRecords();
+        if(!tickerRecords.length){
             track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No validated announcements in the latest 24-hour window · View historical intelligence →</a>';
             return;
         }
-        const sequenceHTML = currentLiveRecords.map(record => {
+        const sequenceHTML = tickerRecords.map(record => {
 
             try{
 
@@ -214,10 +193,7 @@
 
         }).join("");
 
-        // A single canonical sequence prevents duplicate headlines and
-        // duplicate focus targets. The compact strip is horizontally
-        // scrollable instead of cloning records for an infinite animation.
-        track.innerHTML = sequenceHTML;
+        track.innerHTML = sequenceHTML + sequenceHTML;
 
         track.querySelectorAll("[data-intel-id]").forEach(link => {
             link.addEventListener("click", (e) => {
@@ -477,7 +453,6 @@
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
                 contentRegistry = registryData.records || [];
-                updateLastRefreshDisplay(data.lastRefreshed);
             })
             .catch(() => {
                 // A failed feed must not break the rest of the page — the ticker
