@@ -36,16 +36,28 @@ jobs:
           set -euo pipefail
           if git ls-remote --exit-code --heads origin automation/intelligence-candidates >/dev/null 2>&1; then
             git fetch origin automation/intelligence-candidates
-            git switch --track -c automation/intelligence-candidates origin/automation/intelligence-candidates
-            # Keep proposal records while running the latest reviewed discovery code.
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' merge --no-edit origin/main
+            git show origin/automation/intelligence-candidates:assets/data/intelligence-candidates.json > "$RUNNER_TEMP/retained-intelligence-candidates.json"
+            git show origin/automation/intelligence-candidates:assets/data/announcements.json > "$RUNNER_TEMP/retained-announcements.json"
+            git show origin/automation/intelligence-candidates:assets/data/content-registry.json > "$RUNNER_TEMP/retained-content-registry.json"
+            git switch -c automation/intelligence-candidates
+            # Join the existing proposal branch history while retaining the
+            # reviewed main tree; the queue is reconciled explicitly below.
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' merge --no-ff -s ours --no-edit origin/automation/intelligence-candidates
+            node scripts/merge-intelligence-candidate-queues.js "$RUNNER_TEMP/retained-intelligence-candidates.json" "$RUNNER_TEMP/retained-announcements.json" "$RUNNER_TEMP/retained-content-registry.json"
           fi
 
       - name: Discover proposal-only intelligence candidates
         shell: bash
         run: |
           set -o pipefail
-          node scripts/propose-intelligence-candidates.js | tee "$RUNNER_TEMP/intelligence-proposal-report.json"
+          node scripts/propose-intelligence-candidates.js --health-output=assets/data/source-health.json | tee "$RUNNER_TEMP/intelligence-proposal-report.json"
+
+      - name: Apply deterministic Tier-1 publication gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/publish-intelligence-candidates.js | tee "$RUNNER_TEMP/intelligence-publication-report.json"
+          node scripts/generate-intelligence-pages.js
 
       - name: Report source coverage and health
         if: always()
@@ -63,16 +75,18 @@ jobs:
             echo "Discovery did not produce a report; public GPIR content was not changed." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Validate a changed candidate queue
+      - name: Validate changed intelligence artifacts
         id: candidate_change
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- assets/data/intelligence-candidates.json; then
+          if git diff --quiet -- assets/data/intelligence-candidates.json assets/data/announcements.json assets/data/content-registry.json assets/data/source-health.json pages/intelligence sitemap.xml; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           node scripts/validate-content.js
+          node scripts/validate-announcements.js
+          node scripts/test-announcement-lifecycle.js
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push the proposal branch
@@ -85,8 +99,8 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- assets/data/intelligence-candidates.json
-          git commit -m "M-21 Propose trusted intelligence candidates"
+          git add -- assets/data/intelligence-candidates.json assets/data/announcements.json assets/data/content-registry.json assets/data/source-health.json pages/intelligence sitemap.xml
+          git commit -m "Global Announcements refresh source-to-intelligence pipeline"
           git push origin HEAD:automation/intelligence-candidates
 
       - name: Create a proposal pull request when needed
@@ -114,8 +128,8 @@ jobs:
           if gh pr create \
             --base main \
             --head automation/intelligence-candidates \
-            --title "M-21 Propose trusted intelligence candidates" \
-            --body "Automated M-21 discovery found new trusted-source candidates. These records are DEVELOPING, NOT_PUBLISHED and require human review; no public GPIR publication was changed."; then
+            --title "Global Announcements automated intelligence refresh" \
+            --body "Deterministic source discovery, Tier-1 validation, canonical intelligence generation and source-health updates. Association/discovery sources remain queued for review. Main is unchanged until owner review and merge."; then
             exit 0
           fi
           echo "::warning::Candidate discovery succeeded and pushed automation/intelligence-candidates, but this token could not open the pull request (commonly: Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\" is disabled for this repository). Open the PR manually from that branch, or enable that setting, to complete human review."

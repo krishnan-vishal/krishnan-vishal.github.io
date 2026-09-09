@@ -593,7 +593,6 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
         <span class="chapter-part-tag">Reader Archive</span>
         <h1>Global Announcements</h1>
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
-        <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> ${escapeHtml(formatDate(allRecords.map(record => record.retrievedDate).filter(Boolean).sort().pop()))} · <strong>Candidate discovery automation:</strong> Scheduled ${escapeHtml(describeDiscoveryCadence())} via GitHub Actions · publication remains human-reviewed</p>
         <nav class="announcement-archive-nav" aria-label="Global Announcements sections">
           <span>Jump to</span>
           <a href="#latest-24-hours">LIVE</a>

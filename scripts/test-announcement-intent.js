@@ -67,7 +67,7 @@ historicalRecords.forEach(record => {
   assert(fs.readFileSync(pagePath, "utf8").includes("ARCHIVED PUBLICATION"), `${record.id} historical page must display ARCHIVED PUBLICATION`);
 });
 const freshnessLine = (archiveHtml.match(/<p class="announcement-archive-freshness">.*?<\/p>/s) || [""])[0];
-assert(freshnessLine.includes("Last validated publication cycle:") && freshnessLine.includes("Candidate discovery automation:</strong> Scheduled every 2 hours via GitHub Actions") && freshnessLine.includes("publication remains human-reviewed"), "archive must truthfully reflect the existing scheduled discovery automation without claiming automatic publication");
+assert(freshnessLine.includes("Publication dataset updated:") && freshnessLine.includes("Discovery:</strong> Scheduled every 2 hours via GitHub Actions") && freshnessLine.includes("pull-request controlled"), "archive must truthfully reflect scheduled deterministic discovery/publication and repository control");
 assert(!freshnessLine.includes("Refresh automation:</strong> Not yet scheduled") && !/real-time|live feed|continuous(?!\s+intelligence)/i.test(freshnessLine), "freshness line must not claim automation is unscheduled when it is, or overclaim real-time/continuous/live coverage");
 assert(!archiveHtml.includes("Verified Dataset") && !archiveHtml.includes("Refreshed:"), "archive must not present stale data as a current refresh");
 assert(announcements.records.every(record => fs.existsSync(path.join(ROOT, "pages/intelligence", `${record.id}.html`)) || record.status !== "GPIR_CLASSIFIED"), "published announcement search targets must resolve");
@@ -224,7 +224,7 @@ async function runAskGpirResilienceTests(){
     }],
     ["G: historical query returns retained archive", {}, "show historical announcements", html => {
       assert(!isUnavailable(html), "G: historical query must not report unavailable when announcements.json is fine");
-      assert(!isNoMatch(html) && countListItems(html) === 9, "G: historical query must return all 9 validated archived records");
+      assert(!isNoMatch(html) && countListItems(html) === historicalRecords.length, "G: historical query must return every validated archived record");
     }],
     ["H: Qatar verification-pending record excluded", {}, "show qatar announcements", html => {
       assert(!isUnavailable(html), "H: Qatar query must not report unavailable when announcements.json is fine");
