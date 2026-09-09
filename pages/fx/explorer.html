@@ -48,20 +48,20 @@
 
 
 <title>Currency Explorer | FINTECHOISIS — GPIR</title>
-<meta name="description" content="Search and select any GPIR-covered currency pair for full pricing, spread, spot/TOM/cash and variance detail.">
+<meta name="description" content="Select any two currencies in the active validated provider universe for deterministic direct or cross-rate intelligence.">
 
 <link rel="canonical" href="https://krishnan-vishal.github.io/pages/fx/explorer.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FINTECHOISIS | GPIR">
 <meta property="og:title" content="Currency Explorer">
-<meta property="og:description" content="Search and select any GPIR-covered currency pair for full pricing, spread, spot/TOM/cash and variance detail.">
+<meta property="og:description" content="Select any two currencies in the active validated provider universe for deterministic direct or cross-rate intelligence.">
 <meta property="og:url" content="https://krishnan-vishal.github.io/pages/fx/explorer.html">
 <meta property="og:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Currency Explorer">
-<meta name="twitter:description" content="Search and select any GPIR-covered currency pair for full pricing, spread, spot/TOM/cash and variance detail.">
+<meta name="twitter:description" content="Select any two currencies in the active validated provider universe for deterministic direct or cross-rate intelligence.">
 <meta name="twitter:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 
@@ -80,7 +80,7 @@
 <link rel="stylesheet" href="../../assets/css/architecture.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/intelligence-library.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/payments-timeline.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/market.css?v=20260908c">
+<link rel="stylesheet" href="../../assets/css/market.css?v=20260909a">
 <link rel="stylesheet" href="../../assets/css/command-centre.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/purpose.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/knowledge.css?v=20260822c">
@@ -880,16 +880,21 @@
         <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><a href="index.html">FX Pricing &amp; Treasury</a><span>/</span><strong>Currency Explorer</strong></div>
         <span class="chapter-part-tag">FX Pricing &amp; Treasury</span>
         <h1>Currency Explorer</h1>
-        <p class="chapter-hero-intro">Search by currency code or pair to open its current GPIR FX intelligence view.</p>
+        <p class="chapter-hero-intro">Select any two currencies supplied by the active validated provider. Cross-rates are calculated deterministically without generating thousands of pages.</p>
         <nav class="fx-subnav" aria-label="FX Pricing & Treasury sections"><a href="index.html">Live FX</a><a href="explorer.html" aria-current="page">Currency Explorer</a><a href="treasury.html">Treasury Intelligence</a><a href="weekly.html">Weekly Trends</a><a href="historical.html">Historical</a></nav>
     </div>
 </section>
 <section class="chapter-body fx-page-body">
     <div class="container">
         <div class="fx-explorer" data-fx-view="explorer">
-            <label for="fx-explorer-search" class="fx-explorer-label">Search a currency or pair</label>
-            <input type="search" id="fx-explorer-search" class="fx-explorer-search" placeholder="e.g. USD, INR, EUR/USD" autocomplete="off">
-            <ul id="fx-explorer-results" class="fx-explorer-results" role="listbox" aria-label="Matching currency pairs"></ul>
+            <form id="fx-explorer-form" class="fx-explorer-form">
+                <label for="fx-explorer-base" class="fx-explorer-label">Base currency</label>
+                <select id="fx-explorer-base" class="fx-explorer-select" aria-label="Base currency"></select>
+                <label for="fx-explorer-quote" class="fx-explorer-label">Quote currency</label>
+                <select id="fx-explorer-quote" class="fx-explorer-select" aria-label="Quote currency"></select>
+                <button type="submit" class="fx-explorer-submit">View pair intelligence</button>
+            </form>
+            <div id="fx-explorer-detail" class="fx-pair-detail" aria-live="polite"></div>
         </div>
         <p class="fx-disclaimer">FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice.</p>
     </div>
@@ -1182,7 +1187,7 @@
 <script src="../../assets/js/script.js?v=20260822c"></script>
 
 <script src="../../assets/js/content-protection.js?v=20260822c"></script>
-<script src="../../assets/js/fx-app.js?v=20260908c"></script>
+<script src="../../assets/js/fx-app.js?v=20260909a"></script>
 
 </body>
 

@@ -61,9 +61,9 @@ function resolvePreviousBusinessDate(fromDate, availableDates, holidays = [], ma
  * previousBusinessClose: null } when no valid prior close exists --
  * callers must render "--" in that case, never a manufactured zero.
  */
-function resolvePreviousBusinessClose(currentDate, closesByDate, holidays = []){
+function resolvePreviousBusinessClose(currentDate, closesByDate, holidays = [], maxLookbackDays = 10){
     const availableDates = Object.keys(closesByDate);
-    const previousBusinessDate = resolvePreviousBusinessDate(currentDate, availableDates, holidays);
+    const previousBusinessDate = resolvePreviousBusinessDate(currentDate, availableDates, holidays, maxLookbackDays);
     if(previousBusinessDate === null){
         return { previousBusinessDate: null, previousBusinessClose: null };
     }
