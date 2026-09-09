@@ -882,6 +882,16 @@
         <h1>Global Announcements</h1>
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
         <p class="announcement-archive-freshness"><strong>Last validated publication cycle:</strong> 14 August 2026 · <strong>Candidate discovery automation:</strong> Scheduled every 2 hours via GitHub Actions · publication remains human-reviewed</p>
+        <nav class="announcement-archive-nav" aria-label="Global Announcements sections">
+          <span>Jump to</span>
+          <a href="#latest-24-hours">LIVE</a>
+          <!-- No separate "recent" data grouping exists (only live vs.
+               archive), so RECENT and ARCHIVE both open the repository
+               archive below, which already lists newest-first -- this
+               links there rather than fabricating a third bucket. -->
+          <a href="#historical-publications">RECENT</a>
+          <a href="#historical-publications">ARCHIVE</a>
+        </nav>
     </div>
 </section>
 <section class="chapter-body">
