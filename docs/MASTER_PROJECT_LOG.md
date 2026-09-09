@@ -16,6 +16,20 @@ reliable prompt-level record, that fact is stated rather than inferred.
 
 ## Historical repository record
 
+## Global Announcements — Authoritative Source Activation & Freshness
+
+- **Date:** `2026-09-09`.
+- **Starting SHA:** `1fdc381` (`origin/main`, including merged PR #336).
+- **Objective:** Expand the existing announcement radar with reliable official machine-readable sources across the global coverage grid, strengthen source-health reporting and run the requested `2026-08-15` through `2026-09-09` backfill strictly in report-only mode.
+- **Activation outcome:** Seven already-registered Tier-1 authorities gained live-verified official endpoints: RBA, Bank of England, Federal Reserve Board, Bank of Canada, Banco Central do Brasil, South African Reserve Bank and National Bank of Kazakhstan. The total active machine-readable set increased from 6 to 13. No credential, scraping, browser-automation, undocumented endpoint or new runtime dependency was introduced.
+- **Regional coverage:** Active endpoints are APAC 3, South Asia 2, Europe 2, North America 2, Africa 1, LATAM 1, CIS 1 and Oceania 1. GCC / Middle East remains 0 because tested public surfaces did not provide a reliable supported official feed; the gap is recorded rather than guessed around.
+- **Backfill outcome:** 88 sources evaluated; 87 in-window records discovered; 5 relevant candidate proposals; 82 non-relevant rejections; no duplicate or invalid-source suppression; all 5 proposals routed to archive review because they are older than 24 hours; no public record changed. A single HKMA timeout was isolated and did not affect the remaining endpoints.
+- **Data and parser integrity:** Existing knowledge was not overwritten. Original publication dates and URLs are retained. SARB relative links are resolved against its approved endpoint origin. NBK's observed official-feed field layout is handled by a source-specific deterministic profile rather than inferred data.
+- **Health reporting:** Read-only reports now expose region, country, source type, endpoint type, machine-readable state, fetch/parser state, failure reason, last successful fetch and last candidate timestamp for every source.
+- **Lifecycle and reader outcome:** Current partition remains 0 live, 9 archived and 1 developing/awaiting validation. Search GPIR and ASK GPIR continue to retrieve only published validated records, and their intent/resilience suite passes.
+- **Publication control:** Work is confined to `work/global-announcements-source-activation`. No merge is authorised or performed. The existing two-hour candidate proposal workflow and human review gate remain authoritative.
+- **Validation:** Source-activation, intelligence-radar, announcement-lifecycle, Search/ASK intent, announcement/content validation, edited JavaScript syntax and `git diff --check` pass locally. Remote Actions and owner review remain pending.
+
 ## M-26A — Public Repository Activation
 
 - **Date:** `2026-09-05`.

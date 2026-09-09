@@ -40,6 +40,14 @@ function dateOnly(value) {
     return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
 }
 
+function canonicalRegion(value) {
+    const region = String(value || "Unmapped");
+    if (/sepa|europe|united kingdom/i.test(region)) return "Europe";
+    if (/middle east|gcc/i.test(region)) return "GCC / Middle East";
+    if (/cis|central asia/i.test(region)) return "CIS";
+    return region;
+}
+
 function candidateId(sourceId, sourceUrl) {
     const fingerprint = crypto.createHash("sha256").update(`${sourceId}\n${sourceUrl}`).digest("hex").slice(0, 16);
     return `candidate-${sourceId}-${fingerprint}`;
@@ -139,7 +147,21 @@ async function main() {
     const knownEventFingerprints = new Set(existingCandidates
         .map(candidate => candidate.eventFingerprint)
         .filter(Boolean));
-    const counters = { nonRelevant: 0, duplicateUrl: 0, duplicateEvent: 0, queueCapacity: 0 };
+    const counters = { nonRelevant: 0, duplicateUrl: 0, duplicateEvent: 0, invalidSourceUrl: 0, queueCapacity: 0 };
+    const regionNames = ["APAC", "South Asia", "GCC / Middle East", "Africa", "LATAM", "Europe", "CIS", "North America", "Oceania"];
+    const regionStats = new Map(regionNames.map(region => [region, { region, sourcesEvaluated: 0, machineReadableSources: 0, activatedSources: 0, sourcesYieldingCandidates: 0, recordsDiscovered: 0, recordsAccepted: 0, recordsRejected: 0, duplicatesSuppressed: 0 }]));
+    const statsFor = source => {
+        const region = canonicalRegion(source && source.region);
+        if(!regionStats.has(region)) regionStats.set(region, { region, sourcesEvaluated: 0, machineReadableSources: 0, activatedSources: 0, sourcesYieldingCandidates: 0, recordsDiscovered: 0, recordsAccepted: 0, recordsRejected: 0, duplicatesSuppressed: 0 });
+        return regionStats.get(region);
+    };
+
+    sources.forEach(source => {
+        const stats = statsFor(source);
+        stats.sourcesEvaluated += 1;
+        if(source.refreshEndpoint) stats.machineReadableSources += 1;
+        if(source.refreshEndpoint && source.active === true) stats.activatedSources += 1;
+    });
 
     reports.forEach(report => {
         if (report.status !== "RETRIEVED_REVIEW_REQUIRED") return;
@@ -147,28 +169,43 @@ async function main() {
         const country = source ? countries.find(record => record.name === source.country) : null;
         if (!source) return;
 
-        (report.discovered || []).filter(item => {
+        const stats = statsFor(source);
+
+        const inWindow = (report.discovered || []).filter(item => {
             const date = dateOnly(item.publicationDate);
             return date && (!from || date >= from) && (!to || date <= to);
-        }).forEach(item => {
+        });
+        stats.recordsDiscovered += inWindow.length;
+        const acceptedBefore = additions.length;
+        inWindow.forEach(item => {
             const sourceUrl = canonicalUrl(item.url);
-            if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) return;
+            if (!sourceUrl || !hostAllowed(sourceUrl, source.officialDomains || [])) {
+                counters.invalidSourceUrl += 1;
+                stats.recordsRejected += 1;
+                return;
+            }
             if (!isPaymentsRelevant(item)) {
                 counters.nonRelevant += 1;
+                stats.recordsRejected += 1;
                 return;
             }
             if (knownUrls.has(sourceUrl)) {
                 counters.duplicateUrl += 1;
+                stats.recordsRejected += 1;
+                stats.duplicatesSuppressed += 1;
                 return;
             }
             const fingerprint = eventFingerprint(item);
             if (knownEventFingerprints.has(fingerprint)) {
                 counters.duplicateEvent += 1;
+                stats.recordsRejected += 1;
+                stats.duplicatesSuppressed += 1;
                 return;
             }
             // Stop admitting new records, never truncate retained intelligence.
             if (existingCandidates.length + additions.length >= 5000) {
                 counters.queueCapacity += 1;
+                stats.recordsRejected += 1;
                 return;
             }
             knownUrls.add(sourceUrl);
@@ -181,6 +218,9 @@ async function main() {
                 report.finalUrl || report.endpoint
             ));
         });
+        const accepted = additions.length - acceptedBefore;
+        stats.recordsAccepted += accepted;
+        if(accepted) stats.sourcesYieldingCandidates += 1;
     });
 
     if (additions.length && !reportOnly) {
@@ -207,14 +247,25 @@ async function main() {
         sourcesEvaluated: reports.length,
         configuredSources: reports.filter(result => !["NOT_CONFIGURED", "SOURCE_UNSUPPORTED"].includes(result.status)).length,
         sourcesUsed: [...new Set(additions.map(candidate => candidate.sourceOrgId))].sort(),
-        coverageByRegion: [...additions.reduce((map, candidate) => map.set(candidate.region || "Unmapped", (map.get(candidate.region || "Unmapped") || 0) + 1), new Map()).entries()].sort(([left], [right]) => left.localeCompare(right)).map(([region, count]) => ({ region, count })),
+        coverageByRegion: [...regionStats.values()],
         existingCandidateCount: existingCandidates.length,
         skipped: counters,
         discoveryTarget: "<=24 hours where source availability and endpoint reliability permit; not universal real-time coverage",
         sourceReports: reports.map(result => ({
             sourceId: result.sourceId,
+            region: canonicalRegion(result.region),
+            country: result.country,
+            sourceType: result.sourceType,
+            endpoint: result.endpoint,
+            endpointType: result.endpointType,
+            machineReadableStatus: result.machineReadableStatus,
+            active: result.active,
             status: result.status === "RETRIEVED_REVIEW_REQUIRED" && !(result.discovered || []).some(isPaymentsRelevant)
                 ? "NO_RELEVANT_ITEMS" : result.status,
+            parserStatus: result.parserStatus,
+            failureReason: result.failureReason,
+            lastSuccessfulFetch: result.lastSuccessfulFetch,
+            lastCandidateProduced: result.lastCandidateProduced,
             discoveredCount: (result.discovered || []).length,
             finalUrl: result.finalUrl || null
         }))
@@ -229,4 +280,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion };
