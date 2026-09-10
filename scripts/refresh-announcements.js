@@ -146,15 +146,25 @@ function plainHtmlText(value) {
 }
 
 function dateFromHtmlContext(value) {
-    const text = plainHtmlText(value);
+    const raw = String(value || "");
+    const attributeDate = raw.match(/\b(?:datetime|data-(?:publish(?:ed)?-)?date|content)\s*=\s*["'](20\d{2}-\d{2}-\d{2})(?:[T\s][^"']*)?["']/i);
+    if (attributeDate) return attributeDate[1];
+    const text = plainHtmlText(raw);
     const patterns = [
         /\b20\d{2}[-\/]\d{2}[-\/]\d{2}\b/,
+        /\b(?:0?[1-9]|1[0-2])\/(?:0?[1-9]|[12]\d|3[01])\/20\d{2}\b/,
+        /\b(?:0?[1-9]|[12]\d|3[01])[.](?:0?[1-9]|1[0-2])[.]20\d{2}\b/,
         /\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/i,
-        /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2}\b/i
+        /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2}\b/i,
+        /\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[.,]?\s+20\d{2}\b/i,
+        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+20\d{2}\b/i
     ];
     for (const pattern of patterns) {
         const match = text.match(pattern);
-        if (match && !Number.isNaN(Date.parse(match[0].replace(/\//g, "-")))) return match[0];
+        if (!match) continue;
+        const dotted = match[0].match(/^(\d{1,2})[.](\d{1,2})[.](20\d{2})$/);
+        const parseable = dotted ? `${dotted[3]}-${dotted[2].padStart(2, "0")}-${dotted[1].padStart(2, "0")}` : match[0];
+        if (!Number.isNaN(Date.parse(parseable))) return match[0];
     }
     return null;
 }
@@ -165,7 +175,12 @@ function extractOfficialHtmlItems(body, baseUrl) {
     const anchors = /<a\b([^>]*?)href\s*=\s*["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
     let match;
     while ((match = anchors.exec(body))) {
-        const title = plainHtmlText(match[4]);
+        const publicationDate = dateFromHtmlContext(match[4]);
+        const rawTitle = plainHtmlText(match[4]);
+        const escapedDate = publicationDate && publicationDate.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const title = escapedDate
+            ? rawTitle.replace(new RegExp(`^(?:${escapedDate})\\s+|\\s+(?:${escapedDate})$`, "i"), "").trim()
+            : rawTitle;
         if (title.length < 12 || title.length > 320) continue;
         let url;
         try { url = new URL(decodeEntities(match[2]), baseUrl).href; } catch { continue; }
@@ -173,7 +188,7 @@ function extractOfficialHtmlItems(body, baseUrl) {
         if (!/(?:press|news|release|announcement|notice|circular|regulat|payment|remittance|fintech|aml|cft|cbdc|stablecoin|instant|open.?bank|settlement|clearing|sanction|wallet|card)/i.test(`${title} ${url}`)) continue;
         const context = body.slice(Math.max(0, match.index - 320), Math.min(body.length, anchors.lastIndex + 320));
         seen.add(url);
-        items.push({ title, url, publicationDate: dateFromHtmlContext(context), summary: null });
+        items.push({ title, url, publicationDate: publicationDate || dateFromHtmlContext(context), summary: null });
     }
     return items;
 }

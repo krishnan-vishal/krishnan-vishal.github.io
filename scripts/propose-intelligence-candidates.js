@@ -100,8 +100,11 @@ function eventFingerprint(item) {
 
 function isPaymentsRelevant(item) {
     const text = `${item.title || ""}\n${item.summary || ""}`;
+    const balanceOfPayments = /\bbalance of payments?\b/i;
+    const specificBeyondGenericPayment = /\b(remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure)|ativos? virtuais|transfer[eê]ncias?)\b/i;
     const specific = /\b(payments?|remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure)|ativos? virtuais|transfer[eê]ncias?)\b/i;
     const generic = /\b(earnings|stock market|investment outlook|government securit(?:y|ies)|dated securities|reference rates|insurance|mortgage|lending)\b/i;
+    if (balanceOfPayments.test(text) && !specificBeyondGenericPayment.test(text)) return false;
     if (generic.test(item.title || "") && !specific.test(item.title || "")) return false;
     return specific.test(text) || (/\b(clearing|settlement|interoperability|sanctions?|aml|cft|kyc|kyb|fraud|digital assets?|digital banking|foreign exchange|fx|fintech)\b/i.test(text)
         && /\b(payments?|remittances?|money movement|cross-border|infrastructure|payment networks?)\b/i.test(text));

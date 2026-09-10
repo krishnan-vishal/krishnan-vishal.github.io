@@ -3,6 +3,7 @@
 const assert = require("assert");
 const { activationCandidate, activatedSource, activate } = require("./activate-source-network.js");
 const { buildSourceHealthSnapshot } = require("./propose-intelligence-candidates.js");
+const { dateFromHtmlContext, extractOfficialHtmlItems } = require("./refresh-announcements.js");
 
 const official = {
     id: "official", organization: "Official Authority", country: "Testland", region: "APAC",
@@ -17,6 +18,16 @@ const promoted = activatedSource(official, {retrievedAt:"2026-09-09T00:00:00.000
 assert.equal(promoted.refreshEndpoint, official.discoveryPage);
 assert.equal(promoted.refreshEndpointType, "HTML");
 assert.equal(promoted.parserProfile, "OFFICIAL_HTML_LINKS");
+assert.equal(dateFromHtmlContext('<time datetime="2026-09-08T10:00:00Z">8 September</time>'), "2026-09-08");
+assert.equal(dateFromHtmlContext('<p class="date">8/21/2026</p>'), "8/21/2026");
+assert.equal(dateFromHtmlContext('<span>21.08.2026</span>'), "21.08.2026");
+const adjacentItems = extractOfficialHtmlItems(
+    '<a href="/news/first"><span>First instant payment notice</span><time>8/21/2026</time></a>' +
+    '<a href="/news/second"><span>Second instant payment notice</span><time>8/17/2026</time></a>',
+    "https://authority.test/releases"
+);
+assert.deepEqual(adjacentItems.map(item => item.publicationDate), ["8/21/2026", "8/17/2026"]);
+assert.deepEqual(adjacentItems.map(item => item.title), ["First instant payment notice", "Second instant payment notice"]);
 
 async function run() {
     const savedFetch = global.fetch;
