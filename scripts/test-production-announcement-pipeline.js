@@ -45,7 +45,7 @@ const candidate = {
     sourceUrl: "https://centralbank.example/notices/payment-security",
     discoveryEndpoint: source.refreshEndpoint,
     sourcePublicationDate: "2026-09-09",
-    sourcePublicationDateRaw: "2026-09-09",
+    sourcePublicationDateRaw: "2026-09-09T04:00:00.000Z",
     retrievedAt: "2026-09-09T04:00:00.000Z",
     region: "APAC",
     countryIsoAlpha2: "EX",
@@ -64,11 +64,13 @@ check(validationFailures(candidate, source, [{ sourceUrl: candidate.sourceUrl }]
 check(validationFailures({ ...candidate, sourceUrl: "https://lookalike.example/item" }, source, [], greenHealth).includes("SOURCE_URL_INVALID"), "unapproved source URL must fail");
 
 const now = new Date("2026-09-09T12:00:00.000Z");
-const dateOnlyRecord = buildPublishedRecord(candidate, source, now);
+const dateOnlyCandidate = { ...candidate, sourcePublicationDateRaw: "2026-09-09" };
+const dateOnlyRecord = buildPublishedRecord(dateOnlyCandidate, source, now);
 check(dateOnlyRecord.recordId === dateOnlyRecord.id && dateOnlyRecord.candidateReferenceId === candidate.id, "canonical identity and provenance must be retained");
 check(dateOnlyRecord.summary.includes(candidate.title), "summary must be source-derived");
 check(dateOnlyRecord.publicationTime === null && dateOnlyRecord.liveUntil === null, "date-only evidence must not invent a live time");
 check(dateOnlyRecord.displayLifecycleStatus === "ARCHIVED" && Boolean(dateOnlyRecord.archivedAt), "date-only record must enter permanent archive");
+check(validationFailures(dateOnlyCandidate, source, [], greenHealth).includes("PUBLICATION_TIMESTAMP_INVALID"), "date-only candidate must remain in the exception queue rather than auto-publish");
 check(dateOnlyRecord.source.url === candidate.sourceUrl && dateOnlyRecord.sourceUrl === candidate.sourceUrl, "original source link must be preserved");
 check(dateOnlyRecord.supersedes === null && dateOnlyRecord.supersededBy === null, "lineage fields must be explicit");
 
@@ -95,13 +97,13 @@ check(health.counts.healthy === 1 && health.counts.degraded === 1 && health.sour
 
 const archivePath = path.join(ROOT, "pages", "intelligence", "index.html");
 const archive = fs.readFileSync(archivePath, "utf8");
-check(archive.includes("data-live") && archive.includes("data-latest") && archive.includes("data-archive"), "reader must expose live/latest/archive sections");
-check(!/data-(?:live|latest|archive)><\/div>/.test(archive), "reader sections must have server-rendered fallback content");
-check(archive.includes("No new validated announcements in the current 24-hour window.") || archive.includes("announcement-archive-card"), "empty live state must be truthful and useful");
+check(archive.includes("data-live") && archive.includes("data-period-nav") && archive.includes("data-archive"), "reader must expose live/month-year/archive sections");
+check(!/data-(?:live|archive)><\/div>/.test(archive), "reader sections must have server-rendered fallback content");
+check(archive.includes("No newly validated announcements in the latest 24 hours.") || archive.includes("announcement-dashboard-card"), "empty live state must be truthful and useful");
 check(archive.includes("assets/data/source-health.json"), "reader must link the operational source-health snapshot");
 
 const ticker = fs.readFileSync(path.join(ROOT, "assets", "js", "announcements.js"), "utf8");
-check(ticker.includes("track.innerHTML = sequenceHTML;") && !ticker.includes("sequenceHTML + sequenceHTML"), "ticker must render one canonical sequence");
+check(ticker.includes('class="ticker-sequence"') && ticker.includes("cloneNode(true)") && !ticker.includes("sequenceHTML + sequenceHTML"), "ticker must clone one canonical sequence for continuous motion");
 const workflow = fs.readFileSync(path.join(ROOT, ".github", "workflows", "continuous-intelligence.yml"), "utf8");
 check(workflow.includes("publish-intelligence-candidates.js") && workflow.includes("automation/intelligence-candidates"), "automation must publish only through its controlled branch");
 

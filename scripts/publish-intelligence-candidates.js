@@ -99,6 +99,7 @@ function validationFailures(candidate, source, published, sourceHealth) {
     if (!sourceHealth || (sourceHealth.healthState || sourceHealth.state) !== "GREEN") failures.push("SOURCE_NOT_HEALTHY_IN_CURRENT_CYCLE");
     if (!sourceUrl || !sourceUrl.startsWith("https://") || !hostAllowed(sourceUrl, source && source.officialDomains || [])) failures.push("SOURCE_URL_INVALID");
     if (!dateOnly(candidate.sourcePublicationDate || candidate.sourcePublicationDateRaw)) failures.push("PUBLICATION_DATE_INVALID");
+    if (!exactPublicationInstant(candidate)) failures.push("PUBLICATION_TIMESTAMP_INVALID");
     if (!strictPaymentRelevance(candidate)) failures.push("PAYMENT_RELEVANCE_NOT_HIGH_CONFIDENCE");
     if (!String(candidate.title || "").trim()) failures.push("TITLE_MISSING");
     if (candidate.status !== "PENDING_HUMAN_REVIEW" || candidate.publicationStatus !== "NOT_PUBLISHED") failures.push("CANDIDATE_STATE_INVALID");

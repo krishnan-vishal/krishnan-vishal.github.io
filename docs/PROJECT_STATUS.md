@@ -2,7 +2,21 @@
 
 ## Current handoff
 
-### Wave A � Central Bank & Regulator Validation
+### M30 — Final Global Announcements Production Closure
+- **Milestone / owner:** M30 — Final Global Announcements Production Closure; Vishal Krishnan.
+- **Base / branch:** merged Wave A PR #351 on `origin/main` (`2411e99`); `work/m30-global-announcements-production-closure`. One PR is required; no merge is authorised.
+- **Root causes:** the homepage announcement ticker was intentionally static (`animation:none`) with manual horizontal overflow; the archive still used a large date-range/card-grid presentation; its intended compact rules lived in `page.css`, which the generated archive does not load; and lifecycle freshness preferred GPIR `publishedAt`, allowing old source events to appear LIVE after later validation. The automatic gate also accepted date-only evidence despite M30 requiring an exact timestamp.
+- **Ticker outcome:** one canonical card sequence is rendered, cloned once with the clone removed from accessibility/focus order, measured, and animated exactly one sequence width for a seamless loop. The viewport hides overflow, records remain 28–30px compact with 10–11px type and ellipsis, and fallback records carry an explicit ARCHIVE label. Reduced-motion remains static.
+- **Archive outcome:** generated Year/Month buttons and counts are primary navigation; current canonical counts are 2026 (14), September (1), August (2), July (2), June (6), May (1), March (2). Region/country/category/subcategory remain compact secondary filters. The generated canonical snapshot is embedded from `announcements.json`, so filtering is local and the server-rendered archive remains usable when discovery or JavaScript refresh fails. The date-range form and duplicate latest-card section were removed.
+- **Freshness/publication controls:** LIVE now uses the authoritative source publication timestamp, never GPIR processing time. Exact source timestamp is mandatory for future deterministic T1 auto-publication; date-only and other failing candidates remain in review/quarantine. Existing historical records and provenance are unchanged.
+- **Production evidence:** report-only discovery evaluated 113 approved sources (43 configured), discovered 0 records, proposed 0, and mutated 0. The truthful outcome is `No new eligible authoritative event available for live publication`. Publication report-only evaluated and retained 14 existing candidates, auto-published 0 and quarantined 7 eligible-source candidates for failed gates. Current public lifecycle is 0 LIVE and 14 archived.
+- **Search/ASK proof:** all 14 canonical published records are emitted by `announcementEntries`; the shared lifecycle query and existing `answerAnnouncementQuery` path resolve the same records. No independent ticker dataset was introduced.
+- **QA:** 24-check M30 suite and all relevant content, lifecycle, P1 recovery, publication, intent/Search/ASK, source, link, syntax and diff checks pass. Narrow-viewport browser QA confirms compact/no-overflow archive rendering and two timed ticker captures confirm visible movement without a scrollbar. Performance audit retains four pre-existing advisory warnings.
+- **Delivery state:** implementation complete at `bf14d59`; branch pushed at `8e18f0b`; PR #356 is open and mergeable against `main`, and its Security and Integrity workflow passed. Final documentation checkpoint must be pushed and rechecked before handoff.
+- **Remaining authority:** Vishal owner review and merge decision for PR #356. No worker merge is authorised.
+- **Scope:** no FX, Wave B, navigation, source-universe, backend, domain, dashboard, country or canonical-schema redesign.
+
+### Wave A — Central Bank & Regulator Validation
 - **Milestone:** Wave A — Central Bank & Regulator Global Coverage Validation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
 - **Base / branch:** merged M29 PR #349 on `origin/main` (`7709bbae`); `work/wave-a-central-bank-regulator-validation`. One PR is required; no merge is authorised.
@@ -17,7 +31,7 @@
 - **Local validation:** content and announcement schemas, M29 and Wave A coverage, M29 acquisition/isolation, source activation, lifecycle, 28-check publication pipeline, announcement intent, intelligence radar, M24 Search/ASK integration, 104-file links, FX boundary regression/validation, full JavaScript syntax and `git diff --check` pass. Performance audit retains four pre-existing advisory warnings.
 - **Handoff:** implementation commit `6801577` is pushed and PR #351 is open against `main`.
 - **Remaining:** push this documentation checkpoint, confirm its remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
-### P1 � Continuous Intelligence Discovery Recovery
+### P1 — Continuous Intelligence Discovery Recovery
 - **Milestone:** P1 — Continuous Intelligence Discovery Recovery.
 - **Category / owner:** Intelligence / Automation / Reliability; Vishal Krishnan.
 - **Base / branch:** `origin/main` at `7709bba`; `fix/p1-continuous-intelligence-discovery`. One PR is required; no merge is authorised.
@@ -888,4 +902,3 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   no candidate can publish country content without human review.
 - **Deferred:** 200-country population, generated country pages, navigation and
   search redesign remain separate controlled work.
-
