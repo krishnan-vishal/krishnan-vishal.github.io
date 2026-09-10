@@ -5,7 +5,7 @@
 - **Milestone:** M29 — GPIR Global Source Network Activation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
 - **Base / branch:** merged PR #343 on `origin/main` (`8b19163`); `work/m29-global-source-network-activation`. One PR is required; no merge is authorised.
-- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PR #349 OPEN / READY FOR REVIEW; ACTIONS AND OWNER REVIEW PENDING.
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PR #349 OPEN / ACTIONS PASSING / READY FOR OWNER REVIEW.
 - **Source activation:** the existing 88-source registry is unchanged in membership. Thirty already-approved official public indexes were activated with bounded deterministic HTML acquisition in addition to the existing 13 RSS/Atom/JSON endpoints: 43 functioning active sources across 33 countries/jurisdictions. The successful acquisition snapshot reports 43 GREEN, 0 AMBER, 0 RED, 0 STALE and 45 UNSUPPORTED.
 - **Controlled backfill (2026-05-01 through 2026-09-09):** 211 dated records were fetched in-window; 13 passed the broad payment-intelligence candidate gate and 198 were rejected or deduplicated. Four Tier-1 records then passed the stricter publication gate: Bank of Canada cross-border payments, Banco Central do Brasil virtual-asset transfers, and two Bank of England stablecoin/payment-infrastructure notices. Fourteen ambiguous or secondary candidates remain non-public for exception review.
 - **Reader outcome:** the four real records have canonical entries, permanent summary pages, original-source links, source/validation/lifecycle evidence, archive cards, registry/search entries and ASK GPIR retrieval through the existing corpus. All four are correctly archived because their source dates predate the 24-hour window; the truthful live count is zero. Current totals are 14 published/archive records and 1 developing announcement.
@@ -13,7 +13,8 @@
 - **Isolation/governance:** each source is fetched independently with bounded retries, official-domain/redirect controls and last-known-good publication behavior. No source, URL, service, database, runtime AI, paid API, FX asset, Search architecture or ASK architecture was invented or added.
 - **Local validation:** content, announcement/canonical schema, all-source coverage, M29 acquisition/isolation, 28-check production pipeline, source activation, lifecycle, Search/ASK scenarios, intelligence radar, M24 reader integration, 104-file link scan, full 51-file JavaScript syntax scan, high-confidence secret scan and `git diff --check` passed. Performance audit passed with four pre-existing advisory warnings.
 - **Handoff:** implementation and validation are committed through `82e9962`; the working branch is pushed and PR #349 is open against `main`.
-- **Remaining:** push this PR-state documentation checkpoint, confirm the remote SHA, observe Actions, then owner review and owner-controlled merge. Production remains unchanged until merge.
+- **Actions:** GPIR Security and Integrity completed successfully for the synchronized `8a675c3` PR head. The final documentation-only checkpoint must revalidate after push; no pending check is represented as passed.
+- **Remaining:** push the final documentation checkpoint, confirm its remote SHA and Actions result, then owner review and owner-controlled merge. Production remains unchanged until merge.
 
 ## Superseded Global Announcements lifecycle handoff
 
