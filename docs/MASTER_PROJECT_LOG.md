@@ -14,6 +14,20 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## P1 — Continuous Intelligence Discovery Recovery
+
+- **Date:** `2026-09-10`.
+- **Starting SHA / branch:** `7709bba` on `fix/p1-continuous-intelligence-discovery`.
+- **Incident diagnosis:** scheduled run #15 (`34430213835`) failed in `Discover trusted-source candidates` / `Validate changed intelligence artifacts`. `node scripts/validate-content.js` passed, then `node scripts/validate-announcements.js` returned exit code 1 with five violations: missing single ticker sequence, duplicated sequence, incomplete archive lifecycle sections, blank server fallback containers, and missing dynamic archive timestamp. No individual source was involved.
+- **Classification:** deterministic reader/generated-artifact validation (schema/contract consistency), not endpoint/network, parser, source-health, candidate generation, publication, GitHub Actions environment or Node compatibility. The run executed SHA `8b19163`; M29 subsequently corrected the stale ticker/archive artifacts on `main` before this branch began.
+- **Reliability change:** source-health generation and persistence is now an isolated best-effort artifact update using staged atomic promotion. Failure retains the exact prior snapshot and reports `DEGRADED_LAST_KNOWN_GOOD_RETAINED`; it cannot fail an otherwise safe cycle. Candidate queue updates use the same atomic single-artifact promotion. The publication gate also treats source-health reconciliation as isolated, while genuine canonical publication errors remain fatal and uncommitted.
+- **Zero-result contract:** the proposal report and workflow summary explicitly state `0 new records` and `existing published corpus retained`; zero qualifying records is successful.
+- **Reader verification:** source health does not control ticker visibility. The reader selects LIVE records first, falls back to retained validated published records, labels non-live detail as archived/historical, and retains a truthful empty state if the corpus is empty.
+- **Tests:** a dedicated deterministic harness covers A healthy discovery, B all endpoints unavailable, C one parser failure, D zero qualifying records and E source-health generation failure. In degraded cases it verifies exact hashes of announcements, canonical registry, archive and ticker inputs remain unchanged, covering the shared Search/ASK corpus without changing those architectures.
+- **Node/action finding:** `actions/checkout@v4` and `actions/setup-node@v4` completed successfully in run #15. GitHub's Node 20-to-24 action-runtime warning was non-causal; project Node remains 20 and no unnecessary action/dependency upgrade was made.
+- **Scope:** no merge, no PR #351 change, no Wave B work, and no Global Announcements, Wave A, Search, ASK, FX, source-taxonomy or canonical-intelligence redesign.
+- **Delivery:** implementation committed at `6011fd3`; branch pushed with documented head `f8d761c`; PR #353 is open, mergeable and its initial Security and Integrity check passed. Final merge remains owner-controlled.
+
 ## Historical repository record
 
 ## Global Announcements — Authoritative Source Activation & Freshness

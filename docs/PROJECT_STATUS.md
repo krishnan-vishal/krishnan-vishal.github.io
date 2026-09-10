@@ -2,6 +2,7 @@
 
 ## Current handoff
 
+### Wave A � Central Bank & Regulator Validation
 - **Milestone:** Wave A — Central Bank & Regulator Global Coverage Validation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
 - **Base / branch:** merged M29 PR #349 on `origin/main` (`7709bbae`); `work/wave-a-central-bank-regulator-validation`. One PR is required; no merge is authorised.
@@ -16,6 +17,34 @@
 - **Local validation:** content and announcement schemas, M29 and Wave A coverage, M29 acquisition/isolation, source activation, lifecycle, 28-check publication pipeline, announcement intent, intelligence radar, M24 Search/ASK integration, 104-file links, FX boundary regression/validation, full JavaScript syntax and `git diff --check` pass. Performance audit retains four pre-existing advisory warnings.
 - **Handoff:** implementation commit `6801577` is pushed and PR #351 is open against `main`.
 - **Remaining:** push this documentation checkpoint, confirm its remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
+### P1 � Continuous Intelligence Discovery Recovery
+- **Milestone:** P1 — Continuous Intelligence Discovery Recovery.
+- **Category / owner:** Intelligence / Automation / Reliability; Vishal Krishnan.
+- **Base / branch:** `origin/main` at `7709bba`; `fix/p1-continuous-intelligence-discovery`. One PR is required; no merge is authorised.
+- **Exact run #15 failure:** job `Discover trusted-source candidates`, step `Validate changed intelligence artifacts`, command `node scripts/validate-announcements.js`. It reported five reader/generated-artifact contract violations: missing single-sequence ticker, duplicated ticker sequence, incomplete archive lifecycle sections, blank server-rendered archive fallback, and missing dynamic archive publication timestamp. The failure was deterministic schema/validation drift in SHA `8b19163`, not a source, network, parser, Actions environment or Node runtime failure. M29 later brought the reader artifacts into conformance on `main` before this recovery branch began.
+- **Recovery implementation:** candidate and source-health snapshot writes are staged and atomically promoted. Source-health generation or promotion failures now return `DEGRADED_LAST_KNOWN_GOOD_RETAINED` rather than failing an otherwise integrity-preserving cycle. Endpoint and parser failures remain isolated AMBER/RED source results. Zero qualifying records is an explicit successful outcome with `0 new records; existing published corpus retained`.
+- **Reader/LKG result:** the ticker was not coupled to source-health success. It already selects LIVE records inside 24 hours, then the existing published corpus, with non-live detail labelled `ARCHIVED · HISTORICAL INTELLIGENCE`; a truthful empty state remains when no published record exists. Announcements, canonical registry, archive, Search and ASK inputs remain unchanged in degraded simulations.
+- **Node finding:** run #15 used `actions/checkout@v4`, `actions/setup-node@v4` and project Node 20. GitHub warned those action runtimes were being forced from Node 20 to Node 24, but both setup steps succeeded and the exact deterministic validator errors occurred later. No action or dependency version was changed because runtime compatibility did not contribute.
+- **Validation status:** dedicated A–E recovery simulations, production pipeline checks, announcement validation and JavaScript syntax checks pass locally. Implementation commit `6011fd3`; branch pushed at `f8d761c`; PR #353 open, mergeable and its initial Security and Integrity check passed. The final documentation checkpoint must be pushed and rechecked before handoff.
+- **Scope controls:** PR #351 remains unmerged and untouched. Wave B was not begun. No Global Announcements, Wave A, Search, ASK, FX, taxonomy or canonical architecture redesign was performed.
+- **Remaining authority:** owner review and merge of PR #353. The worker has not merged it.
+
+## Superseded M29 handoff
+
+- **Milestone:** M29 — GPIR Global Source Network Activation.
+- **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
+- **Base / branch:** merged PR #343 on `origin/main` (`8b19163`); `work/m29-global-source-network-activation`.
+- **Implementation status:** MERGED through PR #349 at `7709bba`.
+- **Source activation:** the existing 88-source registry is unchanged in membership. Thirty already-approved official public indexes were activated with bounded deterministic HTML acquisition in addition to the existing 13 RSS/Atom/JSON endpoints: 43 functioning active sources across 33 countries/jurisdictions. The successful acquisition snapshot reports 43 GREEN, 0 AMBER, 0 RED, 0 STALE and 45 UNSUPPORTED.
+- **Controlled backfill (2026-05-01 through 2026-09-09):** 211 dated records were fetched in-window; 13 passed the broad payment-intelligence candidate gate and 198 were rejected or deduplicated. Four Tier-1 records then passed the stricter publication gate: Bank of Canada cross-border payments, Banco Central do Brasil virtual-asset transfers, and two Bank of England stablecoin/payment-infrastructure notices. Fourteen ambiguous or secondary candidates remain non-public for exception review.
+- **Reader outcome:** the four real records have canonical entries, permanent summary pages, original-source links, source/validation/lifecycle evidence, archive cards, registry/search entries and ASK GPIR retrieval through the existing corpus. All four are correctly archived because their source dates predate the 24-hour window; the truthful live count is zero. Current totals are 14 published/archive records and 1 developing announcement.
+- **Coverage artifact:** `assets/data/source-health.json` is the machine-readable all-source coverage and health report. It includes every required M29 field for all 88 sources and is validated by `scripts/validate-source-coverage.js`.
+- **Isolation/governance:** each source is fetched independently with bounded retries, official-domain/redirect controls and last-known-good publication behavior. No source, URL, service, database, runtime AI, paid API, FX asset, Search architecture or ASK architecture was invented or added.
+- **Local validation:** content, announcement/canonical schema, all-source coverage, M29 acquisition/isolation, 28-check production pipeline, source activation, lifecycle, Search/ASK scenarios, intelligence radar, M24 reader integration, 104-file link scan, full 51-file JavaScript syntax scan, high-confidence secret scan and `git diff --check` passed. Performance audit passed with four pre-existing advisory warnings.
+- **Handoff:** implementation and validation are committed through `82e9962`; the working branch is pushed and PR #349 is open against `main`.
+- **Actions:** GPIR Security and Integrity completed successfully for the synchronized `8a675c3` PR head. The final documentation-only checkpoint must revalidate after push; no pending check is represented as passed.
+- **Remaining:** push the final documentation checkpoint, confirm its remote SHA and Actions result, then owner review and owner-controlled merge. Production remains unchanged until merge.
+
 
 ## Superseded Global Announcements lifecycle handoff
 
@@ -859,3 +888,4 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   no candidate can publish country content without human review.
 - **Deferred:** 200-country population, generated country pages, navigation and
   search redesign remain separate controlled work.
+
