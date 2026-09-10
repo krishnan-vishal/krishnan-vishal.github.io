@@ -23,6 +23,34 @@ function readJson(filePath) {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function writeJsonAtomically(filePath, value, io = fs) {
+    const temporaryPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+    try {
+        io.writeFileSync(temporaryPath, JSON.stringify(value, null, 2) + "\n", "utf8");
+        io.renameSync(temporaryPath, filePath);
+    } catch (error) {
+        try {
+            if (io.existsSync(temporaryPath)) io.rmSync(temporaryPath, { force: true });
+        } catch {
+            // The original target is still authoritative; cleanup is best effort.
+        }
+        throw error;
+    }
+}
+
+function persistSourceHealthSnapshot(filePath, buildSnapshot, io = fs) {
+    try {
+        writeJsonAtomically(filePath, buildSnapshot(), io);
+        return { status: "UPDATED", lastKnownGoodRetained: true, error: null };
+    } catch (error) {
+        return {
+            status: "DEGRADED_LAST_KNOWN_GOOD_RETAINED",
+            lastKnownGoodRetained: io.existsSync(filePath),
+            error: error.message
+        };
+    }
+}
+
 function canonicalUrl(value) {
     try {
         const url = new URL(value);
@@ -72,8 +100,11 @@ function eventFingerprint(item) {
 
 function isPaymentsRelevant(item) {
     const text = `${item.title || ""}\n${item.summary || ""}`;
+    const balanceOfPayments = /\bbalance of payments?\b/i;
+    const specificBeyondGenericPayment = /\b(remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure)|ativos? virtuais|transfer[eê]ncias?)\b/i;
     const specific = /\b(payments?|remittances?|money (?:movement|transfer)|instant payments?|real-time payments?|rtp|a2a|account-to-account|cards?|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|payment orchestration|payment apis?|acquiring|iso ?20022|psp|msb|mto|payment licens(?:e|ing|ure)|ativos? virtuais|transfer[eê]ncias?)\b/i;
     const generic = /\b(earnings|stock market|investment outlook|government securit(?:y|ies)|dated securities|reference rates|insurance|mortgage|lending)\b/i;
+    if (balanceOfPayments.test(text) && !specificBeyondGenericPayment.test(text)) return false;
     if (generic.test(item.title || "") && !specific.test(item.title || "")) return false;
     return specific.test(text) || (/\b(clearing|settlement|interoperability|sanctions?|aml|cft|kyc|kyb|fraud|digital assets?|digital banking|foreign exchange|fx|fintech)\b/i.test(text)
         && /\b(payments?|remittances?|money movement|cross-border|infrastructure|payment networks?)\b/i.test(text));
@@ -325,7 +356,7 @@ async function main() {
             ...queue,
             candidates
         };
-        fs.writeFileSync(CANDIDATES_PATH, JSON.stringify(nextQueue, null, 2) + "\n", "utf8");
+        writeJsonAtomically(CANDIDATES_PATH, nextQueue);
     }
 
     const report = {
@@ -333,6 +364,9 @@ async function main() {
         recordsMutated: 0,
         publicPublicationMutationAllowed: false,
         proposalCandidatesAdded: additions.length,
+        discoveryOutcome: additions.length
+            ? `${additions.length} new record${additions.length === 1 ? "" : "s"} proposed; existing published corpus retained`
+            : "0 new records; existing published corpus retained",
         backfillWindow: { from, to },
         recordsDiscovered: reports.reduce((count, result) => count + (result.discovered || []).filter(item => {
             const date = dateOnly(item.publicationDate);
@@ -370,8 +404,10 @@ async function main() {
         const requestedPath = path.resolve(ROOT, healthOutputArg.slice("--health-output=".length));
         const allowedPath = path.join(DATA_DIR, "source-health.json");
         if (requestedPath !== allowedPath) throw new Error("Source-health output must be assets/data/source-health.json");
-        const previous = fs.existsSync(allowedPath) ? readJson(allowedPath) : {};
-        fs.writeFileSync(allowedPath, JSON.stringify(buildSourceHealthSnapshot(sources, reports, existingCandidates, additions, previous, published), null, 2) + "\n", "utf8");
+        report.sourceHealthUpdate = persistSourceHealthSnapshot(allowedPath, () => {
+            const previous = fs.existsSync(allowedPath) ? readJson(allowedPath) : {};
+            return buildSourceHealthSnapshot(sources, reports, existingCandidates, additions, previous, published);
+        });
     }
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
 }
@@ -383,4 +419,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion, healthStateFor, unsupportedFailureReason, buildSourceHealthSnapshot };
+module.exports = { canonicalUrl, eventFingerprint, isPaymentsRelevant, buildCandidate, dateOnly, canonicalRegion, healthStateFor, unsupportedFailureReason, buildSourceHealthSnapshot, writeJsonAtomically, persistSourceHealthSnapshot };

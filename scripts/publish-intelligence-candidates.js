@@ -16,7 +16,8 @@ const {
     eventFingerprint,
     isPaymentsRelevant,
     dateOnly,
-    unsupportedFailureReason
+    unsupportedFailureReason,
+    persistSourceHealthSnapshot
 } = require("./propose-intelligence-candidates.js");
 const { hostAllowed } = require("./refresh-announcements.js");
 
@@ -98,6 +99,7 @@ function validationFailures(candidate, source, published, sourceHealth) {
     if (!sourceHealth || (sourceHealth.healthState || sourceHealth.state) !== "GREEN") failures.push("SOURCE_NOT_HEALTHY_IN_CURRENT_CYCLE");
     if (!sourceUrl || !sourceUrl.startsWith("https://") || !hostAllowed(sourceUrl, source && source.officialDomains || [])) failures.push("SOURCE_URL_INVALID");
     if (!dateOnly(candidate.sourcePublicationDate || candidate.sourcePublicationDateRaw)) failures.push("PUBLICATION_DATE_INVALID");
+    if (!exactPublicationInstant(candidate)) failures.push("PUBLICATION_TIMESTAMP_INVALID");
     if (!strictPaymentRelevance(candidate)) failures.push("PAYMENT_RELEVANCE_NOT_HIGH_CONFIDENCE");
     if (!String(candidate.title || "").trim()) failures.push("TITLE_MISSING");
     if (candidate.status !== "PENDING_HUMAN_REVIEW" || candidate.publicationStatus !== "NOT_PUBLISHED") failures.push("CANDIDATE_STATE_INVALID");
@@ -385,7 +387,13 @@ function main() {
         writeJson(CANDIDATES_PATH, { ...candidateData, candidates: result.candidates });
         writeJson(CONTENT_REGISTRY_PATH, { ...registryData, records: result.contentRegistry });
     }
-    if (!reportOnly) writeJson(SOURCE_HEALTH_PATH, reconcileCoverage(healthData, result.candidates, result.announcements, sourceData.registry || []));
+    const sourceHealthUpdate = reportOnly ? { status: "NOT_REQUESTED", lastKnownGoodRetained: true, error: null }
+        : persistSourceHealthSnapshot(SOURCE_HEALTH_PATH, () => reconcileCoverage(
+            healthData,
+            result.candidates,
+            result.announcements,
+            sourceData.registry || []
+        ));
 
     process.stdout.write(JSON.stringify({
         mode: reportOnly ? "REPORT_ONLY" : "AUTOMATION_BRANCH_PUBLICATION",
@@ -394,6 +402,7 @@ function main() {
         publishedCandidateIds: result.promotedIds,
         retainedForReview: result.candidates.length,
         quarantined: result.quarantined,
+        sourceHealthUpdate,
         publicMainMutationAllowed: false
     }, null, 2) + "\n");
 }

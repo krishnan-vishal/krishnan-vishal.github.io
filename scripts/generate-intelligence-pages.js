@@ -24,6 +24,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const announcementLifecycle = require("../assets/js/announcement-lifecycle.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const ANNOUNCEMENTS_PATH = path.join(ROOT, "assets/data/announcements.json");
@@ -531,7 +532,7 @@ ${reportBlock}
     });
 
     const sitemapStaged = updateSitemap(publicRecords, allRecords, stagedSitemapPath);
-    generateArchive(allRecords, publishedRecords, sharedFooterBlock, headerBlockTemplate, {
+    generateArchive(allRecords, publicRecords, sharedFooterBlock, headerBlockTemplate, {
         TEMPLATE_TITLE_TAG, TEMPLATE_DESCRIPTION, TEMPLATE_CANONICAL_URL, TEMPLATE_OG_TWITTER_TITLE
     }, stagedOutputDir);
 
@@ -553,37 +554,56 @@ ${reportBlock}
 
 }
 
+function periodFor(record){
+    const date = String(record.publicationDate || record.publishedDate || "");
+    const match = date.match(/^(\d{4})-(\d{2})/);
+    return match ? { year: match[1], month: match[2], key: `${match[1]}-${match[2]}` } : { year: "Undated", month: "", key: "Undated" };
+}
+
+function compactPublicationDate(record){
+    const date = String(record.publicationDate || record.publishedDate || "");
+    const match = date.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);
+    if(!match) return "DATE UNAVAILABLE";
+    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    return `${match[3] ? `${Number(match[3])} ` : ""}${months[Number(match[2]) - 1]} ${match[1]}`;
+}
+
 function archiveCard(record){
-    const flagMarkup = record.countryCode
-        ? `<img class="flag-icon" src="../../assets/icons/flags/${escapeHtml(record.countryCode)}.svg" alt="" loading="lazy">`
-        : '<svg class="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
     const summary = record.summary || record.tickerHeadline || record.title;
-    const pubDate = formatDate(record.publicationDate || record.publishedDate);
-    return `
-    <li class="announcement-archive-card">
-      <div class="announcement-card-flag">${flagMarkup}</div>
-      <div class="announcement-card-body">
-        <div class="announcement-card-meta-row">
-          <span>${escapeHtml(record.country || "Global")}</span>
-          <span>${escapeHtml(record.category || "Announcement")}</span>
-          <span>${escapeHtml(pubDate)}</span>
-        </div>
-        <h3><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a></h3>
-        <p class="announcement-card-summary">${escapeHtml(summary)}</p>
-        <div class="announcement-card-status-row">
-          <span class="announcement-card-status">${escapeHtml(record.lifecycleStatus || "CURRENT")}</span>
-          ${record.source && record.source.url ? `<a class="announcement-card-link" href="${escapeHtml(record.source.url)}" target="_blank" rel="noopener noreferrer">Original Source</a>` : ""}
-        </div>
-      </div>
-    </li>`;
+    const period = periodFor(record);
+    const sourceUrl = record.sourceUrl || record.source && record.source.url;
+    const publicationTime = record.publicationTime ? String(record.publicationTime).slice(0, 5) : "TIME N/A";
+    return `<article class="announcement-dashboard-card" data-period="${escapeHtml(period.key)}" data-region="${escapeHtml(record.region || "Unspecified")}" data-country="${escapeHtml(record.country || "Unspecified")}" data-category="${escapeHtml(record.category || "Unspecified")}" data-subcategory="${escapeHtml(record.subcategory || record.subCategory || "Unspecified")}">
+      <p class="announcement-card-meta-row"><time datetime="${escapeHtml(record.publicationDate || record.publishedDate || "")}">${escapeHtml(compactPublicationDate(record))}</time><span>${escapeHtml(publicationTime)}</span><span>${escapeHtml(String(record.countryCode || record.country || "GLOBAL").toUpperCase())}</span><span>${escapeHtml(record.category || "Announcement")}</span></p>
+      <h3><a href="${escapeHtml(record.id)}.html">${escapeHtml(record.tickerHeadline || record.title)}</a></h3>
+      <p class="announcement-card-summary">${escapeHtml(summary)}</p>
+      <p class="announcement-card-status-row"><span class="announcement-card-status">${escapeHtml(record.validationStatus || "VALIDATED")}</span>${sourceUrl ? `<a class="announcement-card-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Source →</a>` : ""}</p>
+    </article>`;
 }
 
 function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers, outputDir){
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
     const byPublication = [...publishedRecords].sort((left, right) => String(right.publicationDate || right.publishedDate || "").localeCompare(String(left.publicationDate || left.publishedDate || "")));
-    const liveRecords = byPublication.filter(record => record.displayLifecycleStatus === "LIVE");
-    const archiveRecords = byPublication.filter(record => record.displayLifecycleStatus === "ARCHIVED");
-    const cards = records => records.length ? `<ul class="announcement-archive-list">${records.map(archiveCard).join("")}\n        </ul>` : '<p class="ticker-empty">No new validated announcements in the current 24-hour window.</p>';
+    const partitioned = announcementLifecycle.partition(byPublication, new Date());
+    const liveRecords = partitioned.live;
+    const archiveRecords = partitioned.archive;
+    const cards = records => records.length ? records.map(archiveCard).join("\n") : '<p class="ticker-empty">No newly validated announcements in the latest 24 hours.</p>';
+    const periodCounts = byPublication.reduce((years, record) => {
+        const period = periodFor(record);
+        if(!years.has(period.year)) years.set(period.year, new Map());
+        const months = years.get(period.year);
+        months.set(period.month, (months.get(period.month) || 0) + 1);
+        return years;
+    }, new Map());
+    const sortedPeriods = [...periodCounts.entries()].sort(([left], [right]) => right.localeCompare(left));
+    const initialYear = sortedPeriods.length ? sortedPeriods[0][0] : "";
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const yearButtons = sortedPeriods.map(([year, months]) => `<button type="button" data-year="${escapeHtml(year)}" aria-pressed="${year === initialYear}">${escapeHtml(year)} <span>${[...months.values()].reduce((sum, count) => sum + count, 0)}</span></button>`).join("");
+    const initialMonths = initialYear ? periodCounts.get(initialYear) : new Map();
+    const initialYearCount = [...initialMonths.values()].reduce((sum, count) => sum + count, 0);
+    const monthButtons = initialYear ? `<button type="button" data-month="" aria-pressed="true">All months <span>${initialYearCount}</span></button>${[...initialMonths.entries()].sort(([left], [right]) => right.localeCompare(left)).map(([month, count]) => `<button type="button" data-month="${escapeHtml(month)}" aria-pressed="false">${escapeHtml(month ? monthNames[Number(month) - 1] : "Undated")} <span>${count}</span></button>`).join("")}` : "";
+    const initialArchive = archiveRecords.filter(record => periodFor(record).year === initialYear);
+    const embeddedRecords = JSON.stringify({ records: allRecords }).replace(/</g, "\\u003c");
 
     // Reuses the same shared head/header markup as every generated intelligence
     // detail page (extracted from pages/legal/privacy-policy.html) instead of a
@@ -597,6 +617,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_DESCRIPTION).join(escapeHtml(archiveDescription));
     archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_CANONICAL_URL).join(archiveUrl);
     archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_OG_TWITTER_TITLE).join('content="Global Announcements">');
+    archiveHeaderBlock = archiveHeaderBlock.replace(/<body(?: class="([^"]*)")?>/, (match, classes) => `<body class="${classes ? `${classes} ` : ""}announcement-archive-page">`);
 
     const html = `${archiveHeaderBlock}<section class="chapter-hero">
     <div class="container">
@@ -618,17 +639,19 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 </section>
 <section class="chapter-body">
     <div class="container announcement-archive-wrap">
-      <section class="announcement-dashboard" data-announcement-dashboard data-source="../../assets/data/announcements.json">
+      <section class="announcement-dashboard" data-announcement-dashboard>
         <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 24 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
+        <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
+        <section id="latest-24-hours" class="announcement-dashboard-live"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
+        <nav class="announcement-period-nav" data-period-nav aria-label="Archive Month and Year">
+          <div class="announcement-period-years" data-year-options>${yearButtons}</div>
+          <div class="announcement-period-months" data-month-options>${monthButtons}</div>
+        </nav>
         <form class="announcement-dashboard-filters" aria-label="Announcement archive filters" onsubmit="return false">
           ${["region", "country", "category", "subcategory"].map(field => `<label>${escapeHtml(field.charAt(0).toUpperCase() + field.slice(1))}<select data-filter="${field}"><option value="">All</option></select></label>`).join("")}
-          <label>From date<input type="date" data-filter="from"></label><label>To date<input type="date" data-filter="to"></label>
           <button type="button" data-reset>Reset filters</button>
         </form>
-        <div class="announcement-dashboard-stats" data-stats aria-live="polite"></div>
-        <section id="latest-24-hours"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
-        <section id="latest-publications"><h2>Latest validated publications</h2><div class="announcement-dashboard-grid" data-latest>${cards(byPublication.slice(0, 6))}</div></section>
-        <section id="historical-publications"><h2>Repository archive</h2><div data-archive>${cards(archiveRecords)}</div></section>
+        <section id="historical-publications"><div class="announcement-dashboard-results"><h2>Repository archive</h2><strong data-results-count>${initialArchive.length} records</strong></div><div class="announcement-dashboard-grid" data-archive>${cards(initialArchive)}</div></section>
         ${pending.length ? `<p class="announcement-dashboard-pending"><strong>${pending.length}</strong> developing record(s) remain excluded from public results pending source and publication validation.</p>` : ""}
       </section>
     </div>

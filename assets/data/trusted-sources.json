@@ -10,7 +10,12 @@
       "country": "United Arab Emirates",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
-      "lastVerifiedDate": "2026-08-14"
+      "lastVerifiedDate": "2026-08-14",
+      "isoCountryCode": "AE",
+      "region": "GCC / MENA",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.centralbank.ae/en/"
     },
     {
       "id": "spa-gov-sa",
@@ -76,7 +81,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "rbi-notifications",
@@ -123,7 +130,7 @@
       "refreshEndpointType": "RSS",
       "refreshScope": "Official ECB Market Information Dissemination releases",
       "endpointVerifiedDate": "2026-09-07",
-      "isoCountryCode": null,
+      "isoCountryCode": "EU",
       "region": "Europe / SEPA",
       "topicCoverage": [
         "PAYMENT_INFRASTRUCTURE",
@@ -137,7 +144,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "hkma-press-releases",
@@ -170,7 +179,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "mas-sg",
@@ -181,7 +192,12 @@
       "country": "Singapore",
       "tier": 1,
       "sourceType": "Central Bank / Regulator",
-      "lastVerifiedDate": "2026-08-14"
+      "lastVerifiedDate": "2026-08-14",
+      "isoCountryCode": "SG",
+      "region": "APAC / South Asia / ASEAN / Far East",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.mas.gov.sg/news/media-releases"
     },
     {
       "id": "swift",
@@ -249,7 +265,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bangladesh-bank",
@@ -280,7 +298,11 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.bb.org.bd/en/index.php/mediaroom/press_release",
+      "officialCircularUrl": "https://www.bb.org.bd/en/index.php/mediaroom/circular"
     },
     {
       "id": "nbc",
@@ -300,7 +322,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://nbc.gov.kh/english./news_and_events/press_releases.php"
     },
     {
       "id": "pboc",
@@ -320,7 +345,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
     },
     {
       "id": "bank-indonesia",
@@ -351,7 +378,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "boj",
@@ -382,7 +411,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bnm",
@@ -413,7 +444,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "mongolbank",
@@ -444,7 +477,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "nrb",
@@ -475,7 +510,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "rbnz",
@@ -495,7 +532,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
     },
     {
       "id": "sbp",
@@ -515,7 +554,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.sbp.org.pk/media-center",
+      "officialCircularUrl": "https://www.sbp.org.pk/circulars"
     },
     {
       "id": "bsp",
@@ -546,7 +589,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bok",
@@ -577,7 +622,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbsl",
@@ -608,7 +655,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbc-taiwan",
@@ -628,7 +677,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.cbc.gov.tw/en/lp-448-2.html"
     },
     {
       "id": "bot",
@@ -648,7 +700,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bot.or.th/en/news-and-media/news.html"
     },
     {
       "id": "sbv",
@@ -668,7 +723,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction."
+      "discoveryNote": "Known public source; no approved machine-readable endpoint activated. Manual discovery only; no scraping, access bypass or proprietary article reproduction.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
     },
     {
       "id": "npci",
@@ -998,7 +1055,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbo-oman",
@@ -1017,7 +1076,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://cbo.gov.om/Pages/home.aspx",
+      "officialCircularUrl": "https://cbo.gov.om/Pages/LawAndRegulations.aspx"
     },
     {
       "id": "cbk-kuwait",
@@ -1036,7 +1099,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.cbk.gov.kw/en/cbk-news/announcements-and-press-releases/press-releases"
     },
     {
       "id": "qcb-qatar",
@@ -1055,7 +1121,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.qcb.gov.qa/en/Pages/allnews.aspx"
     },
     {
       "id": "cbj-jordan",
@@ -1074,7 +1143,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.cbj.gov.jo/En/Modules/News",
+      "officialCircularUrl": "https://www.cbj.gov.jo/EN/List/Circulars"
     },
     {
       "id": "cbe-egypt",
@@ -1093,7 +1166,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.cbe.org.eg/en/news-publications/news"
     },
     {
       "id": "bdl-lebanon",
@@ -1112,7 +1188,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialCircularUrl": "https://bdl.gov.lb/basiccirculars.php?langid=EN"
     },
     {
       "id": "boe-uk",
@@ -1147,7 +1226,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "fca-uk",
@@ -1267,7 +1348,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bundesbank",
@@ -1297,7 +1380,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "banca-ditalia",
@@ -1327,7 +1412,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "banco-de-espana",
@@ -1357,7 +1444,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "dnb-netherlands",
@@ -1387,7 +1476,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "nbb-belgium",
@@ -1406,7 +1497,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.nbb.be/en/news-events/news/press-releases"
     },
     {
       "id": "snb-switzerland",
@@ -1436,7 +1530,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "riksbank-sweden",
@@ -1466,7 +1562,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "norges-bank",
@@ -1485,7 +1583,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.norges-bank.no/aktuelt/nyheter/"
     },
     {
       "id": "nationalbanken-denmark",
@@ -1504,7 +1605,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.nationalbanken.dk/en/news-and-knowledge/press"
     },
     {
       "id": "nbp-poland",
@@ -1523,7 +1627,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
     },
     {
       "id": "epc-sepa",
@@ -1577,7 +1683,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "fincen-us",
@@ -1672,7 +1780,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "fintrac-canada",
@@ -1740,7 +1850,10 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.banxico.org.mx/publicaciones-y-prensa/miscelaneos/comunicados-miscelaneos-comun.html"
     },
     {
       "id": "bcb-brazil",
@@ -1776,7 +1889,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bcra-argentina",
@@ -1795,7 +1910,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bcra.gob.ar/noticias/",
+      "officialCircularUrl": "https://www.bcra.gob.ar/buscador-de-comunicaciones/"
     },
     {
       "id": "bcentral-chile",
@@ -1814,7 +1933,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bcentral.cl/es/noticias-y-publicaciones/prensa",
+      "officialCircularUrl": "https://www.bcentral.cl/es/web/banco-central/areas/normativa"
     },
     {
       "id": "banrep-colombia",
@@ -1833,7 +1956,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "QUARANTINED_RED"
     },
     {
       "id": "bcrp-peru",
@@ -1852,7 +1977,9 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
     },
     {
       "id": "bcu-uruguay",
@@ -1871,7 +1998,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bcu.gub.uy/Comunicaciones/Paginas/Sala-de-prensa.aspx",
+      "officialCircularUrl": "https://www.bcu.gub.uy/Paginas/Instituciones-Financieras-Circulares.aspx"
     },
     {
       "id": "sarb-south-africa",
@@ -1907,7 +2038,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbn-nigeria",
@@ -1937,7 +2070,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbk-kenya",
@@ -1967,7 +2102,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bog-ghana",
@@ -1997,7 +2134,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bank-al-maghrib",
@@ -2027,7 +2166,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bot-tanzania",
@@ -2057,7 +2198,9 @@
       "lastAttemptedRetrieval": "2026-09-09T10:50:10.177Z",
       "healthStatus": "HEALTHY",
       "retrievalPriority": "HIGH",
-      "targetDiscoveryHours": 24
+      "targetDiscoveryHours": 24,
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "bou-uganda",
@@ -2076,7 +2219,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://bou.or.ug/",
+      "officialCircularUrl": "https://bou.or.ug/supervision"
     },
     {
       "id": "bnr-rwanda",
@@ -2095,7 +2242,11 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bnr.rw/pressrelease",
+      "officialCircularUrl": "https://www.bnr.rw/banking"
     },
     {
       "id": "nbk-kazakhstan",
@@ -2132,7 +2283,9 @@
       "targetDiscoveryHours": 24,
       "lastSuccessfulRetrieval": null,
       "lastAttemptedRetrieval": null,
-      "healthStatus": "UNOBSERVED"
+      "healthStatus": "UNOBSERVED",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER"
     },
     {
       "id": "cbu-uzbekistan",
@@ -2151,7 +2304,488 @@
       "sourceTrustStatus": "VERIFIED_OFFICIAL",
       "active": false,
       "discoveryStatus": "SOURCE_UNSUPPORTED",
-      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access."
+      "discoveryNote": "Known public official source; institution identity and domain rest on well-documented public institutional record. This session's network egress was unavailable to perform a live verification fetch, so no machine-readable endpoint is configured or claimed. Manual discovery only; no scraping, access bypass or proprietary article reproduction. Endpoint verification and activation require a future environment with source-verification access.",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://cbu.uz/en/press_center/",
+      "officialCircularUrl": "https://cbu.uz/en/documents/3339/"
+    },
+    {
+      "id": "bank-of-algeria",
+      "organization": "Bank of Algeria",
+      "officialDomains": [
+        "bank-of-algeria.dz"
+      ],
+      "country": "Algeria",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "DZ",
+      "region": "GCC / MENA",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bank-of-algeria.dz/communiques-de-presse/"
+    },
+    {
+      "id": "oenb-austria",
+      "organization": "Oesterreichische Nationalbank",
+      "officialDomains": [
+        "oenb.at"
+      ],
+      "country": "Austria",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "AT",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.oenb.at/Presse/Pressearchiv.html"
+    },
+    {
+      "id": "cbbh-bosnia",
+      "organization": "Central Bank of Bosnia and Herzegovina",
+      "officialDomains": [
+        "cbbh.ba"
+      ],
+      "country": "Bosnia and Herzegovina",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "BA",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.cbbh.ba/press/AllNews"
+    },
+    {
+      "id": "bnb-bulgaria",
+      "organization": "Bulgarian National Bank",
+      "officialDomains": [
+        "bnb.bg"
+      ],
+      "country": "Bulgaria",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "BG",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bnb.bg/AboutUs/PressOffice/"
+    },
+    {
+      "id": "hnb-croatia",
+      "organization": "Croatian National Bank",
+      "officialDomains": [
+        "hnb.hr"
+      ],
+      "country": "Croatia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "HR",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialCircularUrl": "https://www.hnb.hr/regulativa-propisi"
+    },
+    {
+      "id": "cnb-czech-republic",
+      "organization": "Czech National Bank",
+      "officialDomains": [
+        "cnb.cz"
+      ],
+      "country": "Czech Republic",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "CZ",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.cnb.cz/en/cnb-news/press-releases/"
+    },
+    {
+      "id": "eestipank-estonia",
+      "organization": "Bank of Estonia",
+      "officialDomains": [
+        "eestipank.ee"
+      ],
+      "country": "Estonia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "EE",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.eestipank.ee/en/press"
+    },
+    {
+      "id": "bank-of-finland",
+      "organization": "Bank of Finland",
+      "officialDomains": [
+        "suomenpankki.fi"
+      ],
+      "country": "Finland",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "FI",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.suomenpankki.fi/en/news-and-topical/press-releases-and-news/releases/"
+    },
+    {
+      "id": "bank-of-greece",
+      "organization": "Bank of Greece",
+      "officialDomains": [
+        "bankofgreece.gr"
+      ],
+      "country": "Greece",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "GR",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bankofgreece.gr/en/news-and-media/press-office/news-list"
+    },
+    {
+      "id": "mnb-hungary",
+      "organization": "Central Bank of Hungary",
+      "officialDomains": [
+        "mnb.hu"
+      ],
+      "country": "Hungary",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "HU",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "ACTIVE_AMBER",
+      "officialAnnouncementUrl": "https://www.mnb.hu/en/pressroom"
+    },
+    {
+      "id": "central-bank-iceland",
+      "organization": "Central Bank of Iceland",
+      "officialDomains": [
+        "cb.is"
+      ],
+      "country": "Iceland",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "IS",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://cb.is/news-and-publications/news/",
+      "officialCircularUrl": "https://cb.is/laws-and-regulations/regulations/"
+    },
+    {
+      "id": "central-bank-ireland",
+      "organization": "Central Bank of Ireland",
+      "officialDomains": [
+        "centralbank.ie"
+      ],
+      "country": "Ireland",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "IE",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.centralbank.ie/news-media/press-releases"
+    },
+    {
+      "id": "bank-of-israel",
+      "organization": "Bank of Israel",
+      "officialDomains": [
+        "boi.org.il"
+      ],
+      "country": "Israel",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "IL",
+      "region": "GCC / MENA",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.boi.org.il/en/communication-and-publications/press-releases/"
+    },
+    {
+      "id": "bank-of-latvia",
+      "organization": "Bank of Latvia",
+      "officialDomains": [
+        "bank.lv"
+      ],
+      "country": "Latvia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "LV",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bank.lv/en/news-and-events/news-and-articles/news?tag=press-releases",
+      "officialCircularUrl": "https://www.bank.lv/en/legislation/legislation-navigation"
+    },
+    {
+      "id": "bank-of-lithuania",
+      "organization": "Bank of Lithuania",
+      "officialDomains": [
+        "lb.lt"
+      ],
+      "country": "Lithuania",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "LT",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.lb.lt/en/lb-media"
+    },
+    {
+      "id": "bcl-luxembourg",
+      "organization": "Central Bank of Luxembourg",
+      "officialDomains": [
+        "bcl.lu"
+      ],
+      "country": "Luxembourg",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "LU",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
+    },
+    {
+      "id": "nbrm-north-macedonia",
+      "organization": "National Bank of the Republic of North Macedonia",
+      "officialDomains": [
+        "nbrm.mk"
+      ],
+      "country": "North Macedonia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "MK",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED"
+    },
+    {
+      "id": "banco-portugal",
+      "organization": "Banco de Portugal",
+      "officialDomains": [
+        "bportugal.pt"
+      ],
+      "country": "Portugal",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "PT",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bportugal.pt/en/comunicados/media/banco-de-portugal"
+    },
+    {
+      "id": "bnr-romania",
+      "organization": "National Bank of Romania",
+      "officialDomains": [
+        "bnr.ro"
+      ],
+      "country": "Romania",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "RO",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bnr.ro/2627-comunicate-de-presa"
+    },
+    {
+      "id": "cbr-russia",
+      "organization": "Central Bank of the Russian Federation",
+      "officialDomains": [
+        "cbr.ru"
+      ],
+      "country": "Russia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "RU",
+      "region": "CIS / Central Asia",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.cbr.ru/eng/news/"
+    },
+    {
+      "id": "sama-saudi",
+      "organization": "Saudi Central Bank",
+      "officialDomains": [
+        "sama.gov.sa"
+      ],
+      "country": "Saudi Arabia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "SA",
+      "region": "GCC / MENA",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.sama.gov.sa/en-US/MediaCenter/News/Pages/AllNews.aspx",
+      "officialCircularUrl": "https://www.sama.gov.sa/en-us/publications"
+    },
+    {
+      "id": "nbs-serbia",
+      "organization": "National Bank of Serbia",
+      "officialDomains": [
+        "nbs.rs"
+      ],
+      "country": "Serbia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "RS",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.nbs.rs/en/drugi-nivo-navigacije/pres/index.html"
+    },
+    {
+      "id": "nbs-slovakia",
+      "organization": "National Bank of Slovakia",
+      "officialDomains": [
+        "nbs.sk"
+      ],
+      "country": "Slovakia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "SK",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://nbs.sk/en/press/nbs-press-releases/",
+      "officialCircularUrl": "https://nbs.sk/en/legislation/"
+    },
+    {
+      "id": "bsi-slovenia",
+      "organization": "Banka Slovenije",
+      "officialDomains": [
+        "bsi.si"
+      ],
+      "country": "Slovenia",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "SI",
+      "region": "Europe / UK",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.bsi.si/en/media"
+    },
+    {
+      "id": "tcmb-turkiye",
+      "organization": "Central Bank of the Republic of Türkiye",
+      "officialDomains": [
+        "tcmb.gov.tr"
+      ],
+      "country": "Türkiye",
+      "tier": 1,
+      "sourceType": "Central Bank / Regulator",
+      "lastVerifiedDate": "2026-09-10",
+      "sourceTrustStatus": "VERIFIED_OFFICIAL",
+      "active": false,
+      "discoveryStatus": "SOURCE_UNSUPPORTED",
+      "isoCountryCode": "TR",
+      "region": "GCC / MENA",
+      "wave": "A",
+      "waveAProfileStatus": "VERIFIED_UNSUPPORTED",
+      "officialAnnouncementUrl": "https://www.tcmb.gov.tr/wps/wcm/connect/EN/TCMB+EN/Main+Menu/Announcements/Press+Releases"
     }
   ]
 }

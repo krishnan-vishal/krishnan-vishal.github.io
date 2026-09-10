@@ -2,10 +2,53 @@
 
 ## Current handoff
 
+### M30 — Final Global Announcements Production Closure
+- **Milestone / owner:** M30 — Final Global Announcements Production Closure; Vishal Krishnan.
+- **Base / branch:** merged Wave A PR #351 on `origin/main` (`2411e99`); `work/m30-global-announcements-production-closure`. One PR is required; no merge is authorised.
+- **Root causes:** the homepage announcement ticker was intentionally static (`animation:none`) with manual horizontal overflow; the archive still used a large date-range/card-grid presentation; its intended compact rules lived in `page.css`, which the generated archive does not load; and lifecycle freshness preferred GPIR `publishedAt`, allowing old source events to appear LIVE after later validation. The automatic gate also accepted date-only evidence despite M30 requiring an exact timestamp.
+- **Ticker outcome:** one canonical card sequence is rendered, cloned once with the clone removed from accessibility/focus order, measured, and animated exactly one sequence width for a seamless loop. The viewport hides overflow, records remain 28–30px compact with 10–11px type and ellipsis, and fallback records carry an explicit ARCHIVE label. Reduced-motion remains static.
+- **Archive outcome:** generated Year/Month buttons and counts are primary navigation; current canonical counts are 2026 (14), September (1), August (2), July (2), June (6), May (1), March (2). Region/country/category/subcategory remain compact secondary filters. The generated canonical snapshot is embedded from `announcements.json`, so filtering is local and the server-rendered archive remains usable when discovery or JavaScript refresh fails. The date-range form and duplicate latest-card section were removed.
+- **Freshness/publication controls:** LIVE now uses the authoritative source publication timestamp, never GPIR processing time. Exact source timestamp is mandatory for future deterministic T1 auto-publication; date-only and other failing candidates remain in review/quarantine. Existing historical records and provenance are unchanged.
+- **Production evidence:** report-only discovery evaluated 113 approved sources (43 configured), discovered 0 records, proposed 0, and mutated 0. The truthful outcome is `No new eligible authoritative event available for live publication`. Publication report-only evaluated and retained 14 existing candidates, auto-published 0 and quarantined 7 eligible-source candidates for failed gates. Current public lifecycle is 0 LIVE and 14 archived.
+- **Search/ASK proof:** all 14 canonical published records are emitted by `announcementEntries`; the shared lifecycle query and existing `answerAnnouncementQuery` path resolve the same records. No independent ticker dataset was introduced.
+- **QA:** 24-check M30 suite and all relevant content, lifecycle, P1 recovery, publication, intent/Search/ASK, source, link, syntax and diff checks pass. Narrow-viewport browser QA confirms compact/no-overflow archive rendering and two timed ticker captures confirm visible movement without a scrollbar. Performance audit retains four pre-existing advisory warnings.
+- **Delivery state:** implementation complete at `bf14d59`; branch pushed at `8e18f0b`; PR #356 is open and mergeable against `main`, and its Security and Integrity workflow passed. Final documentation checkpoint must be pushed and rechecked before handoff.
+- **Remaining authority:** Vishal owner review and merge decision for PR #356. No worker merge is authorised.
+- **Scope:** no FX, Wave B, navigation, source-universe, backend, domain, dashboard, country or canonical-schema redesign.
+
+### Wave A — Central Bank & Regulator Validation
+- **Milestone:** Wave A — Central Bank & Regulator Global Coverage Validation.
+- **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
+- **Base / branch:** merged M29 PR #349 on `origin/main` (`7709bbae`); `work/wave-a-central-bank-regulator-validation`. One PR is required; no merge is authorised.
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMITTED AND PUSHED / PR #351 OPEN / ACTIONS PENDING.
+- **Bounded universe:** 85 jurisdictions: all 63 current BIS member central banks/monetary authorities plus 22 additional central-bank jurisdictions already represented in GPIR. The matrix covers exactly the eight owner-specified regional groups.
+- **Evidence outcome:** 85 central-bank authorities and seven separate regulator profiles are verified; 77 jurisdictions have an official publication surface documented. Final health-aligned result: zero `ACTIVE_GREEN`, 37 `ACTIVE_AMBER`, one `QUARANTINED_RED`, 47 `VERIFIED_UNSUPPORTED`, and zero `MISSING_AUTHORITY`.
+- **Live revalidation:** all 38 active M29 Wave-A profiles were controlled-fetch tested. Seventeen profiles returned correctly dated official publications (283 parsed publication entries); 21 did not. A later repeat across five previously reachable indexes uniformly returned endpoint-unavailable, so earlier same-pass proof was retained without promoting any source.
+- **Defects corrected:** official HTML acquisition now handles date attributes, numeric slash/dot formats and anchor-local date association before surrounding context. Payment relevance now rejects macroeconomic “balance of payments” false positives unless separate specific payments evidence is present.
+- **Registry/report:** 25 missing BIS members were added as inactive Tier-1 official profiles, bringing the registry and `source-health.json` to 113 sources. `assets/data/wave-a-country-matrix.json` contains the 85-row control matrix, totals, regional breakdown, metrics and a blocker/method gap register.
+- **Publication outcome:** zero newly discovered items passed the existing strict publication gate. No canonical record, ticker entry, archive/summary card, Search entry or ASK entry was added; all existing M29 reader behavior is unchanged.
+- **Isolation/governance:** no UI, Search, ASK, FX, hosting, database, runtime-AI, paid-API or Wave B/C/D work was performed. Domain allowlisting, redirect rejection, per-source isolation, URL/event deduplication and human-controlled publication remain intact.
+- **Local validation:** content and announcement schemas, M29 and Wave A coverage, M29 acquisition/isolation, source activation, lifecycle, 28-check publication pipeline, announcement intent, intelligence radar, M24 Search/ASK integration, 104-file links, FX boundary regression/validation, full JavaScript syntax and `git diff --check` pass. Performance audit retains four pre-existing advisory warnings.
+- **Handoff:** implementation commit `6801577` is pushed and PR #351 is open against `main`.
+- **Remaining:** push this documentation checkpoint, confirm its remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
+### P1 — Continuous Intelligence Discovery Recovery
+- **Milestone:** P1 — Continuous Intelligence Discovery Recovery.
+- **Category / owner:** Intelligence / Automation / Reliability; Vishal Krishnan.
+- **Base / branch:** `origin/main` at `7709bba`; `fix/p1-continuous-intelligence-discovery`. One PR is required; no merge is authorised.
+- **Exact run #15 failure:** job `Discover trusted-source candidates`, step `Validate changed intelligence artifacts`, command `node scripts/validate-announcements.js`. It reported five reader/generated-artifact contract violations: missing single-sequence ticker, duplicated ticker sequence, incomplete archive lifecycle sections, blank server-rendered archive fallback, and missing dynamic archive publication timestamp. The failure was deterministic schema/validation drift in SHA `8b19163`, not a source, network, parser, Actions environment or Node runtime failure. M29 later brought the reader artifacts into conformance on `main` before this recovery branch began.
+- **Recovery implementation:** candidate and source-health snapshot writes are staged and atomically promoted. Source-health generation or promotion failures now return `DEGRADED_LAST_KNOWN_GOOD_RETAINED` rather than failing an otherwise integrity-preserving cycle. Endpoint and parser failures remain isolated AMBER/RED source results. Zero qualifying records is an explicit successful outcome with `0 new records; existing published corpus retained`.
+- **Reader/LKG result:** the ticker was not coupled to source-health success. It already selects LIVE records inside 24 hours, then the existing published corpus, with non-live detail labelled `ARCHIVED · HISTORICAL INTELLIGENCE`; a truthful empty state remains when no published record exists. Announcements, canonical registry, archive, Search and ASK inputs remain unchanged in degraded simulations.
+- **Node finding:** run #15 used `actions/checkout@v4`, `actions/setup-node@v4` and project Node 20. GitHub warned those action runtimes were being forced from Node 20 to Node 24, but both setup steps succeeded and the exact deterministic validator errors occurred later. No action or dependency version was changed because runtime compatibility did not contribute.
+- **Validation status:** dedicated A–E recovery simulations, production pipeline checks, announcement validation and JavaScript syntax checks pass locally. Implementation commit `6011fd3`; branch pushed at `f8d761c`; PR #353 open, mergeable and its initial Security and Integrity check passed. The final documentation checkpoint must be pushed and rechecked before handoff.
+- **Scope controls:** PR #351 remains unmerged and untouched. Wave B was not begun. No Global Announcements, Wave A, Search, ASK, FX, taxonomy or canonical architecture redesign was performed.
+- **Remaining authority:** owner review and merge of PR #353. The worker has not merged it.
+
+## Superseded M29 handoff
+
 - **Milestone:** M29 — GPIR Global Source Network Activation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
-- **Base / branch:** merged PR #343 on `origin/main` (`8b19163`); `work/m29-global-source-network-activation`. One PR is required; no merge is authorised.
-- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PR #349 OPEN / ACTIONS PASSING / READY FOR OWNER REVIEW.
+- **Base / branch:** merged PR #343 on `origin/main` (`8b19163`); `work/m29-global-source-network-activation`.
+- **Implementation status:** MERGED through PR #349 at `7709bba`.
 - **Source activation:** the existing 88-source registry is unchanged in membership. Thirty already-approved official public indexes were activated with bounded deterministic HTML acquisition in addition to the existing 13 RSS/Atom/JSON endpoints: 43 functioning active sources across 33 countries/jurisdictions. The successful acquisition snapshot reports 43 GREEN, 0 AMBER, 0 RED, 0 STALE and 45 UNSUPPORTED.
 - **Controlled backfill (2026-05-01 through 2026-09-09):** 211 dated records were fetched in-window; 13 passed the broad payment-intelligence candidate gate and 198 were rejected or deduplicated. Four Tier-1 records then passed the stricter publication gate: Bank of Canada cross-border payments, Banco Central do Brasil virtual-asset transfers, and two Bank of England stablecoin/payment-infrastructure notices. Fourteen ambiguous or secondary candidates remain non-public for exception review.
 - **Reader outcome:** the four real records have canonical entries, permanent summary pages, original-source links, source/validation/lifecycle evidence, archive cards, registry/search entries and ASK GPIR retrieval through the existing corpus. All four are correctly archived because their source dates predate the 24-hour window; the truthful live count is zero. Current totals are 14 published/archive records and 1 developing announcement.
@@ -15,6 +58,7 @@
 - **Handoff:** implementation and validation are committed through `82e9962`; the working branch is pushed and PR #349 is open against `main`.
 - **Actions:** GPIR Security and Integrity completed successfully for the synchronized `8a675c3` PR head. The final documentation-only checkpoint must revalidate after push; no pending check is represented as passed.
 - **Remaining:** push the final documentation checkpoint, confirm its remote SHA and Actions result, then owner review and owner-controlled merge. Production remains unchanged until merge.
+
 
 ## Superseded Global Announcements lifecycle handoff
 
