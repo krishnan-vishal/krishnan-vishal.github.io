@@ -24,7 +24,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Source outcome:** the bounded report-only pass evaluated all 113 approved sources, including 43 configured acquisition endpoints. Local network access returned no source items, so 0 records were discovered, 0 proposed and 0 auto-published; canonical publication was not mutated. A separate report-only publication gate retained all 14 existing candidates and quarantined 7 eligible-source candidates for failed deterministic gates. No event was fabricated to force LIVE.
 - **Reader proof:** current canonical output is 0 LIVE and 14 archived. Year 2026 contains all 14 records with generated month counts: September 1, August 2, July 2, June 6, May 1 and March 2. Search emits all 14 through the canonical announcement loader; ASK uses the same published corpus and lifecycle query.
 - **Validation:** the new 24-check M30 suite passes, alongside content/announcement/source/Wave A validation; P1 degradation simulations; lifecycle, publication, Search/ASK intent, radar, M24, M29 and source-activation tests; 104-file link validation; all JS syntax checks; and `git diff --check`. Browser QA at a narrow viewport verified the compact archive and no clipping; timed ticker captures verified active motion and no visible scrollbar. The advisory performance audit reports only four pre-existing warnings.
-- **Delivery:** implementation committed at `bf14d59`; push, PR and remote checks pending. Owner-controlled merge remains required.
+- **Delivery:** implementation commit `bf14d59`; pushed handoff `8e18f0b`; PR #356 open and mergeable against `main`; initial Security and Integrity workflow passed. Owner-controlled merge remains required.
 
 ## P1 — Continuous Intelligence Discovery Recovery
 

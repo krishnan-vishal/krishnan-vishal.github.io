@@ -12,7 +12,8 @@
 - **Production evidence:** report-only discovery evaluated 113 approved sources (43 configured), discovered 0 records, proposed 0, and mutated 0. The truthful outcome is `No new eligible authoritative event available for live publication`. Publication report-only evaluated and retained 14 existing candidates, auto-published 0 and quarantined 7 eligible-source candidates for failed gates. Current public lifecycle is 0 LIVE and 14 archived.
 - **Search/ASK proof:** all 14 canonical published records are emitted by `announcementEntries`; the shared lifecycle query and existing `answerAnnouncementQuery` path resolve the same records. No independent ticker dataset was introduced.
 - **QA:** 24-check M30 suite and all relevant content, lifecycle, P1 recovery, publication, intent/Search/ASK, source, link, syntax and diff checks pass. Narrow-viewport browser QA confirms compact/no-overflow archive rendering and two timed ticker captures confirm visible movement without a scrollbar. Performance audit retains four pre-existing advisory warnings.
-- **Delivery state:** implementation complete and locally validated at `bf14d59`; push, one PR and remote Actions are pending.
+- **Delivery state:** implementation complete at `bf14d59`; branch pushed at `8e18f0b`; PR #356 is open and mergeable against `main`, and its Security and Integrity workflow passed. Final documentation checkpoint must be pushed and rechecked before handoff.
+- **Remaining authority:** Vishal owner review and merge decision for PR #356. No worker merge is authorised.
 - **Scope:** no FX, Wave B, navigation, source-universe, backend, domain, dashboard, country or canonical-schema redesign.
 
 ### Wave A — Central Bank & Regulator Validation
