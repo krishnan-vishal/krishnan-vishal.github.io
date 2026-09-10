@@ -26,7 +26,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Tests:** a dedicated deterministic harness covers A healthy discovery, B all endpoints unavailable, C one parser failure, D zero qualifying records and E source-health generation failure. In degraded cases it verifies exact hashes of announcements, canonical registry, archive and ticker inputs remain unchanged, covering the shared Search/ASK corpus without changing those architectures.
 - **Node/action finding:** `actions/checkout@v4` and `actions/setup-node@v4` completed successfully in run #15. GitHub's Node 20-to-24 action-runtime warning was non-causal; project Node remains 20 and no unnecessary action/dependency upgrade was made.
 - **Scope:** no merge, no PR #351 change, no Wave B work, and no Global Announcements, Wave A, Search, ASK, FX, source-taxonomy or canonical-intelligence redesign.
-- **Delivery:** implementation committed at `6011fd3`; push, PR and remote checks pending.
+- **Delivery:** implementation committed at `6011fd3`; branch pushed with documented head `f8d761c`; PR #353 is open, mergeable and its initial Security and Integrity check passed. Final merge remains owner-controlled.
 
 ## Historical repository record
 

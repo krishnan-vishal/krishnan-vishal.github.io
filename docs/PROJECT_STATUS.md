@@ -9,8 +9,9 @@
 - **Recovery implementation:** candidate and source-health snapshot writes are staged and atomically promoted. Source-health generation or promotion failures now return `DEGRADED_LAST_KNOWN_GOOD_RETAINED` rather than failing an otherwise integrity-preserving cycle. Endpoint and parser failures remain isolated AMBER/RED source results. Zero qualifying records is an explicit successful outcome with `0 new records; existing published corpus retained`.
 - **Reader/LKG result:** the ticker was not coupled to source-health success. It already selects LIVE records inside 24 hours, then the existing published corpus, with non-live detail labelled `ARCHIVED · HISTORICAL INTELLIGENCE`; a truthful empty state remains when no published record exists. Announcements, canonical registry, archive, Search and ASK inputs remain unchanged in degraded simulations.
 - **Node finding:** run #15 used `actions/checkout@v4`, `actions/setup-node@v4` and project Node 20. GitHub warned those action runtimes were being forced from Node 20 to Node 24, but both setup steps succeeded and the exact deterministic validator errors occurred later. No action or dependency version was changed because runtime compatibility did not contribute.
-- **Validation status:** dedicated A–E recovery simulations, production pipeline checks, announcement validation and JavaScript syntax checks pass locally. Implementation commit `6011fd3`; push, PR and remote Actions are pending.
+- **Validation status:** dedicated A–E recovery simulations, production pipeline checks, announcement validation and JavaScript syntax checks pass locally. Implementation commit `6011fd3`; branch pushed at `f8d761c`; PR #353 open, mergeable and its initial Security and Integrity check passed. The final documentation checkpoint must be pushed and rechecked before handoff.
 - **Scope controls:** PR #351 remains unmerged and untouched. Wave B was not begun. No Global Announcements, Wave A, Search, ASK, FX, taxonomy or canonical architecture redesign was performed.
+- **Remaining authority:** owner review and merge of PR #353. The worker has not merged it.
 
 ## Superseded M29 handoff
 
