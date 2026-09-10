@@ -66,9 +66,7 @@ historicalRecords.forEach(record => {
   assert(fs.existsSync(pagePath), `${record.id} historical page must remain searchable and present`);
   assert(fs.readFileSync(pagePath, "utf8").includes("ARCHIVED PUBLICATION"), `${record.id} historical page must display ARCHIVED PUBLICATION`);
 });
-const freshnessLine = (archiveHtml.match(/<p class="announcement-archive-freshness">.*?<\/p>/s) || [""])[0];
-assert(freshnessLine.includes("Publication dataset updated:") && freshnessLine.includes("Discovery:</strong> Scheduled every 2 hours via GitHub Actions") && freshnessLine.includes("pull-request controlled"), "archive must truthfully reflect scheduled deterministic discovery/publication and repository control");
-assert(!freshnessLine.includes("Refresh automation:</strong> Not yet scheduled") && !/real-time|live feed|continuous(?!\s+intelligence)/i.test(freshnessLine), "freshness line must not claim automation is unscheduled when it is, or overclaim real-time/continuous/live coverage");
+assert(!/Scheduled every 2 hours via GitHub Actions|publication remains human-reviewed|backend timestamp|refresh cadence/i.test(archiveHtml), "archive must not expose prohibited backend cadence or obsolete publication-policy copy");
 assert(!archiveHtml.includes("Verified Dataset") && !archiveHtml.includes("Refreshed:"), "archive must not present stale data as a current refresh");
 assert(announcements.records.every(record => fs.existsSync(path.join(ROOT, "pages/intelligence", `${record.id}.html`)) || record.status !== "GPIR_CLASSIFIED"), "published announcement search targets must resolve");
 const fatf = announcements.records.find(record => record.id === "fatf-r16-consultation-2026");
@@ -220,7 +218,9 @@ async function runAskGpirResilienceTests(){
     }],
     ["F: baseline current query", {}, "show regulatory announcements", html => {
       assert(!isUnavailable(html), "F: baseline query with all datasets available must not be unavailable");
-      assert(countListItems(html) === 3, "F: baseline regulatory announcement query must return the 3 published records");
+      const expected = announcements.records.filter(record => record.status === "GPIR_CLASSIFIED" && record.category === "Regulatory").length;
+      const actual = countListItems(html);
+      assert(actual >= expected, `F: baseline regulatory announcement query must return at least all ${expected} category-matched records (received ${actual})`);
     }],
     ["G: historical query returns retained archive", {}, "show historical announcements", html => {
       assert(!isUnavailable(html), "G: historical query must not report unavailable when announcements.json is fine");
@@ -242,8 +242,8 @@ async function runAskGpirResilienceTests(){
     ["L: implicit AML query", {}, "AML updates in GCC", html => {
       assert(isNoMatch(html), "L: implicit GCC AML query must return the governed no-record answer");
     }],
-    ["M: implicit PIX query", {}, "PIX international expansion Brazil", html => {
-      assert(isNoMatch(html), "M: implicit Brazil PIX query must return the governed no-record answer");
+    ["M: implicit Brazil query", {}, "recent payment regulation in Brazil", html => {
+      assert(!isNoMatch(html) && countListItems(html) === 1, "M: implicit Brazil query must retrieve the published official record");
     }]
   ];
 

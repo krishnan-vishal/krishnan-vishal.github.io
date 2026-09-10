@@ -7,11 +7,11 @@
  * 1. Trusted-source registry is authoritative.
  * 2. Only explicitly configured refreshEndpoint values are fetched.
  * 3. Endpoint host must belong to the source officialDomains.
- * 4. RSS/Atom/JSON are supported without third-party packages.
+ * 4. RSS/Atom/JSON and configured official HTML indexes are supported without third-party packages.
  * 5. Retrieval is REPORT_ONLY until records pass GPIR publication validation.
  * 6. Existing announcements are NEVER mutated by this script.
  * 7. A failed refresh NEVER removes or downgrades an existing publication.
- * 8. No arbitrary web discovery or fallback scraping is performed.
+ * 8. No arbitrary web discovery is performed; HTML is limited to configured official public indexes.
  */
 
 const fs = require("fs");
@@ -134,6 +134,50 @@ function decodeEntities(value) {
         .replace(/&#x27;/g, "'");
 }
 
+function plainHtmlText(value) {
+    return decodeEntities(String(value || "")
+        .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " "))
+        .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+        .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ").trim();
+}
+
+function dateFromHtmlContext(value) {
+    const text = plainHtmlText(value);
+    const patterns = [
+        /\b20\d{2}[-\/]\d{2}[-\/]\d{2}\b/,
+        /\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/i,
+        /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2}\b/i
+    ];
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && !Number.isNaN(Date.parse(match[0].replace(/\//g, "-")))) return match[0];
+    }
+    return null;
+}
+
+function extractOfficialHtmlItems(body, baseUrl) {
+    const items = [];
+    const seen = new Set();
+    const anchors = /<a\b([^>]*?)href\s*=\s*["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
+    let match;
+    while ((match = anchors.exec(body))) {
+        const title = plainHtmlText(match[4]);
+        if (title.length < 12 || title.length > 320) continue;
+        let url;
+        try { url = new URL(decodeEntities(match[2]), baseUrl).href; } catch { continue; }
+        if (!/^https:\/\//i.test(url) || seen.has(url)) continue;
+        if (!/(?:press|news|release|announcement|notice|circular|regulat|payment|remittance|fintech|aml|cft|cbdc|stablecoin|instant|open.?bank|settlement|clearing|sanction|wallet|card)/i.test(`${title} ${url}`)) continue;
+        const context = body.slice(Math.max(0, match.index - 320), Math.min(body.length, anchors.lastIndex + 320));
+        seen.add(url);
+        items.push({ title, url, publicationDate: dateFromHtmlContext(context), summary: null });
+    }
+    return items;
+}
+
 function normalizeDiscoveredItems(source, items, responseUrl) {
     return (items || []).map(item => {
         let url;
@@ -159,7 +203,7 @@ async function inspectSource(source) {
     if (!endpoint || source.active === false) {
         return {
             sourceId: source.id,
-            sourceName: source.name || source.id,
+            sourceName: source.organization || source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint: null,
             status: source.discoveryStatus === "SOURCE_UNSUPPORTED" ? "SOURCE_UNSUPPORTED" : "NOT_CONFIGURED",
@@ -170,7 +214,7 @@ async function inspectSource(source) {
     if (!hostAllowed(endpoint, source.officialDomains || [])) {
         return {
             sourceId: source.id,
-            sourceName: source.name || source.id,
+            sourceName: source.organization || source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint,
             status: "BLOCKED_DOMAIN_NOT_TRUSTED",
@@ -186,7 +230,7 @@ async function inspectSource(source) {
                 response = await fetch(endpoint, {
                     headers: {
                         "User-Agent": "FINTECHOISIS-GPIR-Refresh/1.0",
-                        "Accept": "application/rss+xml, application/atom+xml, application/json, text/xml, text/plain;q=0.8"
+                        "Accept": "application/rss+xml, application/atom+xml, application/json, text/html, application/xhtml+xml, text/xml, text/plain;q=0.8"
                     },
                     signal: AbortSignal.timeout(20000)
                 });
@@ -205,7 +249,7 @@ async function inspectSource(source) {
         if (!hostAllowed(response.url, source.officialDomains || [])) {
             return {
                 sourceId: source.id,
-                sourceName: source.name || source.id,
+                sourceName: source.organization || source.name || source.id,
                 officialDomains: source.officialDomains || [],
                 endpoint,
                 finalUrl: response.url,
@@ -217,7 +261,7 @@ async function inspectSource(source) {
         if (!response.ok) {
             return {
                 sourceId: source.id,
-                sourceName: source.name || source.id,
+                sourceName: source.organization || source.name || source.id,
                 officialDomains: source.officialDomains || [],
                 endpoint,
                 finalUrl: response.url,
@@ -229,11 +273,14 @@ async function inspectSource(source) {
 
         const contentType = response.headers.get("content-type") || "";
         const body = await response.text();
-        const discovered = normalizeDiscoveredItems(source, extractFeedItems(body, contentType), response.url).slice(0, 25);
+        const rawItems = source.refreshEndpointType === "HTML"
+            ? extractOfficialHtmlItems(body, response.url)
+            : extractFeedItems(body, contentType);
+        const discovered = normalizeDiscoveredItems(source, rawItems, response.url).slice(0, 25);
 
         return {
             sourceId: source.id,
-            sourceName: source.name || source.id,
+            sourceName: source.organization || source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint,
             finalUrl: response.url,
@@ -246,7 +293,7 @@ async function inspectSource(source) {
     } catch (error) {
         return {
             sourceId: source.id,
-            sourceName: source.name || source.id,
+            sourceName: source.organization || source.name || source.id,
             officialDomains: source.officialDomains || [],
             endpoint,
             status: error.message.startsWith("SOURCE_PARSE_FAILED:") ? "SOURCE_PARSE_FAILED" : "ENDPOINT_UNAVAILABLE",
@@ -351,4 +398,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems, normalizeDiscoveredItems, dateOnly, parseWindow, filterDiscoveredByDate };
+module.exports = { hostAllowed, inspectSource, inspectSources, extractFeedItems, extractOfficialHtmlItems, dateFromHtmlContext, normalizeDiscoveredItems, dateOnly, parseWindow, filterDiscoveredByDate };

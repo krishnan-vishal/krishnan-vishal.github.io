@@ -15,7 +15,8 @@ const {
     canonicalUrl,
     eventFingerprint,
     isPaymentsRelevant,
-    dateOnly
+    dateOnly,
+    unsupportedFailureReason
 } = require("./propose-intelligence-candidates.js");
 const { hostAllowed } = require("./refresh-announcements.js");
 
@@ -44,7 +45,7 @@ function exactPublicationInstant(candidate) {
 
 function strictPaymentRelevance(candidate) {
     const title = String(candidate.title || "");
-    const explicit = /\b(payments?|payment cards?|contactless|remittances?|money transfer|instant payments?|real-time payments?|rtp|a2a|account-to-account|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|clearing|settlement|payment licens(?:e|ing|ure)|psp|msb|mto|iso ?20022)\b/i;
+    const explicit = /\b(payments?|payment cards?|contactless|remittances?|money transfer|instant payments?|real-time payments?|rtp|a2a|account-to-account|wallets?|open banking|payment initiation|cbdcs?|central bank digital currenc(?:y|ies)|stablecoins?|tokeni[sz]ed money|clearing|settlement|payment licens(?:e|ing|ure)|psp|msb|mto|iso ?20022|ativos? virtuais|transfer[eê]ncias?)\b/i;
     return explicit.test(title) && isPaymentsRelevant(candidate);
 }
 
@@ -62,7 +63,7 @@ function taxonomyFor(candidate) {
     if (/open banking|payment initiation|a2a|account-to-account/i.test(text)) {
         return { category: "Open Banking", subCategory: "A2A / Payment Initiation", paymentDomain: "Open Banking" };
     }
-    if (/cbdc|stablecoin|digital asset|tokeni[sz]ed money/i.test(text)) {
+    if (/cbdc|stablecoin|digital asset|tokeni[sz]ed money|ativos? virtuais/i.test(text)) {
         return { category: "Regulatory", subCategory: "Digital Assets / CBDC", paymentDomain: "Digital Money" };
     }
     if (/instant payment|real-time payment|\brtp\b|clearing|settlement|iso ?20022/i.test(text)) {
@@ -76,6 +77,18 @@ function sourceEligible(source) {
         source.active === true && source.refreshEndpoint &&
         source.sourceTrustStatus === "VERIFIED_OFFICIAL" &&
         hostAllowed(source.refreshEndpoint, source.officialDomains || []));
+}
+
+function deterministicSummary(rawSummary, title, source, taxonomy) {
+    const cleaned = String(rawSummary || "")
+        .replace(/&#160;|&nbsp;/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const firstSentence = (cleaned.match(/^.*?[.!?](?:\s|$)/) || [cleaned])[0].trim();
+    const bounded = firstSentence.length > 360 ? `${firstSentence.slice(0, 357).replace(/\s+\S*$/, "")}…` : firstSentence;
+    const factual = bounded || `${source.organization} published an official notice: ${String(title).replace(/[.!?]+$/, "")}.`;
+    return `${factual} GPIR classifies the notice under ${taxonomy.subCategory} within ${taxonomy.paymentDomain}.`;
 }
 
 function validationFailures(candidate, source, published, sourceHealth) {
@@ -104,13 +117,18 @@ function buildPublishedRecord(candidate, source, now = new Date()) {
     const recordId = candidate.id.replace(/^candidate-/, "");
     const timestamp = now.toISOString();
     const title = String(candidate.title).trim();
-    const summary = String(candidate.summary || "").trim() || `${source.organization} published an official notice: ${title.replace(/[.!?]+$/, "")}.`;
+    const summary = deterministicSummary(candidate.summary, title, source, taxonomy);
     const countryCode = String(candidate.countryIsoAlpha2 || source.isoCountryCode || "").toLowerCase() || null;
-    const acquisitionMethod = ({ RSS: "RSS", ATOM: "ATOM", JSON: "OFFICIAL_API" })[source.refreshEndpointType] || source.refreshEndpointType || "STRUCTURED_FEED";
+    const acquisitionMethod = ({ RSS: "RSS", ATOM: "ATOM", JSON: "OFFICIAL_API", HTML: "OFFICIAL_HTML_INDEX" })[source.refreshEndpointType] || source.refreshEndpointType || "MANUAL_EXCEPTION";
 
     return {
         id: recordId,
         recordId,
+        sourceId: source.id,
+        sourceOrganization: source.organization,
+        sourceURL: canonicalUrl(candidate.sourceUrl),
+        sourcePublicationURL: canonicalUrl(candidate.sourceUrl),
+        sourceTrustTier: `T${source.tier}`,
         referenceId: recordId,
         candidateReferenceId: candidate.referenceId || candidate.id,
         eventFingerprint: candidate.eventFingerprint || eventFingerprint({ title, publicationDate }),
@@ -119,7 +137,7 @@ function buildPublishedRecord(candidate, source, now = new Date()) {
         tickerHeadline: title,
         headline: title,
         summary,
-        whyItMatters: null,
+        whyItMatters: `This official notice is relevant to GPIR's ${taxonomy.paymentDomain} coverage and is classified under ${taxonomy.subCategory}.`,
         sourceOrgId: source.id,
         sourceName: source.organization,
         sourceUrl: canonicalUrl(candidate.sourceUrl),
@@ -135,12 +153,18 @@ function buildPublishedRecord(candidate, source, now = new Date()) {
         eventType: taxonomy.category,
         publicationDate,
         publishedDate: publicationDate,
+        sourcePublicationDate: publicationDate,
         publicationTime: instant ? instant.toISOString().slice(11, 19) + "Z" : null,
+        sourcePublicationTime: instant ? instant.toISOString().slice(11, 19) + "Z" : null,
+        discoveredAt: candidate.retrievedAt,
         retrievedAt: candidate.retrievedAt,
         retrievedDate: dateOnly(candidate.retrievedAt),
         validatedAt: timestamp,
+        publishedAt: timestamp,
         validationDate: timestamp.slice(0, 10),
         effectiveDate: candidate.effectiveDate || null,
+        deadlineDate: candidate.deadlineDate || null,
+        confidence: "HIGH",
         status: "GPIR_CLASSIFIED",
         lifecycleStatus: "CURRENT",
         publicationStatus: "PUBLISHED",
@@ -299,9 +323,31 @@ function writeJson(filePath, value) {
     fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
 }
 
+function reconcileCoverage(healthData, candidates, announcements, sources = []) {
+    const qualified = candidates.reduce((map, candidate) => map.set(candidate.sourceOrgId, (map.get(candidate.sourceOrgId) || 0) + 1), new Map());
+    const published = announcements.reduce((map, record) => {
+        const sourceId = record.sourceId || record.sourceOrgId;
+        if (sourceId) map.set(sourceId, (map.get(sourceId) || 0) + 1);
+        return map;
+    }, new Map());
+    const sourceById = new Map(sources.map(source => [source.id, source]));
+    return {
+        ...healthData,
+        mode: "SOURCE_COVERAGE_AND_HEALTH_SNAPSHOT",
+        sources: (healthData.sources || []).map(source => ({
+            ...source,
+            recordsQualified: (qualified.get(source.sourceId) || 0) + (published.get(source.sourceId) || 0),
+            recordsAccepted: (qualified.get(source.sourceId) || 0) + (published.get(source.sourceId) || 0),
+            recordsPublished: published.get(source.sourceId) || 0,
+            failureReason: source.failureReason || unsupportedFailureReason(sourceById.get(source.sourceId) || {}, source)
+        }))
+    };
+}
+
 function main() {
     const argv = process.argv.slice(2);
     const reportOnly = argv.includes("--report-only");
+    const normalizeM29Summaries = argv.includes("--normalize-m29-summaries");
     const limitArg = argv.find(value => value.startsWith("--limit="));
     const nowArg = argv.find(value => value.startsWith("--now="));
     const limit = limitArg ? Number(limitArg.slice(8)) : Infinity;
@@ -322,8 +368,14 @@ function main() {
         now,
         limit
     });
+    if (normalizeM29Summaries) {
+        result.announcements = result.announcements.map(record => record.publishedAt ? {
+            ...record,
+            summary: deterministicSummary(record.summary, record.title, { organization: record.sourceOrganization || record.sourceName }, taxonomyFor(record))
+        } : record);
+    }
 
-    if (!reportOnly && result.promotedIds.length) {
+    if (!reportOnly && (result.promotedIds.length || normalizeM29Summaries)) {
         writeJson(ANNOUNCEMENTS_PATH, {
             ...announcementData,
             records: result.announcements,
@@ -333,6 +385,7 @@ function main() {
         writeJson(CANDIDATES_PATH, { ...candidateData, candidates: result.candidates });
         writeJson(CONTENT_REGISTRY_PATH, { ...registryData, records: result.contentRegistry });
     }
+    if (!reportOnly) writeJson(SOURCE_HEALTH_PATH, reconcileCoverage(healthData, result.candidates, result.announcements, sourceData.registry || []));
 
     process.stdout.write(JSON.stringify({
         mode: reportOnly ? "REPORT_ONLY" : "AUTOMATION_BRANCH_PUBLICATION",
@@ -361,7 +414,9 @@ module.exports = {
     sourceEligible,
     validationFailures,
     buildPublishedRecord,
+    deterministicSummary,
     publish,
     registryEntries,
-    normaliseRegistryKey
+    normaliseRegistryKey,
+    reconcileCoverage
 };
