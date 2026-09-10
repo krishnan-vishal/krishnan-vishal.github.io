@@ -14,6 +14,18 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M30 — Final Global Announcements Production Closure
+
+- **Date / base / branch:** `2026-09-10`; `2411e99`; `work/m30-global-announcements-production-closure`.
+- **Objective:** finish the existing canonical Global Announcements reader and deterministic publication path without redesigning Search, ASK, FX, source taxonomy, navigation or the static architecture, and without beginning Wave B.
+- **Root causes corrected:** Global Announcements had been changed to a static manually scrollable track; the archive’s large filter/card layout was not Month/Year-first; compact archive rules were in an unloaded homepage stylesheet; and `publishedAt` (GPIR processing time) overrode source publication evidence in LIVE classification. Date-only candidates could also clear automatic publication despite lacking an exact source instant.
+- **Reader implementation:** the canonical ticker sequence is cloned once, the duplicate is accessibility-hidden/non-focusable, and a measured one-sequence translation produces a seamless compact loop with hidden overflow and ellipsis. Fallback records are labelled ARCHIVE. The archive generator now emits a compact Year/Month index with dynamic counts, a one-line record layout, secondary metadata filters and an embedded generated snapshot of the canonical dataset; all filtering is local and server-rendered LKG records remain present.
+- **Integrity implementation:** source publication evidence exclusively drives the 24-hour window; GPIR `publishedAt` remains provenance only. Future T1 auto-publication requires an exact timezone-qualified publication timestamp. Invalid/inexact, duplicate, irrelevant or unhealthy-source candidates remain queued/quarantined.
+- **Source outcome:** the bounded report-only pass evaluated all 113 approved sources, including 43 configured acquisition endpoints. Local network access returned no source items, so 0 records were discovered, 0 proposed and 0 auto-published; canonical publication was not mutated. A separate report-only publication gate retained all 14 existing candidates and quarantined 7 eligible-source candidates for failed deterministic gates. No event was fabricated to force LIVE.
+- **Reader proof:** current canonical output is 0 LIVE and 14 archived. Year 2026 contains all 14 records with generated month counts: September 1, August 2, July 2, June 6, May 1 and March 2. Search emits all 14 through the canonical announcement loader; ASK uses the same published corpus and lifecycle query.
+- **Validation:** the new 24-check M30 suite passes, alongside content/announcement/source/Wave A validation; P1 degradation simulations; lifecycle, publication, Search/ASK intent, radar, M24, M29 and source-activation tests; 104-file link validation; all JS syntax checks; and `git diff --check`. Browser QA at a narrow viewport verified the compact archive and no clipping; timed ticker captures verified active motion and no visible scrollbar. The advisory performance audit reports only four pre-existing warnings.
+- **Delivery:** implementation complete locally; commit, push, PR and remote checks pending. Owner-controlled merge remains required.
+
 ## P1 — Continuous Intelligence Discovery Recovery
 
 - **Date:** `2026-09-10`.

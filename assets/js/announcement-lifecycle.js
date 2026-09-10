@@ -7,10 +7,14 @@
     const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
     function publicationInstant(record){
-        const explicit = record && (record.publishedAt || record.publicationTimestamp);
+        // Freshness is tied to the authoritative source publication, never
+        // to the later GPIR validation/publication workflow timestamp. Using
+        // publishedAt here made old source events look LIVE for 24 hours when
+        // GPIR promoted them from the candidate queue.
+        const explicit = record && (record.sourcePublicationTimestamp || record.publicationTimestamp);
         if(explicit && !Number.isNaN(Date.parse(explicit))) return new Date(explicit);
-        const date = record && (record.publicationDate || record.publishedDate);
-        const time = record && record.publicationTime;
+        const date = record && (record.sourcePublicationDate || record.publicationDate || record.publishedDate);
+        const time = record && (record.sourcePublicationTime || record.publicationTime);
         if(!/^\d{4}-\d{2}-\d{2}$/.test(date || "") || !/^\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})$/.test(time || "")) return null;
         const instant = new Date(`${date}T${time}`);
         return Number.isNaN(instant.getTime()) ? null : instant;

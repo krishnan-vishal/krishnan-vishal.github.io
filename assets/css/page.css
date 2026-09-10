@@ -1980,11 +1980,13 @@ GLOBAL FIAT EXCHANGE MONITOR
 
     max-width:none;
 
-    animation:none;
+    animation:announcementTickerLoop var(--announcement-ticker-duration, 60s) linear infinite;
 
-    font-size:14px;
+    font-size:10px;
 
     color:#444;
+
+    will-change:transform;
 
 }
 
@@ -1992,19 +1994,32 @@ GLOBAL FIAT EXCHANGE MONITOR
 
     min-width:0;
 
-    overflow-x:auto;
+    overflow:hidden;
 
-    scrollbar-width:thin;
+    scrollbar-width:none;
+
+}
+
+#market-ribbon .ticker-sequence{
+    display:flex;
+    flex:none;
+    align-items:center;
+    min-width:100vw;
+}
+
+@keyframes announcementTickerLoop{
+    from{transform:translate3d(0,0,0)}
+    to{transform:translate3d(calc(-1 * var(--announcement-ticker-distance, 50%)),0,0)}
 
 }
 
 #market-ribbon .ticker-card--compact{
     display:inline-grid;
-    grid-template-columns:auto auto minmax(180px, auto) auto;
+    grid-template-columns:auto auto minmax(120px, 360px) auto auto;
     align-items:center;
     gap:7px;
-    min-height:30px;
-    padding:3px 12px;
+    min-height:28px;
+    padding:2px 10px;
     margin:0 8px 0 0;
     border:0;
     border-right:1px solid rgba(11,39,66,.18);
@@ -2018,17 +2033,28 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 #market-ribbon .ticker-card--compact time,
 #market-ribbon .ticker-card--compact .ticker-country,
-#market-ribbon .ticker-card--compact .ticker-tag{
+#market-ribbon .ticker-card--compact .ticker-tag,
+#market-ribbon .ticker-card--compact .ticker-lifecycle{
     font-size:10px;
     font-weight:700;
     letter-spacing:.04em;
 }
 
 #market-ribbon .ticker-card--compact .ticker-headline{
-    max-width:420px;
+    min-width:0;
+    max-width:360px;
     overflow:hidden;
     text-overflow:ellipsis;
-    font-size:12px;
+    font-size:11px;
+    white-space:nowrap;
+}
+
+#market-ribbon .ticker-card--compact .ticker-lifecycle{
+    color:#52606d;
+}
+
+#market-ribbon .ticker-card--compact .ticker-lifecycle:last-child{
+    margin-right:2px;
 }
 
 #market-ribbon .ticker-empty{
@@ -2093,7 +2119,7 @@ GLOBAL FIAT EXCHANGE MONITOR
 
         animation:none;
 
-        overflow-x:auto;
+        transform:none;
 
     }
 
@@ -2119,32 +2145,6 @@ GLOBAL FIAT EXCHANGE MONITOR
 
 }
 
-.announcement-dashboard-heading,
-.announcement-dashboard-filters,
-.announcement-card-meta-row,
-.announcement-card-status-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
+@media (max-width:760px){
+    #market-ribbon .ticker-card--compact{grid-template-columns:auto auto minmax(140px,55vw) auto auto}
 }
-
-.announcement-dashboard-filters{
-    padding:16px;
-    margin:24px 0;
-    border:1px solid var(--border-color, #d8dee8);
-    border-radius:12px;
-}
-
-.announcement-dashboard-filters label{display:grid;gap:6px;font-size:12px;font-weight:700}
-.announcement-dashboard-filters select,
-.announcement-dashboard-filters input,
-.announcement-dashboard-filters button{min-height:40px;padding:7px 10px}
-.announcement-dashboard-stats{margin-bottom:24px;line-height:1.8}
-.announcement-dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(256px,1fr));gap:16px}
-.announcement-dashboard-group{margin-top:28px}
-.announcement-dashboard-group>h3{font-size:15px;color:var(--text-muted, #536172)}
-.announcement-dashboard-card{padding:16px;margin:12px 0;border:1px solid var(--border-color, #d8dee8);border-radius:12px;background:var(--surface, #fff)}
-.announcement-dashboard-card h4,.announcement-dashboard-card p{margin:6px 0}
-.announcement-dashboard-pending{margin-top:32px;padding:16px;background:var(--surface-muted, #f5f7fa)}

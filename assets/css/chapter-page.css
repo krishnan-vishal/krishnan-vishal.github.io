@@ -352,6 +352,57 @@ body.legal-page .chapter-body{
 
 }
 
+/* Global Announcements is generated from the canonical record set but uses
+   the shared chapter shell. Keep its dense repository presentation scoped so
+   legal and research pages retain their existing typography. */
+.announcement-dashboard-heading,
+.announcement-dashboard-filters,
+.announcement-card-meta-row,
+.announcement-card-status-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+body.announcement-archive-page .chapter-hero{padding:20px 0 14px}
+body.announcement-archive-page .chapter-part-tag{padding:5px 12px;margin-bottom:6px;font-size:10px}
+body.announcement-archive-page .chapter-hero h1{font-size:clamp(20px,2.2vw,28px);margin:6px 0}
+body.announcement-archive-page .chapter-hero-intro{max-width:900px;margin:5px 0;font-size:11px;line-height:1.5}
+body.announcement-archive-page .chapter-body{padding:16px 0 28px}
+.announcement-archive-page .announcement-archive-wrap{max-width:1440px}
+.announcement-archive-nav{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:7px 0 0;font-size:10px}
+.announcement-archive-nav span{color:#536176;font-weight:600}
+.announcement-archive-nav a{color:#0a2540;text-decoration:none;border:1px solid #d8dee8;border-radius:999px;padding:4px 8px;background:#fff}
+.announcement-archive-nav a:hover,.announcement-archive-nav a:focus-visible{border-color:#d4af37;box-shadow:0 0 0 2px rgba(212,175,55,.15);outline:none}
+.announcement-dashboard{font-size:11px}
+.announcement-dashboard-heading{align-items:flex-start;margin-bottom:10px}
+.announcement-dashboard-heading h2{font-size:18px;margin:0 0 3px}
+.announcement-dashboard-heading p{margin:0;line-height:1.45}
+.announcement-dashboard-heading strong{font-size:10px;white-space:nowrap}
+.announcement-period-nav{display:grid;grid-template-columns:minmax(100px,.25fr) 1fr;gap:8px;padding:8px;margin:8px 0;border:1px solid var(--border-color, #d8dee8);background:var(--surface-muted, #f5f7fa)}
+.announcement-period-years,.announcement-period-months{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.announcement-period-nav button{min-height:28px;padding:4px 8px;border:1px solid var(--border-color, #d8dee8);background:var(--surface, #fff);font:inherit;cursor:pointer}
+.announcement-period-nav button[aria-pressed="true"]{border-color:var(--primary, #0b2742);background:var(--primary, #0b2742);color:#fff}
+.announcement-period-nav button span{opacity:.72}
+.announcement-dashboard-filters{padding:8px;margin:8px 0;border:1px solid var(--border-color, #d8dee8);border-radius:4px;justify-content:flex-start}
+.announcement-dashboard-filters label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700}
+.announcement-dashboard-filters select,.announcement-dashboard-filters button{min-height:28px;padding:4px 7px;font-size:10px}
+.announcement-dashboard-results{display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px}
+.announcement-dashboard-results h2,.announcement-dashboard-live h2{font-size:16px;margin:0}
+.announcement-dashboard-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.announcement-dashboard-card{display:grid;grid-template-columns:minmax(190px,.28fr) minmax(0,1fr) auto;column-gap:12px;align-items:start;padding:7px 9px;margin:0;border:1px solid var(--border-color, #d8dee8);border-radius:3px;background:var(--surface, #fff);overflow:hidden}
+.announcement-dashboard-card .announcement-card-meta-row{grid-column:1;grid-row:1 / span 3;justify-content:flex-start;align-content:start;margin:0;font-size:10px;line-height:1.35}
+.announcement-dashboard-card h3{grid-column:2;grid-row:1;margin:0;font-size:13px;line-height:1.3;min-width:0}
+.announcement-dashboard-card h3 a{display:block;overflow:hidden;text-overflow:ellipsis}
+.announcement-dashboard-card .announcement-card-summary{grid-column:2;grid-row:2;margin:3px 0 0;font-size:10.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.announcement-dashboard-card .announcement-card-status-row{grid-column:3;grid-row:1 / span 2;justify-content:flex-end;margin:0;font-size:10px;white-space:nowrap}
+.announcement-dashboard-pending{margin-top:10px;padding:8px;background:var(--surface-muted, #f5f7fa)}
+.announcement-dashboard-live{margin:8px 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border-color, #d8dee8)}
+
+@media (max-width:760px){
+    .announcement-period-nav{grid-template-columns:1fr}
+    .announcement-dashboard-card{grid-template-columns:1fr}
+    .announcement-dashboard-card .announcement-card-meta-row,
+    .announcement-dashboard-card h3,
+    .announcement-dashboard-card .announcement-card-summary,
+    .announcement-dashboard-card .announcement-card-status-row{grid-column:1;grid-row:auto}
+}
+
 .chapter-layout{
 
     display:grid;

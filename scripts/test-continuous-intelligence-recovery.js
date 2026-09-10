@@ -160,7 +160,7 @@ try {
 }
 
 const ticker = fs.readFileSync(TICKER_PATH, "utf8");
-check(ticker.includes("currentLiveRecords.length ? currentLiveRecords : publishedRecords()"), "ticker must fall back from LIVE to retained published intelligence");
+check(ticker.includes("showingLive ? currentLiveRecords : publishedRecords()"), "ticker must fall back from LIVE to retained published intelligence");
 check(ticker.includes("ARCHIVED · HISTORICAL INTELLIGENCE"), "ticker detail must label fallback records as archived/historical");
 check(lifecycle.partition(publishedCorpus, new Date("2100-01-01T00:00:00.000Z")).archive.length === publishedCorpus.filter(lifecycle.isPublished).length, "archive must retain all expired published intelligence");
 

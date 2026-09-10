@@ -159,7 +159,8 @@
         // via GPIRAnnouncementLifecycle.isLive() for a non-live record,
         // so nothing here claims a freshness the data doesn't have.
         const currentLiveRecords = liveRecords();
-        const tickerRecords = currentLiveRecords.length ? currentLiveRecords : publishedRecords();
+        const showingLive = currentLiveRecords.length > 0;
+        const tickerRecords = showingLive ? currentLiveRecords : publishedRecords();
         if(!tickerRecords.length){
             track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No validated announcements in the latest 24-hour window · View historical intelligence →</a>';
             return;
@@ -170,6 +171,8 @@
 
                 const tag = (record.category || "").split(" / ")[0];
                 const isSuspension = record.category === "Payment Suspension";
+                const publicationInstant = window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.publicationInstant(record);
+                const dateTime = publicationInstant ? publicationInstant.toISOString() : (record.publicationDate || record.publishedDate || "");
 
                 // A real href (not a plain button) means every card is a
                 // genuine, shareable, crawlable link to its own summary
@@ -180,10 +183,11 @@
                 // ctrl/cmd/middle-click and "open in new tab" fall
                 // through to the real page untouched.
                 return `<a href="pages/intelligence/${escapeHtml(record.id)}.html" class="ticker-card ticker-card--compact${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
-                    <time datetime="${escapeHtml((record.publicationDate || record.publishedDate) + "T" + record.publicationTime)}">${escapeHtml(tickerTime(record))}</time>
+                    <time datetime="${escapeHtml(dateTime)}">${escapeHtml(tickerTime(record))}</time>
                     <span class="ticker-country">${escapeHtml(tickerLocation(record))}</span>
                     <span class="ticker-headline">${escapeHtml(record.headline || record.tickerHeadline || record.title)}</span>
                     <span class="ticker-tag${isSuspension ? " ticker-tag--suspension" : ""}">${isSuspension ? "⚠ " : ""}${escapeHtml(tag)}</span>
+                    <span class="ticker-lifecycle">${showingLive ? "LIVE" : "ARCHIVE"}</span>
                 </a>`;
 
             } catch(err){
@@ -193,7 +197,21 @@
 
         }).join("");
 
-        track.innerHTML = sequenceHTML;
+        track.innerHTML = `<span class="ticker-sequence">${sequenceHTML}</span>`;
+        const primarySequence = track.querySelector(".ticker-sequence");
+        const repeatedSequence = primarySequence.cloneNode(true);
+        repeatedSequence.setAttribute("aria-hidden", "true");
+        repeatedSequence.querySelectorAll("a").forEach(link => link.setAttribute("tabindex", "-1"));
+        track.appendChild(repeatedSequence);
+
+        const measureTicker = () => {
+            const width = primarySequence.getBoundingClientRect().width;
+            if(!width) return;
+            track.style.setProperty("--announcement-ticker-distance", `${width}px`);
+            track.style.setProperty("--announcement-ticker-duration", `${Math.max(24, width / 42)}s`);
+        };
+        requestAnimationFrame(measureTicker);
+        if("ResizeObserver" in window) new ResizeObserver(measureTicker).observe(track.parentElement);
 
         track.querySelectorAll("[data-intel-id]").forEach(link => {
             link.addEventListener("click", (e) => {
