@@ -16,7 +16,8 @@ const {
     eventFingerprint,
     isPaymentsRelevant,
     dateOnly,
-    unsupportedFailureReason
+    unsupportedFailureReason,
+    persistSourceHealthSnapshot
 } = require("./propose-intelligence-candidates.js");
 const { hostAllowed } = require("./refresh-announcements.js");
 
@@ -385,7 +386,13 @@ function main() {
         writeJson(CANDIDATES_PATH, { ...candidateData, candidates: result.candidates });
         writeJson(CONTENT_REGISTRY_PATH, { ...registryData, records: result.contentRegistry });
     }
-    if (!reportOnly) writeJson(SOURCE_HEALTH_PATH, reconcileCoverage(healthData, result.candidates, result.announcements, sourceData.registry || []));
+    const sourceHealthUpdate = reportOnly ? { status: "NOT_REQUESTED", lastKnownGoodRetained: true, error: null }
+        : persistSourceHealthSnapshot(SOURCE_HEALTH_PATH, () => reconcileCoverage(
+            healthData,
+            result.candidates,
+            result.announcements,
+            sourceData.registry || []
+        ));
 
     process.stdout.write(JSON.stringify({
         mode: reportOnly ? "REPORT_ONLY" : "AUTOMATION_BRANCH_PUBLICATION",
@@ -394,6 +401,7 @@ function main() {
         publishedCandidateIds: result.promotedIds,
         retainedForReview: result.candidates.length,
         quarantined: result.quarantined,
+        sourceHealthUpdate,
         publicMainMutationAllowed: false
     }, null, 2) + "\n");
 }
