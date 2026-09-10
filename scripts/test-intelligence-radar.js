@@ -25,6 +25,8 @@ const unrelatedItem = {
 
 assert.strictEqual(isPaymentsRelevant(paymentItem), true, "payment-related material must qualify");
 assert.strictEqual(isPaymentsRelevant(unrelatedItem), false, "unrelated authority news must not qualify");
+assert.strictEqual(isPaymentsRelevant({title: "Balance of Payments for August 2026"}), false, "macroeconomic balance-of-payments releases must not qualify");
+assert.strictEqual(isPaymentsRelevant({title: "Balance of Payments", summary: "The report also sets a new ISO 20022 migration date."}), true, "specific payment-infrastructure evidence must override the macroeconomic phrase");
 assert.strictEqual(eventFingerprint(paymentItem), eventFingerprint(duplicatePaymentItem), "same title/date must have deterministic event identity");
 assert.strictEqual(canonicalUrl("https://example.test/item#section"), "https://example.test/item", "canonical URLs must ignore fragments");
 

@@ -30,6 +30,14 @@ jobs:
       - name: Test intelligence discovery contracts
         run: node scripts/test-intelligence-radar.js
 
+      - name: Validate source coverage reports
+        run: |
+          node scripts/validate-source-coverage.js
+          node scripts/validate-wave-a-coverage.js
+
+      - name: Test M29 and Wave A acquisition contracts
+        run: node scripts/test-m29-source-network.js
+
       - name: Validate internal HTML links
         run: node scripts/validate-links.js
 

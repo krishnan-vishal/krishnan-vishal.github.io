@@ -2,19 +2,19 @@
 
 ## Current handoff
 
-- **Milestone:** M29 — GPIR Global Source Network Activation.
+- **Milestone:** Wave A — Central Bank & Regulator Global Coverage Validation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
-- **Base / branch:** merged PR #343 on `origin/main` (`8b19163`); `work/m29-global-source-network-activation`. One PR is required; no merge is authorised.
-- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / PR #349 OPEN / ACTIONS PASSING / READY FOR OWNER REVIEW.
-- **Source activation:** the existing 88-source registry is unchanged in membership. Thirty already-approved official public indexes were activated with bounded deterministic HTML acquisition in addition to the existing 13 RSS/Atom/JSON endpoints: 43 functioning active sources across 33 countries/jurisdictions. The successful acquisition snapshot reports 43 GREEN, 0 AMBER, 0 RED, 0 STALE and 45 UNSUPPORTED.
-- **Controlled backfill (2026-05-01 through 2026-09-09):** 211 dated records were fetched in-window; 13 passed the broad payment-intelligence candidate gate and 198 were rejected or deduplicated. Four Tier-1 records then passed the stricter publication gate: Bank of Canada cross-border payments, Banco Central do Brasil virtual-asset transfers, and two Bank of England stablecoin/payment-infrastructure notices. Fourteen ambiguous or secondary candidates remain non-public for exception review.
-- **Reader outcome:** the four real records have canonical entries, permanent summary pages, original-source links, source/validation/lifecycle evidence, archive cards, registry/search entries and ASK GPIR retrieval through the existing corpus. All four are correctly archived because their source dates predate the 24-hour window; the truthful live count is zero. Current totals are 14 published/archive records and 1 developing announcement.
-- **Coverage artifact:** `assets/data/source-health.json` is the machine-readable all-source coverage and health report. It includes every required M29 field for all 88 sources and is validated by `scripts/validate-source-coverage.js`.
-- **Isolation/governance:** each source is fetched independently with bounded retries, official-domain/redirect controls and last-known-good publication behavior. No source, URL, service, database, runtime AI, paid API, FX asset, Search architecture or ASK architecture was invented or added.
-- **Local validation:** content, announcement/canonical schema, all-source coverage, M29 acquisition/isolation, 28-check production pipeline, source activation, lifecycle, Search/ASK scenarios, intelligence radar, M24 reader integration, 104-file link scan, full 51-file JavaScript syntax scan, high-confidence secret scan and `git diff --check` passed. Performance audit passed with four pre-existing advisory warnings.
-- **Handoff:** implementation and validation are committed through `82e9962`; the working branch is pushed and PR #349 is open against `main`.
-- **Actions:** GPIR Security and Integrity completed successfully for the synchronized `8a675c3` PR head. The final documentation-only checkpoint must revalidate after push; no pending check is represented as passed.
-- **Remaining:** push the final documentation checkpoint, confirm its remote SHA and Actions result, then owner review and owner-controlled merge. Production remains unchanged until merge.
+- **Base / branch:** merged M29 PR #349 on `origin/main` (`7709bbae`); `work/wave-a-central-bank-regulator-validation`. One PR is required; no merge is authorised.
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMIT, PUSH, PR AND ACTIONS PENDING.
+- **Bounded universe:** 85 jurisdictions: all 63 current BIS member central banks/monetary authorities plus 22 additional central-bank jurisdictions already represented in GPIR. The matrix covers exactly the eight owner-specified regional groups.
+- **Evidence outcome:** 85 central-bank authorities and seven separate regulator profiles are verified; 77 jurisdictions have an official publication surface documented. Final health-aligned result: zero `ACTIVE_GREEN`, 37 `ACTIVE_AMBER`, one `QUARANTINED_RED`, 47 `VERIFIED_UNSUPPORTED`, and zero `MISSING_AUTHORITY`.
+- **Live revalidation:** all 38 active M29 Wave-A profiles were controlled-fetch tested. Seventeen profiles returned correctly dated official publications (283 parsed publication entries); 21 did not. A later repeat across five previously reachable indexes uniformly returned endpoint-unavailable, so earlier same-pass proof was retained without promoting any source.
+- **Defects corrected:** official HTML acquisition now handles date attributes, numeric slash/dot formats and anchor-local date association before surrounding context. Payment relevance now rejects macroeconomic “balance of payments” false positives unless separate specific payments evidence is present.
+- **Registry/report:** 25 missing BIS members were added as inactive Tier-1 official profiles, bringing the registry and `source-health.json` to 113 sources. `assets/data/wave-a-country-matrix.json` contains the 85-row control matrix, totals, regional breakdown, metrics and a blocker/method gap register.
+- **Publication outcome:** zero newly discovered items passed the existing strict publication gate. No canonical record, ticker entry, archive/summary card, Search entry or ASK entry was added; all existing M29 reader behavior is unchanged.
+- **Isolation/governance:** no UI, Search, ASK, FX, hosting, database, runtime-AI, paid-API or Wave B/C/D work was performed. Domain allowlisting, redirect rejection, per-source isolation, URL/event deduplication and human-controlled publication remain intact.
+- **Local validation:** content and announcement schemas, M29 and Wave A coverage, M29 acquisition/isolation, source activation, lifecycle, 28-check publication pipeline, announcement intent, intelligence radar, M24 Search/ASK integration, 104-file links, FX boundary regression/validation, full JavaScript syntax and `git diff --check` pass. Performance audit retains four pre-existing advisory warnings.
+- **Remaining:** run the complete required suite, commit, push, create one PR, confirm the remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
 
 ## Superseded Global Announcements lifecycle handoff
 
