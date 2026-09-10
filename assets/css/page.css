@@ -2148,3 +2148,111 @@ GLOBAL FIAT EXCHANGE MONITOR
 @media (max-width:760px){
     #market-ribbon .ticker-card--compact{grid-template-columns:auto auto minmax(140px,55vw) auto auto}
 }
+
+/* =====================================================
+   M30.1 — GLOBAL ANNOUNCEMENTS PRODUCTION VISUAL ISOLATION
+   Prevent legacy generic ticker-card styles from affecting
+   the compact Global Announcements ribbon.
+===================================================== */
+
+#market-ribbon .ticker-card--compact{
+    display:inline-flex;
+    flex:none;
+    align-items:center;
+    gap:7px;
+
+    width:auto;
+    max-width:none;
+    min-width:0;
+    min-height:28px;
+
+    margin:0 8px 0 0;
+    padding:2px 10px;
+
+    border:0;
+    border-right:1px solid rgba(11,39,66,.18);
+    border-radius:0;
+
+    background:transparent;
+    box-shadow:none;
+
+    color:#0b2742;
+    text-decoration:none;
+    white-space:nowrap;
+
+    transform:none;
+}
+
+#market-ribbon .ticker-card--compact:hover{
+    transform:none;
+}
+
+#market-ribbon .ticker-card--compact time,
+#market-ribbon .ticker-card--compact .ticker-country,
+#market-ribbon .ticker-card--compact .ticker-headline,
+#market-ribbon .ticker-card--compact .ticker-tag,
+#market-ribbon .ticker-card--compact .ticker-lifecycle{
+    display:inline-block;
+
+    width:auto;
+    min-width:0;
+
+    margin:0;
+    padding:0;
+
+    line-height:1.2;
+    white-space:nowrap;
+    vertical-align:middle;
+}
+
+#market-ribbon .ticker-card--compact .ticker-country{
+    color:#0b2742;
+}
+
+#market-ribbon .ticker-card--compact .ticker-headline{
+    display:inline-block;
+
+    width:auto;
+    max-width:360px;
+
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    -webkit-line-clamp:unset;
+    -webkit-box-orient:unset;
+
+    color:#0b2742;
+
+    font-size:11px;
+    font-weight:500;
+    line-height:1.2;
+    white-space:nowrap;
+}
+
+#market-ribbon .ticker-card--compact .ticker-tag{
+    border-radius:0;
+    background:transparent;
+
+    color:#52606d;
+
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+}
+
+#market-ribbon .ticker-card--compact .ticker-lifecycle{
+    color:#52606d;
+    font-size:10px;
+    font-weight:700;
+}
+
+#market-ribbon .ticker-wrapper{
+    overflow:hidden;
+}
+
+#market-ribbon .ticker-wrapper::-webkit-scrollbar{
+    display:none;
+}
+
+
