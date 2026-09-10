@@ -5,7 +5,7 @@
 - **Milestone:** Wave A — Central Bank & Regulator Global Coverage Validation.
 - **Category / owner:** Intelligence / Automation / Governance; Vishal Krishnan.
 - **Base / branch:** merged M29 PR #349 on `origin/main` (`7709bbae`); `work/wave-a-central-bank-regulator-validation`. One PR is required; no merge is authorised.
-- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMIT, PUSH, PR AND ACTIONS PENDING.
+- **Implementation status:** IMPLEMENTED / LOCALLY VALIDATED / COMMITTED AND PUSHED / PR #351 OPEN / ACTIONS PENDING.
 - **Bounded universe:** 85 jurisdictions: all 63 current BIS member central banks/monetary authorities plus 22 additional central-bank jurisdictions already represented in GPIR. The matrix covers exactly the eight owner-specified regional groups.
 - **Evidence outcome:** 85 central-bank authorities and seven separate regulator profiles are verified; 77 jurisdictions have an official publication surface documented. Final health-aligned result: zero `ACTIVE_GREEN`, 37 `ACTIVE_AMBER`, one `QUARANTINED_RED`, 47 `VERIFIED_UNSUPPORTED`, and zero `MISSING_AUTHORITY`.
 - **Live revalidation:** all 38 active M29 Wave-A profiles were controlled-fetch tested. Seventeen profiles returned correctly dated official publications (283 parsed publication entries); 21 did not. A later repeat across five previously reachable indexes uniformly returned endpoint-unavailable, so earlier same-pass proof was retained without promoting any source.
@@ -14,7 +14,8 @@
 - **Publication outcome:** zero newly discovered items passed the existing strict publication gate. No canonical record, ticker entry, archive/summary card, Search entry or ASK entry was added; all existing M29 reader behavior is unchanged.
 - **Isolation/governance:** no UI, Search, ASK, FX, hosting, database, runtime-AI, paid-API or Wave B/C/D work was performed. Domain allowlisting, redirect rejection, per-source isolation, URL/event deduplication and human-controlled publication remain intact.
 - **Local validation:** content and announcement schemas, M29 and Wave A coverage, M29 acquisition/isolation, source activation, lifecycle, 28-check publication pipeline, announcement intent, intelligence radar, M24 Search/ASK integration, 104-file links, FX boundary regression/validation, full JavaScript syntax and `git diff --check` pass. Performance audit retains four pre-existing advisory warnings.
-- **Remaining:** run the complete required suite, commit, push, create one PR, confirm the remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
+- **Handoff:** implementation commit `6801577` is pushed and PR #351 is open against `main`.
+- **Remaining:** push this documentation checkpoint, confirm its remote SHA and Actions state, then stop for owner review. Production remains unchanged until owner-controlled merge.
 
 ## Superseded Global Announcements lifecycle handoff
 
