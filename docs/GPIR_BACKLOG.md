@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## P1 reliability recovery
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| P1-CONTINUOUS-DISCOVERY | 2026-09-10 | Recover failed Continuous Intelligence Discovery run #15 | AUTOMATION, RELIABILITY, INTELLIGENCE | P1 | IN PROGRESS | M29 merged on `main`; existing candidate/validation workflow | Stage 1 | `.github/workflows/continuous-intelligence.yml`, `scripts/propose-intelligence-candidates.js`, `scripts/publish-intelligence-candidates.js`, `scripts/test-continuous-intelligence-recovery.js` | Diagnose the exact failed command; preserve immutable LKG publication; isolate endpoint/parser and source-health failures; make zero-result discovery successful; verify ticker fallback and Node compatibility without architecture redesign. | A–E simulations pass; health failures retain prior snapshot and exit gracefully; announcements/registry/archive/Search/ASK inputs remain unchanged; exact run failure and Node finding recorded; one branch and one owner-review PR, never merged by the worker. | Implemented, locally validated and pushed; PR #353 is open for owner review and its initial integrity check passed. | PENDING owner merge | `6011fd3` | P1 Continuous Intelligence Discovery Recovery |
+
 ## Completed foundation
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
