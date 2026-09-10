@@ -193,7 +193,7 @@
 
         }).join("");
 
-        track.innerHTML = sequenceHTML + sequenceHTML;
+        track.innerHTML = sequenceHTML;
 
         track.querySelectorAll("[data-intel-id]").forEach(link => {
             link.addEventListener("click", (e) => {

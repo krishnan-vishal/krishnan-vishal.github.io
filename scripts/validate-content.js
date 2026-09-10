@@ -25,7 +25,7 @@ const allowedStatuses = new Set(["GPIR_CLASSIFIED", "PENDING_HUMAN_REVIEW", "SOU
 const allowedContentStatuses = new Set(["CONTENT_VERIFIED", "CONTENT_UNDER_REVIEW"]);
 const allowedLifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
 const allowedPublicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
-const allowedRefreshEndpointTypes = new Set(["RSS", "ATOM", "JSON"]);
+const allowedRefreshEndpointTypes = new Set(["RSS", "ATOM", "JSON", "HTML"]);
 const allowedSourceHealthStatuses = new Set(["UNOBSERVED", "HEALTHY", "DELAYED", "FAILING", "INACTIVE"]);
 const allowedRegistryStatuses = new Set(["active", "coming_soon", "draft", "archived", "GPIR_CLASSIFIED"]);
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
@@ -124,7 +124,9 @@ registry.forEach((source, index) => {
         requiredString(source.refreshEndpoint, `${label}.refreshEndpoint`);
         if(!/^https:\/\//i.test(source.refreshEndpoint || "")) errors.push(`${label}.refreshEndpoint: must use HTTPS`);
         if(!sourceUrlAllowed(source.refreshEndpoint, source)) errors.push(`${label}.refreshEndpoint: outside approved source domains`);
-        if(!allowedRefreshEndpointTypes.has(source.refreshEndpointType)) errors.push(`${label}.refreshEndpointType: expected RSS, ATOM or JSON`);
+        if(!allowedRefreshEndpointTypes.has(source.refreshEndpointType)) errors.push(`${label}.refreshEndpointType: expected RSS, ATOM, JSON or HTML`);
+        if(source.refreshEndpointType === "HTML" && source.refreshEndpoint !== source.discoveryPage) errors.push(`${label}.refreshEndpoint: HTML acquisition must reuse the approved discoveryPage`);
+        if(source.refreshEndpointType === "HTML" && source.parserProfile !== "OFFICIAL_HTML_LINKS") errors.push(`${label}.parserProfile: expected OFFICIAL_HTML_LINKS for HTML acquisition`);
         requiredString(source.refreshScope, `${label}.refreshScope`);
         dateField(source.endpointVerifiedDate, `${label}.endpointVerifiedDate`);
         ["sourceTrustStatus", "retrievalPriority", "healthStatus", "region"].forEach(field => requiredString(source[field], `${label}.${field}`));

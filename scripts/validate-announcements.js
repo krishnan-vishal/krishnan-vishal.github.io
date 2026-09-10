@@ -18,6 +18,7 @@ const ids = new Set();
 const requiredLifecycleFields = ["referenceId", "editionVersion", "publicationDate", "lifecycleStatus", "supersedes", "supersededBy", "publicationYear", "publicationMonth", "refreshCycle", "importance"];
 const requiredIntelligenceFields = ["headline", "subcategory", "publicationTime", "sourceName", "sourceUrl", "sourceType", "retrievedAt", "validatedAt", "validationStatus", "displayLifecycleStatus", "gpirSection", "gpirSubsection", "tags", "keywords", "sourceAuthorityLevel"];
 const requiredCanonicalFields = ["recordId", "tickerHeadline", "summary", "sourceOrgId", "trustTier", "country", "region", "category", "subCategory", "paymentDomain", "publishedDate", "retrievedAt", "validatedAt", "status", "lifecycleStatus", "publicationStatus", "contentStatus", "validationStatus", "supersedes", "supersededBy", "relatedRecords", "acquisitionMethod", "sourceHealth"];
+const requiredM29Fields = ["sourceId", "sourceOrganization", "sourceURL", "sourcePublicationURL", "sourceTrustTier", "countryCode", "subcategory", "eventType", "headline", "whyItMatters", "sourcePublicationDate", "sourcePublicationTime", "discoveredAt", "publishedAt", "effectiveDate", "deadlineDate", "confidence"];
 const datePattern = /^\d{4}-(?:\d{2}|\d{2}-\d{2})$/;
 const lifecycleStatuses = new Set(["CURRENT", "DEVELOPING", "HISTORICAL"]);
 const publicationStatuses = new Set(["PUBLISHED", "NOT_PUBLISHED", "ARCHIVED"]);
@@ -50,6 +51,9 @@ announcements.forEach(record => {
         if(!record.summary || record.summary.length < 40) fail(`${record.id}: source-derived summary is missing or too short`);
         if(!Array.isArray(record.relatedRecords)) fail(`${record.id}: relatedRecords must be an array`);
         if(!record.sourceHealth || record.sourceHealth.state !== "GREEN") fail(`${record.id}: published source-health evidence must be GREEN`);
+        if(record.publishedAt) requiredM29Fields.forEach(field => {
+            if(!(field in record)) fail(`${record.id}: missing M29 canonical field ${field}`);
+        });
     }
     if(!lifecycleStatuses.has(record.lifecycleStatus)) fail(`${record.id}: invalid lifecycleStatus`);
     if(record.publicationDate !== null && !datePattern.test(record.publicationDate)) fail(`${record.id}: invalid publicationDate`);
@@ -131,7 +135,8 @@ if(tickerSource.includes("sequenceHTML + sequenceHTML")) fail("ticker must not d
 const archivePage = fs.readFileSync(path.join(pagesDir, "index.html"), "utf8");
 if(!archivePage.includes("data-live") || !archivePage.includes("data-latest") || !archivePage.includes("data-archive")) fail("archive lifecycle sections are incomplete");
 if(/data-(?:live|latest|archive)><\/div>/.test(archivePage)) fail("archive must include a server-rendered fallback rather than blank data containers");
-if(!archivePage.includes("Publication dataset updated:")) fail("archive dynamic publication timestamp is missing");
+if(!archivePage.includes("data-counts") || archivePage.includes("Loading validated records…")) fail("archive must include truthful server-rendered lifecycle counts");
+if(/Scheduled every 2 hours via GitHub Actions|publication remains human-reviewed|backend timestamp|refresh cadence/i.test(archivePage)) fail("archive reintroduces prohibited reader-facing operational copy");
 if(archivePage.includes("Last validated publication cycle: 14 August 2026")) fail("archive contains the retired hardcoded validation date");
 const workflowSource = fs.readFileSync(path.join(ROOT, ".github/workflows/continuous-intelligence.yml"), "utf8");
 if(!workflowSource.includes("publish-intelligence-candidates.js") || !workflowSource.includes("generate-intelligence-pages.js")) fail("scheduled workflow is missing the deterministic publication/generation gate");

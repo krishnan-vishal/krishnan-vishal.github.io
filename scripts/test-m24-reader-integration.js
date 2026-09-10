@@ -149,7 +149,7 @@ function testDedupAcrossExpandedRegistry() {
  * ------------------------------------------------------------------- */
 
 async function testSourceFailureIsolation() {
-    const unsupported = sourcesById.get("cbb-bahrain"); // active: false, no refreshEndpoint (M24 addition)
+    const unsupported = sourcesById.get("qcb-qatar"); // remains inactive with no safe deterministic endpoint after M29
     const healthyFixture = { id: "fixture-healthy", officialDomains: ["rbi.org.in"], refreshEndpoint: "https://www.rbi.org.in/fixture-feed", active: true };
     const unavailableFixture = { id: "fixture-unavailable", officialDomains: ["rbi.org.in"], refreshEndpoint: "https://www.rbi.org.in/fixture-unavailable", active: true };
 

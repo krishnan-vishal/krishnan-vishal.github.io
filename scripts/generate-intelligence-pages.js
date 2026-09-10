@@ -40,8 +40,8 @@ const DISCOVERY_WORKFLOW_PATH = path.join(ROOT, ".github/workflows/continuous-in
 // intelligence workflow (deterministic build metadata) instead of a
 // second hand-maintained copy that could silently drift out of sync
 // with the real schedule. This describes candidate DISCOVERY only --
-// publication into announcements.json always remains a separate,
-// human-reviewed step, and this label must never claim otherwise.
+// publication into announcements.json remains a separate deterministic
+// validation step; only eligible Tier-1 records may be promoted automatically.
 function describeDiscoveryCadence(){
     try{
         const workflowText = fs.readFileSync(DISCOVERY_WORKFLOW_PATH, "utf8");
@@ -124,7 +124,10 @@ function lifecycleFacts(record){
     const facts = [
         ["Event Type", record.eventType],
         [(record.displayLifecycleStatus === "ARCHIVED" || record.lifecycleStatus === "HISTORICAL") ? "Originally published" : "Published", record.publicationDate || record.publishedDate],
-        ["GPIR Refresh Cycle", record.refreshCycle],
+        ["Effective date", record.effectiveDate],
+        ["Deadline date", record.deadlineDate],
+        ["Lifecycle state", record.lifecycleStatus],
+        ["Permanent GPIR record", record.recordId || record.id],
         ["Publication Status", (record.displayLifecycleStatus === "ARCHIVED" || record.lifecycleStatus === "HISTORICAL") ? "ARCHIVED PUBLICATION" : (record.displayLifecycleStatus || record.lifecycleStatus)]
     ].filter(([, value]) => value);
     if(!facts.length) return "";
@@ -359,6 +362,10 @@ function main(){
                         <dt>Source</dt><dd>${escapeHtml(record.source.name)}</dd>
                         <dt>Publication</dt><dd>${escapeHtml(record.source.publicationTitle)}</dd>
                         <dt>Published</dt><dd>${escapeHtml(formatDate(record.publishedDate))}</dd>
+                        ${record.sourceTrustTier || record.trustTier ? `<dt>Trust Tier</dt><dd>${escapeHtml(record.sourceTrustTier || record.trustTier)}</dd>` : ""}
+                        ${record.validationStatus ? `<dt>GPIR Validation</dt><dd>${escapeHtml(record.validationStatus)}</dd>` : ""}
+                        ${record.acquisitionMethod ? `<dt>Acquisition</dt><dd>${escapeHtml(record.acquisitionMethod)}</dd>` : ""}
+                        ${record.sourceHealth && record.sourceHealth.state ? `<dt>Source Health</dt><dd>${escapeHtml(record.sourceHealth.state)}</dd>` : ""}
                         ${record.lastUpdated ? `<dt>Last Updated</dt><dd>${escapeHtml(formatDate(record.lastUpdated))}</dd>` : ""}
                         <dt>Retrieved</dt><dd>${escapeHtml(formatDate(record.retrievedDate))}</dd>
                     </dl>
@@ -573,6 +580,10 @@ function archiveCard(record){
 
 function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers, outputDir){
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
+    const byPublication = [...publishedRecords].sort((left, right) => String(right.publicationDate || right.publishedDate || "").localeCompare(String(left.publicationDate || left.publishedDate || "")));
+    const liveRecords = byPublication.filter(record => record.displayLifecycleStatus === "LIVE");
+    const archiveRecords = byPublication.filter(record => record.displayLifecycleStatus === "ARCHIVED");
+    const cards = records => records.length ? `<ul class="announcement-archive-list">${records.map(archiveCard).join("")}\n        </ul>` : '<p class="ticker-empty">No new validated announcements in the current 24-hour window.</p>';
 
     // Reuses the same shared head/header markup as every generated intelligence
     // detail page (extracted from pages/legal/privacy-policy.html) instead of a
@@ -608,15 +619,16 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 <section class="chapter-body">
     <div class="container announcement-archive-wrap">
       <section class="announcement-dashboard" data-announcement-dashboard data-source="../../assets/data/announcements.json">
-        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 24 hours. All older validated records remain searchable and discoverable here.</p></div><strong data-counts>Loading validated records…</strong></div>
+        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 24 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
         <form class="announcement-dashboard-filters" aria-label="Announcement archive filters" onsubmit="return false">
           ${["region", "country", "category", "subcategory"].map(field => `<label>${escapeHtml(field.charAt(0).toUpperCase() + field.slice(1))}<select data-filter="${field}"><option value="">All</option></select></label>`).join("")}
           <label>From date<input type="date" data-filter="from"></label><label>To date<input type="date" data-filter="to"></label>
           <button type="button" data-reset>Reset filters</button>
         </form>
         <div class="announcement-dashboard-stats" data-stats aria-live="polite"></div>
-        <section id="latest-24-hours"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live></div></section>
-        <section id="historical-publications"><h2>Repository archive</h2><div data-archive></div></section>
+        <section id="latest-24-hours"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
+        <section id="latest-publications"><h2>Latest validated publications</h2><div class="announcement-dashboard-grid" data-latest>${cards(byPublication.slice(0, 6))}</div></section>
+        <section id="historical-publications"><h2>Repository archive</h2><div data-archive>${cards(archiveRecords)}</div></section>
         ${pending.length ? `<p class="announcement-dashboard-pending"><strong>${pending.length}</strong> developing record(s) remain excluded from public results pending source and publication validation.</p>` : ""}
       </section>
     </div>
