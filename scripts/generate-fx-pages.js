@@ -25,7 +25,9 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const CONFIG_PATH = path.join(ROOT, "assets/data/fx/fx-config.json");
+const CURRENT_PATH = path.join(ROOT, "assets/data/fx/current.json");
 const HISTORY_DIR = path.join(ROOT, "assets/data/fx/history");
+const COUNTRY_REGISTRY_PATH = path.join(ROOT, "assets/data/fx/country-currency-registry.json");
 const TEMPLATE_SOURCE_PATH = path.join(ROOT, "pages/legal/privacy-policy.html");
 const OUTPUT_DIR = path.join(ROOT, "pages/fx");
 const PAIR_OUTPUT_DIR = path.join(OUTPUT_DIR, "pairs");
@@ -43,6 +45,72 @@ function escapeHtml(str){
 
 function pairSlug(pair){
     return pair.toLowerCase().replace("/", "-");
+}
+
+const CURRENCY_BY_COUNTRY = {
+    AR:"ARS", AU:"AUD", BD:"BDT", BO:"BOB", BR:"BRL", BZ:"BZD", CL:"CLP", CN:"CNY", CO:"COP", CR:"CRC",
+    CU:"CUP", DO:"DOP", EC:"USD", GT:"GTQ", HN:"HNL", HK:"HKD", ID:"IDR", IN:"INR", JP:"JPY", KR:"KRW",
+    LK:"LKR", MX:"MXN", MY:"MYR", NI:"NIO", NZ:"NZD", PA:"PAB", PE:"PEN", PH:"PHP", PK:"PKR", PY:"PYG",
+    SG:"SGD", SV:"USD", TH:"THB", UY:"UYU", VE:"VES", VN:"VND"
+};
+
+const APAC_BY_NAME = {
+    Australia:["AU","AUD"], Bangladesh:["BD","BDT"], China:["CN","CNY"], "Hong Kong":["HK","HKD"],
+    India:["IN","INR"], Indonesia:["ID","IDR"], Japan:["JP","JPY"], Malaysia:["MY","MYR"],
+    "New Zealand":["NZ","NZD"], Pakistan:["PK","PKR"], Philippines:["PH","PHP"], Singapore:["SG","SGD"],
+    "South Korea":["KR","KRW"], "Sri Lanka":["LK","LKR"], Thailand:["TH","THB"], Vietnam:["VN","VND"]
+};
+
+const SUPPLEMENTAL_COUNTRIES = [
+    ["Afghanistan","AF","AFN","SOUTH ASIA","Southern Asia"], ["Bhutan","BT","BTN","SOUTH ASIA","Southern Asia"],
+    ["Maldives","MV","MVR","SOUTH ASIA","Southern Asia"], ["Nepal","NP","NPR","SOUTH ASIA","Southern Asia"],
+    ["Brunei","BN","BND","APAC","South-East Asia"], ["Cambodia","KH","KHR","APAC","South-East Asia"],
+    ["Laos","LA","LAK","APAC","South-East Asia"], ["Mongolia","MN","MNT","APAC","East Asia"],
+    ["Myanmar","MM","MMK","APAC","South-East Asia"], ["Taiwan","TW","TWD","APAC","East Asia"],
+    ["Timor-Leste","TL","USD","APAC","South-East Asia"], ["Fiji","FJ","FJD","OCEANIA","Melanesia"],
+    ["Kiribati","KI","AUD","OCEANIA","Micronesia"], ["Marshall Islands","MH","USD","OCEANIA","Micronesia"],
+    ["Micronesia","FM","USD","OCEANIA","Micronesia"], ["Nauru","NR","AUD","OCEANIA","Micronesia"],
+    ["Palau","PW","USD","OCEANIA","Micronesia"], ["Papua New Guinea","PG","PGK","OCEANIA","Melanesia"],
+    ["Samoa","WS","WST","OCEANIA","Polynesia"], ["Solomon Islands","SB","SBD","OCEANIA","Melanesia"],
+    ["Tonga","TO","TOP","OCEANIA","Polynesia"], ["Tuvalu","TV","AUD","OCEANIA","Polynesia"],
+    ["Vanuatu","VU","VUV","OCEANIA","Melanesia"],
+    ["Armenia","AM","AMD","CIS","Caucasus"], ["Azerbaijan","AZ","AZN","CIS","Caucasus"],
+    ["Georgia","GE","GEL","CIS","Caucasus"], ["Kazakhstan","KZ","KZT","CIS","Central Asia"],
+    ["Kyrgyzstan","KG","KGS","CIS","Central Asia"], ["Russia","RU","RUB","CIS","Eastern Europe"],
+    ["Tajikistan","TJ","TJS","CIS","Central Asia"], ["Turkmenistan","TM","TMT","CIS","Central Asia"],
+    ["Uzbekistan","UZ","UZS","CIS","Central Asia"]
+];
+
+function buildCountryCurrencyRegistry(current){
+    const sources = [
+        ["africa-countries.json", "AFRICA"], ["latam-countries.json", "LATAM"],
+        ["sepa-countries.json", "EUROPE"], ["americas-countries.json", "LATAM"],
+        ["middle-east-countries.json", "GCC / MIDDLE EAST"], ["apac-countries.json", "APAC"]
+    ];
+    const southAsia = new Set(["BD", "IN", "PK", "LK"]);
+    const oceania = new Set(["AU", "NZ"]);
+    const supported = new Set((current.currencyUniverse && current.currencyUniverse.currencies) || []);
+    const currencyNames = new Intl.DisplayNames(["en"], { type: "currency" });
+    const countries = [];
+    sources.forEach(([fileName, defaultRegion]) => {
+        readJson(path.join(ROOT, "assets/data", fileName)).countries.forEach(country => {
+            const apacIdentity = APAC_BY_NAME[country.name];
+            const countryCode = country.countryCode || (apacIdentity && apacIdentity[0]);
+            const currencyCode = country.currencyCode || (apacIdentity && apacIdentity[1]) || CURRENCY_BY_COUNTRY[countryCode];
+            if(!currencyCode) return;
+            let region = defaultRegion;
+            if(countryCode === "US" || countryCode === "CA" || countryCode === "MX") region = "NORTH AMERICA";
+            if(southAsia.has(countryCode)) region = "SOUTH ASIA";
+            if(oceania.has(countryCode)) region = "OCEANIA";
+            countries.push({ country: country.name, countryCode, currencyName: country.currencyName || currencyNames.of(currencyCode), currencyCode, region, subregion: country.subRegion || region, enabled: supported.has(currencyCode) });
+        });
+    });
+    SUPPLEMENTAL_COUNTRIES.forEach(([country, countryCode, currencyCode, region, subregion]) => {
+        countries.push({ country, countryCode, currencyName: currencyNames.of(currencyCode), currencyCode, region, subregion, enabled: supported.has(currencyCode) });
+    });
+    const unique = Array.from(new Map(countries.map(country => [country.countryCode, country])).values())
+        .sort((a, b) => a.region.localeCompare(b.region) || a.country.localeCompare(b.country));
+    return { schemaVersion: "1.0", generatedFrom: sources.map(source => `assets/data/${source[0]}`), countries: unique };
 }
 
 function readJson(filePath){
@@ -77,7 +145,7 @@ function loadTemplate(){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
     const headerBlockTemplate = templateSource.slice(0, heroIdx)
-        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260911e");
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260911f");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -87,8 +155,8 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260911b"></script>`
-    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260911a");
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260911c"></script>`
+    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260911d");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
     const TEMPLATE_CANONICAL_URL = "https://krishnan-vishal.github.io/pages/legal/privacy-policy.html";
@@ -175,6 +243,10 @@ ${footerBlock}`;
 
 function main(){
     const config = readJson(CONFIG_PATH);
+    const current = readJson(CURRENT_PATH);
+    const registry = buildCountryCurrencyRegistry(current);
+    const registryJson = `{"schemaVersion":"${registry.schemaVersion}","generatedFrom":${JSON.stringify(registry.generatedFrom)},"countries":[\n${registry.countries.map(country => JSON.stringify(country)).join(",\n")}\n]}\n`;
+    fs.writeFileSync(COUNTRY_REGISTRY_PATH, registryJson, "utf8");
     const currentSnapshot = readJson(path.join(ROOT, "assets/data/fx/current.json"));
     const pairs = config.featuredPairs || [];
     const historyDates = listHistoryDates();
@@ -264,8 +336,15 @@ function main(){
     fs.writeFileSync(path.join(OUTPUT_DIR, "weekly.html"), weeklyHtml, "utf8");
 
     // --- Historical ------------------------------------------------
+    const archiveStart = "2026-09-01";
+    const archiveEnd = current.publicationDate;
+    const archiveDates = [];
+    for(let cursor = new Date(`${archiveStart}T00:00:00Z`), end = new Date(`${archiveEnd}T00:00:00Z`); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)){
+        archiveDates.push(cursor.toISOString().slice(0, 10));
+    }
+    const storedHistoryDates = new Set(historyDates);
     const byYear = {};
-    historyDates.forEach(date => {
+    archiveDates.forEach(date => {
         const year = date.slice(0, 4);
         (byYear[year] = byYear[year] || []).push(date);
     });
@@ -274,7 +353,8 @@ function main(){
         const dates = byYear[year];
         return `<section class="fx-history-year"><h2>${escapeHtml(year)}</h2><ul class="fx-history-date-list">${dates.map(date => {
             const [, m, d] = date.split("-");
-            return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}">${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}</a></li>`;
+            const unavailable = !storedHistoryDates.has(date);
+            return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}"${unavailable ? ' class="fx-history-date--unavailable"' : ""}>${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}${unavailable ? " — no validated observation" : ""}</a></li>`;
         }).join("")}</ul></section>`;
     }).join("") || `<p class="fx-empty-note">Building observation history — first GPIR snapshot published ${escapeHtml(formattedFirstSnapshotDate)}.</p>`;
     const historicalHtml = assemblePage({

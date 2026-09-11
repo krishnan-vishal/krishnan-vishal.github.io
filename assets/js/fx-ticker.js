@@ -238,9 +238,14 @@ function renderTicker(){
                                 : ageMinutes <= 360
                                     ? "DELAYED"
                                     : "STALE";
+            const compactStatus = statusText === "REFERENCE" ? "REF" : statusText;
+            const fullTimestamp = `${statusText} FX snapshot retrieved ${dateText} at ${timeText}`;
+            const statusItem = `<span class="fx-ticker-item fx-ticker-status" title="${fxEscapeHtml(fullTimestamp)}" aria-label="${fxEscapeHtml(fullTimestamp)}">${fxEscapeHtml(compactStatus)} · ${fxEscapeHtml(timeText)}</span>`;
+            const tickerSequence = html + statusItem;
+            track.innerHTML = tickerSequence + tickerSequence;
             updated.setAttribute("datetime", retrievedAt.toISOString());
-            updated.setAttribute("aria-label", `${statusText} FX snapshot retrieved ${dateText} at ${timeText}`);
-            updated.textContent = `${statusText} · Updated ${timeText}`;
+            updated.setAttribute("aria-label", fullTimestamp);
+            updated.textContent = "";
         } else {
             updated.textContent = "";
             updated.removeAttribute("datetime");
