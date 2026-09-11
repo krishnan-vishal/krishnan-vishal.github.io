@@ -67,4 +67,3 @@ jobs:
         shell: bash
         run: |
           node -e 'const fs=require("fs"); const p=process.env.RUNNER_TEMP+"/system-health.json"; if(!fs.existsSync(p)) process.exit(1); const h=JSON.parse(fs.readFileSync(p,"utf8")); if(h.overallStatus==="FAILED") process.exit(1);'
-
