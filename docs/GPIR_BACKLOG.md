@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M32 operational health
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M32-B1 | 2026-09-11 | Preservation-first operational health watch | AUTOMATION, RELIABILITY, GOVERNANCE | High | IN PROGRESS | M32-A read-only diagnostic; existing GitHub Actions/Pages and canonical timestamps | Stage 1 | `.github/workflows/operational-health.yml`, `scripts/check-operational-health.js`, `scripts/operational-health-config.json`, `scripts/test-operational-health.js` | Observe, detect, classify, preserve and report the health of ten production concerns plus pending review using an independent read-only workflow; never repair, regenerate, publish, alert externally or mutate production. | Hourly minute-37 schedule; read-only permissions; exact five-state model; temp-only manifest/artifact/summary; existing FX thresholds and LKG/history semantics reused; public/proposal and Pages/main reconciliation; all required mocked scenarios pass; producer workflows and production data remain byte-unchanged. | Core implementation complete. Fifteen deterministic scenarios pass. A read-only live trial produced a temp-only manifest and left the checkout unchanged apart from the seven authorised implementation/governance files. Commit, push, PR and Actions remain pending. MON-001 remains blocked for broader uptime/alerting; B1 is a bounded GitHub-native observer only. | PENDING owner review/merge | Commit pending | M32-B1 |
+
 ## M30 production closure
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

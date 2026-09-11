@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0",
+  "siteOrigin": "https://fintechoisis.com",
+  "mainBranch": "main",
+  "workflowNames": {
+    "continuousIntelligence": "GPIR Continuous Intelligence Discovery",
+    "fxData": "GPIR FX Market Data Refresh",
+    "securityIntegrity": "GPIR Security and Integrity",
+    "pagesDeployment": "pages build and deployment"
+  },
+  "thresholds": {
+    "continuousWorkflowMaxAgeMinutes": 240,
+    "fxWorkflowMaxAgeMinutes": 120,
+    "workflowInProgressGraceMinutes": 30,
+    "sourceHealthMaxAgeMinutes": 2880,
+    "pendingReviewMaxAgeMinutes": 2880,
+    "deploymentLagMinutes": 60,
+    "liveRequestTimeoutMs": 15000
+  },
+  "thresholdRationale": {
+    "continuousWorkflowMaxAgeMinutes": "Two expected two-hour cycles before STALE.",
+    "fxWorkflowMaxAgeMinutes": "Two expected hourly cycles before STALE; data age still uses fx-config provider thresholds.",
+    "workflowInProgressGraceMinutes": "Thirty minutes exceeds existing ten-minute producer timeouts without creating an aggressive alert.",
+    "sourceHealthMaxAgeMinutes": "Conservative forty-eight-hour public-snapshot allowance for the human review path.",
+    "pendingReviewMaxAgeMinutes": "Initial forty-eight-hour governance-wait threshold; expiry becomes STALE, never FAILED solely for non-merge.",
+    "deploymentLagMinutes": "Initial sixty-minute material main/deployment SHA drift allowance."
+  },
+  "publicAssets": {
+    "home": "/",
+    "fxCurrent": "/assets/data/fx/current.json",
+    "fxWeekly": "/assets/data/fx/weekly-summary.json",
+    "announcements": "/assets/data/announcements.json",
+    "sourceHealth": "/assets/data/source-health.json",
+    "sitemap": "/sitemap.xml"
+  },
+  "proposalBranches": {
+    "intelligence": "automation/intelligence-candidates",
+    "fx": "automation/fx-snapshot"
+  }
+}

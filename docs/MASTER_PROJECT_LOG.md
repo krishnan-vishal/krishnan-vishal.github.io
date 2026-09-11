@@ -14,6 +14,21 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M32-B1 — GPIR Preservation-First Operational Health Watch
+
+- **Date / base / branch:** `2026-09-11`; `4601c80`; `work/m32-b1-operational-health-watch`.
+- **Objective:** implement the observer-only first health layer identified by M32-A without changing any producer, canonical data, immutable history, deployment configuration, domain file or reader UI.
+- **Workflow:** added one independent workflow scheduled hourly at minute 37 with manual dispatch, a five-minute timeout and only `actions: read`, `checks: read`, `contents: read`, `deployments: read` and `pull-requests: read`. It cannot push, open issues/PRs, merge, deploy or repair. It uploads the temp-only manifest for 14 days, writes a concise job summary and makes only an overall FAILED classification fail the job.
+- **Observer:** the built-in-Node health script performs GET-only public/GitHub inspection, reads existing repository history/configuration, and returns exactly the `HEALTHY`, `DEGRADED`, `STALE`, `FAILED` and `PENDING_REVIEW` model. Deterministic severity is `FAILED > STALE > DEGRADED > PENDING_REVIEW > HEALTHY`.
+- **Coverage:** FX data, immutable history and weekly accumulation; continuous intelligence; aggregated source health; announcements; Security and Integrity; latest successful Pages deployment versus `main`; six production HTTP/structure probes; four critical JSON contracts; and open automation review state including `action_required`.
+- **Preservation behavior:** existing live/reference/fallback FX thresholds are read from `fx-config.json`; LKG is DEGRADED or STALE rather than FAILED while usable validated observations remain; history gaps are reported without backfill. Zero new intelligence is allowed. Source failures are aggregated. Pending valid automation output is a governance wait until its conservative 48-hour review threshold expires.
+- **Runtime outputs:** `system-health.json` and Markdown are permitted only outside the repository checkout. The workflow targets `$RUNNER_TEMP`; the JSON is an Actions artifact and is never committed or published. An attempted checkout-local output is rejected.
+- **Tests:** 15 fixture/mock scenarios pass, covering every requested M32-B1 condition plus explicit FX-workflow integration. The immutability scenario hashes protected files across an injected monitor failure and verifies that neither producer commands nor write permissions occur in the observer workflow.
+- **Live read-only trial:** at `2026-09-11T10:55:04Z`, the temporary manifest resolved `main` and the latest successful Pages deployment to `4601c80`. FX data/history, continuous intelligence, announcements, security, Pages, live HTTP and critical JSON were HEALTHY; weekly FX and public source health were DEGRADED; the existing intelligence PR exceeded the initial review threshold, making overall status STALE. Local unauthenticated API quota exhaustion prevented retrieval of the proposal-file timestamp; scheduled Actions will use the repository-scoped read-only token.
+- **Files:** created `.github/workflows/operational-health.yml`, `scripts/check-operational-health.js`, `scripts/operational-health-config.json`, and `scripts/test-operational-health.js`; updated the three canonical governance records. No existing workflow or production/content/data file changed.
+- **Validation at implementation checkpoint:** health tests, edited JavaScript syntax and `git diff --check` pass. Existing link validation, producer-workflow byte comparison and final branch validation are recorded at delivery. No generator was run.
+- **Delivery:** implementation is complete locally. Commit, push, PR, Actions and owner review are PENDING; the worker is not authorised to merge. No B1 alerting was added. Broader MON-001 observability remains separately blocked pending its existing ownership/privacy/retention decisions.
+
 ## M30 — Final Global Announcements Production Closure
 
 - **Date / base / branch:** `2026-09-10`; `2411e99`; `work/m30-global-announcements-production-closure`.

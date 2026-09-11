@@ -1,0 +1,70 @@
+name: GPIR Operational Health Watch
+
+on:
+  schedule:
+    - cron: "37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  deployments: read
+  pull-requests: read
+
+concurrency:
+  group: gpir-operational-health
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    name: Observe production health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate runtime health manifest
+        id: health
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/check-operational-health.js
+          --output "$RUNNER_TEMP/system-health.json"
+          --summary "$RUNNER_TEMP/system-health-summary.md"
+
+      - name: Publish compact job summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/system-health-summary.md" ]; then
+            cat "$RUNNER_TEMP/system-health-summary.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## GPIR OPERATIONAL HEALTH"
+              echo
+              echo "Health Watch did not produce a summary. Production was not modified."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload runtime health manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-system-health-${{ github.run_id }}
+          path: ${{ runner.temp }}/system-health.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Reflect failed production health in the job result
+        if: always()
+        shell: bash
+        run: |
+          node -e 'const fs=require("fs"); const p=process.env.RUNNER_TEMP+"/system-health.json"; if(!fs.existsSync(p)) process.exit(1); const h=JSON.parse(fs.readFileSync(p,"utf8")); if(h.overallStatus==="FAILED") process.exit(1);'
+

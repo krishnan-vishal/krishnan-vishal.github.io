@@ -2,6 +2,19 @@
 
 ## Current handoff
 
+### M32-B1 — Preservation-First Operational Health Watch
+- **Milestone / owner:** M32-B1 — GPIR Preservation-First Operational Health Watch; Vishal Krishnan.
+- **Base / branch:** `origin/main` at `4601c80`; `work/m32-b1-operational-health-watch`. Owner-controlled review and merge are required; no merge is authorised.
+- **Objective:** add one independent, hourly, read-only observer covering FX data/history/weekly accumulation, continuous intelligence, aggregated source health, announcements, security, Pages deployment, the live site, critical JSON and pending review without changing or repairing any producer or production asset.
+- **Implementation:** `.github/workflows/operational-health.yml` runs at minute 37 and by manual dispatch with read-only Actions, Checks, Contents, Deployments and Pull Requests permissions. `scripts/check-operational-health.js` uses built-in Node APIs only, reads GitHub/live/repository evidence, applies the exact five-state model, writes `system-health.json` and a compact summary only to caller-selected paths outside the checkout, and never invokes a generator or mutating GitHub method. Runtime manifests are uploaded for 14 days and are not committed or deployed.
+- **Thresholds:** one non-public configuration file reuses FX provider thresholds directly. Monitor-specific grace is centralized: FX workflow 120 minutes, continuous workflow 240 minutes, in-progress 30 minutes, source-health/review 2,880 minutes and deployment-SHA lag 60 minutes. These are conservative initial classifications, not publication or repair rules.
+- **Protection:** FX provider outage remains DEGRADED while validated LKG exists, stale data becomes STALE at its configured provider threshold, absence of usable validated FX becomes FAILED, and referenced immutable history is inspected without creation/backfill. Source failures are aggregated. Zero discovered intelligence is healthy. Newer proposal state and `action_required` are PENDING_REVIEW until the configured review window expires.
+- **Deterministic tests:** 15 mocked scenarios pass: all healthy; FX LKG degradation, staleness and no-LKG failure; partial source degradation; continuous and FX workflow failures; `action_required`; newer automation PR; Pages failure; malformed JSON; HTTP failure; deployment SHA lag; history continuity gap; and monitor-failure production immutability.
+- **Read-only live trial:** a temp-only manifest classified overall STALE: FX data/history, continuous workflow, announcements, security, Pages, live HTTP and critical JSON HEALTHY; FX weekly and source health DEGRADED; pending intelligence review STALE after the conservative 48-hour threshold. `main` and the latest successful Pages deployment both resolved to `4601c80`. The unauthenticated local GitHub API quota prevented proposal-file timestamp retrieval; the workflow has a read-only GitHub token for that evidence.
+- **Files:** four core files plus this status, the master log and backlog. Existing producer workflows, FX/intelligence logic, security, Pages, public data, history, registries, sitemap, CNAME and UI are byte-unchanged.
+- **Delivery state:** implementation and local/live read-only validation complete; commit, push, PR and Actions are PENDING at this checkpoint.
+- **Remaining authority:** push the validated branch, run the new workflow/PR integrity checks, review its first authenticated artifact and classifications, then Vishal decides whether to merge. Alerting remains deferred to M32-B2/M32-C.
+
 ### M28-FX-R1 — Data-first production remediation
 - **Milestone / owner:** M28-FX-R1 — FX Live Data Pipeline Final Repair; Vishal Krishnan.
 - **Base / branch:** `origin/main` at `2098026`; `work/m28-fx-r1-data-first-remediation`. No merge is authorised.
