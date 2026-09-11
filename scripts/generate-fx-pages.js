@@ -77,7 +77,7 @@ function loadTemplate(){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
     const headerBlockTemplate = templateSource.slice(0, heroIdx)
-        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260909a");
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260911e");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -87,7 +87,7 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260911a"></script>`
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20260911b"></script>`
     ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260911a");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";

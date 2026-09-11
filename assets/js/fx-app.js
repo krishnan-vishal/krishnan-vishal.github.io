@@ -151,6 +151,31 @@
         return (snapshot.pairs || []).find(item => item.pair === pair) || deriveUniverseRecord(snapshot, pair);
     }
 
+    function pairHref(snapshot, pair){
+        const isPublishedPair = (snapshot.pairs || []).some(item => item.pair === pair);
+        return isPublishedPair
+            ? `${pagePrefix()}pages/fx/pairs/${pairSlug(pair)}.html`
+            : `${pagePrefix()}pages/fx/explorer.html?pair=${pair.replace("/", "-")}`;
+    }
+
+    function destinationRecord(snapshot, destination, sendingBases){
+        for(const base of sendingBases){
+            if(base === destination) continue;
+            const record = findOrDeriveRecord(snapshot, `${base}/${destination}`);
+            if(record) return record;
+        }
+        return null;
+    }
+
+    function currencyDisplayName(code){
+        try{
+            const name = new Intl.DisplayNames(["en"], { type: "currency" }).of(code);
+            return name && name !== code ? `${name} / ${code}` : code;
+        } catch(error){
+            return code;
+        }
+    }
+
     /*-----------------------------------------------------
       LIVE FX HUB
     -----------------------------------------------------*/
@@ -164,22 +189,27 @@
                 grid.innerHTML = `<p class="fx-empty-note">No FX snapshot is available yet. See docs/FX_PRICING_TREASURY.md for how a provider is configured and the first snapshot generated.</p>`;
                 return;
             }
-            const recordsByPair = new Map(pairs.map(record => [record.pair, record]));
-            const regions = config.marketRegions || { GLOBAL: pairs.map(record => record.pair) };
+            const sendingBases = config.treasurySendingBases || ["USD", "EUR", "GBP"];
+            const regions = config.regionCurrencyMap || {};
             const regionNames = Object.keys(regions);
+            const recordsByRegion = new Map(regionNames.map(region => [region, (regions[region] || [])
+                .map(destination => {
+                    const record = destinationRecord(snapshot, destination, sendingBases);
+                    return record ? { record, destination } : null;
+                }).filter(Boolean)]));
             grid.innerHTML = `<div class="fx-region-filters" role="group" aria-label="Filter FX markets by region">
                 <button type="button" class="fx-region-filter is-active" data-fx-region="ALL">ALL</button>
-                ${regionNames.map(region => `<button type="button" class="fx-region-filter" data-fx-region="${escapeHtml(region)}"${(regions[region] || []).some(pair => recordsByPair.has(pair)) ? "" : " disabled title=\"No curated market pairs in the current snapshot\""}>${escapeHtml(region)}</button>`).join("")}
+                ${regionNames.map(region => `<button type="button" class="fx-region-filter" data-fx-region="${escapeHtml(region)}"${recordsByRegion.get(region).length ? "" : " disabled title=\"No supported destination markets in the current snapshot\""}>${escapeHtml(region)}</button>`).join("")}
             </div>
             <div class="fx-market-regions">${regionNames.map(region => {
-                const records = (regions[region] || []).map(pair => recordsByPair.get(pair)).filter(Boolean);
+                const records = recordsByRegion.get(region);
                 if(!records.length) return "";
                 return `<section class="fx-market-region" data-fx-market-region="${escapeHtml(region)}">
                     <h2>${escapeHtml(region)}</h2>
                     <div class="fx-market-table" role="table" aria-label="${escapeHtml(region)} FX market">
-                        <div class="fx-market-row fx-market-row--head" role="row"><span>Pair</span><span>Rate</span><span>Prev-day Δ</span><span>Status</span></div>
-                        ${records.map(record => `<a class="fx-market-row ${directionClass(record.direction)}" role="row" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
-                            <strong>${escapeHtml(record.pair)}</strong>
+                        <div class="fx-market-row fx-market-row--head" role="row"><span>Destination pair</span><span>Rate</span><span>Prev-day Δ</span><span>Status</span></div>
+                        ${records.map(({ record, destination }) => `<a class="fx-market-row ${directionClass(record.direction)}" role="row" href="${pairHref(snapshot, record.pair)}">
+                            <span class="fx-market-pair"><strong>${escapeHtml(record.pair)}</strong><small>${escapeHtml(currencyDisplayName(destination))}</small></span>
                             <span>${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
                             <span class="fx-market-variance">${formatCardVariance(record.percentageChange)}</span>
                             <span>${escapeHtml(referenceClassification(record))}</span>
@@ -244,54 +274,45 @@
         });
     }
 
-    /*-----------------------------------------------------
-      TREASURY INTELLIGENCE (deterministic groupings)
-    -----------------------------------------------------*/
-    const GCC_MANAGED_CURRENCIES = new Set(["AED", "SAR", "QAR", "KWD", "BHD", "OMR"]);
-
-    function classifyPair(record){
-        if(GCC_MANAGED_CURRENCIES.has(record.base) || GCC_MANAGED_CURRENCIES.has(record.quote)){
-            return "GCC pegged / managed currencies";
-        }
-        if(record.base === "INR" || record.quote === "INR"){
-            return "INR corridor pairs";
-        }
-        if(record.base === "USD" || record.quote === "USD"){
-            return "USD funding pairs";
-        }
-        return "Major crosses";
-    }
-
     function renderTreasury(){
         const container = document.getElementById("fx-treasury-groups");
         if(!container) return;
-        loadCurrentSnapshot().then(snapshot => {
+        Promise.all([loadCurrentSnapshot(), loadConfig()]).then(([snapshot, config]) => {
             const pairs = snapshot.pairs || [];
             if(!pairs.length){
                 container.innerHTML = `<p class="fx-empty-note">No FX snapshot is available yet for treasury groupings.</p>`;
                 return;
             }
-            const groups = new Map();
-            pairs.forEach(record => {
-                const group = classifyPair(record);
-                if(!groups.has(group)) groups.set(group, []);
-                groups.get(group).push(record);
-            });
-            container.innerHTML = Array.from(groups.entries()).map(([group, records]) => `
-                <section class="fx-treasury-group">
-                    <h2>${escapeHtml(group)}</h2>
+            const sendingBases = config.treasurySendingBases || ["USD", "EUR", "GBP"];
+            const destinations = Array.from(new Set(Object.values(config.regionCurrencyMap || {}).flat()));
+            if(!destinations.length) return;
+            const initialDestination = destinations.includes("INR") ? "INR" : destinations[0];
+            container.innerHTML = `<div class="fx-treasury-controls">
+                <label for="fx-treasury-destination">Destination market</label>
+                <select id="fx-treasury-destination">${destinations.map(code => `<option value="${code}"${code === initialDestination ? " selected" : ""}>${escapeHtml(currencyDisplayName(code))}</option>`).join("")}</select>
+            </div><div data-fx-treasury-market></div>`;
+            const market = container.querySelector("[data-fx-treasury-market]");
+            const select = container.querySelector("#fx-treasury-destination");
+            const showDestination = destination => {
+                const records = sendingBases.filter(base => base !== destination)
+                    .map(base => findOrDeriveRecord(snapshot, `${base}/${destination}`)).filter(Boolean);
+                market.innerHTML = `<section class="fx-treasury-group">
+                    <h2>${escapeHtml(currencyDisplayName(destination))}</h2>
+                    <p class="fx-section-note">Major configured sending currencies into this destination market.</p>
                     <div class="fx-pair-grid">
                         ${records.map(record => `
-                            <a class="fx-pair-card ${directionClass(record.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(record.pair)}.html">
+                            <a class="fx-pair-card ${directionClass(record.direction)}" href="${pairHref(snapshot, record.pair)}">
                                 <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
                                 <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
                                 <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
-                                ${statusBadge(record.dataStatus)}
+                                <span class="fx-status-badge fx-status-badge--reference">${escapeHtml(referenceClassification(record))}</span>
                             </a>
                         `).join("")}
                     </div>
-                </section>
-            `).join("");
+                </section>`;
+            };
+            select.addEventListener("change", () => showDestination(select.value));
+            showDestination(initialDestination);
         });
     }
 
