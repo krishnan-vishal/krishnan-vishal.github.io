@@ -266,11 +266,11 @@ TICKER AREA
 
 #fx-ribbon .market-time{
 
-    flex:0 0 clamp(78px, 10vw, 112px);
-    min-width:78px;
+    flex:0 0 clamp(148px, 16vw, 190px);
+    min-width:148px;
     padding:0 8px;
-    font-size:9px;
-    line-height:1.15;
+    font-size:8.5px;
+    line-height:1;
     text-align:center;
     white-space:nowrap;
 
@@ -278,16 +278,7 @@ TICKER AREA
 
 #fx-ribbon .market-time time{
 
-    display:flex;
-    flex-direction:column;
-    gap:1px;
-
-}
-
-#fx-ribbon .market-time span:first-child{
-
-    color:#ffffff;
-    font-weight:600;
+    display:block;
 
 }
 
@@ -1273,10 +1264,10 @@ carried by glyph + text, never colour alone.
 
     #fx-ribbon .market-time{
 
-        flex-basis:72px;
-        min-width:72px;
+        flex-basis:140px;
+        min-width:140px;
         padding:0 5px;
-        font-size:8px;
+        font-size:7.5px;
 
     }
 

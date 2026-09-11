@@ -14,7 +14,10 @@ on:
     # refreshFrequencyMinutes. A daily reference-rate feed does not
     # benefit from more frequent polling; a future licensed live feed
     # can lower this once configured.
-    - cron: "0 * * * *"
+    # Minute 7 avoids top-of-hour scheduler concentration. The current
+    # reference source updates daily, so hourly is the fastest useful
+    # sustainable provider cadence; the browser re-checks every 15 min.
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -117,27 +120,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           if gh pr list --head automation/fx-snapshot --base main --state open --json number --jq 'length > 0' | grep -qx true; then
             echo "Updated existing FX snapshot proposal pull request."
             exit 0
           fi
-          # The proposal branch above is already pushed and is real,
-          # human-reviewable output regardless of what happens below --
-          # opening the PR is a convenience wrapper around it, not the
-          # generation/validation work itself. A repository whose
-          # Settings > Actions > General > Workflow permissions does not
-          # have "Allow GitHub Actions to create and approve pull
-          # requests" enabled will reject PR creation from this token;
-          # that is a repository setting, not a generation/validation
-          # failure, so it must not fail the whole scheduled run.
-          if gh pr create \
+          # A pushed proposal branch without an open review PR cannot
+          # reach production. Treat PR creation failure as a pipeline
+          # failure instead of reporting a misleading successful run.
+          gh pr create \
             --base main \
             --head automation/fx-snapshot \
             --title "M28-FX Refresh FX market snapshot" \
-            --body "Automated FX snapshot refresh: generated, normalized and validated candidate/current FX data and regenerated FX pages. No publication to main happens automatically -- this snapshot is proposed for human review and merge, consistent with GPIR's existing continuous-intelligence.yml review pattern."; then
-            exit 0
-          fi
-          echo "::warning::FX snapshot branch automation/fx-snapshot was pushed, but this token could not open the pull request (commonly: Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\" is disabled for this repository). Open the PR manually from that branch, or enable that setting, to complete human review."
-          echo "## GPIR FX snapshot branch pushed, PR not auto-created" >> "$GITHUB_STEP_SUMMARY"
-          echo "automation/fx-snapshot was pushed with a validated snapshot, but this token is not permitted to open pull requests. Open it manually, or enable Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\". main is unaffected either way -- last-known-good production data remains live until a human merges the review PR." >> "$GITHUB_STEP_SUMMARY"
+            --body "Automated FX snapshot refresh: generated, normalized and validated candidate/current FX data and regenerated FX pages. No publication to main happens automatically -- this snapshot is proposed for human review and merge, consistent with GPIR's existing continuous-intelligence.yml review pattern."
