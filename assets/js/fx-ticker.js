@@ -240,7 +240,7 @@ function renderTicker(){
                                     : "STALE";
             updated.setAttribute("datetime", retrievedAt.toISOString());
             updated.setAttribute("aria-label", `${statusText} FX snapshot retrieved ${dateText} at ${timeText}`);
-            updated.textContent = `${statusText} · Updated ${dateText} · ${timeText}`;
+            updated.textContent = `${statusText} · Updated ${timeText}`;
         } else {
             updated.textContent = "";
             updated.removeAttribute("datetime");

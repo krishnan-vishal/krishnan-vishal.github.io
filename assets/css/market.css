@@ -266,8 +266,8 @@ TICKER AREA
 
 #fx-ribbon .market-time{
 
-    flex:0 0 clamp(148px, 16vw, 190px);
-    min-width:148px;
+    flex:0 0 clamp(116px, 13vw, 150px);
+    min-width:116px;
     padding:0 8px;
     font-size:8.5px;
     line-height:1;
@@ -612,6 +612,12 @@ ANIMATION
 .fx-market-row.fx-down .fx-market-variance{ color:#b52e2e; }
 .fx-market-row.fx-unchanged .fx-market-variance,
 .fx-market-row.fx-no-comparison .fx-market-variance{ color:#68717c; }
+.fx-market-pair{ display:flex; flex-direction:column; min-width:0; line-height:1.2; }
+.fx-market-pair small{ overflow:hidden; color:#68717c; font-size:9px; font-weight:500; text-overflow:ellipsis; white-space:nowrap; }
+.fx-treasury-controls{ display:flex; align-items:end; gap:8px; margin:4px 0 14px; }
+.fx-treasury-controls label{ color:#68717c; font-size:11px; font-weight:700; }
+.fx-treasury-controls select{ min-height:34px; padding:5px 8px; border:1px solid #c9c2b2; border-radius:6px; background:#fff; color:#0b2742; }
+.fx-section-note{ margin:0 0 8px; color:#68717c; font-size:11px; }
 .fx-explorer-form{ display:grid; grid-template-columns:auto minmax(100px, 160px) auto minmax(100px, 160px) auto; align-items:end; gap:8px 10px; margin:4px 0 22px; }
 .fx-explorer-select{ min-height:38px; padding:7px 10px; border:1px solid #c9c2b2; border-radius:6px; background:#fff; color:#0b2742; }
 .fx-explorer-submit{ min-height:38px; padding:7px 14px; border:1px solid #0b2742; border-radius:6px; background:#0b2742; color:#fff; font-weight:700; cursor:pointer; }
@@ -797,7 +803,7 @@ carried by glyph + text, never colour alone.
 .fx-pair-grid{
 
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
     gap:8px;
     margin:8px 0;
 
@@ -808,7 +814,7 @@ carried by glyph + text, never colour alone.
     display:grid;
     grid-template-columns:minmax(0, 1fr) auto;
     gap:3px 8px;
-    padding:10px 12px;
+    padding:8px 10px;
     border-radius:8px;
     border:1px solid #d9d4c7;
     background:#fbf8f0;
@@ -851,7 +857,7 @@ carried by glyph + text, never colour alone.
     grid-column:1;
     grid-row:1;
     font-weight:700;
-    font-size:14px;
+    font-size:13px;
 
 }
 
@@ -859,7 +865,7 @@ carried by glyph + text, never colour alone.
 
     grid-column:1 / -1;
     font-variant-numeric:tabular-nums;
-    font-size:17px;
+    font-size:16px;
     font-weight:700;
     line-height:1.2;
 
@@ -868,7 +874,7 @@ carried by glyph + text, never colour alone.
 .fx-pair-card-change{
 
     grid-column:1 / -1;
-    font-size:13px;
+    font-size:12px;
     font-weight:600;
     font-variant-numeric:tabular-nums;
 
@@ -890,11 +896,11 @@ carried by glyph + text, never colour alone.
     grid-row:1;
     justify-self:end;
     align-self:start;
-    font-size:10px;
+    font-size:9px;
     font-weight:700;
     letter-spacing:.04em;
     text-transform:uppercase;
-    padding:2px 8px;
+    padding:2px 5px;
     border-radius:999px;
     border:1px solid currentColor;
 
@@ -1264,8 +1270,8 @@ carried by glyph + text, never colour alone.
 
     #fx-ribbon .market-time{
 
-        flex-basis:140px;
-        min-width:140px;
+        flex-basis:112px;
+        min-width:112px;
         padding:0 5px;
         font-size:7.5px;
 
