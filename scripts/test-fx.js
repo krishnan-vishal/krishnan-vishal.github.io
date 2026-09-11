@@ -146,6 +146,25 @@ assert.strictEqual(
 console.log("PASS ticker formatting: rate/percentage rendering matches the compact visual target, direction never relies on colour alone.");
 
 /* ---------------------------------------------------------------------
+ * Reader freshness: mutable FX publications bypass browser caches,
+ * while immutable dated history retains its stable URL.
+ * ------------------------------------------------------------------- */
+
+const tickerReaderSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-ticker.js"), "utf8");
+const fxAppSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-app.js"), "utf8");
+const homepageSource = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+assert.match(tickerReaderSource, /current\.json\?v=.*Date\.now\(\)/, "homepage current.json must use a per-request cache key");
+assert.match(tickerReaderSource, /fetch\(fxCurrentSnapshotUrl\(\), \{ cache: "no-store" \}\)/, "homepage current.json must bypass the browser cache");
+assert.match(fxAppSource, /fetchMutableFxJson\("current\.json"\)/, "FX reader current.json must use the mutable-data fetch path");
+assert.match(fxAppSource, /fetchMutableFxJson\("weekly-summary\.json"\)/, "weekly summaries must refresh with the current publication");
+assert.match(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json`\)/, "immutable dated history must retain its stable cacheable URL");
+assert.doesNotMatch(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json\?v=/, "immutable history must not receive mutable cache-busting");
+assert.match(homepageSource, />\s*FX SNAPSHOT\s*</, "the reference snapshot ticker must not be labelled live");
+assert.match(tickerReaderSource, /LAST VALIDATED/, "a failed refresh must be visibly labelled as last validated");
+
+console.log("PASS reader freshness: mutable current/weekly JSON revalidates, immutable history stays cacheable, and stale data is not labelled live.");
+
+/* ---------------------------------------------------------------------
  * Provider failover (mocked network), including a stub licensed
  * provider that reports NOT_CONFIGURED without attempting a call.
  * ------------------------------------------------------------------- */

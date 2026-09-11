@@ -84,15 +84,19 @@
         return `<span class="fx-status-badge fx-status-badge--${escapeHtml((dataStatus || "unknown").toLowerCase())}">${escapeHtml(label)}</span>`;
     }
 
-    function fetchJson(url){
-        return fetch(url).then(response => {
+    function fetchJson(url, options){
+        return fetch(url, options).then(response => {
             if(!response.ok) throw new Error(`fetch failed (${response.status}): ${url}`);
             return response.json();
         });
     }
 
+    function fetchMutableFxJson(fileName){
+        return fetchJson(`${dataPrefix()}${fileName}?v=${Date.now()}`, { cache: "no-store" });
+    }
+
     function loadCurrentSnapshot(){
-        return fetchJson(dataPrefix() + "current.json").catch(() => ({ pairs: [], dataStatus: "UNAVAILABLE", generatedAt: null }));
+        return fetchMutableFxJson("current.json").catch(() => ({ pairs: [], dataStatus: "UNAVAILABLE", generatedAt: null }));
     }
 
     function loadConfig(){
@@ -299,7 +303,7 @@
         if(!list) return;
         const firstSnapshotDate = list.getAttribute("data-fx-first-snapshot-date");
         Promise.all([
-            fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] })),
+            fetchMutableFxJson("weekly-summary.json").catch(() => ({ summaries: [] })),
             loadCurrentSnapshot()
         ]).then(([data, snapshot]) => {
             const summaries = data.summaries || [];
@@ -452,8 +456,12 @@
         const sourceLegsNote = record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
             ? `<p class="fx-source-legs">Deterministically derived from ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} using validated ${escapeHtml(record.provider)} common-base rates. It is not a provider-native or executable quote.</p>`
             : "";
-        container.innerHTML = `<div class="fx-pair-detail-header"><h2>${escapeHtml(pair)}</h2><span class="fx-reference-class">${referenceClassification(record)}</span></div>
+        const lastValidatedNote = snapshot.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD" || record.dataStatus === "STALE"
+            ? `<p class="fx-data-note"><strong>Provider currently unavailable.</strong> Showing the last validated observation from ${record.timestamp ? escapeHtml(new Date(record.timestamp).toISOString()) : "the recorded snapshot"}.</p>`
+            : "";
+        container.innerHTML = `<div class="fx-pair-detail-header"><h2>${escapeHtml(pair)}</h2>${statusBadge(record.dataStatus)}<span class="fx-reference-class">${referenceClassification(record)}</span></div>
             <table class="fx-detail-table"><tbody>${rows.map(([label, value, rowClass]) => `<tr${rowClass ? ` class="${rowClass}"` : ""}><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}</tbody></table>
+            ${lastValidatedNote}
             <p class="fx-data-note">Bid/Ask, Spot/TOM and Cash pricing appear only when the authorised source genuinely supplies them. No executable price is inferred from reference or cross-rate data.</p>
             ${hasPendingVariance ? `<p class="fx-variance-note">Variance pending until an earlier validated GPIR business-day observation exists.</p>` : ""}
             ${sourceLegsNote}
@@ -473,7 +481,7 @@
         const container = document.querySelector('[data-fx-view="pair-detail"]');
         if(!container) return;
         const pair = container.getAttribute("data-fx-pair");
-        Promise.all([loadCurrentSnapshot(), fetchJson(dataPrefix() + "weekly-summary.json").catch(() => ({ summaries: [] }))]).then(([snapshot, weeklyData]) => {
+        Promise.all([loadCurrentSnapshot(), fetchMutableFxJson("weekly-summary.json").catch(() => ({ summaries: [] }))]).then(([snapshot, weeklyData]) => {
             renderPairIntelligence(container, snapshot, pair, (weeklyData.summaries || []).find(item => item.pair === pair));
         });
     }

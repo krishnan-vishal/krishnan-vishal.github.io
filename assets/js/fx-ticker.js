@@ -49,6 +49,13 @@ function fxPagePrefix(){
     return fxDataPrefix().replace(/assets\/data\/fx\/$/, "");
 }
 
+// current.json is mutable publication state. Give each scheduled
+// re-check a unique URL and explicitly bypass the browser HTTP cache;
+// immutable history files intentionally keep their normal cache path.
+function fxCurrentSnapshotUrl(){
+    return fxDataPrefix() + "current.json?v=" + Date.now();
+}
+
 function fxPairSlug(pair){
     return pair.toLowerCase().replace("/", "-");
 }
@@ -118,7 +125,7 @@ async function loadRates(){
 
     try{
 
-        const response = await fetch(fxDataPrefix() + "current.json");
+        const response = await fetch(fxCurrentSnapshotUrl(), { cache: "no-store" });
 
         if(!response.ok) throw new Error("FX snapshot fetch failed: HTTP " + response.status);
 
@@ -188,17 +195,21 @@ function renderTicker(){
 
     if(updated){
 
-        const generatedAt = fxSnapshotCache.generatedAt ? new Date(fxSnapshotCache.generatedAt) : null;
-        if(generatedAt && !isNaN(generatedAt.getTime())){
-            const dateText = generatedAt.toLocaleDateString("en-GB", {
+        const firstPair = pairs[0] || {};
+        const retrievedAtValue = (fxSnapshotCache.currencyUniverse && fxSnapshotCache.currencyUniverse.gpirRetrievedAt) || firstPair.gpirRetrievedAt || fxSnapshotCache.generatedAt;
+        const retrievedAt = retrievedAtValue ? new Date(retrievedAtValue) : null;
+        if(retrievedAt && !isNaN(retrievedAt.getTime())){
+            const dateText = retrievedAt.toLocaleDateString("en-GB", {
                 day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata"
             }).replace("Sept", "Sep");
-            const timeText = generatedAt.toLocaleTimeString("en-GB", {
+            const timeText = retrievedAt.toLocaleTimeString("en-GB", {
                 hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata"
             }) + " IST";
-            updated.setAttribute("datetime", generatedAt.toISOString());
-            updated.setAttribute("aria-label", `FX snapshot generated ${dateText} at ${timeText}`);
-            updated.innerHTML = `<span>${dateText}</span><span>${timeText}</span>`;
+            const isLastValidated = fxSnapshotCache.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD" || pairs.some(record => record.dataStatus === "STALE");
+            const statusText = isLastValidated ? "LAST VALIDATED" : pairs.every(record => record.dataStatus === "REFERENCE") ? "REFERENCE" : "LATEST";
+            updated.setAttribute("datetime", retrievedAt.toISOString());
+            updated.setAttribute("aria-label", `${statusText} FX snapshot retrieved ${dateText} at ${timeText}`);
+            updated.innerHTML = `<span>${statusText}</span><span>${dateText} · ${timeText}</span>`;
         } else {
             updated.textContent = "";
             updated.removeAttribute("datetime");

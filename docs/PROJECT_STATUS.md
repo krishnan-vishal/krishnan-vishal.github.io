@@ -2,6 +2,16 @@
 
 ## Current handoff
 
+### M28-FX-R1 — Data-first production remediation
+- **Milestone / owner:** M28-FX-R1 — FX Live Data Pipeline Final Repair; Vishal Krishnan.
+- **Base / branch:** `origin/main` at `2098026`; `work/m28-fx-r1-data-first-remediation`. No merge is authorised.
+- **Root cause:** the hourly FX workflow successfully generated and validated observations on `automation/fx-snapshot`, but GitHub Actions could not create its review PR and deliberately returned success. Consequently production `main` remained on the first 08 Sep snapshot with no historical baseline, variance or weekly evidence.
+- **Data result:** the repair branch incorporates the genuine Open ER API reference observations accumulated by the automation branch through 11 Sep: 26/26 validated pairs, three immutable daily archives, previous-business-day values for all 26 pairs and four-observation deterministic weekly summaries. The source remains truthfully `REFERENCE`; no licensed live provider is configured or claimed.
+- **Freshness / failure result:** mutable `current.json` and `weekly-summary.json` reads now use unique request URLs with `cache: no-store`; dated immutable history retains stable cacheable URLs. The homepage says `FX SNAPSHOT`, identifies `REFERENCE` or `LAST VALIDATED`, uses GPIR retrieval time, and pair pages expose record status plus a provider-unavailable last-validated note.
+- **Workflow result:** a missing review PR is now a failed publication handoff, not a green run. The validated automation branch remains preserved, but `gh pr create` failure makes the scheduled workflow visibly fail until the repository permission is enabled or a human opens the PR.
+- **Validation:** FX regression suite, FX structured-data validator, generated-page link validator, JavaScript syntax and `git diff --check` pass. Live public-provider diagnostic returned 26 requested/26 normalized pair records through the existing adapter; no credential was printed.
+- **Remaining authority:** owner review/merge of the remediation PR is required to update production. For durable scheduled publication proposals, enable **Settings > Actions > General > Allow GitHub Actions to create and approve pull requests**. Licensed live bid/ask/last access remains blocked pending authorised provider credentials and a verified API contract.
+
 ### M30 — Final Global Announcements Production Closure
 - **Milestone / owner:** M30 — Final Global Announcements Production Closure; Vishal Krishnan.
 - **Base / branch:** merged Wave A PR #351 on `origin/main` (`2411e99`); `work/m30-global-announcements-production-closure`. One PR is required; no merge is authorised.
