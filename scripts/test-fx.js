@@ -166,6 +166,7 @@ assert.match(tickerReaderSource, /if\(fxSnapshotCache\)\{[\s\S]*fxRefreshFailed 
 assert.match(tickerReaderSource, /Math\.max\(5, Math\.min\(15, configuredMinutes\)\)/, "browser refresh must stay within the configured 5-15 minute capability");
 assert.match(tickerReaderSource, /setTimeout\(loadRates, browserMinutes \* 60 \* 1000\)/, "the ticker must re-fetch current.json without reloading the page");
 assert.match(tickerReaderSource, /ageMinutes <= refreshIntervalMinutes \* 2/, "live-provider freshness must be calculated from observation age");
+assert.match(tickerReaderSource, /ageMinutes <= referenceStaleAfterMinutes \? "REFERENCE" : "STALE"/, "an over-age reference snapshot must be visibly stale");
 assert.match(tickerReaderSource, /updated\.textContent = `\$\{statusText\} · Updated \$\{dateText\} · \$\{timeText\}`/, "ticker status and timestamp must render as one dynamic compact line");
 assert.match(tickerReaderSource, /track\.innerHTML = html \+ html/, "the ticker must duplicate exactly one sequence for a seamless loop");
 assert.match(marketCssSource, /#fx-ribbon\{[\s\S]*?height:36px/, "the FX ticker must remain a thin 36px strip");

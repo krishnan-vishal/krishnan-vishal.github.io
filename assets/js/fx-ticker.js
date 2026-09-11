@@ -223,6 +223,8 @@ function renderTicker(){
             const statuses = new Set(pairs.map(record => record.dataStatus));
             const refreshIntervalMinutes = Number.isFinite(fxSnapshotCache.refreshIntervalMinutes) ? fxSnapshotCache.refreshIntervalMinutes : 60;
             const ageMinutes = Math.max(0, (Date.now() - retrievedAt.getTime()) / 60000);
+            const configuredStaleThresholds = fxSnapshotCache.staleAfterMinutesByProviderType || {};
+            const referenceStaleAfterMinutes = Number.isFinite(configuredStaleThresholds.reference) ? configuredStaleThresholds.reference : 1440;
             const statusText = fxRefreshFailed || providerFailed
                 ? "LAST VALIDATED"
                 : statuses.has("STALE")
@@ -230,7 +232,7 @@ function renderTicker(){
                     : statuses.has("DELAYED")
                         ? "DELAYED"
                         : statuses.size === 1 && statuses.has("REFERENCE")
-                            ? "REFERENCE"
+                            ? ageMinutes <= referenceStaleAfterMinutes ? "REFERENCE" : "STALE"
                             : ageMinutes <= refreshIntervalMinutes * 2
                                 ? "CURRENT"
                                 : ageMinutes <= 360
