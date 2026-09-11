@@ -27,16 +27,6 @@
     "NORTH AMERICA": ["USD/CAD"],
     "OCEANIA": ["AUD/USD", "NZD/USD"]
   },
-  "regionCurrencyMap": {
-    "SOUTH ASIA": ["INR", "BDT", "NPR", "LKR", "MVR", "BTN", "AFN"],
-    "GCC / MIDDLE EAST": ["AED", "SAR", "QAR", "KWD", "BHD", "OMR", "JOD", "EGP"],
-    "APAC": ["SGD", "MYR", "THB", "IDR", "PHP", "VND", "JPY", "KRW", "CNY", "HKD", "TWD", "AUD", "NZD"],
-    "EUROPE": ["EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "PLN", "CZK"],
-    "NORTH AMERICA": ["USD", "CAD", "MXN"],
-    "LATAM": ["BRL", "ARS", "CLP", "COP", "PEN", "UYU", "PYG", "BOB"],
-    "AFRICA": ["ZAR", "NGN", "KES", "GHS", "TZS", "UGX", "MAD", "EGP"],
-    "CIS": ["KZT", "UZS", "GEL", "AMD", "AZN", "KGS", "TJS"]
-  },
   "treasurySendingBases": ["USD", "EUR", "GBP", "AED", "SAR", "SGD", "AUD", "CAD", "JPY", "CNY"],
   "refreshFrequencyMinutes": 60,
   "staleAfterMinutesByProviderType": {
