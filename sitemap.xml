@@ -275,12 +275,9 @@
     </url>
 
 
-
-
-
     <url>
         <loc>https://krishnan-vishal.github.io/pages/intelligence/index.html</loc>
-        <lastmod>2026-09-10</lastmod>
+        <lastmod>2026-09-11</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -308,6 +305,20 @@
     <url>
         <loc>https://krishnan-vishal.github.io/pages/intelligence/rbi-payments-vision-2028.html</loc>
         <lastmod>2026-08-14</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://krishnan-vishal.github.io/pages/intelligence/eba-eu-089c06dc99945152.html</loc>
+        <lastmod>2026-09-10</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <url>
+        <loc>https://krishnan-vishal.github.io/pages/intelligence/eba-eu-265406c30a689c2a.html</loc>
+        <lastmod>2026-09-10</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
