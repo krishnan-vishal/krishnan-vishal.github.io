@@ -14,7 +14,10 @@ on:
     # refreshFrequencyMinutes. A daily reference-rate feed does not
     # benefit from more frequent polling; a future licensed live feed
     # can lower this once configured.
-    - cron: "0 * * * *"
+    # Minute 7 avoids top-of-hour scheduler concentration. The current
+    # reference source updates daily, so hourly is the fastest useful
+    # sustainable provider cadence; the browser re-checks every 15 min.
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -153,6 +153,7 @@ console.log("PASS ticker formatting: rate/percentage rendering matches the compa
 const tickerReaderSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-ticker.js"), "utf8");
 const fxAppSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-app.js"), "utf8");
 const homepageSource = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+const marketCssSource = fs.readFileSync(path.join(__dirname, "..", "assets", "css", "market.css"), "utf8");
 assert.match(tickerReaderSource, /current\.json\?v=.*Date\.now\(\)/, "homepage current.json must use a per-request cache key");
 assert.match(tickerReaderSource, /fetch\(fxCurrentSnapshotUrl\(\), \{ cache: "no-store" \}\)/, "homepage current.json must bypass the browser cache");
 assert.match(fxAppSource, /fetchMutableFxJson\("current\.json"\)/, "FX reader current.json must use the mutable-data fetch path");
@@ -161,6 +162,21 @@ assert.match(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json`\)
 assert.doesNotMatch(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json\?v=/, "immutable history must not receive mutable cache-busting");
 assert.match(homepageSource, />\s*FX SNAPSHOT\s*</, "the reference snapshot ticker must not be labelled live");
 assert.match(tickerReaderSource, /LAST VALIDATED/, "a failed refresh must be visibly labelled as last validated");
+assert.match(tickerReaderSource, /if\(fxSnapshotCache\)\{[\s\S]*fxRefreshFailed = true;[\s\S]*renderTicker\(\);/, "a failed browser refresh must retain and relabel the last validated snapshot");
+assert.match(tickerReaderSource, /Math\.max\(5, Math\.min\(15, configuredMinutes\)\)/, "browser refresh must stay within the configured 5-15 minute capability");
+assert.match(tickerReaderSource, /setTimeout\(loadRates, browserMinutes \* 60 \* 1000\)/, "the ticker must re-fetch current.json without reloading the page");
+assert.match(tickerReaderSource, /ageMinutes <= refreshIntervalMinutes \* 2/, "live-provider freshness must be calculated from observation age");
+assert.match(tickerReaderSource, /updated\.textContent = `\$\{statusText\} · Updated \$\{dateText\} · \$\{timeText\}`/, "ticker status and timestamp must render as one dynamic compact line");
+assert.match(tickerReaderSource, /track\.innerHTML = html \+ html/, "the ticker must duplicate exactly one sequence for a seamless loop");
+assert.match(marketCssSource, /#fx-ribbon\{[\s\S]*?height:36px/, "the FX ticker must remain a thin 36px strip");
+assert.match(marketCssSource, /@keyframes tickerMove\{[\s\S]*?translateX\(-50%\)/, "the doubled ticker sequence must move exactly one sequence width");
+assert.match(marketCssSource, /#fx-ribbon \.ticker-track:hover\{[\s\S]*?animation-play-state:paused/, "pointer hover must pause ticker motion");
+assert.match(marketCssSource, /#fx-ribbon \.ticker-track:focus-within\{[\s\S]*?animation-play-state:paused/, "keyboard focus must pause ticker motion");
+assert.match(marketCssSource, /@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?#fx-ribbon \.ticker-track\{[\s\S]*?animation:none/, "reduced-motion readers must receive a non-animated ticker");
+
+const fxWorkflowSource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "fx-market-data.yml"), "utf8");
+assert.match(fxWorkflowSource, /cron: "7 \* \* \* \*"/, "the sustainable hourly provider refresh must avoid exact top-of-hour concentration");
+assert.doesNotMatch(fxWorkflowSource, /cron: "0 \* \* \* \*"/, "the FX schedule must not remain concentrated at minute zero");
 
 console.log("PASS reader freshness: mutable current/weekly JSON revalidates, immutable history stays cacheable, and stale data is not labelled live.");
 

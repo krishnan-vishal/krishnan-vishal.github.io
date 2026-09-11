@@ -87,6 +87,19 @@ function fxDirectionClass(direction){
 }
 
 let fxSnapshotCache = null;
+let fxRefreshFailed = false;
+let fxRefreshTimer = null;
+
+function scheduleNextFxRefresh(){
+    const configuredMinutes = fxSnapshotCache && Number.isFinite(fxSnapshotCache.refreshIntervalMinutes)
+        ? fxSnapshotCache.refreshIntervalMinutes
+        : 15;
+    // The browser can follow a future 5-minute licensed feed, while the
+    // current hourly reference source is checked every 15 minutes.
+    const browserMinutes = Math.max(5, Math.min(15, configuredMinutes));
+    clearTimeout(fxRefreshTimer);
+    fxRefreshTimer = setTimeout(loadRates, browserMinutes * 60 * 1000);
+}
 
 function initializeFxTicker(){
 
@@ -95,13 +108,6 @@ function initializeFxTicker(){
     if(!track) return;
 
     loadRates();
-
-    // The generated snapshot refreshes on a GitHub Actions schedule
-    // (see fx-config.json / .github/workflows/fx-market-data.yml), not
-    // every 60 seconds -- re-checking that often would just re-fetch an
-    // unchanged static file. A periodic re-fetch still catches a
-    // snapshot that updated while the page has been open.
-    setInterval(loadRates, 15 * 60 * 1000);
 
     document.addEventListener("gpir:languagechange", renderTicker);
 
@@ -130,6 +136,7 @@ async function loadRates(){
         if(!response.ok) throw new Error("FX snapshot fetch failed: HTTP " + response.status);
 
         fxSnapshotCache = await response.json();
+        fxRefreshFailed = false;
 
         renderTicker();
 
@@ -137,12 +144,19 @@ async function loadRates(){
 
         console.error(err);
 
-        const unableText = window.GPIRI18n ? window.GPIRI18n.t("ticker.unable_to_load") : "Unable to load exchange rates.";
-        track.innerHTML = `<span class="fx-ticker-item">${fxEscapeHtml(unableText)}</span>`;
+        if(fxSnapshotCache){
+            fxRefreshFailed = true;
+            renderTicker();
+        } else {
+            const unableText = window.GPIRI18n ? window.GPIRI18n.t("ticker.unable_to_load") : "Unable to load exchange rates.";
+            track.innerHTML = `<span class="fx-ticker-item">${fxEscapeHtml(unableText)}</span>`;
 
-        const updated = document.getElementById("lastUpdated");
-        if(updated) updated.textContent = "";
+            const updated = document.getElementById("lastUpdated");
+            if(updated) updated.textContent = "";
+        }
 
+    } finally {
+        scheduleNextFxRefresh();
     }
 
 }
@@ -205,11 +219,26 @@ function renderTicker(){
             const timeText = retrievedAt.toLocaleTimeString("en-GB", {
                 hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata"
             }) + " IST";
-            const isLastValidated = fxSnapshotCache.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD" || pairs.some(record => record.dataStatus === "STALE");
-            const statusText = isLastValidated ? "LAST VALIDATED" : pairs.every(record => record.dataStatus === "REFERENCE") ? "REFERENCE" : "LATEST";
+            const providerFailed = fxSnapshotCache.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD";
+            const statuses = new Set(pairs.map(record => record.dataStatus));
+            const refreshIntervalMinutes = Number.isFinite(fxSnapshotCache.refreshIntervalMinutes) ? fxSnapshotCache.refreshIntervalMinutes : 60;
+            const ageMinutes = Math.max(0, (Date.now() - retrievedAt.getTime()) / 60000);
+            const statusText = fxRefreshFailed || providerFailed
+                ? "LAST VALIDATED"
+                : statuses.has("STALE")
+                    ? "STALE"
+                    : statuses.has("DELAYED")
+                        ? "DELAYED"
+                        : statuses.size === 1 && statuses.has("REFERENCE")
+                            ? "REFERENCE"
+                            : ageMinutes <= refreshIntervalMinutes * 2
+                                ? "CURRENT"
+                                : ageMinutes <= 360
+                                    ? "DELAYED"
+                                    : "STALE";
             updated.setAttribute("datetime", retrievedAt.toISOString());
             updated.setAttribute("aria-label", `${statusText} FX snapshot retrieved ${dateText} at ${timeText}`);
-            updated.innerHTML = `<span>${statusText}</span><span>${dateText} · ${timeText}</span>`;
+            updated.textContent = `${statusText} · Updated ${dateText} · ${timeText}`;
         } else {
             updated.textContent = "";
             updated.removeAttribute("datetime");

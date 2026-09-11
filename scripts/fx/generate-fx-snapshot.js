@@ -288,6 +288,7 @@ async function generateSnapshot(options = {}){
         generatedAt: retrievedAt,
         status: "current",
         dataStatus,
+        refreshIntervalMinutes: config.refreshFrequencyMinutes,
         providerUsed,
         providerAttempts: attempts,
         historyDates: historicalSnapshots.map(item => item.publicationDate).filter(Boolean),

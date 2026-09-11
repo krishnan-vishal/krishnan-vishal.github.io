@@ -181,6 +181,14 @@ human explicitly merges the review PR.
   `assets/data/fx/current.json` (no direct provider call from the
   browser), pauses on hover and keyboard focus, respects
   `prefers-reduced-motion`, links each pair to its FX intelligence page.
+  It re-fetches only the mutable current snapshot every 5–15 minutes
+  (15 minutes for the present hourly reference source), retains an
+  already loaded observation as `LAST VALIDATED` after a browser
+  refresh failure, and derives its compact IST timestamp and
+  CURRENT/REFERENCE/DELAYED/STALE state from snapshot metadata and age.
+  The provider workflow remains hourly because the active reference
+  source updates daily, but runs at minute 7 rather than at the
+  top-of-hour concentration point.
 - `pages/fx/index.html` (compact regional market table), `explorer.html`
   (full active-provider currency universe with on-demand direct/cross-rate Pair Intelligence),
   `treasury.html` (Treasury Intelligence -- deterministic groupings:
