@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### SUPABASE-COUNTRY-01 — Optional country metadata mirror
+- **Owner / branch / base:** Vishal Krishnan; `codex/supabase-country-intelligence` from `origin/main` at `5c7f8bd`.
+- **Objective:** upsert canonical `assets/data/country-intelligence.json` records into Supabase `country_intelligence` after the existing static intelligence workflow, matching `country_code`.
+- **Implementation:** a separate Node script maps `isoAlpha2` to `country_code`, `name` to `country_name`, present summary and risk fields to their matching columns, and remaining fields to JSONB `metadata`. Absent risk, narrative and FX values are not invented or cleared. The workflow validates content first, then runs the cloud mirror as a non-blocking final step with credentials scoped to that step. Existing file writes, generated pages, public URLs and publication review remain unchanged.
+- **Validation:** local sync contract test, Node syntax and `validate-content.js` passed; no live Supabase write or Actions result is claimed.
+- **Schema dependency:** the supplied `CREATE TABLE` definition omitted a UNIQUE constraint on `country_code`. On 2026-09-13, the owner reported that the UNIQUE constraint was executed in Supabase. This is owner confirmation; no direct database schema query or live upsert was performed here.
+- **Delivery:** implementation commit `b02b1de`; branch pushed and ready for owner review. PR, merge and cloud run remain pending. GitHub Pages remains independent of Supabase availability.
+
 ### M28-FX-R1 — Data-first production remediation
 - **Milestone / owner:** M28-FX-R1 — FX Live Data Pipeline Final Repair; Vishal Krishnan.
 - **Base / branch:** `origin/main` at `2098026`; `work/m28-fx-r1-data-first-remediation`. No merge is authorised.
