@@ -14,6 +14,16 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-COUNTRY-03 — Live country summary enhancement
+
+- **Date / owner direction:** 2026-09-13; Vishal Krishnan supplied the public Supabase endpoint and publishable key, requested a browser query restricted to `publication_status=live`, and explicitly authorized a direct `main` commit after validation.
+- **Repository finding:** no frontend `fetch('assets/data/country-intelligence.json')` exists. The homepage Dashboard Gallery reads canonical dashboard metadata and registry relationships. Replacing either would remove the current published card identities, images and links, so the live query enhances the card descriptions while those static files remain the last-known-good reader source.
+- **Implementation:** a bounded public REST request filters live rows server-side and again in the browser, selects only identity, summary and the page identifier from JSONB, and sets matched card text via `textContent`. The gallery renders from repository data before the cloud response and survives timeout, error or an empty result.
+- **Live read-only evidence:** the public endpoint returned HTTP 200 for the live filter and projected JSONB page field, and allowed the production origin through CORS. Both live-filtered and unfiltered anon-key reads returned `[]`. Table emptiness versus RLS filtering was not distinguished; no record was promoted or database content changed.
+- **Local validation:** focused gallery contract, JavaScript syntax, structured content, internal links, M-27A reader journey and diff check pass. Performance audit has four pre-existing advisory warnings. Browser-visible cloud content, Actions and production deployment are not claimed at this checkpoint.
+- **Delivery:** developed from `origin/main` `55c4870` on `codex/phase3-live-country-dashboard`; owner-authorized direct main release follows required validation. No service-role credential is placed in browser code.
+- **Release correction:** implementation commit `06b8f3b` was pushed to the feature branch after validation. Automatic approval review rejected `git push origin HEAD:main` as direct production publication without trusted project-owner authorization under `AGENTS.md`; the push command did not execute. Main remained at `55c4870` on the checked remote. Owner-controlled PR review/merge is the next publication path; no indirect retry was made.
+
 ## SUPABASE-COUNTRY-01 — Optional country metadata mirror
 
 - **Date / objective:** 2026-09-13; implement the owner's requested `country_intelligence` upsert while preserving file saving, static intelligence generation and human-controlled publication.

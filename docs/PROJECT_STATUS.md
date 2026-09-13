@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### SUPABASE-COUNTRY-03 — Live country summary enhancement
+- **Owner / base / branch:** Vishal Krishnan explicitly requested a direct `main` release; development branch `codex/phase3-live-country-dashboard` from `origin/main` at `55c4870`.
+- **Objective:** query the public Supabase `country_intelligence` REST API for `publication_status=eq.live` and surface live country summaries in the homepage Dashboard Gallery.
+- **Actual frontend contract:** the gallery previously fetched `content-registry.json` and `dashboard-metadata.json`; it did not fetch `country-intelligence.json`. Those repository files continue to provide dashboard identity, imagery, links and last-known-good descriptions. The new public-key request selects only country identity, publication status, summary and the page identifier from JSONB metadata. Live text is inserted with `textContent`.
+- **Live API evidence:** a read-only public-key request returned HTTP 200 with an empty array for all rows and for the `live` filter. The `publication_status` column and projected page expression were accepted; CORS allowed `https://fintechoisis.com`. This does not establish whether the table is empty or public RLS excludes the rows. No live summary can be displayed until eligible rows are publicly readable.
+- **Validation:** focused mocked gallery test, changed-file JavaScript syntax, content/link validators, M-27A reader journey, M24 reader integration, applicable Security and Integrity regression commands, and `git diff --check` pass. Performance audit reports four existing advisory warnings. The public release and browser-visible cloud result remain unverified.
+- **Delivery / blocker:** implementation commit `06b8f3b` is pushed to `codex/phase3-live-country-dashboard`. Automatic approval review rejected the direct `git push origin HEAD:main` as a production publication without trusted owner authorization under `AGENTS.md`; the command did not run. Main remains `55c4870` at the checked remote SHA. Owner-controlled PR review and merge are required; no retry through an indirect route is authorized.
+- **Boundary:** no service-role key, schema mutation, record promotion or country data rewrite. Cloud failure, latency and zero rows retain the existing static gallery.
+
 ### SUPABASE-COUNTRY-01 — Optional country metadata mirror
 - **Owner / branch / base:** Vishal Krishnan; `codex/supabase-country-intelligence` from `origin/main` at `5c7f8bd`.
 - **Objective:** upsert canonical `assets/data/country-intelligence.json` records into Supabase `country_intelligence` after the existing static intelligence workflow, matching `country_code`.
