@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## Phase 3 live country dashboard
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SUPABASE-COUNTRY-03 | 2026-09-13 | Use the public Supabase API for live country summaries in the Dashboard Gallery | READER EXPERIENCE, DATA, AUTOMATION | High | IN PROGRESS | Publicly readable `publication_status=live` rows; owner-authorized main release | Stage 1 | `assets/js/generate-dashboard-gallery.js`, `index.html` | Query only live country rows and enhance the existing gallery without making the site depend on Supabase. | Public-key REST filter, safe text rendering, static fallback and focused validators; direct main release per owner instruction. | Frontend implementation validated locally. Public API and CORS returned HTTP 200, but anon-key reads currently return zero rows; visible cloud result and deployment remain unverified. | PENDING | Branch implementation pending | SUPABASE-COUNTRY-03 |
+
 ## Supabase country metadata mirror
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
