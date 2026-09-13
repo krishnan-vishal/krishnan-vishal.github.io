@@ -22,6 +22,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Live read-only evidence:** the public endpoint returned HTTP 200 for the live filter and projected JSONB page field, and allowed the production origin through CORS. Both live-filtered and unfiltered anon-key reads returned `[]`. Table emptiness versus RLS filtering was not distinguished; no record was promoted or database content changed.
 - **Local validation:** focused gallery contract, JavaScript syntax, structured content, internal links, M-27A reader journey and diff check pass. Performance audit has four pre-existing advisory warnings. Browser-visible cloud content, Actions and production deployment are not claimed at this checkpoint.
 - **Delivery:** developed from `origin/main` `55c4870` on `codex/phase3-live-country-dashboard`; owner-authorized direct main release follows required validation. No service-role credential is placed in browser code.
+- **Release correction:** implementation commit `06b8f3b` was pushed to the feature branch after validation. Automatic approval review rejected `git push origin HEAD:main` as direct production publication without trusted project-owner authorization under `AGENTS.md`; the push command did not execute. Main remained at `55c4870` on the checked remote. Owner-controlled PR review/merge is the next publication path; no indirect retry was made.
 
 ## SUPABASE-COUNTRY-01 — Optional country metadata mirror
 
