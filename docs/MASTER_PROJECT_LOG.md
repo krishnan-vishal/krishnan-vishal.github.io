@@ -14,6 +14,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-COUNTRY-01 — Optional country metadata mirror
+
+- **Date / objective:** 2026-09-13; implement the owner's requested `country_intelligence` upsert while preserving file saving, static intelligence generation and human-controlled publication.
+- **Source and mapping:** `assets/data/country-intelligence.json` has six canonical metadata records. Its `isoAlpha2` supplies `country_code`, `name` supplies `country_name`, supported summary and risk fields map directly when present, and remaining structured fields go into JSONB `metadata`. Current records contain no narrative summary, risk indicator or FX market snapshot, so those cloud columns are not populated by this mirror.
+- **Execution boundary:** the existing workflow keeps proposal, validation, generation, push and PR handling. A final, non-blocking step validates the canonical content and awaits the Supabase client upsert. The service-role secret is scoped to this step. Supabase is a mirror and cannot block the GitHub Pages publication path.
+- **Local evidence:** the six-record mapping, future optional-field mapping, conflict key, missing-credential failure and missing-unique-constraint error path pass the contract test. Node syntax and structured-content validation pass. No live database or Actions run has been observed.
+- **Dependency:** the supplied table DDL declares `id` primary key but no unique index on `country_code`. The owner must confirm or add that unique constraint for `onConflict: country_code` to work. No remote schema change was made.
+- **Delivery:** implementation commit `b02b1de` on `codex/supabase-country-intelligence`; owner-controlled PR, merge and production verification pending.
+
 ## M30 — Final Global Announcements Production Closure
 
 - **Date / base / branch:** `2026-09-10`; `2411e99`; `work/m30-global-announcements-production-closure`.
