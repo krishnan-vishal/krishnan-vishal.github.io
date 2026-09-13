@@ -50,26 +50,22 @@ jobs:
 
       - name: Discover proposal-only intelligence candidates
         shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -o pipefail
           node scripts/propose-intelligence-candidates.js --health-output=assets/data/source-health.json | tee "$RUNNER_TEMP/intelligence-proposal-report.json"
 
-              env:
-                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-        
       - name: Apply deterministic Tier-1 publication gate
         shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -euo pipefail
           node scripts/publish-intelligence-candidates.js | tee "$RUNNER_TEMP/intelligence-publication-report.json"
           node scripts/generate-intelligence-pages.js
-          
-              env:
-                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
 
       - name: Report source coverage and health
         if: always()
