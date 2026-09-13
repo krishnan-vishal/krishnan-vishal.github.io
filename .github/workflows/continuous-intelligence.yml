@@ -29,7 +29,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
+      - name: Install Cloud Infrastructure Libraries
+        run: npm install @supabase/supabase-js
+        
       - name: Reuse an open proposal branch when present
         shell: bash
         run: |
@@ -140,3 +142,20 @@ jobs:
           echo "::warning::Candidate discovery succeeded and pushed automation/intelligence-candidates, but this token could not open the pull request (commonly: Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\" is disabled for this repository). Open the PR manually from that branch, or enable that setting, to complete human review."
           echo "## GPIR candidate branch pushed, PR not auto-created" >> "$GITHUB_STEP_SUMMARY"
           echo "automation/intelligence-candidates was pushed with new candidates, but this token is not permitted to open pull requests. Open it manually, or enable Settings > Actions > General > Workflow permissions > \"Allow GitHub Actions to create and approve pull requests\"." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sync canonical country metadata to Supabase
+        shell: bash
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          node scripts/validate-content.js
+          if node scripts/sync-country-intelligence.js; then
+            echo "Country metadata mirror completed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Country metadata mirror failed; reviewed static publication remains available."
+            echo "Country metadata mirror failed; reviewed static publication remains available." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi

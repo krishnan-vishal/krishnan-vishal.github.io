@@ -7,6 +7,18 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## Phase 3 live country dashboard
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SUPABASE-COUNTRY-03 | 2026-09-13 | Use the public Supabase API for live country summaries in the Dashboard Gallery | READER EXPERIENCE, DATA, AUTOMATION | High | BLOCKED | Owner-controlled PR review/merge after auto-review rejected direct main push; publicly readable `publication_status=live` rows for visible content | Stage 1 | `assets/js/generate-dashboard-gallery.js`, `index.html` | Query only live country rows and enhance the existing gallery without making the site depend on Supabase. | Public-key REST filter, safe text rendering, static fallback and focused validators; owner-controlled production release. | Frontend implementation validated and pushed on `codex/phase3-live-country-dashboard`. Public API and CORS returned HTTP 200, but anon-key reads returned zero rows. Direct main push was rejected by automatic approval review; no production release occurred. | PENDING | `06b8f3b` | SUPABASE-COUNTRY-03 |
+
+## Supabase country metadata mirror
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SUPABASE-COUNTRY-01 | 2026-09-13 | Mirror canonical country metadata to Supabase by country code | AUTOMATION, DATA, ARCHITECTURE | High | IN PROGRESS | Supabase Actions secrets; owner reports UNIQUE constraint on `country_intelligence.country_code` configured | Stage 1 | `scripts/sync-country-intelligence.js`, `.github/workflows/continuous-intelligence.yml` | Upsert six canonical country records after static workflow validation, retaining GitHub as source of truth. | Exact country-code conflict mapping; real summary/risk fields mapped when present; unknown fields retained in metadata; no static-generation regression; database failure does not block the site. | Local implementation and contract validation completed. Owner confirms unique key installed; live write, Actions run and owner review remain pending. | PENDING | `b02b1de` | SUPABASE-COUNTRY-01 |
+
 ## M30 production closure
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
