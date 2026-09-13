@@ -22,6 +22,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Local evidence:** the six-record mapping, future optional-field mapping, conflict key, missing-credential failure and missing-unique-constraint error path pass the contract test. Node syntax and structured-content validation pass. No live database or Actions run has been observed.
 - **Dependency:** the supplied table DDL declares `id` primary key but no unique index on `country_code`. The owner must confirm or add that unique constraint for `onConflict: country_code` to work. No remote schema change was made.
 - **Delivery:** implementation commit `b02b1de` on `codex/supabase-country-intelligence`; owner-controlled PR, merge and production verification pending.
+- **Owner schema update (2026-09-13):** Vishal Krishnan reported executing the UNIQUE constraint on Supabase `country_intelligence.country_code` and authorized final branch delivery. This is owner-provided evidence; the database schema and live upsert were not independently queried in this workspace.
 
 ## M30 — Final Global Announcements Production Closure
 
