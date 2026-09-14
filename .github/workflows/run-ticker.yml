@@ -1,0 +1,26 @@
+name: GPIR Live Ingestion Pulse
+on:
+  schedule:
+    - cron: '0 * * * *' # Fires background check automatically every hour
+  workflow_dispatch: # Forces a manual play trigger button on your Actions panel
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Scraper Tools
+        run: npm install @supabase/supabase-js cheerio rss-parser
+
+      - name: Run The Announcement Scraper
+        run: node scraper.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
