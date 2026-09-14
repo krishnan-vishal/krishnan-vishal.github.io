@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## FX-BIDIRECTIONAL-03 — Reverse FX reader flows
+
+- **Date / owner direction:** 2026-09-14; make Historical, Weekly Trends and Treasury show reverse sending flows such as JPY/USD and GBP/EUR, including inverse rate, movement and visual direction.
+- **Technical result:** the public archive reader creates missing reverse pairs from validated rows at the same timestamp and filters all observed sending currencies. Treasury dynamically adds the 28 target currencies and resolves reverse snapshot pairs before common-base fallback. Derived rates use `1 / standardRate` and render with `toFixed(6)`; percentages are computed from the inverted first/latest rates, which reverses ▲/▼ direction and swaps the high/low range. Existing direct reverse observations retain priority.
+- **Evidence / boundary:** focused FX archive/regression tests, all Security and Integrity workflow scripts, JavaScript syntax, secret scan, FX/content/link and announcement validators, and `git diff --check` pass locally. The performance audit has four pre-existing advisory warnings. No live Supabase rows or publication are claimed.
+
 ## FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
 - **PR security repair:** PR #378's failed Security and Integrity run was isolated to the secret-pattern scan; all earlier steps passed. The browser reader now uses `Headers.set()` for its public key, matching the gallery. FX tests now assert dynamic targets and chronological API reads instead of static weekly JSON or a missing September date. The security workflow and content hash baselines were not weakened.

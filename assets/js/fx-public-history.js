@@ -74,6 +74,20 @@
         return groups;
     }
 
+    function expandBidirectionalRows(rows){
+        const recorded = new Set(rows.map(row => `${row.pair}|${row.timestamp}`));
+        const result = rows.slice();
+        rows.forEach(row => {
+            const [base, target] = row.pair.split("/");
+            const inversePair = `${target}/${base}`;
+            if(recorded.has(`${inversePair}|${row.timestamp}`)) return;
+            result.push({ ...row, pair: inversePair, rate: 1 / row.rate,
+                inverseOf: row.pair });
+        });
+        return result.sort((left, right) =>
+            left.timestamp.localeCompare(right.timestamp) || left.id - right.id);
+    }
+
     function pairStats(points){
         if(!points.length) return null;
         const first = points[0].rate;
@@ -100,9 +114,13 @@
         return element;
     }
 
-    function renderCards(grid, selectedRows, allRows){
+    function displayRate(rate, inverse){
+        return inverse ? rate.toFixed(6) : rate.toLocaleString("en-GB", { maximumFractionDigits: 6 });
+    }
+
+    function renderCards(grid, selectedRows, allRows, sendingBase = ""){
         grid.replaceChildren();
-        const allPairs = groupByPair(allRows);
+        const allPairs = groupByPair(allRows.filter(row => !sendingBase || row.pair.startsWith(`${sendingBase}/`)));
         const selectedPairs = groupByPair(selectedRows);
         if(!allPairs.size){
             appendText(grid, "p", "fx-empty-note", "No validated FX rows are available for this period.");
@@ -115,16 +133,16 @@
             const latest = allPairRows[allPairRows.length - 1];
             const stats = pairStats(allPairRows);
             const card = document.createElement("article");
-            card.className = "fx-weekly-card";
+            card.className = `fx-weekly-card ${stats.delta > 0 ? "fx-up" : stats.delta < 0 ? "fx-down" : "fx-unchanged"}`;
             appendText(card, "h3", "fx-pair-card-pair", pair);
             appendText(card, "p", "fx-pair-card-rate", current
-                ? `Capture ${current.rate.toLocaleString("en-GB", { maximumFractionDigits: 6 })}`
+                ? `Capture ${displayRate(current.rate, Boolean(current.inverseOf))}`
                 : "No rate in selected capture");
             appendText(card, "p", "fx-weekly-completeness", stats.observations > 1
-                ? `7D ${stats.deltaPercent >= 0 ? "+" : ""}${stats.deltaPercent.toFixed(2)}% (${stats.delta >= 0 ? "+" : ""}${stats.delta.toFixed(6)})`
+                ? `7D ${stats.delta > 0 ? "▲" : stats.delta < 0 ? "▼" : "—"} ${stats.deltaPercent > 0 ? "+" : ""}${stats.deltaPercent.toFixed(2)}% (${stats.delta > 0 ? "+" : ""}${stats.delta.toFixed(6)})`
                 : "7D variance unavailable · one capture");
-            appendText(card, "p", "fx-weekly-metrics", `High ${stats.high.toLocaleString("en-GB", { maximumFractionDigits: 6 })} · Low ${stats.low.toLocaleString("en-GB", { maximumFractionDigits: 6 })}`);
-            appendText(card, "p", "fx-data-note", `${latest.region} · ${latest.source} · ${latest.timestamp}`);
+            appendText(card, "p", "fx-weekly-metrics", `High ${displayRate(stats.high, Boolean(latest.inverseOf))} · Low ${displayRate(stats.low, Boolean(latest.inverseOf))}`);
+            appendText(card, "p", "fx-data-note", `${latest.region} · ${latest.source} · ${latest.timestamp}${latest.inverseOf ? ` · Calculated inverse of ${latest.inverseOf}` : ""}`);
             grid.appendChild(card);
         });
     }
@@ -148,6 +166,7 @@
         const view = grid.closest("[data-fx-public-view]").getAttribute("data-fx-public-view");
         const status = document.getElementById("fx-public-status");
         const selector = document.getElementById("fx-hourly-select");
+        const sendingSelect = document.getElementById("fx-sending-base-select");
         const now = new Date();
         let rows;
         try{
@@ -164,8 +183,19 @@
                 return;
             }
         }
+        rows = expandBidirectionalRows(rows);
+        [...new Set(rows.map(row => row.pair.split("/")[0]))].sort().forEach(base => {
+            const option = document.createElement("option");
+            option.value = base;
+            option.textContent = base;
+            sendingSelect.appendChild(option);
+        });
+        const renderCurrent = () => renderCards(grid,
+            view === "weekly" ? rows : rows.filter(row => row.timestamp === selector.value),
+            rows, sendingSelect.value);
+        sendingSelect.addEventListener("change", renderCurrent);
         if(view === "weekly"){
-            renderCards(grid, rows, rows);
+            renderCurrent();
             return;
         }
         const timestamps = distinctTimestamps(rows);
@@ -176,14 +206,12 @@
             selector.appendChild(option);
         });
         selector.disabled = false;
-        const renderSelected = () => renderCards(grid,
-            rows.filter(row => row.timestamp === selector.value), rows);
-        selector.addEventListener("change", renderSelected);
-        renderSelected();
+        selector.addEventListener("change", renderCurrent);
+        renderCurrent();
     }
 
     if(typeof module !== "undefined" && module.exports){
-        module.exports = { normalizeRows, fetchSevenDays, groupByPair, pairStats, distinctTimestamps, renderCards };
+        module.exports = { normalizeRows, fetchSevenDays, groupByPair, expandBidirectionalRows, pairStats, distinctTimestamps, renderCards };
     }
     if(typeof document !== "undefined"){
         if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

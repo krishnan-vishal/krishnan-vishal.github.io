@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### FX-BIDIRECTIONAL-03 — Reverse FX reader flows
+
+- **Owner direction / branch:** 2026-09-14 request to support both sending directions in Historical, Weekly Trends and Treasury, with six-decimal inverse rates and matching movement indicators. Implemented on `codex/fx-global-hourly-archive` pending release validation.
+- **Implementation:** the public seven-day reader derives a reverse row only when that pair is not recorded for the capture timestamp; both pages expose a sending-currency filter derived from returned rows. Treasury includes all 28 configured regional sending currencies and resolves a missing direction from the validated reverse snapshot pair before using common-base derivation. Inverse rates display to six decimals, and inverse highs, lows, percentages and ▲/▼ direction derive from the inverted observations.
+- **Validation / boundary:** focused FX archive and regression tests, all Security and Integrity workflow scripts, 61-file JavaScript syntax, secret scan, FX/content/link and announcement validators, and `git diff --check` pass locally. Performance audit reports four existing advisory warnings. Calculated inverses remain labeled and are not executable quotes. Public archive visibility and live production data remain unverified.
+
 ### FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
 - **PR security repair:** PR #378's Security and Integrity run passed content, discovery, links and JavaScript syntax, then failed its secret-pattern scan on the public reader's `apikey:` object property. The request now sets the same public header through `Headers.set()` as the existing gallery, and obsolete static weekly/date assertions were replaced with dynamic reader contract checks. The scan rules and immutable content hashes were preserved.

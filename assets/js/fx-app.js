@@ -36,8 +36,9 @@
         return pair.toLowerCase().replace("/", "-");
     }
 
-    function formatRate(value, pair){
+    function formatRate(value, pair, inverse = false){
         if(!Number.isFinite(value)) return "N/A";
+        if(inverse) return value.toFixed(6);
         const decimals = pair && (pair.startsWith("JPY/") || pair.endsWith("/JPY")) ? 2 : 4;
         return value.toFixed(decimals);
     }
@@ -117,7 +118,8 @@
     }
 
     function referenceClassification(record){
-        return record && record.rateType === "derived-cross" ? "DERIVED REFERENCE" : "DIRECT REFERENCE";
+        return record && (record.rateType === "derived-cross" || record.rateType === "derived-inverse")
+            ? "DERIVED REFERENCE" : "DIRECT REFERENCE";
     }
 
     function deriveUniverseRecord(snapshot, pair, ratesOverride){
@@ -160,8 +162,34 @@
         };
     }
 
+    function invertRecord(record, pair){
+        const standardRate = Number.isFinite(record.mid) ? record.mid : record.last;
+        if(!Number.isFinite(standardRate) || standardRate <= 0) return null;
+        const rate = 1 / standardRate;
+        const previousRate = Number.isFinite(record.previousBusinessClose) && record.previousBusinessClose > 0
+            ? 1 / record.previousBusinessClose : null;
+        const percentageChange = previousRate !== null
+            ? ((rate - previousRate) / previousRate) * 100
+            : Number.isFinite(record.percentageChange) && record.percentageChange > -100
+                ? -record.percentageChange / (1 + record.percentageChange / 100) : null;
+        const [base, quote] = pair.split("/");
+        return { ...record, pair, base, quote, mid: rate, last: rate,
+            bid: null, ask: null, spot: null, tom: null, cashBuy: null, cashSell: null,
+            rateType: "derived-inverse", inverseOf: record.pair, isInverse: true,
+            sourceLegs: [{ pair: record.pair, provider: record.provider }],
+            previousBusinessClose: previousRate,
+            absoluteChange: previousRate === null ? null : rate - previousRate,
+            percentageChange,
+            direction: percentageChange > 0 ? "up" : percentageChange < 0 ? "down"
+                : percentageChange === 0 ? "unchanged" : null };
+    }
+
     function findOrDeriveRecord(snapshot, pair){
-        return (snapshot.pairs || []).find(item => item.pair === pair) || deriveUniverseRecord(snapshot, pair);
+        const direct = (snapshot.pairs || []).find(item => item.pair === pair);
+        if(direct) return direct;
+        const [base, quote] = pair.split("/");
+        const reverse = (snapshot.pairs || []).find(item => item.pair === `${quote}/${base}`);
+        return (reverse && invertRecord(reverse, pair)) || deriveUniverseRecord(snapshot, pair);
     }
 
     function pairHref(snapshot, pair){
@@ -228,7 +256,7 @@
                         <div class="fx-market-row fx-market-row--head" role="row"><span>Destination pair</span><span>Rate</span><span>Prev-day Δ</span><span>Status</span></div>
                         ${records.map(({ record, destination, markets }) => `<a class="fx-market-row ${directionClass(record.direction)}" role="row" href="${pairHref(snapshot, record.pair)}" title="${escapeHtml(markets.map(market => market.country).join(", "))}">
                             <span class="fx-market-pair"><strong>${escapeHtml(record.pair)}</strong><small>${escapeHtml(currencyDisplayName(destination))}${markets.length > 1 ? ` · ${markets.length} markets` : ""}</small></span>
-                            <span>${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
+                            <span>${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair, record.isInverse)}</span>
                             <span class="fx-market-variance">${formatCardVariance(record.percentageChange)}</span>
                             <span>${escapeHtml(referenceClassification(record))}</span>
                         </a>`).join("")}
@@ -300,7 +328,8 @@
                 container.innerHTML = `<p class="fx-empty-note">No FX snapshot is available yet for treasury groupings.</p>`;
                 return;
             }
-            const sendingBases = config.treasurySendingBases || ["USD", "EUR", "GBP"];
+            const sendingBases = Array.from(new Set(["USD", ...(config.treasurySendingBases || ["EUR", "GBP"]),
+                ...Object.values(config.targetRegionalCurrencies || {}).flat()]));
             const registryRegions = regionCurrencyMapFromRegistry(registry, snapshot);
             const destinationMap = Object.keys(registryRegions).length ? registryRegions : (config.regionCurrencyMap || {});
             const destinations = Array.from(new Set(Object.values(destinationMap).flat()));
@@ -317,13 +346,14 @@
                     .map(base => findOrDeriveRecord(snapshot, `${base}/${destination}`)).filter(Boolean);
                 market.innerHTML = `<section class="fx-treasury-group">
                     <h2>${escapeHtml(currencyDisplayName(destination))}</h2>
-                    <p class="fx-section-note">Major configured sending currencies into this destination market.</p>
+                    <p class="fx-section-note">Configured regional sending currencies into this destination market. Reverse rates are calculated from validated references.</p>
                     <div class="fx-pair-grid">
                         ${records.map(record => `
                             <a class="fx-pair-card ${directionClass(record.direction)}" href="${pairHref(snapshot, record.pair)}">
                                 <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
-                                <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
+                                <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair, record.isInverse)}</span>
                                 <span class="fx-pair-card-change">${formatCardVariance(record.percentageChange)}</span>
+                                ${record.isInverse ? `<span class="fx-data-note">Calculated inverse of ${escapeHtml(record.inverseOf)}</span>` : ""}
                             </a>
                         `).join("")}
                     </div>
@@ -380,7 +410,7 @@
                     <div class="fx-pair-grid">${pairs.map(record => `
                         <span class="fx-pair-card fx-pair-card--static">
                             <span class="fx-pair-card-pair">${escapeHtml(record.pair)}</span>
-                            <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair)}</span>
+                            <span class="fx-pair-card-rate">${formatRate(Number.isFinite(record.mid) ? record.mid : record.last, record.pair, record.isInverse)}</span>
                             ${statusBadge(record.dataStatus)}
                         </span>
                     `).join("")}</div>`;
@@ -480,8 +510,8 @@
         const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? (record.ask - record.bid).toFixed(4) : "N/A";
         const hasPendingVariance = !record.previousBusinessDate || !Number.isFinite(record.percentageChange);
         const rows = [
-            ["CURRENT REFERENCE RATE", formatRate(rate, pair), ""],
-            ["PREVIOUS BUSINESS DAY", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair)} (${escapeHtml(record.previousBusinessDate)})` : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
+            ["CURRENT REFERENCE RATE", formatRate(rate, pair, record.isInverse), ""],
+            ["PREVIOUS BUSINESS DAY", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair, record.isInverse)} (${escapeHtml(record.previousBusinessDate)})` : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
             ["PREV-DAY VARIANCE", Number.isFinite(record.percentageChange) ? formatPercent(record.percentageChange) : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
             ["CLASSIFICATION", referenceClassification(record), ""],
             ["PROVIDER / SOURCE", record.provider || "None configured", ""],
@@ -494,7 +524,9 @@
             ["TOM", formatRate(record.tom, pair), Number.isFinite(record.tom) ? "" : "fx-detail-row--unavailable"],
             ["CASH BUY / SELL", `${formatRate(record.cashBuy, pair)} / ${formatRate(record.cashSell, pair)}`, Number.isFinite(record.cashBuy) && Number.isFinite(record.cashSell) ? "" : "fx-detail-row--unavailable"]
         ];
-        const sourceLegsNote = record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
+        const sourceLegsNote = record.rateType === "derived-inverse"
+            ? `<p class="fx-source-legs">Calculated as 1 ÷ the validated ${escapeHtml(record.inverseOf)} reference rate. It is not a provider-native or executable quote.</p>`
+            : record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
             ? `<p class="fx-source-legs">Deterministically derived from ${record.sourceLegs.map(leg => escapeHtml(leg.pair)).join(" and ")} using validated ${escapeHtml(record.provider)} common-base rates. It is not a provider-native or executable quote.</p>`
             : "";
         const lastValidatedNote = snapshot.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD" || record.dataStatus === "STALE"
@@ -510,7 +542,7 @@
             <section class="fx-future-modules" aria-label="Future FX intelligence modules">
                 ${["REGIONAL CONTEXT", "CONSUMER / REMITTANCE INTELLIGENCE", "COMPETITION INTELLIGENCE", "TREASURY INTELLIGENCE"].map(name => `<div data-fx-module="${escapeHtml(name.toLowerCase().replace(/[^a-z]+/g, "-"))}"><h3>${escapeHtml(name)}</h3><p>Data hook reserved. No intelligence is published in this module yet.</p></div>`).join("")}
             </section>
-            <p class="fx-methodology-note"><strong>Methodology:</strong> Direct references reproduce a validated provider common-base rate. Derived references divide two validated rates sharing that base. Variance and trends use only earlier validated GPIR business-day observations; missing days are not interpolated.</p>
+            <p class="fx-methodology-note"><strong>Methodology:</strong> Direct references reproduce a validated provider common-base rate. Derived references divide two validated rates sharing that base or invert one validated pair. Variance and trends use only earlier validated GPIR business-day observations; missing days are not interpolated.</p>
             <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View immutable GPIR Historical observations →</a></p>`;
         const weeklyTarget = container.querySelector("[data-fx-weekly-evidence]");
         const summaryPoints = summary && Array.isArray(summary.observations) ? summary.observations.filter(point => Number.isFinite(point.rate)) : [];
@@ -536,6 +568,10 @@
         renderPairDetail();
     }
 
+    if(typeof document === "undefined"){
+        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate };
+        return;
+    }
     if(document.readyState === "loading"){
         document.addEventListener("DOMContentLoaded", init);
     } else {

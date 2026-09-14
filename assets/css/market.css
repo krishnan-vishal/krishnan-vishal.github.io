@@ -1041,6 +1041,10 @@ carried by glyph + text, never colour alone.
     overflow-wrap:anywhere;
 }
 
+#dynamic-ticker-grid .fx-up .fx-weekly-completeness{ color:#137a4c; }
+#dynamic-ticker-grid .fx-down .fx-weekly-completeness{ color:#b52e2e; }
+#dynamic-ticker-grid .fx-unchanged .fx-weekly-completeness{ color:#68717c; }
+
 .fx-weekly-card{
 
     display:grid;
