@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### SUPABASE-ANNOUNCEMENTS-04 — Ticker job runtime repair
+
+- **Trigger:** the public `run-ticker.yml` run at main `9149344` installed dependencies successfully but failed in `Run The Announcement Scraper` with exit code 1. The detailed exception was not supplied; GitHub's public log-download endpoint returned 403. The workflow used Node 18, while registry metadata says current `@supabase/supabase-js` 2.116.0 requires Node 22+ and Cheerio 1.2.0 requires Node 20.18.1+.
+- **Change:** `codex/ticker-scraper-runtime-fix` moves the job to Node 22, pins the compatible client/parser versions, updates checkout/setup actions, and removes unused `rss-parser`. The scraper now reads owner-supplied `feed_or_index_url`/`source_id`, inserts into required unique `canonical_url`, and reports Supabase code/details/hint. Review rows explicitly disable ticker eligibility and leave unknown source publication timestamps null. Canonical JSON publication is unchanged.
+- **Evidence / limit:** owner supplied both SQL table definitions during this task. Syntax, focused mock schema mapping/error/archive checks, announcement validation and diff whitespace checks pass locally. The detailed cloud exception and a successful rerun remain unavailable; no live Supabase insert is claimed.
+
 ### FX-BIDIRECTIONAL-03 — Reverse FX reader flows
 
 - **Owner direction / branch:** 2026-09-14 request to support both sending directions in Historical, Weekly Trends and Treasury, with six-decimal inverse rates and matching movement indicators. Implemented on `codex/fx-global-hourly-archive` pending release validation.

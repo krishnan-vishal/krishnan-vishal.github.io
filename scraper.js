@@ -2,11 +2,8 @@
 
 // Standalone Supabase discovery job. It does not update GPIR's canonical
 // announcements.json or publish anything to the public site.
-// Expected source_registry columns: id, acquisition_method, announcement_url,
-// and optional item_selector (CSS selector for HTML announcement links).
-// Expected global_announcements columns: source_id, title, url,
-// archive_month_year, publication_status. Add a UNIQUE constraint on url so
-// concurrent runs cannot create duplicates; public readers must exclude review.
+// Uses the owner-supplied source_registry and global_announcements schemas.
+// Newly discovered links remain review-only; the public site is unchanged.
 // Run with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in a private job only.
 
 const cheerio = require("cheerio");
@@ -15,6 +12,12 @@ const { isIP } = require("node:net");
 
 const HTML_SELECTOR = "article a[href], .news-item a[href], .announcement a[href], h2 a[href], h3 a[href]";
 const MAX_ITEMS_PER_SOURCE = 20;
+
+function describeError(error) {
+    if (!error) return "Unknown error";
+    return [error.code, error.message, error.details, error.hint]
+        .filter(Boolean).join(" | ");
+}
 
 function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -45,7 +48,7 @@ function extractHtml(html, baseUrl, selector = HTML_SELECTOR) {
     const items = [];
     $(selector).each((_, element) => {
         const link = $(element).is("a") ? $(element) : $(element).find("a[href]").first();
-        items.push({ title: cleanText(link.text()), url: safeUrl(link.attr("href"), baseUrl) });
+        items.push({ title: cleanText(link.text()), url: safeUrl(link.attr("href"), baseUrl), publishedAt: null });
     });
     return items;
 }
@@ -60,10 +63,16 @@ function extractRss(xml, baseUrl) {
             cleanText(entry.find("link").first().text());
         items.push({
             title: cleanText(entry.find("title").first().text()),
-            url: safeUrl(link, baseUrl)
+            url: safeUrl(link, baseUrl),
+            publishedAt: publicationTime(entry.find("pubDate, published, updated").first().text())
         });
     });
     return items;
+}
+
+function publicationTime(value) {
+    const time = Date.parse(cleanText(value));
+    return Number.isFinite(time) && time <= Date.now() ? new Date(time).toISOString() : null;
 }
 
 function archiveMonthYear(now = new Date()) {
@@ -71,8 +80,11 @@ function archiveMonthYear(now = new Date()) {
 }
 
 async function fetchSource(source, fetchImpl = fetch) {
-    const endpoint = safeUrl(source.announcement_url);
-    if (!endpoint) throw new Error("Missing or invalid HTTPS announcement_url");
+    const endpoint = safeUrl(source.feed_or_index_url);
+    if (!endpoint) throw new Error("Missing or invalid HTTPS feed_or_index_url");
+    if (source.official_url && !allowedHost(endpoint, source.official_url)) {
+        throw new Error("feed_or_index_url is outside the registered official_url host");
+    }
 
     let requestedUrl = endpoint;
     let response;
@@ -95,7 +107,7 @@ async function fetchSource(source, fetchImpl = fetch) {
 
     const extracted = source.acquisition_method === "A"
         ? extractRss(body, finalUrl)
-        : extractHtml(body, finalUrl, source.item_selector || HTML_SELECTOR);
+        : extractHtml(body, finalUrl);
     const seen = new Set();
     return extracted.filter(item => {
         if (!item.url || !allowedHost(item.url, endpoint) || item.title.length < 8 || item.title.length > 320 || seen.has(item.url)) return false;
@@ -104,49 +116,55 @@ async function fetchSource(source, fetchImpl = fetch) {
     }).slice(0, MAX_ITEMS_PER_SOURCE);
 }
 
-async function run() {
-    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+async function run(options = {}) {
+    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = options.env || process.env;
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
         throw new Error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the private job environment");
     }
-    const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    const db = (options.createClient || createClient)(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false }
     });
     const { data: sources, error: sourceError } = await db.from("source_registry")
         .select("*").in("acquisition_method", ["C", "A"]);
-    if (sourceError) throw sourceError;
+    if (sourceError) throw new Error(`source_registry query failed: ${describeError(sourceError)}`);
 
     let discovered = 0;
+    let failedSources = 0;
     const month = archiveMonthYear();
     for (const source of sources || []) {
+        let items;
         try {
-            const items = await fetchSource(source);
-            if (!items.length) continue;
-            const rows = items.map(item => ({
-                source_id: source.id,
-                title: item.title,
-                url: item.url,
-                archive_month_year: month,
-                publication_status: "review"
-            }));
-            const { error } = await db.from("global_announcements")
-                .upsert(rows, { onConflict: "url", ignoreDuplicates: true });
-            if (error) throw error;
-            discovered += rows.length;
-            console.log(`${source.id}: checked ${rows.length} announcement links`);
+            items = await (options.fetchSource || fetchSource)(source);
         } catch (error) {
-            console.error(`${source.id}: ${error.message}`);
-            process.exitCode = 1;
+            failedSources++;
+            console.warn(`${source.source_id}: source skipped: ${describeError(error)}`);
+            continue;
         }
+        if (!items.length) continue;
+        const rows = items.map(item => ({
+            source_id: source.source_id,
+            title: item.title,
+            canonical_url: item.url,
+            url: item.url,
+            published_at: item.publishedAt,
+            archive_month_year: month,
+            publication_status: "review",
+            ticker_eligible: false
+        }));
+        const { error } = await db.from("global_announcements")
+            .upsert(rows, { onConflict: "canonical_url", ignoreDuplicates: true });
+        if (error) throw new Error(`${source.source_id}: global_announcements insert failed: ${describeError(error)}`);
+        discovered += rows.length;
+        console.log(`${source.source_id}: checked ${rows.length} announcement links`);
     }
-    console.log(`Checked ${discovered} candidate links; duplicates were ignored by Supabase.`);
+    console.log(`Checked ${discovered} candidate links; skipped ${failedSources} unavailable sources. Existing canonical URLs were left unchanged.`);
 }
 
 if (require.main === module) {
     run().catch(error => {
-        console.error(error.message);
+        console.error(describeError(error));
         process.exitCode = 1;
     });
 }
 
-module.exports = { archiveMonthYear, extractHtml, extractRss, fetchSource, safeUrl };
+module.exports = { archiveMonthYear, describeError, extractHtml, extractRss, fetchSource, run, safeUrl };

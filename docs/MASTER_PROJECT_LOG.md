@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-ANNOUNCEMENTS-04 — Ticker job runtime repair
+
+- **Date / request:** 2026-09-14; diagnose the failed `run-ticker.yml` main run and correct `scraper.js` for the owner's Supabase configuration.
+- **Observed failure:** public run `34827602924` passed checkout, Node setup and package installation; `node scraper.js` returned exit code 1. Only the generic exit-code annotation was available; downloading detailed logs returned 403. The workflow selected Node 18 while registry metadata says current Supabase client 2.116.0 requires Node 22+ and Cheerio 1.2.0 requires Node 20.18.1+.
+- **Owner schema evidence:** the owner supplied SQL definitions: `source_registry` uses `source_id` and `feed_or_index_url`; `global_announcements` requires unique `canonical_url`, has optional `url`, `archive_month_year`, `publication_status`, `ticker_eligible` and nullable `published_at`.
+- **Result / boundary:** the workflow now uses Node 22 and pins the two required compatible dependencies; the scraper maps the supplied columns, deduplicates by `canonical_url`, keeps rows in review with ticker eligibility false, and reports Supabase code/details/hint. Local syntax, focused mock schema mapping/error/archive assertions, announcement validation and whitespace checks pass. A successful cloud insert/rerun cannot be claimed without the detailed job exception and live evidence.
+
 ## FX-BIDIRECTIONAL-03 — Reverse FX reader flows
 
 - **Date / owner direction:** 2026-09-14; make Historical, Weekly Trends and Treasury show reverse sending flows such as JPY/USD and GBP/EUR, including inverse rate, movement and visual direction.
