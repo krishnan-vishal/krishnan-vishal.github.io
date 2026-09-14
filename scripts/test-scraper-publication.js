@@ -23,6 +23,8 @@ const existing = {
 };
 const announcements = [existing];
 let conflict;
+const upsertSizes = [];
+const updateSizes = [];
 
 const db = {
     from(table) {
@@ -33,6 +35,7 @@ const db = {
         return {
             async upsert(rows, options) {
                 conflict = options;
+                upsertSizes.push(rows.length);
                 for (const row of rows) {
                     if (!announcements.some(item => item.canonical_url === row.canonical_url)) {
                         announcements.push({ ...row });
@@ -44,6 +47,7 @@ const db = {
                 return {
                     async in(column, urls) {
                         assert.equal(column, "canonical_url");
+                        updateSizes.push(urls.length);
                         for (const row of announcements) {
                             if (urls.includes(row.canonical_url)) Object.assign(row, fields);
                         }
@@ -55,16 +59,24 @@ const db = {
     }
 };
 
+const candidates = [
+    { title: "Previously discovered announcement", url: "https://example.org/old", publishedAt: null },
+    ...Array.from({ length: 204 }, (_, index) => ({
+        title: `New official announcement ${index + 1}`,
+        url: `https://example.org/new-${index + 1}`,
+        publishedAt: null
+    }))
+];
+
 run({
     env: { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "test" },
     createClient: () => db,
-    fetchSource: async () => [
-        { title: "Previously discovered announcement", url: "https://example.org/old", publishedAt: null },
-        { title: "New official announcement", url: "https://example.org/new", publishedAt: null }
-    ]
+    fetchSource: async () => candidates
 }).then(() => {
     assert.deepEqual(conflict, { onConflict: "canonical_url", ignoreDuplicates: true });
-    assert.equal(announcements.length, 2);
+    assert.deepEqual(upsertSizes, [100, 100, 5]);
+    assert.deepEqual(updateSizes, [100, 100, 5]);
+    assert.equal(announcements.length, 205);
     assert.equal(existing.title, "Previously discovered announcement");
     for (const row of announcements) {
         assert.equal(row.publication_status, "approved");

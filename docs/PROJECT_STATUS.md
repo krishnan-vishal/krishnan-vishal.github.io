@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
+
+- **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.
+- **Implementation:** `scraper.js` uses `a[href]` unless `parser_profile` supplies an explicit CSS selector, deduplicates canonical URLs, removes the former 20-item source cap, and upserts/updates in 100-row batches. Source and zero-result logs distinguish a clean empty run from a scrape failure. Existing HTTPS and registered-host checks remain.
+- **Evidence / boundary:** focused all-anchor filter and 205-row batch tests, the Security and Integrity script checks, announcement validators, syntax and secret scan pass locally. Recent public `run-ticker.yml` runs are green, but the user reports the table empty; detailed source logs and live database rows are unavailable here. This broader fallback does not establish that sources are reachable, eligible or visible to the separate static GPIR reader. Main publication remains owner-controlled.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Approved ticker ingestion request
 
 - **User request:** 2026-09-14 request to write scraped Supabase announcement rows with `publication_status=approved` and `ticker_eligible=true`, including previously discovered matching URLs on rerun. This changes the earlier review-only database policy; canonical GPIR JSON and its independent publication controls are unchanged.
