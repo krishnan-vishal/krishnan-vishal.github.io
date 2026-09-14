@@ -42,7 +42,7 @@ async function readSevenDays(client, now){
     const rows = [];
     for(let offset = 0;; offset += PAGE_SIZE){
         const { data, error } = await client.from(TABLE)
-            .select("id,timestamp,base_currency,target_currency,rate")
+            .select("id,timestamp,base_currency,target_currency,rate,region,source")
             .gte("timestamp", cutoff)
             .lte("timestamp", now)
             .order("timestamp", { ascending: true })
@@ -77,6 +77,32 @@ function summarizeRows(rows, featuredPairs){
     });
 }
 
+function buildHourlyArchive(rows, now){
+    const byHour = new Map();
+    rows.forEach(row => {
+        const capturedAt = Date.parse(row.timestamp);
+        const pair = `${row.base_currency}/${row.target_currency}`;
+        const rate = Number(row.rate);
+        if(!Number.isFinite(capturedAt) || !/^[A-Z]{3}\/[A-Z]{3}$/.test(pair) ||
+            !Number.isFinite(rate) || rate <= 0) return;
+        const hour = new Date(capturedAt).toISOString().slice(0, 13) + ":00:00Z";
+        if(!byHour.has(hour)) byHour.set(hour, new Map());
+        // The ordered query makes the last row the retained observation
+        // if a scheduled hour was retried.
+        byHour.get(hour).set(pair, {
+            pair, rate, region: String(row.region || "GLOBAL"),
+            source: String(row.source || "UNKNOWN")
+        });
+    });
+    const captures = [...byHour.entries()].sort(([left], [right]) => right.localeCompare(left))
+        .slice(0, 168).map(([hour, pairMap]) => ({
+            hour,
+            pairs: [...pairMap.values()].sort((left, right) =>
+                left.region.localeCompare(right.region) || left.pair.localeCompare(right.pair))
+        }));
+    return { generatedAt: now, source: TABLE, windowDays: 7, captures };
+}
+
 async function archiveAndBuildWeekly(options = {}){
     const env = options.env || process.env;
     if(!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY){
@@ -98,7 +124,9 @@ async function archiveAndBuildWeekly(options = {}){
     const summaries = summarizeRows(historicalRows, rows.map(row => `${row.base_currency}/${row.target_currency}`));
     const weekly = { generatedAt: now, source: TABLE, summaries };
     fs.writeFileSync(options.weeklyPath || path.join(DATA_DIR, "weekly-summary.json"), JSON.stringify(weekly, null, 2) + "\n", "utf8");
-    return { archivedPairCount: rows.length, sevenDayRowCount: historicalRows.length, summaryCount: summaries.length };
+    const hourly = buildHourlyArchive(historicalRows, now);
+    fs.writeFileSync(options.hourlyPath || path.join(DATA_DIR, "hourly-archive.json"), JSON.stringify(hourly, null, 2) + "\n", "utf8");
+    return { archivedPairCount: rows.length, sevenDayRowCount: historicalRows.length, summaryCount: summaries.length, hourlyCaptureCount: hourly.captures.length };
 }
 
 if(require.main === module){
@@ -106,4 +134,4 @@ if(require.main === module){
         .catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows };
+module.exports = { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildHourlyArchive };

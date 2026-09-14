@@ -3,11 +3,15 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows } = require("./fx/archive-supabase.js");
+const { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildHourlyArchive } = require("./fx/archive-supabase.js");
 const { generateSnapshot, requestedPairs } = require("./fx/generate-fx-snapshot.js");
 const reference = require("./fx/providers/reference.js");
 
 const productionConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "fx-config.json"), "utf8"));
+const historicalPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
+assert.match(historicalPage, /id="fx-hourly-heading"/);
+assert.match(historicalPage, /hourly-archive\.json\?v=/);
+assert.doesNotMatch(historicalPage, /SUPABASE_SERVICE_ROLE_KEY/, "public pages must not contain private database credentials");
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
     "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
     "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
@@ -48,6 +52,12 @@ assert.deepStrictEqual(summary[0].observations, [
     { date: "2026-09-12", rate: 88.2 }, { date: "2026-09-13", rate: 88.4 }
 ]);
 assert.strictEqual(summary[1].dataCompleteness, "NO_DATA");
+const hourlyResult = buildHourlyArchive([
+    { ...history[0], timestamp: "2026-09-12T09:00:00Z", region: "SOUTH ASIA / APAC", source: "reference-open-er-api" },
+    { ...history[1], timestamp: "2026-09-12T09:30:00Z", region: "SOUTH ASIA / APAC", source: "reference-open-er-api" }
+], "2026-09-14T10:00:00Z");
+assert.strictEqual(hourlyResult.captures.length, 1);
+assert.strictEqual(hourlyResult.captures[0].pairs[0].rate, 88.2, "a retried hour retains its latest validated pair rate");
 
 async function main(){
     const currentPath = path.join(__dirname, "..", "assets", "data", "fx", "current.json");
@@ -83,6 +93,7 @@ async function main(){
 
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gpir-fx-archive-"));
     const weeklyPath = path.join(tempDir, "weekly.json");
+    const hourlyPath = path.join(tempDir, "hourly.json");
     let inserted = null;
     const client = {
         from(table){
@@ -100,7 +111,7 @@ async function main(){
     try{
         const result = await archiveAndBuildWeekly({
             env: { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "test-key" },
-            createClient: () => client, snapshot, config, weeklyPath, now: "2026-09-14T10:00:00Z"
+            createClient: () => client, snapshot, config, weeklyPath, hourlyPath, now: "2026-09-14T10:00:00Z"
         });
         assert.deepStrictEqual(inserted, expectedRows);
         assert.strictEqual(result.archivedPairCount, 2);
@@ -109,6 +120,9 @@ async function main(){
         assert.strictEqual(weekly.source, "fx_historical_archive");
         assert.deepStrictEqual(weekly.summaries[0].observations, summary[0].observations);
         assert.strictEqual(weekly.summaries[1].pair, "INR/PKR");
+        const hourly = JSON.parse(fs.readFileSync(hourlyPath, "utf8"));
+        assert.strictEqual(hourly.captures.length, 3);
+        assert.strictEqual(hourly.source, "fx_historical_archive");
         await assert.rejects(archiveAndBuildWeekly({ env: {}, snapshot, config, weeklyPath }), /requires SUPABASE_URL/);
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
