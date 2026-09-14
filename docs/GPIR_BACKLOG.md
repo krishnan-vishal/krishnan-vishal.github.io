@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## FX regional hourly archive repair
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FX-GLOBAL-ARCHIVE-01 | 2026-09-14 | Cover 28 regional currencies and resume hourly Supabase FX archiving | AUTOMATION, DATA, READER EXPERIENCE | High | IN PROGRESS | Owner-supplied `fx_historical_archive` table and Actions secrets; owner review/merge | Stage 1 | `scripts/fx/generate-fx-snapshot.js`, `scripts/fx/archive-supabase.js`, `.github/workflows/fx-market-data.yml`, `scripts/generate-fx-pages.js` | Build all USD and regional local crosses from one free reference response; archive each validated hourly capture; generate weekly observations from seven days of database rows; remove fixed archive date and stale filesystem rollover. | All target codes covered; no fabricated rates; hourly capture rows use supplied schema; daily deduplicated weekly statistics; static reader survives database outage; local validation and owner-review PR. | Implemented and locally validated; live Actions/DB results and owner review pending. | PENDING | Work branch | FX-GLOBAL-ARCHIVE-01 |
+
 ## Phase 3 live country dashboard
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

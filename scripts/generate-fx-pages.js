@@ -336,13 +336,7 @@ function main(){
     fs.writeFileSync(path.join(OUTPUT_DIR, "weekly.html"), weeklyHtml, "utf8");
 
     // --- Historical ------------------------------------------------
-    const archiveStart = "2026-09-01";
-    const archiveEnd = current.publicationDate;
-    const archiveDates = [];
-    for(let cursor = new Date(`${archiveStart}T00:00:00Z`), end = new Date(`${archiveEnd}T00:00:00Z`); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)){
-        archiveDates.push(cursor.toISOString().slice(0, 10));
-    }
-    const storedHistoryDates = new Set(historyDates);
+    const archiveDates = historyDates;
     const byYear = {};
     archiveDates.forEach(date => {
         const year = date.slice(0, 4);
@@ -353,8 +347,7 @@ function main(){
         const dates = byYear[year];
         return `<section class="fx-history-year"><h2>${escapeHtml(year)}</h2><ul class="fx-history-date-list">${dates.map(date => {
             const [, m, d] = date.split("-");
-            const unavailable = !storedHistoryDates.has(date);
-            return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}"${unavailable ? ' class="fx-history-date--unavailable"' : ""}>${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}${unavailable ? " — no validated observation" : ""}</a></li>`;
+            return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}">${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}</a></li>`;
         }).join("")}</ul></section>`;
     }).join("") || `<p class="fx-empty-note">Building observation history — first GPIR snapshot published ${escapeHtml(formattedFirstSnapshotDate)}.</p>`;
     const historicalHtml = assemblePage({

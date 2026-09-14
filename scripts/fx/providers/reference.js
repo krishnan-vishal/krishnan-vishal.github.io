@@ -18,9 +18,8 @@
  * "REFERENCE" -- never "live". It has no bid/ask/spot/TOM/cash data;
  * those fields stay null (rendered "N/A"), never estimated.
  *
- * One HTTP call fetches all rates relative to a single anchor
- * currency (USD); every other featured pair is then computed from
- * that one response:
+ * One USD response contains all target currencies. Regional USD pairs
+ * and local crosses are materialised from that common-base table:
  *   - base === anchor:  provider-native (the API's own quote)
  *   - quote === anchor: derived-cross (a deterministic reciprocal of
  *                        one supplied anchor leg)
@@ -61,8 +60,12 @@ async function fetchAnchorRates(fetchImpl = globalThis.fetch){
  * them through validateRecord() before publishing.
  */
 async function fetchPairs(pairs, options = {}){
-    const { fetchImpl = globalThis.fetch, retrievedAt = new Date().toISOString() } = options;
+    const { fetchImpl = globalThis.fetch, retrievedAt = new Date().toISOString(), targetCurrencies = [] } = options;
     const data = await fetchAnchorRates(fetchImpl);
+    const missingTargets = targetCurrencies.filter(code => !Number.isFinite(data.rates[code]) || data.rates[code] <= 0);
+    if(missingTargets.length){
+        throw new Error(`REFERENCE_PROVIDER_INCOMPLETE_COVERAGE: ${missingTargets.join(",")}`);
+    }
     const providerTimestamp = data.time_last_update_utc
         ? new Date(data.time_last_update_utc).toISOString()
         : retrievedAt;

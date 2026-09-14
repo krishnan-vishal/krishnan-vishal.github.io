@@ -173,6 +173,8 @@ assert.match(tickerReaderSource, /ageMinutes <= refreshIntervalMinutes \* 2/, "l
 assert.match(tickerReaderSource, /ageMinutes <= referenceStaleAfterMinutes \? "REFERENCE" : "STALE"/, "an over-age reference snapshot must be visibly stale");
 assert.match(tickerReaderSource, /const retrievedAtValue = \(fxSnapshotCache\.currencyUniverse && fxSnapshotCache\.currencyUniverse\.gpirRetrievedAt\)/, "ticker status must originate from dynamic GPIR retrieval time");
 assert.match(tickerReaderSource, /track\.innerHTML = tickerSequence \+ tickerSequence/, "pairs and compact status must form one duplicated seamless sequence");
+assert.match(tickerReaderSource, /fxSnapshotCache\.pairs\.filter\(record => !featured \|\| featured\.has\(record\.pair\)\)/, "the compact ticker must retain the curated pair set when the archive expands");
+assert.match(fxAppSource, /snapshot\.featuredPairs\.includes\(pair\)/, "regional archive pairs without static detail pages must route through Explorer");
 assert.match(marketCssSource, /#fx-ribbon \.market-time\{\s*display:none;/, "the fixed ticker timestamp overlay must be removed");
 assert.match(marketCssSource, /#fx-ribbon\{[\s\S]*?height:36px/, "the FX ticker must remain a thin 36px strip");
 assert.match(marketCssSource, /@keyframes tickerMove\{[\s\S]*?translateX\(-50%\)/, "the doubled ticker sequence must move exactly one sequence width");
@@ -203,7 +205,8 @@ const treasurySource = fxAppSource.slice(fxAppSource.indexOf("function renderTre
 const weeklySource = fxAppSource.slice(fxAppSource.indexOf("function renderWeekly"), fxAppSource.indexOf("function renderHistoricalDate"));
 assert.doesNotMatch(treasurySource, /statusBadge|fx-status-badge/, "Treasury overview cards must not repeat provenance badges");
 assert.doesNotMatch(weeklySource, /statusBadge|fx-status-badge/, "Weekly overview cards must not repeat provenance badges");
-assert.match(historicalPageSource, /data-fx-history-date="2026-09-01"[^>]*fx-history-date--unavailable/, "archive navigation must begin 01 Sep 2026 as unavailable");
+assert.match(weeklySource, /pairHref\(snapshot, summary\.pair\)/, "regional weekly pairs must route through Explorer when no static detail page exists");
+assert.doesNotMatch(historicalPageSource, /data-fx-history-date="2026-09-01"/, "archive navigation must list only stored history dates");
 assert.strictEqual(fs.existsSync(path.join(__dirname, "..", "assets", "data", "fx", "history", "2026", "09", "2026-09-01.json")), false, "missing 01 Sep rates must not be fabricated");
 
 const fxWorkflowSource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "fx-market-data.yml"), "utf8");
@@ -235,11 +238,16 @@ async function providerTests(){
 
     // The reference provider succeeds when the network does; a real
     // record with correct cross-rate math comes back.
-    const mockFetchOk = async () => ({
+    const fetchedUrls = [];
+    const mockFetchOk = async url => {
+        fetchedUrls.push(url);
+        return ({
         ok: true,
         json: async () => ({ result: "success", time_last_update_utc: "Tue, 08 Sep 2026 00:00:01 +0000", rates: { INR: 88.20, AED: 3.6725 } })
-    });
-    const okRecords = await referenceProvider.fetchPairs(["USD/INR", "AED/INR", "AED/USD"], { fetchImpl: mockFetchOk, retrievedAt: "2026-09-08T00:05:00Z" });
+        });
+    };
+    const okRecords = await referenceProvider.fetchPairs(["USD/INR", "AED/INR", "AED/USD"], { fetchImpl: mockFetchOk, retrievedAt: "2026-09-08T00:05:00Z", targetCurrencies: ["AED", "INR"] });
+    assert.deepStrictEqual(fetchedUrls, ["https://open.er-api.com/v6/latest/USD"], "one common-base request must cover all target currencies without exhausting the free endpoint");
     const usdInr = okRecords.find(record => record.pair === "USD/INR");
     const aedInr = okRecords.find(record => record.pair === "AED/INR");
     const aedUsd = okRecords.find(record => record.pair === "AED/USD");
