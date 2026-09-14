@@ -1026,6 +1026,21 @@ carried by glyph + text, never colour alone.
 
 }
 
+#dynamic-ticker-grid{
+    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
+    gap:10px;
+}
+
+#dynamic-ticker-grid .fx-weekly-card{
+    display:block;
+    padding:12px;
+}
+
+#dynamic-ticker-grid .fx-weekly-card p{
+    margin:5px 0 0;
+    overflow-wrap:anywhere;
+}
+
 .fx-weekly-card{
 
     display:grid;

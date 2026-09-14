@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
+
+- **Date / owner direction:** 2026-09-14; render Weekly Trends and Historical from the public `fx_historical_archive` query, show every distinct pair with seven-day variance/high/low, and derive hourly choices from real timestamps.
+- **Technical result:** generated pages contain empty card targets and a shared read-only browser module using the existing project-specific REST URL and public publishable key. It requests a bounded seven-day chronological window with pagination, creates cards through DOM text nodes, and can use a generated static hourly archive if the public query fails or is empty.
+- **Evidence / boundary:** local syntax, FX contract and regression, FX/content/link, and whitespace checks pass. A read-only endpoint probe returned HTTP 200 and zero rows for the publishable key; no live cards, database writes, workflow run, PR merge or production release are claimed. The empty response may reflect an empty table or public row policy.
+
 ## FX-GLOBAL-ARCHIVE-01 — Regional hourly archive repair
 
 - **Date / owner direction:** 2026-09-14; cover the four supplied regional currency arrays, remove the stale date lock and INR-only fallback behavior, insert hourly observations into the supplied Supabase `fx_historical_archive` schema, and drive weekly statistics from its past seven days.

@@ -48,20 +48,20 @@
 
 
 <title>FX Historical Archive | FINTECHOISIS — GPIR</title>
-<meta name="description" content="Immutable daily FX snapshots by year and month, and per-pair historical observations.">
+<meta name="description" content="Public hourly FX captures from the past seven days, with seven-day statistics for every archived pair.">
 
 <link rel="canonical" href="https://krishnan-vishal.github.io/pages/fx/historical.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FINTECHOISIS | GPIR">
 <meta property="og:title" content="FX Historical Archive">
-<meta property="og:description" content="Immutable daily FX snapshots by year and month, and per-pair historical observations.">
+<meta property="og:description" content="Public hourly FX captures from the past seven days, with seven-day statistics for every archived pair.">
 <meta property="og:url" content="https://krishnan-vishal.github.io/pages/fx/historical.html">
 <meta property="og:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FX Historical Archive">
-<meta name="twitter:description" content="Immutable daily FX snapshots by year and month, and per-pair historical observations.">
+<meta name="twitter:description" content="Public hourly FX captures from the past seven days, with seven-day statistics for every archived pair.">
 <meta name="twitter:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 
@@ -880,85 +880,21 @@
         <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><a href="index.html">FX Pricing &amp; Treasury</a><span>/</span><strong>Historical</strong></div>
         <span class="chapter-part-tag">FX Pricing &amp; Treasury</span>
         <h1>FX Historical Archive</h1>
-        <p class="chapter-hero-intro">Select an immutable daily snapshot to view its recorded GPIR reference rates.</p>
+        <p class="chapter-hero-intro">Select a recorded UTC capture to inspect rates and seven-day ranges for every archived pair.</p>
         <nav class="fx-subnav" aria-label="FX Pricing & Treasury sections"><a href="index.html">Live FX</a><a href="explorer.html">Currency Explorer</a><a href="treasury.html">Treasury Intelligence</a><a href="weekly.html">Weekly Trends</a><a href="historical.html" aria-current="page">Historical</a></nav>
     </div>
 </section>
 <section class="chapter-body fx-page-body">
     <div class="container">
-        <section class="fx-hourly-captures" aria-labelledby="fx-hourly-heading">
+        <section class="fx-hourly-captures" data-fx-public-view="historical" aria-labelledby="fx-hourly-heading">
             <h2 id="fx-hourly-heading">Hourly database captures</h2>
-            <p>Validated capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
+            <p>Recorded capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
             <label for="fx-hourly-select">Capture hour (UTC)</label>
             <select id="fx-hourly-select" class="fx-explorer-select" disabled></select>
-            <div id="fx-hourly-detail" class="fx-history-detail" aria-live="polite">Loading archived captures…</div>
+            <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
+            <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
-        <h2>Frozen daily snapshots</h2>
-        <div class="fx-history-nav"><section class="fx-history-year"><h2>2026</h2><ul class="fx-history-date-list"><li><a href="historical.html#2026-09-08" data-fx-history-date="2026-09-08">September 8, 2026</a></li><li><a href="historical.html#2026-09-09" data-fx-history-date="2026-09-09">September 9, 2026</a></li><li><a href="historical.html#2026-09-10" data-fx-history-date="2026-09-10">September 10, 2026</a></li></ul></section></div>
-        <div id="fx-history-detail" class="fx-history-detail" data-fx-view="historical" aria-live="polite"></div>
-        <script>
-        (function(){
-            const select = document.getElementById("fx-hourly-select");
-            const detail = document.getElementById("fx-hourly-detail");
-            const rateFormat = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 6 });
-            function renderCapture(capture){
-                detail.replaceChildren();
-                const groups = new Map();
-                (capture && Array.isArray(capture.pairs) ? capture.pairs : []).forEach(item => {
-                    if(!/^[A-Z]{3}\/[A-Z]{3}$/.test(item.pair) || !Number.isFinite(item.rate) || item.rate <= 0) return;
-                    const region = String(item.region || "GLOBAL");
-                    if(!groups.has(region)) groups.set(region, []);
-                    groups.get(region).push(item);
-                });
-                if(!groups.size){
-                    detail.textContent = "No validated rates are available for this capture hour.";
-                    return;
-                }
-                groups.forEach((pairs, region) => {
-                    const heading = document.createElement("h3");
-                    heading.textContent = region;
-                    detail.appendChild(heading);
-                    const table = document.createElement("div");
-                    table.className = "fx-market-table";
-                    table.setAttribute("role", "table");
-                    table.setAttribute("aria-label", region + " hourly FX rates");
-                    pairs.forEach(item => {
-                        const row = document.createElement("div");
-                        row.className = "fx-market-row";
-                        row.setAttribute("role", "row");
-                        [item.pair, rateFormat.format(item.rate), String(item.source || "UNKNOWN")].forEach(value => {
-                            const cell = document.createElement("span");
-                            cell.textContent = value;
-                            row.appendChild(cell);
-                        });
-                        table.appendChild(row);
-                    });
-                    detail.appendChild(table);
-                });
-            }
-            fetch("../../assets/data/fx/hourly-archive.json?v=" + Date.now(), { cache: "no-store" })
-                .then(response => { if(!response.ok) throw new Error("archive unavailable"); return response.json(); })
-                .then(data => {
-                    const captures = Array.isArray(data.captures) ? data.captures : [];
-                    if(!captures.length){
-                        detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
-                        return;
-                    }
-                    captures.forEach((capture, index) => {
-                        const option = document.createElement("option");
-                        option.value = String(index);
-                        option.textContent = capture.hour;
-                        select.appendChild(option);
-                    });
-                    select.disabled = false;
-                    select.addEventListener("change", () => renderCapture(captures[Number(select.value)]));
-                    renderCapture(captures[0]);
-                })
-                .catch(() => {
-                    detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
-                });
-        })();
-        </script>
+        <script src="../../assets/js/fx-public-history.js" defer></script>
         <p class="fx-disclaimer">FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice.</p>
     </div>
 </section>

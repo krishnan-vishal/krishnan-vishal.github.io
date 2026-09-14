@@ -6,12 +6,18 @@ const path = require("path");
 const { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildHourlyArchive } = require("./fx/archive-supabase.js");
 const { generateSnapshot, requestedPairs } = require("./fx/generate-fx-snapshot.js");
 const reference = require("./fx/providers/reference.js");
+const publicHistory = require("../assets/js/fx-public-history.js");
 
 const productionConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "fx-config.json"), "utf8"));
 const historicalPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
 assert.match(historicalPage, /id="fx-hourly-heading"/);
-assert.match(historicalPage, /hourly-archive\.json\?v=/);
+assert.match(historicalPage, /id="dynamic-ticker-grid"/);
+assert.match(historicalPage, /fx-public-history\.js/);
+assert.doesNotMatch(historicalPage, /fx-history-nav|data-fx-history-date|hourly-archive\.json\?v=/);
 assert.doesNotMatch(historicalPage, /SUPABASE_SERVICE_ROLE_KEY/, "public pages must not contain private database credentials");
+const weeklyPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "weekly.html"), "utf8");
+assert.match(weeklyPage, /id="dynamic-ticker-grid"/);
+assert.match(weeklyPage, /fx-public-history\.js/);
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
     "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
     "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
@@ -60,6 +66,49 @@ assert.strictEqual(hourlyResult.captures.length, 1);
 assert.strictEqual(hourlyResult.captures[0].pairs[0].rate, 88.2, "a retried hour retains its latest validated pair rate");
 
 async function main(){
+    const publicNow = new Date("2026-09-14T10:00:00Z");
+    const publicRows = [
+        { id: 1, timestamp: "2026-09-12T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.100000", region: "APAC" },
+        { id: 2, timestamp: "2026-09-13T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.400000", region: "APAC" },
+        { id: 3, timestamp: "2026-09-13T08:00:00Z", base_currency: "USD", target_currency: "BRL", rate: "5.200000", region: "LATAM" },
+        { id: 4, timestamp: "2026-09-05T08:00:00Z", base_currency: "USD", target_currency: "EUR", rate: "0.9" }
+    ];
+    const normalized = publicHistory.normalizeRows(publicRows, publicNow.getTime() - 7 * 86400000, publicNow.getTime());
+    assert.strictEqual(normalized.length, 3, "out-of-window rates must not reach the public cards");
+    assert.deepStrictEqual([...publicHistory.groupByPair(normalized).keys()], ["USD/INR", "USD/BRL"]);
+    assert.deepStrictEqual(publicHistory.distinctTimestamps(normalized), ["2026-09-13T08:00:00.000Z", "2026-09-12T08:00:00.000Z"]);
+    const stats = publicHistory.pairStats(publicHistory.groupByPair(normalized).get("USD/INR"));
+    assert.strictEqual(stats.high, 88.4);
+    assert.strictEqual(stats.low, 88.1);
+    assert.ok(Math.abs(stats.delta - 0.3) < 1e-10);
+    const previousDocument = global.document;
+    global.document = { createElement(tag){ return {
+        tag, children: [], appendChild(child){ this.children.push(child); }
+    }; } };
+    try{
+        const grid = { children: [], replaceChildren(){ this.children = []; }, appendChild(child){ this.children.push(child); } };
+        publicHistory.renderCards(grid, normalized.filter(row => row.timestamp === "2026-09-12T08:00:00.000Z"), normalized);
+        assert.strictEqual(grid.children.length, 2, "all distinct pairs need cards even when a capture omits one");
+        assert.ok(grid.children.some(card => card.children.some(item => item.textContent === "No rate in selected capture")));
+    } finally {
+        global.document = previousDocument;
+    }
+    let publicPage = 0;
+    const fetched = await publicHistory.fetchSevenDays(async (url, options) => {
+        const request = new URL(url);
+        assert.strictEqual(request.origin, "https://qlnvhfapctcpzqyuhhth.supabase.co");
+        assert.strictEqual(request.pathname, "/rest/v1/fx_historical_archive");
+        assert.deepStrictEqual(request.searchParams.getAll("timestamp"), ["gte.2026-09-07T10:00:00.000Z", "lte.2026-09-14T10:00:00.000Z"]);
+        assert.strictEqual(request.searchParams.get("order"), "timestamp.asc,id.asc");
+        assert.ok(options.headers.apikey.startsWith("sb_publishable_"));
+        assert.ok(!options.headers.Authorization, "public requests must not carry a private bearer credential");
+        assert.strictEqual(request.searchParams.get("offset"), String(publicPage * 1000));
+        publicPage++;
+        return { ok: true, json: async () => publicPage === 1 ? Array(1000).fill(publicRows[0]) : publicRows.slice(1, 3) };
+    }, publicNow);
+    assert.strictEqual(publicPage, 2);
+    assert.strictEqual(fetched.length, 1002);
+
     const currentPath = path.join(__dirname, "..", "assets", "data", "fx", "current.json");
     const currentBeforeFailure = fs.readFileSync(currentPath, "utf8");
     await assert.rejects(generateSnapshot({

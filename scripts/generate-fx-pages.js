@@ -251,9 +251,6 @@ function main(){
     const pairs = config.featuredPairs || [];
     const historyDates = listHistoryDates();
     const firstSnapshotDate = [currentSnapshot.publicationDate, ...historyDates].filter(Boolean).sort()[0];
-    const formattedFirstSnapshotDate = firstSnapshotDate
-        ? new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${firstSnapshotDate}T00:00:00Z`)).replace("Sept", "Sep")
-        : "the first published snapshot";
     const template = loadTemplate();
 
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -322,117 +319,41 @@ function main(){
     const weeklyHtml = assemblePage({
         template,
         title: "Weekly FX Trends",
-        description: "Deterministic weekly quantitative FX observations per currency pair -- open, high, low, change and range, computed from GPIR's own archived history.",
+        description: "Seven-day FX variance, high and low for every publicly archived currency pair.",
         urlPath: "pages/fx/weekly.html",
         heroTitle: "Weekly FX Trends",
-        heroIntro: "Validated GPIR observations only, with no inferred market drivers or synthetic trends.",
+        heroIntro: "Seven-day observations from GPIR's public hourly archive, with no inferred market drivers.",
         breadcrumbLabel: "Weekly Trends",
         activeNav: "Weekly Trends",
         depth: 2,
-        bodyHtml: `        <div id="fx-weekly-list" class="fx-weekly-list" data-fx-view="weekly" data-fx-first-snapshot-date="${escapeHtml(firstSnapshotDate)}" aria-live="polite">
-            <p class="fx-loading">Loading weekly summaries…</p>
-        </div>`
+        bodyHtml: `        <section data-fx-public-view="weekly" aria-label="Weekly FX trends">
+            <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
+            <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
+        </section>
+        <script src="../../assets/js/fx-public-history.js" defer></script>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "weekly.html"), weeklyHtml, "utf8");
 
     // --- Historical ------------------------------------------------
-    const archiveDates = historyDates;
-    const byYear = {};
-    archiveDates.forEach(date => {
-        const year = date.slice(0, 4);
-        (byYear[year] = byYear[year] || []).push(date);
-    });
-    const monthName = (m) => ["January","February","March","April","May","June","July","August","September","October","November","December"][parseInt(m, 10) - 1];
-    const historyListHtml = Object.keys(byYear).sort().reverse().map(year => {
-        const dates = byYear[year];
-        return `<section class="fx-history-year"><h2>${escapeHtml(year)}</h2><ul class="fx-history-date-list">${dates.map(date => {
-            const [, m, d] = date.split("-");
-            return `<li><a href="historical.html#${escapeHtml(date)}" data-fx-history-date="${escapeHtml(date)}">${escapeHtml(monthName(m))} ${parseInt(d, 10)}, ${escapeHtml(year)}</a></li>`;
-        }).join("")}</ul></section>`;
-    }).join("") || `<p class="fx-empty-note">Building observation history — first GPIR snapshot published ${escapeHtml(formattedFirstSnapshotDate)}.</p>`;
     const historicalHtml = assemblePage({
         template,
         title: "FX Historical Archive",
-        description: "Immutable daily FX snapshots by year and month, and per-pair historical observations.",
+        description: "Public hourly FX captures from the past seven days, with seven-day statistics for every archived pair.",
         urlPath: "pages/fx/historical.html",
         heroTitle: "FX Historical Archive",
-        heroIntro: "Select an immutable daily snapshot to view its recorded GPIR reference rates.",
+        heroIntro: "Select a recorded UTC capture to inspect rates and seven-day ranges for every archived pair.",
         breadcrumbLabel: "Historical",
         activeNav: "Historical",
         depth: 2,
-        bodyHtml: `        <section class="fx-hourly-captures" aria-labelledby="fx-hourly-heading">
+        bodyHtml: `        <section class="fx-hourly-captures" data-fx-public-view="historical" aria-labelledby="fx-hourly-heading">
             <h2 id="fx-hourly-heading">Hourly database captures</h2>
-            <p>Validated capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
+            <p>Recorded capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
             <label for="fx-hourly-select">Capture hour (UTC)</label>
             <select id="fx-hourly-select" class="fx-explorer-select" disabled></select>
-            <div id="fx-hourly-detail" class="fx-history-detail" aria-live="polite">Loading archived captures…</div>
+            <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
+            <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
-        <h2>Frozen daily snapshots</h2>
-        <div class="fx-history-nav">${historyListHtml}</div>
-        <div id="fx-history-detail" class="fx-history-detail" data-fx-view="historical" aria-live="polite"></div>
-        <script>
-        (function(){
-            const select = document.getElementById("fx-hourly-select");
-            const detail = document.getElementById("fx-hourly-detail");
-            const rateFormat = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 6 });
-            function renderCapture(capture){
-                detail.replaceChildren();
-                const groups = new Map();
-                (capture && Array.isArray(capture.pairs) ? capture.pairs : []).forEach(item => {
-                    if(!/^[A-Z]{3}\\/[A-Z]{3}$/.test(item.pair) || !Number.isFinite(item.rate) || item.rate <= 0) return;
-                    const region = String(item.region || "GLOBAL");
-                    if(!groups.has(region)) groups.set(region, []);
-                    groups.get(region).push(item);
-                });
-                if(!groups.size){
-                    detail.textContent = "No validated rates are available for this capture hour.";
-                    return;
-                }
-                groups.forEach((pairs, region) => {
-                    const heading = document.createElement("h3");
-                    heading.textContent = region;
-                    detail.appendChild(heading);
-                    const table = document.createElement("div");
-                    table.className = "fx-market-table";
-                    table.setAttribute("role", "table");
-                    table.setAttribute("aria-label", region + " hourly FX rates");
-                    pairs.forEach(item => {
-                        const row = document.createElement("div");
-                        row.className = "fx-market-row";
-                        row.setAttribute("role", "row");
-                        [item.pair, rateFormat.format(item.rate), String(item.source || "UNKNOWN")].forEach(value => {
-                            const cell = document.createElement("span");
-                            cell.textContent = value;
-                            row.appendChild(cell);
-                        });
-                        table.appendChild(row);
-                    });
-                    detail.appendChild(table);
-                });
-            }
-            fetch("../../assets/data/fx/hourly-archive.json?v=" + Date.now(), { cache: "no-store" })
-                .then(response => { if(!response.ok) throw new Error("archive unavailable"); return response.json(); })
-                .then(data => {
-                    const captures = Array.isArray(data.captures) ? data.captures : [];
-                    if(!captures.length){
-                        detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
-                        return;
-                    }
-                    captures.forEach((capture, index) => {
-                        const option = document.createElement("option");
-                        option.value = String(index);
-                        option.textContent = capture.hour;
-                        select.appendChild(option);
-                    });
-                    select.disabled = false;
-                    select.addEventListener("change", () => renderCapture(captures[Number(select.value)]));
-                    renderCapture(captures[0]);
-                })
-                .catch(() => {
-                    detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
-                });
-        })();
-        </script>`
+        <script src="../../assets/js/fx-public-history.js" defer></script>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "historical.html"), historicalHtml, "utf8");
 

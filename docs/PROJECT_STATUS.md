@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
+
+- **Owner direction / branch:** 2026-09-14 request to replace fixed September historical controls and the static weekly reader with public, read-only Supabase archive queries on `codex/fx-global-hourly-archive`.
+- **Implementation:** both generated FX pages now render empty card targets through a shared public-key REST reader. It filters the past seven days by timestamp, pages chronologically, groups every distinct pair, computes seven-day variance/high/low, and populates the historical capture selector from returned timestamps. The generated static hourly archive remains a last-known-good fallback when present. No service-role key enters browser code.
+- **Evidence / limit:** focused archive tests, FX regression, syntax, FX/content/link validation and diff whitespace checks pass locally. A read-only production endpoint probe returned HTTP 200 with zero publicly visible rows; that does not distinguish an empty table from RLS filtering. The static hourly fallback file does not yet exist in this checkout. Live cards and scheduled inserts remain unverified until rows are publicly readable and the workflow runs.
+
 ### FX-GLOBAL-ARCHIVE-01 — Regional hourly archive repair
 
 - **Owner direction / branch:** 2026-09-14 request to cover 28 specified currencies across four regional groups, store each hourly validated pair in the supplied Supabase `fx_historical_archive` schema, and compute the weekly tab from its trailing seven days. Work branch `codex/fx-global-hourly-archive` started at `origin/main` `55c4870` and merged current `origin/main` `ea53c29` before handoff.
