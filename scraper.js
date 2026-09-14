@@ -11,8 +11,14 @@ const cheerio = require("cheerio");
 const { createClient } = require("@supabase/supabase-js");
 const { isIP } = require("node:net");
 
-const HTML_SELECTOR = "article a[href], .news-item a[href], .announcement a[href], h2 a[href], h3 a[href]";
-const MAX_ITEMS_PER_SOURCE = 20;
+const HTML_SELECTOR = "a[href]";
+const UPSERT_BATCH_SIZE = 100;
+const FINANCIAL_KEYWORDS = [
+    "payment", "fintech", "aml", "licensing", "card", "cross-border",
+    "crypto", "cbdc", "digital currency", "partnership", "transfer",
+    "remittance", "mto", "psp", "bank", "settlement", "clearing",
+    "regulatory", "compliance", "money"
+];
 
 function describeError(error) {
     if (!error) return "Unknown error";
@@ -44,12 +50,36 @@ function allowedHost(url, endpoint) {
     return host === sourceHost || host.endsWith(`.${sourceHost}`);
 }
 
+function matchesFinancialKeyword(title, url) {
+    const text = `${title} ${url}`.toLowerCase();
+    const spaced = text.replace(/[-_]/g, " ");
+    return FINANCIAL_KEYWORDS.some(keyword =>
+        text.includes(keyword) || spaced.includes(keyword.replace(/-/g, " ")));
+}
+
+function htmlSelector(source) {
+    // Named profiles such as "GENERIC" use the all-anchor fallback.
+    // Custom CSS may be "css:tr.notice a" or a selector like ".news-list a".
+    const profile = String(source.parser_profile || "").trim();
+    if (/^css:/i.test(profile)) return profile.slice(4).trim() || HTML_SELECTOR;
+    return /[.#\[\]>\s]/.test(profile) ? profile : HTML_SELECTOR;
+}
+
 function extractHtml(html, baseUrl, selector = HTML_SELECTOR) {
     const $ = cheerio.load(html);
     const items = [];
+    const seen = new Set();
     $(selector).each((_, element) => {
-        const link = $(element).is("a") ? $(element) : $(element).find("a[href]").first();
-        items.push({ title: cleanText(link.text()), url: safeUrl(link.attr("href"), baseUrl), publishedAt: null });
+        const links = $(element).is("a") ? $(element) : $(element).find("a[href]");
+        links.each((__, anchor) => {
+            const link = $(anchor);
+            const title = cleanText(link.text());
+            const url = safeUrl(link.attr("href"), baseUrl);
+            if (!url || title.length < 10 || title.length > 250 || seen.has(url)) return;
+            if (!matchesFinancialKeyword(title, url)) return;
+            seen.add(url);
+            items.push({ title, url, publishedAt: null });
+        });
     });
     return items;
 }
@@ -108,13 +138,13 @@ async function fetchSource(source, fetchImpl = fetch) {
 
     const extracted = source.acquisition_method === "A"
         ? extractRss(body, finalUrl)
-        : extractHtml(body, finalUrl);
+        : extractHtml(body, finalUrl, htmlSelector(source));
     const seen = new Set();
     return extracted.filter(item => {
         if (!item.url || !allowedHost(item.url, endpoint) || item.title.length < 8 || item.title.length > 320 || seen.has(item.url)) return false;
         seen.add(item.url);
         return true;
-    }).slice(0, MAX_ITEMS_PER_SOURCE);
+    });
 }
 
 async function run(options = {}) {
@@ -128,6 +158,7 @@ async function run(options = {}) {
     const { data: sources, error: sourceError } = await db.from("source_registry")
         .select("*").in("acquisition_method", ["C", "A"]);
     if (sourceError) throw new Error(`source_registry query failed: ${describeError(sourceError)}`);
+    console.log(`Loaded ${(sources || []).length} HTML/RSS sources from source_registry.`);
 
     let discovered = 0;
     let failedSources = 0;
@@ -141,7 +172,10 @@ async function run(options = {}) {
             console.warn(`${source.source_id}: source skipped: ${describeError(error)}`);
             continue;
         }
-        if (!items.length) continue;
+        if (!items.length) {
+            console.log(`${source.source_id}: no qualifying announcement links`);
+            continue;
+        }
         const rows = items.map(item => ({
             source_id: source.source_id,
             title: item.title,
@@ -152,17 +186,21 @@ async function run(options = {}) {
             publication_status: "approved",
             ticker_eligible: true
         }));
-        const { error } = await db.from("global_announcements")
-            .upsert(rows, { onConflict: "canonical_url", ignoreDuplicates: true });
-        if (error) throw new Error(`${source.source_id}: global_announcements insert failed: ${describeError(error)}`);
-        const { error: updateError } = await db.from("global_announcements")
-            .update({ publication_status: "approved", ticker_eligible: true })
-            .in("canonical_url", rows.map(row => row.canonical_url));
-        if (updateError) throw new Error(`${source.source_id}: global_announcements visibility update failed: ${describeError(updateError)}`);
+        for (let index = 0; index < rows.length; index += UPSERT_BATCH_SIZE) {
+            const batch = rows.slice(index, index + UPSERT_BATCH_SIZE);
+            const { error } = await db.from("global_announcements")
+                .upsert(batch, { onConflict: "canonical_url", ignoreDuplicates: true });
+            if (error) throw new Error(`${source.source_id}: global_announcements insert failed: ${describeError(error)}`);
+            const { error: updateError } = await db.from("global_announcements")
+                .update({ publication_status: "approved", ticker_eligible: true })
+                .in("canonical_url", batch.map(row => row.canonical_url));
+            if (updateError) throw new Error(`${source.source_id}: global_announcements visibility update failed: ${describeError(updateError)}`);
+        }
         discovered += rows.length;
         console.log(`${source.source_id}: checked ${rows.length} announcement links`);
     }
     console.log(`Approved ${discovered} candidate links; skipped ${failedSources} unavailable sources.`);
+    if (discovered === 0) console.warn("No candidates qualified. Check source URLs, parser profiles, official hosts and keyword matches in the run log.");
 }
 
 if (require.main === module) {
@@ -172,4 +210,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { archiveMonthYear, describeError, extractHtml, extractRss, fetchSource, run, safeUrl };
+module.exports = { archiveMonthYear, describeError, extractHtml, extractRss, fetchSource, htmlSelector, matchesFinancialKeyword, run, safeUrl };

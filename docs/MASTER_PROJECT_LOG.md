@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
+
+- **Date / user request:** 2026-09-14; a green `run-ticker.yml` reportedly leaves `global_announcements` empty. Search every HTML anchor by default, require a cleaned 10–250 character title and a finance keyword in title or URL, deduplicate, and retain approved/ticker-eligible writes.
+- **Result:** `scraper.js` now scans `a[href]` outside any particular container, supports explicit CSS parser profiles, removes the 20-item source cap, and chunks database writes to 100 rows. It reports source count and zero-result outcomes. HTTPS and official-host restrictions and unique canonical URL handling remain.
+- **Evidence / limit:** focused mocked all-anchor filtering and 205-row insert/update batching, the Security and Integrity script checks, announcement validators, syntax and secret scan pass. Public workflow metadata confirms recent successful jobs, but detailed source logs and the claimed empty Supabase table were not independently inspected. No live insertion or frontend display is claimed.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Approved ticker ingestion request
 
 - **Date / user request:** 2026-09-14; change `scraper.js` to insert every discovered row with `publication_status=approved` and `ticker_eligible=true` so Supabase-backed ticker consumers can see it. The user reports that the database query now succeeds; this was not independently verified here.
