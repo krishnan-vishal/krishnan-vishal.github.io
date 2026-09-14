@@ -3,7 +3,8 @@
 // Standalone Supabase discovery job. It does not update GPIR's canonical
 // announcements.json or publish anything to the public site.
 // Uses the owner-supplied source_registry and global_announcements schemas.
-// Newly discovered links remain review-only; the public site is unchanged.
+// Discovered links are approved for the Supabase-backed ticker after the
+// registered-source and URL checks below. Canonical GPIR JSON is unchanged.
 // Run with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in a private job only.
 
 const cheerio = require("cheerio");
@@ -148,16 +149,20 @@ async function run(options = {}) {
             url: item.url,
             published_at: item.publishedAt,
             archive_month_year: month,
-            publication_status: "review",
-            ticker_eligible: false
+            publication_status: "approved",
+            ticker_eligible: true
         }));
         const { error } = await db.from("global_announcements")
             .upsert(rows, { onConflict: "canonical_url", ignoreDuplicates: true });
         if (error) throw new Error(`${source.source_id}: global_announcements insert failed: ${describeError(error)}`);
+        const { error: updateError } = await db.from("global_announcements")
+            .update({ publication_status: "approved", ticker_eligible: true })
+            .in("canonical_url", rows.map(row => row.canonical_url));
+        if (updateError) throw new Error(`${source.source_id}: global_announcements visibility update failed: ${describeError(updateError)}`);
         discovered += rows.length;
         console.log(`${source.source_id}: checked ${rows.length} announcement links`);
     }
-    console.log(`Checked ${discovered} candidate links; skipped ${failedSources} unavailable sources. Existing canonical URLs were left unchanged.`);
+    console.log(`Approved ${discovered} candidate links; skipped ${failedSources} unavailable sources.`);
 }
 
 if (require.main === module) {

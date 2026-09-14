@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-ANNOUNCEMENTS-04 — Approved ticker ingestion request
+
+- **Date / user request:** 2026-09-14; change `scraper.js` to insert every discovered row with `publication_status=approved` and `ticker_eligible=true` so Supabase-backed ticker consumers can see it. The user reports that the database query now succeeds; this was not independently verified here.
+- **Result:** new rows carry both requested values; matching prior `canonical_url` rows receive a narrow status/eligibility update while preserving title and other stored fields. Existing source-host checks remain, and canonical GPIR publication files are not changed.
+- **Evidence / limit:** focused mocked insert-and-promotion contract, syntax and repository announcement validators pass locally. A live Supabase write and the frontend's actual data dependency were not observed. The repository's public announcement reader still uses static canonical data, so this database change alone does not prove on-site visibility.
+- **Publication handoff:** implementation commit `128c649` was pushed to `codex/approved-ticker-ingestion`. Automatic approval review rejected the direct `git push origin HEAD:main` as an unverified owner-authorized publication-control change; the command did not run. Main remains unchanged by this task.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Ticker job runtime repair
 
 - **Date / request:** 2026-09-14; diagnose the failed `run-ticker.yml` main run and correct `scraper.js` for the owner's Supabase configuration.
