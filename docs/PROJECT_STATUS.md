@@ -2,11 +2,12 @@
 
 ## Current handoff
 
-### SUPABASE-ANNOUNCEMENTS-04 — Standalone scraper draft
+### FX-BIDIRECTIONAL-03 — Reverse FX reader flows
 
-- **Owner request / branch:** 2026-09-14 request for a Node scraper using `@supabase/supabase-js` and `cheerio` to read acquisition methods C/A from `source_registry`, extract announcement links, and insert new rows into `global_announcements` with current UTC `MM/YYYY` archive labels. Branch `codex/supabase-announcement-scraper` starts at `origin/main`.
-- **Implementation:** root `scraper.js` handles HTML and RSS, limits candidates per source, accepts HTTPS links on the registered source host, ignores duplicate URLs through a database unique key, and inserts only `publication_status=review` rows. It does not alter the existing report-only refresh, canonical JSON, or public pages.
-- **Validation / dependency:** Node syntax, announcement validation, intent regression and diff whitespace checks pass. The requested Supabase table schemas were not present in this repository. The script states its column and unique-key assumptions; no live database write or scheduled run is claimed. Schema reconciliation, credentials, owner-reviewed release, and publication gating remain pending.
+- **Owner direction / branch:** 2026-09-14 request to support both sending directions in Historical, Weekly Trends and Treasury, with six-decimal inverse rates and matching movement indicators. Implemented on `codex/fx-global-hourly-archive` pending release validation.
+- **Implementation:** the public seven-day reader derives a reverse row only when that pair is not recorded for the capture timestamp; both pages expose a sending-currency filter derived from returned rows. Treasury includes all 28 configured regional sending currencies and resolves a missing direction from the validated reverse snapshot pair before using common-base derivation. Inverse rates display to six decimals, and inverse highs, lows, percentages and ▲/▼ direction derive from the inverted observations.
+- **Validation / boundary:** focused FX archive and regression tests, all Security and Integrity workflow scripts, 61-file JavaScript syntax, secret scan, FX/content/link and announcement validators, and `git diff --check` pass locally. Performance audit reports four existing advisory warnings. Calculated inverses remain labeled and are not executable quotes. Public archive visibility and live production data remain unverified.
+- **Delivery / publication control:** implementation and current main history are pushed to `codex/fx-global-hourly-archive`. Automatic approval review rejected `git push origin HEAD:main`: the transcript does not establish explicit project-owner authorization for pushing main. The command did not execute. Owner-controlled publication remains pending; no indirect release route was attempted.
 
 ### FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
