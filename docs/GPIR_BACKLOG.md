@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## Supabase announcement scraper
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SUPABASE-ANNOUNCEMENTS-04 | 2026-09-14 | Add standalone HTML/RSS scraper for Supabase announcement review rows | AUTOMATION, DATA | High | IN PROGRESS | Confirm `source_registry` and `global_announcements` columns, URL unique key, private job credentials, and owner review | Stage 1 | `scraper.js` | Read C/A sources, extract latest listed links, and insert duplicate-safe review rows with current UTC `MM/YYYY` archive value. | Syntax and announcement regressions pass; live schema and insert verified before scheduling; public display remains gated. | Implementation draft; live table contract and scheduled execution pending. | PENDING | Work branch | SUPABASE-ANNOUNCEMENTS-04 |
+
 ## FX regional hourly archive repair
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
