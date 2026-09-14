@@ -19,6 +19,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Date / owner direction:** 2026-09-14; make Historical, Weekly Trends and Treasury show reverse sending flows such as JPY/USD and GBP/EUR, including inverse rate, movement and visual direction.
 - **Technical result:** the public archive reader creates missing reverse pairs from validated rows at the same timestamp and filters all observed sending currencies. Treasury dynamically adds the 28 target currencies and resolves reverse snapshot pairs before common-base fallback. Derived rates use `1 / standardRate` and render with `toFixed(6)`; percentages are computed from the inverted first/latest rates, which reverses ▲/▼ direction and swaps the high/low range. Existing direct reverse observations retain priority.
 - **Evidence / boundary:** focused FX archive/regression tests, all Security and Integrity workflow scripts, JavaScript syntax, secret scan, FX/content/link and announcement validators, and `git diff --check` pass locally. The performance audit has four pre-existing advisory warnings. No live Supabase rows or publication are claimed.
+- **Publication handoff:** the validated branch was pushed and current main history integrated. Automatic approval review rejected the requested direct `git push origin HEAD:main` because explicit project-owner authorization was not established in the transcript. The command did not run and main was not updated by this task.
 
 ## FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
