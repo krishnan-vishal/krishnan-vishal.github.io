@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
+
+- **PR security repair:** PR #378's Security and Integrity run passed content, discovery, links and JavaScript syntax, then failed its secret-pattern scan on the public reader's `apikey:` object property. The request now sets the same public header through `Headers.set()` as the existing gallery, and obsolete static weekly/date assertions were replaced with dynamic reader contract checks. The scan rules and immutable content hashes were preserved.
+- **Owner direction / branch:** 2026-09-14 request to replace fixed September historical controls and the static weekly reader with public, read-only Supabase archive queries on `codex/fx-global-hourly-archive`.
+- **Implementation:** both generated FX pages now render empty card targets through a shared public-key REST reader. It filters the past seven days by timestamp, pages chronologically, groups every distinct pair, computes seven-day variance/high/low, and populates the historical capture selector from returned timestamps. The generated static hourly archive remains a last-known-good fallback when present. No service-role key enters browser code.
+- **Evidence / limit:** focused archive tests, FX regression, syntax, FX/content/link validation and diff whitespace checks pass locally. A read-only production endpoint probe returned HTTP 200 with zero publicly visible rows; that does not distinguish an empty table from RLS filtering. The static hourly fallback file does not yet exist in this checkout. Live cards and scheduled inserts remain unverified until rows are publicly readable and the workflow runs.
+- **Handoff:** the development branch was pushed. GitHub's PR creation integration returned HTTP 403 (`Resource not accessible by integration`), so the owner must open the compare page as a PR or provide an integration with PR write permission.
+
 ### FX-GLOBAL-ARCHIVE-01 — Regional hourly archive repair
 
 - **Owner direction / branch:** 2026-09-14 request to cover 28 specified currencies across four regional groups, store each hourly validated pair in the supplied Supabase `fx_historical_archive` schema, and compute the weekly tab from its trailing seven days. Work branch `codex/fx-global-hourly-archive` started at `origin/main` `55c4870` and merged current `origin/main` `ea53c29` before handoff.

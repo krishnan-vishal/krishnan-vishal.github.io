@@ -48,20 +48,20 @@
 
 
 <title>Weekly FX Trends | FINTECHOISIS — GPIR</title>
-<meta name="description" content="Deterministic weekly quantitative FX observations per currency pair -- open, high, low, change and range, computed from GPIR&#39;s own archived history.">
+<meta name="description" content="Seven-day FX variance, high and low for every publicly archived currency pair.">
 
 <link rel="canonical" href="https://krishnan-vishal.github.io/pages/fx/weekly.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FINTECHOISIS | GPIR">
 <meta property="og:title" content="Weekly FX Trends">
-<meta property="og:description" content="Deterministic weekly quantitative FX observations per currency pair -- open, high, low, change and range, computed from GPIR&#39;s own archived history.">
+<meta property="og:description" content="Seven-day FX variance, high and low for every publicly archived currency pair.">
 <meta property="og:url" content="https://krishnan-vishal.github.io/pages/fx/weekly.html">
 <meta property="og:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Weekly FX Trends">
-<meta name="twitter:description" content="Deterministic weekly quantitative FX observations per currency pair -- open, high, low, change and range, computed from GPIR&#39;s own archived history.">
+<meta name="twitter:description" content="Seven-day FX variance, high and low for every publicly archived currency pair.">
 <meta name="twitter:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 
@@ -880,15 +880,17 @@
         <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><a href="index.html">FX Pricing &amp; Treasury</a><span>/</span><strong>Weekly Trends</strong></div>
         <span class="chapter-part-tag">FX Pricing &amp; Treasury</span>
         <h1>Weekly FX Trends</h1>
-        <p class="chapter-hero-intro">Validated GPIR observations only, with no inferred market drivers or synthetic trends.</p>
+        <p class="chapter-hero-intro">Seven-day observations from GPIR&#39;s public hourly archive, with no inferred market drivers.</p>
         <nav class="fx-subnav" aria-label="FX Pricing & Treasury sections"><a href="index.html">Live FX</a><a href="explorer.html">Currency Explorer</a><a href="treasury.html">Treasury Intelligence</a><a href="weekly.html" aria-current="page">Weekly Trends</a><a href="historical.html">Historical</a></nav>
     </div>
 </section>
 <section class="chapter-body fx-page-body">
     <div class="container">
-        <div id="fx-weekly-list" class="fx-weekly-list" data-fx-view="weekly" data-fx-first-snapshot-date="2026-09-08" aria-live="polite">
-            <p class="fx-loading">Loading weekly summaries…</p>
-        </div>
+        <section data-fx-public-view="weekly" aria-label="Weekly FX trends">
+            <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
+            <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
+        </section>
+        <script src="../../assets/js/fx-public-history.js" defer></script>
         <p class="fx-disclaimer">FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice.</p>
     </div>
 </section>
