@@ -327,6 +327,8 @@ function main(){
         activeNav: "Weekly Trends",
         depth: 2,
         bodyHtml: `        <section data-fx-public-view="weekly" aria-label="Weekly FX trends">
+            <label for="fx-sending-base-select">Sending currency</label>
+            <select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select>
             <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
             <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
@@ -350,6 +352,8 @@ function main(){
             <p>Recorded capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
             <label for="fx-hourly-select">Capture hour (UTC)</label>
             <select id="fx-hourly-select" class="fx-explorer-select" disabled></select>
+            <label for="fx-sending-base-select">Sending currency</label>
+            <select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select>
             <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
             <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>

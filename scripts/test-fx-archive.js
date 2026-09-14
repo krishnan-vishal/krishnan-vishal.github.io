@@ -7,6 +7,7 @@ const { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildH
 const { generateSnapshot, requestedPairs } = require("./fx/generate-fx-snapshot.js");
 const reference = require("./fx/providers/reference.js");
 const publicHistory = require("../assets/js/fx-public-history.js");
+const treasuryReader = require("../assets/js/fx-app.js");
 
 const productionConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "fx-config.json"), "utf8"));
 const historicalPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
@@ -18,6 +19,8 @@ assert.doesNotMatch(historicalPage, /SUPABASE_SERVICE_ROLE_KEY/, "public pages m
 const weeklyPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "weekly.html"), "utf8");
 assert.match(weeklyPage, /id="dynamic-ticker-grid"/);
 assert.match(weeklyPage, /fx-public-history\.js/);
+assert.match(weeklyPage, /id="fx-sending-base-select"/);
+assert.match(historicalPage, /id="fx-sending-base-select"/);
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
     "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
     "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
@@ -81,6 +84,45 @@ async function main(){
     assert.strictEqual(stats.high, 88.4);
     assert.strictEqual(stats.low, 88.1);
     assert.ok(Math.abs(stats.delta - 0.3) < 1e-10);
+    const expanded = publicHistory.expandBidirectionalRows(normalized);
+    const inverseRows = publicHistory.groupByPair(expanded).get("INR/USD");
+    assert.strictEqual(inverseRows.length, 2);
+    assert.strictEqual(inverseRows[1].rate.toFixed(6), (1 / 88.4).toFixed(6));
+    const inverseStats = publicHistory.pairStats(inverseRows);
+    assert.ok(inverseStats.deltaPercent < 0, "inverse movement must point down when the source rises");
+    assert.strictEqual(inverseStats.high, 1 / 88.1);
+    assert.strictEqual(inverseStats.low, 1 / 88.4);
+    const sourceMove = 0.43;
+    const archiveMove = publicHistory.pairStats(publicHistory.groupByPair(publicHistory.expandBidirectionalRows([
+        { pair: "USD/JPY", timestamp: "2026-09-12T08:00:00.000Z", rate: 100, id: 1 },
+        { pair: "USD/JPY", timestamp: "2026-09-13T08:00:00.000Z", rate: 100 * (1 + sourceMove / 100), id: 2 }
+    ])).get("JPY/USD"));
+    assert.strictEqual(archiveMove.deltaPercent.toFixed(2), "-0.43");
+    const treasuryReverse = treasuryReader.findOrDeriveRecord({ pairs: [
+        { pair: "EUR/GBP", mid: 0.85, previousBusinessClose: 0.84636, provider: "reference-open-er-api" }
+    ] }, "GBP/EUR");
+    assert.strictEqual(treasuryReader.formatRate(treasuryReverse.mid, "GBP/EUR", treasuryReverse.isInverse), "1.176471");
+    assert.ok(treasuryReverse.percentageChange < 0);
+    assert.strictEqual(treasuryReverse.direction, "down");
+    const allTargets = Object.values(productionConfig.targetRegionalCurrencies).flat();
+    const regionalSnapshot = { pairs: allTargets.map((code, index) => ({
+        pair: `USD/${code}`, mid: index + 2, previousBusinessClose: index + 1.99
+    })) };
+    allTargets.forEach(code => {
+        const reverse = treasuryReader.findOrDeriveRecord(regionalSnapshot, `${code}/USD`);
+        assert.ok(reverse && reverse.isInverse, `${code}/USD must derive from a recorded USD/${code} rate`);
+        assert.strictEqual(reverse.mid.toFixed(6), (1 / regionalSnapshot.pairs.find(row => row.pair === `USD/${code}`).mid).toFixed(6));
+    });
+    const regionalArchiveRows = regionalSnapshot.pairs.map((row, index) => ({
+        pair: row.pair, rate: row.mid, timestamp: "2026-09-13T08:00:00.000Z", id: index + 1
+    }));
+    const bidirectional = publicHistory.expandBidirectionalRows(regionalArchiveRows);
+    allTargets.forEach(code => assert.ok(bidirectional.some(row => row.pair === `${code}/USD` && row.inverseOf === `USD/${code}`)));
+    const alreadyBidirectional = publicHistory.expandBidirectionalRows([
+        { pair: "EUR/GBP", rate: 0.85, timestamp: "2026-09-13T08:00:00.000Z", id: 1 },
+        { pair: "GBP/EUR", rate: 1.18, timestamp: "2026-09-13T08:00:00.000Z", id: 2 }
+    ]);
+    assert.strictEqual(alreadyBidirectional.length, 2, "recorded reverse rates must take precedence over derived rates");
     const previousDocument = global.document;
     global.document = { createElement(tag){ return {
         tag, children: [], appendChild(child){ this.children.push(child); }
@@ -90,6 +132,10 @@ async function main(){
         publicHistory.renderCards(grid, normalized.filter(row => row.timestamp === "2026-09-12T08:00:00.000Z"), normalized);
         assert.strictEqual(grid.children.length, 2, "all distinct pairs need cards even when a capture omits one");
         assert.ok(grid.children.some(card => card.children.some(item => item.textContent === "No rate in selected capture")));
+        publicHistory.renderCards(grid, expanded, expanded, "INR");
+        assert.strictEqual(grid.children.length, 1, "sending-currency filtering must retain the inverse flow");
+        assert.match(grid.children[0].className, /fx-down/);
+        assert.ok(grid.children[0].children.some(item => String(item.textContent).includes("▼")));
     } finally {
         global.document = previousDocument;
     }
