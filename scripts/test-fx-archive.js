@@ -100,8 +100,8 @@ async function main(){
         assert.strictEqual(request.pathname, "/rest/v1/fx_historical_archive");
         assert.deepStrictEqual(request.searchParams.getAll("timestamp"), ["gte.2026-09-07T10:00:00.000Z", "lte.2026-09-14T10:00:00.000Z"]);
         assert.strictEqual(request.searchParams.get("order"), "timestamp.asc,id.asc");
-        assert.ok(options.headers.apikey.startsWith("sb_publishable_"));
-        assert.ok(!options.headers.Authorization, "public requests must not carry a private bearer credential");
+        assert.ok(options.headers.get("apikey").startsWith("sb_publishable_"));
+        assert.strictEqual(options.headers.get("Authorization"), null, "public requests must not carry a private bearer credential");
         assert.strictEqual(request.searchParams.get("offset"), String(publicPage * 1000));
         publicPage++;
         return { ok: true, json: async () => publicPage === 1 ? Array(1000).fill(publicRows[0]) : publicRows.slice(1, 3) };

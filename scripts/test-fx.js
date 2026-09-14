@@ -158,10 +158,15 @@ const fxConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets",
 const currentSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "current.json"), "utf8"));
 const countryRegistry = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "country-currency-registry.json"), "utf8"));
 const historicalPageSource = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
+const weeklyPageSource = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "weekly.html"), "utf8");
+const publicHistorySource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-public-history.js"), "utf8");
 assert.match(tickerReaderSource, /current\.json\?v=.*Date\.now\(\)/, "homepage current.json must use a per-request cache key");
 assert.match(tickerReaderSource, /fetch\(fxCurrentSnapshotUrl\(\), \{ cache: "no-store" \}\)/, "homepage current.json must bypass the browser cache");
 assert.match(fxAppSource, /fetchMutableFxJson\("current\.json"\)/, "FX reader current.json must use the mutable-data fetch path");
-assert.match(fxAppSource, /fetchMutableFxJson\("weekly-summary\.json"\)/, "weekly summaries must refresh with the current publication");
+assert.match(weeklyPageSource, /id="dynamic-ticker-grid"/, "weekly trends must use the dynamic archive target");
+assert.match(historicalPageSource, /id="dynamic-ticker-grid"/, "historical captures must use the dynamic archive target");
+assert.match(publicHistorySource, /timestamp\.asc,id\.asc/, "public archive rows must be requested chronologically");
+assert.match(publicHistorySource, /headers\.set\("apikey", PUBLISHABLE_KEY\)/, "archive reads must use the public key header");
 assert.match(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json`\)/, "immutable dated history must retain its stable cacheable URL");
 assert.doesNotMatch(fxAppSource, /history\/\$\{year\}\/\$\{month\}\/\$\{date\}\.json\?v=/, "immutable history must not receive mutable cache-busting");
 assert.match(homepageSource, />\s*FX SNAPSHOT\s*</, "the reference snapshot ticker must not be labelled live");
@@ -202,18 +207,14 @@ assert.ok(currenciesForRegion("EUROPE").has("GBP"), "GBP must remain a European 
 countryRegistry.countries.filter(country => country.enabled).forEach(country => assert.ok(providerCurrencies.has(country.currencyCode), `${country.currencyCode} must exist in the validated provider universe`));
 assert.match(marketCssSource, /\.fx-pair-grid\{[\s\S]*?minmax\(112px, 1fr\)/, "desktop FX cards must support 7-9 columns where space allows");
 const treasurySource = fxAppSource.slice(fxAppSource.indexOf("function renderTreasury"), fxAppSource.indexOf("function renderWeekly"));
-const weeklySource = fxAppSource.slice(fxAppSource.indexOf("function renderWeekly"), fxAppSource.indexOf("function renderHistoricalDate"));
 assert.doesNotMatch(treasurySource, /statusBadge|fx-status-badge/, "Treasury overview cards must not repeat provenance badges");
-assert.doesNotMatch(weeklySource, /statusBadge|fx-status-badge/, "Weekly overview cards must not repeat provenance badges");
-assert.match(weeklySource, /pairHref\(snapshot, summary\.pair\)/, "regional weekly pairs must route through Explorer when no static detail page exists");
-assert.doesNotMatch(historicalPageSource, /data-fx-history-date="2026-09-01"/, "archive navigation must list only stored history dates");
-assert.strictEqual(fs.existsSync(path.join(__dirname, "..", "assets", "data", "fx", "history", "2026", "09", "2026-09-01.json")), false, "missing 01 Sep rates must not be fabricated");
+assert.doesNotMatch(historicalPageSource, /data-fx-history-date=/, "historical capture choices must come from archive timestamps");
 
 const fxWorkflowSource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "fx-market-data.yml"), "utf8");
 assert.match(fxWorkflowSource, /cron: "7 \* \* \* \*"/, "the sustainable hourly provider refresh must avoid exact top-of-hour concentration");
 assert.doesNotMatch(fxWorkflowSource, /cron: "0 \* \* \* \*"/, "the FX schedule must not remain concentrated at minute zero");
 
-console.log("PASS reader freshness: mutable current/weekly JSON revalidates, immutable history stays cacheable, and stale data is not labelled live.");
+console.log("PASS reader freshness: current JSON revalidates, weekly and historical cards query the public archive, and stale ticker data is not labelled live.");
 
 /* ---------------------------------------------------------------------
  * Provider failover (mocked network), including a stub licensed

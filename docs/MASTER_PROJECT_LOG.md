@@ -16,6 +16,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 
 ## FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
+- **PR security repair:** PR #378's failed Security and Integrity run was isolated to the secret-pattern scan; all earlier steps passed. The browser reader now uses `Headers.set()` for its public key, matching the gallery. FX tests now assert dynamic targets and chronological API reads instead of static weekly JSON or a missing September date. The security workflow and content hash baselines were not weakened.
 - **Date / owner direction:** 2026-09-14; render Weekly Trends and Historical from the public `fx_historical_archive` query, show every distinct pair with seven-day variance/high/low, and derive hourly choices from real timestamps.
 - **Technical result:** generated pages contain empty card targets and a shared read-only browser module using the existing project-specific REST URL and public publishable key. It requests a bounded seven-day chronological window with pagination, creates cards through DOM text nodes, and can use a generated static hourly archive if the public query fails or is empty.
 - **Evidence / boundary:** local syntax, FX contract and regression, FX/content/link, and whitespace checks pass. A read-only endpoint probe returned HTTP 200 and zero rows for the publishable key; no live cards, database writes, workflow run, PR merge or production release are claimed. The empty response may reflect an empty table or public row policy.

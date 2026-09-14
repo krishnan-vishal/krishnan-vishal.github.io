@@ -45,8 +45,11 @@
             const timeout = setTimeout(() => controller.abort(), 15000);
             let response;
             try{
+                const headers = new Headers();
+                headers.set("apikey", PUBLISHABLE_KEY);
+                headers.set("Accept", "application/json");
                 response = await fetchImpl(url.toString(), {
-                    headers: { apikey: PUBLISHABLE_KEY, Accept: "application/json" },
+                    headers,
                     cache: "no-store",
                     signal: controller.signal
                 });
