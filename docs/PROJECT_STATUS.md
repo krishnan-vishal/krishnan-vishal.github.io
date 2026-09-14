@@ -7,6 +7,7 @@
 - **User request:** 2026-09-14 request to write scraped Supabase announcement rows with `publication_status=approved` and `ticker_eligible=true`, including previously discovered matching URLs on rerun. This changes the earlier review-only database policy; canonical GPIR JSON and its independent publication controls are unchanged.
 - **Implementation:** `scraper.js` sets both fields on every new row and updates only those two fields for matching existing `canonical_url` rows. The official-host and HTTPS checks remain. A focused mock checks both new insert and existing-row promotion without changing an existing title.
 - **Boundary:** the repository's public announcement reader uses canonical static data rather than `global_announcements`; a database flag change alone does not establish public GPIR-site display. Owner review and live workflow/database verification remain necessary.
+- **Delivery control:** the validated commit was pushed to `codex/approved-ticker-ingestion`. Automatic approval review rejected `git push origin HEAD:main` because the direct publication of auto-approved external scrape data lacked established project-owner authorization and bypassed the repository's main review control. The command did not execute; no main publication is claimed.
 
 ### SUPABASE-ANNOUNCEMENTS-04 — Ticker job runtime repair
 
