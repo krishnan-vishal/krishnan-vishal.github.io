@@ -360,8 +360,79 @@ function main(){
         breadcrumbLabel: "Historical",
         activeNav: "Historical",
         depth: 2,
-        bodyHtml: `        <div class="fx-history-nav">${historyListHtml}</div>
-        <div id="fx-history-detail" class="fx-history-detail" data-fx-view="historical" aria-live="polite"></div>`
+        bodyHtml: `        <section class="fx-hourly-captures" aria-labelledby="fx-hourly-heading">
+            <h2 id="fx-hourly-heading">Hourly database captures</h2>
+            <p>Validated capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
+            <label for="fx-hourly-select">Capture hour (UTC)</label>
+            <select id="fx-hourly-select" class="fx-explorer-select" disabled></select>
+            <div id="fx-hourly-detail" class="fx-history-detail" aria-live="polite">Loading archived captures…</div>
+        </section>
+        <h2>Frozen daily snapshots</h2>
+        <div class="fx-history-nav">${historyListHtml}</div>
+        <div id="fx-history-detail" class="fx-history-detail" data-fx-view="historical" aria-live="polite"></div>
+        <script>
+        (function(){
+            const select = document.getElementById("fx-hourly-select");
+            const detail = document.getElementById("fx-hourly-detail");
+            const rateFormat = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 6 });
+            function renderCapture(capture){
+                detail.replaceChildren();
+                const groups = new Map();
+                (capture && Array.isArray(capture.pairs) ? capture.pairs : []).forEach(item => {
+                    if(!/^[A-Z]{3}\\/[A-Z]{3}$/.test(item.pair) || !Number.isFinite(item.rate) || item.rate <= 0) return;
+                    const region = String(item.region || "GLOBAL");
+                    if(!groups.has(region)) groups.set(region, []);
+                    groups.get(region).push(item);
+                });
+                if(!groups.size){
+                    detail.textContent = "No validated rates are available for this capture hour.";
+                    return;
+                }
+                groups.forEach((pairs, region) => {
+                    const heading = document.createElement("h3");
+                    heading.textContent = region;
+                    detail.appendChild(heading);
+                    const table = document.createElement("div");
+                    table.className = "fx-market-table";
+                    table.setAttribute("role", "table");
+                    table.setAttribute("aria-label", region + " hourly FX rates");
+                    pairs.forEach(item => {
+                        const row = document.createElement("div");
+                        row.className = "fx-market-row";
+                        row.setAttribute("role", "row");
+                        [item.pair, rateFormat.format(item.rate), String(item.source || "UNKNOWN")].forEach(value => {
+                            const cell = document.createElement("span");
+                            cell.textContent = value;
+                            row.appendChild(cell);
+                        });
+                        table.appendChild(row);
+                    });
+                    detail.appendChild(table);
+                });
+            }
+            fetch("../../assets/data/fx/hourly-archive.json?v=" + Date.now(), { cache: "no-store" })
+                .then(response => { if(!response.ok) throw new Error("archive unavailable"); return response.json(); })
+                .then(data => {
+                    const captures = Array.isArray(data.captures) ? data.captures : [];
+                    if(!captures.length){
+                        detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
+                        return;
+                    }
+                    captures.forEach((capture, index) => {
+                        const option = document.createElement("option");
+                        option.value = String(index);
+                        option.textContent = capture.hour;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                    select.addEventListener("change", () => renderCapture(captures[Number(select.value)]));
+                    renderCapture(captures[0]);
+                })
+                .catch(() => {
+                    detail.textContent = "Hourly captures will appear after the first validated scheduled database run.";
+                });
+        })();
+        </script>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "historical.html"), historicalHtml, "utf8");
 
