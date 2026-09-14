@@ -7,6 +7,12 @@
     "USD/SAR", "USD/QAR", "USD/KWD", "USD/BHD", "USD/OMR",
     "EUR/GBP", "AUD/USD", "NZD/USD"
   ],
+  "targetRegionalCurrencies": {
+    "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
+    "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
+    "LATAM / AFRICA": ["BRL", "MXN", "ARS", "ZAR", "NGN", "KES", "EGP"],
+    "FAR EAST / ASEAN / OCEANIC": ["THB", "MYR", "IDR", "PHP", "VND", "NZD"]
+  },
   "providerPriority": ["lseg", "bloomberg", "xe", "ibrlive", "reference-open-er-api"],
   "providerLabels": {
     "lseg": "LSEG licensed market-data feed",

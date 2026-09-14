@@ -8,11 +8,8 @@
  *   yesterday's outgoing snapshot into history/ if a new day started
  *
  * SAFETY CONTRACT
- *   1. Never fabricate a rate. A provider that returns nothing usable
- *      moves the whole run to the next provider; if every provider
- *      (including the always-available reference tier) fails, this
- *      falls back to the last validated GPIR snapshot on disk with
- *      dataStatus escalated to "STALE" rather than inventing numbers.
+ *   1. Never fabricate a rate. If every provider fails, leave the
+ *      last validated publication untouched and fail the run.
  *   2. Never rewrite an existing history/YYYY/MM/YYYY-MM-DD.json file.
  *   3. Never mark a record LIVE unless its provider is providerType
  *      "live"; the reference tier is always "REFERENCE".
@@ -167,7 +164,7 @@ function writeWeeklySummaries(pairs, historicalCloses, generatedAt, currentRecor
 async function runProviderPriority(pairs, options){
     const attempts = [];
     for(const provider of PROVIDER_PRIORITY){
-        if(!provider.isConfigured()){
+        if(!provider.isConfigured(options.env)){
             attempts.push({ provider: provider.id, status: "NOT_CONFIGURED" });
             continue;
         }
@@ -175,8 +172,8 @@ async function runProviderPriority(pairs, options){
             const records = await provider.fetchPairs(pairs, options);
             const currencyUniverse = records.currencyUniverse || null;
             const usable = records.filter(record => record.dataStatus !== "NO_PROVIDER_CONFIGURED");
-            if(usable.length === 0){
-                attempts.push({ provider: provider.id, status: "NO_USABLE_RECORDS" });
+            if(usable.length !== pairs.length){
+                attempts.push({ provider: provider.id, status: "INCOMPLETE_COVERAGE", recordCount: usable.length });
                 continue;
             }
             attempts.push({ provider: provider.id, status: "SUCCEEDED", recordCount: usable.length });
@@ -188,6 +185,18 @@ async function runProviderPriority(pairs, options){
     return { records: null, currencyUniverse: null, attempts, providerUsed: null };
 }
 
+function requestedPairs(config){
+    const regionalGroups = Object.values(config.targetRegionalCurrencies || {});
+    const targetCurrencies = [...new Set(regionalGroups.flat())];
+    const regionalCrosses = regionalGroups.flatMap(group => group.flatMap((base, index) =>
+        group.slice(index + 1).map(quote => `${base}/${quote}`)));
+    return {
+        targetCurrencies,
+        pairs: [...new Set([...(config.featuredPairs || []),
+            ...targetCurrencies.map(code => `USD/${code}`), ...regionalCrosses])]
+    };
+}
+
 async function generateSnapshot(options = {}){
     const {
         retrievedAt = new Date().toISOString(),
@@ -196,13 +205,15 @@ async function generateSnapshot(options = {}){
     } = options;
 
     const config = readJsonIfExists(CONFIG_PATH, { featuredPairs: [], extremeMovePercentThreshold: 8, staleAfterMinutesByProviderType: {}, maxLookbackDaysForPreviousBusinessClose: 10 });
-    const pairs = config.featuredPairs || [];
+    const { pairs, targetCurrencies } = requestedPairs(config);
     const todayDate = utcDateOnly(retrievedAt);
 
     const previousSnapshot = readJsonIfExists(CURRENT_PATH, null);
+    const { records: fetchedRecords, currencyUniverse: fetchedUniverse, attempts, providerUsed } = await runProviderPriority(pairs, { fetchImpl, env, retrievedAt, targetCurrencies });
+    if(!fetchedRecords){
+        throw new Error(`FX_PROVIDER_UNAVAILABLE: no complete regional observation; ${JSON.stringify(attempts)}`);
+    }
     const freezeResult = freezeOutgoingSnapshotIfNewDay(previousSnapshot, todayDate);
-
-    const { records: fetchedRecords, currencyUniverse: fetchedUniverse, attempts, providerUsed } = await runProviderPriority(pairs, { fetchImpl, env, retrievedAt });
     const historicalCloses = loadHistoricalCloses();
     const historicalSnapshots = listHistoricalSnapshots();
 
@@ -246,23 +257,6 @@ async function generateSnapshot(options = {}){
             pairRecords[index].anomalies = [...(pairRecords[index].anomalies || []), "DUPLICATE_RECORD"];
         });
         dataStatus = "OK";
-    } else if(previousSnapshot && Array.isArray(previousSnapshot.pairs)){
-        // Every provider (including the always-on reference tier)
-        // failed this run -- fall back to the last validated GPIR
-        // snapshot rather than publishing nothing or inventing data,
-        // but escalate every record's status to STALE so the reader
-        // is never told a frozen snapshot is current.
-        pairRecords = previousSnapshot.pairs.map(record => ({ ...record, dataStatus: "STALE" }));
-        dataStatus = "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD";
-    } else {
-        // First-ever run with no provider reachable and no prior
-        // snapshot to fall back to: publish the honest NO_PROVIDER_
-        // CONFIGURED state per pair rather than nothing at all.
-        pairRecords = pairs.map(pair => {
-            const [base, quote] = pair.split("/");
-            return buildRecord({ pair, base, quote, timestamp: retrievedAt, provider: null, providerType: "fallback", dataStatus: "NO_PROVIDER_CONFIGURED" });
-        });
-        dataStatus = "NO_PROVIDER_CONFIGURED";
     }
 
     let currencyUniverse = fetchedUniverse;
@@ -278,8 +272,6 @@ async function generateSnapshot(options = {}){
             previousBusinessDate: previous ? previous.date : null,
             previousBusinessRates: previous ? previous.universe.rates : null
         };
-    } else if(!fetchedRecords && previousSnapshot && previousSnapshot.currencyUniverse){
-        currencyUniverse = { ...previousSnapshot.currencyUniverse, dataStatus: "STALE" };
     }
 
     const snapshot = {
@@ -292,6 +284,7 @@ async function generateSnapshot(options = {}){
         staleAfterMinutesByProviderType: config.staleAfterMinutesByProviderType,
         providerUsed,
         providerAttempts: attempts,
+        featuredPairs: config.featuredPairs || [],
         historyDates: historicalSnapshots.map(item => item.publicationDate).filter(Boolean),
         currencyUniverse,
         pairs: pairRecords
@@ -299,7 +292,8 @@ async function generateSnapshot(options = {}){
 
     fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(CURRENT_PATH, JSON.stringify(snapshot, null, 2) + "\n", "utf8");
-    const weeklySummaries = writeWeeklySummaries(pairs, historicalCloses, retrievedAt, pairRecords);
+    const weeklySummaries = env.FX_WEEKLY_SOURCE === "supabase"
+        ? [] : writeWeeklySummaries(pairs, historicalCloses, retrievedAt, pairRecords);
 
     return { snapshot, freezeResult, weeklySummaries };
 }
@@ -326,4 +320,4 @@ if(require.main === module){
     });
 }
 
-module.exports = { generateSnapshot, loadHistoricalCloses, freezeOutgoingSnapshotIfNewDay, historyFilePath };
+module.exports = { generateSnapshot, requestedPairs, loadHistoricalCloses, freezeOutgoingSnapshotIfNewDay, historyFilePath };

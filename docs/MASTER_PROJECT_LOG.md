@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## FX-GLOBAL-ARCHIVE-01 — Regional hourly archive repair
+
+- **Date / owner direction:** 2026-09-14; cover the four supplied regional currency arrays, remove the stale date lock and INR-only fallback behavior, insert hourly observations into the supplied Supabase `fx_historical_archive` schema, and drive weekly statistics from its past seven days.
+- **Technical result:** 28 target currencies produce USD pairs and every within-group local cross from the existing open reference provider's single USD response. All 26 pre-existing curated pairs remain. Configured provider adapters are accepted only with complete requested-pair coverage. Provider failure leaves the last published file unchanged rather than advancing its date with stale local values.
+- **Archive and weekly result:** the scheduled workflow uses the service-role key only in the private archive step. Validated records map to `base_currency`, `target_currency`, six-decimal `rate`, `region` and `source`; Supabase assigns the capture `timestamp`. A paged trailing-seven-day query collapses repeated hourly captures to the final UTC daily observation per pair and writes static `weekly-summary.json` for the existing reader. No Supabase key is exposed to the site.
+- **Evidence / boundary:** FX regression, mocked Supabase archive contract, FX/content/link validation and syntax checks pass locally. No live database write, historical gap backfill, GitHub Actions run or production publication is claimed. The open reference feed updates daily, so hourly archives record captures, not new hourly market ticks. Owner review/merge and configured Actions secrets remain the deployment dependencies.
+
 ## SUPABASE-COUNTRY-01 — Optional country metadata mirror
 
 - **Date / objective:** 2026-09-13; implement the owner's requested `country_intelligence` upsert while preserving file saving, static intelligence generation and human-controlled publication.

@@ -45,6 +45,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install private archive client
+        run: npm install --no-save --package-lock=false @supabase/supabase-js
+
       - name: Reuse an open proposal branch when present
         shell: bash
         run: |
@@ -58,6 +61,7 @@ jobs:
 
       - name: Generate the FX snapshot
         env:
+          FX_WEEKLY_SOURCE: supabase
           # Present only if configured as a repository/organization
           # secret -- absent by default, in which case the licensed
           # provider adapters cleanly report NO_PROVIDER_CONFIGURED
@@ -69,7 +73,24 @@ jobs:
           FX_BLOOMBERG_API_KEY: ${{ secrets.FX_BLOOMBERG_API_KEY }}
           FX_XE_API_KEY: ${{ secrets.FX_XE_API_KEY }}
           FX_IBRLIVE_API_KEY: ${{ secrets.FX_IBRLIVE_API_KEY }}
-        run: node scripts/fx/generate-fx-snapshot.js | tee "$RUNNER_TEMP/fx-snapshot-report.json"
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/fx/generate-fx-snapshot.js | tee "$RUNNER_TEMP/fx-snapshot-report.json"
+
+      - name: Validate the fresh observation
+        run: |
+          node scripts/validate-fx.js
+          node scripts/validate-content.js
+
+      - name: Archive hourly rates and rebuild seven-day trends
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/fx/archive-supabase.js
+
+      - name: Validate the archived weekly publication
+        run: node scripts/validate-fx.js
 
       - name: Report snapshot generation
         if: always()

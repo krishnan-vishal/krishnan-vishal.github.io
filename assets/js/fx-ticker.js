@@ -169,7 +169,9 @@ function renderTicker(){
 
     if(!track || !fxSnapshotCache) return;
 
-    const pairs = Array.isArray(fxSnapshotCache.pairs) ? fxSnapshotCache.pairs.slice() : [];
+    const featured = Array.isArray(fxSnapshotCache.featuredPairs) ? new Set(fxSnapshotCache.featuredPairs) : null;
+    const pairs = Array.isArray(fxSnapshotCache.pairs)
+        ? fxSnapshotCache.pairs.filter(record => !featured || featured.has(record.pair)) : [];
 
     if(!pairs.length){
 

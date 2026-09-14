@@ -165,7 +165,9 @@
     }
 
     function pairHref(snapshot, pair){
-        const isPublishedPair = (snapshot.pairs || []).some(item => item.pair === pair);
+        const isPublishedPair = Array.isArray(snapshot.featuredPairs)
+            ? snapshot.featuredPairs.includes(pair)
+            : (snapshot.pairs || []).some(item => item.pair === pair);
         return isPublishedPair
             ? `${pagePrefix()}pages/fx/pairs/${pairSlug(pair)}.html`
             : `${pagePrefix()}pages/fx/explorer.html?pair=${pair.replace("/", "-")}`;
@@ -352,7 +354,7 @@
             list.innerHTML = summaries.map(summary => {
                 const isBuilding = !Number.isFinite(summary.weeklyChangePercent);
                 return `
-                    <a class="fx-weekly-card ${directionClass(summary.direction)}" href="${pagePrefix()}pages/fx/pairs/${pairSlug(summary.pair)}.html">
+                    <a class="fx-weekly-card ${directionClass(summary.direction)}" href="${pairHref(snapshot, summary.pair)}">
                         <span class="fx-pair-card-pair">${escapeHtml(summary.pair)}</span>
                         <span class="fx-weekly-completeness">${isBuilding ? "Building history" : `7D ${formatPercent(summary.weeklyChangePercent)}`}</span>
                         ${isBuilding

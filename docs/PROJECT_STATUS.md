@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### FX-GLOBAL-ARCHIVE-01 — Regional hourly archive repair
+
+- **Owner direction / branch:** 2026-09-14 request to cover 28 specified currencies across four regional groups, store each hourly validated pair in the supplied Supabase `fx_historical_archive` schema, and compute the weekly tab from its trailing seven days. Work branch `codex/fx-global-hourly-archive` starts at `origin/main` `55c4870`.
+- **Implementation:** the existing keyless reference provider requests one complete USD table per run; that table yields each specified USD pair and every within-group local cross, in addition to the 26 curated pairs. This keeps the free daily-reference endpoint within its documented hourly request guidance. Configured licensed adapters remain priority candidates, but incomplete pair coverage falls through to the reference tier. Missing/incomplete provider data now fails without changing `current.json` or advancing the publication date.
+- **Archive/reader:** after FX/content validation, the hourly workflow installs `@supabase/supabase-js`, inserts one row per validated pair using the owner-supplied table columns and service-role secrets scoped to that step, pages through the past seven days, reduces hourly rows to the last capture per UTC day, and regenerates `weekly-summary.json`. The public Weekly Trends reader continues to fetch generated JSON without a browser database dependency. The ticker retains 26 curated pairs; other regional pairs route through Explorer rather than nonexistent detail pages. The historical page lists stored immutable dates only; the September 1 date lock and invented missing-date links are gone.
+- **Evidence / limits:** local FX, Supabase-mock archive contract, structured FX/content and link checks pass. No live provider, Supabase write, Actions run or production refresh has been claimed. Historical gaps after September 9 cannot be backfilled without actual preserved observations. Owner review/merge of the branch and configured Actions secrets remain necessary for production execution.
+
 ### SUPABASE-COUNTRY-01 — Optional country metadata mirror
 - **Owner / branch / base:** Vishal Krishnan; `codex/supabase-country-intelligence` from `origin/main` at `5c7f8bd`.
 - **Objective:** upsert canonical `assets/data/country-intelligence.json` records into Supabase `country_intelligence` after the existing static intelligence workflow, matching `country_code`.
