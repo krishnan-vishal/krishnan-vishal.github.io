@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### SUPABASE-ANNOUNCEMENTS-04 — Standalone scraper draft
+
+- **Owner request / branch:** 2026-09-14 request for a Node scraper using `@supabase/supabase-js` and `cheerio` to read acquisition methods C/A from `source_registry`, extract announcement links, and insert new rows into `global_announcements` with current UTC `MM/YYYY` archive labels. Branch `codex/supabase-announcement-scraper` starts at `origin/main`.
+- **Implementation:** root `scraper.js` handles HTML and RSS, limits candidates per source, accepts HTTPS links on the registered source host, ignores duplicate URLs through a database unique key, and inserts only `publication_status=review` rows. It does not alter the existing report-only refresh, canonical JSON, or public pages.
+- **Validation / dependency:** Node syntax, announcement validation, intent regression and diff whitespace checks pass. The requested Supabase table schemas were not present in this repository. The script states its column and unique-key assumptions; no live database write or scheduled run is claimed. Schema reconciliation, credentials, owner-reviewed release, and publication gating remain pending.
+
 ### FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
 - **PR security repair:** PR #378's Security and Integrity run passed content, discovery, links and JavaScript syntax, then failed its secret-pattern scan on the public reader's `apikey:` object property. The request now sets the same public header through `Headers.set()` as the existing gallery, and obsolete static weekly/date assertions were replaced with dynamic reader contract checks. The scan rules and immutable content hashes were preserved.

@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SUPABASE-ANNOUNCEMENTS-04 — Standalone HTML/RSS scraper draft
+
+- **Date / request:** 2026-09-14; create a Node `scraper.js` using Supabase and Cheerio for C (HTML) and A (RSS) source rows, new announcement inserts, and current `MM/YYYY` archive labels.
+- **Result:** isolated scraper reads `source_registry`, extracts bounded official-host links, and inserts new `global_announcements` rows as `review` using URL uniqueness. Existing GPIR report-only discovery and canonical publication files are unaffected.
+- **Evidence / limits:** Node syntax, announcement validation, intent regression and `git diff --check` passed. No table definitions for these names are in the repository, so the script documents required columns and unique URL key. No live insertion, scheduled execution, or public publication is claimed. Dependencies and schema must be supplied before an end-to-end run.
+
 ## FX-GLOBAL-ARCHIVE-02 — Public seven-day FX reader
 
 - **PR security repair:** PR #378's failed Security and Integrity run was isolated to the secret-pattern scan; all earlier steps passed. The browser reader now uses `Headers.set()` for its public key, matching the gallery. FX tests now assert dynamic targets and chronological API reads instead of static weekly JSON or a missing September date. The security workflow and content hash baselines were not weakened.
