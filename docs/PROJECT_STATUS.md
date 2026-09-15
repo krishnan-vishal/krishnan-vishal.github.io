@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### STAGING-TICKER-01 — Isolated Supabase ticker overhaul
+
+- **Owner direction / isolation:** 2026-09-15 request to freeze direct `main` changes and implement the compact announcement ticker only on `staging/ticker-overhaul`. The branch started from `origin/main` at `e516fe4`; no merge or direct production publication is authorised.
+- **Implementation:** the homepage now loads a dedicated ESM Supabase reader and a ticker-only stylesheet. It requests the latest 20 `approved` and ticker-eligible rows by descending `published_at`, safely renders text, measures one sequence for continuous motion, and exposes an accessible narration/source dialog. Canonical `announcements.json` remains the last-known-good fallback, and no service-role credential is present in browser code.
+- **Visual / interaction evidence:** local browser QA measured a 32px announcement ribbon, two 14-item fallback sequences and active horizontal transform movement. The summary dialog displayed narration and its HTTPS source, Escape closed it, and focus returned to the triggering headline. Core layout stylesheets were not changed.
+- **Validation / limitation:** the Security and Integrity workflow scripts, announcement validators, ticker contract test, all JavaScript syntax, internal links and diff whitespace pass locally. The performance audit retains four pre-existing advisory warnings and confirms reduced-motion coverage for the new loop. A public-key Supabase read returned HTTP 200 with zero readable rows, so browser QA truthfully exercised the canonical fallback; live database-backed rendering remains dependent on eligible rows being publicly readable under RLS.
+- **Delivery state:** implementation is locally complete on `staging/ticker-overhaul`; owner staging review and any later merge decision remain pending.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.

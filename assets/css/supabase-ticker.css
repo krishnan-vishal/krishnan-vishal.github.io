@@ -1,0 +1,294 @@
+/* Isolated Supabase announcement ticker. No shared layout selectors. */
+#market-ribbon.supabase-ticker-active {
+    height: 32px;
+    min-height: 32px;
+    background: #050c16;
+    border-top: 1px solid rgba(246, 184, 23, 0.75);
+    border-bottom: 1px solid rgba(246, 184, 23, 0.5);
+}
+
+#market-ribbon.supabase-ticker-active .market-title {
+    flex: 0 0 auto;
+    height: 32px;
+    padding: 0 10px;
+    background: #f6b817;
+    color: #050c16;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+#market-ribbon.supabase-ticker-active .ticker-wrapper {
+    min-width: 0;
+    height: 32px;
+    overflow: hidden;
+}
+
+#market-ribbon.supabase-ticker-active .market-time {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    padding: 0 9px;
+    border-left: 1px solid rgba(246, 184, 23, 0.25);
+    background: #07111f;
+}
+
+#market-ribbon.supabase-ticker-active .ticker-archive-link {
+    color: #ffd35a;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+#market-ribbon .supabase-ticker-track {
+    display: flex;
+    align-items: stretch;
+    width: max-content;
+    max-width: none;
+    height: 32px;
+    padding: 0;
+    animation: supabaseTickerLoop var(--supabase-ticker-duration, 72s) linear infinite;
+    color: #f8fafc;
+    will-change: transform;
+}
+
+#market-ribbon .supabase-ticker-track:hover,
+#market-ribbon .supabase-ticker-track:focus-within,
+#market-ribbon .supabase-ticker-track.gpir-ticker-paused {
+    animation-play-state: paused;
+}
+
+#market-ribbon .supabase-ticker-track--status {
+    width: 100%;
+    animation: none;
+}
+
+#market-ribbon .supabase-ticker-sequence {
+    display: flex;
+    flex: none;
+    align-items: stretch;
+    min-width: 100vw;
+}
+
+#market-ribbon .supabase-ticker-item {
+    appearance: none;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    margin: 0;
+    padding: 0 10px;
+    border: 0;
+    border-right: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 0;
+    background: transparent;
+    color: #f8fafc;
+    font: inherit;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+#market-ribbon .supabase-ticker-item:hover {
+    background: rgba(246, 184, 23, 0.1);
+}
+
+#market-ribbon .supabase-ticker-item:focus-visible {
+    position: relative;
+    z-index: 2;
+    outline: 2px solid #ffd35a;
+    outline-offset: -2px;
+}
+
+#market-ribbon .supabase-ticker-status {
+    padding: 2px 4px;
+    border: 1px solid rgba(246, 184, 23, 0.35);
+    border-radius: 3px;
+    color: #ffd35a;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+}
+
+#market-ribbon .supabase-ticker-status--live {
+    border-color: rgba(110, 231, 183, 0.5);
+    color: #6ee7b7;
+}
+
+#market-ribbon .supabase-ticker-time,
+#market-ribbon .supabase-ticker-source {
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.03em;
+}
+
+#market-ribbon .supabase-ticker-source {
+    color: #f6b817;
+}
+
+#market-ribbon .supabase-ticker-headline {
+    display: inline-block;
+    max-width: 360px;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+}
+
+#market-ribbon .supabase-ticker-message {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    color: #ffd35a;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.supabase-ticker-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(1, 8, 17, 0.82);
+    backdrop-filter: blur(5px);
+}
+
+.supabase-ticker-dialog[hidden] {
+    display: none;
+}
+
+.supabase-ticker-dialog__panel {
+    position: relative;
+    width: min(620px, 100%);
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+    padding: 28px;
+    border: 1px solid rgba(246, 184, 23, 0.6);
+    border-radius: 12px;
+    background: #0b1727;
+    color: #f8fafc;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+}
+
+.supabase-ticker-dialog__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #53657a;
+    border-radius: 50%;
+    background: transparent;
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.supabase-ticker-dialog__label {
+    margin: 0 42px 8px 0;
+    color: #f6b817;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.supabase-ticker-dialog__title {
+    margin: 0 42px 8px 0;
+    color: #ffd35a;
+    font-size: clamp(20px, 4vw, 28px);
+    line-height: 1.25;
+}
+
+.supabase-ticker-dialog__meta {
+    margin: 0 0 18px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.supabase-ticker-dialog__summary {
+    margin: 0 0 22px;
+    color: #e5edf6;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.supabase-ticker-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.supabase-ticker-dialog__source,
+.supabase-ticker-dialog__secondary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 13px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.supabase-ticker-dialog__source {
+    background: #f6b817;
+    color: #07111f;
+}
+
+.supabase-ticker-dialog__secondary {
+    border: 1px solid #53657a;
+    color: #e5edf6;
+}
+
+@keyframes supabaseTickerLoop {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(calc(-1 * var(--supabase-ticker-distance, 50%)), 0, 0);
+    }
+}
+
+@media (max-width: 760px) {
+    #market-ribbon.supabase-ticker-active .market-title {
+        padding: 0 7px;
+        font-size: 8px;
+    }
+
+    #market-ribbon.supabase-ticker-active .market-time {
+        display: none;
+    }
+
+    #market-ribbon .supabase-ticker-time {
+        display: none;
+    }
+
+    #market-ribbon .supabase-ticker-headline {
+        max-width: 65vw;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #market-ribbon .supabase-ticker-track {
+        width: 100%;
+        overflow-x: auto;
+        animation: none;
+        transform: none;
+        scrollbar-width: thin;
+    }
+
+    #market-ribbon .supabase-ticker-sequence[aria-hidden="true"] {
+        display: none;
+    }
+}

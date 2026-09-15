@@ -176,6 +176,7 @@ content="#0B1120">
 <link rel="stylesheet" href="assets/css/intelligence-library.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/payments-timeline.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/market.css?v=20260911f">
+<link rel="stylesheet" href="assets/css/supabase-ticker.css?v=20260915a">
 <link rel="stylesheet" href="assets/css/command-centre.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/purpose.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/knowledge.css?v=20260822c">
@@ -1009,11 +1010,10 @@ content="#0B1120">
 </section> <!-- fx-ribbon -->
 
 <!--
-    Populated at runtime by assets/js/announcements.js from the
-    structured intelligence records in assets/data/announcements.json.
-    Each card is source-linked: clicking it opens the GPIR
-    intelligence record with full source attribution rather than
-    navigating away. See that JSON file for sourcing/governance notes.
+    Populated at runtime by assets/js/supabase-announcements.js from
+    approved, ticker-eligible Supabase rows. The canonical structured
+    records in assets/data/announcements.json remain the last-known-good
+    fallback when the public database read is unavailable or empty.
 -->
 <section id="market-ribbon" aria-label="Global payments announcements">
 
@@ -4564,7 +4564,7 @@ FINTECHOISIS is an independent knowledge platform dedicated to global payments,
 <script src="assets/js/trust-engine.js?v=20260822c"></script>
 
 <script src="assets/js/announcement-lifecycle.js?v=20260909a"></script>
-<script type="module" src="assets/js/supabase-combined-engine.js"></script>
+<script type="module" src="assets/js/supabase-announcements.js?v=20260915a"></script>
 <script src="assets/js/footer-utilities.js?v=20260822c"></script>
 
 <script src="assets/js/content-search.js?v=20260822c"></script>

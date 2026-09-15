@@ -14,6 +14,14 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## STAGING-TICKER-01 — Isolated Supabase ticker overhaul
+
+- **Date / owner request:** 2026-09-15; freeze direct changes to `main`, create `staging/ticker-overhaul`, and build and test a high-density horizontal Supabase announcement ticker before any production layout change.
+- **Result:** `index.html` loads a dedicated ESM reader plus a stylesheet scoped to `#market-ribbon`. The reader selects at most 20 approved, ticker-eligible records ordered newest first; handles deployments without `summary_narration`; uses text-only DOM construction and HTTPS URL validation; renders a measured two-sequence continuous loop; and opens a keyboard-accessible narration/source dialog. The canonical announcement file remains the last-known-good fallback when the public database is unavailable or empty.
+- **Evidence:** browser QA measured the ribbon at 32px, observed the animation transform advancing, verified 14 primary plus 14 accessibility-hidden fallback items, and exercised dialog open, verified-source link, Escape close and focus return. The repository Security and Integrity commands, announcement suites, focused ticker test, JavaScript syntax, link and whitespace checks pass. The advisory performance audit reports its four existing warnings and confirms reduced-motion coverage.
+- **Boundary / live dependency:** no core stylesheet, canonical record, backend pipeline, database schema, workflow, domain or `main` history was changed. The public Supabase read returned HTTP 200 with zero readable eligible rows, so live-row staging verification is blocked by empty/public-RLS visibility; the verified display used the canonical fallback and disclosed that state in the browser console.
+- **Delivery:** work is confined to `staging/ticker-overhaul`. Owner review is required before any production merge or publication.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **Date / user request:** 2026-09-14; a green `run-ticker.yml` reportedly leaves `global_announcements` empty. Search every HTML anchor by default, require a cleaned 10–250 character title and a finance keyword in title or URL, deduplicate, and retain approved/ticker-eligible writes.

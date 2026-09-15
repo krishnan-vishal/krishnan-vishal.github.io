@@ -1,585 +1,287 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/+esm";
 
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YOUR_KEY";
-
-const TABLE_NAME = "global_announcements";
-const MAX_ANNOUNCEMENTS = 20;
-const FALLBACK_URL = "pages/intelligence/index.html";
+const SUPABASE_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WXg6w9pZIWatIraPV1mUVQ_JAUZ7PQ6";
+const DATA_URL = "assets/data/announcements.json";
+const ARCHIVE_URL = "pages/intelligence/index.html";
+const RECORD_LIMIT = 20;
+const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const FULL_COLUMNS = "source_id,title,canonical_url,url,published_at,summary_narration";
+const BASE_COLUMNS = "source_id,title,canonical_url,url,published_at";
 
 function cleanText(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
 }
 
-function validSourceUrl(value) {
+function safeSourceUrl(value) {
     try {
         const url = new URL(String(value || ""));
-        return url.protocol === "https:" ? url.href : null;
+        if (url.protocol !== "https:" || url.username || url.password) return null;
+        return url.href;
     } catch {
         return null;
     }
 }
 
-function formatPublishedAt(value) {
-    const date = new Date(value);
+function publishedInstant(value) {
+    const timestamp = Date.parse(cleanText(value));
+    return Number.isFinite(timestamp) ? timestamp : null;
+}
 
-    if (!value || Number.isNaN(date.getTime())) {
-        return "";
-    }
-
-    return new Intl.DateTimeFormat("en", {
-        dateStyle: "medium",
-        timeStyle: "short",
+function formatUtcTime(value) {
+    const timestamp = publishedInstant(value);
+    if (timestamp === null) return "TIME N/A";
+    return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
         timeZone: "UTC"
-    }).format(date) + " UTC";
+    }).format(new Date(timestamp)).toUpperCase() + " UTC";
 }
 
-function installTickerStyles() {
-    if (document.getElementById("gpir-live-ticker-styles")) return;
-
-    const style = document.createElement("style");
-    style.id = "gpir-live-ticker-styles";
-    style.textContent = `
-        #market-ribbon.gpir-live-ribbon {
-            min-height: 42px;
-            background: #07111f;
-            border-top: 1px solid #f6b817;
-            border-bottom: 1px solid #f6b817;
-            color: #ffffff;
-        }
-
-        #market-ribbon.gpir-live-ribbon .market-title {
-            align-self: stretch;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 14px;
-            background: #f6b817;
-            color: #07111f;
-            font-size: 11px;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            white-space: nowrap;
-        }
-
-        #market-ribbon.gpir-live-ribbon .ticker-wrapper {
-            min-width: 0;
-            height: 42px;
-            overflow: hidden;
-            background: #07111f;
-        }
-
-        #market-ribbon #announcementTicker.gpir-live-track {
-            display: flex;
-            align-items: stretch;
-            width: max-content;
-            max-width: none;
-            height: 42px;
-            padding: 0;
-            animation:
-                gpirLiveTickerScroll
-                var(--gpir-live-duration, 80s)
-                linear
-                infinite !important;
-            will-change: transform;
-        }
-
-        #market-ribbon #announcementTicker.gpir-live-track:hover,
-        #market-ribbon #announcementTicker.gpir-live-track:focus-within {
-            animation-play-state: paused !important;
-        }
-
-        .gpir-live-sequence {
-            display: flex;
-            flex: none;
-            align-items: stretch;
-            min-width: 100vw;
-        }
-
-        .gpir-live-headline {
-            appearance: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 42px;
-            margin: 0;
-            padding: 0 18px;
-            border: 0;
-            border-right: 1px solid rgba(246, 184, 23, 0.28);
-            background: transparent;
-            color: #ffd35a;
-            font: inherit;
-            font-size: 13px;
-            font-weight: 750;
-            line-height: 1.25;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-
-        .gpir-live-headline:hover {
-            background: rgba(246, 184, 23, 0.13);
-            color: #ffffff;
-        }
-
-        .gpir-live-headline:focus-visible {
-            position: relative;
-            z-index: 2;
-            outline: 2px solid #ffffff;
-            outline-offset: -3px;
-        }
-
-        .gpir-live-date {
-            color: #c6d2e1;
-            font-size: 10px;
-            font-weight: 650;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .gpir-live-marker {
-            color: #f6b817;
-            font-size: 9px;
-        }
-
-        .gpir-ticker-fallback {
-            display: flex;
-            align-items: center;
-            min-height: 42px;
-            padding: 0 18px;
-            color: #ffd35a;
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .gpir-modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            display: grid;
-            place-items: center;
-            padding: 20px;
-            background: rgba(1, 8, 17, 0.82);
-            backdrop-filter: blur(5px);
-        }
-
-        .gpir-modal-overlay[hidden] {
-            display: none;
-        }
-
-        .gpir-summary-modal {
-            position: relative;
-            width: min(620px, 100%);
-            max-height: min(720px, calc(100vh - 40px));
-            overflow-y: auto;
-            padding: 30px;
-            border: 1px solid rgba(246, 184, 23, 0.65);
-            border-radius: 14px;
-            background: #0b1727;
-            color: #f7f9fc;
-            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
-        }
-
-        .gpir-summary-label {
-            margin: 0 42px 10px 0;
-            color: #f6b817;
-            font-size: 11px;
-            font-weight: 850;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .gpir-summary-title {
-            margin: 0 42px 10px 0;
-            color: #ffd35a;
-            font-size: clamp(20px, 4vw, 29px);
-            line-height: 1.25;
-        }
-
-        .gpir-summary-date {
-            margin: 0 0 20px;
-            color: #aebed1;
-            font-size: 12px;
-        }
-
-        .gpir-summary-text {
-            margin: 0 0 26px;
-            color: #edf3fa;
-            font-size: 15px;
-            line-height: 1.7;
-            white-space: pre-line;
-        }
-
-        .gpir-summary-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 36px;
-            height: 36px;
-            border: 1px solid #53657a;
-            border-radius: 50%;
-            background: transparent;
-            color: #ffffff;
-            font-size: 23px;
-            line-height: 1;
-            cursor: pointer;
-        }
-
-        .gpir-summary-close:hover,
-        .gpir-summary-close:focus-visible {
-            border-color: #f6b817;
-            color: #f6b817;
-        }
-
-        .gpir-source-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            padding: 0 18px;
-            border-radius: 7px;
-            background: #f6b817;
-            color: #07111f;
-            font-size: 13px;
-            font-weight: 850;
-            text-decoration: none;
-        }
-
-        .gpir-source-button:hover,
-        .gpir-source-button:focus-visible {
-            background: #ffd35a;
-            color: #07111f;
-        }
-
-        @keyframes gpirLiveTickerScroll {
-            from {
-                transform: translate3d(0, 0, 0);
-            }
-
-            to {
-                transform: translate3d(
-                    calc(-1 * var(--gpir-live-distance, 50%)),
-                    0,
-                    0
-                );
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #market-ribbon #announcementTicker.gpir-live-track {
-                width: 100%;
-                overflow-x: auto;
-                animation: none !important;
-                scrollbar-width: thin;
-            }
-
-            #market-ribbon
-                #announcementTicker.gpir-live-track
-                .gpir-live-sequence[aria-hidden="true"] {
-                display: none;
-            }
-        }
-
-        @media (max-width: 720px) {
-            #market-ribbon.gpir-live-ribbon .market-title {
-                padding: 0 8px;
-                font-size: 9px;
-            }
-
-            .gpir-live-headline {
-                padding: 0 12px;
-                font-size: 12px;
-            }
-
-            .gpir-live-date {
-                display: none;
-            }
-
-            .gpir-summary-modal {
-                padding: 24px 20px;
-            }
-        }
-    `;
-
-    document.head.appendChild(style);
+function lifecycleFor(value, now = Date.now()) {
+    const timestamp = publishedInstant(value);
+    if (timestamp === null) return "APPROVED";
+    const age = now - timestamp;
+    return age >= 0 && age <= LIVE_WINDOW_MS ? "LIVE" : "ARCHIVE";
 }
 
-function createSummaryModal() {
-    const overlay = document.createElement("div");
-    overlay.className = "gpir-modal-overlay";
+function normalizeSupabaseRows(input, now = Date.now()) {
+    if (!Array.isArray(input)) return [];
+    return input.map((record, index) => {
+        const title = cleanText(record && record.title);
+        if (!title) return null;
+        const publishedAt = cleanText(record.published_at);
+        return {
+            id: `supabase-${index}`,
+            title,
+            summary: cleanText(record.summary_narration),
+            sourceLabel: cleanText(record.source_id).toUpperCase() || "GLOBAL",
+            sourceUrl: safeSourceUrl(record.canonical_url || record.url),
+            publishedAt,
+            timeLabel: formatUtcTime(publishedAt),
+            lifecycle: lifecycleFor(publishedAt, now),
+            detailUrl: null
+        };
+    }).filter(Boolean);
+}
+
+function canonicalPublicationInstant(record) {
+    const date = cleanText(record.sourcePublicationDate || record.publicationDate || record.publishedDate);
+    const time = cleanText(record.sourcePublicationTime || record.publicationTime);
+    if (!date) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date) && time) return `${date}T${time}`;
+    return date;
+}
+
+function normalizeCanonicalRows(payload, now = Date.now()) {
+    const records = payload && Array.isArray(payload.records) ? payload.records : [];
+    return records.filter(record => record && record.status === "GPIR_CLASSIFIED")
+        .slice(0, RECORD_LIMIT)
+        .map(record => {
+            const publishedAt = canonicalPublicationInstant(record);
+            const source = record.source || {};
+            return {
+                id: cleanText(record.id),
+                title: cleanText(record.headline || record.tickerHeadline || record.title),
+                summary: cleanText(record.summary || record.whyItMatters),
+                sourceLabel: cleanText(record.countryCode || record.region || record.country).toUpperCase() || "GLOBAL",
+                sourceUrl: safeSourceUrl(record.sourceUrl || source.url),
+                publishedAt,
+                timeLabel: formatUtcTime(publishedAt),
+                lifecycle: lifecycleFor(publishedAt, now),
+                detailUrl: record.id ? `pages/intelligence/${encodeURIComponent(record.id)}.html` : null
+            };
+        }).filter(record => record.title);
+}
+
+function runAnnouncementQuery(client, columns, limit) {
+    return client.from("global_announcements")
+        .select(columns)
+        .eq("publication_status", "approved")
+        .eq("ticker_eligible", true)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(limit);
+}
+
+async function fetchLatestAnnouncements(client, limit = RECORD_LIMIT, now = Date.now()) {
+    let result = await runAnnouncementQuery(client, FULL_COLUMNS, limit);
+    if (result.error && result.error.code === "42703") {
+        result = await runAnnouncementQuery(client, BASE_COLUMNS, limit);
+    }
+    if (result.error) throw result.error;
+    return normalizeSupabaseRows(result.data, now);
+}
+
+async function fetchCanonicalFallback(fetchImpl = fetch, now = Date.now()) {
+    const response = await fetchImpl(DATA_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Canonical announcements returned HTTP ${response.status}`);
+    return normalizeCanonicalRows(await response.json(), now);
+}
+
+function createElement(tagName, className, text) {
+    const element = document.createElement(tagName);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+}
+
+function createDialog() {
+    const overlay = createElement("div", "supabase-ticker-dialog");
     overlay.hidden = true;
-
-    const modal = document.createElement("section");
-    modal.className = "gpir-summary-modal";
-    modal.setAttribute("role", "dialog");
-    modal.setAttribute("aria-modal", "true");
-    modal.setAttribute("aria-labelledby", "gpir-summary-title");
-
-    const closeButton = document.createElement("button");
-    closeButton.type = "button";
-    closeButton.className = "gpir-summary-close";
-    closeButton.setAttribute("aria-label", "Close announcement summary");
-    closeButton.textContent = "×";
-
-    const label = document.createElement("p");
-    label.className = "gpir-summary-label";
-    label.textContent = "Global announcement";
-
-    const title = document.createElement("h2");
-    title.id = "gpir-summary-title";
-    title.className = "gpir-summary-title";
-
-    const date = document.createElement("p");
-    date.className = "gpir-summary-date";
-
-    const summary = document.createElement("p");
-    summary.className = "gpir-summary-text";
-
-    const sourceButton = document.createElement("a");
-    sourceButton.className = "gpir-source-button";
-    sourceButton.target = "_blank";
-    sourceButton.rel = "noopener noreferrer";
-    sourceButton.textContent = "Read Original Source →";
-
-    modal.append(
-        closeButton,
-        label,
-        title,
-        date,
-        summary,
-        sourceButton
-    );
-
-    overlay.appendChild(modal);
+    const panel = createElement("section", "supabase-ticker-dialog__panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "supabase-ticker-dialog-title");
+    const close = createElement("button", "supabase-ticker-dialog__close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Close announcement summary");
+    const label = createElement("p", "supabase-ticker-dialog__label", "GLOBAL ANNOUNCEMENT");
+    const title = createElement("h2", "supabase-ticker-dialog__title");
+    title.id = "supabase-ticker-dialog-title";
+    const meta = createElement("p", "supabase-ticker-dialog__meta");
+    const summary = createElement("p", "supabase-ticker-dialog__summary");
+    const actions = createElement("div", "supabase-ticker-dialog__actions");
+    const detail = createElement("a", "supabase-ticker-dialog__secondary", "Open GPIR record →");
+    const source = createElement("a", "supabase-ticker-dialog__source", "Read original source →");
+    detail.target = "_self";
+    source.target = "_blank";
+    source.rel = "noopener noreferrer";
+    actions.append(detail, source);
+    panel.append(close, label, title, meta, summary, actions);
+    overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    let previouslyFocused = null;
-    let previousBodyOverflow = "";
+    let previousFocus = null;
+    let previousOverflow = "";
 
-    function closeModal() {
+    function closeDialog() {
         if (overlay.hidden) return;
-
         overlay.hidden = true;
-        previousBodyOverflow = previousBodyOverflow || "";
-        document.body.style.overflow = previousBodyOverflow;
-
-        if (previouslyFocused instanceof HTMLElement) {
-            previouslyFocused.focus();
-        }
+        document.body.style.overflow = previousOverflow;
+        if (previousFocus instanceof HTMLElement) previousFocus.focus();
     }
 
-    function openModal(record, trigger) {
-        previouslyFocused = trigger;
-        previousBodyOverflow = document.body.style.overflow;
-
+    function openDialog(record, trigger) {
+        previousFocus = trigger;
+        previousOverflow = document.body.style.overflow;
         title.textContent = record.title;
-        date.textContent = formatPublishedAt(record.published_at);
-        date.hidden = !date.textContent;
-
-        summary.textContent = record.summary_narration ||
-            "A summary is not currently available for this announcement.";
-
-        if (record.sourceUrl) {
-            sourceButton.href = record.sourceUrl;
-            sourceButton.hidden = false;
-        } else {
-            sourceButton.removeAttribute("href");
-            sourceButton.hidden = true;
-        }
-
+        meta.textContent = `${record.timeLabel} · ${record.sourceLabel} · ${record.lifecycle}`;
+        summary.textContent = record.summary || "A summary is not available for this approved announcement.";
+        detail.hidden = !record.detailUrl;
+        if (record.detailUrl) detail.href = record.detailUrl;
+        source.hidden = !record.sourceUrl;
+        if (record.sourceUrl) source.href = record.sourceUrl;
         overlay.hidden = false;
         document.body.style.overflow = "hidden";
-        closeButton.focus();
+        close.focus();
     }
 
-    closeButton.addEventListener("click", closeModal);
-
+    close.addEventListener("click", closeDialog);
     overlay.addEventListener("click", event => {
-        if (event.target === overlay) closeModal();
+        if (event.target === overlay) closeDialog();
     });
-
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && !overlay.hidden) {
-            closeModal();
-        }
+        if (!overlay.hidden && event.key === "Escape") closeDialog();
     });
 
-    return { openModal };
+    return { openDialog };
 }
 
-function buildTickerSequence(records, modal, isDuplicate = false) {
-    const sequence = document.createElement("div");
-    sequence.className = "gpir-live-sequence";
-
-    if (isDuplicate) {
-        sequence.setAttribute("aria-hidden", "true");
-    }
-
+function buildSequence(records, dialog, duplicate = false) {
+    const sequence = createElement("span", "supabase-ticker-sequence");
+    if (duplicate) sequence.setAttribute("aria-hidden", "true");
     records.forEach(record => {
-        const button = document.createElement("button");
+        const button = createElement("button", "supabase-ticker-item");
         button.type = "button";
-        button.className = "gpir-live-headline";
-
-        if (isDuplicate) {
-            button.tabIndex = -1;
-        }
-
-        const marker = document.createElement("span");
-        marker.className = "gpir-live-marker";
-        marker.setAttribute("aria-hidden", "true");
-        marker.textContent = "◆";
-
-        const headline = document.createElement("span");
-        headline.textContent = record.title;
-
-        const date = document.createElement("time");
-        date.className = "gpir-live-date";
-        date.dateTime = record.published_at || "";
-        date.textContent = formatPublishedAt(record.published_at);
-
-        button.append(marker, headline);
-
-        if (date.textContent) {
-            button.appendChild(date);
-        }
-
-        button.addEventListener("click", () => {
-            modal.openModal(record, button);
-        });
-
+        if (duplicate) button.tabIndex = -1;
+        const lifecycle = createElement("span", `supabase-ticker-status supabase-ticker-status--${record.lifecycle.toLowerCase()}`, record.lifecycle);
+        const time = createElement("time", "supabase-ticker-time", record.timeLabel);
+        if (record.publishedAt) time.dateTime = record.publishedAt;
+        const source = createElement("span", "supabase-ticker-source", record.sourceLabel);
+        const headline = createElement("span", "supabase-ticker-headline", record.title);
+        button.append(lifecycle, time, source, headline);
+        button.addEventListener("click", () => dialog.openDialog(record, button));
         sequence.appendChild(button);
     });
-
     return sequence;
 }
 
-function renderFallback(ticker, message) {
-    ticker.classList.remove("gpir-live-track");
-    ticker.replaceChildren();
-
-    const fallback = document.createElement("a");
-    fallback.className = "gpir-ticker-fallback";
-    fallback.href = FALLBACK_URL;
-    fallback.textContent = `${message} · View announcement archive →`;
-
-    ticker.appendChild(fallback);
+function renderStatus(track, message) {
+    track.className = "ticker-track supabase-ticker-track supabase-ticker-track--status";
+    track.replaceChildren(createElement("a", "supabase-ticker-message", message));
+    track.firstElementChild.href = ARCHIVE_URL;
 }
 
-function renderTicker(ticker, records, modal) {
-    ticker.replaceChildren();
-    ticker.classList.add("gpir-live-track");
+function renderTicker(track, ribbon, records, dialog, source) {
+    if (!records.length) {
+        renderStatus(track, "No approved announcements available · View archive →");
+        return;
+    }
+    ribbon.classList.add("supabase-ticker-active");
+    track.className = "ticker-track supabase-ticker-track";
+    track.dataset.source = source;
+    track.setAttribute("aria-label", `${records.length} global announcements`);
+    const primary = buildSequence(records, dialog);
+    const duplicate = buildSequence(records, dialog, true);
+    track.replaceChildren(primary, duplicate);
 
-    const primarySequence = buildTickerSequence(records, modal);
-    const duplicateSequence = buildTickerSequence(records, modal, true);
-
-    ticker.append(primarySequence, duplicateSequence);
-
-    const measureTicker = () => {
-        const distance = primarySequence.getBoundingClientRect().width;
-
+    const measure = () => {
+        const distance = primary.getBoundingClientRect().width;
         if (!distance) return;
-
-        ticker.style.setProperty(
-            "--gpir-live-distance",
-            `${distance}px`
-        );
-
-        ticker.style.setProperty(
-            "--gpir-live-duration",
-            `${Math.max(40, distance / 55)}s`
-        );
+        track.style.setProperty("--supabase-ticker-distance", `${distance}px`);
+        track.style.setProperty("--supabase-ticker-duration", `${Math.max(32, distance / 48)}s`);
     };
-
-    requestAnimationFrame(measureTicker);
-
-    if ("ResizeObserver" in window) {
-        const observer = new ResizeObserver(measureTicker);
-        observer.observe(primarySequence);
-    }
+    requestAnimationFrame(measure);
+    if ("ResizeObserver" in window) new ResizeObserver(measure).observe(primary);
 }
 
-async function loadAnnouncements(client) {
-    const { data, error } = await client
-        .from(TABLE_NAME)
-        .select(`
-            title,
-            summary_narration,
-            canonical_url,
-            url,
-            published_at
-        `)
-        .eq("ticker_eligible", true)
-        .eq("publication_status", "approved")
-        .order("published_at", {
-            ascending: false,
-            nullsFirst: false
-        })
-        .limit(MAX_ANNOUNCEMENTS);
-
-    if (error) throw error;
-
-    return (data || [])
-        .map(record => ({
-            title: cleanText(record.title),
-            summary_narration: cleanText(record.summary_narration),
-            published_at: record.published_at,
-            sourceUrl: validSourceUrl(
-                record.canonical_url || record.url
-            )
-        }))
-        .filter(record => record.title);
-}
-
-async function initializeSupabaseTicker() {
-    const ticker = document.getElementById("announcementTicker");
-
-    if (!ticker) return;
-
-    const ribbon = ticker.closest("#market-ribbon");
-
-    if (ribbon) {
-        ribbon.classList.add("gpir-live-ribbon");
-    }
-
-    installTickerStyles();
-
-    const modal = createSummaryModal();
-
-    renderFallback(ticker, "Loading latest announcements");
-
-    const client = createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY,
-        {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false
-            }
-        }
-    );
+async function initialize() {
+    const track = document.getElementById("announcementTicker");
+    const ribbon = document.getElementById("market-ribbon");
+    if (!track || !ribbon) return;
+    const dialog = createDialog();
+    renderStatus(track, "Loading current announcements…");
 
     try {
-        const records = await loadAnnouncements(client);
-
-        if (!records.length) {
-            renderFallback(ticker, "No approved announcements available");
+        const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+        });
+        const records = await fetchLatestAnnouncements(client);
+        if (records.length) {
+            renderTicker(track, ribbon, records, dialog, "supabase");
             return;
         }
-
-        renderTicker(ticker, records, modal);
+        throw new Error("Supabase returned no publicly readable approved announcements");
     } catch (error) {
-        console.error("[GPIR] Supabase ticker query failed:", error);
-        renderFallback(ticker, "Live announcements temporarily unavailable");
+        console.warn("[GPIR] Supabase ticker unavailable; retaining canonical fallback:", error);
+    }
+
+    try {
+        const records = await fetchCanonicalFallback();
+        renderTicker(track, ribbon, records, dialog, "canonical-fallback");
+    } catch (error) {
+        console.error("[GPIR] Announcement fallback unavailable:", error);
+        renderStatus(track, "Announcements temporarily unavailable · View archive →");
     }
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeSupabaseTicker,
-        { once: true }
-    );
-} else {
-    initializeSupabaseTicker();
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+        initialize();
+    }
 }
+
+export {
+    fetchCanonicalFallback,
+    fetchLatestAnnouncements,
+    formatUtcTime,
+    lifecycleFor,
+    normalizeCanonicalRows,
+    normalizeSupabaseRows,
+    safeSourceUrl
+};
