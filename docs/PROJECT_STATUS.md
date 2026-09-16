@@ -2,6 +2,17 @@
 
 ## Current handoff
 
+### M33-G1 Step 5E — Verified processor-semantics reconciliation
+
+- **Owner / objective / branch:** Vishal Krishnan; reconcile owner-supplied verified definitions for the four Supabase intelligence functions on `work/m33-g1-global-intelligence-engine`, continuing from Step 5D commit `6a3ff372a4f0628adeaa2edb97695f975fcb05ba`. This workspace did not connect to Supabase, execute SQL/functions, read business rows, expose credentials or change cloud/runtime state.
+- **Verified current flow:** RAW → Gate 1 (`gpir_rejection_reason`) → reasoned REJECT or `PENDING` candidate with `ticker_eligible=false` → RAW marked REJECTED/PROCESSED → STOP. `gpir_process_raw_batch` bounds RAW selection to 1–1000, processes oldest first and inherits record-processor behavior.
+- **Critical reconciliation:** deterministic Gate 2 (`gpir_intelligence_assessment`) exists with CANDIDATE ≥60, REVIEW 30–59 and REJECT <30, but `gpir_process_raw_record` does not call it. RAW processing therefore produces no Gate-2 REVIEW, no Gate-2 REJECT and no Gate-2-qualified CANDIDATE. Current categories are narrower than the 22-family contract.
+- **Boundary result:** no direct write to `global_announcements` was observed in the four verified functions, so processor-level candidate/publication separation exists. Full M33-G1 staging semantics are not operational because Gate 2, validation and canonical handoff are absent from the active processor path. The separate `scraper.js [LEGACY_BASELINE]` direct-publication path remains G4 and unchanged.
+- **Gap result:** Gate 1 integration, Gate 2 function existence, bounded batching and lack of processor direct-publication write are G0. Gate 2 integration, REVIEW/REJECT/CANDIDATE routing and 22-family expansion are G3. Canonical handoff retains Step 5D `MISSING`/G2-G3 status. Legacy retirement remains owner-controlled G4.
+- **Milestone / artifact:** `docs/M33-G1-PROCESSOR-SEMANTICS-RECONCILIATION.md` records verified definitions, actual/required flows, exact omissions, G0–G4 classification, SECURITY DEFINER constraints and future planning boundaries. STEP 5E DOCUMENTATION MILESTONE ACHIEVED; no corrected SQL or implementation was designed or deployed.
+- **Validation / scope:** Step 5B boundary and Step 5C contract guards pass with 0 new violations and 0 protected changes. Content, announcement, announcement-intent, 29-check production pipeline, 104-file link and whitespace checks pass. Only the reconciliation and master-control records change.
+- **Delivery state:** commit/push under subject `M33-G1 Step 5E reconcile processor semantics`; exact local/remote SHA parity is verified after push and reported in the final handoff. Next is one owner-review implementation-planning milestone for minimal processor correction, regression, rollout and rollback design.
+
 ### M33-G1 Step 5D — Verified Supabase physical-schema reconciliation
 
 - **Owner / objective / branch:** Vishal Krishnan; complete read-only physical reconciliation on `work/m33-g1-global-intelligence-engine` using authoritative PostgreSQL metadata manually collected by the owner through the authenticated Supabase SQL Editor. This workspace did not connect to Supabase, execute SQL/functions, read business rows, expose credentials or change cloud state.
@@ -10,7 +21,7 @@
 - **Verified risks/gaps:** `global_announcements` combines `publication_status DEFAULT 'review'` with `ticker_eligible DEFAULT true`; candidate/rejection RAW FKs use `ON DELETE SET NULL`; run lineage is not evidenced on RAW/downstream records; processor bodies are unverified; and the repository-known `scraper.js [LEGACY_BASELINE]` still bypasses staging. These are recorded only, not repaired. G1 documentation, G2 additive schema/default/constraint, G3 processor-definition and G4 legacy-cutover decision gaps are separated.
 - **Milestone / evidence artifact:** `docs/M33-G1-SUPABASE-SCHEMA-RECONCILIATION.md` records the supplied physical metadata, A–J special checks, logical mappings, minimal future actions and G0–G4 gap register. STEP 5D INSPECTION + RECONCILIATION MILESTONE ACHIEVED; production/schema activation is not part of Step 5D.
 - **Validation / scope:** Step 5B boundary and Step 5C contract guards pass; the legacy baseline is detected with 0 new violations and 0 protected changes. Content, announcement, announcement-intent, 29-check production pipeline, 104-file link and whitespace checks pass. Only the reconciliation and master-control records change; no runtime/publication surface changes.
-- **Delivery state:** commit/push under subject `M33-G1 Step 5D reconcile Supabase schema`; exact local/remote SHA parity is verified after push and reported in the final handoff. Next is a separately authorized read-only processor-function definition reconciliation milestone.
+- **Delivery state:** STEP 5D INSPECTION + RECONCILIATION MILESTONE ACHIEVED on the work branch at `6a3ff372a4f0628adeaa2edb97695f975fcb05ba`; local and remote branch SHAs were verified equal. Step 5E processor-semantics reconciliation is the completed follow-on recorded above.
 
 ### M33-G1 Step 5C — Staging data contract and existing-schema reconciliation
 

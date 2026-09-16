@@ -14,6 +14,21 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M33-G1 Step 5E — Verified Processor-Semantics Reconciliation
+
+- **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine`, continuing from Step 5D commit `6a3ff372a4f0628adeaa2edb97695f975fcb05ba`.
+- **Classification / objective:** ARCHITECTURE, DATA, GOVERNANCE and SECURITY read-only analysis/documentation milestone. Reconcile owner-supplied verified definitions for four intelligence functions against Steps 5B–5D without connecting to Supabase or implementing a correction.
+- **Gate 1 evidence:** immutable/invoker `gpir_rejection_reason` deterministically returns EMPTY_TITLE, HTML_IN_TITLE, NAVIGATION_OR_STRUCTURAL, UTILITY_PAGE, INVALID_URL or TITLE_TOO_SHORT, otherwise null. The record processor calls it, marks RAW rejected and writes the rejection log when a reason exists. Gate 1 implementation/integration is G0.
+- **Gate 2 evidence:** immutable/invoker `gpir_intelligence_assessment` scores content and returns JSONB decision/score/category/event_type; ≥60 is CANDIDATE, 30–59 REVIEW, <30 REJECT. The function exists (G0) but its taxonomy is narrower than the 22-family contract and the RAW processor never calls it (G3).
+- **Processor evidence:** volatile/security-definer `gpir_process_raw_record` handles missing/non-RAW states, runs Gate 1, then inserts every survivor as a PENDING `intelligence_candidates` row with ticker eligibility false, marks RAW processed and stops. It produces no Gate-2 REVIEW, Gate-2 REJECT or Gate-2-qualified CANDIDATE and does not write directly to `global_announcements`. The bounded batch function processes oldest RAW rows through the same semantics.
+- **Boundary/gap outcome:** processor candidate/publication separation is verified, but the full staging state machine is not operational. Gate 2 integration, three-way routing and taxonomy expansion are G3; canonical handoff remains MISSING with retained G2/G3 work; legacy scraper retirement remains G4 owner-controlled. SECURITY DEFINER changes require least-privilege review, deterministic regression, staged rollout and rollback planning.
+- **File created:** `docs/M33-G1-PROCESSOR-SEMANTICS-RECONCILIATION.md`.
+- **Control records updated:** `docs/PROJECT_STATUS.md`; `docs/GPIR_BACKLOG.md`; `docs/MASTER_PROJECT_LOG.md`, including exact Step 5D commit evidence and achieved Step 5E milestone state.
+- **Files deliberately untouched:** functions/Supabase; `scraper.js`; workflows; canonical data; pages; homepage; ticker UI/CSS/JS; CNAME; existing M30 runtime/publication implementation.
+- **Validation:** Step 5B boundary passed with the known legacy baseline, 0 new violations and 0 protected changes. Step 5C contract passed with 8/8 entities and 22/22 taxonomy families. Content, announcement, announcement-intent, 29-check production pipeline, 104-file link and `git diff --check` validations passed.
+- **Milestone outcome / production impact:** STEP 5E PROCESSOR-SEMANTICS DOCUMENTATION MILESTONE ACHIEVED on the work branch. No main, Supabase schema/data/function, `global_announcements`, ticker or live GPIR change occurred.
+- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 5E reconcile processor semantics`; exact SHA is available in Git history and verified in the final handoff. Next is one owner-review implementation-planning milestone for minimal processor correction and regression/rollout/rollback specification, not implementation.
+
 ## M33-G1 Step 5D — Verified Supabase Physical-Schema Reconciliation
 
 - **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine`, continuing from Step 5C commit `0bbdf5bdd0a0d1918308e241d9b451ab46450da7`.
@@ -29,7 +44,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Files deliberately untouched:** `scraper.js`; workflows; canonical data; pages; homepage; ticker UI/CSS/JS; CNAME; Supabase objects/data; existing M30 runtime/publication implementation.
 - **Validation:** Step 5B boundary guard passed with `scraper.js [LEGACY_BASELINE]`, 0 new violations and 0 protected changes. Step 5C contract guard passed with 8/8 entities, 22/22 taxonomy families, publication-only mapping, no local dependency and no credential requirement. Content, announcement, announcement-intent, 29-check production pipeline, 104-file link and `git diff --check` validations passed.
 - **Milestone outcome / production impact:** STEP 5D INSPECTION + RECONCILIATION MILESTONE ACHIEVED on the work branch. No main, Supabase schema/data, `global_announcements`, ticker or live GPIR change occurred.
-- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 5D reconcile Supabase schema`; exact SHA is available in Git history and verified in the final handoff. Next is a separately authorized read-only processor-function definition reconciliation milestone before any schema or ingestion migration.
+- **Delivery / milestone outcome:** inspection/reconciliation milestone achieved on the work branch at `6a3ff372a4f0628adeaa2edb97695f975fcb05ba`; local and remote SHAs were verified equal. Step 5E processor-semantics reconciliation is recorded above as the completed follow-on.
 
 ## M33-G1 Step 5C — Staging Data Contract and Existing-Schema Reconciliation
 
