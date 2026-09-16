@@ -1359,6 +1359,144 @@
           "target": "country:united-kingdom"
         }
       ]
+    },
+    {
+      "id": "source:eba-eu",
+      "contentType": "SOURCE",
+      "title": "European Banking Authority (EBA)",
+      "slug": "eba-eu",
+      "status": "active",
+      "sourceRef": {
+        "file": "assets/data/trusted-sources.json",
+        "collection": "registry",
+        "key": "id",
+        "value": "eba-eu"
+      },
+      "relationships": []
+    },
+    {
+      "id": "announcement:eba-eu-089c06dc99945152",
+      "contentType": "ANNOUNCEMENT",
+      "title": "José Manuel Campa interview with Central Banking: EBA’s Campa on simplifying EU regulations and supervising stablecoins",
+      "slug": "eba-eu-089c06dc99945152",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "eba-eu-089c06dc99945152"
+      },
+      "page": "pages/intelligence/eba-eu-089c06dc99945152.html",
+      "sourceRefs": [
+        "source:eba-eu"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:eba-eu"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:eba-eu-089c06dc99945152"
+        },
+        {
+          "type": "REGION",
+          "target": "region:europe"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:eba-eu-089c06dc99945152",
+      "contentType": "INTELLIGENCE",
+      "title": "José Manuel Campa interview with Central Banking: EBA’s Campa on simplifying EU regulations and supervising stablecoins",
+      "slug": "eba-eu-089c06dc99945152",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "eba-eu-089c06dc99945152"
+      },
+      "page": "pages/intelligence/eba-eu-089c06dc99945152.html",
+      "sourceRefs": [
+        "source:eba-eu"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:eba-eu-089c06dc99945152"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:eba-eu"
+        },
+        {
+          "type": "REGION",
+          "target": "region:europe"
+        }
+      ]
+    },
+    {
+      "id": "announcement:eba-eu-265406c30a689c2a",
+      "contentType": "ANNOUNCEMENT",
+      "title": "Innovation, competition and security: how regulation continues to shape the EU payments market",
+      "slug": "eba-eu-265406c30a689c2a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "eba-eu-265406c30a689c2a"
+      },
+      "page": "pages/intelligence/eba-eu-265406c30a689c2a.html",
+      "sourceRefs": [
+        "source:eba-eu"
+      ],
+      "relationships": [
+        {
+          "type": "SOURCE",
+          "target": "source:eba-eu"
+        },
+        {
+          "type": "INTELLIGENCE",
+          "target": "intelligence:eba-eu-265406c30a689c2a"
+        },
+        {
+          "type": "REGION",
+          "target": "region:europe"
+        }
+      ]
+    },
+    {
+      "id": "intelligence:eba-eu-265406c30a689c2a",
+      "contentType": "INTELLIGENCE",
+      "title": "Innovation, competition and security: how regulation continues to shape the EU payments market",
+      "slug": "eba-eu-265406c30a689c2a",
+      "status": "GPIR_CLASSIFIED",
+      "sourceRef": {
+        "file": "assets/data/announcements.json",
+        "collection": "records",
+        "key": "id",
+        "value": "eba-eu-265406c30a689c2a"
+      },
+      "page": "pages/intelligence/eba-eu-265406c30a689c2a.html",
+      "sourceRefs": [
+        "source:eba-eu"
+      ],
+      "relationships": [
+        {
+          "type": "ANNOUNCEMENT",
+          "target": "announcement:eba-eu-265406c30a689c2a"
+        },
+        {
+          "type": "SOURCE",
+          "target": "source:eba-eu"
+        },
+        {
+          "type": "REGION",
+          "target": "region:europe"
+        }
+      ]
     }
   ]
 }
