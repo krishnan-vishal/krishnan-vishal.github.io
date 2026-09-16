@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M33-G1 Global Intelligence Engine boundary
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M33-G1-STEP-5B | 2026-09-16 | Establish the acquisition/staging-to-publication architecture boundary and regression guard without migrating ingestion | ARCHITECTURE, GOVERNANCE, SECURITY, AUTOMATION | High | IN PROGRESS | Owner review; later explicit staging data-contract/schema authorization before implementation | M33-G1 Step 5B | `docs/M33-G1-INTELLIGENCE-BOUNDARY.md`, `scripts/validate-m33-g1-boundary.js` | Define RAW, REJECT, REVIEW, CANDIDATE, validation, canonical handoff and existing M30 publication responsibilities; distinguish the exact legacy `scraper.js` direct write from any new violation; protect publication surfaces. | Read-only Node guard classifies the known path `LEGACY_BASELINE`, rejects an unsafe fixture, accepts RAW/staging-only behavior, reports zero new violations and zero protected changes, and existing deterministic validations pass. | Implemented and locally validated on `work/m33-g1-global-intelligence-engine`; legacy behavior is recorded but not declared compliant. No ingestion, Supabase, ticker, publication or production behavior changed. Owner review and branch merge remain pending. | PENDING owner review | Branch commit subject `M33-G1 Step 5B intelligence boundary guard` | M33-G1 |
+
 ## Supabase announcement scraper
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

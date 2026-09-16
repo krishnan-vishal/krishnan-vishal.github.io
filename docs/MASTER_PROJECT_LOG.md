@@ -14,6 +14,20 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M33-G1 Step 5B — Intelligence Architecture Boundary and Regression Guard
+
+- **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine` from `origin/main` `e516fe4304b468445f1dfc67e6c1568eb08b1932`.
+- **Classification / objective:** ARCHITECTURE, GOVERNANCE, SECURITY and AUTOMATION guardrail. Establish and machine-validate the boundary between acquisition/staging and the existing M30 publication layer without migrating ingestion or changing production behavior.
+- **Repository finding:** `scraper.js` is the known legacy direct-publication path. It writes discovered records to `global_announcements` with `publication_status: "approved"` and `ticker_eligible: true`. Step 5B preserves that protected file, records its exact SHA-256 baseline and does not represent the behavior as compliant.
+- **Architecture result:** the authoritative contract now separates SOURCE REGISTRY, ACQUISITION, RAW EVIDENCE, deterministic extraction/filtering/normalization/deduplication, Gate 1/Gate 2, REJECT/REVIEW/CANDIDATE, validation and canonical handoff from existing M30 publication. RAW may retain rejected evidence; REJECT cannot progress; REVIEW is quarantined; CANDIDATE is not automatic publication; CURRENT/HISTORICAL/ticker decisions remain publication concerns.
+- **Guard implementation:** the read-only, dependency-free Node validator scans implementation code for direct `global_announcements` mutation combined with approval or ticker eligibility, allows only the exact fingerprinted `scraper.js` legacy condition, and compares branch/worktree changes with the `main` branch point to detect protected publication-surface edits. Its embedded isolated self-test covers legacy classification, a rejected unsafe new fixture and an accepted RAW/staging-only fixture.
+- **Files created:** `docs/M33-G1-INTELLIGENCE-BOUNDARY.md`; `scripts/validate-m33-g1-boundary.js`.
+- **Control records updated:** `docs/PROJECT_STATUS.md`; `docs/GPIR_BACKLOG.md`; `docs/MASTER_PROJECT_LOG.md`.
+- **Files deliberately untouched:** `scraper.js`; `.github/workflows/run-ticker.yml`; `.github/workflows/continuous-intelligence.yml`; canonical announcement, candidate, registry and source datasets; `pages/`; `index.html`; ticker UI/CSS/JS; `CNAME`; Supabase resources/data; existing M30 publication and lifecycle implementation.
+- **Validation:** validator syntax passed; embedded self-test passed 3 checks; boundary scan passed with `scraper.js [LEGACY_BASELINE]`, 0 new direct-publication violations and 0 protected publication-surface changes. `validate-content.js`, `validate-announcements.js`, `test-announcement-intent.js`, the 29-check production announcement pipeline, 104-file internal-link validation and `git diff --check` passed locally.
+- **Production impact:** no main change, Supabase access/change, `global_announcements` change, ticker change, live GPIR change, deployment, schedule, new dependency or PR. Existing Last-Known-Good publication remains unchanged.
+- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 5B intelligence boundary guard`; exact SHA is available in Git history and verified in the final handoff. The next safe step is an owner-defined M33-G1 staging data-contract/schema specification before any ingestion migration.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **Date / user request:** 2026-09-14; a green `run-ticker.yml` reportedly leaves `global_announcements` empty. Search every HTML anchor by default, require a cleaned 10–250 character title and a finance keyword in title or URL, deduplicate, and retain approved/ticker-eligible writes.

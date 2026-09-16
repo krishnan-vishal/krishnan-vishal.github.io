@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### M33-G1 Step 5B — Intelligence architecture boundary and regression guard
+
+- **Owner / objective / branch:** Vishal Krishnan; establish the first additive, machine-validated boundary between intelligence acquisition/staging and GPIR publication on `work/m33-g1-global-intelligence-engine`, based on `origin/main` `e516fe4304b468445f1dfc67e6c1568eb08b1932`.
+- **Architecture contract:** `docs/M33-G1-INTELLIGENCE-BOUNDARY.md` defines SOURCE REGISTRY → ACQUISITION → RAW EVIDENCE → deterministic processing/gates → REJECT, REVIEW or CANDIDATE → VALIDATE → CANONICAL HANDOFF → existing M30 publication. RAW is evidence only; REJECT cannot progress; REVIEW is quarantined; CANDIDATE is not publication; CURRENT/HISTORICAL/ticker status remains a publication-layer decision.
+- **Machine guard:** `scripts/validate-m33-g1-boundary.js` uses Node.js built-ins only, is read-only, fingerprints the exact known `scraper.js` direct-write condition as `LEGACY_BASELINE`, rejects equivalent new direct `global_announcements` approval/ticker writes, and fails if this branch changes protected publication surfaces.
+- **Validated result:** boundary self-test passed 3 checks; repository validation reported the single `scraper.js` legacy baseline, 0 new direct-publication violations and 0 protected publication-surface changes. Content, announcement, announcement-intent, 29-check production-pipeline, 104-file internal-link and whitespace checks passed locally.
+- **Scope / production impact:** only the boundary contract, validator and repository control records are changed. `scraper.js`, workflows, canonical publication data, pages, homepage, ticker, CNAME, Supabase and M30 lifecycle/publication code remain untouched. No Supabase call, credential use, schedule, deployment, announcement publication, PR or main change occurred.
+- **Delivery state:** READY FOR OWNER REVIEW after commit/push under subject `M33-G1 Step 5B intelligence boundary guard`; exact local/remote SHA parity is verified after push and recorded in the final handoff. The next safe step is an owner-defined M33-G1 staging data-contract/schema specification before any ingestion migration.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.
