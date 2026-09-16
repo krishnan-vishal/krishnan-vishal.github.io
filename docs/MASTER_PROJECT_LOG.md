@@ -14,6 +14,23 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M33-G1 Step 6A — Version-Controlled Gate 2 Migration Package
+
+- **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine`, continuing from Step 5F commit `50c6e2f648f99471f1b098de2740fc2d2305f82d`.
+- **Classification / objective:** ARCHITECTURE, DATA, GOVERNANCE and SECURITY build-only milestone. Implement the approved Step 5F design as version-controlled forward/rollback SQL and deterministic offline/isolated regression artifacts without connecting to or applying anything to Supabase.
+- **Migration location:** the repository has no evidenced migration framework, so the package is explicitly isolated under `migrations/m33-g1/` and does not claim Supabase CLI/deployment integration.
+- **Forward package:** transactional preflight; nullable run/assessment/validation/taxonomy lineage; source/run/RAW constraints; downstream RAW RESTRICT constraints plus fail-closed delete trigger; deterministic versioned 22-family assessment; corrected Gate 1→Gate 2 REJECT/REVIEW/PENDING routing; bounded oldest-first batch; validated-only unique handoff staging; default-only future ticker correction; fixed search paths and revoked PUBLIC execution without guessed role grants.
+- **Publication boundary:** record/batch/handoff functions contain no `global_announcements` reference. The only operation on that table is `ALTER COLUMN ticker_eligible SET DEFAULT false`; no existing row insert/update/delete/truncate/drop exists. Candidate staging always sets ticker eligibility false. No handoff consumer or M30 adapter was added.
+- **Rollback:** the transactional rollback fail-closes the new record/batch/handoff mutation paths and revokes PUBLIC execution while retaining all RAW, rejection, review, candidate and handoff evidence and additive objects. Exact prior functions/grants must be captured and checksummed before any future application because they are not stored in GitHub.
+- **Regression artifacts:** `scripts/test-m33-g1-step-6a.js` validates fixture and migration/rollback safety with 414 passing assertions. The isolated SQL harness covers T01–T35, requires an explicit isolated-session flag, refuses pre-existing RAW work and ends in rollback.
+- **Behavioral evidence boundary:** PostgreSQL is unavailable in this workspace. SQL parsing/execution, T01–T35 database behavior, live-row compatibility, roles/grants/RLS/triggers, locks/concurrency/performance and rollback execution are `NOT EXECUTED — ISOLATED POSTGRES REQUIRED`. Production was not used to fill this gap.
+- **Files created:** `migrations/m33-g1/m33-g1-gate2-staging.sql`; `migrations/m33-g1/m33-g1-gate2-staging-rollback.sql`; `migrations/m33-g1/m33-g1-gate2-isolated-regression.sql`; `scripts/test-m33-g1-step-6a.js`; `docs/M33-G1-STEP-6A-BUILD-REPORT.md`.
+- **Control records updated:** `docs/PROJECT_STATUS.md`; `docs/GPIR_BACKLOG.md`; `docs/MASTER_PROJECT_LOG.md`, including exact Step 5F commit evidence and Step 6A build/readiness state.
+- **Files deliberately untouched:** Supabase resources; `scraper.js`; protected workflows; canonical data; pages; homepage; ticker UI/CSS/JS; CNAME; existing M30 runtime/publication implementation.
+- **Validation:** Step 6A static validator PASS (414 checks); fixture PASS (35/35); isolated PostgreSQL harness BUILT (T01–T35); Step 5B boundary PASS with known legacy baseline, 0 new violations and 0 protected changes; Step 5C contract PASS; content, announcement, announcement-intent, 29-check production pipeline, 104-file links, JavaScript syntax and whitespace checks PASS.
+- **Milestone outcome / production impact:** STEP 6A BUILD MILESTONE ACHIEVED and package READY FOR OWNER REVIEW. No main, Supabase schema/data/function, `global_announcements` data, ticker, workflow, deployment, source activation, live GPIR or legacy-path change occurred.
+- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 6A build Gate2 migration package`; exact SHA is available in Git history and verified in the final handoff. Next is one separately authorized controlled isolated PostgreSQL execution/test milestone before any production Supabase application.
+
 ## M33-G1 Step 5F — Gate 2 Implementation and Regression Specification
 
 - **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine`, continuing from Step 5E commit `44cd001e2396409785f72d0146872256f21de17e`.

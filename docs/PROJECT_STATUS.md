@@ -2,6 +2,17 @@
 
 ## Current handoff
 
+### M33-G1 Step 6A — Version-controlled Gate 2 migration package
+
+- **Owner / objective / branch:** Vishal Krishnan; build but do not apply the Step 5F migration, rollback and deterministic regression package on `work/m33-g1-global-intelligence-engine`, continuing from Step 5F commit `50c6e2f648f99471f1b098de2740fc2d2305f82d`.
+- **Artifacts built:** isolated forward and non-destructive rollback SQL under `migrations/m33-g1/`; an isolated PostgreSQL T01–T35 harness; `scripts/test-m33-g1-step-6a.js`; and `docs/M33-G1-STEP-6A-BUILD-REPORT.md`. No existing migration framework was inferred.
+- **Implementation package:** additive nullable lineage and versioned taxonomy fields; RAW RESTRICT/trigger preservation; deterministic 22-family Gate 2; Gate-2 REJECT/REVIEW/PENDING routing; oldest-first 1–1000 batch; validated-only idempotent handoff; future-insert ticker default false; fixed search paths and revoked PUBLIC execution without invented production roles.
+- **Publication/rollback boundary:** processors and handoff contain no publication-table reference/write; the only publication operation changes the future ticker default and does not update rows. Rollback fail-closes the new processor/handoff paths while retaining every evidence row/object and the unchanged legacy Last-Known-Good production path.
+- **Static validation:** Step 6A validator PASS (414 checks), fixture contract PASS (35/35), isolated SQL harness BUILT (T01–T35), boundary guard PASS with 0 new violations/0 protected changes, data-contract guard PASS. Existing repository validators and whitespace checks pass.
+- **Behavioral SQL validation:** NOT EXECUTED — ISOLATED POSTGRES REQUIRED. No `psql`/PostgreSQL runtime is available here; no production connection was used. PostgreSQL parsing/execution, live compatibility, roles/grants/RLS, locking/concurrency and rollback behavior remain unverified.
+- **Milestone / production impact:** STEP 6A BUILD MILESTONE ACHIEVED and package READY FOR OWNER REVIEW. No Supabase connection/application, production schema/data/function change, workflow, ticker, M30 runtime, deployment, PR, main merge, automation activation or scraper change occurred.
+- **Delivery / next dependency:** commit/push under subject `M33-G1 Step 6A build Gate2 migration package`; exact local/remote SHA parity is verified after push and reported in the final handoff. The only next safe milestone is separately authorized isolated PostgreSQL execution of the package and T01–T35 before any production Supabase application.
+
 ### M33-G1 Step 5F — Gate 2 implementation and regression specification
 
 - **Owner / objective / branch:** Vishal Krishnan; freeze the smallest additive, implementation-ready Gate 2, lineage, taxonomy, validation, canonical-handoff, canary and rollback contract on `work/m33-g1-global-intelligence-engine`, continuing from Step 5E commit `44cd001e2396409785f72d0146872256f21de17e`.
