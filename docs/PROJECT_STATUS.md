@@ -2,6 +2,17 @@
 
 ## Current handoff
 
+### M33-G1 Step 5F — Gate 2 implementation and regression specification
+
+- **Owner / objective / branch:** Vishal Krishnan; freeze the smallest additive, implementation-ready Gate 2, lineage, taxonomy, validation, canonical-handoff, canary and rollback contract on `work/m33-g1-global-intelligence-engine`, continuing from Step 5E commit `44cd001e2396409785f72d0146872256f21de17e`.
+- **Target flow / boundary:** SOURCE → INGESTION RUN → RAW → Gate 1 → Gate 2 → REJECT | REVIEW | CANDIDATE → VALIDATION → CANONICAL HANDOFF → existing M30 publication → CURRENT/HISTORICAL. RAW, REVIEW and CANDIDATE remain publication-ineligible; processors and handoff cannot write to `global_announcements`.
+- **Minimal change specification:** retain all six verified tables and four functions; reuse candidate status `REVIEW` for quarantine and `PENDING` for validation-required Gate-2 candidates; add only missing run/assessment/taxonomy lineage, protect RAW links, add one idempotent canonical-handoff record, change only the future ticker-eligibility default to false, and preserve existing publication rows.
+- **Security / rollout:** future SECURITY DEFINER changes require fixed search paths, schema-qualified objects, least privilege, revoked PUBLIC execution, fail-closed transactions and no publication mutation capability. A bounded three-source canary has dry-run, RAW-only, gate, validation, handoff, publication and lifecycle gates with exact STOP criteria.
+- **Regression / rollback:** `tests/fixtures/m33-g1-regression-cases.json` specifies 35 deterministic cases spanning Gate 1, Gate 2, taxonomy, dedupe, timestamps, batching, lineage, handoff, LKG protection and the legacy baseline. Rollback restores captured processor definitions/grants without deleting RAW or downstream history; legacy production remains active until separately approved cutover.
+- **Milestone / artifacts:** `docs/M33-G1-IMPLEMENTATION-REGRESSION-SPEC.md` and the non-runtime fixture freeze the proposed contract. STEP 5F PLANNING/SPECIFICATION MILESTONE ACHIEVED; no SQL, Supabase, runtime, workflow, publication, ticker, deployment or legacy-path change occurred.
+- **Validation / scope:** fixture structure/coverage, Step 5B boundary and Step 5C contract guards pass with 35/35 cases, 0 new violations and 0 protected changes. Existing deterministic repository validations and whitespace checks pass. Only the two Step 5F artifacts and three master controls change.
+- **Delivery / next dependency:** commit/push under subject `M33-G1 Step 5F specify Gate2 rollout`; exact local/remote SHA parity is verified after push and reported in the final handoff. Next is owner review and, only if separately authorized, Step 6A to build version-controlled SQL migration and isolated regression artifacts without applying them to Supabase.
+
 ### M33-G1 Step 5E — Verified processor-semantics reconciliation
 
 - **Owner / objective / branch:** Vishal Krishnan; reconcile owner-supplied verified definitions for the four Supabase intelligence functions on `work/m33-g1-global-intelligence-engine`, continuing from Step 5D commit `6a3ff372a4f0628adeaa2edb97695f975fcb05ba`. This workspace did not connect to Supabase, execute SQL/functions, read business rows, expose credentials or change cloud/runtime state.
