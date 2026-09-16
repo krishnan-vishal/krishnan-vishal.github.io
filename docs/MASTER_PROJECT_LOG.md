@@ -14,6 +14,21 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M33-G1 Step 5C — Staging Data Contract and Existing-Schema Reconciliation
+
+- **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine`, continuing from Step 5B commit `ba0d49127ca0ce2bf113ba26f117b2c1d7ebef32`.
+- **Classification / objective:** ARCHITECTURE, DATA, GOVERNANCE and SECURITY design milestone. Define a logical staging contract and reconcile it only to evidence already present in GitHub, without querying or changing Supabase or any production surface.
+- **Logical contract achieved:** SOURCE, RAW_EVIDENCE, PROCESSING_RUN, ASSESSMENT, REJECT, REVIEW, CANDIDATE and CANONICAL_HANDOFF each define purpose, identity, provenance, `source_id` lineage, timestamps, processing state, transitions, immutability, deduplication, failure and publication eligibility. RAW evidence survives downstream rejection; REJECT is reasoned/terminal per assessment; REVIEW is quarantined; CANDIDATE is validation-only; only VALIDATED creates a handoff; the handoff does not change M30 lifecycle/publication.
+- **Taxonomy achieved:** 22 required initial global payments-intelligence families are present in an extensible, versioned taxonomy with separate primary category, secondary tags, jurisdiction/region, use case and payment rail. Unsupported classification remains `UNKNOWN`.
+- **Evidence-limited reconciliation:** `source_registry` is `PARTIAL` based on repository code; `global_announcements` is `PUBLICATION-ONLY`; `intelligence_raw_ingestion`, `intelligence_ingestion_runs`, `intelligence_candidates`, `intelligence_rejection_log`, `gpir_rejection_reason` and `gpir_intelligence_assessment` are `UNKNOWN` because GitHub contains no physical schema/signature evidence; CANONICAL_HANDOFF has no confirmed staging object and is `MISSING`. No mapping is falsely classified `EXACT`.
+- **Schema boundary:** `SCHEMA VERIFICATION REQUIRED` covers actual objects, columns, types, constraints, indexes, RLS policies, triggers and function signatures. No column or function signature was invented, no SQL was run and no credential was used.
+- **Files created:** `docs/M33-G1-STAGING-DATA-CONTRACT.md`; `scripts/validate-m33-g1-data-contract.js`.
+- **Control records updated:** `docs/PROJECT_STATUS.md`; `docs/GPIR_BACKLOG.md`; `docs/MASTER_PROJECT_LOG.md`, including achieved Step 5B and Step 5C work-branch milestones.
+- **Files deliberately untouched:** `scraper.js`; all workflows; canonical announcement, candidate, registry and source data; pages; homepage; ticker UI/CSS/JS; CNAME; Supabase objects/data; M30 publication/lifecycle implementation.
+- **Validation:** data-contract syntax and 5-check self-test passed; contract validation passed with 8/8 entities and 22/22 taxonomy families, publication-only `global_announcements`, schema verification required, no local runtime dependency and no secret/credential requirement. Step 5B boundary passed with the known `scraper.js [LEGACY_BASELINE]`, 0 new violations and 0 protected changes. Content, announcement, announcement-intent, 29-check production pipeline, 104-file link and `git diff --check` validations passed locally.
+- **Milestone outcome / production impact:** STEP 5C LOGICAL DESIGN MILESTONE ACHIEVED on the work branch. No main, Supabase, `global_announcements`, ticker, live GPIR, deployment, schedule, workflow or scraper change occurred.
+- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 5C staging data contract`; exact SHA is available in Git history and verified in the final handoff. Next is a separately authorized read-only physical Supabase schema evidence and reconciliation milestone before any implementation or migration.
+
 ## M33-G1 Step 5B — Intelligence Architecture Boundary and Regression Guard
 
 - **Date / owner / branch:** 2026-09-16; Vishal Krishnan; `work/m33-g1-global-intelligence-engine` from `origin/main` `e516fe4304b468445f1dfc67e6c1568eb08b1932`.
@@ -26,7 +41,7 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - **Files deliberately untouched:** `scraper.js`; `.github/workflows/run-ticker.yml`; `.github/workflows/continuous-intelligence.yml`; canonical announcement, candidate, registry and source datasets; `pages/`; `index.html`; ticker UI/CSS/JS; `CNAME`; Supabase resources/data; existing M30 publication and lifecycle implementation.
 - **Validation:** validator syntax passed; embedded self-test passed 3 checks; boundary scan passed with `scraper.js [LEGACY_BASELINE]`, 0 new direct-publication violations and 0 protected publication-surface changes. `validate-content.js`, `validate-announcements.js`, `test-announcement-intent.js`, the 29-check production announcement pipeline, 104-file internal-link validation and `git diff --check` passed locally.
 - **Production impact:** no main change, Supabase access/change, `global_announcements` change, ticker change, live GPIR change, deployment, schedule, new dependency or PR. Existing Last-Known-Good publication remains unchanged.
-- **Delivery / next dependency:** commit and push only to the named work branch under subject `M33-G1 Step 5B intelligence boundary guard`; exact SHA is available in Git history and verified in the final handoff. The next safe step is an owner-defined M33-G1 staging data-contract/schema specification before any ingestion migration.
+- **Delivery / milestone outcome:** guardrail milestone achieved on the work branch at `ba0d49127ca0ce2bf113ba26f117b2c1d7ebef32`; local and remote SHAs were verified equal. No main merge or production activation occurred. Step 5C is recorded above as the next achieved logical-design milestone.
 
 ## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 

@@ -2,6 +2,16 @@
 
 ## Current handoff
 
+### M33-G1 Step 5C — Staging data contract and existing-schema reconciliation
+
+- **Owner / objective / branch:** Vishal Krishnan; define the authoritative logical staging contract on `work/m33-g1-global-intelligence-engine` without changing Supabase, workflows, scraper, ticker, canonical/publication data or M30 behavior. Step 5C continues from the achieved Step 5B work-branch checkpoint `ba0d49127ca0ce2bf113ba26f117b2c1d7ebef32`.
+- **Contract result:** `docs/M33-G1-STAGING-DATA-CONTRACT.md` defines SOURCE, RAW_EVIDENCE, PROCESSING_RUN, ASSESSMENT, REJECT, REVIEW, CANDIDATE and CANONICAL_HANDOFF, including identity, provenance, `source_id` lineage, timestamps, state, transitions, immutability, deduplication, failure and publication eligibility. RAW evidence is retained after rejection; REVIEW is quarantined; CANDIDATE is validation-only; only VALIDATED can create an immutable canonical handoff; M30 publication remains separate.
+- **Taxonomy result:** the contract provides 22 extensible initial payments-intelligence families plus independent primary category, secondary tags, jurisdiction/region, use-case and payment-rail dimensions. Unsupported classification remains `UNKNOWN` rather than guessed.
+- **Schema reconciliation:** repository evidence supports `source_registry` only partially and confirms `global_announcements` as `PUBLICATION-ONLY`. `intelligence_raw_ingestion`, `intelligence_ingestion_runs`, `intelligence_candidates`, `intelligence_rejection_log`, `gpir_rejection_reason` and `gpir_intelligence_assessment` remain `UNKNOWN`; no canonical-handoff staging object is confirmed and that mapping is `MISSING`. All physical schema details require separately authorized read-only verification.
+- **Machine guard / evidence:** `scripts/validate-m33-g1-data-contract.js` is dependency-free and read-only. Its 5-check self-test and contract validation pass with 8/8 logical entities, 22/22 taxonomy families, publication-only classification, no local runtime dependency and no secret requirement. Step 5B boundary, content, announcement, announcement-intent, 29-check production pipeline, 104-file link, syntax and whitespace checks pass.
+- **Milestone / production impact:** STEP 5C LOGICAL DESIGN MILESTONE ACHIEVED on the work branch; production activation is not part of this milestone. Only the contract, validator and master-control records change. No Supabase/network write, SQL, credentials, DDL, workflow, scraper, public data, page, ticker, deployment, PR or main change occurred.
+- **Delivery state:** commit/push under subject `M33-G1 Step 5C staging data contract`; exact local/remote SHA parity is verified after push and reported in the final handoff. The next safe milestone is separately authorized read-only physical Supabase schema evidence collection and reconciliation.
+
 ### M33-G1 Step 5B — Intelligence architecture boundary and regression guard
 
 - **Owner / objective / branch:** Vishal Krishnan; establish the first additive, machine-validated boundary between intelligence acquisition/staging and GPIR publication on `work/m33-g1-global-intelligence-engine`, based on `origin/main` `e516fe4304b468445f1dfc67e6c1568eb08b1932`.
@@ -9,7 +19,7 @@
 - **Machine guard:** `scripts/validate-m33-g1-boundary.js` uses Node.js built-ins only, is read-only, fingerprints the exact known `scraper.js` direct-write condition as `LEGACY_BASELINE`, rejects equivalent new direct `global_announcements` approval/ticker writes, and fails if this branch changes protected publication surfaces.
 - **Validated result:** boundary self-test passed 3 checks; repository validation reported the single `scraper.js` legacy baseline, 0 new direct-publication violations and 0 protected publication-surface changes. Content, announcement, announcement-intent, 29-check production-pipeline, 104-file internal-link and whitespace checks passed locally.
 - **Scope / production impact:** only the boundary contract, validator and repository control records are changed. `scraper.js`, workflows, canonical publication data, pages, homepage, ticker, CNAME, Supabase and M30 lifecycle/publication code remain untouched. No Supabase call, credential use, schedule, deployment, announcement publication, PR or main change occurred.
-- **Delivery state:** READY FOR OWNER REVIEW after commit/push under subject `M33-G1 Step 5B intelligence boundary guard`; exact local/remote SHA parity is verified after push and recorded in the final handoff. The next safe step is an owner-defined M33-G1 staging data-contract/schema specification before any ingestion migration.
+- **Delivery state:** STEP 5B GUARDRAIL MILESTONE ACHIEVED on the work branch at `ba0d49127ca0ce2bf113ba26f117b2c1d7ebef32`; local and remote branch SHAs were verified equal. Main merge/production activation was not requested or performed. Step 5C is the completed logical follow-on recorded above.
 
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
