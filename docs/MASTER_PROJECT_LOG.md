@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-F8 — RBI leaf-record discovery correction
+
+- **Request 19:** technical and authoritative-index discovery PASS, leaf-record discovery HOLD, zero writes; index pages were not treated as a parser failure.
+- **Candidate:** listing pages are discovery-only; official detail records and relevant PDFs are leaf evidence. No deployment, invocation, write canary, publication, Cron or source expansion occurred.
+
 ## M33-G1 Step 6E-F5 — RBI discovery quality correction
 
 - **Request 18:** authorization/connectivity/technical dry-run PASS, discovery-quality HOLD, zero writes; generic homepage PDFs were not accepted as a parser failure.

@@ -2,6 +2,10 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-F8 — RBI leaf-record discovery candidate
+
+- **Status:** request 19 technical/index discovery PASS, leaf-record discovery HOLD, zero writes; candidate correction is static-tested and not deployed.
+
 ### M33-G1 Step 6E-F5 — RBI discovery quality candidate
 
 - **Status:** request 18 technical PASS / discovery-quality HOLD / zero writes; a non-deployed official-RBI discovery candidate is static-tested.

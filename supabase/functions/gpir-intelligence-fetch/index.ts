@@ -271,17 +271,32 @@ function isRbiRegulatoryOrPaymentsTitle(title: string): boolean {
   return /notification|circular|press release|payment|settlement|digital rupee|cbdc|upi|prepaid|card|licen[cs]|authori[sz]|kyc|aml|cross-border|remittance|fintech|payment system/i.test(title);
 }
 
+function isRbiLeafRecordUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase();
+    if (path.endsWith(".pdf")) return true;
+    // RBI index/navigation pages are discovery surfaces only. An individual
+    // record uses a stable detail identifier exposed by the official listing.
+    if (!parsed.searchParams.has("Id") && !parsed.searchParams.has("id") && !parsed.searchParams.has("prid")) return false;
+    return /notificationuser\.aspx|pressreleasedisplay\.aspx|mastercirculardetails\.aspx|viewmastercirculardetails\.aspx|circular/i.test(path);
+  } catch {
+    return false;
+  }
+}
+
 function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
   const results: DiscoveredItem[] = [];
   const seen = new Set<string>();
-  const add = (rawTitle: string, href: string) => {
+  const add = (rawTitle: string, href: string, publishedAt?: string | null) => {
     const url = absoluteUrl(href.trim(), baseUrl);
     const title = cleanText(rawTitle);
-    if (!url || !title || !isOfficialRbiUrl(url) || !isRbiRegulatoryOrPaymentsTitle(title)) return;
+    if (!url || !title || !isOfficialRbiUrl(url) || !isRbiLeafRecordUrl(url) || !isRbiRegulatoryOrPaymentsTitle(title)) return;
     const normalized = url.split("#")[0];
     if (seen.has(normalized)) return;
     seen.add(normalized);
-    results.push({ title, url: normalized });
+    const parsedDate = publishedAt ? new Date(publishedAt) : null;
+    results.push({ title, url: normalized, indexPublishedAt: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString() : null });
   };
 
   // Official RSS/current-listing items are preferred over generic navigation.
@@ -291,7 +306,8 @@ function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
     const body = item[1] || "";
     const title = (body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
     const href = (body.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || body.match(/<link\b[^>]*href=["']([^"']+)["']/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
-    add(title, href);
+    const publishedAt = (body.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    add(title, href, publishedAt);
   }
 
   // Stable official HTML listing fallback, still excluding generic/promotional links.

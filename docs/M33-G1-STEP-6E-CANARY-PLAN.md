@@ -137,3 +137,13 @@ or `rbidocs.rbi.org.in` regulatory/payment-relevant links, deduplicates them,
 and excludes generic/promotional and external links. Relevant regulatory PDFs
 remain eligible. SFA behavior and all canary/publication controls are
 unchanged. It is not deployed; no further RBI invocation occurred.
+
+## Step 6E-F8 — RBI leaf-record discovery correction candidate
+
+Request 19 was a technical/official-index discovery PASS with zero writes, but
+**leaf-record discovery HOLD**: the RBI root and listing pages were promoted as
+records. The candidate now treats root, notification/master-circular listing
+and other identifier-free navigation URLs as discovery-only. It accepts only
+official RBI leaf/detail identifiers and relevant regulatory PDFs, normalizes
+and deduplicates links, and carries RSS publication dates where supplied.
+This is not deployed; RBI write canary remains unauthorized.
