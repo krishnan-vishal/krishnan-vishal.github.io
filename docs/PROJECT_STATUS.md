@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### M33-G1 Step 6C — Supabase production read-only preflight
+
+- **Status:** STOPPED at the authenticated read-only access gate. Step 6B is PASS, but no safe authenticated Supabase metadata inspection route is available in this workspace.
+- **Boundary:** no credentials requested/used; no Supabase schema, data, functions, policies, grants, scheduler, publication, ticker or deployment change occurred.
+- **Next safe step:** owner executes the catalog-only capture in `docs/M33-G1-STEP-6C-SUPABASE-PREFLIGHT.md`; only then can compatibility and rollback readiness be assessed.
+
 ### M33-G1 Step 6A — Version-controlled Gate 2 migration package
 
 - **Owner / objective / branch:** Vishal Krishnan; build but do not apply the Step 5F migration, rollback and deterministic regression package on `work/m33-g1-global-intelligence-engine`, continuing from Step 5F commit `50c6e2f648f99471f1b098de2740fc2d2305f82d`.

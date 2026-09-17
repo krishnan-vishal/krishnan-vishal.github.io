@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6C — Production Supabase read-only preflight
+
+- **Status:** STOPPED at authenticated read-only access gate.
+- **Evidence:** Step 6B isolated proof is PASS, but this workspace has no safe authenticated Supabase metadata route. No credential was requested or used.
+- **Record:** `docs/M33-G1-STEP-6C-SUPABASE-PREFLIGHT.md` contains owner-run catalog-only SQL. No production state changed.
+
 ## M33-G1 Step 6B — Isolated PostgreSQL execution and rollback proof
 
 - **Status:** COMPLETED on `work/m33-g1-global-intelligence-engine`.
