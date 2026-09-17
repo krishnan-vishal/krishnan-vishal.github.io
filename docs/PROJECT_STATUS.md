@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 7A — orchestration safety layer prepared
+
+- **Result:** version-controlled, non-deployed per-source finite claim/release protection is prepared in the existing Edge Function path before run creation and external fetch. Same-source write overlap returns `SKIPPED_OVERLAP`; different sources remain independent; crash recovery is bounded by a 900-second requested lease (60–1800 second database bound). No real run is fabricated for an overlap skip.
+- **Scheduler:** owner-only Supabase scheduler and M33-only emergency-disable artifacts are prepared for 05/25/45 UTC SFA/RBI/PYMNTS calls. They are guarded on the exact owner-verified existing function endpoint and existing Vault secret, and are not activated. No Supabase, runtime, publication, ticker, candidate or production change occurred.
+
 ### M33-G1 Step 6E-G11 — three-source production canary passed
 
 - **Result:** SFA, RBI and PYMNTS each passed the RAW-first production canary. Verified totals are RAW=9, candidates=9, rejections=0, handoffs=0 and announcements=39; publication/ticker/Cron remain closed.

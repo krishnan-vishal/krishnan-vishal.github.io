@@ -23,6 +23,9 @@ const PYMNTS_SOURCE_ID = "PYMNTS-GLOBAL-004";
 const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID] as const;
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
+// A write-mode claim has a finite lease so a crashed Edge invocation cannot
+// strand a source. Dry runs never obtain a claim and remain write-free.
+const SOURCE_RUN_CLAIM_TTL_SECONDS = 900;
 
 const SFA_NEWS_INDEX = "https://singaporefintech.org/news/";
 
@@ -596,6 +599,8 @@ export default {
       const startedAt = new Date().toISOString();
       let runId: string | null = null;
       let runSourceId: string | null = null;
+      let sourceClaimToken: string | null = null;
+      let sourceClaimHeld = false;
       let inserted = 0;
       let skippedExisting = 0;
       let fetchErrors = 0;
@@ -694,6 +699,39 @@ const source = sourceRows[0] as SourceRecord;
         }
 
         if (!dryRun) {
+          // Claim before creating a run or acquiring external content. The
+          // database RPC is atomic per source; a non-owner cannot release it.
+          runSourceId = source.source_id;
+          sourceClaimToken = crypto.randomUUID();
+          const { data: claimRows, error: claimError } = await ctx.supabaseAdmin
+            .rpc("gpir_claim_intelligence_source_run", {
+              p_source_id: source.source_id,
+              p_claim_token: sourceClaimToken,
+              p_ttl_seconds: SOURCE_RUN_CLAIM_TTL_SECONDS,
+            });
+          if (claimError || !Array.isArray(claimRows) || claimRows.length !== 1) {
+            throw new Error(`SOURCE_CLAIM_ERROR: ${claimError?.message || "invalid claim response"}`);
+          }
+          if (!claimRows[0].claimed) {
+            return Response.json({
+              ok: true,
+              milestone: "M33-G1-7A",
+              mode: "SKIPPED_OVERLAP",
+              outcome: "SOURCE_RUN_ALREADY_ACTIVE",
+              source: { source_id: source.source_id, source_name: source.source_name },
+              safety: {
+                external_fetch_attempted: false,
+                raw_records_inserted: 0,
+                processor_invoked: false,
+                global_announcements_modified: false,
+                publication_attempted: false,
+                cron_scheduled: false,
+              },
+              started_at: startedAt,
+              completed_at: new Date().toISOString(),
+            });
+          }
+          sourceClaimHeld = true;
           const { data: run, error: runError } = await ctx.supabaseAdmin
             .from("intelligence_ingestion_runs")
             .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: source.source_id, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES } })
@@ -1139,6 +1177,17 @@ if (gate1Decision === "PASS") {
           },
           { status: 500 },
         );
+      } finally {
+        if (sourceClaimHeld && sourceClaimToken && runSourceId) {
+          const { error: releaseError } = await ctx.supabaseAdmin.rpc(
+            "gpir_release_intelligence_source_run",
+            { p_source_id: runSourceId, p_claim_token: sourceClaimToken },
+          );
+          if (releaseError) {
+            // The finite database lease still prevents a permanent block.
+            console.error("GPIR M33-G1 source-claim release failure:", releaseError.message);
+          }
+        }
       }
     },
   ),
