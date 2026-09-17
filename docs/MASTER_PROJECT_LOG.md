@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G9 — PYMNTS production registry-onboarding jurisdiction gate
+
+- **G8 resolved:** production evidence establishes `A` as RSS/feed acquisition, `C` as HTML/index crawling, 60-minute polling and NULL `region_tags` convention. The final SQL can use the verified source-registry columns and must preserve T3/GREEN/universal-finance values.
+- **Exact blocker:** the required `country_iso3` must represent PYMNTS’ verified publisher jurisdiction. PYMNTS’ official About page confirms physical offices in Boston, Chicago and Buenos Aires, but does not establish one home/incorporation jurisdiction. An office location cannot be substituted for that field.
+- **Decision:** no production onboarding SQL was generated, committed for execution or run. Owner must supply authoritative publisher incorporation/principal-jurisdiction evidence; all runtime and production boundaries remain unchanged.
+
 ## M33-G1 Step 6E-G7 — PYMNTS registry-onboarding schema gate
 
 - **Evidence:** the verified production `source_registry` documentation establishes the exact columns and primary key, including `acquisition_method character NOT NULL`, but does not establish its one-character production vocabulary or the existing Global-scope country/region/category conventions.

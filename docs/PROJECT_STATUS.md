@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G9 — PYMNTS production onboarding jurisdiction gate
+
+- **Status:** STOPPED safely. G8 resolves source-registry columns, `A` for RSS/feed acquisition, `C` for HTML/index acquisition, 60-minute polling and NULL `region_tags` convention.
+- **Exact blocker:** no authoritative publisher home/incorporation jurisdiction is evidenced for PYMNTS. Its official About page confirms offices in Boston, Chicago and Buenos Aires, which cannot establish a single `country_iso3`. Owner must provide publisher incorporation/principal-jurisdiction evidence before final onboarding SQL can be generated.
+
 ### M33-G1 Step 6E-G7 — PYMNTS production registry onboarding schema gate
 
 - **Status:** STOPPED safely. Exact documented columns confirm `acquisition_method character NOT NULL`, but no production vocabulary mapping RSS to that single-character value and no Global-scope field convention are evidenced.
