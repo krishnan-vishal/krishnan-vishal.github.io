@@ -30,8 +30,10 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+        ports:
+          - 5432:5432
     env:
-      PGHOST: postgres
+      PGHOST: 127.0.0.1
       PGPORT: 5432
       PGDATABASE: m33_g1_isolated
       PGUSER: postgres
