@@ -39,6 +39,9 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: m33_test_only_not_a_secret
     steps:
+      - name: Match the repository legacy-hash checkout convention
+        run: git config --global core.autocrlf true
+
       - name: Check out the exact branch revision
         uses: actions/checkout@v4
 
