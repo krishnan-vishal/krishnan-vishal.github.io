@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-B2 — SFA RAW-first candidate
+
+- **Status:** COMPLETED as version-controlled candidate only. SFA write mode is run-first, RAW-first and invokes only the newly returned RAW ID; processor owns all outcomes.
+- **Boundary:** dry runs remain write-free; no candidate/rejection direct write, approval, handoff, announcement write, ticker enablement, Cron, deployment or production canary occurred.
+
 ## M33-G1 Step 6E-B2 — RAW-first/run-lineage reconciliation
 
 - **Status:** STOPPED at run-accounting schema gate.

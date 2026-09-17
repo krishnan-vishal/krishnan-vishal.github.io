@@ -395,6 +395,16 @@ export default {
     
     async (req, ctx) => {
       const startedAt = new Date().toISOString();
+      let runId: string | null = null;
+      let runSourceId: string | null = null;
+      let inserted = 0;
+      let skippedExisting = 0;
+      let fetchErrors = 0;
+      let processingErrors = 0;
+      let reviewCount = 0;
+      let pendingCandidateCount = 0;
+      let gate1RejectedCount = 0;
+      let gate2RejectedCount = 0;
 
       try {
         // ----------------------------------------------------
@@ -475,6 +485,17 @@ const source = sourceRows[0] as SourceRecord;
           );
         }
 
+        if (!dryRun) {
+          const { data: run, error: runError } = await ctx.supabaseAdmin
+            .from("intelligence_ingestion_runs")
+            .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: TEST_SOURCE_ID, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES } })
+            .select("id")
+            .single();
+          if (runError || !run) throw new Error(`RUN_CREATE_ERROR: ${runError?.message || "no run returned"}`);
+          runId = run.id;
+          runSourceId = source.source_id;
+        }
+
         const indexUrl =
           source.feed_or_index_url || source.official_url;
 
@@ -522,10 +543,6 @@ const source = sourceRows[0] as SourceRecord;
           discovered.slice(0, MAX_PAGE_FETCHES);
 
         const preview: unknown[] = [];
-        let inserted = 0;
-        let skippedExisting = 0;
-        let fetchErrors = 0;
-
         // ----------------------------------------------------
         // 6. Fetch selected individual pages
         // ----------------------------------------------------
@@ -633,6 +650,7 @@ const source = sourceRows[0] as SourceRecord;
               },
             };
 
+            if (dryRun) {
 // --------------------------------------------------------
 // M33-F5
 // Deterministic intelligence gates.
@@ -750,28 +768,10 @@ if (gate1Decision === "PASS") {
             // fetch and parse only, NO database insert.
             // ------------------------------------------------
 
-            if (dryRun) continue;
-          // --------------------------------------------------------
-          // M33-F5
-          // Controlled RAW staging write guard.
-          //
-          // Only structurally valid intelligence assessed as
-          // CANDIDATE or REVIEW may enter RAW staging.
-          //
-          // REJECT must never enter intelligence_raw_ingestion.
-          // global_announcements remains completely untouched.
-          // --------------------------------------------------------
+            continue;
+            }
 
-          const allowedForRawStaging =
-              gate1Decision === "PASS" &&
-          (
-              gate2Decision === "CANDIDATE" ||
-              gate2Decision === "REVIEW"
-          );
-
-            if (!allowedForRawStaging) {
-              continue;
-}
+            // M33-G1: retain evidence before processor-owned Gate 1/Gate 2.
             // Check whether this exact content already exists.
             const { data: existing } =
               await ctx.supabaseAdmin
@@ -785,18 +785,31 @@ if (gate1Decision === "PASS") {
               continue;
             }
 
-            const { error: insertError } =
+            const { data: insertedRaw, error: insertError } =
               await ctx.supabaseAdmin
                 .from("intelligence_raw_ingestion")
-                .insert(rawRecord);
+                .insert({ ...rawRecord, ingestion_run_id: runId })
+                .select("id")
+                .single();
 
-            if (insertError) {
+            if (insertError || !insertedRaw) {
               throw new Error(
-                `RAW_INSERT_ERROR: ${insertError.message}`,
+                `RAW_INSERT_ERROR: ${insertError?.message || "no RAW id returned"}`,
               );
             }
 
             inserted++;
+            const { data: processorResult, error: processorError } =
+              await ctx.supabaseAdmin.rpc("gpir_process_raw_record", { p_raw_id: insertedRaw.id });
+            if (processorError) {
+              processingErrors++;
+              throw new Error(`RAW_PROCESS_ERROR: ${processorError.message}`);
+            }
+            const result = String(processorResult || "UNKNOWN");
+            if (result === "REVIEW") reviewCount++;
+            if (result === "CANDIDATE") pendingCandidateCount++;
+            if (result.startsWith("REJECT:GATE1")) gate1RejectedCount++;
+            if (result.startsWith("REJECT:GATE2")) gate2RejectedCount++;
 
           } catch (pageError) {
             fetchErrors++;
@@ -810,6 +823,21 @@ if (gate1Decision === "PASS") {
                   : String(pageError),
             });
           }
+        }
+
+        if (runId) {
+          const rejectedCount = gate1RejectedCount + gate2RejectedCount;
+          const completedStatus = fetchErrors || processingErrors ? (inserted ? "PARTIAL" : "FAILED") : "SUCCESS";
+          const { error: completionError } = await ctx.supabaseAdmin
+            .from("intelligence_ingestion_runs")
+            .update({
+              completed_at: new Date().toISOString(), run_status: completedStatus,
+              records_discovered: selected.length, records_candidate: reviewCount + pendingCandidateCount,
+              records_rejected: rejectedCount, records_published: 0,
+              error_message: fetchErrors || processingErrors ? `fetch_errors=${fetchErrors}; processing_errors=${processingErrors}` : null,
+              metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, fetched_count: selected.length - fetchErrors, raw_inserted_count: inserted, review_count: reviewCount, pending_candidate_count: pendingCandidateCount, gate1_rejected_count: gate1RejectedCount, gate2_rejected_count: gate2RejectedCount, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors },
+            }).eq("id", runId);
+          if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
         }
 
         // ----------------------------------------------------
@@ -872,6 +900,14 @@ if (gate1Decision === "PASS") {
         });
 
       } catch (error) {
+        if (runId) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
+            completed_at: new Date().toISOString(), run_status: "FAILED",
+            records_published: 0, error_message: errorMessage,
+            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors },
+          }).eq("id", runId);
+        }
         console.error("GPIR M33-F5 failure:", error);
 
         return Response.json(

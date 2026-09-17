@@ -63,3 +63,14 @@ The B2 instruction requires stopping rather than guessing in this condition.
 No Edge Function code was changed, deployed or invoked; no canary started.
 Owner-supplied read-only deployed column metadata is required before a
 minimal, schema-accurate reconciliation can proceed.
+
+### Resumed implementation
+
+Owner-supplied metadata resolved the run-column gate. The B2 GitHub candidate
+now creates one `RUNNING` SFA-APAC-001 run before any write, writes bounded
+evidence RAW-first with `ingestion_run_id`, and calls only
+`gpir_process_raw_record` for the returned RAW ID. It maps run accounting to
+the verified `records_*`/`error_message` columns and keeps richer counters in
+metadata. The B1 baseline remains preserved in history; this candidate is not
+deployed, no canary has run, publication remains closed, and RBI/Fintech
+Futures remain inactive.

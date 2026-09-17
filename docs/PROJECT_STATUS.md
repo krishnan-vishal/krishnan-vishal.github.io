@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-B2 — SFA RAW-first candidate
+
+- **Status:** version-controlled candidate complete and static contract-tested; it is not deployed.
+- **Next safe step:** separately authorized controlled deployment review before any Source-1 canary.
+
 ### M33-G1 Step 6E-B2 — RAW-first/run-lineage reconciliation
 
 - **Status:** STOPPED. Owner must provide read-only deployed `intelligence_ingestion_runs` column metadata because required accounting names conflict with the verified repository baseline.

@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-B2 | 2026-09-17 | Reconcile SFA acquisition to RAW-first/run lineage | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner-authorized controlled deployment review | M33-G1 Step 6E-B2 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Uses verified run accounting and RAW-first processor-owned outcomes. | Candidate only; no deployment or production execution. | Static 22-check contract passes. | 2026-09-17 | M33-G1 Step 6E complete SFA RAW-first acquisition | M33-G1 |
+
 | M33-G1-STEP-6E-B2 | 2026-09-17 | Reconcile SFA acquisition to RAW-first/run lineage | DATA, SECURITY, GOVERNANCE | High | STOPPED | Owner-provided deployed run-column metadata | M33-G1 Step 6E-B2 | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | Required accounting names conflict with repository baseline. | No function, deployment or production change. | Await verified deployed columns. | 2026-09-17 | M33-G1 Step 6E-B2 schema gate | M33-G1 |
 
 | M33-G1-STEP-6E-B | 2026-09-17 | Version-control and reconcile M33-F5 acquisition boundary | DATA, SECURITY, GOVERNANCE | High | STOPPED | Owner-provided deployed function source and parser fixtures | M33-G1 Step 6E-B | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | Repository has no Edge Function/source/fixture to preserve parser behavior. | No deployment or production change. | Await exact source capture. | 2026-09-17 | M33-G1 Step 6E-B source capture gate | M33-G1 |
