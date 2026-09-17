@@ -134,7 +134,7 @@ SECURITY INVOKER
 SET search_path = pg_catalog
 AS $function$
 DECLARE
-    normalized_title text := pg_catalog.btrim(pg_catalog.coalesce(p_title, ''));
+    normalized_title text := pg_catalog.btrim(coalesce(p_title, ''));
 BEGIN
     IF normalized_title = '' THEN RETURN 'EMPTY_TITLE'; END IF;
     IF normalized_title ~ '<[^>]+>' THEN RETURN 'HTML_IN_TITLE'; END IF;
@@ -175,7 +175,7 @@ BEGIN
     SELECT raw.* INTO raw_record FROM public.intelligence_raw_ingestion raw WHERE raw.id = p_raw_id FOR UPDATE;
     IF NOT FOUND THEN RETURN 'NOT_FOUND'; END IF;
     IF raw_record.ingestion_status <> 'RAW' THEN RETURN 'ALREADY_PROCESSED'; END IF;
-    gate1_reason := public.gpir_rejection_reason(raw_record.raw_title, pg_catalog.coalesce(raw_record.canonical_url, raw_record.discovered_url, ''));
+    gate1_reason := public.gpir_rejection_reason(raw_record.raw_title, coalesce(raw_record.canonical_url, raw_record.discovered_url, ''));
     IF gate1_reason IS NOT NULL THEN
         INSERT INTO public.intelligence_rejection_log (raw_ingestion_id, source_id, canonical_url, raw_title, rejection_code, rejection_reason)
         VALUES (raw_record.id, raw_record.source_id, raw_record.canonical_url, raw_record.raw_title, gate1_reason, 'Baseline Gate 1 rejection');
@@ -203,7 +203,7 @@ BEGIN
         SELECT raw.id FROM public.intelligence_raw_ingestion raw
         WHERE raw.ingestion_status = 'RAW'
         ORDER BY raw.discovered_at ASC, raw.id ASC
-        LIMIT pg_catalog.least(1000, pg_catalog.greatest(1, pg_catalog.coalesce(p_limit, 1)))
+        LIMIT least(1000, greatest(1, coalesce(p_limit, 1)))
     LOOP
         raw_id := selected_raw.id;
         processing_result := public.gpir_process_raw_record(selected_raw.id);

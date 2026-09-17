@@ -163,7 +163,7 @@ function validateForwardMigration(source) {
     check(/CASE WHEN decision = 'REVIEW' THEN 'REVIEW' ELSE 'PENDING' END/i.test(sql), "processor must implement REVIEW/CANDIDATE routing");
     check(/'GATE2:LOW_INTELLIGENCE_SCORE'/i.test(sql), "Gate 2 rejection must be distinguishable");
     check(/ticker_eligible, validation_notes[\s\S]*?false,/i.test(source), "candidate insert must explicitly set ticker eligibility false");
-    check(/least\(1000, pg_catalog\.greatest\(1,/i.test(sql), "batch limit must remain bounded 1..1000");
+    check(/least\(1000, greatest\(1, coalesce\(p_limit, 1\)\)\)/i.test(sql), "batch limit must remain bounded 1..1000");
     check(/ORDER BY raw\.discovered_at ASC, raw\.id ASC/i.test(sql), "batch must process oldest RAW first");
     check(/M33-G1-TAXONOMY-1/i.test(sql), "taxonomy must be versioned");
     check(/'UNKNOWN'/i.test(sql), "taxonomy must preserve UNKNOWN");

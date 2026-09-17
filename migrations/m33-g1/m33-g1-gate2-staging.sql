@@ -321,7 +321,7 @@ SET search_path = pg_catalog
 AS $function$
 WITH normalized AS (
     SELECT pg_catalog.lower(
-        pg_catalog.coalesce(p_title, '') || ' ' || pg_catalog.coalesce(p_url, '')
+        coalesce(p_title, '') || ' ' || coalesce(p_url, '')
     ) AS body
 ),
 rulebook(family, ordinal, pattern, weight) AS (
@@ -365,7 +365,7 @@ ranked AS (
     FROM family_scores
 ),
 scored AS (
-    SELECT pg_catalog.least(100, pg_catalog.greatest(0,
+    SELECT least(100, greatest(0,
         CASE
             WHEN input.body ~ '\m(news|release|report|consultation|guidance|notice|launch|announc)\w*' THEN 15
             ELSE 0
@@ -374,10 +374,10 @@ scored AS (
             WHEN input.body ~ 'financial sector|innovation|technology|event|briefing|development' THEN 30
             ELSE 0
         END
-        + pg_catalog.coalesce((SELECT pg_catalog.max(family_score) FROM family_scores), 0)
-        + pg_catalog.least(20, pg_catalog.greatest(0,
-            pg_catalog.coalesce((SELECT pg_catalog.sum(family_score) FROM family_scores), 0)
-            - pg_catalog.coalesce((SELECT pg_catalog.max(family_score) FROM family_scores), 0)
+        + coalesce((SELECT pg_catalog.max(family_score) FROM family_scores), 0)
+        + least(20, greatest(0,
+            coalesce((SELECT pg_catalog.sum(family_score) FROM family_scores), 0)
+            - coalesce((SELECT pg_catalog.max(family_score) FROM family_scores), 0)
         ))
     ))::integer AS score,
     input.body
@@ -390,15 +390,15 @@ SELECT pg_catalog.jsonb_build_object(
         ELSE 'REJECT'
     END,
     'score', scored.score,
-    'category', pg_catalog.coalesce(
+    'category', coalesce(
         (SELECT family FROM ranked WHERE family_rank = 1),
         'UNKNOWN'
     ),
-    'primary_category', pg_catalog.coalesce(
+    'primary_category', coalesce(
         (SELECT family FROM ranked WHERE family_rank = 1),
         'UNKNOWN'
     ),
-    'secondary_categories', pg_catalog.coalesce(
+    'secondary_categories', coalesce(
         (SELECT pg_catalog.jsonb_agg(family ORDER BY family_score DESC, ordinal)
          FROM ranked WHERE family_rank > 1),
         '[]'::jsonb
@@ -465,7 +465,7 @@ BEGIN
 
     gate1_reason := public.gpir_rejection_reason(
         raw_record.raw_title,
-        pg_catalog.coalesce(raw_record.canonical_url, raw_record.discovered_url, '')
+        coalesce(raw_record.canonical_url, raw_record.discovered_url, '')
     );
 
     IF gate1_reason IS NOT NULL THEN
@@ -491,7 +491,7 @@ BEGIN
 
     assessment := public.gpir_intelligence_assessment(
         raw_record.raw_title,
-        pg_catalog.coalesce(raw_record.canonical_url, raw_record.discovered_url, '')
+        coalesce(raw_record.canonical_url, raw_record.discovered_url, '')
     );
 
     IF pg_catalog.jsonb_typeof(assessment) <> 'object'
@@ -509,10 +509,10 @@ BEGIN
 
     decision := assessment ->> 'decision';
     score := (assessment ->> 'score')::numeric;
-    primary_category := pg_catalog.coalesce(assessment ->> 'primary_category', assessment ->> 'category', 'UNKNOWN');
+    primary_category := coalesce(assessment ->> 'primary_category', assessment ->> 'category', 'UNKNOWN');
     secondary_categories := ARRAY(
         SELECT pg_catalog.jsonb_array_elements_text(
-            pg_catalog.coalesce(assessment -> 'secondary_categories', '[]'::jsonb)
+            coalesce(assessment -> 'secondary_categories', '[]'::jsonb)
         )
     );
 
@@ -596,10 +596,10 @@ BEGIN
         END,
         raw_record.content_hash, freshness, assessment_identifier,
         'M33-G1-GATE2-1', assessment,
-        pg_catalog.coalesce(assessment ->> 'taxonomy_version', 'M33-G1-TAXONOMY-1'),
+        coalesce(assessment ->> 'taxonomy_version', 'M33-G1-TAXONOMY-1'),
         secondary_categories,
-        pg_catalog.coalesce(assessment ->> 'use_case', 'UNKNOWN'),
-        pg_catalog.coalesce(assessment ->> 'payment_rail', 'UNKNOWN')
+        coalesce(assessment ->> 'use_case', 'UNKNOWN'),
+        coalesce(assessment ->> 'payment_rail', 'UNKNOWN')
     );
 
     UPDATE public.intelligence_raw_ingestion
@@ -620,7 +620,7 @@ SET search_path = pg_catalog
 AS $function$
 DECLARE
     selected_raw record;
-    effective_limit integer := pg_catalog.least(1000, pg_catalog.greatest(1, pg_catalog.coalesce(p_limit, 1)));
+    effective_limit integer := least(1000, greatest(1, coalesce(p_limit, 1)));
 BEGIN
     FOR selected_raw IN
         SELECT raw.id
@@ -682,7 +682,7 @@ BEGIN
     deterministic_key := pg_catalog.md5(
         candidate_record.id::text || '|' ||
         candidate_record.validation_version || '|' ||
-        pg_catalog.coalesce(candidate_record.content_fingerprint, 'NO_FINGERPRINT') || '|' ||
+        coalesce(candidate_record.content_fingerprint, 'NO_FINGERPRINT') || '|' ||
         candidate_record.validated_at::text
     );
 

@@ -46,7 +46,7 @@ LANGUAGE plpgsql
 AS $function$
 BEGIN
     INSERT INTO m33_test_results(test_id, passed, detail)
-    VALUES (p_test_id, pg_catalog.coalesce(p_condition, false), p_detail);
+    VALUES (p_test_id, coalesce(p_condition, false), p_detail);
 
     IF p_condition IS DISTINCT FROM true THEN
         RAISE EXCEPTION '% failed: %', p_test_id, p_detail;
@@ -366,7 +366,7 @@ SELECT pg_temp.m33_assert('T31',
 
 CREATE TEMP TABLE m33_publication_snapshot AS
 SELECT pg_catalog.count(*) AS row_count,
-       pg_catalog.md5(pg_catalog.coalesce(
+       pg_catalog.md5(coalesce(
            pg_catalog.string_agg(pg_catalog.to_jsonb(announcement)::text, '|' ORDER BY announcement.id::text),
            ''
        )) AS content_digest
@@ -395,7 +395,7 @@ BEGIN
      );
 
     SELECT pg_catalog.count(*),
-           pg_catalog.md5(pg_catalog.coalesce(
+           pg_catalog.md5(coalesce(
                pg_catalog.string_agg(pg_catalog.to_jsonb(announcement)::text, '|' ORDER BY announcement.id::text),
                ''
            ))
@@ -421,7 +421,7 @@ SELECT pg_temp.m33_assert('T34',
     (SELECT row_count FROM m33_publication_snapshot) =
         (SELECT pg_catalog.count(*) FROM public.global_announcements)
     AND (SELECT content_digest FROM m33_publication_snapshot) =
-        (SELECT pg_catalog.md5(pg_catalog.coalesce(
+        (SELECT pg_catalog.md5(coalesce(
             pg_catalog.string_agg(pg_catalog.to_jsonb(announcement)::text, '|' ORDER BY announcement.id::text),
             ''
         )) FROM public.global_announcements announcement),
