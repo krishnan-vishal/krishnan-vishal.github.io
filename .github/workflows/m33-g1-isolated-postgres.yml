@@ -49,7 +49,22 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -Atqc 'SELECT version();'
 
       - name: Build documented pre-Step-6A test baseline and prove it
-        run: psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-pre-step6a-isolated-baseline.sql
+        id: baseline
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-pre-step6a-isolated-baseline.sql 2>&1 | tee /tmp/m33-baseline.log
+
+      - name: Report isolated baseline failure
+        if: steps.baseline.outcome == 'failure'
+        run: |
+          {
+            echo '## M33-G1 isolated baseline failure'
+            echo '```text'
+            cat /tmp/m33-baseline.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       - name: Apply forward package and inspect the approved repeat execution
         run: |
