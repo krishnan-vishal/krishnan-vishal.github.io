@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E — Controlled three-source canary preparation
+
+- **Status:** STOPPED at source-selection/acquisition-path evidence gate.
+- **Reason:** no repository `source_registry` snapshot or canonical Edge acquisition implementation was available; `sfa` is `DISCOVERY_ONLY`, so three GREEN production sources cannot be verified without guessing.
+- **Impact:** no production, Supabase, scheduler, RAW, candidate, handoff, announcement, ticker, workflow or main change occurred.
+
 ## M33-G1 Step 6D — Supabase batch-default compatibility incident
 
 - First controlled application failed closed with PostgreSQL `42P13`; owner-provided verification reports full transaction rollback, 39 announcements, ticker default false and no production drift.

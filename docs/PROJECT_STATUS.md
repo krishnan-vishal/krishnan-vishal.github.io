@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E — Controlled three-source canary preparation
+
+- **Status:** STOPPED. Production source selection and canonical acquisition path cannot be verified from repository evidence without guessing.
+- **Next safe step:** owner supplies read-only production source metadata and the approved acquisition implementation location; no canary execution is authorized.
+
 ### M33-G1 Step 6D — Batch function signature compatibility hotfix
 
 - **Incident:** the first controlled Supabase migration attempt failed closed with `42P13`; verified rollback left no production drift, 39 announcements and ticker default false.
