@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G4 — Fintech Futures acquisition blocked
+
+- **Status:** request 24 authorization/invocation PASS, but configured index acquisition failed HTTP 403; parser and leaf discovery are not proven and writes were zero.
+- **Decision:** first-party category, conventional feeds, and robots-declared sitemap surfaces all returned HTTP 403 under ordinary browser headers. No bypass was attempted; `FS-GLOBAL-003` is contained as `ACQUISITION_BLOCKED` pending an owner-provided permitted first-party surface.
+
 ### M33-G1 Step 6E-G1 — RBI closed; Fintech Futures dry-run candidate
 
 - **Source-2:** RBI PASSED: three RAW records processed individually to three candidates; baseline RAW=6, candidates=6, rejections/handoffs=0 and announcements=39.

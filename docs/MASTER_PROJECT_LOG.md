@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G4 — Fintech Futures HTTP 403 acquisition diagnostic
+
+- **Request 24:** `FS-GLOBAL-003` authorization and Edge invocation PASS; the configured official payment-category acquisition failed HTTP 403, producing `INDEX_FETCH_FAILED_HTTP_403`. Parser/leaf discovery were not reached; database writes were zero and write mode is blocked.
+- **First-party evidence:** `robots.txt` was accessible and named conventional feeds/sitemaps. The category URL, `/feed/`, category feed and every relevant robots-declared sitemap tested returned HTTP 403 with ordinary browser-compatible headers.
+- **Decision:** `FINTECH FUTURES ACQUISITION = BLOCKED`. No access-control bypass, proxy, challenge handling, credential use, browser automation, third-party mirror, runtime/registry change, deployment or production action was taken. SFA/RBI remain operational; Source-3 requires a future owner-provided permitted first-party surface.
+
 ## M33-G1 Step 6E-G1 — RBI canary closure and Fintech Futures preparation
 
 - **RBI Source-2:** PASSED. Request 22 was a zero-write HTTP 200 dry run with three genuine RBI leaf records and authoritative metadata; request 23 inserted three RAW records, which were individually processed to three candidates. Verified baseline: RAW=6, candidates=6, rejections=0, handoffs=0, announcements=39.

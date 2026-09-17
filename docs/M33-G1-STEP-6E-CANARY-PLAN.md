@@ -1,5 +1,30 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G4 — Fintech Futures acquisition diagnostic
+
+Request 24 reached the authorized `FS-GLOBAL-003` Edge Function but failed at
+the acquisition layer with `INDEX_FETCH_FAILED_HTTP_403` (HTTP 500 response
+from the function; index request HTTP 403). Parser execution and leaf
+discovery are therefore **NOT PROVEN**; database writes were zero and the
+write canary remains blocked.
+
+Read-only first-party diagnostics confirm the configured category URL returns
+HTTP 403 for server-side acquisition, including with ordinary browser-compatible
+headers. The site’s public `robots.txt` is accessible and advertises
+`sitemap.xml`, `googlenews.xml`, `news-archive-index.xml`,
+`articles-archive-index.xml`, and `sitemap-index.xml`; each advertised
+machine-readable discovery surface also returned HTTP 403 under the same
+ordinary request conditions. Generic `/feed/` and `/category/payment/feed/`
+returned HTTP 403 as well. No CAPTCHA, challenge, proxy, credential, browser
+automation, mirror, or other access-control workaround was attempted.
+
+**Decision: `FINTECH FUTURES ACQUISITION = BLOCKED`.** No legitimate accessible
+first-party machine-readable surface was proven, so no registry or runtime
+change is appropriate. Contain Source-3 as `ACQUISITION_BLOCKED`; preserve
+operational SFA/RBI behavior and all existing RAW/candidate/publication
+boundaries. A future owner-supplied, explicitly permitted first-party feed/API
+or source authorization is required before re-opening Source-3.
+
 ## Step 6E-G1 — RBI canary closure and Fintech Futures dry-run candidate
 
 Owner-supplied request 22/23 and post-canary verification close Source-2
