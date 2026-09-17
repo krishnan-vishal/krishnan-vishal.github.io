@@ -88,3 +88,29 @@ apply `m33-g1-confidence-score-hotfix.sql`; verify precision 5/scale 2 and
 the unchanged counts; identify the existing three request-16 RAW IDs; then,
 only under separate authorization, call `gpir_process_raw_record(raw_id)` once
 per listed ID. Do not refetch, use the batch processor, hand off or publish.
+
+## Step 6E-E — Source-1 SFA production canary closed
+
+**PASSED.** Owner-supplied production evidence records SFA-APAC-001 dry-run
+request 15 (HTTP 200, 25 links, 3 selected, zero writes and three CANDIDATE
+previews) and write request 16 (three RAW rows). Initial processing failed on
+`numeric(5,4)` overflow; the verified `numeric(5,2)` hotfix (`2e24c154`) was
+applied, then the three existing RAW IDs from run
+`592cdf0e-722b-458c-888a-73d50709c862` were individually recovered with
+`gpir_process_raw_record(raw_id)`. No refetch or batch processor was used.
+
+Final evidence: RAW=3, candidates=3, rejections=0, handoffs=0 and
+`global_announcements`=39 unchanged. Candidate-to-handoff, publication,
+ticker and Cron remain closed.
+
+### Source-2 RBI owner-run procedure — not executed
+
+Source ID: `CB-APAC-010`; source: Reserve Bank of India; parser:
+`rbi-rss-profile`. Phase A only: owner invokes the deployed approved runner
+with `source_id=CB-APAC-010, dry_run=true`, then verifies HTTP success,
+bounded `MAX_PAGE_FETCHES=3`, zero writes and no publication/Cron attempt.
+Phase B requires owner review of Phase A: one `dry_run=false` invocation only,
+then verify the single run, RAW-first lineage, processor results for only that
+run's new RAW IDs, handoffs=0, announcements=39 and ticker eligibility=false.
+No batch processor, handoff, publication, Cron or further source activation is
+authorized. RBI has not been executed.

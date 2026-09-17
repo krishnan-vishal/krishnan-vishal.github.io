@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-E — Source-1 SFA canary closure
+
+- **Status:** PASSED. SFA request 16 captured three RAW records; `numeric(5,4)` overflow was corrected via the verified `numeric(5,2)` hotfix and the existing RAW records were individually recovered.
+- **Final production evidence:** RAW=3, candidates=3, rejections=0, handoffs=0, announcements=39 unchanged; no refetch, batch, publication, ticker or Cron action.
+- **Next gate:** owner-only RBI (`CB-APAC-010`, `rbi-rss-profile`) dry-run procedure is documented; no RBI execution occurred.
+
 ## M33-G1 Step 6E-D2 — Confidence-score overflow hotfix
 
 - **Status:** version-controlled hotfix prepared. Request 16 captured three RAW rows; all processor calls failed on `numeric(5,4)` overflow for valid 60/80 scores. No candidate, rejection, handoff or announcement was created.

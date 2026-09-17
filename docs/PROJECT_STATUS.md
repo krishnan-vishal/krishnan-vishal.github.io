@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-E — SFA canary closed; RBI procedure prepared
+
+- **Source-1:** SFA-APAC-001 PASSED after three preserved RAW records were recovered individually following the resolved numeric overflow defect. No publication boundary opened.
+- **Next:** owner-only Phase A dry run for `CB-APAC-010` / `rbi-rss-profile`; RBI has not executed.
+
 ### M33-G1 Step 6E-D2 — Confidence-score recovery hotfix
 
 - **Status:** hotfix candidate prepared; request 16 RAW evidence is preserved pending owner application and separately authorized per-RAW recovery.
