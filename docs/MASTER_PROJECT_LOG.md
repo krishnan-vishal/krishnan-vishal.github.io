@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G6 — PYMNTS acquisition-eligible Source-3 preparation
+
+- **Research and selection:** Finextra’s official payments RSS was reachable but three sampled leaf requests returned HTTP 403; The Paypers did not yield a verified machine-readable feed in this preflight. PYMNTS was selected operationally, not editorially: its official RSS and three sampled official leaves all returned HTTP 200 with record-specific title/date/content metadata under ordinary requests, with no credential or access-control bypass.
+- **Onboarding candidate:** `PYMNTS-GLOBAL-004`; Global; Financial Services / Payments Media; T3; GREEN; RSS; `universal-finance`; 60-minute poll. `docs/M33-G1-SOURCE-3-ONBOARDING.json` preserves the exact owner-only future registry-insertion values.
+- **Boundary:** runtime allowlist is SFA/RBI/PYMNTS only. Fintech Futures remains trusted/GREEN but `ACQUISITION_BLOCKED` and runtime blocked; it was not deleted. Trust eligibility is distinct from acquisition eligibility. No production registry change, Supabase contact, deployment, invocation, write, handoff, publication, announcement, ticker, Cron, workflow, PR or main action occurred.
+
 ## M33-G1 Step 6E-G5 — replacement media Source-3 selection gate
 
 - **Inventory result:** the repository has no production `source_registry` snapshot; its only SQL fixture source is synthetic. The authoritative local source-domain registry has no existing GREEN/T2-or-stronger financial-services/payments media or industry-intelligence source with a verified accessible first-party endpoint. Active endpoint sources of adequate tier are official regulators or payment operators, not the requested source class.

@@ -1,5 +1,38 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G6 — new acquisition-eligible Source-3 preparation
+
+Owner authorization permitted one new source onboarding after G5 found no
+eligible existing media/intelligence record. Candidates researched were
+Finextra, PYMNTS and The Paypers. Finextra has an official payments RSS feed
+(HTTP 200) but three sampled first-party leaf pages returned HTTP 403, so it
+is acquisition-ineligible for RAW-first processing. The Paypers public pages
+were reachable, but no verified machine-readable first-party publication feed
+was established in this preflight; it was not selected.
+
+**Selected Source-3: `PYMNTS-GLOBAL-004` / PYMNTS.** PYMNTS is an established
+global financial-services/payments media and intelligence publisher. Its
+first-party RSS feed (`https://www.pymnts.com/feed/`) returned HTTP 200, and
+three sampled first-party leaves returned HTTP 200 with article-specific titles,
+publication dates and content metadata under ordinary requests. No credentials,
+CAPTCHA, proxy, challenge bypass or browser automation was required. The
+RSS surface is discovery-only; only deduplicated official article leaves can
+advance to the existing `universal-finance` extraction/Gate path.
+
+The source is accurately tiered **T3** as a secondary media publisher, rather
+than elevated to T1/T2 merely for operational usefulness. It is suitable for
+the candidate-only Source-3 canary because it meets both trust and acquisition
+eligibility, subject to the normal RAW-first and human-controlled publication
+boundaries. `docs/M33-G1-SOURCE-3-ONBOARDING.json` is the auditable owner-only
+future production `source_registry` insertion artifact; it does not apply an
+insertion or migration.
+
+The controlled runtime allowlist is now SFA, RBI and PYMNTS. Fintech Futures
+remains documented as trust-eligible/GREEN and `ACQUISITION_BLOCKED`, but is
+runtime blocked and retained rather than deleted. Trust eligibility and
+acquisition eligibility are separate controls. PYMNTS is prepared for an owner
+dry run only; no deployment, invocation or write canary is authorized.
+
 ## Step 6E-G5 — replacement Source-3 selection gate
 
 The repository contains no production `source_registry` snapshot; its isolated

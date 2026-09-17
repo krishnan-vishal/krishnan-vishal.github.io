@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G6 — PYMNTS Source-3 prepared
+
+- **Source-3:** `PYMNTS-GLOBAL-004`, a T3 global financial-services/payments media source, is prepared for owner dry-run only. Its official RSS and three sampled official leaves returned HTTP 200 with title/date/content metadata under ordinary requests.
+- **Runtime boundary:** controlled allowlist is SFA/RBI/PYMNTS. Fintech Futures remains trusted but `ACQUISITION_BLOCKED` and runtime blocked. No production registry insertion, deployment, invocation or write action occurred.
+
 ### M33-G1 Step 6E-G5 — Source-3 replacement selection stopped
 
 - **Status:** no existing GREEN/T2-or-stronger financial-services/payments media or industry-intelligence source has a verified acquisition endpoint in repository evidence. Active machine-readable candidates are official regulators/operators; existing media/intelligence entries are Tier 3 and unsupported.

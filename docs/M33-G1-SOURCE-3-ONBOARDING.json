@@ -1,0 +1,24 @@
+{
+  "milestone": "M33-G1-6E-G6",
+  "production_action": "OWNER_CONTROLLED_FUTURE_SOURCE_REGISTRY_INSERT_ONLY",
+  "source": {
+    "source_id": "PYMNTS-GLOBAL-004",
+    "source_name": "PYMNTS",
+    "country_code": "GLOBAL",
+    "country_name": "Global",
+    "source_class": "Financial Services / Payments Media",
+    "trust_tier": "T3",
+    "status": "GREEN",
+    "official_url": "https://www.pymnts.com/",
+    "feed_or_index_url": "https://www.pymnts.com/feed/",
+    "acquisition_method": "RSS",
+    "parser_profile": "universal-finance",
+    "poll_interval_minutes": 60
+  },
+  "evidence": {
+    "first_party_feed_http": 200,
+    "sample_leaf_http": [200, 200, 200],
+    "credential_or_bypass_required": false,
+    "scope": "Owner dry-run only; no production insertion, deployment, invocation or write authorization."
+  }
+}

@@ -19,7 +19,8 @@ import { withSupabase } from "jsr:@supabase/server@^1";
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
 const FINTECH_FUTURES_SOURCE_ID = "FS-GLOBAL-003";
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID] as const;
+const PYMNTS_SOURCE_ID = "PYMNTS-GLOBAL-004";
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID] as const;
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
 
@@ -376,6 +377,59 @@ function discoverFintechFuturesLinks(html: string, baseUrl: string): DiscoveredI
   return results;
 }
 
+function isOfficialPymntsUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "pymnts.com" || host === "www.pymnts.com";
+  } catch {
+    return false;
+  }
+}
+
+function normalizePymntsUrl(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.hostname.toLowerCase() === "www.pymnts.com") parsed.hostname = "pymnts.com";
+  parsed.hash = "";
+  parsed.search = "";
+  return parsed.toString();
+}
+
+function isPymntsLeafArticleUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase().replace(/\/+$/, "");
+    if (!isOfficialPymntsUrl(url) || !path || path === "/feed") return false;
+    if (/^\/(?:tag|category|author|page|feed|about|contact|subscribe)(?:\/|$)/.test(path)) return false;
+    return path.split("/").filter(Boolean).length >= 2;
+  } catch {
+    return false;
+  }
+}
+
+function discoverPymntsLinks(html: string, baseUrl: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+  let item: RegExpExecArray | null;
+
+  while ((item = itemRegex.exec(html)) !== null && results.length < MAX_DISCOVERED_LINKS) {
+    const body = item[1] || "";
+    const rawTitle = (body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    const rawUrl = (body.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    const rawDate = (body.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    const url = absoluteUrl(cleanText(rawUrl), baseUrl);
+    const title = cleanText(rawTitle);
+    if (!url || !title || !isPymntsLeafArticleUrl(url)) continue;
+    const normalized = normalizePymntsUrl(url);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    const parsedDate = rawDate ? new Date(cleanText(rawDate)) : null;
+    results.push({ title, url: normalized, indexPublishedAt: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString() : null });
+  }
+
+  return results;
+}
+
 function extractRbiPressReleaseLeaf(html: string) {
   // RBI press-release leaf pages use a generic HTML title and H1. The record
   // header is instead the adjacent Date/title pair in the official tableheader
@@ -635,6 +689,9 @@ const source = sourceRows[0] as SourceRecord;
         if (requestedSource === FINTECH_FUTURES_SOURCE_ID && source.parser_profile !== "universal-finance") {
           throw new Error(`FINTECH_FUTURES_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
+        if (requestedSource === PYMNTS_SOURCE_ID && source.parser_profile !== "universal-finance") {
+          throw new Error(`PYMNTS_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
+        }
 
         if (!dryRun) {
           const { data: run, error: runError } = await ctx.supabaseAdmin
@@ -691,6 +748,8 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverRbiLinks(indexHtml, indexResponse.url)
           : requestedSource === FINTECH_FUTURES_SOURCE_ID
           ? discoverFintechFuturesLinks(indexHtml, indexResponse.url)
+          : requestedSource === PYMNTS_SOURCE_ID
+          ? discoverPymntsLinks(indexHtml, indexResponse.url)
           : discoverLinks(indexHtml, indexResponse.url);
 
         const selected =
