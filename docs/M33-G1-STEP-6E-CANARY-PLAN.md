@@ -26,3 +26,18 @@ Provide read-only `source_registry` metadata for three candidate records
 method and parser profile), and the approved Edge Function/repository location
 for the canonical acquisition path. Then the bounded, RAW-first plan can be
 written without inferring production configuration.
+
+## Step 6E-B version-control acquisition boundary
+
+**STOPPED at source-capture gate.** The owner-provided M33-F5 characteristics
+identify the deployed `gpir-intelligence-fetch` behavior, but no deployed
+`index.ts`, `discoverNewsLinks`, `cardRegex`, parser fixture, or existing Edge
+Function directory is present in this repository. A search found no
+`SFA-APAC-001` implementation either.
+
+The requested RAW-first/run-lineage reconciliation cannot safely be applied to
+an invented parser or guessed deployed schema columns. The deployed Supabase
+function remains M33-F5; no GitHub replacement is deployed, and no production
+canary has started. The owner must provide the exact deployed function source
+(and any parser fixtures) for a byte/behavior-preserving version-control
+capture before the minimal write-path change can be reviewed and tested.

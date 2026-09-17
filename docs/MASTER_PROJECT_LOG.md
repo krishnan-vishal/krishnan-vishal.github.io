@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-B — Version-control acquisition boundary
+
+- **Status:** STOPPED at source-capture gate.
+- **Reason:** deployed M33-F5 was described but its exact `index.ts`/SFA parser and fixtures are absent from GitHub. Reconstructing `discoverNewsLinks` or `cardRegex` from a summary would not preserve the proven parser.
+- **Production state:** M33-F5 remains deployed; no Supabase change, deployment, canary, Cron, announcement, ticker, main or workflow change occurred.
+
 ## M33-G1 Step 6E — Controlled three-source canary preparation
 
 - **Status:** STOPPED at source-selection/acquisition-path evidence gate.

@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-B — Version-control acquisition boundary
+
+- **Status:** STOPPED. Exact deployed M33-F5 Edge Function source and parser fixtures are not available in GitHub.
+- **Next safe step:** owner supplies the deployed `gpir-intelligence-fetch/index.ts` and parser fixtures for exact capture; no reconstructed deployment is authorized.
+
 ### M33-G1 Step 6E — Controlled three-source canary preparation
 
 - **Status:** STOPPED. Production source selection and canonical acquisition path cannot be verified from repository evidence without guessing.

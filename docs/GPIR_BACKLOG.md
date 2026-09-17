@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-B | 2026-09-17 | Version-control and reconcile M33-F5 acquisition boundary | DATA, SECURITY, GOVERNANCE | High | STOPPED | Owner-provided deployed function source and parser fixtures | M33-G1 Step 6E-B | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | Repository has no Edge Function/source/fixture to preserve parser behavior. | No deployment or production change. | Await exact source capture. | 2026-09-17 | M33-G1 Step 6E-B source capture gate | M33-G1 |
+
 | M33-G1-STEP-6E | 2026-09-17 | Prepare controlled three-source production canary | GOVERNANCE, DATA, SECURITY | High | STOPPED | Owner-provided read-only source/acquisition evidence | M33-G1 Step 6E | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | Three GREEN production sources and canonical acquisition implementation are not evidenced in this repository. | No production or runtime change. | Await verified read-only metadata. | 2026-09-17 | M33-G1 Step 6E canary evidence gate | M33-G1 |
 
 | M33-G1-STEP-6D | 2026-09-17 | Preserve existing batch-function default after failed-closed production attempt | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Separately authorized controlled application only | M33-G1 Step 6D | `migrations/m33-g1/` | Correct only `p_limit integer DEFAULT 100` compatibility. | Production transaction rolled back; no drift; isolated re-proof run `35183916015` passed. | Ready only for separately authorized controlled application. | 2026-09-17 | M33-G1 Step 6D preserve production batch default | M33-G1 |
