@@ -265,7 +265,7 @@ BEGIN
     IF (SELECT candidate_status FROM public.intelligence_candidates WHERE raw_ingestion_id = candidate_id) <> 'PENDING' THEN
         RAISE EXCEPTION 'baseline processor unexpectedly used Gate 2';
     END IF;
-    IF pg_catalog.position('gpir_intelligence_assessment' IN pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure)) <> 0 THEN
+    IF pg_catalog.strpos(pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure), 'gpir_intelligence_assessment') <> 0 THEN
         RAISE EXCEPTION 'baseline processor unexpectedly references Gate 2';
     END IF;
     IF pg_catalog.strpos(pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure), 'global_' || 'announcements') <> 0 THEN
