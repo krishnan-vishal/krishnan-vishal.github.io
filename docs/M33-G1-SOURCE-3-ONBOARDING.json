@@ -4,8 +4,9 @@
   "source": {
     "source_id": "PYMNTS-GLOBAL-004",
     "source_name": "PYMNTS",
-    "country_code": "GLOBAL",
-    "country_name": "Global",
+    "country_iso3": "USA",
+    "country": "Global",
+    "region_tags": null,
     "source_class": "Financial Services / Payments Media",
     "trust_tier": "T3",
     "status": "GREEN",
@@ -13,7 +14,8 @@
     "feed_or_index_url": "https://www.pymnts.com/feed/",
     "acquisition_method": "RSS",
     "parser_profile": "universal-finance",
-    "poll_interval_minutes": 60
+    "poll_interval_minutes": 60,
+    "geographic_classification_rationale": "USA records PYMNTS' owner-verified organizational/home-jurisdiction classification. Global records the worldwide scope of the source's intelligence and content; it does not limit coverage to the United States."
   },
   "evidence": {
     "first_party_feed_http": 200,

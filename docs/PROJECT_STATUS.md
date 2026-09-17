@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G10 — PYMNTS final onboarding artifact ready
+
+- **Status:** final owner-executable, transactional/idempotent SQL is static-validated and ready for controlled `source_registry` onboarding only.
+- **Geographic semantics:** `USA` is PYMNTS’ owner-verified organizational/home-jurisdiction classification; `Global` is its content/intelligence scope, not a US coverage restriction. No production SQL, deployment or invocation occurred.
+
 ### M33-G1 Step 6E-G9 — PYMNTS production onboarding jurisdiction gate
 
 - **Status:** STOPPED safely. G8 resolves source-registry columns, `A` for RSS/feed acquisition, `C` for HTML/index acquisition, 60-minute polling and NULL `region_tags` convention.

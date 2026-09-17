@@ -1,5 +1,25 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G10 — final PYMNTS source-registry onboarding artifact
+
+Owner-supplied first-party evidence resolves the G9 jurisdiction gate:
+PYMNTS.com is a subsidiary of What’s Next Media & Analytics and its trademark
+materials identify What’s Next Media & Analytics LLC. For source-registry
+classification, `country_iso3='USA'` records the owner-verified organizational/
+home-jurisdiction classification. `country='Global'` records the scope of
+PYMNTS intelligence and content; it does not restrict GPIR acquisition or
+coverage to the United States. `region_tags` remains NULL, matching the
+evidenced production convention.
+
+`migrations/m33-g1/m33-g1-pymnts-source-registry-onboarding.sql` is the final
+owner-executable artifact. It inserts exactly `PYMNTS-GLOBAL-004` using the
+verified production `source_registry` columns, RSS acquisition vocabulary `A`,
+T3, GREEN, 60-minute polling and `universal-finance`. It is transaction-safe
+and uses `ON CONFLICT (source_id) DO NOTHING`; no existing source, including
+Fintech Futures, is updated or deleted. Its verification SELECT returns only
+the PYMNTS record. It has not been executed, and no deployment/invocation/write
+canary is authorized by this artifact.
+
 ## Step 6E-G6 — new acquisition-eligible Source-3 preparation
 
 Owner authorization permitted one new source onboarding after G5 found no

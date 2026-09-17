@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G10 — final PYMNTS source-registry onboarding artifact
+
+- **Classification resolved:** owner-provided first-party evidence identifies PYMNTS.com’s subsidiary relationship and What’s Next Media & Analytics LLC. `country_iso3='USA'` is the owner-verified organizational/home-jurisdiction classification; `country='Global'` retains the source’s worldwide content scope and is not a US coverage restriction. `region_tags` is NULL by production convention.
+- **Artifact:** `migrations/m33-g1/m33-g1-pymnts-source-registry-onboarding.sql` uses only verified `public.source_registry` columns. Within a transaction it inserts exactly PYMNTS with T3/GREEN, RSS method `A`, 60-minute polling and `universal-finance`; `ON CONFLICT (source_id) DO NOTHING` ensures an existing ID is not replaced. The post-insert SELECT returns only that ID.
+- **Boundary:** static validation passes. SQL has not run; no source, RAW, candidate, handoff, publication, announcement, ticker, Cron, Edge deployment/invocation, PR or main change occurred. Runtime policy remains SFA/RBI/PYMNTS allowed; Fintech Futures and unknown sources blocked.
+
 ## M33-G1 Step 6E-G9 — PYMNTS production registry-onboarding jurisdiction gate
 
 - **G8 resolved:** production evidence establishes `A` as RSS/feed acquisition, `C` as HTML/index crawling, 60-minute polling and NULL `region_tags` convention. The final SQL can use the verified source-registry columns and must preserve T3/GREEN/universal-finance values.

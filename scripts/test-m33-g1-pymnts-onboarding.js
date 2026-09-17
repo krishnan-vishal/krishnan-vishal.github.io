@@ -1,0 +1,18 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const sql = fs.readFileSync(path.join(__dirname, "..", "migrations", "m33-g1", "m33-g1-pymnts-source-registry-onboarding.sql"), "utf8");
+assert.match(sql, /^BEGIN;/m);
+assert.match(sql, /^COMMIT;/m);
+assert.match(sql, /INSERT INTO public\.source_registry/);
+assert.match(sql, /ON CONFLICT \(source_id\) DO NOTHING/);
+assert.match(sql, /'PYMNTS-GLOBAL-004'/);
+assert.match(sql, /'USA',\s*'Global',\s*NULL,/s);
+assert.match(sql, /'Financial Services Media',\s*'T3'/s);
+assert.match(sql, /'A',\s*'https:\/\/www\.pymnts\.com\/feed\/'/s);
+assert.match(sql, /60,\s*'universal-finance',\s*'GREEN'/s);
+assert.match(sql, /FROM public\.source_registry\s*WHERE source_id = 'PYMNTS-GLOBAL-004'/s);
+assert(!/\bUPDATE\b|\bDELETE\b|\bTRUNCATE\b|\bDROP\b|\bALTER\b/i.test(sql));
+assert(!/\bFROM\s+public\.(?!source_registry\b)|\bINTO\s+public\.(?!source_registry\b)/i.test(sql));
+console.log("M33-G1 PYMNTS source_registry onboarding: PASS (transactional/idempotent/static contract)");
