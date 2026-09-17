@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6D — Batch function signature compatibility hotfix
+
+- **Incident:** the first controlled Supabase migration attempt failed closed with `42P13`; verified rollback left no production drift, 39 announcements and ticker default false.
+- **Correction:** the version-controlled forward/rollback/baseline batch definitions preserve the existing `p_limit integer DEFAULT 100`. No Supabase connection or change was made by this hotfix.
+
 ### M33-G1 Step 6C — Supabase production read-only preflight
 
 - **Status:** STOPPED at the authenticated read-only access gate. Step 6B is PASS, but no safe authenticated Supabase metadata inspection route is available in this workspace.

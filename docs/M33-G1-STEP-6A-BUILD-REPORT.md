@@ -232,6 +232,10 @@ production baseline. No automation is activated.
 
 ## Step 6A result and next gate
 
+### Step 6D compatibility hotfix
+
+The first controlled production attempt failed closed with PostgreSQL `42P13` because the existing batch function has `p_limit integer DEFAULT 100` while the package omitted that default under `CREATE OR REPLACE`. The transaction rolled back completely: no M33 objects/columns were added, the announcement count remained 39, and its ticker default remained false. The version-controlled forward, rollback and isolated baseline definitions now preserve `DEFAULT 100`; no architecture changed.
+
 The version-controlled package is **READY FOR OWNER REVIEW** as a build
 artifact. It is not ready for production application.
 

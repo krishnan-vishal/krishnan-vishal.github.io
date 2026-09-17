@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6D — Supabase batch-default compatibility incident
+
+- First controlled application failed closed with PostgreSQL `42P13`; owner-provided verification reports full transaction rollback, 39 announcements, ticker default false and no production drift.
+- The hotfix preserves verified `gpir_process_raw_batch(p_limit integer DEFAULT 100)` in forward, rollback and isolated baseline definitions. No Supabase action was performed by the hotfix.
+
 ## M33-G1 Step 6C — Production Supabase read-only preflight
 
 - **Status:** STOPPED at authenticated read-only access gate.

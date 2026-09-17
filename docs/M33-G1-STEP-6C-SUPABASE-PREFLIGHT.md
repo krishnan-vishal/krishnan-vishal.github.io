@@ -11,6 +11,8 @@ was performed.
 No schema, data, function, policy, grant, scheduler, publication, ticker or
 deployment change is authorized or made by this record.
 
+Owner-supplied post-attempt verification records a failed-closed transaction: no M33 additions, announcement count 39, and ticker default false. The compatibility defect was the omitted existing batch default; no production drift is reported.
+
 ## Owner-run read-only catalog capture
 
 Run the following in the authenticated Supabase SQL Editor. They use only

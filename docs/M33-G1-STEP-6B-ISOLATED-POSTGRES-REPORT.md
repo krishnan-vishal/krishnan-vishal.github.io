@@ -8,3 +8,7 @@
 - No Supabase endpoint, production credential, `main`, protected production workflow, scraper, ticker/M30 data, public GPIR surface or deployment was changed.
 
 This is isolated PostgreSQL proof only; production application remains separately owner-controlled.
+
+Step 6D note: the original isolated baseline omitted the production `p_limit integer DEFAULT 100` signature, so it could not detect PostgreSQL `42P13` during replacement. The baseline and both package definitions now preserve it and require re-proof before any retry.
+
+The corrected package passed the complete disposable PostgreSQL 16 re-proof in GitHub Actions run `35183916015`.
