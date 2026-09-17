@@ -56,7 +56,7 @@ CREATE TABLE public.intelligence_candidates (
     subcategory text,
     event_type text,
     source_tier text,
-    confidence_score numeric,
+    confidence_score numeric(5,4),
     candidate_status text NOT NULL DEFAULT 'PENDING'
         CHECK (candidate_status IN ('PENDING', 'VALIDATING', 'APPROVED', 'REJECTED', 'DUPLICATE', 'REVIEW')),
     ticker_eligible boolean NOT NULL DEFAULT false,

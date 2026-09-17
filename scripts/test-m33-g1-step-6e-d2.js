@@ -1,0 +1,13 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const root = path.join(__dirname, "..", "migrations", "m33-g1");
+const baseline = fs.readFileSync(path.join(root, "m33-g1-pre-step6a-isolated-baseline.sql"), "utf8");
+const hotfix = fs.readFileSync(path.join(root, "m33-g1-confidence-score-hotfix.sql"), "utf8");
+const proof = fs.readFileSync(path.join(root, "m33-g1-confidence-score-isolated-regression.sql"), "utf8");
+assert.match(baseline, /confidence_score numeric\(5,4\)/);
+assert.match(hotfix, /BEGIN;[\s\S]*ALTER COLUMN confidence_score TYPE numeric\(5,2\)[\s\S]*USING confidence_score::numeric\(5,2\);[\s\S]*COMMIT;/);
+for (const score of ["0", "9.9999", "35", "60", "80", "100"]) assert.match(proof, new RegExp(`${score.replace(".", "\\.")}::numeric\\(5,2\\)`));
+assert.match(proof, /60::numeric\(5,4\)/);
+console.log("M33-G1 Step 6E-D2 confidence contract: PASS (numeric(5,4) overflow; numeric(5,2) acceptance)");

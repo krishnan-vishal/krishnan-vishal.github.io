@@ -2,6 +2,10 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-D2 — Confidence-score recovery hotfix
+
+- **Status:** hotfix candidate prepared; request 16 RAW evidence is preserved pending owner application and separately authorized per-RAW recovery.
+
 ### M33-G1 Step 6E-B2 — SFA RAW-first candidate
 
 - **Status:** version-controlled candidate complete and static contract-tested; it is not deployed.

@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-D2 — Confidence-score overflow hotfix
+
+- **Status:** version-controlled hotfix prepared. Request 16 captured three RAW rows; all processor calls failed on `numeric(5,4)` overflow for valid 60/80 scores. No candidate, rejection, handoff or announcement was created.
+- **Boundary:** transactional `numeric(5,2)` hotfix only; no Supabase change, refetch, reprocessing, deployment, Cron or publication action occurred.
+
 ## M33-G1 Step 6E-B2 — SFA RAW-first candidate
 
 - **Status:** COMPLETED as version-controlled candidate only. SFA write mode is run-first, RAW-first and invokes only the newly returned RAW ID; processor owns all outcomes.

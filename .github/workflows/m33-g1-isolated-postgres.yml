@@ -79,6 +79,11 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging.sql
           psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging.sql
+
+      - name: Prove and apply Step 6E-D2 confidence-score hotfix
+        run: |
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-confidence-score-hotfix.sql
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-confidence-score-isolated-regression.sql
           psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT column_default FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'global_announcements' AND column_name = 'ticker_eligible';"
           psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT title, ticker_eligible, publication_status, canonical_url FROM public.global_announcements ORDER BY canonical_url;"
           psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT conname, contype, convalidated FROM pg_constraint WHERE conname LIKE 'fk_m33_%' OR conname LIKE 'ck_m33_%' ORDER BY conname;"

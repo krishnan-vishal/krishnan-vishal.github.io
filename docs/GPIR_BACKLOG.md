@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-D2 | 2026-09-17 | Correct confidence-score overflow without refetch | DATA, SECURITY | High | READY FOR OWNER APPLICATION | Owner applies transactional hotfix | M33-G1 Step 6E-D2 | `migrations/m33-g1/m33-g1-confidence-score-hotfix.sql` | Change numeric(5,4) to numeric(5,2). | Three RAW preserved; no publication drift. | Per-RAW recovery requires separate authorization. | 2026-09-17 | M33-G1 Step 6E fix confidence score overflow | M33-G1 |
+
 | M33-G1-STEP-6E-B2 | 2026-09-17 | Reconcile SFA acquisition to RAW-first/run lineage | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner-authorized controlled deployment review | M33-G1 Step 6E-B2 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Uses verified run accounting and RAW-first processor-owned outcomes. | Candidate only; no deployment or production execution. | Static 22-check contract passes. | 2026-09-17 | M33-G1 Step 6E complete SFA RAW-first acquisition | M33-G1 |
 
 | M33-G1-STEP-6E-B2 | 2026-09-17 | Reconcile SFA acquisition to RAW-first/run lineage | DATA, SECURITY, GOVERNANCE | High | STOPPED | Owner-provided deployed run-column metadata | M33-G1 Step 6E-B2 | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | Required accounting names conflict with repository baseline. | No function, deployment or production change. | Await verified deployed columns. | 2026-09-17 | M33-G1 Step 6E-B2 schema gate | M33-G1 |

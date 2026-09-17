@@ -74,3 +74,17 @@ the verified `records_*`/`error_message` columns and keeps richer counters in
 metadata. The B1 baseline remains preserved in history; this candidate is not
 deployed, no canary has run, publication remains closed, and RBI/Fintech
 Futures remain inactive.
+
+## Step 6E-D2 confidence-score recovery hotfix
+
+Production request 16 captured three SFA RAW records but all processor calls
+failed on `numeric(5,4)` overflow for valid Gate-2 scores 60/80. The run and
+RAW evidence remain historical; no refetch or evidence deletion is permitted.
+The version-controlled hotfix changes only `confidence_score` to
+`numeric(5,2)` in a transaction. It does not add a score constraint.
+
+Owner-run sequence: confirm candidates=0, handoffs=0 and announcements=39;
+apply `m33-g1-confidence-score-hotfix.sql`; verify precision 5/scale 2 and
+the unchanged counts; identify the existing three request-16 RAW IDs; then,
+only under separate authorization, call `gpir_process_raw_record(raw_id)` once
+per listed ID. Do not refetch, use the batch processor, hand off or publish.
