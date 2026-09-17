@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G7 — PYMNTS production registry onboarding schema gate
+
+- **Status:** STOPPED safely. Exact documented columns confirm `acquisition_method character NOT NULL`, but no production vocabulary mapping RSS to that single-character value and no Global-scope field convention are evidenced.
+- **Next:** owner runs the read-only [PYMNTS source-registry preflight](M33-G1-PYMNTS-SOURCE-REGISTRY-PREFLIGHT.sql). Only then may an idempotent production onboarding artifact be generated; no SQL was produced or executed.
+
 ### M33-G1 Step 6E-G6 — PYMNTS Source-3 prepared
 
 - **Source-3:** `PYMNTS-GLOBAL-004`, a T3 global financial-services/payments media source, is prepared for owner dry-run only. Its official RSS and three sampled official leaves returned HTTP 200 with title/date/content metadata under ordinary requests.

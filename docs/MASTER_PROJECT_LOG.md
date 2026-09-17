@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G7 — PYMNTS registry-onboarding schema gate
+
+- **Evidence:** the verified production `source_registry` documentation establishes the exact columns and primary key, including `acquisition_method character NOT NULL`, but does not establish its one-character production vocabulary or the existing Global-scope country/region/category conventions.
+- **Decision:** STOPPED rather than inserting guessed `RSS`/Global values. `docs/M33-G1-PYMNTS-SOURCE-REGISTRY-PREFLIGHT.sql` contains only the minimal owner-executed catalog, constraint and bounded semantic-example SELECTs needed to resolve those values. No onboarding DML, production access, deployment, invocation, RAW/candidate processing, handoff, publication, announcement, Cron, ticker, PR or main action occurred.
+
 ## M33-G1 Step 6E-G6 — PYMNTS acquisition-eligible Source-3 preparation
 
 - **Research and selection:** Finextra’s official payments RSS was reachable but three sampled leaf requests returned HTTP 403; The Paypers did not yield a verified machine-readable feed in this preflight. PYMNTS was selected operationally, not editorially: its official RSS and three sampled official leaves all returned HTTP 200 with record-specific title/date/content metadata under ordinary requests, with no credential or access-control bypass.
