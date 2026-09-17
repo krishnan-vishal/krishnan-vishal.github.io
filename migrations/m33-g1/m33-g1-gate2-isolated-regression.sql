@@ -110,7 +110,7 @@ INSERT INTO m33_processing_cases VALUES
     ('T19', 'New payment rule becomes effective next quarter', 'https://example.test/t19', pg_catalog.now() + interval '30 days', 'm33-t19', 'CANDIDATE', 'PROCESSED', 'PENDING', 'REGULATION', 'FUTURE'),
     ('T20', 'Historical payment system migration completed', 'https://example.test/t20', pg_catalog.now() - interval '30 days', 'm33-t20', 'CANDIDATE', 'PROCESSED', 'PENDING', 'PAYMENT_INFRASTRUCTURE', 'HISTORICAL'),
     ('T21', 'Financial sector development notice', 'https://example.test/t21', NULL, 'm33-t21', 'REVIEW', 'PROCESSED', 'REVIEW', 'UNKNOWN', 'UNKNOWN'),
-    ('T22', 'Open-finance fraud controls for instant merchant payments', 'https://example.test/t22', pg_catalog.now(), 'm33-t22', 'CANDIDATE', 'PROCESSED', 'PENDING', 'OPEN_BANKING_OPEN_FINANCE', 'RECENT');
+    ('T22', 'Open-finance fraud controls for instant merchant payments', 'https://example.test/t22', pg_catalog.now(), 'm33-t22', 'CANDIDATE', 'PROCESSED', 'PENDING', 'FRAUD_CYBER_TPRM', 'RECENT');
 
 DO $processing_cases$
 DECLARE
