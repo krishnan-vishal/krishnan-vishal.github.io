@@ -1,5 +1,32 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G5 — replacement Source-3 selection gate
+
+The repository contains no production `source_registry` snapshot; its isolated
+PostgreSQL baseline has only a synthetic test source and cannot establish a
+production replacement. The repository’s authoritative source-domain registry
+was inspected as the available source-governance evidence. It has active,
+machine-readable Tier-1/Tier-2 official regulator and payment-operator sources,
+but **no existing GREEN/T2-or-stronger financial-services/payments media or
+industry-intelligence source with an approved accessible first-party discovery
+endpoint**.
+
+Existing media/intelligence candidates (`fxc-intelligence`, `the-paypers`,
+Reuters and Bloomberg) are Tier 3, inactive and explicitly
+`SOURCE_UNSUPPORTED`; they cannot be promoted or used without inventing
+acquisition evidence. The Tier-2 machine-readable candidates are payment
+infrastructure operators, not the requested media/industry-intelligence class.
+Selecting one would change the requested source class and is therefore not a
+safe replacement.
+
+**Decision: replacement Source-3 is NOT IDENTIFIED; G5 is STOPPED at the
+existing-registry eligibility gate.** `FS-GLOBAL-003` remains trust-eligible
+(`GREEN`) but acquisition-ineligible (`ACQUISITION_BLOCKED`), with request 24
+HTTP 403 and zero writes. Trust eligibility and acquisition eligibility are
+separate controls. No new external source, schema migration, registry record,
+runtime allowlist change, deployment or production action was made. SFA and
+RBI remain the two passed operating sources.
+
 ## Step 6E-G4 — Fintech Futures acquisition diagnostic
 
 Request 24 reached the authorized `FS-GLOBAL-003` Edge Function but failed at

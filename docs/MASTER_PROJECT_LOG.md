@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G5 — replacement media Source-3 selection gate
+
+- **Inventory result:** the repository has no production `source_registry` snapshot; its only SQL fixture source is synthetic. The authoritative local source-domain registry has no existing GREEN/T2-or-stronger financial-services/payments media or industry-intelligence source with a verified accessible first-party endpoint. Active endpoint sources of adequate tier are official regulators or payment operators, not the requested source class.
+- **Ineligible media candidates:** FXC Intelligence, The Paypers, Reuters and Bloomberg are Tier 3/inactive/`SOURCE_UNSUPPORTED`; no acquisition evidence was fabricated and none was promoted.
+- **Decision:** STOPPED at the existing-registry eligibility gate. Fintech Futures remains `GREEN` for trust and `ACQUISITION_BLOCKED` for automation following request 24 HTTP 403/zero writes. Trust eligibility and acquisition eligibility remain separate; SFA/RBI stay operational. No source was added, replaced, deployed, invoked or written.
+
 ## M33-G1 Step 6E-G4 — Fintech Futures HTTP 403 acquisition diagnostic
 
 - **Request 24:** `FS-GLOBAL-003` authorization and Edge invocation PASS; the configured official payment-category acquisition failed HTTP 403, producing `INDEX_FETCH_FAILED_HTTP_403`. Parser/leaf discovery were not reached; database writes were zero and write mode is blocked.

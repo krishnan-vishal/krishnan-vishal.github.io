@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G5 — Source-3 replacement selection stopped
+
+- **Status:** no existing GREEN/T2-or-stronger financial-services/payments media or industry-intelligence source has a verified acquisition endpoint in repository evidence. Active machine-readable candidates are official regulators/operators; existing media/intelligence entries are Tier 3 and unsupported.
+- **Boundary:** Fintech Futures remains trust-eligible but `ACQUISITION_BLOCKED`; no replacement source, registry/runtime change or deployment was invented. Owner must supply an approved, acquisition-eligible existing production registry source or separately authorize source onboarding.
+
 ### M33-G1 Step 6E-G4 — Fintech Futures acquisition blocked
 
 - **Status:** request 24 authorization/invocation PASS, but configured index acquisition failed HTTP 403; parser and leaf discovery are not proven and writes were zero.
