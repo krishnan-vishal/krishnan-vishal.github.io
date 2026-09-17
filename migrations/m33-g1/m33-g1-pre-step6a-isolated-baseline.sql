@@ -229,16 +229,18 @@ BEGIN
         'INSERT INTO public.' || 'global_' || 'announcements (' ||
         'source_id, title, summary_narration, canonical_url, published_at, ticker_eligible, ' ||
         'topic_headers, archive_month_year, url, publication_status' ||
-        ') VALUES (' ||
-        quote_literal('m33-baseline-source') || ', ' ||
-        quote_literal('M33 synthetic Last-Known-Good announcement') || ', ' ||
-        quote_literal('Synthetic isolated test row only') || ', ' ||
-        quote_literal('https://example.test/m33-baseline-announcement') || ', ' ||
-        quote_literal('2026-01-01T00:00:00Z') || ', true, ' ||
-        quote_literal(ARRAY['TEST']::text[]) || ', ' ||
-        quote_literal('January 2026') || ', ' ||
-        quote_literal('https://example.test/m33-baseline-announcement') || ', ' ||
-        quote_literal('approved') || ')';
+        ') VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)'
+    USING
+        'm33-baseline-source',
+        'M33 synthetic Last-Known-Good announcement',
+        'Synthetic isolated test row only',
+        'https://example.test/m33-baseline-announcement',
+        '2026-01-01T00:00:00Z'::timestamptz,
+        true,
+        ARRAY['TEST']::text[],
+        'January 2026',
+        'https://example.test/m33-baseline-announcement',
+        'approved';
 END
 $fixture_announcement$;
 
@@ -266,7 +268,7 @@ BEGIN
     IF pg_catalog.position('gpir_intelligence_assessment' IN pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure)) <> 0 THEN
         RAISE EXCEPTION 'baseline processor unexpectedly references Gate 2';
     END IF;
-    IF pg_catalog.position('global_' || 'announcements' IN pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure)) <> 0 THEN
+    IF pg_catalog.strpos(pg_catalog.pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure), 'global_' || 'announcements') <> 0 THEN
         RAISE EXCEPTION 'baseline processor unexpectedly references publication';
     END IF;
 END
