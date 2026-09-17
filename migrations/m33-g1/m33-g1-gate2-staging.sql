@@ -611,7 +611,7 @@ BEGIN
 END
 $function$;
 
-CREATE OR REPLACE FUNCTION public.gpir_process_raw_batch(p_limit integer)
+CREATE OR REPLACE FUNCTION public.gpir_process_raw_batch(p_limit integer DEFAULT 100)
 RETURNS TABLE(raw_id uuid, processing_result text)
 LANGUAGE plpgsql
 VOLATILE
