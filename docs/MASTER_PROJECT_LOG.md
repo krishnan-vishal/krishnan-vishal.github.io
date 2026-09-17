@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-B2 — RAW-first/run-lineage reconciliation
+
+- **Status:** STOPPED at run-accounting schema gate.
+- **Blocker:** requested B2 run-accounting columns conflict with the verified repository baseline and are not evidenced in deployed Supabase metadata. The instruction requires no guessed mapping.
+- **Impact:** no function edit, Supabase contact, deployment, canary, publication, Cron, ticker, workflow or main change occurred.
+
 ## M33-G1 Step 6E-B1 — Deployed acquisition baseline capture
 
 - **Status:** COMPLETED baseline capture only. M33-F5 source is version-controlled unchanged at `supabase/functions/gpir-intelligence-fetch/index.ts` (SHA-256 `894503E3758689FC89D24DA265EC08D07373F7534A5FE727542793799A5F2169`).

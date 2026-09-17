@@ -2,6 +2,10 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-B2 — RAW-first/run-lineage reconciliation
+
+- **Status:** STOPPED. Owner must provide read-only deployed `intelligence_ingestion_runs` column metadata because required accounting names conflict with the verified repository baseline.
+
 ### M33-G1 Step 6E-B — Version-control acquisition boundary
 
 - **Status:** STOPPED. Exact deployed M33-F5 Edge Function source and parser fixtures are not available in GitHub.

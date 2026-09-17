@@ -47,3 +47,19 @@ capture before the minimal write-path change can be reviewed and tested.
 **CAPTURED, not reconciled.** The owner-provided deployed source is now held unchanged at `supabase/functions/gpir-intelligence-fetch/index.ts` (SHA-256 `894503E3758689FC89D24DA265EC08D07373F7534A5FE727542793799A5F2169`). It verifies SFA-only parsing, page limit 3, secret-only authentication, dry-run-by-default, date provenance, PDF deferral and both assessment RPCs; it has no announcement, approval, handoff or Cron operation.
 
 The known M33-F5 gaps remain: gates precede RAW, REJECT evidence is skipped, no ingestion run is created and no `ingestion_run_id` is attached. M33-F5 remains deployed; this GitHub capture is not deployed and no canary has begun.
+
+## Step 6E-B2 RAW-first/run-lineage reconciliation
+
+**STOPPED at run-accounting schema gate.** The required B2 accounting names
+(`discovered_count`, `fetched_count`, `raw_inserted_count`, `candidate_count`,
+`rejected_count`, `error_count`, `last_error`) conflict with the repository's
+verified baseline for `intelligence_ingestion_runs`, which establishes only
+`records_discovered`, `records_candidate`, `records_rejected`,
+`records_published`, and `error_message` alongside the run identity/status
+fields. No verified evidence establishes the requested additional names in the
+deployed schema.
+
+The B2 instruction requires stopping rather than guessing in this condition.
+No Edge Function code was changed, deployed or invoked; no canary started.
+Owner-supplied read-only deployed column metadata is required before a
+minimal, schema-accurate reconciliation can proceed.
