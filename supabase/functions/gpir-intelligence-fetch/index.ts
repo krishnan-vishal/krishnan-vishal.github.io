@@ -1,0 +1,895 @@
+// ============================================================
+// GPIR M33-F2 — CONTROLLED INTELLIGENCE ACQUISITION
+// Phase 1: SFA-APAC-001 only
+//
+// PURPOSE
+// source_registry -> external source -> RAW staging
+//
+// SAFETY
+// - DOES NOT write to global_announcements
+// - DOES NOT publish to GPIR
+// - DOES NOT approve candidates
+// - DOES NOT schedule cron
+// - Restricted to one test source
+// ============================================================
+
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { withSupabase } from "jsr:@supabase/server@^1";
+
+const TEST_SOURCE_ID = "SFA-APAC-001";
+const MAX_DISCOVERED_LINKS = 40;
+const MAX_PAGE_FETCHES = 3;
+
+const SFA_NEWS_INDEX = "https://singaporefintech.org/news/";
+
+type SourceRecord = {
+  source_id: string;
+  source_name: string | null;
+  official_url: string | null;
+  feed_or_index_url: string | null;
+  acquisition_method: string | null;
+  parser_profile: string | null;
+  source_status: string | null;
+};
+
+type DiscoveredItem = {
+  title: string;
+  url: string;
+
+  // Optional source publication date discovered from an index/listing page.
+  indexPublishedAt?: string | null;
+};
+
+function cleanText(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#8217;/g, "’")
+    .replace(/&#8216;/g, "‘")
+    .replace(/&#8220;/g, "“")
+    .replace(/&#8221;/g, "”")
+    .replace(/&#8211;/g, "–")
+    .replace(/&#8212;/g, "—")
+    .replace(/&#039;/g, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function absoluteUrl(href: string, base: string): string | null {
+  try {
+    const url = new URL(href, base);
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return null;
+    }
+
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function looksLikeUsefulPath(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const path = u.pathname.toLowerCase().replace(/\/+$/, "");
+
+    // --------------------------------------------------------
+    // Reject known section/index/container pages.
+    // These are discovery surfaces, not intelligence records.
+    // --------------------------------------------------------
+    const containerPaths = new Set([
+      "",
+      "/news",
+      "/event",
+      "/events",
+      "/publications",
+      "/publication",
+      "/newsroom",
+      "/press",
+      "/press-releases",
+    ]);
+
+    if (containerPaths.has(path)) {
+      return false;
+    }
+
+    // --------------------------------------------------------
+    // Individual content candidates.
+    // --------------------------------------------------------
+    if (path.includes("/news/")) return true;
+    if (path.includes("/event/")) return true;
+    if (path.includes("/events/")) return true;
+    if (path.includes("/publication/")) return true;
+    if (path.includes("/publications/")) return true;
+
+    if (path.endsWith(".pdf")) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function looksLikeNewsArticle(url: string): boolean {
+  try {
+    const u = new URL(url);
+    const path = u.pathname.toLowerCase().replace(/\/+$/, "");
+
+    // /news/ itself is a discovery container, not an article.
+    if (path === "/news") {
+      return false;
+    }
+
+    // Accept only individual SFA news article paths.
+    return path.startsWith("/news/");
+  } catch {
+    return false;
+  }
+}
+
+
+function discoverLinks(html: string, baseUrl: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+
+  const anchorRegex =
+    /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+
+  let match: RegExpExecArray | null;
+
+  while ((match = anchorRegex.exec(html)) !== null) {
+    const href = match[1]?.trim();
+    const rawTitle = match[2] ?? "";
+
+    if (!href) continue;
+
+    const url = absoluteUrl(href, baseUrl);
+    if (!url) continue;
+
+    if (!looksLikeUsefulPath(url)) continue;
+
+    const title = cleanText(rawTitle);
+
+    // Empty titles are useless at this discovery stage.
+    if (!title) continue;
+
+    if (seen.has(url)) continue;
+    seen.add(url);
+
+    results.push({
+      title,
+      url,
+    });
+
+    if (results.length >= MAX_DISCOVERED_LINKS) break;
+  }
+
+  return results;
+}
+
+function discoverNewsLinks(
+  html: string,
+  baseUrl: string,
+): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+
+  // M33-F5
+  // SFA News index: bind each article to the date
+  // contained inside its own news-item card.
+
+  const cardRegex =
+    /<div\b[^>]*class=["'][^"']*\bnews-item\b[^"']*["'][^>]*>([\s\S]*?)(?=<div\b[^>]*class=["'][^"']*\bnews-item\b|$)/gi;
+
+  let cardMatch: RegExpExecArray | null;
+
+  while ((cardMatch = cardRegex.exec(html)) !== null) {
+    const cardHtml = cardMatch[1] ?? "";
+
+    const anchorMatch = cardHtml.match(
+      /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i,
+    );
+
+    if (!anchorMatch) continue;
+
+    const href = anchorMatch[1]?.trim();
+    const rawTitle = anchorMatch[2] ?? "";
+
+    if (!href) continue;
+
+    const url = absoluteUrl(href, baseUrl);
+    if (!url) continue;
+
+    if (!looksLikeNewsArticle(url)) continue;
+
+    try {
+      const parsed = new URL(url);
+
+      if (parsed.hostname !== "singaporefintech.org") {
+        continue;
+      }
+    } catch {
+      continue;
+    }
+
+    const normalizedUrl = url.split("#")[0];
+    const title = cleanText(rawTitle);
+
+    if (!title || title.length < 8) continue;
+    if (seen.has(normalizedUrl)) continue;
+
+    // Extract date only from THIS article's card.
+    const dateMatch = cardHtml.match(
+      /\b(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4})\b/i,
+    );
+
+    let indexPublishedAt: string | null = null;
+
+    if (dateMatch?.[1]) {
+      const parsedDate = new Date(
+        dateMatch[1].trim(),
+      );
+
+      if (!Number.isNaN(parsedDate.getTime())) {
+        indexPublishedAt =
+          parsedDate.toISOString();
+      }
+    }
+
+    seen.add(normalizedUrl);
+
+    results.push({
+      title,
+      url: normalizedUrl,
+      indexPublishedAt,
+    });
+
+    if (results.length >= MAX_DISCOVERED_LINKS) {
+      break;
+    }
+  }
+
+  return results;
+}
+
+function extractMeta(
+  html: string,
+  discoveredTitle: string,
+  pageUrl: string,
+) {
+  const getMeta = (property: string): string | null => {
+    const patterns = [
+      new RegExp(
+        `<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+        "i",
+      ),
+      new RegExp(
+        `<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${property}["'][^>]*>`,
+        "i",
+      ),
+      new RegExp(
+        `<meta[^>]+name=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+        "i",
+      ),
+      new RegExp(
+        `<meta[^>]+content=["']([^"']+)["'][^>]+name=["']${property}["'][^>]*>`,
+        "i",
+      ),
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match?.[1]) return cleanText(match[1]);
+    }
+
+    return null;
+  };
+
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+
+  const title =
+    getMeta("og:title") ||
+    (titleMatch?.[1] ? cleanText(titleMatch[1]) : null) ||
+    discoveredTitle;
+
+  const description =
+    getMeta("og:description") ||
+    getMeta("description");
+
+  const canonicalMatch = html.match(
+    /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["'][^>]*>/i,
+  );
+
+  const canonicalUrl =
+    canonicalMatch?.[1]
+      ? absoluteUrl(canonicalMatch[1], pageUrl)
+      : pageUrl;
+
+    // --------------------------------------------------------
+  // M33-F5
+  // Source publication-date extraction.
+  //
+  // Priority:
+  // 1. Standard/meta publication dates
+  // 2. JSON-LD datePublished
+  // 3. HTML <time datetime="...">
+  //
+  // Never substitute GPIR ingestion time for source evidence.
+  // --------------------------------------------------------
+
+  const dateCandidates: string[] = [];
+
+  // 1. Standard machine-readable metadata.
+  const metaDateCandidates = [
+    getMeta("article:published_time"),
+    getMeta("date"),
+    getMeta("datePublished"),
+    getMeta("publish-date"),
+    getMeta("publication_date"),
+  ].filter(Boolean) as string[];
+
+  dateCandidates.push(...metaDateCandidates);
+
+  // 2. JSON-LD structured data.
+  // Example:
+  // "datePublished": "2026-08-03T10:00:00+08:00"
+  const jsonLdDateMatches =
+    html.matchAll(
+      /["']datePublished["']\s*:\s*["']([^"']+)["']/gi,
+    );
+
+  for (const match of jsonLdDateMatches) {
+    if (match[1]) {
+      dateCandidates.push(cleanText(match[1]));
+    }
+  }
+
+  // 3. HTML <time datetime="...">.
+  const timeMatches =
+    html.matchAll(
+      /<time\b[^>]*datetime=["']([^"']+)["'][^>]*>/gi,
+    );
+
+  for (const match of timeMatches) {
+    if (match[1]) {
+      dateCandidates.push(cleanText(match[1]));
+    }
+  }
+
+  let sourcePublishedAt: string | null = null;
+
+  for (const candidate of dateCandidates) {
+    const parsed = new Date(candidate);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      sourcePublishedAt = parsed.toISOString();
+      break;
+    }
+  }
+
+
+  return {
+    title: cleanText(title),
+    description: description ? cleanText(description) : null,
+    canonicalUrl,
+    sourcePublishedAt,
+  };
+}
+
+async function sha256(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export default {
+  fetch: withSupabase(
+    { auth: ["secret"] },
+    
+    async (req, ctx) => {
+      const startedAt = new Date().toISOString();
+
+      try {
+        // ----------------------------------------------------
+        // 1. Request payload
+        // ----------------------------------------------------
+
+        let payload: {
+          source_id?: string;
+          dry_run?: boolean;
+        } = {};
+
+        try {
+          if (req.method !== "GET") {
+            payload = await req.json();
+          }
+        } catch {
+          payload = {};
+        }
+
+        const requestedSource =
+          payload.source_id || TEST_SOURCE_ID;
+
+        const dryRun =
+          payload.dry_run === undefined
+            ? true
+            : Boolean(payload.dry_run);
+
+        // ----------------------------------------------------
+        // 2. Hard safety restriction
+        // ----------------------------------------------------
+
+        if (requestedSource !== TEST_SOURCE_ID) {
+          return Response.json(
+            {
+              ok: false,
+             error: "SOURCE_NOT_ALLOWED_IN_M33_F4C",
+              allowed_source: TEST_SOURCE_ID,
+            },
+            { status: 400 },
+          );
+        }
+
+        // ----------------------------------------------------
+        // 3. Read source registry
+        // ----------------------------------------------------
+
+        const { data: sourceRows, error: sourceError } =
+  await ctx.supabaseAdmin
+    .from("source_registry")
+    .select(
+      "source_id,source_name,official_url,feed_or_index_url,acquisition_method,parser_profile,source_status",
+    )
+    .eq("source_id", requestedSource)
+    .limit(2);
+
+if (sourceError) {
+  throw new Error(
+    `SOURCE_REGISTRY_ERROR: ${sourceError.message}`,
+  );
+}
+
+if (!sourceRows || sourceRows.length === 0) {
+  throw new Error(
+    `SOURCE_NOT_VISIBLE_OR_NOT_FOUND: ${requestedSource}`,
+  );
+}
+
+if (sourceRows.length > 1) {
+  throw new Error(
+    `DUPLICATE_SOURCE_ID: ${requestedSource}`,
+  );
+}
+
+const source = sourceRows[0] as SourceRecord;
+        if (source.source_status !== "GREEN") {
+          throw new Error(
+            `SOURCE_NOT_GREEN: ${source.source_status}`,
+          );
+        }
+
+        const indexUrl =
+          source.feed_or_index_url || source.official_url;
+
+          const discoveryUrl =
+          requestedSource === TEST_SOURCE_ID
+          ? SFA_NEWS_INDEX
+          : indexUrl;
+
+        if (!indexUrl) {
+          throw new Error("SOURCE_HAS_NO_FETCH_URL");
+        }
+
+        // ----------------------------------------------------
+        // 4. Fetch source index
+        // ----------------------------------------------------
+
+        const indexResponse = await fetch(discoveryUrl, {
+          headers: {
+            "User-Agent":
+              "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)",
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          },
+          redirect: "follow",
+        });
+
+        if (!indexResponse.ok) {
+          throw new Error(
+            `INDEX_FETCH_FAILED_HTTP_${indexResponse.status}`,
+          );
+        }
+
+        const indexHtml = await indexResponse.text();
+
+        // ----------------------------------------------------
+        // 5. Discover likely intelligence links
+        // ----------------------------------------------------
+
+        const discovered =
+          requestedSource === TEST_SOURCE_ID
+          ? discoverNewsLinks(indexHtml, indexResponse.url)
+          : discoverLinks(indexHtml, indexResponse.url);
+
+        const selected =
+          discovered.slice(0, MAX_PAGE_FETCHES);
+
+        const preview: unknown[] = [];
+        let inserted = 0;
+        let skippedExisting = 0;
+        let fetchErrors = 0;
+
+        // ----------------------------------------------------
+        // 6. Fetch selected individual pages
+        // ----------------------------------------------------
+
+        for (const item of selected) {
+          try {
+            const pageResponse = await fetch(item.url, {
+              headers: {
+                "User-Agent":
+                  "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)",
+                Accept:
+                  "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+              },
+              redirect: "follow",
+            });
+
+            const contentType =
+              pageResponse.headers.get("content-type") || "";
+
+            // PDF handling is intentionally deferred.
+            if (
+              contentType.toLowerCase().includes("application/pdf") ||
+              pageResponse.url.toLowerCase().endsWith(".pdf")
+            ) {
+              preview.push({
+                discovered_title: item.title,
+                url: pageResponse.url,
+                status: pageResponse.status,
+                type: "PDF_DEFERRED",
+              });
+
+              continue;
+            }
+
+            if (!pageResponse.ok) {
+              fetchErrors++;
+
+              preview.push({
+                discovered_title: item.title,
+                url: item.url,
+                status: pageResponse.status,
+                type: "FETCH_ERROR",
+              });
+
+              continue;
+            }
+
+            const pageHtml = await pageResponse.text();
+
+            const meta = extractMeta(
+              pageHtml,
+              item.title,
+              pageResponse.url,
+            );
+    // M33-F5
+    // Prefer article-page publication metadata.
+    // Fall back to publication date discovered from the source index.
+          const resolvedPublishedAt =
+          meta.sourcePublishedAt ||
+          item.indexPublishedAt ||
+          null;
+            const fingerprint =
+              await sha256(
+                [
+                  source.source_id,
+                  meta.title,
+                  meta.canonicalUrl || pageResponse.url,
+                ].join("|").toLowerCase(),
+              );
+
+            const rawRecord = {
+              source_id: source.source_id,
+              discovered_url: item.url,
+              canonical_url:
+                meta.canonicalUrl || pageResponse.url,
+
+              raw_title: meta.title,
+
+              // Keep phase-one content intentionally bounded.
+              raw_content:
+                meta.description || null,
+
+              source_published_at:
+                resolvedPublishedAt,
+              http_status:
+                pageResponse.status,
+
+              content_hash:
+                fingerprint,
+
+              ingestion_status:
+                "RAW",
+
+              metadata: {
+                engine: "M33-F5",
+                parser_profile: source.parser_profile,
+                acquisition_method:
+                  source.acquisition_method,
+                discovered_title:
+                  item.title,
+                content_type:
+                  contentType,
+                dry_run:
+                  dryRun,
+              },
+            };
+
+// --------------------------------------------------------
+// M33-F5
+// Deterministic intelligence gates.
+//
+// Gate 1:
+// Structural / navigation / malformed-content rejection.
+//
+// Gate 2:
+// Payments / fintech / banking / regulatory intelligence
+// relevance assessment.
+//
+// These RPC calls assess only.
+// They do NOT write RAW, candidates or announcements.
+// --------------------------------------------------------
+
+const { data: gate1Reason, error: gate1Error } =
+  await ctx.supabaseAdmin.rpc(
+    "gpir_rejection_reason",
+    {
+      p_title: rawRecord.raw_title,
+      p_url: rawRecord.canonical_url,
+    },
+  );
+
+if (gate1Error) {
+  throw new Error(
+    `GATE_1_RPC_ERROR: ${gate1Error.message}`,
+  );
+}
+
+const gate1Decision =
+  gate1Reason ? "REJECT" : "PASS";
+
+let gate2Assessment: unknown = null;
+let gate2Decision = "NOT_RUN";
+
+// Gate 2 should only run when structural Gate 1 passes.
+if (gate1Decision === "PASS") {
+  const {
+    data: assessment,
+    error: gate2Error,
+  } = await ctx.supabaseAdmin.rpc(
+    "gpir_intelligence_assessment",
+    {
+      p_title: rawRecord.raw_title,
+      p_url: rawRecord.canonical_url,
+    },
+  );
+
+  if (gate2Error) {
+    throw new Error(
+      `GATE_2_RPC_ERROR: ${gate2Error.message}`,
+    );
+  }
+
+  gate2Assessment = assessment;
+
+  if (
+    assessment &&
+    typeof assessment === "object" &&
+    "decision" in assessment
+  ) {
+    gate2Decision =
+      String(
+        (assessment as Record<string, unknown>)
+          .decision,
+      );
+  } else {
+    gate2Decision = "UNKNOWN";
+  }
+}
+
+            preview.push({
+              title:
+                rawRecord.raw_title,
+
+              canonical_url:
+                rawRecord.canonical_url,
+
+              source_published_at:
+                rawRecord.source_published_at,
+
+              publication_date_source:
+                meta.sourcePublishedAt
+                  ? "ARTICLE_METADATA"
+                  : item.indexPublishedAt
+                  ? "NEWS_INDEX"
+                  : "UNKNOWN",
+
+              index_published_at:
+                item.indexPublishedAt || null,
+
+              http_status:
+                rawRecord.http_status,
+
+              gate_1: {
+                decision:
+                  gate1Decision,
+                reason:
+                  gate1Reason || null,
+            },
+
+                gate_2: {
+                  decision:
+                    gate2Decision,
+                  assessment:
+                    gate2Assessment,
+            },
+
+                database_written:
+                    false,
+        });
+            // ------------------------------------------------
+            // dry_run=true:
+            // fetch and parse only, NO database insert.
+            // ------------------------------------------------
+
+            if (dryRun) continue;
+          // --------------------------------------------------------
+          // M33-F5
+          // Controlled RAW staging write guard.
+          //
+          // Only structurally valid intelligence assessed as
+          // CANDIDATE or REVIEW may enter RAW staging.
+          //
+          // REJECT must never enter intelligence_raw_ingestion.
+          // global_announcements remains completely untouched.
+          // --------------------------------------------------------
+
+          const allowedForRawStaging =
+              gate1Decision === "PASS" &&
+          (
+              gate2Decision === "CANDIDATE" ||
+              gate2Decision === "REVIEW"
+          );
+
+            if (!allowedForRawStaging) {
+              continue;
+}
+            // Check whether this exact content already exists.
+            const { data: existing } =
+              await ctx.supabaseAdmin
+                .from("intelligence_raw_ingestion")
+                .select("id")
+                .eq("content_hash", fingerprint)
+                .limit(1);
+
+            if (existing && existing.length > 0) {
+              skippedExisting++;
+              continue;
+            }
+
+            const { error: insertError } =
+              await ctx.supabaseAdmin
+                .from("intelligence_raw_ingestion")
+                .insert(rawRecord);
+
+            if (insertError) {
+              throw new Error(
+                `RAW_INSERT_ERROR: ${insertError.message}`,
+              );
+            }
+
+            inserted++;
+
+          } catch (pageError) {
+            fetchErrors++;
+
+            preview.push({
+              url: item.url,
+              type: "PAGE_PROCESSING_ERROR",
+              error:
+                pageError instanceof Error
+                  ? pageError.message
+                  : String(pageError),
+            });
+          }
+        }
+
+        // ----------------------------------------------------
+        // 7. Return controlled diagnostic
+        // ----------------------------------------------------
+
+        return Response.json({
+          ok: true,
+
+          milestone: "M33-F5",
+
+          mode:
+            dryRun
+              ? "DRY_RUN_NO_DATABASE_WRITES"
+              : "RAW_STAGING_WRITE",
+
+          source: {
+            source_id:
+              source.source_id,
+            source_name:
+              source.source_name,
+            index_url:
+              indexUrl,
+            discovery_url:
+              discoveryUrl,
+            discovery_type:
+              "NEWS_INDEX",
+            parser_profile:
+              source.parser_profile,
+          },
+          statistics: {
+            links_discovered:
+              discovered.length,
+            pages_selected:
+              selected.length,
+            raw_records_inserted:
+              inserted,
+            duplicates_skipped:
+              skippedExisting,
+            fetch_errors:
+              fetchErrors,
+          },
+
+          preview,
+
+          safety: {
+            global_announcements_modified:
+              false,
+            publication_attempted:
+              false,
+            cron_scheduled:
+              false,
+          },
+
+          started_at:
+            startedAt,
+
+          completed_at:
+            new Date().toISOString(),
+        });
+
+      } catch (error) {
+        console.error("GPIR M33-F5 failure:", error);
+
+        return Response.json(
+          {
+            ok: false,
+            milestone: "M33-F5",
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error),
+            started_at:
+              startedAt,
+            failed_at:
+              new Date().toISOString(),
+          },
+          { status: 500 },
+        );
+      }
+    },
+  ),
+};

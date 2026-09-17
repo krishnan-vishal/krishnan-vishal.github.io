@@ -41,3 +41,9 @@ function remains M33-F5; no GitHub replacement is deployed, and no production
 canary has started. The owner must provide the exact deployed function source
 (and any parser fixtures) for a byte/behavior-preserving version-control
 capture before the minimal write-path change can be reviewed and tested.
+
+## Step 6E-B1 deployed M33-F5 baseline capture
+
+**CAPTURED, not reconciled.** The owner-provided deployed source is now held unchanged at `supabase/functions/gpir-intelligence-fetch/index.ts` (SHA-256 `894503E3758689FC89D24DA265EC08D07373F7534A5FE727542793799A5F2169`). It verifies SFA-only parsing, page limit 3, secret-only authentication, dry-run-by-default, date provenance, PDF deferral and both assessment RPCs; it has no announcement, approval, handoff or Cron operation.
+
+The known M33-F5 gaps remain: gates precede RAW, REJECT evidence is skipped, no ingestion run is created and no `ingestion_run_id` is attached. M33-F5 remains deployed; this GitHub capture is not deployed and no canary has begun.
