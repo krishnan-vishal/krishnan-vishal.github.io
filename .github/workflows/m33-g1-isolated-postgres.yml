@@ -80,7 +80,24 @@ jobs:
           psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT routine_name, security_type FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name LIKE 'gpir_%' ORDER BY routine_name;"
 
       - name: Execute behavioral proof T01 through T35 in a rollback-only transaction
-        run: psql -v ON_ERROR_STOP=1 -c "SET m33_g1.isolated_test = 'on';" -f migrations/m33-g1/m33-g1-gate2-isolated-regression.sql
+        id: regression
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          psql -v ON_ERROR_STOP=1 -c "SET m33_g1.isolated_test = 'on';" -f migrations/m33-g1/m33-g1-gate2-isolated-regression.sql 2>&1 | tee /tmp/m33-regression.log
+
+      - name: Report isolated behavioral regression failure
+        if: steps.regression.outcome == 'failure'
+        run: |
+          {
+            echo '## M33-G1 isolated behavioral regression failure'
+            echo '```text'
+            cat /tmp/m33-regression.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          m33_error_line=$(grep -m 1 -E 'ERROR:|FATAL:|failed:' /tmp/m33-regression.log | tr '\n' ' ')
+          echo "::error title=M33 isolated behavioral SQL failure::$m33_error_line"
+          exit 1
 
       - name: Prove RAW preservation and processor publication boundary
         run: |
