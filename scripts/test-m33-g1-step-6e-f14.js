@@ -1,0 +1,24 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const root = path.join(__dirname, "..");
+const source = fs.readFileSync(path.join(root, "supabase", "functions", "gpir-intelligence-fetch", "index.ts"), "utf8");
+const fixture = fs.readFileSync(path.join(root, "tests", "fixtures", "m33-g1-rbi-leaf-press-release.html"), "utf8");
+
+const header = fixture.match(/Date\s*:\s*([^<]+)[\s\S]*?tableheader[^>]*><b>([\s\S]*?)<\/b>/i);
+const body = fixture.match(/<tr\b[^>]*class=["']tablecontent1["'][^>]*>([\s\S]*?)<\/tr>/i);
+assert(header, "RBI leaf fixture must expose the official record date/title pair");
+assert(body, "RBI leaf fixture must expose record body content");
+assert.strictEqual(header[1].trim(), "Sep 15, 2026");
+assert.strictEqual(header[2].trim(), "Developments in India’s Balance of Payments for the Month of July 2026");
+assert.match(body[1], /Preliminary data on India’s balance of payments/);
+assert.match(source, /function extractRbiPressReleaseLeaf/);
+assert.match(source, /Date\\s\*:\\s\*/);
+assert.match(source, /tablecontent1/);
+assert.match(source, /rbiLeaf\?\.title \|\| discoveredTitle/);
+assert.match(source, /RBI_LEAF_RECORD/);
+assert(!/heading \? cleanText\(heading\)/.test(source), "generic RBI H1 must not override the record title");
+assert.match(source, /MAX_PAGE_FETCHES = 3/);
+assert(!/\.from\("global_announcements"\)/.test(source));
+console.log("M33-G1 Step 6E-F14 RBI leaf content extraction: PASS (official leaf fixture/static contract)");

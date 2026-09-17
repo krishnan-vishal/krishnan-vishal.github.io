@@ -324,6 +324,28 @@ function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
   return results;
 }
 
+function extractRbiPressReleaseLeaf(html: string) {
+  // RBI press-release leaf pages use a generic HTML title and H1. The record
+  // header is instead the adjacent Date/title pair in the official tableheader
+  // rows, followed by the tablecontent1 article body.
+  const headerMatch = html.match(
+    /<td\b[^>]*class=["'][^"']*\btableheader\b[^"']*["'][^>]*>\s*<b>\s*Date\s*:\s*([^<]+)<\/b>\s*<\/td>\s*<\/tr>\s*<tr\b[^>]*>\s*<td\b[^>]*class=["'][^"']*\btableheader\b[^"']*["'][^>]*>\s*<b>([\s\S]*?)<\/b>/i,
+  );
+  const bodyMatch = html.match(
+    /<tr\b[^>]*class=["'][^"']*\btablecontent1\b[^"']*["'][^>]*>([\s\S]*?)<\/tr>/i,
+  );
+  const dateText = headerMatch?.[1] ? cleanText(headerMatch[1]) : null;
+  const parsedDate = dateText ? new Date(dateText) : null;
+
+  return {
+    title: headerMatch?.[2] ? cleanText(headerMatch[2]) : null,
+    description: bodyMatch?.[1] ? cleanText(bodyMatch[1]).slice(0, 12000) : null,
+    sourcePublishedAt: parsedDate && !Number.isNaN(parsedDate.getTime())
+      ? parsedDate.toISOString()
+      : null,
+  };
+}
+
 function extractMeta(
   html: string,
   discoveredTitle: string,
@@ -360,17 +382,15 @@ function extractMeta(
 
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
 
-  const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1];
   const shellTitle = /^(press releases|notifications|master circulars)\s*\|\s*official website of reserve bank of india$/i;
   const metaTitle = getMeta("og:title");
   const pageTitle = titleMatch?.[1] ? cleanText(titleMatch[1]) : null;
+  const rbiLeaf = isRbiLeaf ? extractRbiPressReleaseLeaf(html) : null;
   const title = isRbiLeaf
-    ? (heading ? cleanText(heading) : (!shellTitle.test(metaTitle || "") ? metaTitle : null) || (!shellTitle.test(pageTitle || "") ? pageTitle : null) || discoveredTitle)
+    ? (rbiLeaf?.title || discoveredTitle || (!shellTitle.test(metaTitle || "") ? metaTitle : null) || (!shellTitle.test(pageTitle || "") ? pageTitle : null))
     : (metaTitle || pageTitle || discoveredTitle);
 
-  const description =
-    getMeta("og:description") ||
-    getMeta("description");
+  const description = rbiLeaf?.description || getMeta("og:description") || getMeta("description");
 
   const canonicalMatch = html.match(
     /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["'][^>]*>/i,
@@ -393,7 +413,7 @@ function extractMeta(
   // Never substitute GPIR ingestion time for source evidence.
   // --------------------------------------------------------
 
-  const dateCandidates: string[] = [];
+  const dateCandidates: string[] = rbiLeaf?.sourcePublishedAt ? [rbiLeaf.sourcePublishedAt] : [];
 
   // 1. Standard machine-readable metadata.
   const metaDateCandidates = [
@@ -449,7 +469,7 @@ function extractMeta(
     description: description ? cleanText(description) : null,
     canonicalUrl,
     sourcePublishedAt,
-    publicationDateSource: sourcePublishedAt ? (isRbiLeaf ? "LEAF_METADATA" : "ARTICLE_METADATA") : "UNKNOWN",
+    publicationDateSource: sourcePublishedAt ? (isRbiLeaf ? "RBI_LEAF_RECORD" : "ARTICLE_METADATA") : "UNKNOWN",
   };
 }
 

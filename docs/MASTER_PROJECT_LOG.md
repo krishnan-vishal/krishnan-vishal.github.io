@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-F14 — RBI leaf content extraction root-cause correction
+
+- **Request 21:** technical dry-run PASS (HTTP 200, four discovered, three RBI leaf records selected, zero writes/errors) but LEAF CONTENT QUALITY HOLD. It is not an authorization, connectivity or discovery failure.
+- **Root cause and candidate:** official RBI press-release leaf pages expose generic shell title/H1; actual record title/date are adjacent `tableheader` rows and record content is `tablecontent1`. The RBI-only candidate extracts those values with listing/RSS fallback and `RBI_LEAF_RECORD` provenance; it does not fabricate dates.
+- **Boundary:** not deployed or invoked; no Supabase, RAW, candidate, handoff, publication, announcement, ticker, Cron, workflow or main change. RBI write canary remains unauthorized.
+
 ## M33-G1 Step 6E-F11 — RBI leaf metadata extraction
 
 - **Request 20:** authorization/connectivity/leaf discovery PASS, metadata-quality HOLD, zero writes; generic shell metadata was not a discovery failure.

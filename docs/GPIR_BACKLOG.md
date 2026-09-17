@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-F14 | 2026-09-17 | Correct RBI leaf-record content extraction | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F14 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Extract official RBI table-header title/date and table-content body; preserve listing fallback. | Request 21 technical pass, zero writes, leaf-content quality hold; candidate not deployed. | RBI write canary remains unauthorized. | 2026-09-17 | M33-G1 Step 6E fix RBI leaf content extraction | M33-G1 |
+
 | M33-G1-STEP-6E-F11 | 2026-09-17 | Extract record-specific RBI leaf metadata | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F11 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Prefer leaf heading/RSS title and authoritative dates. | Request 20 zero writes; candidate not deployed. | RBI write canary not authorized. | 2026-09-17 | M33-G1 Step 6E extract RBI leaf metadata | M33-G1 |
 
 | M33-G1-STEP-6E-F8 | 2026-09-17 | Correct RBI listing-to-leaf record discovery | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F8 | `supabase/functions/gpir-intelligence-fetch/index.ts` | RBI index pages discovery-only; detail records/PDF leaves eligible. | Request 19 zero writes; candidate not deployed. | RBI write canary remains unauthorized. | 2026-09-17 | M33-G1 Step 6E correct RBI leaf discovery | M33-G1 |

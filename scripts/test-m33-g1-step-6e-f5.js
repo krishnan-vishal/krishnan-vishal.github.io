@@ -8,9 +8,9 @@ const fixture = fs.readFileSync(path.join(root, "tests", "fixtures", "m33-g1-rbi
 assert.match(source, /function discoverRbiLinks/);
 assert.match(source, /function isRbiLeafRecordUrl/);
 assert.match(source, /function normalizeRbiUrl/);
-assert.match(source, /const heading = html\.match/);
+assert.match(source, /function extractRbiPressReleaseLeaf/);
 assert.match(source, /RBI_LISTING_OR_RSS/);
-assert.match(source, /LEAF_METADATA/);
+assert.match(source, /RBI_LEAF_RECORD/);
 assert.match(source, /if \(path\.endsWith\("\.pdf"\)\) return true/);
 assert.match(source, /notificationuser\\\.aspx\|pressreleasedisplay/);
 assert.match(source, /host === "rbi\.org\.in" \|\| host\.endsWith\("\.rbi\.org\.in"\)/);

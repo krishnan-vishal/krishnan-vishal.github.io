@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-F14 — RBI leaf content extraction candidate
+
+- **Status:** request 21 technical dry-run PASS / leaf-content quality HOLD / zero writes; official RBI leaf table-header/body extraction is static-tested and not deployed.
+- **Next:** owner deployment review, then a new RBI dry-run only; RBI write mode remains unauthorized.
+
 ### M33-G1 Step 6E-F11 — RBI leaf metadata candidate
 
 - **Status:** request 20 authorization/connectivity/leaf discovery PASS, metadata-quality HOLD, zero writes; non-deployed metadata correction is static-tested.

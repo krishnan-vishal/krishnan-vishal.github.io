@@ -1,5 +1,23 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-F14 — RBI leaf content extraction root-cause correction candidate
+
+Request 21 was a technical dry-run PASS (HTTP 200; four links discovered;
+three official RBI press-release leaf URLs selected; zero writes and zero fetch
+errors) but a **LEAF CONTENT QUALITY HOLD**. It is not a connectivity,
+authorization or discovery failure. The generic `Press Releases` title,
+UNKNOWN date and Gate-2 UNKNOWN/15 preview arose because the official leaf
+HTML uses a generic document title/H1: its record-specific title and date are
+the adjacent `tableheader` rows, with the article content in `tablecontent1`.
+
+The version-controlled RBI-only candidate now extracts that official record
+header/body structure before using the exact listing/RSS title fallback. It
+records the parsed leaf date as `RBI_LEAF_RECORD`; without an authoritative
+leaf or listing/RSS date it remains UNKNOWN. Generic RBI shell titles cannot
+override a record title, and no retrieval-time date is invented. SFA behavior,
+the two-source allowlist, page bound and all RAW-first/publication controls are
+unchanged. This candidate is not deployed; no RBI write canary is authorized.
+
 ## Status: STOPPED — source-selection and acquisition-path gate
 
 The requested canary cannot be prepared safely from the current repository
