@@ -285,6 +285,13 @@ function isRbiLeafRecordUrl(url: string): boolean {
   }
 }
 
+function normalizeRbiUrl(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.hostname.toLowerCase() === "www.rbi.org.in") parsed.hostname = "rbi.org.in";
+  parsed.hash = "";
+  return parsed.toString();
+}
+
 function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
   const results: DiscoveredItem[] = [];
   const seen = new Set<string>();
@@ -292,7 +299,7 @@ function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
     const url = absoluteUrl(href.trim(), baseUrl);
     const title = cleanText(rawTitle);
     if (!url || !title || !isOfficialRbiUrl(url) || !isRbiLeafRecordUrl(url) || !isRbiRegulatoryOrPaymentsTitle(title)) return;
-    const normalized = url.split("#")[0];
+    const normalized = normalizeRbiUrl(url);
     if (seen.has(normalized)) return;
     seen.add(normalized);
     const parsedDate = publishedAt ? new Date(publishedAt) : null;
@@ -321,6 +328,7 @@ function extractMeta(
   html: string,
   discoveredTitle: string,
   pageUrl: string,
+  isRbiLeaf = false,
 ) {
   const getMeta = (property: string): string | null => {
     const patterns = [
@@ -352,10 +360,13 @@ function extractMeta(
 
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
 
-  const title =
-    getMeta("og:title") ||
-    (titleMatch?.[1] ? cleanText(titleMatch[1]) : null) ||
-    discoveredTitle;
+  const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1];
+  const shellTitle = /^(press releases|notifications|master circulars)\s*\|\s*official website of reserve bank of india$/i;
+  const metaTitle = getMeta("og:title");
+  const pageTitle = titleMatch?.[1] ? cleanText(titleMatch[1]) : null;
+  const title = isRbiLeaf
+    ? (heading ? cleanText(heading) : (!shellTitle.test(metaTitle || "") ? metaTitle : null) || (!shellTitle.test(pageTitle || "") ? pageTitle : null) || discoveredTitle)
+    : (metaTitle || pageTitle || discoveredTitle);
 
   const description =
     getMeta("og:description") ||
@@ -438,6 +449,7 @@ function extractMeta(
     description: description ? cleanText(description) : null,
     canonicalUrl,
     sourcePublishedAt,
+    publicationDateSource: sourcePublishedAt ? (isRbiLeaf ? "LEAF_METADATA" : "ARTICLE_METADATA") : "UNKNOWN",
   };
 }
 
@@ -661,6 +673,7 @@ const source = sourceRows[0] as SourceRecord;
               pageHtml,
               item.title,
               pageResponse.url,
+              requestedSource === RBI_SOURCE_ID,
             );
     // M33-F5
     // Prefer article-page publication metadata.
@@ -800,9 +813,9 @@ if (gate1Decision === "PASS") {
 
               publication_date_source:
                 meta.sourcePublishedAt
-                  ? "ARTICLE_METADATA"
+                  ? meta.publicationDateSource
                   : item.indexPublishedAt
-                  ? "NEWS_INDEX"
+                  ? "RBI_LISTING_OR_RSS"
                   : "UNKNOWN",
 
               index_published_at:

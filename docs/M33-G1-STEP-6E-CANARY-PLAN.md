@@ -147,3 +147,14 @@ and other identifier-free navigation URLs as discovery-only. It accepts only
 official RBI leaf/detail identifiers and relevant regulatory PDFs, normalizes
 and deduplicates links, and carries RSS publication dates where supplied.
 This is not deployed; RBI write canary remains unauthorized.
+
+## Step 6E-F11 — RBI leaf metadata extraction candidate
+
+Request 20 confirmed leaf discovery PASS but metadata-quality HOLD: the three
+official press-release leaf URLs returned generic shell titles and unknown
+dates, with zero writes. The candidate keeps leaf discovery unchanged, prefers
+an RBI leaf heading over generic page-shell titles, uses the exact RSS/listing
+title as fallback, and records only authoritative leaf or listing/RSS dates.
+Equivalent `www.rbi.org.in` and `rbi.org.in` URLs normalize for deduplication.
+No date is inferred, fabricated or taken from retrieval time. It is not
+deployed and RBI write mode remains unauthorized.

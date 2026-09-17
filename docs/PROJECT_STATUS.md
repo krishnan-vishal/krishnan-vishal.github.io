@@ -2,6 +2,10 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-F11 — RBI leaf metadata candidate
+
+- **Status:** request 20 authorization/connectivity/leaf discovery PASS, metadata-quality HOLD, zero writes; non-deployed metadata correction is static-tested.
+
 ### M33-G1 Step 6E-F8 — RBI leaf-record discovery candidate
 
 - **Status:** request 19 technical/index discovery PASS, leaf-record discovery HOLD, zero writes; candidate correction is static-tested and not deployed.

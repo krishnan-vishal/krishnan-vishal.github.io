@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-F11 — RBI leaf metadata extraction
+
+- **Request 20:** authorization/connectivity/leaf discovery PASS, metadata-quality HOLD, zero writes; generic shell metadata was not a discovery failure.
+- **Candidate:** deterministic leaf heading, exact RSS/listing fallback, authoritative date provenance and RBI www/non-www normalization; no deployment, invocation, publication, Cron or source expansion occurred.
+
 ## M33-G1 Step 6E-F8 — RBI leaf-record discovery correction
 
 - **Request 19:** technical and authoritative-index discovery PASS, leaf-record discovery HOLD, zero writes; index pages were not treated as a parser failure.
