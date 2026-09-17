@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-F2 | 2026-09-17 | Authorize RBI controlled-canary source in Edge candidate | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F2 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Explicit SFA/RBI allowlist only. | Request 17 was expected 400/no-write safety block. | Not deployed; RBI unexecuted. | 2026-09-17 | M33-G1 Step 6E authorize RBI controlled canary | M33-G1 |
+
 | M33-G1-STEP-6E-E | 2026-09-17 | Close SFA Source-1 canary and prepare RBI Source-2 | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner RBI dry-run review | M33-G1 Step 6E-E | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | SFA canary passed after numeric(5,2) recovery. | RAW=3, candidates=3, handoffs=0, announcements=39. | RBI remains owner-only and unexecuted. | 2026-09-17 | M33-G1 Step 6E close SFA canary and prepare RBI | M33-G1 |
 
 | M33-G1-STEP-6E-D2 | 2026-09-17 | Correct confidence-score overflow without refetch | DATA, SECURITY | High | READY FOR OWNER APPLICATION | Owner applies transactional hotfix | M33-G1 Step 6E-D2 | `migrations/m33-g1/m33-g1-confidence-score-hotfix.sql` | Change numeric(5,4) to numeric(5,2). | Three RAW preserved; no publication drift. | Per-RAW recovery requires separate authorization. | 2026-09-17 | M33-G1 Step 6E fix confidence score overflow | M33-G1 |

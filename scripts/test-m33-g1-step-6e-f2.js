@@ -1,0 +1,15 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const source = fs.readFileSync(path.join(__dirname, "..", "supabase", "functions", "gpir-intelligence-fetch", "index.ts"), "utf8");
+assert.match(source, /const CONTROLLED_SOURCE_IDS = \[TEST_SOURCE_ID, RBI_SOURCE_ID\]/);
+assert.match(source, /const RBI_SOURCE_ID = "CB-APAC-010"/);
+assert.match(source, /source\.parser_profile !== "rbi-rss-profile"/);
+assert(!source.includes("FS-GLOBAL-003"), "Fintech Futures must not be authorized");
+assert.match(source, /SOURCE_NOT_ALLOWED_IN_M33_G1_6E/);
+assert.match(source, /MAX_PAGE_FETCHES = 3/);
+assert(!/\.from\("global_announcements"\)/.test(source), "publication write must remain absent");
+assert(!/gpir_create_canonical_handoff/.test(source), "handoff must remain absent");
+assert(!/cron\.job|pg_cron/.test(source), "Cron must remain absent");
+console.log("M33-G1 Step 6E-F2 source authorization: PASS (SFA/RBI only; FS/unknown blocked)");

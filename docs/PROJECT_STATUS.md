@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-F2 — RBI authorization candidate
+
+- **Status:** version-controlled two-source allowlist candidate prepared; request 17 was an expected no-write Source-1 safety block.
+- **Boundary:** SFA and RBI only; Fintech Futures remains unauthorized. No deployment or RBI invocation occurred.
+
 ### M33-G1 Step 6E-E — SFA canary closed; RBI procedure prepared
 
 - **Source-1:** SFA-APAC-001 PASSED after three preserved RAW records were recovered individually following the resolved numeric overflow defect. No publication boundary opened.

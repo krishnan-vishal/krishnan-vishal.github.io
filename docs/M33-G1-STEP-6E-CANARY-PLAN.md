@@ -114,3 +114,15 @@ then verify the single run, RAW-first lineage, processor results for only that
 run's new RAW IDs, handoffs=0, announcements=39 and ticker eligibility=false.
 No batch processor, handoff, publication, Cron or further source activation is
 authorized. RBI has not been executed.
+
+## Step 6E-F2 — Source-2 RBI authorization candidate
+
+Production request 17 returned HTTP 400 `SOURCE_NOT_ALLOWED_IN_M33_F4C` with
+zero database writes. This was an **expected safety block** from the deployed
+Source-1-only lock, not an RBI parser or Supabase failure.
+
+The version-controlled candidate replaces that stale message with the explicit
+M33-G1 6E allowlist: `SFA-APAC-001` and `CB-APAC-010` only. RBI remains
+registry-driven and must expose parser profile `rbi-rss-profile`; no RBI parser
+logic was added. `FS-GLOBAL-003` and all unknown sources remain blocked. This
+candidate is not deployed and no RBI invocation has occurred.

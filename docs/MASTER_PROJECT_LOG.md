@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-F2 — RBI controlled-canary authorization
+
+- **Request 17:** expected Source-1 lock safety block (HTTP 400, no writes), not an RBI parser failure.
+- **Candidate:** SFA-APAC-001 and CB-APAC-010 only; RBI is registry-driven with `rbi-rss-profile`. Fintech Futures and unknown sources remain blocked; no deployment or production invocation occurred.
+
 ## M33-G1 Step 6E-E — Source-1 SFA canary closure
 
 - **Status:** PASSED. SFA request 16 captured three RAW records; `numeric(5,4)` overflow was corrected via the verified `numeric(5,2)` hotfix and the existing RAW records were individually recovered.

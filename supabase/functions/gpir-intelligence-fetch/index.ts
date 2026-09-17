@@ -17,6 +17,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "jsr:@supabase/server@^1";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
+const RBI_SOURCE_ID = "CB-APAC-010";
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID] as const;
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
 
@@ -436,12 +438,12 @@ export default {
         // 2. Hard safety restriction
         // ----------------------------------------------------
 
-        if (requestedSource !== TEST_SOURCE_ID) {
+        if (!CONTROLLED_SOURCE_IDS.includes(requestedSource as typeof CONTROLLED_SOURCE_IDS[number])) {
           return Response.json(
             {
               ok: false,
-             error: "SOURCE_NOT_ALLOWED_IN_M33_F4C",
-              allowed_source: TEST_SOURCE_ID,
+              error: "SOURCE_NOT_ALLOWED_IN_M33_G1_6E",
+              allowed_sources: CONTROLLED_SOURCE_IDS,
             },
             { status: 400 },
           );
@@ -483,6 +485,9 @@ const source = sourceRows[0] as SourceRecord;
           throw new Error(
             `SOURCE_NOT_GREEN: ${source.source_status}`,
           );
+        }
+        if (requestedSource === RBI_SOURCE_ID && source.parser_profile !== "rbi-rss-profile") {
+          throw new Error(`RBI_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
 
         if (!dryRun) {
@@ -847,7 +852,7 @@ if (gate1Decision === "PASS") {
         return Response.json({
           ok: true,
 
-          milestone: "M33-F5",
+          milestone: "M33-G1-6E",
 
           mode:
             dryRun
@@ -913,7 +918,7 @@ if (gate1Decision === "PASS") {
         return Response.json(
           {
             ok: false,
-            milestone: "M33-F5",
+            milestone: "M33-G1-6E",
             error:
               error instanceof Error
                 ? error.message

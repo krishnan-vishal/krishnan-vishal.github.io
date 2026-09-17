@@ -7,7 +7,7 @@ const source = fs.readFileSync(path.join(__dirname, "..", "supabase", "functions
 
 const checks = [
   ["T6E-01", /if \(!dryRun\) \{[\s\S]*intelligence_ingestion_runs/],
-  ["T6E-02", /requestedSource !== TEST_SOURCE_ID/], ["T6E-03", /MAX_PAGE_FETCHES = 3/],
+  ["T6E-02", /CONTROLLED_SOURCE_IDS\.includes\(requestedSource/], ["T6E-03", /MAX_PAGE_FETCHES = 3/],
   ["T6E-04", /intelligence_ingestion_runs[\s\S]*intelligence_raw_ingestion/], ["T6E-05", /ingestion_run_id: runId/],
   ["T6E-06", /\.insert\(\{ \.\.\.rawRecord, ingestion_run_id: runId \}\)[\s\S]*gpir_process_raw_record/],
   ["T6E-07", /retain evidence before processor-owned Gate 1\/Gate 2/], ["T6E-08", /gpir_process_raw_record/],
