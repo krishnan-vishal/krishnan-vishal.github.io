@@ -4,6 +4,13 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6B — Isolated PostgreSQL execution and rollback proof
+
+- **Status:** COMPLETED on `work/m33-g1-global-intelligence-engine`.
+- **Evidence:** disposable GitHub Actions PostgreSQL 16 run `35177934369` passed the baseline, forward/repeat execution, metadata, T01–T35, routing, handoff/publication protection, RAW preservation, batch/security, rollback and repository validation.
+- **Boundary:** no Supabase, production credentials, `main`, protected production workflow, scraper, ticker/M30 data or deployment changed.
+- **Artifact:** `docs/M33-G1-STEP-6B-ISOLATED-POSTGRES-REPORT.md`; production application remains separately owner-controlled.
+
 ## Record conventions
 
 - Dates use `YYYY-MM-DD`.
