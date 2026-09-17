@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G1 — RBI canary closure and Fintech Futures preparation
+
+- **RBI Source-2:** PASSED. Request 22 was a zero-write HTTP 200 dry run with three genuine RBI leaf records and authoritative metadata; request 23 inserted three RAW records, which were individually processed to three candidates. Verified baseline: RAW=6, candidates=6, rejections=0, handoffs=0, announcements=39.
+- **Source-3 candidate:** `FS-GLOBAL-003` Fintech Futures is allowlisted only with SFA/RBI, remains registry-driven through its official payment-category discovery surface and requires `universal-finance`. Article fixtures prove official leaf selection, deduplication and metadata extraction; category/navigation/external links are excluded.
+- **Boundary:** no Supabase contact, deployment, invocation, dry-run=false execution, candidate processing, handoff, publication, announcement, ticker, Cron, workflow, PR or main change. Fintech Futures is prepared for owner dry-run only.
+
 ## M33-G1 Step 6E-F14 — RBI leaf content extraction root-cause correction
 
 - **Request 21:** technical dry-run PASS (HTTP 200, four discovered, three RBI leaf records selected, zero writes/errors) but LEAF CONTENT QUALITY HOLD. It is not an authorization, connectivity or discovery failure.

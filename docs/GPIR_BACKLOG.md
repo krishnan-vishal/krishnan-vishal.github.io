@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-G1 | 2026-09-17 | Close RBI canary and prepare Fintech Futures dry run | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner deployment and dry-run review | M33-G1 Step 6E-G1 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Controlled SFA/RBI/Fintech Futures allowlist; registry-driven official article discovery. | RBI PASSED: RAW=6, candidates=6, rejections/handoffs=0, announcements=39. | Fintech Futures is dry-run only; no invocation or write canary. | 2026-09-17 | M33-G1 Step 6E close RBI and authorize Fintech Futures dry-run | M33-G1 |
+
 | M33-G1-STEP-6E-F14 | 2026-09-17 | Correct RBI leaf-record content extraction | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F14 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Extract official RBI table-header title/date and table-content body; preserve listing fallback. | Request 21 technical pass, zero writes, leaf-content quality hold; candidate not deployed. | RBI write canary remains unauthorized. | 2026-09-17 | M33-G1 Step 6E fix RBI leaf content extraction | M33-G1 |
 
 | M33-G1-STEP-6E-F11 | 2026-09-17 | Extract record-specific RBI leaf metadata | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F11 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Prefer leaf heading/RSS title and authoritative dates. | Request 20 zero writes; candidate not deployed. | RBI write canary not authorized. | 2026-09-17 | M33-G1 Step 6E extract RBI leaf metadata | M33-G1 |

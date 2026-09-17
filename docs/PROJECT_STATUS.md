@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G1 — RBI closed; Fintech Futures dry-run candidate
+
+- **Source-2:** RBI PASSED: three RAW records processed individually to three candidates; baseline RAW=6, candidates=6, rejections/handoffs=0 and announcements=39.
+- **Source-3:** `FS-GLOBAL-003` / `universal-finance` is version-controlled for owner dry-run only. Its official payment category is discovery-only; no deployment, invocation or write canary is authorized.
+
 ### M33-G1 Step 6E-F14 — RBI leaf content extraction candidate
 
 - **Status:** request 21 technical dry-run PASS / leaf-content quality HOLD / zero writes; official RBI leaf table-header/body extraction is static-tested and not deployed.

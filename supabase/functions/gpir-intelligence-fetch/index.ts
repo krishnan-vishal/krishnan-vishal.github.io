@@ -18,7 +18,8 @@ import { withSupabase } from "jsr:@supabase/server@^1";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID] as const;
+const FINTECH_FUTURES_SOURCE_ID = "FS-GLOBAL-003";
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID] as const;
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
 
@@ -324,6 +325,57 @@ function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
   return results;
 }
 
+function isOfficialFintechFuturesUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "fintechfutures.com" || host === "www.fintechfutures.com";
+  } catch {
+    return false;
+  }
+}
+
+function normalizeFintechFuturesUrl(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.hostname.toLowerCase() === "www.fintechfutures.com") parsed.hostname = "fintechfutures.com";
+  parsed.hash = "";
+  return parsed.toString();
+}
+
+function isFintechFuturesArticleUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase().replace(/\/+$/, "");
+    if (!isOfficialFintechFuturesUrl(url) || !path) return false;
+    if (path === "/category/payment" || path === "/category/payments") return false;
+    return !/^\/(?:category|tag|author|page|advertise|about|contact)(?:\/|$)/.test(path) && !parsed.searchParams.has("paged");
+  } catch {
+    return false;
+  }
+}
+
+function isFintechFuturesRelevantTitle(title: string): boolean {
+  return /payment|cross-border|remittance|banking|card|wallet|real-time|stablecoin|digital asset|cbdc|digital rupee|fintech|infrastructure|settlement|regulation/i.test(title);
+}
+
+function discoverFintechFuturesLinks(html: string, baseUrl: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  const anchorRegex = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let anchor: RegExpExecArray | null;
+
+  while ((anchor = anchorRegex.exec(html)) !== null && results.length < MAX_DISCOVERED_LINKS) {
+    const url = absoluteUrl(anchor[1] || "", baseUrl);
+    const title = cleanText(anchor[2] || "");
+    if (!url || !title || !isFintechFuturesArticleUrl(url) || !isFintechFuturesRelevantTitle(title)) continue;
+    const normalized = normalizeFintechFuturesUrl(url);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    results.push({ title, url: normalized });
+  }
+
+  return results;
+}
+
 function extractRbiPressReleaseLeaf(html: string) {
   // RBI press-release leaf pages use a generic HTML title and H1. The record
   // header is instead the adjacent Date/title pair in the official tableheader
@@ -580,11 +632,14 @@ const source = sourceRows[0] as SourceRecord;
         if (requestedSource === RBI_SOURCE_ID && source.parser_profile !== "rbi-rss-profile") {
           throw new Error(`RBI_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
+        if (requestedSource === FINTECH_FUTURES_SOURCE_ID && source.parser_profile !== "universal-finance") {
+          throw new Error(`FINTECH_FUTURES_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
+        }
 
         if (!dryRun) {
           const { data: run, error: runError } = await ctx.supabaseAdmin
             .from("intelligence_ingestion_runs")
-            .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: TEST_SOURCE_ID, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES } })
+            .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: source.source_id, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES } })
             .select("id")
             .single();
           if (runError || !run) throw new Error(`RUN_CREATE_ERROR: ${runError?.message || "no run returned"}`);
@@ -634,6 +689,8 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverNewsLinks(indexHtml, indexResponse.url)
           : requestedSource === RBI_SOURCE_ID
           ? discoverRbiLinks(indexHtml, indexResponse.url)
+          : requestedSource === FINTECH_FUTURES_SOURCE_ID
+          ? discoverFintechFuturesLinks(indexHtml, indexResponse.url)
           : discoverLinks(indexHtml, indexResponse.url);
 
         const selected =

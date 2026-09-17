@@ -1,5 +1,31 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G1 — RBI canary closure and Fintech Futures dry-run candidate
+
+Owner-supplied request 22/23 and post-canary verification close Source-2
+`CB-APAC-010` (Reserve Bank of India) as **PASSED**. Request 22 was an HTTP
+200 write-free dry run: four discovered, three selected and three genuine leaf
+records with record-specific titles and `RBI_LEAF_RECORD` dates. Request 23
+was an HTTP 200 RAW-staging write: four discovered, three selected, three RAW
+inserted and zero fetch errors. Individual RAW processing yielded three RBI
+candidates (Payments/CANDIDATE/60, Regulation + FinTech/CANDIDATE/70, and
+Payments/CANDIDATE/60).
+
+The verified baseline after RBI is RAW=6, candidates=6, rejections=0,
+handoffs=0 and `global_announcements`=39. The candidate-to-handoff,
+publication, ticker and Cron boundaries remain closed.
+
+Source-3 `FS-GLOBAL-003` (Fintech Futures; GBR/Global; T2; GREEN;
+acquisition mode C; `universal-finance`) is prepared for an **owner dry-run
+only**. The registry’s official payment-category URL
+`https://fintechfutures.com/category/payment/` is discovery-only. The
+version-controlled candidate allowlists SFA, RBI and Fintech Futures only,
+requires the `universal-finance` profile, and selects deduplicated official
+payment/fintech article leaves while rejecting the category page, navigation,
+tag/archive, author, pagination, promotional and external links. It does not
+hard-code article URLs. No Fintech Futures invocation or write mode is
+authorized.
+
 ## Step 6E-F14 — RBI leaf content extraction root-cause correction candidate
 
 Request 21 was a technical dry-run PASS (HTTP 200; four links discovered;
