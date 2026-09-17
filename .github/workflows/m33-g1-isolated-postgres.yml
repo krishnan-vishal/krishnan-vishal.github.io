@@ -104,7 +104,30 @@ jobs:
 
       - name: Prove RAW preservation and processor publication boundary
         run: |
-          psql -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN BEGIN DELETE FROM public.intelligence_raw_ingestion; RAISE EXCEPTION 'RAW delete unexpectedly succeeded'; EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE 'M33-G1 RAW evidence%' THEN RAISE; END IF; END; END \$\$;"
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN;
+          INSERT INTO public.intelligence_raw_ingestion (
+              source_id, canonical_url, raw_title, raw_content, content_hash, ingestion_status
+          ) VALUES (
+              'm33-baseline-source', 'https://example.test/m33-step6b-raw-preservation',
+              'M33 Step 6B RAW preservation probe', 'test-only RAW evidence',
+              'm33-step6b-raw-preservation', 'RAW'
+          );
+          DO $$
+          BEGIN
+              BEGIN
+                  DELETE FROM public.intelligence_raw_ingestion
+                  WHERE canonical_url = 'https://example.test/m33-step6b-raw-preservation';
+                  RAISE EXCEPTION 'RAW delete unexpectedly succeeded';
+              EXCEPTION WHEN OTHERS THEN
+                  IF SQLERRM NOT LIKE 'M33-G1 RAW evidence%' THEN
+                      RAISE;
+                  END IF;
+              END;
+          END
+          $$;
+          ROLLBACK;
+          SQL
           psql -v ON_ERROR_STOP=1 -Atqc "SELECT CASE WHEN pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure) !~* 'global_announcements' AND pg_get_functiondef('public.gpir_process_raw_batch(integer)'::regprocedure) !~* 'global_announcements' THEN 'PROCESSOR_PUBLICATION_BOUNDARY: PASS' ELSE 'PROCESSOR_PUBLICATION_BOUNDARY: FAIL' END;"
 
       - name: Execute evidence-preserving rollback and inspect retained evidence
