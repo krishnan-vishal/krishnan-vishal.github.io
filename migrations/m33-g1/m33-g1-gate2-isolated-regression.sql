@@ -162,7 +162,17 @@ BEGIN
                     AND candidate_ticker = false
                 )
             ),
-            'processor result/state/category/freshness must match fixture contract'
+            pg_catalog.format(
+                'processor mismatch; expected result=%s state=%s category=%s freshness=%s; actual result=%s state=%s category=%s freshness=%s',
+                fixture.expected_result,
+                fixture.expected_raw_status,
+                coalesce(fixture.expected_category, '<none>'),
+                coalesce(fixture.expected_freshness, '<none>'),
+                coalesce(result, '<NULL>'),
+                coalesce(raw_status, '<NULL>'),
+                coalesce(candidate_category, '<none>'),
+                coalesce(candidate_freshness, '<none>')
+            )
         );
     END LOOP;
 END
