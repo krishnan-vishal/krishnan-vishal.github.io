@@ -96,7 +96,7 @@ INSERT INTO m33_processing_cases VALUES
     ('T03', 'Home', 'https://example.test/t03', NULL, 'm33-t03', 'REJECT:GATE1:NAVIGATION_OR_STRUCTURAL', 'REJECTED', NULL, NULL, NULL),
     ('T04', 'Central bank payments notice', 'not-a-url', NULL, 'm33-t04', 'REJECT:GATE1:INVALID_URL', 'REJECTED', NULL, NULL, NULL),
     ('T05', 'Office cafeteria menu for Friday', 'https://example.test/t05', NULL, 'm33-t05', 'REJECT:GATE2:LOW_INTELLIGENCE_SCORE', 'REJECTED', NULL, NULL, NULL),
-    ('T06', 'National instant payments system expands merchant settlement', 'https://example.test/t06', pg_catalog.now(), 'm33-t06', 'CANDIDATE', 'PROCESSED', 'PENDING', 'PAYMENTS', 'RECENT'),
+    ('T06', 'National instant payments system expands merchant settlement', 'https://example.test/t06', pg_catalog.now(), 'm33-t06', 'CANDIDATE', 'PROCESSED', 'PENDING', 'RTP_A2A', 'RECENT'),
     ('T07', 'Regulator issues payment institution licensing rules', 'https://example.test/t07', pg_catalog.now(), 'm33-t07', 'CANDIDATE', 'PROCESSED', 'PENDING', 'REGULATION', 'RECENT'),
     ('T08', 'Stablecoin settlement framework opens consultation', 'https://example.test/t08', pg_catalog.now(), 'm33-t08', 'CANDIDATE', 'PROCESSED', 'PENDING', 'STABLECOINS_DIGITAL_ASSETS', 'RECENT'),
     ('T09', 'Open banking service adds real-time account-to-account payments', 'https://example.test/t09', pg_catalog.now(), 'm33-t09', 'CANDIDATE', 'PROCESSED', 'PENDING', 'RTP_A2A', 'RECENT'),
