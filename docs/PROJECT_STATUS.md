@@ -2,6 +2,11 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-G11 — three-source production canary passed
+
+- **Result:** SFA, RBI and PYMNTS each passed the RAW-first production canary. Verified totals are RAW=9, candidates=9, rejections=0, handoffs=0 and announcements=39; publication/ticker/Cron remain closed.
+- **Next gate:** the non-activating [unattended orchestration plan](M33-G1-UNATTENDED-ORCHESTRATION-GATE.md) recommends Supabase-native scheduling of the existing Edge Function only after scheduler, secure-invocation and atomic-overlap preflight. No schedule is active or authorized by this milestone.
+
 ### M33-G1 Step 6E-G10 — PYMNTS final onboarding artifact ready
 
 - **Status:** final owner-executable, transactional/idempotent SQL is static-validated and ready for controlled `source_registry` onboarding only.

@@ -4,6 +4,12 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-G11 — three-source canary closure and orchestration gate
+
+- **Production result:** THREE-SOURCE PRODUCTION CANARY = PASSED. SFA, RBI and PYMNTS each produced three RAW records represented in candidates. Final owner-verified counts: RAW=9, candidates=9, rejections=0, canonical handoffs=0 and announcements=39. PYMNTS request 25 was HTTP 200/zero-write dry run; request 26 was HTTP 200/three-RAW staging write. REVIEW persistence is recorded only as observed; no Gate2 semantics changed.
+- **Boundary proof:** association, regulatory and media classes each established source → acquisition → RAW → processor → candidate. Handoff/publication stay closed, ticker unchanged, Cron absent; Fintech Futures remains GREEN/trusted but acquisition-blocked/runtime-blocked. Trust and acquisition eligibility remain separate.
+- **Next gate:** `docs/M33-G1-UNATTENDED-ORCHESTRATION-GATE.md` is non-activating. It recommends Supabase-native scheduled invocation of the existing Edge Function only after cloud scheduler/secure-invocation/RLS preflight and atomic per-source overlap protection. No scheduler/deployment/invocation, candidate processing, handoff, publication, announcement, ticker, Cron, PR or main action occurred in G11.
+
 ## M33-G1 Step 6E-G10 — final PYMNTS source-registry onboarding artifact
 
 - **Classification resolved:** owner-provided first-party evidence identifies PYMNTS.com’s subsidiary relationship and What’s Next Media & Analytics LLC. `country_iso3='USA'` is the owner-verified organizational/home-jurisdiction classification; `country='Global'` retains the source’s worldwide content scope and is not a US coverage restriction. `region_tags` is NULL by production convention.

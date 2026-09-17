@@ -1,5 +1,32 @@
 # M33-G1 Step 6E Controlled Three-Source Canary Plan
 
+## Step 6E-G11 — three-source production canary closed
+
+**THREE-SOURCE PRODUCTION CANARY = PASSED.** Owner-supplied production evidence
+records Source-1 SFA (RAW=3/candidates represented=3), Source-2 RBI
+(RAW=3/candidates represented=3) and Source-3 PYMNTS (RAW=3/candidates
+represented=3) as passed. PYMNTS request 25 was an HTTP 200 zero-write dry run
+(10 discovered, 3 selected, zero fetch errors; one CANDIDATE/65 and one
+REVIEW/55 preview). Request 26 was an HTTP 200 RAW-staging write (10
+discovered, 3 selected, 3 RAW inserted, zero duplicates and zero fetch errors).
+
+Final verified counts: RAW=9, candidates=9, rejections=0, canonical
+handoffs=0 and `global_announcements`=39. Observed fact only: all nine RAW
+records are represented in `intelligence_candidates` while the rejection count
+remains zero. This milestone does not reinterpret REVIEW persistence or alter
+Gate1/Gate2 thresholds/semantics.
+
+The association, regulatory and media acquisition classes now each prove
+SOURCE → acquisition → RAW → processor → candidate. Candidate-to-handoff and
+handoff-to-publication remain closed; ticker is unchanged and Cron is absent.
+Fintech Futures remains GREEN/trusted but `ACQUISITION_BLOCKED` and runtime
+blocked. PYMNTS remains T3 and acquisition-eligible, illustrating that trust
+eligibility and acquisition eligibility are separate controls.
+
+The non-activating next-gate plan is
+`docs/M33-G1-UNATTENDED-ORCHESTRATION-GATE.md`. No scheduler, deployment,
+invocation, candidate processing, handoff or publication is authorized by G11.
+
 ## Step 6E-G10 — final PYMNTS source-registry onboarding artifact
 
 Owner-supplied first-party evidence resolves the G9 jurisdiction gate:
