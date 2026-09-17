@@ -40,6 +40,11 @@ jobs:
       - name: Check out the exact branch revision
         uses: actions/checkout@v4
 
+      - name: Install disposable PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
       - name: Record isolated PostgreSQL version
         run: psql -v ON_ERROR_STOP=1 -Atqc 'SELECT version();'
 
