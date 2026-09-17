@@ -258,6 +258,49 @@ function discoverNewsLinks(
   return results;
 }
 
+function isOfficialRbiUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "rbi.org.in" || host.endsWith(".rbi.org.in");
+  } catch {
+    return false;
+  }
+}
+
+function isRbiRegulatoryOrPaymentsTitle(title: string): boolean {
+  return /notification|circular|press release|payment|settlement|digital rupee|cbdc|upi|prepaid|card|licen[cs]|authori[sz]|kyc|aml|cross-border|remittance|fintech|payment system/i.test(title);
+}
+
+function discoverRbiLinks(html: string, baseUrl: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  const add = (rawTitle: string, href: string) => {
+    const url = absoluteUrl(href.trim(), baseUrl);
+    const title = cleanText(rawTitle);
+    if (!url || !title || !isOfficialRbiUrl(url) || !isRbiRegulatoryOrPaymentsTitle(title)) return;
+    const normalized = url.split("#")[0];
+    if (seen.has(normalized)) return;
+    seen.add(normalized);
+    results.push({ title, url: normalized });
+  };
+
+  // Official RSS/current-listing items are preferred over generic navigation.
+  const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+  let item: RegExpExecArray | null;
+  while ((item = itemRegex.exec(html)) !== null && results.length < MAX_DISCOVERED_LINKS) {
+    const body = item[1] || "";
+    const title = (body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    const href = (body.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || body.match(/<link\b[^>]*href=["']([^"']+)["']/i)?.[1] || "").replace(/<!\[CDATA\[|\]\]>/g, "");
+    add(title, href);
+  }
+
+  // Stable official HTML listing fallback, still excluding generic/promotional links.
+  const anchorRegex = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let anchor: RegExpExecArray | null;
+  while ((anchor = anchorRegex.exec(html)) !== null && results.length < MAX_DISCOVERED_LINKS) add(anchor[2] || "", anchor[1] || "");
+  return results;
+}
+
 function extractMeta(
   html: string,
   discoveredTitle: string,
@@ -539,9 +582,10 @@ const source = sourceRows[0] as SourceRecord;
         // 5. Discover likely intelligence links
         // ----------------------------------------------------
 
-        const discovered =
-          requestedSource === TEST_SOURCE_ID
+        const discovered = requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
+          : requestedSource === RBI_SOURCE_ID
+          ? discoverRbiLinks(indexHtml, indexResponse.url)
           : discoverLinks(indexHtml, indexResponse.url);
 
         const selected =

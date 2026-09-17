@@ -126,3 +126,14 @@ M33-G1 6E allowlist: `SFA-APAC-001` and `CB-APAC-010` only. RBI remains
 registry-driven and must expose parser profile `rbi-rss-profile`; no RBI parser
 logic was added. `FS-GLOBAL-003` and all unknown sources remain blocked. This
 candidate is not deployed and no RBI invocation has occurred.
+
+## Step 6E-F5 — RBI discovery quality correction candidate
+
+Request 18 was an RBI authorization/connectivity/technical dry-run PASS (HTTP
+200, 4 links, 3 selected, zero writes) but a **DISCOVERY QUALITY HOLD**: generic
+homepage PDFs dominated selection. The version-controlled `rbi-rss-profile`
+candidate now parses official RBI RSS/listing items, admits only `rbi.org.in`
+or `rbidocs.rbi.org.in` regulatory/payment-relevant links, deduplicates them,
+and excludes generic/promotional and external links. Relevant regulatory PDFs
+remain eligible. SFA behavior and all canary/publication controls are
+unchanged. It is not deployed; no further RBI invocation occurred.

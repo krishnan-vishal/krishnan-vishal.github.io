@@ -1,0 +1,17 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const root = path.join(__dirname, "..");
+const source = fs.readFileSync(path.join(root, "supabase", "functions", "gpir-intelligence-fetch", "index.ts"), "utf8");
+const fixture = fs.readFileSync(path.join(root, "tests", "fixtures", "m33-g1-rbi-discovery.html"), "utf8");
+assert.match(source, /function discoverRbiLinks/);
+assert.match(source, /host === "rbi\.org\.in" \|\| host\.endsWith\("\.rbi\.org\.in"\)/);
+assert.match(source, /notification\|circular\|press release\|payment/);
+assert.match(source, /requestedSource === RBI_SOURCE_ID[\s\S]*discoverRbiLinks/);
+assert.match(source, /MAX_PAGE_FETCHES = 3/);
+assert(!/\.from\("global_announcements"\)/.test(source));
+assert(fixture.includes("Digital Payment Security Controls"));
+assert(fixture.includes("Cross-border Remittance Authorisation"));
+assert(!/Your Money, Your Right.*payment/i.test(fixture));
+console.log("M33-G1 Step 6E-F5 RBI discovery: PASS (official regulatory fixture/static contract)");

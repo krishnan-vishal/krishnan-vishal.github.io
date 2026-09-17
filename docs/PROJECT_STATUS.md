@@ -2,6 +2,10 @@
 
 ## Current handoff
 
+### M33-G1 Step 6E-F5 — RBI discovery quality candidate
+
+- **Status:** request 18 technical PASS / discovery-quality HOLD / zero writes; a non-deployed official-RBI discovery candidate is static-tested.
+
 ### M33-G1 Step 6E-F2 — RBI authorization candidate
 
 - **Status:** version-controlled two-source allowlist candidate prepared; request 17 was an expected no-write Source-1 safety block.

@@ -4,6 +4,11 @@ Permanent chronological record of repository development prompts and verified
 outcomes. Entries are append-only. Where the repository does not contain a
 reliable prompt-level record, that fact is stated rather than inferred.
 
+## M33-G1 Step 6E-F5 — RBI discovery quality correction
+
+- **Request 18:** authorization/connectivity/technical dry-run PASS, discovery-quality HOLD, zero writes; generic homepage PDFs were not accepted as a parser failure.
+- **Candidate:** official RBI RSS/listing parser filters regulatory/payment material, generic links and external domains; no deployment, invocation, publication, Cron or source expansion occurred.
+
 ## M33-G1 Step 6E-F2 — RBI controlled-canary authorization
 
 - **Request 17:** expected Source-1 lock safety block (HTTP 400, no writes), not an RBI parser failure.

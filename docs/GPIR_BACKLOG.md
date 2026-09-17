@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M33-G1 Global Intelligence Engine boundary
 
+| M33-G1-STEP-6E-F5 | 2026-09-17 | Improve RBI official regulatory discovery profile | DATA, SECURITY | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F5 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Prefer official RBI regulatory/payment listings over generic documents. | Request 18 had zero writes; candidate not deployed. | RBI write canary remains prohibited. | 2026-09-17 | M33-G1 Step 6E improve RBI discovery profile | M33-G1 |
+
 | M33-G1-STEP-6E-F2 | 2026-09-17 | Authorize RBI controlled-canary source in Edge candidate | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner deployment review | M33-G1 Step 6E-F2 | `supabase/functions/gpir-intelligence-fetch/index.ts` | Explicit SFA/RBI allowlist only. | Request 17 was expected 400/no-write safety block. | Not deployed; RBI unexecuted. | 2026-09-17 | M33-G1 Step 6E authorize RBI controlled canary | M33-G1 |
 
 | M33-G1-STEP-6E-E | 2026-09-17 | Close SFA Source-1 canary and prepare RBI Source-2 | DATA, SECURITY, GOVERNANCE | High | COMPLETED | Owner RBI dry-run review | M33-G1 Step 6E-E | `docs/M33-G1-STEP-6E-CANARY-PLAN.md` | SFA canary passed after numeric(5,2) recovery. | RAW=3, candidates=3, handoffs=0, announcements=39. | RBI remains owner-only and unexecuted. | 2026-09-17 | M33-G1 Step 6E close SFA canary and prepare RBI | M33-G1 |
