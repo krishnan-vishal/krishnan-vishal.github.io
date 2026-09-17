@@ -1,0 +1,81 @@
+name: M33-G1 Isolated PostgreSQL Step 6B
+
+on:
+  push:
+    branches: [work/m33-g1-global-intelligence-engine]
+    paths:
+      - 'migrations/m33-g1/**'
+      - 'scripts/test-m33-g1-step-6a.js'
+      - 'tests/fixtures/m33-g1-regression-cases.json'
+      - '.github/workflows/m33-g1-isolated-postgres.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-postgres:
+    name: Disposable PostgreSQL 16 behavioral proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: m33_g1_isolated
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: m33_test_only_not_a_secret
+        options: >-
+          --health-cmd "pg_isready -U postgres -d m33_g1_isolated"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: m33_g1_isolated
+      PGUSER: postgres
+      PGPASSWORD: m33_test_only_not_a_secret
+    steps:
+      - name: Check out the exact branch revision
+        uses: actions/checkout@v4
+
+      - name: Record isolated PostgreSQL version
+        run: psql -v ON_ERROR_STOP=1 -Atqc 'SELECT version();'
+
+      - name: Build documented pre-Step-6A test baseline and prove it
+        run: psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-pre-step6a-isolated-baseline.sql
+
+      - name: Apply forward package and inspect the approved repeat execution
+        run: |
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging.sql
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging.sql
+          psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT column_default FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'global_announcements' AND column_name = 'ticker_eligible';"
+          psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT title, ticker_eligible, publication_status, canonical_url FROM public.global_announcements ORDER BY canonical_url;"
+          psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT conname, contype, convalidated FROM pg_constraint WHERE conname LIKE 'fk_m33_%' OR conname LIKE 'ck_m33_%' ORDER BY conname;"
+          psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT routine_name, security_type FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name LIKE 'gpir_%' ORDER BY routine_name;"
+
+      - name: Execute behavioral proof T01 through T35 in a rollback-only transaction
+        run: psql -v ON_ERROR_STOP=1 -c "SET m33_g1.isolated_test = 'on';" -f migrations/m33-g1/m33-g1-gate2-isolated-regression.sql
+
+      - name: Prove RAW preservation and processor publication boundary
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN BEGIN DELETE FROM public.intelligence_raw_ingestion; RAISE EXCEPTION 'RAW delete unexpectedly succeeded'; EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE 'M33-G1 RAW evidence%' THEN RAISE; END IF; END; END \$\$;"
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT CASE WHEN pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure) !~* 'global_announcements' AND pg_get_functiondef('public.gpir_process_raw_batch(integer)'::regprocedure) !~* 'global_announcements' THEN 'PROCESSOR_PUBLICATION_BOUNDARY: PASS' ELSE 'PROCESSOR_PUBLICATION_BOUNDARY: FAIL' END;"
+
+      - name: Execute evidence-preserving rollback and inspect retained evidence
+        run: |
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging-rollback.sql
+          psql -v ON_ERROR_STOP=1 -P pager=off -c "SELECT title, ticker_eligible, publication_status, canonical_url FROM public.global_announcements ORDER BY canonical_url;"
+          psql -v ON_ERROR_STOP=1 -Atqc "SELECT CASE WHEN pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure) LIKE '%M33_G1_ROLLBACK_DISABLED%' THEN 'ROLLBACK_PROCESSOR: PASS' ELSE 'ROLLBACK_PROCESSOR: FAIL' END;"
+
+      - name: Run static package and repository boundary validation
+        run: |
+          node scripts/validate-m33-g1-boundary.js
+          node scripts/validate-m33-g1-data-contract.js
+          node scripts/test-m33-g1-step-6a.js
+          node scripts/validate-content.js
+          node scripts/validate-announcements.js
+          node scripts/test-announcement-intent.js
+          node scripts/test-production-announcement-pipeline.js
+          node scripts/validate-links.js
