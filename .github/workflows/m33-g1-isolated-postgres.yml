@@ -137,12 +137,28 @@ jobs:
           psql -v ON_ERROR_STOP=1 -Atqc "SELECT CASE WHEN pg_get_functiondef('public.gpir_process_raw_record(uuid)'::regprocedure) LIKE '%M33_G1_ROLLBACK_DISABLED%' THEN 'ROLLBACK_PROCESSOR: PASS' ELSE 'ROLLBACK_PROCESSOR: FAIL' END;"
 
       - name: Run static package and repository boundary validation
+        id: static_validation
+        continue-on-error: true
         run: |
-          node scripts/validate-m33-g1-boundary.js
-          node scripts/validate-m33-g1-data-contract.js
-          node scripts/test-m33-g1-step-6a.js
-          node scripts/validate-content.js
-          node scripts/validate-announcements.js
-          node scripts/test-announcement-intent.js
-          node scripts/test-production-announcement-pipeline.js
-          node scripts/validate-links.js
+          set -e -o pipefail
+          {
+            node scripts/validate-m33-g1-boundary.js
+            node scripts/validate-m33-g1-data-contract.js
+            node scripts/test-m33-g1-step-6a.js
+            node scripts/validate-content.js
+            node scripts/validate-announcements.js
+            node scripts/test-announcement-intent.js
+            node scripts/test-production-announcement-pipeline.js
+            node scripts/validate-links.js
+          } 2>&1 | tee /tmp/m33-static-validation.log
+
+      - name: Report static validation failure
+        if: steps.static_validation.outcome == 'failure'
+        run: |
+          cat /tmp/m33-static-validation.log
+          m33_error_line=$(grep -m 1 -E 'Error:|error:|FAIL|failed:' /tmp/m33-static-validation.log | tr '\n' ' ' || true)
+          if [ -z "$m33_error_line" ]; then
+            m33_error_line=$(tail -n 10 /tmp/m33-static-validation.log | tr '\n' ' ')
+          fi
+          echo "::error title=M33 isolated static validation failure::$m33_error_line"
+          exit 1
