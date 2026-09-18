@@ -2,6 +2,18 @@
 
 ## Current handoff
 
+### M33-G1 Step 7C — least-privilege orchestration package finalized
+
+- **Result:** the non-deployed claim migration now grants the two fixed `SECURITY DEFINER` RPCs only to the Edge Function's demonstrated `service_role` database role; `PUBLIC`, `anon` and `authenticated` execution is explicitly revoked, direct claim-table access is absent, RLS remains enabled, `search_path=pg_catalog`, and application objects are qualified. Existing GPIR grants are unchanged.
+- **Artifacts:** the scheduler is bound to the owner-verified production endpoint and resolves `gpir_edge_function_secret` only at runtime, with zero HTTP call when the secret is absent. The three independent jobs remain unexecuted at 05/25/45 UTC; the emergency artifact remains M33-only. A SELECT-only post-migration verification query covers schema, RLS, RPC properties/grants, Cron absence and the fixed production baseline without exposing Vault values.
+- **Validation / boundary:** SFA, RBI, PYMNTS, authorization, RAW-first/dedupe, lease/overlap/release, boundary, data-contract, Step 6A/6E/7A, scheduler, emergency-disable, content/link/announcement, JavaScript syntax, secret-scan and whitespace checks pass locally. Deno and live PostgreSQL behavior were not executed. No Supabase connection, migration, deployment, invocation, Cron, scheduler activation, candidate processing, handoff, publication, announcement or ticker change occurred.
+- **Next:** owner executes the claim migration, runs the read-only verification, deploys the claim-aware Edge Function and performs manual normal/overlap/boundary checks. Scheduler activation is a later, separate owner decision only after all safety checks pass.
+
+### M33-G1 Step 7B — owner cloud preflight passed
+
+- **Evidence:** endpoint `https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-intelligence-fetch`; `pg_cron` 1.6.4, `pg_net` 0.20.4 and `supabase_vault` 0.3.1 present; `gpir_edge_function_secret` present with value unexposed; no existing M33/intelligence Cron jobs, claim functions or claim tables.
+- **Boundary:** broad EXECUTE grants observed on existing GPIR functions are recorded but deliberately unchanged. Production baseline remains RAW=9, candidates=9, rejections=0, handoffs=0 and announcements=39; Cron absent and publication/ticker/handoff closed.
+
 ### M33-G1 Step 7A — orchestration safety layer prepared
 
 - **Result:** version-controlled, non-deployed per-source finite claim/release protection is prepared in the existing Edge Function path before run creation and external fetch. Same-source write overlap returns `SKIPPED_OVERLAP`; different sources remain independent; crash recovery is bounded by a 900-second requested lease (60–1800 second database bound). No real run is fabricated for an overlap skip.

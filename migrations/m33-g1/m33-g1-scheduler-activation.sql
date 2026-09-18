@@ -1,24 +1,21 @@
--- M33-G1 Step 7A owner-only scheduler activation artifact. DO NOT RUN YET.
--- Preconditions: Step 7A claim migration applied; owner verifies pg_cron,
--- pg_net, Vault access, least-privilege EXECUTE grants and the existing Edge
--- Function endpoint. This file creates no new ingestion engine.
---
--- Replace the one deliberately guarded non-secret value below with the
--- verified existing production endpoint before controlled activation.
+-- M33-G1 Step 7C owner-only scheduler activation artifact. DO NOT RUN YET.
+-- Preconditions: claim migration applied; claim-aware Edge Function deployed;
+-- manual normal/overlap/boundary verification passed; owner separately approves
+-- scheduler activation. This file creates no new ingestion engine.
 
 BEGIN;
 
 DO $m33_scheduler$
 DECLARE
-    edge_function_url text := '__OWNER_VERIFIED_EDGE_FUNCTION_URL__';
+    edge_function_url constant text := 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-intelligence-fetch';
     source_record record;
     job_command text;
 BEGIN
-    IF edge_function_url = '__OWNER_VERIFIED_EDGE_FUNCTION_URL__' THEN
-        RAISE EXCEPTION 'M33-G1 scheduler activation requires the owner-verified existing Edge Function URL';
-    END IF;
-
-    PERFORM 1 FROM vault.decrypted_secrets WHERE name = 'gpir_edge_function_secret';
+    PERFORM 1
+      FROM vault.decrypted_secrets
+     WHERE name = 'gpir_edge_function_secret'
+       AND decrypted_secret IS NOT NULL
+       AND decrypted_secret <> '';
     IF NOT FOUND THEN
         RAISE EXCEPTION 'M33-G1 scheduler activation requires Vault secret gpir_edge_function_secret';
     END IF;
@@ -47,14 +44,15 @@ SELECT net.http_post(
     url := %L,
     headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer ' || (
-            SELECT decrypted_secret
-              FROM vault.decrypted_secrets
-             WHERE name = 'gpir_edge_function_secret'
-        )
+        'apikey', secret.decrypted_secret,
+        'Authorization', 'Bearer ' || secret.decrypted_secret
     ),
     body := jsonb_build_object('source_id', %L, 'dry_run', false)
-);
+)
+FROM vault.decrypted_secrets AS secret
+WHERE secret.name = 'gpir_edge_function_secret'
+  AND secret.decrypted_secret IS NOT NULL
+  AND secret.decrypted_secret <> '';
 $command$,
             edge_function_url,
             source_record.source_id

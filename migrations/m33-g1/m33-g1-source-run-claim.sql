@@ -1,5 +1,5 @@
--- M33-G1 Step 7A source-run overlap safety layer.
--- PREPARED ONLY: do not apply without owner-approved Supabase preflight.
+-- M33-G1 Step 7C source-run overlap safety layer.
+-- PREPARED ONLY: do not apply without owner-approved deployment.
 -- This is deliberately independent of ingestion evidence and never deletes it.
 
 BEGIN;
@@ -109,11 +109,20 @@ BEGIN
 END
 $function$;
 
--- No guessed application role is granted execution. The owner must grant only
--- the verified Edge service role during the separately approved cloud preflight.
-REVOKE ALL ON TABLE public.intelligence_source_run_claims FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.gpir_claim_intelligence_source_run(text, uuid, integer) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.gpir_release_intelligence_source_run(text, uuid) FROM PUBLIC;
+-- ctx.supabaseAdmin is the @supabase/server administrative client and executes
+-- PostgREST RPCs as service_role. SECURITY DEFINER is intentionally retained so
+-- that service_role receives only the two RPC capabilities and no direct claim-
+-- table capability. The function owner (normally postgres when applied by the
+-- owner in Supabase SQL Editor) retains its inherent administrative privileges.
+REVOKE ALL ON TABLE public.intelligence_source_run_claims FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.gpir_claim_intelligence_source_run(text, uuid, integer)
+    FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.gpir_release_intelligence_source_run(text, uuid)
+    FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.gpir_claim_intelligence_source_run(text, uuid, integer)
+    TO service_role;
+GRANT EXECUTE ON FUNCTION public.gpir_release_intelligence_source_run(text, uuid)
+    TO service_role;
 
 COMMENT ON TABLE public.intelligence_source_run_claims IS
     'M33-G1 finite per-source Edge execution leases; preserves overlap observability, not ingestion evidence.';

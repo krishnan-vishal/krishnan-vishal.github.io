@@ -1,50 +1,88 @@
-# M33-G1 Step 7A — orchestration safety preparation
+# M33-G1 Steps 7A–7C — least-privilege orchestration safety
 
 ## Status
 
-**PREPARED, NOT DEPLOYED OR ACTIVATED.** Step 6E is closed and passed for the
-three controlled sources. Owner-verified production remains RAW=9,
-candidates=9, rejections=0, handoffs=0 and announcements=39. This milestone
-does not connect to Supabase, execute SQL, deploy the Edge Function, invoke a
-source, activate a schedule, or change production data.
+**STEP 7B CLOUD PREFLIGHT PASSED; STEP 7C PACKAGE FINALIZED, NOT DEPLOYED OR
+ACTIVATED.** The owner verified the production endpoint, required extensions,
+Vault-secret presence and absence of existing M33 Cron/claim objects. This
+milestone does not connect to Supabase, execute SQL, deploy the Edge Function,
+invoke a source, activate a schedule, process candidates, create handoffs,
+publish, or change production data.
+
+Owner-verified production remains RAW=9, candidates=9, rejections=0, handoffs=0
+and announcements=39. Cron is absent; ticker, publication and handoff remain
+closed.
+
+## Step 7B owner cloud preflight
+
+| Check | Verified result |
+| --- | --- |
+| Edge Function endpoint | `https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-intelligence-fetch` |
+| `pg_cron` | 1.6.4 / PASS |
+| `pg_net` | 0.20.4 / PASS |
+| `supabase_vault` | 0.3.1 / PASS |
+| Vault secret | `gpir_edge_function_secret` present; value not exposed |
+| Existing M33 / intelligence Cron jobs | none |
+| Existing source/run claim functions | none |
+| Existing source/run/ingestion claim tables | none |
+
+Production inspection also found broad grants on some existing GPIR functions,
+including `gpir_process_raw_record` and `gpir_process_raw_batch`. Step 7C does
+not change those proven legacy permissions. Their review belongs to a separate
+security milestone.
 
 ## Atomic per-source overlap protection
 
 `m33-g1-source-run-claim.sql` adds one finite lease per `source_id` in
 `public.intelligence_source_run_claims` and two narrowly scoped RPCs. The
 existing Edge Function claims a source before it creates a run or fetches an
-external page. A second write-mode invocation for that same source returns the
-controlled `SKIPPED_OVERLAP` / `SOURCE_RUN_ALREADY_ACTIVE` outcome: no fetch,
-RAW, processor, candidate, handoff or publication work occurs. Different
-source IDs have independent leases.
+external page. A second write-mode invocation for that same source returns
+`SKIPPED_OVERLAP` / `SOURCE_RUN_ALREADY_ACTIVE`: no fetch, RAW insert,
+processor, candidate, handoff or publication work occurs. Different source IDs
+have independent leases.
 
-The claim mutation is serialized by a transaction-scoped PostgreSQL advisory
-lock plus a row lock. A session advisory lock alone is unsuitable here: the
-Edge Function's PostgREST/RPC calls use separate pooled database requests, so
-it cannot demonstrably retain one database session while external acquisition
-and later RPCs execute. The finite persistent lease is therefore the smallest
-reliable mechanism that spans the lifecycle. It is released in the Edge
-Function `finally` path after normal completion or failure; only the matching
-token can release it. A 60–1800 second bounded expiry (runtime request: 900)
-reclaims crash/timeout leases, so a source cannot be permanently stranded.
+The mutation is serialized by a transaction-scoped PostgreSQL advisory lock
+plus a row lock. A session advisory lock alone is unsuitable because the Edge
+Function's PostgREST/RPC operations may use separate pooled requests. The
+finite persistent lease spans external acquisition and later RPCs. The Edge
+Function releases it in `finally` after normal completion or failure, and only
+the matching token can release it. A 60–1800 second bounded expiry (runtime
+request: 900 seconds) reclaims crash/timeout leases and prevents permanent
+source starvation.
 
-The claim row retains `last_overlap_at` and `overlap_skipped_count`, making a
-skipped overlap observable without inventing a successful ingestion run or
-changing normal `intelligence_ingestion_runs` statistics. Existing run rows
-continue to record real `RUNNING`/`SUCCESS`/`PARTIAL`/`FAILED` work.
+`last_overlap_at` and `overlap_skipped_count` retain overlap observability
+without inventing an ingestion run. Real work continues to use existing
+`RUNNING`/`SUCCESS`/`PARTIAL`/`FAILED` run records.
 
-RLS stays enabled on the claim table. `PUBLIC` has no table or RPC access.
-Because the repository has no authoritative production application-role grant
-evidence, this artifact deliberately does not guess a grant; the owner must
-grant RPC execution only to the verified Edge service role during cloud
-preflight.
+Dry runs intentionally do not acquire the production claim. They preserve the
+existing fetch/parse/assessment-only contract and create no run, RAW record or
+processor work. The claim protects the state-changing write path, while dry-run
+semantics remain unchanged.
+
+## Least-privilege claim security
+
+The checked-in Edge Function uses `withSupabase({ auth: ["secret"] })` and
+calls the RPCs through `ctx.supabaseAdmin`. The `@supabase/server` contract
+defines that administrative client as the RLS-bypassing `service_role` client;
+Supabase secret keys also map database access to `service_role`. Therefore the
+minimum runtime database role is `service_role`, not `anon` or `authenticated`.
+
+Both claim RPCs are `SECURITY DEFINER` with `SET search_path = pg_catalog` and
+fully qualified application-object references. This is justified because it
+allows the Edge runtime only the two fixed claim operations without granting
+direct table access or arbitrary SQL capability. The table has RLS enabled and
+no runtime table grant. The migration explicitly revokes table/RPC access from
+`PUBLIC`, `anon`, `authenticated` and any prior `service_role` grant, then grants
+only RPC `EXECUTE` to `service_role`. The function owner (normally `postgres`
+under owner SQL-editor execution) retains inherent administration rights.
 
 ## Prepared scheduler and disable procedure
 
-`m33-g1-scheduler-activation.sql` is an owner-only, transaction-safe
-activation artifact for the existing `gpir-intelligence-fetch` endpoint. It
-does not create a second ingestion engine. It rechecks each named source is
-GREEN with `poll_minutes=60`, then schedules independent write-mode calls:
+`m33-g1-scheduler-activation.sql` is a separately executable owner-only
+activation artifact for the verified existing endpoint. It does not create a
+second ingestion engine and must not be run as part of claim-layer deployment.
+It rechecks each named source is GREEN with `poll_minutes=60`, then prepares
+independent write-mode calls:
 
 | Job | UTC minute | Source |
 | --- | ---: | --- |
@@ -52,35 +90,55 @@ GREEN with `poll_minutes=60`, then schedules independent write-mode calls:
 | `m33-g1-rbi-ingestion` | 25 | `CB-APAC-010` |
 | `m33-g1-pymnts-ingestion` | 45 | `PYMNTS-GLOBAL-004` |
 
-It uses `gpir_edge_function_secret` from `vault.decrypted_secrets` at job
-runtime. No secret appears in repository SQL or gets interpolated into the
-stored cron command. The exact existing production Edge endpoint is not
-present in repository evidence, so the artifact has a guarded
-`__OWNER_VERIFIED_EDGE_FUNCTION_URL__` placeholder and fails closed until the
-owner supplies the exact endpoint at the separately authorized activation.
-That is an activation preflight, not a local or production operation in Step
-7A. Re-application unschedules and recreates only the three named M33 jobs.
+Every job uses `dry_run=false` and resolves `gpir_edge_function_secret` from
+`vault.decrypted_secrets` at execution time. It sends the credential through
+the server-to-server `apikey` header and the existing bearer path, without
+storing the secret in repository SQL or in the generated Cron command. A
+missing/null/empty Vault value yields no `net.http_post` call. Each job has its
+own name and can be disabled independently; the emergency artifact disables
+all three named M33 jobs only.
 
-`m33-g1-scheduler-emergency-disable.sql` unschedules only those three named
-jobs. Claim rollback is separate in `m33-g1-source-run-claim-rollback.sql` and
-must occur only after schedules are disabled and no lease is active. Neither
-artifact deletes or alters sources, RAW, candidates, runs, handoffs,
-announcements or ticker data.
+`m33-g1-scheduler-emergency-disable.sql` never deletes or changes sources, RAW,
+candidates, run history, handoffs, announcements, ticker data, the Edge secret,
+or any non-M33 job. Claim rollback is separately isolated in
+`m33-g1-source-run-claim-rollback.sql` and may run only after all schedules are
+disabled and no lease is active.
+
+## Owner post-migration verification
+
+`m33-g1-step-7c-post-migration-verification.sql` is SELECT-only and reveals no
+Vault value. After the claim migration, it proves table/RLS presence, exact RPC
+signatures, function owner, `SECURITY DEFINER`, explicit search path, effective
+role privileges, direct table grants, absence of the three M33 Cron jobs and
+unchanged RAW/candidate/rejection/handoff/announcement baseline counts.
+
+Expected permission result: `PUBLIC=false`, `anon=false`,
+`authenticated=false`, `service_role=true`; direct runtime table privileges are
+absent.
+
+## Owner deployment order
+
+1. Execute only `m33-g1-source-run-claim.sql` as the database owner.
+2. Run the SELECT-only post-migration verification and stop on any mismatch.
+3. Deploy the checked-in claim-aware `gpir-intelligence-fetch` Edge Function.
+4. Manually verify one normal controlled-source write invocation.
+5. Manually prove same-source overlap returns the controlled zero-work result.
+6. Verify different-source independence if it can be tested safely.
+7. Recheck RAW/candidate counts and publication, handoff, ticker and source
+   boundaries.
+8. Only after every prior check passes may the scheduler become eligible for a
+   separate owner-approved activation. Do not combine activation with safety-
+   layer deployment.
 
 ## Preserved boundaries
 
 The controlled runtime allowlist remains SFA, RBI and PYMNTS. Fintech Futures
 (`FS-GLOBAL-003`) and unknown sources remain blocked. RAW-first, run lineage,
-individual RAW processing, deduplication, `MAX_PAGE_FETCHES=3`, Gate1/Gate2
-and candidate semantics are unchanged. No batch processor, canonical handoff,
+individual RAW processing, deduplication, `MAX_PAGE_FETCHES=3`, Gate1/Gate2 and
+candidate semantics are unchanged. No batch processor, canonical handoff,
 publication, `global_announcements` write path, ticker action or Cron creation
 exists in the Edge Function.
 
-## Static proof
-
-`node scripts/test-m33-g1-step-7a.js` statically proves the authorization,
-claim-before-fetch ordering, same-source skip, different-source keying, finite
-stale recovery, `finally` release, RAW-first/publication boundaries, job
-cadence, Vault use, no hardcoded secret, idempotent job replacement and
-M33-only emergency disable scope. It does not activate a scheduler or contact
-Supabase.
+Local static/runtime-contract validation does not activate the scheduler or
+contact Supabase. Local Deno absence remains a known environment limitation,
+not a new architecture blocker.
