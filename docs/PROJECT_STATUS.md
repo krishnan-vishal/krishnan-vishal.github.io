@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### M34-A Gate 1 — authentication and subscriber-access architecture complete
+
+- **Owner / branch / base:** Vishal Krishnan; `work/m34-a-gpir-authentication-layer`; exact approved `origin/main` base `e516fe4304b468445f1dfc67e6c1568eb08b1932`.
+- **Milestone result:** read-only repository discovery and the implementation-ready authentication, consent, TOTP/AAL2, roles/entitlements, RLS, optional encrypted phone, privacy-request, delayed-invitation, protected-content, callback, test and rollback design are recorded in `docs/M34-A-GATE-1-AUTHENTICATION-ARCHITECTURE.md`.
+- **Critical boundary:** every tracked GitHub Pages artifact is public. Registered-only payloads must remain outside `pages/`, public JSON, sitemap, search indexes and fallbacks, and be served only after database-enforced AAL2/role checks. Existing database-to-`innerHTML` rendering and the static-host session/header limitation must be resolved before auth activation.
+- **Validation:** content, 104-file link, announcement, intent, 29-check production-pipeline, high-confidence secret-pattern and whitespace checks pass. The performance audit reports four pre-existing advisory warnings and no M34 artifact regression.
+- **Production/M33 impact:** none. No auth route, signup, sign-in, migration, Edge Function, database action, secret, CAPTCHA, DNS, workflow activation, deployment, merge, M33 file or production surface changed.
+- **Next gate:** owner review. Gate 2 may be separately authorized for isolated, feature-flagged implementation and tests only. Public registration remains prohibited until the report's security, legal, RLS/AAL2, protected-artifact and rollback stop conditions pass.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.
