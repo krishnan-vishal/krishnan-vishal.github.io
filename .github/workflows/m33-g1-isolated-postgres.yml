@@ -75,6 +75,14 @@ jobs:
           echo "::error title=M33 isolated baseline SQL failure::$m33_error_line"
           exit 1
 
+      - name: Execute Step 7F.1 claim RPC runtime and hotfix proof
+        run: |
+          psql -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;'
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-source-run-claim.sql
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-step-7f1-claim-rpc-hotfix.sql
+          psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-step-7f1-claim-rpc-hotfix.sql
+          psql -v ON_ERROR_STOP=1 -c "SET m33_g1.isolated_test = 'on';" -f migrations/m33-g1/m33-g1-step-7f1-claim-rpc-isolated-regression.sql
+
       - name: Apply forward package and inspect the approved repeat execution
         run: |
           psql -v ON_ERROR_STOP=1 -f migrations/m33-g1/m33-g1-gate2-staging.sql
@@ -155,6 +163,7 @@ jobs:
             node scripts/validate-m33-g1-boundary.js
             node scripts/validate-m33-g1-data-contract.js
             node scripts/test-m33-g1-step-6a.js
+            node scripts/test-m33-g1-step-7a.js
             node scripts/validate-content.js
             node scripts/validate-announcements.js
             node scripts/test-announcement-intent.js

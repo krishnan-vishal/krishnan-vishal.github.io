@@ -41,7 +41,9 @@ BEGIN
         RAISE EXCEPTION 'M33-G1 source claim requires source_id and claim_token';
     END IF;
 
-    bounded_ttl := pg_catalog.least(1800, pg_catalog.greatest(60, coalesce(p_ttl_seconds, 900)));
+    -- GREATEST and LEAST are conditional expressions, not schema-resolved
+    -- functions; unqualified syntax is required and does not use search_path.
+    bounded_ttl := least(1800, greatest(60, coalesce(p_ttl_seconds, 900)));
     lease_expires_at := pg_catalog.clock_timestamp() + pg_catalog.make_interval(secs => bounded_ttl);
 
     -- The transaction-scoped advisory lock is used only to serialize the

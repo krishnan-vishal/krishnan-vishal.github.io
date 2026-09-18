@@ -12,6 +12,9 @@ const rollbackSql = read("migrations", "m33-g1", "m33-g1-source-run-claim-rollba
 const schedulerSql = read("migrations", "m33-g1", "m33-g1-scheduler-activation.sql");
 const disableSql = read("migrations", "m33-g1", "m33-g1-scheduler-emergency-disable.sql");
 const verificationSql = read("migrations", "m33-g1", "m33-g1-step-7c-post-migration-verification.sql");
+const claimHotfixSql = read("migrations", "m33-g1", "m33-g1-step-7f1-claim-rpc-hotfix.sql");
+const claimHotfixVerificationSql = read("migrations", "m33-g1", "m33-g1-step-7f1-claim-rpc-hotfix-verification.sql");
+const claimRuntimeRegressionSql = read("migrations", "m33-g1", "m33-g1-step-7f1-claim-rpc-isolated-regression.sql");
 
 // Controlled source policy and existing acquisition/publication boundaries.
 assert.match(edge, /CONTROLLED_SOURCE_IDS = \[TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID\]/);
@@ -44,7 +47,8 @@ assert.match(claimSql, /FOR UPDATE/);
 assert.match(claimSql, /existing_claim\.expires_at <= pg_catalog\.clock_timestamp\(\)/);
 assert.match(claimSql, /overlap_skipped_count = claim\.overlap_skipped_count \+ 1/);
 assert.match(claimSql, /WHERE source_id = p_source_id\s+AND claim_token = p_claim_token/);
-assert.match(claimSql, /least\(1800, pg_catalog\.greatest\(60/);
+assert.match(claimSql, /bounded_ttl := least\(1800, greatest\(60, coalesce\(p_ttl_seconds, 900\)\)\)/);
+assert(!/pg_catalog\.(?:greatest|least|coalesce|nullif)\s*\(/i.test(claimSql));
 assert.match(claimSql, /ENABLE ROW LEVEL SECURITY/);
 assert.match(claimSql, /REVOKE ALL ON FUNCTION public\.gpir_claim_intelligence_source_run/);
 assert.match(claimSql, /SET search_path = pg_catalog/g);
@@ -100,4 +104,37 @@ assert.match(verificationSql, /'Candidates', 9::bigint/);
 assert.match(verificationSql, /'Global announcements', 39::bigint/);
 assert(!/decrypted_secret|vault\.decrypted_secrets/.test(verificationSql));
 
-console.log("M33-G1 Step 7C orchestration safety: PASS (least privilege, overlap, scheduler, disable and verification contracts)");
+// Step 7F.1 repairs only the claim function and reasserts its existing grants.
+// GREATEST/LEAST are PostgreSQL conditional expressions and must never be
+// schema-qualified. The production verifier remains read-only, while the
+// isolated harness exercises default/min/max TTL, overlap and matching release.
+assert.match(claimHotfixSql, /^BEGIN;/m);
+assert.match(claimHotfixSql, /CREATE OR REPLACE FUNCTION public\.gpir_claim_intelligence_source_run\(/);
+assert.match(claimHotfixSql, /bounded_ttl := least\(1800, greatest\(60, coalesce\(p_ttl_seconds, 900\)\)\)/);
+assert(!/pg_catalog\.(?:greatest|least|coalesce|nullif)\s*\(/i.test(claimHotfixSql));
+assert.match(claimHotfixSql, /SECURITY DEFINER[\s\S]*SET search_path = pg_catalog/);
+assert.match(claimHotfixSql, /pg_advisory_xact_lock[\s\S]*FOR UPDATE/);
+assert.match(claimHotfixSql, /overlap_skipped_count = claim\.overlap_skipped_count \+ 1/);
+assert.match(claimHotfixSql, /REVOKE ALL ON FUNCTION public\.gpir_claim_intelligence_source_run\(text, uuid, integer\)[\s\S]*FROM PUBLIC, anon, authenticated, service_role/);
+assert.match(claimHotfixSql, /GRANT EXECUTE ON FUNCTION public\.gpir_claim_intelligence_source_run\(text, uuid, integer\)[\s\S]*TO service_role/);
+assert(!/CREATE TABLE|DROP TABLE|ALTER TABLE/i.test(claimHotfixSql));
+assert(!/intelligence_raw_ingestion|intelligence_candidates|intelligence_rejection_log|intelligence_canonical_handoffs|global_announcements|cron\./i.test(claimHotfixSql));
+
+assert(!/\b(?:INSERT|UPDATE|DELETE|ALTER|CREATE|DROP|GRANT|REVOKE|CALL|DO)\b/i.test(
+  claimHotfixVerificationSql.replace(/^\s*--.*$/gm, ""),
+));
+assert.match(claimHotfixVerificationSql, /invalid_greatest_qualification_absent/);
+assert.match(claimHotfixVerificationSql, /invalid_least_qualification_absent/);
+assert.match(claimHotfixVerificationSql, /'Global announcements', 77::bigint/);
+assert(!/decrypted_secret|vault\.decrypted_secrets/.test(claimHotfixVerificationSql));
+
+assert.match(claimRuntimeRegressionSql, /current_setting\('m33_g1\.isolated_test'/);
+assert.match(claimRuntimeRegressionSql, /token_default[\s\S]*ttl_seconds < 895/);
+assert.match(claimRuntimeRegressionSql, /token_minimum[\s\S]*ttl_seconds < 55/);
+assert.match(claimRuntimeRegressionSql, /token_maximum[\s\S]*ttl_seconds < 1795/);
+assert.match(claimRuntimeRegressionSql, /overlap_skipped_count <> 1/);
+assert.match(claimRuntimeRegressionSql, /Non-owner token unexpectedly released active claim/);
+assert.match(claimRuntimeRegressionSql, /Invalid conditional-expression qualification remains/);
+assert.match(claimRuntimeRegressionSql, /ROLLBACK;/);
+
+console.log("M33-G1 Step 7F.1 orchestration safety: PASS (claim runtime hotfix, least privilege, overlap, scheduler, disable and verification contracts)");

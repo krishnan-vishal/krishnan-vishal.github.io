@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### M33-G1 Step 7F.1 — claim RPC runtime hotfix prepared
+
+- **Root cause:** the deployed claim RPC qualified PostgreSQL conditional expressions as `pg_catalog.greatest` / `pg_catalog.least`. PostgreSQL does not resolve `GREATEST` or `LEAST` as ordinary schema functions, so the first owner claim attempt failed with `42883` before acquiring a lease or invoking the Edge Function.
+- **Repair:** the source migration now uses unqualified `least(1800, greatest(60, coalesce(..., 900)))`. A transaction-safe owner hotfix replaces only the claim RPC and reasserts its existing service-role-only EXECUTE grant; a SELECT-only production verifier and an isolated runtime regression cover syntax, TTL bounds/default, overlap, matching-token release, RLS and grants.
+- **Boundary:** production was not contacted or changed by this repository milestone. The owner reports scheduler OFF, legacy writer disabled, Edge deployed, failed claim attempt with no Edge invocation, and protected baseline RAW=9/candidates=9/rejections=0/handoffs=0/announcements=77. Owner applies only the hotfix artifact, runs verification, then repeats the deterministic claim proof; scheduler activation remains prohibited.
+
 ### M33-G1 Step 7C — least-privilege orchestration package finalized
 
 - **Result:** the non-deployed claim migration now grants the two fixed `SECURITY DEFINER` RPCs only to the Edge Function's demonstrated `service_role` database role; `PUBLIC`, `anon` and `authenticated` execution is explicitly revoked, direct claim-table access is absent, RLS remains enabled, `search_path=pg_catalog`, and application objects are qualified. Existing GPIR grants are unchanged.

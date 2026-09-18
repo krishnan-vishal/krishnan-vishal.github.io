@@ -1,17 +1,39 @@
-# M33-G1 Steps 7A–7C — least-privilege orchestration safety
+# M33-G1 Steps 7A–7F.1 — least-privilege orchestration safety
 
 ## Status
 
-**STEP 7B CLOUD PREFLIGHT PASSED; STEP 7C PACKAGE FINALIZED, NOT DEPLOYED OR
-ACTIVATED.** The owner verified the production endpoint, required extensions,
-Vault-secret presence and absence of existing M33 Cron/claim objects. This
-milestone does not connect to Supabase, execute SQL, deploy the Edge Function,
-invoke a source, activate a schedule, process candidates, create handoffs,
-publish, or change production data.
+**STEP 7F.1 CLAIM RPC HOTFIX PREPARED; NOT APPLIED.** The owner deployed the
+Step 7C claim layer and claim-aware Edge Function, kept Verify JWT on, disabled
+the legacy writer and left the M33 scheduler off. Request 27 proved the deployed
+dry-run path is write-free. The first direct claim test then failed closed with
+PostgreSQL `42883` before a lease was acquired or the Edge Function invoked.
 
 Owner-verified production remains RAW=9, candidates=9, rejections=0, handoffs=0
-and announcements=39. Cron is absent; ticker, publication and handoff remain
-closed.
+and announcements=77. Cron remains absent; publication and handoff remain
+closed. This repository hotfix does not connect to production, execute SQL,
+deploy, invoke a source or activate a schedule.
+
+## Step 7F.1 claim RPC runtime repair
+
+The failure is limited to `pg_catalog.greatest(...)` and
+`pg_catalog.least(...)`. PostgreSQL parses `GREATEST` and `LEAST` as conditional
+expressions, not ordinary functions, so they cannot be schema-qualified. Using
+unqualified `least(1800, greatest(60, coalesce(p_ttl_seconds, 900)))` is required
+syntax and does not consult `search_path`; it therefore does not weaken the
+function's hardened `search_path=pg_catalog` object-resolution boundary.
+
+The forward migration is corrected, and the owner hotfix replaces only
+`public.gpir_claim_intelligence_source_run(text,uuid,integer)` in a transaction.
+The exact signature/default, TTL bounds, advisory and row locks, finite expiry,
+overlap counters, matching-token release function, RLS, `SECURITY DEFINER`,
+qualified application objects and role grants remain unchanged. The hotfix
+re-revokes `PUBLIC`, `anon`, `authenticated` and prior `service_role` access,
+then grants only EXECUTE to `service_role`; the owner retains inherent access.
+
+The original static test mistakenly required the invalid qualification, while
+the disposable PostgreSQL workflow never executed the Step 7 claim migration.
+Coverage now rejects both invalid forms and runs the migration/hotfix plus TTL,
+overlap, token-release, RLS and permission behavior against isolated PostgreSQL.
 
 ## Step 7B owner cloud preflight
 
