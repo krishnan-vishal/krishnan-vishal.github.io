@@ -8,8 +8,9 @@
 - **Working branch:** `work/m34-a-gpir-authentication-layer`
 - **Approved base:** `origin/main`
 - **Base / starting SHA:** `e516fe4304b468445f1dfc67e6c1568eb08b1932`
-- **Ending SHA:** recorded by the Git handoff after this report is committed; a
-  commit cannot contain its own SHA
+- **Gate 1 milestone SHA:** `d523a63f891aa630541e256ea549458d1861acaa`
+- **Ending branch SHA:** the later control checkpoint that records the milestone
+  SHA is reported by the final Git handoff
 - **Status:** GATE 1 DESIGN COMPLETE; GATE 2 REQUIRES OWNER APPROVAL
 
 This is a read-only discovery and implementation-planning milestone. It creates
