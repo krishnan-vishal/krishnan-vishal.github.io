@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gpir.org/schemas/m35/migration-record.schema.json",
+  "title": "GPIR migration interchange record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "gpirPublicationId", "identityStatus", "referencedPublicationIds", "family", "provenance", "canonicalUrlCandidate", "publication", "editorialNarrative", "executiveSummary", "structuredIntelligence", "tableCandidates", "assetReferences", "assetStatus", "sourceNotes", "lineage", "targets", "migrationStatus", "validationStatus", "exceptions"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "gpirPublicationId": { "type": "string", "pattern": "^VK-GPIR?-[A-Z0-9]+(-[A-Z0-9]+)+$" },
+    "identityStatus": { "enum": ["verified", "mapped", "provisional"] },
+    "referencedPublicationIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^VK-GPIR?-[A-Z0-9]+(-[A-Z0-9]+)+$" } },
+    "family": { "enum": ["country", "regional-directory", "research-publication", "research-chapter", "other"] },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sourcePath", "sourceUrl", "sourceHash", "sourceReferences"],
+      "properties": {
+        "sourcePath": { "type": "string" },
+        "sourceUrl": { "type": ["string", "null"] },
+        "sourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sourceReferences": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "canonicalUrlCandidate": { "type": ["string", "null"] },
+    "publication": {
+      "type": "object", "additionalProperties": false,
+      "required": ["title", "slug", "type", "status", "region", "countryMarket", "directionScope", "useCase", "publicationDate", "dataCutoffDate"],
+      "properties": {
+        "title": { "type": "string" }, "slug": { "type": "string" },
+        "type": { "type": ["string", "null"] }, "status": { "type": ["string", "null"] },
+        "region": { "type": ["string", "null"] }, "countryMarket": { "type": ["string", "null"] },
+        "directionScope": { "type": ["string", "null"] }, "useCase": { "type": ["string", "null"] },
+        "publicationDate": { "description": "Explicit publication-level date only; null when undated. Related-object, cutoff, period, file and commit dates are excluded.", "type": ["string", "null"] }, "dataCutoffDate": { "type": ["string", "null"] }
+      }
+    },
+    "editorialNarrative": { "type": "array", "items": { "type": "string" } },
+    "executiveSummary": { "type": ["string", "null"] },
+    "structuredIntelligence": { "type": "array", "items": { "$ref": "#/$defs/candidate" } },
+    "tableCandidates": { "type": "array", "items": { "$ref": "#/$defs/tableCandidate" } },
+    "assetReferences": { "type": "array", "items": { "type": "string" } },
+    "assetStatus": { "type": "array", "items": { "type": "object", "required": ["reference", "status"], "properties": { "reference": { "type": "string" }, "status": { "enum": ["missing", "unverified"] } } } },
+    "sourceNotes": { "type": "array", "items": { "type": "string" } },
+    "lineage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["editionId", "editionLabel", "version", "previousEditionId", "state"],
+      "properties": {
+        "editionId": { "type": ["string", "null"] }, "editionLabel": { "description": "Authored or source-evidenced publication edition only; null without governed evidence.", "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] }, "previousEditionId": { "type": ["string", "null"] },
+        "state": { "enum": ["current", "historical"] }
+      }
+    },
+    "targets": { "type": "array", "uniqueItems": true, "items": { "enum": ["A", "B", "C", "D", "E", "F"] } },
+    "migrationStatus": { "const": "extracted" },
+    "validationStatus": { "enum": ["PASS", "WARN", "FAIL"] },
+    "exceptions": {
+      "type": "object", "additionalProperties": false, "required": ["warnings", "errors"],
+      "properties": {
+        "warnings": { "type": "array", "items": { "$ref": "#/$defs/exception" } },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/exception" } }
+      }
+    }
+  },
+  "$defs": {
+    "reviewState": {
+      "type": "object", "required": ["dataNature", "reviewRequired", "reviewReason"],
+      "properties": {
+        "dataNature": { "enum": ["observed", "forecast", "incomplete", "unknown"] },
+        "reviewRequired": { "type": "boolean" },
+        "reviewReason": { "type": ["string", "null"] }
+      }
+    },
+    "tableCandidate": {
+      "allOf": [
+        { "$ref": "#/$defs/reviewState" },
+        { "type": "object", "required": ["index", "text", "rows", "rowReview"],
+          "properties": {
+            "index": { "type": "integer" }, "text": { "type": "string" },
+            "rows": { "type": "array", "items": { "type": "array", "items": { "type": "string" } } },
+            "rowReview": { "type": "array", "items": { "$ref": "#/$defs/reviewState" } }
+          }
+        }
+      ]
+    },
+    "candidate": {
+      "allOf": [
+        { "$ref": "#/$defs/reviewState" },
+        { "type": "object", "required": ["kind"], "properties": { "kind": { "enum": ["table", "market-status", "supplied"] } } },
+        { "if": { "properties": { "kind": { "const": "table" } } }, "then": { "$ref": "#/$defs/tableCandidate" } },
+        { "if": { "properties": { "kind": { "const": "market-status" } } },
+          "then": { "required": ["market", "status", "href"],
+            "properties": { "market": { "type": "string" }, "status": { "enum": ["Active", "Coming Soon"] }, "href": { "type": ["string", "null"] } } } }
+      ]
+    },
+    "exception": {
+      "type": "object", "additionalProperties": false, "required": ["code", "message"],
+      "properties": { "code": { "type": "string" }, "message": { "type": "string" } }
+    }
+  }
+}

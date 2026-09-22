@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gpir.org/schemas/m35/contentful-draft.schema.json",
+  "title": "GPIR Contentful dry-run draft interchange",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "contentType", "technicalState", "fields", "mediaAssociations", "migrationWarnings", "mappingGaps", "reviewRequired", "publishEligible", "sourceRecordIdentity"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "contentType": { "const": "GPIR Publication" },
+    "technicalState": { "const": "Draft" },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpirPublicationId", "publicationTitle", "slug", "publicationType", "publicationStatus", "region", "countryMarket", "directionScope", "useCasePaymentCategory", "publicationDate", "dataCutOffDate", "executiveSummary", "editorialBody", "dashboardAsset", "sourceValidationSummary", "legacySourceUrl", "canonicalUrlCandidate", "editionLineageId", "editionLabel", "supabaseRecordId", "migrationStatus", "validationStatus"],
+      "properties": {
+        "gpirPublicationId": { "type": ["string", "null"] },
+        "publicationTitle": { "type": ["string", "null"] },
+        "slug": { "type": ["string", "null"] },
+        "publicationType": { "type": ["string", "null"] },
+        "publicationStatus": { "type": ["string", "null"] },
+        "region": { "type": ["string", "null"] },
+        "countryMarket": { "type": ["string", "null"] },
+        "directionScope": { "type": ["string", "null"] },
+        "useCasePaymentCategory": { "type": ["string", "null"] },
+        "publicationDate": { "description": "Optional for genuinely undated legacy Drafts; null in dry-run mapping and omitted from the Contentful API payload.", "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "dataCutOffDate": { "description": "Live Contentful field; mapped from normalized publication.dataCutoffDate only when an exact date is evidenced.", "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "executiveSummary": { "type": ["string", "null"] },
+        "editorialBody": { "$ref": "#/$defs/richText" },
+        "dashboardAsset": { "type": "null" },
+        "sourceValidationSummary": { "type": "string" },
+        "legacySourceUrl": { "type": ["string", "null"] },
+        "canonicalUrlCandidate": { "type": ["string", "null"] },
+        "editionLineageId": { "type": ["string", "null"] },
+        "editionLabel": { "description": "Optional for legacy Drafts without governed edition evidence; null in dry-run mapping and omitted from the Contentful API payload.", "type": ["string", "null"] },
+        "supabaseRecordId": { "description": "UUID primary key public.gpir_identity_publications.id; never a GPIR public ID, dashboard ID, source key, or Contentful entry ID.", "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" },
+        "migrationStatus": { "const": "Dry Run Prepared" },
+        "validationStatus": { "enum": ["PASS", "WARN", "FAIL"] }
+      }
+    },
+    "mediaAssociations": { "type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reference", "relatedPublicationIds", "status", "uploadPlanned"],
+      "properties": {
+        "reference": { "type": "string" },
+        "relatedPublicationIds": { "type": "array", "items": { "type": "string" } },
+        "status": { "enum": ["unresolved-missing", "unresolved-reference"] },
+        "uploadPlanned": { "const": false }
+      }
+    } },
+    "migrationWarnings": { "type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "warningClass", "affectedField", "reason", "reviewer"],
+      "properties": {
+        "code": { "type": "string" }, "warningClass": { "enum": ["W1", "W2", "W3", "W4", "W5", "W7"] },
+        "affectedField": { "type": "string" }, "reason": { "type": "string" }, "reviewer": { "type": "string" }
+      }
+    } },
+    "mappingGaps": { "type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["field", "reason", "authority"],
+      "properties": { "field": { "type": "string" }, "reason": { "type": "string" }, "authority": { "type": "string" } }
+    } },
+    "reviewRequired": { "type": "boolean" },
+    "publishEligible": { "const": false },
+    "sourceRecordIdentity": { "type": "object", "additionalProperties": false,
+      "required": ["sourcePath", "sourceHash", "identityStatus", "provisionalId", "referencedPublicationIds", "dataPeriod", "version"],
+      "properties": {
+        "sourcePath": { "type": ["string", "null"] },
+        "sourceHash": { "type": ["string", "null"] },
+        "identityStatus": { "enum": ["verified", "mapped", "provisional"] },
+        "provisionalId": { "type": ["string", "null"] },
+        "referencedPublicationIds": { "type": "array", "items": { "type": "string" } },
+        "dataPeriod": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "$defs": {
+    "richText": { "type": "object", "additionalProperties": false,
+      "required": ["nodeType", "data", "content"],
+      "properties": {
+        "nodeType": { "const": "document" },
+        "data": { "type": "object" },
+        "content": { "type": "array", "items": { "type": "object", "required": ["nodeType", "data", "content"],
+          "properties": {
+            "nodeType": { "const": "paragraph" }, "data": { "type": "object" },
+            "content": { "type": "array", "items": { "type": "object", "required": ["nodeType", "value", "marks", "data"],
+              "properties": { "nodeType": { "const": "text" }, "value": { "type": "string" }, "marks": { "type": "array" }, "data": { "type": "object" } }
+            } }
+          }
+        } }
+      }
+    }
+  }
+}

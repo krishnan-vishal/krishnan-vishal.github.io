@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gpir.org/schemas/m35/identity-record.schema.json",
+  "title": "GPIR local identity resolution result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "normalizedRecord", "TEST_IDENTITY_ONLY", "NOT_FOR_CONTENTFUL_WRITE", "NOT_FOR_SUPABASE_PERSISTENCE", "contentfulEligible"],
+  "properties": {
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sourceUnitKey", "gpirPublicationId", "editionLineageId", "publicationType", "sourceLegacyPath", "sourceHash", "sourceNativeIds", "relatedObjectIds", "assignmentMethod", "assignmentTimestamp", "identityStatus", "collisionState", "testIdentityOnly", "lineageBasisKey", "previousPublicationId", "reason"],
+      "properties": {
+        "sourceUnitKey": { "type": ["string", "null"] },
+        "gpirPublicationId": { "type": ["string", "null"] },
+        "editionLineageId": { "type": ["string", "null"] },
+        "publicationType": { "type": ["string", "null"] },
+        "sourceLegacyPath": { "type": ["string", "null"] },
+        "sourceHash": { "type": ["string", "null"] },
+        "sourceNativeIds": { "type": "array", "items": { "type": "string" } },
+        "relatedObjectIds": { "type": "array", "items": {
+          "type": "object", "additionalProperties": false,
+          "required": ["type", "value", "evidence"],
+          "properties": { "type": { "type": "string" }, "value": { "type": "string" }, "evidence": { "type": "string" } }
+        } },
+        "assignmentMethod": { "type": ["string", "null"], "enum": ["source-native", "governed-sequence", null] },
+        "assignmentTimestamp": { "type": ["string", "null"] },
+        "identityStatus": { "enum": ["PROVISIONAL", "SOURCE_NATIVE", "GOVERNED_ASSIGNED", "COLLISION_REVIEW", "BLOCKED"] },
+        "collisionState": { "enum": ["none", "review"] },
+        "testIdentityOnly": { "const": true },
+        "lineageBasisKey": { "type": ["string", "null"] },
+        "previousPublicationId": { "type": ["string", "null"] },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "normalizedRecord": { "type": "object", "required": ["gpirPublicationId", "identityStatus", "lineage", "referencedPublicationIds"] },
+    "TEST_IDENTITY_ONLY": { "const": true },
+    "NOT_FOR_CONTENTFUL_WRITE": { "const": true },
+    "NOT_FOR_SUPABASE_PERSISTENCE": { "const": true },
+    "contentfulEligible": { "const": false }
+  }
+}
