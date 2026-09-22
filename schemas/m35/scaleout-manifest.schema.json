@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gpir.org/schemas/m35/scaleout-manifest.schema.json",
+  "title": "Controlled M35 migration unit manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sourceUnitKey", "sourceUnitKeyBasis", "sourceLegacyPath", "publicationType", "targetContentfulEntryId", "relatedObjectIds", "predecessorSourceUnitKey", "identityResolutionMode", "migrationState", "reviewState", "warnings", "blockers"],
+  "properties": {
+    "sourceUnitKey": { "type": "string", "pattern": "^gpir:intake:publication:[a-z0-9][a-z0-9:.-]*$" },
+    "sourceUnitKeyBasis": { "type": "string", "minLength": 1 },
+    "sourceLegacyPath": { "type": "string", "minLength": 1 },
+    "publicationType": { "type": "string", "minLength": 1 },
+    "targetContentfulEntryId": { "type": ["string", "null"] },
+    "relatedObjectIds": { "type": "array", "items": { "type": "object", "additionalProperties": false,
+      "required": ["type", "value", "relationship", "evidence"],
+      "properties": { "type": { "type": "string" }, "value": { "type": "string" },
+        "relationship": { "type": "string" }, "evidence": { "type": "string" } } } },
+    "predecessorSourceUnitKey": { "type": ["string", "null"] },
+    "identityResolutionMode": { "enum": ["inspect-plan-dry-run", "authoritative-resolve"] },
+    "migrationState": { "type": "string" },
+    "reviewState": { "type": "string" },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "blockers": { "type": "array", "items": { "type": "string" } }
+  }
+}
