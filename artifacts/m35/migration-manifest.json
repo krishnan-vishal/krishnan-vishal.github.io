@@ -1,0 +1,2920 @@
+{
+  "schemaVersion": "1.0.0",
+  "summary": {
+    "HTML_DISCOVERED_TOTAL": 59,
+    "discovery": {
+      "MIGRATION_ELIGIBLE": 32,
+      "APPLICATION_SHELL": 3,
+      "NAVIGATION_OR_INDEX": 1,
+      "REDIRECT_OR_ALIAS": 0,
+      "HISTORICAL_CONTENT": 2,
+      "NON_PUBLICATION": 21,
+      "REVIEW_DISCOVERY": 0
+    },
+    "classification": {
+      "READY": 0,
+      "REVIEW_REQUIRED": 32,
+      "BLOCKED_REQUIRED_FIELD": 0,
+      "IDENTITY_CONFLICT": 0
+    },
+    "contentReadiness": {
+      "READY": 0,
+      "REVIEW_REQUIRED": 32,
+      "BLOCKED_REQUIRED_FIELD": 0
+    },
+    "publicationStatusResolution": {
+      "CURRENT": 0,
+      "HISTORICAL": 0,
+      "unresolved": 32
+    },
+    "identityReadiness": {
+      "EXISTING_IDENTITY": 32,
+      "ALLOCATION_REQUIRED": 0,
+      "CONFLICT": 0,
+      "REGISTRY_LOOKUP_REQUIRED": 0
+    },
+    "migrationActions": {
+      "RECONCILE_EXISTING_DRAFT": 0,
+      "CREATE_DRAFT": 0,
+      "REVIEW": 32,
+      "BLOCK": 0
+    },
+    "identityReconciliation": {
+      "EXISTING_GOVERNED_IDENTITY": 32,
+      "NO_EXISTING_IDENTITY": 0,
+      "IDENTITY_COLLISION_OR_CONFLICT": 0,
+      "REGISTRY_LOOKUP_UNAVAILABLE": 0
+    },
+    "emptyPlaceholdersExcluded": 16,
+    "migrationExecution": {
+      "status": "PASS",
+      "recordsProcessed": 32,
+      "newDraftsCreated": 31,
+      "existingDraftsReconciled": 1,
+      "readbackPassed": 32,
+      "readbackFailed": 0,
+      "duplicateIdentities": 0,
+      "unresolvedExceptions": 0,
+      "published": 0,
+      "draftUnpublished": 32,
+      "idempotency": {
+        "mode": "NO_WRITE",
+        "recordsChecked": 32,
+        "exactlyOneEntryMatches": 32,
+        "newCreatesRequired": 0,
+        "updatesRequired": 0,
+        "duplicates": 0,
+        "conflicts": 0,
+        "pass": true
+      }
+    }
+  },
+  "discovery": [
+    {
+      "sourcePath": "404.html",
+      "state": "APPLICATION_SHELL",
+      "reasonCodes": [
+        "SHELL_OR_TEMPLATE"
+      ]
+    },
+    {
+      "sourcePath": "Archive/index-backup-v02.html",
+      "state": "HISTORICAL_CONTENT",
+      "reasonCodes": [
+        "ARCHIVED_SITE_INDEX_NON_PUBLICATION"
+      ]
+    },
+    {
+      "sourcePath": "Archive/index-v1.0.html",
+      "state": "HISTORICAL_CONTENT",
+      "reasonCodes": [
+        "ARCHIVED_SITE_INDEX_NON_PUBLICATION"
+      ]
+    },
+    {
+      "sourcePath": "assets/master-libraries/Interactive World Currency Map.html",
+      "state": "APPLICATION_SHELL",
+      "reasonCodes": [
+        "SHELL_OR_TEMPLATE"
+      ]
+    },
+    {
+      "sourcePath": "index.html",
+      "state": "NAVIGATION_OR_INDEX",
+      "reasonCodes": [
+        "SITE_INDEX"
+      ]
+    },
+    {
+      "sourcePath": "pages/architecture/money-movement-ecosystem.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/architecture/payment-infrastructure.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/architecture/settlement-networks.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/betting-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/bill-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/cards-intelligence.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/corridor-factbook.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/education-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/gaming-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/gig-economy-creator-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/government-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/healthcare-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/industry-future-state.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/industry-participants.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/marketplace-ecommerce.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/payment-infrastructure.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/remittances-diaspora.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/rtp-directory.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/stablecoins-cbdcs.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/strategic-opportunities.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/top-companies.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/trade-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/travel-payments.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/wallets-mobile-money.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/australia.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/india.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/japan.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/singapore.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/uae.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/uk.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/united-kingdom.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/dashboards/apac-dashboard.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/dashboards/europe-dashboard.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/dashboards/global-dashboard.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/dashboards/middle-east-dashboard.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/legal/cookie-policy.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "LEGAL_PAGE"
+      ]
+    },
+    {
+      "sourcePath": "pages/legal/copyright-ip-policy.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "LEGAL_PAGE"
+      ]
+    },
+    {
+      "sourcePath": "pages/legal/disclaimer.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "LEGAL_PAGE"
+      ]
+    },
+    {
+      "sourcePath": "pages/legal/privacy-policy.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "LEGAL_PAGE"
+      ]
+    },
+    {
+      "sourcePath": "pages/legal/terms-of-use.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "LEGAL_PAGE"
+      ]
+    },
+    {
+      "sourcePath": "pages/methodology/editorial-framework.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/methodology/research-methodology.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/publications/gpir-2026.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/africa.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/americas.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/apac.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/europe.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/latam.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/middle-east.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/research/global-payments-landscape.html",
+      "state": "MIGRATION_ELIGIBLE",
+      "reasonCodes": [
+        "PUBLICATION_PATH_AND_CONTENT"
+      ]
+    },
+    {
+      "sourcePath": "pages/research/regulations.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/research/stablecoins.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/research/wallets.html",
+      "state": "NON_PUBLICATION",
+      "reasonCodes": [
+        "EMPTY_PLACEHOLDER"
+      ]
+    },
+    {
+      "sourcePath": "pages/template.html",
+      "state": "APPLICATION_SHELL",
+      "reasonCodes": [
+        "SHELL_OR_TEMPLATE"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "sourcePath": "pages/chapters/betting-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:betting-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Legalized Betting, Gambling, Lottery & Wagering Payments | GPIR Research | FINTECHOISIS",
+      "slug": "global-legalized-betting-gambling-lottery-wagering-payments-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000003-4",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000003-4",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "f500c456acf4b534f42224a5c1ad5669f7ae395b3eda837b3b412b5c3741fac0",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/betting-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "ef992d9e-f2a6-4f65-94d2-ebec897c1339",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "7FBD5IpsZutLF63MKuOntS",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 1,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/bill-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:bill-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Cross-Border Bill Payments & Family Financial Services | GPIR Research | FINTECHOISIS",
+      "slug": "global-cross-border-bill-payments-family-financial-services-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000004-2",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000004-2",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "95ed52658abbf1a7202083ba091d905ac8ed1ca58432dfada2fb6486222ec849",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/bill-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "1871bb85-709e-42bd-9cfd-f26e4688a7b7",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "2DHHp4k0GbZXcYvCFLoCPw",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 1,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/cards-intelligence.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:cards-intelligence:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Cards Intelligence | GPIR Domain | FINTECHOISIS",
+      "slug": "cards-intelligence-gpir-domain-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000005-9",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000005-9",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "af46f2e7c25ca92fd2c5d5720f8c38ab50ed38c1dd2c568a5002dfdf20dca7a0",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/cards-intelligence.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "0bfacc5e-4e44-4d28-8ba4-867e1163ec13",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "19hKiNHnnLWLVCz0Awivu0",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 1,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/corridor-factbook.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:corridor-factbook:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Cross-Border Corridor Factbook | GPIR Research | FINTECHOISIS",
+      "slug": "global-cross-border-corridor-factbook-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": "cross-border corridors",
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000006-7",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000006-7",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "315b91e5c47a26f3ed8bac53dcabd6da251a6cbef55913b0061d5e0ad5369654",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/corridor-factbook.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "fe191078-a912-4573-9b86-6c5abfbe4286",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "1CByFMfJ0vuYZAxhCle8xV",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 1,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/education-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:education-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Education Payments Industry | GPIR Research | FINTECHOISIS",
+      "slug": "global-education-payments-industry-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000007-5",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000007-5",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "49da325cbc074c82bd1baef0a00b7896fac20fcbb09cb837edde414dc9693e6a",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/education-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "04d6c250-9fe2-4198-b859-48d91ba1b44a",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "1zUI1ug8hritBQ0awyPzaK",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 1,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/gaming-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:gaming-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Gaming Payments Industry | GPIR Research | FINTECHOISIS",
+      "slug": "global-gaming-payments-industry-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000008-3",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000008-3",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "5c48cf420cb7a81e2fe4f76b1c6dcf1ba9f4e1283c2d7619104e40bb266d71d3",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/gaming-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "2abed19a-3144-460d-a311-82f2ad9bad2f",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "6e0k5jOAGiEjj1iBKcNtVz",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 2,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/gig-economy-creator-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:gig-economy-creator-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Gig Economy, Freelancer & Creator Payments Industry | GPIR Research | FINTECHOISIS",
+      "slug": "global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000009-1",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000009-1",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "d03c3bccfbd705010cfabea7463e4c5b2e3f2ed87bf97bc3c1551a9d248d1e5b",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/gig-economy-creator-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "754e2bcc-43f4-48de-8b7b-7d1f5da4c64a",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "2l3AdU2yAK87mANrSwZiej",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 2,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/government-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:government-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Government, Tax & Public Sector Payments Ecosystem | GPIR Research | FINTECHOISIS",
+      "slug": "global-government-tax-public-sector-payments-ecosystem-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000010-9",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000010-9",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "033045e65e712158b4ebc2c68fe9c95af4abd19a84fc7ccbb679bb5e2b6a6bbd",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/government-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "09427d6d-5f30-4b9c-b66d-19ebe3f39d45",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "10sZZgMh5lBKz5mG96dGd1",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 2,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/healthcare-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:healthcare-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Healthcare, Medical Tourism & Cross-Border Health Payments | GPIR Research | FINTECHOISIS",
+      "slug": "global-healthcare-medical-tourism-cross-border-health-payments-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000011-7",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000011-7",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "2d255fa7ac2544d17dd6024f3eecbc6d20d0704f8806c52349ab5c8de4bff7f9",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/healthcare-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "1404ef1b-33f5-4b1f-98f0-c7535f71f3c9",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "2XfDk3XcUCUtUzSQnx1f8l",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 2,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/industry-future-state.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:industry-future-state:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Industry Future State (2025-2040) | GPIR Research | FINTECHOISIS",
+      "slug": "industry-future-state-2025-2040-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000012-5",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000012-5",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "eaa72c8748921e505d06e56ffcfd90bb1749fa8c2dbf597208145f6b5e25c0cd",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/industry-future-state.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "e330a633-1ba8-4484-bbc2-7f5ffdb18c3c",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "5yiF6BPfs1ge4lHmhwgAYQ",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 2,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/industry-participants.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:industry-participants:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Industry Participant Analysis — Banks, Fintechs, Networks & Wallets | GPIR Research | FINTECHOISIS",
+      "slug": "industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000013-3",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000013-3",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "137aa93f8e2650478247400c1af9abef69d0b25f08cb4313913b4c0c13f73bb3",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/industry-participants.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "a14eaff5-6873-4f4b-a0f6-c9da69da54aa",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "2FIUOHNq0f6p3Gn06C3WPO",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 3,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/marketplace-ecommerce.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:marketplace-ecommerce:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Marketplace, E-Commerce & Seller Payouts Industry | GPIR Research | FINTECHOISIS",
+      "slug": "global-marketplace-e-commerce-seller-payouts-industry-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000014-1",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000014-1",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "591c3b148c12b5e72194a5ece7a89c4e11bed418a0e0bc895485ce9aea20ad51",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/marketplace-ecommerce.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "2f723a4b-773d-4b05-a927-5769dfe1f9b8",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "3Ig0OHXZciCQA5j7xyHjeb",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 3,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/payment-infrastructure.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:payment-infrastructure:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Payment Infrastructure, Networks & Interoperability | GPIR Research | FINTECHOISIS",
+      "slug": "global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000015-8",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000015-8",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "08d690e0fdf98eef16e9e4c9f3d26fb15e7d1fa28667dc967d270caeb226f73d",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/payment-infrastructure.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "47a2c02c-3a53-4c8a-b2de-a1f0dfa5593c",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "3mQwc69Y15juJtZbwjiKtu",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 3,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/remittances-diaspora.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:remittances-diaspora:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Remittance & Diaspora Payments Industry (C2C) | GPIR Research | FINTECHOISIS",
+      "slug": "global-remittance-diaspora-payments-industry-c2c-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000016-6",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000016-6",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "149ac1858dcdc30060f3c9903933570dbe083a12c5805af0b26447134560c63f",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/remittances-diaspora.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "3bce65f6-1020-4a5f-b7f2-4e356dffaf26",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "51fBt6PmL74tLQUpSlmdy8",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 3,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/rtp-directory.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:rtp-directory:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global RTP Directory & Instant Payments Factbook | GPIR Research | FINTECHOISIS",
+      "slug": "global-rtp-directory-instant-payments-factbook-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000017-4",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000017-4",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "c16aa0a1e3cea7d86b4329e4095a1aa8e280533601df171ad6cc819733d26a30",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/rtp-directory.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "5070cc95-f143-47c6-aaaa-07b3c6d80ec5",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "1tm5F9REhBIVfyvAHS8JiF",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 3,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/stablecoins-cbdcs.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:stablecoins-cbdcs:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Stablecoins, CBDCs, Tokenized Money & Digital Asset Payments | GPIR Research | FINTECHOISIS",
+      "slug": "stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000018-2",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000018-2",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "e6c86aa7b547373ea9a599ceaa1d8b6a4901b111790a69194553020bd355a5db",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/stablecoins-cbdcs.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "6f7708f1-14b7-42e1-9db2-e39a4e438517",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "32f64Q7El5d75kJ7ne9qUo",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 4,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/strategic-opportunities.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:strategic-opportunities:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Strategic Opportunities, Industry Scorecards & Action Frameworks | GPIR Research | FINTECHOISIS",
+      "slug": "strategic-opportunities-industry-scorecards-action-frameworks-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000019-0",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000019-0",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "fa554a490f16452c583a10916330ff1f5b0603036a31741a65d608b4e91bf59b",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/strategic-opportunities.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "c6fdb32f-dbff-4ace-be81-ce0152c0df7e",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "54a1UMMb6cPxFBsVDTyUW3",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 4,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/top-companies.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:top-companies:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Top Global Cross-Border Payments Companies & Industry Participants | GPIR Research | FINTECHOISIS",
+      "slug": "top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000020-8",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000020-8",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "3fc5ed8f13aab069bcb872422fee462b633e31ae91ced883e7de6cc7b48ae51c",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/top-companies.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "02831b51-e61c-48c1-bd69-2b849bd61b9a",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "uFJ8rdedgGMfJFbWuoGou",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 4,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/trade-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:trade-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Trade Payments Industry (B2B) | GPIR Research | FINTECHOISIS",
+      "slug": "global-trade-payments-industry-b2b-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000021-6",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000021-6",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "582224b9be2bb672ff9fe436602dc6ccc5c7a257ed10830d79e3fd5e66d6bd79",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/trade-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "d2e5ad3d-f52e-4fd6-a7c7-79bd50bd151b",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "7amuJj40dKDA63rhK6vaV9",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 4,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/travel-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:travel-payments:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Travel, Airline & Hospitality Payments Ecosystem | GPIR Research | FINTECHOISIS",
+      "slug": "global-travel-airline-hospitality-payments-ecosystem-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000022-4",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000022-4",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "87294e90c00149582e34bfdedf69b7eb173cbaef9359f99f919dd5677368aa5e",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/travel-payments.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "c0d8c04e-2a25-4956-8be7-201422535eb8",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "3DxxDBqjqaNM0kSgkm7Cg8",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 4,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/chapters/wallets-mobile-money.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:wallets-mobile-money:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Wallets, Mobile Money, Super Apps & Financial Inclusion | GPIR Research | FINTECHOISIS",
+      "slug": "global-wallets-mobile-money-super-apps-financial-inclusion-gpir-research-fintechoisis",
+      "publicationType": "research-chapter",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000023-2",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000023-2",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "a7ad3589c52dccf948a15d24190ba9f3af56fbbd56f2049e33ac343912c080c0",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/chapters/wallets-mobile-money.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "1551bd15-247a-488d-826a-386096e6cf1d",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "4jB93gklvPpXNPbeDifezh",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 5,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "FORECAST_REVIEW",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/countries/india.html",
+      "sourceUnitKey": "gpir:intake:publication:country:india:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "India | GPIR Country Intelligence | FINTECHOISIS",
+      "slug": "india-gpir-country-intelligence-fintechoisis",
+      "publicationType": "country",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": "APAC",
+      "countryMarket": "india",
+      "directionScope": "Both",
+      "useCasePaymentCategory": "C2C",
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": "CY2025 / CY2026 YTD (Jan&ndash;May)",
+      "publicationIdentity": "VK-GPIR-P-000000000001-8",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000001-8",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [
+        {
+          "type": "dashboard",
+          "value": "VK-GPI-APAC-IND-2026-005",
+          "relationship": "referenced-by-publication",
+          "evidence": "Legacy page Reference ID",
+          "verificationState": "SOURCE_OBSERVED"
+        }
+      ],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "502f9fb3fbc90b7f58ce71eaceb938d264a6ef839c7e8471657f551eec903b8c",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/countries/india.html",
+        "sourceReferencesCount": 8,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [
+          "VK-GPI-APAC-IND-2026-005"
+        ],
+        "regionEvidence": "pages/regions/apac.html"
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "8ea94d2b-3254-4ddc-a50a-f10444b252f4",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "6w4xENtrEzaGm4cb4fbkR5",
+        "entryVersion": 27,
+        "operation": "RECONCILED",
+        "migrationBatch": 5,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "SOURCE_VERIFICATION_PENDING"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/countries/singapore.html",
+      "sourceUnitKey": "gpir:intake:publication:country:singapore:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Singapore | GPIR Country Intelligence | FINTECHOISIS",
+      "slug": "singapore-gpir-country-intelligence-fintechoisis",
+      "publicationType": "country",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": "APAC",
+      "countryMarket": "singapore",
+      "directionScope": "Both",
+      "useCasePaymentCategory": "C2C",
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": "CY2025 / CY2026 YTD (Jan&ndash;May)",
+      "publicationIdentity": "VK-GPIR-P-000000000002-6",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000002-6",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [
+        {
+          "type": "dashboard",
+          "value": "VK-GPI-APAC-SGP-2026-006",
+          "relationship": "referenced-by-publication",
+          "evidence": "Legacy page Reference ID",
+          "verificationState": "SOURCE_OBSERVED"
+        }
+      ],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "2be97dbc48a099a61d6d48cf6aa9a0aa042cac03fdb73f2f13b12d1540a0397a",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/countries/singapore.html",
+        "sourceReferencesCount": 7,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [
+          "VK-GPI-APAC-SGP-2026-006"
+        ],
+        "regionEvidence": "pages/regions/apac.html"
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "b7d85c60-40dd-42af-be54-3da9154fd433",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "79IwPy4ChfJ04brzBF2BNS",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 5,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "SOURCE_VERIFICATION_PENDING"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/countries/uae.html",
+      "sourceUnitKey": "gpir:intake:publication:country:uae:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "United Arab Emirates | GPIR Country Intelligence | FINTECHOISIS",
+      "slug": "united-arab-emirates-gpir-country-intelligence-fintechoisis",
+      "publicationType": "country",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": "Middle East",
+      "countryMarket": "uae",
+      "directionScope": null,
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000024-0",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000024-0",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "9c3e2913da4bc700c2489f39edc1ece0c12384132cf37fb47b59b987cbb342f7",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/countries/uae.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": "pages/regions/middle-east.html"
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "ec31c089-832b-4581-a065-70adaf2855a0",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "2pB0Zi7yPGMafqjZnFmIkT",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 5,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "SOURCE_VERIFICATION_PENDING"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/countries/uk.html",
+      "sourceUnitKey": "gpir:intake:publication:country:uk:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "United Kingdom | GPIR Country Intelligence | FINTECHOISIS",
+      "slug": "united-kingdom-gpir-country-intelligence-fintechoisis",
+      "publicationType": "country",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": "Europe",
+      "countryMarket": "uk",
+      "directionScope": null,
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000025-7",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000025-7",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "75f0de3be3f9952799a12fd7ea46226c0f5915b0f2b3d56071ec6e0e9f1f0f22",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/countries/uk.html",
+        "sourceReferencesCount": 1,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": "pages/regions/europe.html"
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "a31a2e22-64ba-4070-b520-eae4e7fd2655",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "1zMBFIS7txmMxayZufVBFg",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 5,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "SOURCE_VERIFICATION_PENDING"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/africa.html",
+      "sourceUnitKey": "gpir:intake:publication:region:africa:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Africa Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "africa-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000026-5",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000026-5",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "6e4eaaee81b9060bc28253f5752de27992ed9b343aa0fa1d881d711831da6c62",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/africa.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "186e477c-4068-4326-b2c4-fa0bf46b29b1",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "1ATjIYiIFtuGNcX1vireXb",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 6,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/americas.html",
+      "sourceUnitKey": "gpir:intake:publication:region:americas:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Americas Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "americas-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000027-3",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000027-3",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "e1c7d9aba9deabe426b3e19a2f4f98a6f423c42a569029d09bf62352ca3ee993",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/americas.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "afb5a859-5303-4f5c-812c-4eb7c2f7ff20",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "4ZpBZK4jwReSRLk17w39gy",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 6,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/apac.html",
+      "sourceUnitKey": "gpir:intake:publication:region:apac:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "APAC Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "apac-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": "APAC",
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000028-1",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000028-1",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "526c5912536e6d18aa0d0e90152b60fc1c8ebc9215b13a05b9d9ba91abb662f4",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/apac.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "1d02c09b-a294-4f91-ab96-047c23e80c33",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "7yYvcnWbMgHS50f5sbicS5",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 6,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/europe.html",
+      "sourceUnitKey": "gpir:intake:publication:region:europe:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Europe / SEPA Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000029-9",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000029-9",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "81faf121aab7b11266305a0f98a7fe5075df309e7eaee174dbb520487476d0da",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/europe.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "d21676cc-9ce1-4deb-a8ef-6f266f12a831",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "6bw5Zvq1MziqPzjZqbydZA",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 6,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/latam.html",
+      "sourceUnitKey": "gpir:intake:publication:region:latam:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "LATAM Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "latam-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000030-7",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000030-7",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "2c6ad47e5c04e9327683290c083ce72bb5aaca64b2f0445cd6fa67724300e301",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/latam.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "bad4b131-2d7e-4ed1-965e-2a62138a2aa7",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "5NqlzOSSekcWA8QwJkP2c1",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 6,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/regions/middle-east.html",
+      "sourceUnitKey": "gpir:intake:publication:region:middle-east:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Middle East / GCC Country Directory | GPIR Regional Intelligence | FINTECHOISIS",
+      "slug": "middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis",
+      "publicationType": "regional-directory",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "regional",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000031-5",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000031-5",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "2e8dd474279b4b8cd4244a523c0bd7feac296374be7e428e7c4a10de4a75fb73",
+        "sourceUrl": "https://krishnan-vishal.github.io/pages/regions/middle-east.html",
+        "sourceReferencesCount": 0,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "a767ab3d-9210-4205-9b48-d94d6042550e",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "4M4BAWGJT4csYbYkbTU2Hn",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 7,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "DATA_UNDER_DEVELOPMENT",
+          "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    },
+    {
+      "sourcePath": "pages/research/global-payments-landscape.html",
+      "sourceUnitKey": "gpir:intake:publication:research:global-payments-landscape:html:legacy-primary",
+      "sourceUnitKeyBasis": "Deterministic repository path candidate; registry reconciliation required before allocation.",
+      "title": "Global Payments Landscape",
+      "slug": "global-payments-landscape",
+      "publicationType": "research-publication",
+      "publicationStatus": {
+        "value": null,
+        "evidenceType": "LEGACY_NO_LIFECYCLE_EVIDENCE",
+        "evidenceLocation": null,
+        "mappingRule": "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      },
+      "region": null,
+      "countryMarket": null,
+      "directionScope": "global",
+      "useCasePaymentCategory": null,
+      "publicationDate": null,
+      "publicationDateEvidence": null,
+      "editionLabel": null,
+      "editionLabelEvidence": null,
+      "dataCutOffDate": null,
+      "dataPeriod": null,
+      "publicationIdentity": "VK-GPIR-P-000000000032-3",
+      "publicationIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "lineageIdentity": "VK-GPIR-L-000000000032-3",
+      "lineageIdentityState": "EXISTING_GOVERNED_IDENTITY",
+      "relatedIdentifiers": [],
+      "contentfulEntryState": "DRAFT_PRESENT",
+      "migrationAction": "REVIEW",
+      "validationState": "WARN",
+      "blockingFields": [],
+      "reviewFlags": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "contentReadiness": "REVIEW_REQUIRED",
+      "identityReadiness": "EXISTING_IDENTITY",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FIELD_UNRESOLVED_LEGACY_SOURCE_URL",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ],
+      "provenanceSummary": {
+        "sourceHash": "5e4e54e10ad756fd14b3da4790476bcc566ffc79ef2678b0143d737cd4a4f9f8",
+        "sourceUrl": null,
+        "sourceReferencesCount": 13,
+        "identityEvidence": "provisional",
+        "referencedPublicationIds": [],
+        "regionEvidence": null
+      },
+      "registryLookupState": "EXISTING_GOVERNED_IDENTITY",
+      "identityActionForF4K": "REUSE_EXISTING_IDENTITY",
+      "publicationUuid": "701ab82c-f87f-455a-a0bd-a9f7bb2d6f8a",
+      "registryAssignmentState": "GOVERNED_ASSIGNED",
+      "contentfulMigration": {
+        "entryId": "7hIWDuMUSmDqcJ8d3FyaJe",
+        "entryVersion": 1,
+        "operation": "CREATED",
+        "migrationBatch": 7,
+        "readbackStatus": "PASS",
+        "cmsState": "DRAFT",
+        "reviewStatus": "REVIEW_REQUIRED",
+        "reviewFlags": [
+          "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+          "STRUCTURED_REVIEW_REQUIRED"
+        ],
+        "exceptionStatus": "NONE"
+      }
+    }
+  ],
+  "execution": {
+    "gate": "M35-F4K",
+    "spaceId": "zym0dk277ju5",
+    "environmentId": "master",
+    "contentTypeId": "gpirPublication",
+    "batchSize": 5,
+    "batches": 7,
+    "status": "PASS",
+    "recordsProcessed": 32,
+    "newDraftsCreated": 31,
+    "existingDraftsReconciled": 1,
+    "readbackPassed": 32,
+    "readbackFailed": 0,
+    "duplicateIdentities": 0,
+    "unresolvedExceptions": 0,
+    "published": 0,
+    "draftUnpublished": 32,
+    "idempotency": {
+      "mode": "NO_WRITE",
+      "recordsChecked": 32,
+      "exactlyOneEntryMatches": 32,
+      "newCreatesRequired": 0,
+      "updatesRequired": 0,
+      "duplicates": 0,
+      "conflicts": 0,
+      "pass": true
+    }
+  }
+}

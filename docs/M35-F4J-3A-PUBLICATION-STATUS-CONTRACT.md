@@ -1,0 +1,7 @@
+# M35-F4J-3A publication status contract
+
+`publicationStatus` is the GPIR business publication lifecycle. The only normalized values are `CURRENT` (the current intelligence record for its subject and scope), `HISTORICAL` (a superseded or prior record retained for provenance), and `null` when unsupported. It is required for content readiness. Contentful Draft/Published workflow, migration readiness, source verification, data development and dashboard association are separate concepts.
+
+The converter maps a single explicit page-level `<meta name="gpir-publication-status" content="CURRENT">` or `HISTORICAL` to the canonical value. It records `EXPLICIT_PAGE_METADATA`, the meta-tag location, and mapping rule `M35_EXPLICIT_CANONICAL_PUBLICATION_STATUS`. Multiple status tags or any other value fail closed to null. Legacy `Published` and `draft` strings, general prose, filenames, navigation, site visibility, dates and absence of historical evidence do not establish business lifecycle status. Explicit `HISTORICAL` also retains the normalized historical lineage state; source HTML is never changed.
+
+The bounded repository extraction found no matching canonical status metadata in the current migration estate. Its unsupported records therefore remain null with `BLOCKING_FIELD_PUBLICATION_STATUS`. Identity readiness stays `REGISTRY_LOOKUP_REQUIRED` until a separate read-only registry reconciliation.

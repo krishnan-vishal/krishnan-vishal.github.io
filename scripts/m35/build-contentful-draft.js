@@ -1,6 +1,8 @@
 'use strict';
 
 const { validGovernedId } = require('./identity-authority');
+const { substantiveWarnings, effectiveValidationStatus,
+  legacyLifecycleNotEvidenced } = require('./classify-migration-readiness');
 
 const TYPE_LABELS = Object.freeze({
   country: 'Country Intelligence',
@@ -42,13 +44,14 @@ function richText(paragraphs) {
 }
 
 // supabaseRecordId is exclusively public.gpir_identity_publications.id (UUID).
-function buildContentfulDraft(record, { identityPackage = null } = {}) {
+function buildContentfulDraft(record, { identityPackage = null, legacyMigration = false } = {}) {
   if (!record || typeof record !== 'object' || record.schemaVersion !== '1.0.0')
     throw new TypeError('A normalized M35 migration record is required.');
   const publication = record.publication || {};
   const provenance = record.provenance || {};
   const lineage = record.lineage || {};
-  const warnings = Array.isArray(record.exceptions?.warnings) ? record.exceptions.warnings : [];
+  const warnings = substantiveWarnings(record);
+  const validationStatus = effectiveValidationStatus(record);
   const candidates = Array.isArray(record.structuredIntelligence) ? record.structuredIntelligence : [];
   const mappingGaps = [];
   const gap = (field, reason, authority) => mappingGaps.push({ field, reason, authority });
@@ -58,17 +61,14 @@ function buildContentfulDraft(record, { identityPackage = null } = {}) {
 
   const type = TYPE_LABELS[publication.type] || null;
   if (!type) gap('publicationType', 'Destination publication vocabulary is unresolved.', 'Editorial mapper');
-  const status = typeof publication.status === 'string' && publication.status.trim()
-    ? publication.status.trim() : null;
-  if (!status) gap('publicationStatus', 'Business publication status lacks source evidence.', 'Editorial mapper');
+  const status = ['CURRENT', 'HISTORICAL'].includes(publication.status)
+    ? publication.status : null;
+  if (!status && !legacyLifecycleNotEvidenced(record, legacyMigration))
+    gap('publicationStatus', 'Business publication status lacks source evidence.', 'Editorial mapper');
   if (record.family === 'country' && !publication.region)
     gap('region', 'Country region is not evidence-backed in the normalized record.', 'Migration mapper');
   if (record.family === 'country' && !publication.countryMarket)
     gap('countryMarket', 'Country/market identity is unresolved.', 'Migration mapper');
-  if (record.family === 'country' && !publication.directionScope)
-    gap('directionScope', 'Payment direction lacks explicit source evidence.', 'Structured-data reviewer');
-  if (record.family === 'country' && !publication.useCase)
-    gap('useCasePaymentCategory', 'Payment category lacks explicit source evidence.', 'Structured-data reviewer');
   const publicationDate = dateOnly(publication.publicationDate);
   // Internal migration spelling is dataCutoffDate; live Contentful spelling is dataCutOffDate.
   const dataCutOffDate = dateOnly(publication.dataCutoffDate);
@@ -117,7 +117,7 @@ function buildContentfulDraft(record, { identityPackage = null } = {}) {
   const sourceValidationSummary = [
     `Source: ${provenance.sourcePath || 'unresolved'}`,
     `SHA-256: ${provenance.sourceHash || 'unresolved'}`,
-    `Validation: ${record.validationStatus || 'FAIL'}`,
+    `Validation: ${validationStatus}`,
     `Warnings: ${warningCodes.length ? warningCodes.join(', ') : 'none'}`,
     `Structured candidates requiring review: ${structuredReviewCount}/${candidates.length}`
   ].join('; ');
@@ -143,7 +143,7 @@ function buildContentfulDraft(record, { identityPackage = null } = {}) {
     editionLabel: lineage.editionLabel || null,
     supabaseRecordId,
     migrationStatus: 'Dry Run Prepared',
-    validationStatus: record.validationStatus || 'FAIL'
+    validationStatus
   };
   const migrationWarnings = warnings.map(warning => {
     const [warningClass, affectedField, reviewer] = WARNING_DETAILS[warning.code]

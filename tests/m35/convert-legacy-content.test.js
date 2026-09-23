@@ -155,6 +155,22 @@ test('corridor forecasts are review required and tables remain structured', () =
   assert.ok(record.exceptions.warnings.some(item => item.code === 'FORECAST_REVIEW'));
 });
 
+test('corridor path does not invent a payment category and governed categories remain intact', () => {
+  const corridor = convertLegacyContent({ sourcePath: 'pages/chapters/corridor-factbook.html',
+    content: '<title>Factbook</title><div class="chapter-content"><p>Cross-border corridor analysis.</p></div>' });
+  assert.equal(corridor.publication.useCase, null);
+  assert.deepEqual(corridor.publication, {
+    title: 'Factbook', slug: 'factbook', type: 'research-chapter', status: null,
+    statusEvidence: { evidenceType: 'LEGACY_NO_LIFECYCLE_EVIDENCE', evidenceLocation: null,
+      mappingRule: 'LEGACY_LIFECYCLE_NOT_EVIDENCED' },
+    region: null, countryMarket: null, directionScope: 'global', useCase: null,
+    publicationDate: null, dataCutoffDate: null
+  });
+  const governed = convertLegacyContent({ sourcePath: 'pages/countries/example.html',
+    content: '<title>Country</title><div class="chapter-content"><p>Inbound C2C remittances.</p></div>' });
+  assert.equal(governed.publication.useCase, 'C2C');
+});
+
 test('explicit page identity is distinct from a referenced dashboard publication', () => {
   const record = convertLegacyContent({ sourcePath: 'pages/countries/example.html',
     content: '<meta name="gpir-publication-id" content="VK-GPI-APAC-EX-2026-001">' +

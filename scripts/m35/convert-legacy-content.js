@@ -40,6 +40,24 @@ function pagePublicationDate(content, metadata) {
   return null;
 }
 
+function pagePublicationStatus(content) {
+  const values = [];
+  for (const [tag] of content.matchAll(/<meta\b[^>]*>/gi)) {
+    const name = /\bname=["']([^"']+)["']/i.exec(tag)?.[1];
+    if (name?.toLowerCase() !== 'gpir-publication-status') continue;
+    const value = /\bcontent=["']([^"']+)["']/i.exec(tag)?.[1]?.trim();
+    values.push(value || '');
+  }
+  if (!values.length) return { value: null, evidence: null, conflict: false };
+  if (values.length !== 1 || !['CURRENT', 'HISTORICAL'].includes(values[0]))
+    return { value: null, evidence: null, conflict: values.length > 1 };
+  return { value: values[0], evidence: {
+    evidenceType: 'EXPLICIT_PAGE_METADATA',
+    evidenceLocation: 'meta[name="gpir-publication-status"]',
+    mappingRule: 'M35_EXPLICIT_CANONICAL_PUBLICATION_STATUS'
+  }, conflict: false };
+}
+
 function familyFor(path) {
   if (/^pages\/countries\//.test(path)) return 'country';
   if (/^pages\/regions\//.test(path)) return 'regional-directory';
@@ -220,6 +238,15 @@ function convertLegacyContent(input) {
   if (structuredIntelligence.some(candidate => candidate.reviewRequired && candidate.dataNature === 'unknown'))
     warnings.push({ code: 'STRUCTURED_REVIEW_REQUIRED', message: 'Some structured candidates lack observed-data evidence.' });
   const version = metadata.version || matches(content, /\b(Version\s+\d+(?:\.\d+)*)\b/i)[0] || null;
+  const publicationStatus = pagePublicationStatus(content);
+  const statusEvidence = publicationStatus.evidence || {
+    evidenceType: 'LEGACY_NO_LIFECYCLE_EVIDENCE',
+    evidenceLocation: null,
+    mappingRule: 'LEGACY_LIFECYCLE_NOT_EVIDENCED'
+  };
+  if (publicationStatus.conflict)
+    warnings.push({ code: 'PUBLICATION_STATUS_CONFLICT',
+      message: 'Conflicting page-level publication status metadata; status remains unresolved.' });
   const editionLabel = typeof metadata.editionLabel === 'string' && metadata.editionLabel.trim()
     ? metadata.editionLabel.trim() : null;
   const lineage = {
@@ -227,7 +254,8 @@ function convertLegacyContent(input) {
     editionLabel,
     version,
     previousEditionId: metadata.previousEditionId || null,
-    state: metadata.historical === true ? 'historical' : 'current'
+    state: metadata.historical === true || publicationStatus.value === 'HISTORICAL'
+      ? 'historical' : 'current'
   };
   const market = family === 'country' ? sourcePath.split('/').pop().replace(/\.html$/i, '') : null;
   const region = metadata.region || (family === 'regional-directory' && /(?:^|\/)apac\.html$/i.test(sourcePath) ? 'APAC' : null);
@@ -235,8 +263,7 @@ function convertLegacyContent(input) {
   const outboundEvidence = family === 'country' && /\bOutbound C2C remittances\b/i.test(body);
   const directionScope = metadata.directionScope || (inboundEvidence && outboundEvidence ? 'Both'
     : inboundEvidence ? 'Inbound' : outboundEvidence ? 'Outbound' : null);
-  const useCase = metadata.useCase || (family === 'country' && /\bC2C\b/i.test(body) ? 'C2C'
-    : sourcePath.includes('corridor-factbook') ? 'cross-border corridors' : null);
+  const useCase = metadata.useCase || (family === 'country' && /\bC2C\b/i.test(body) ? 'C2C' : null);
   if (family === 'country' && !directionScope)
     warnings.push({ code: 'SCOPE_UNRESOLVED', message: 'Inbound/outbound scope lacks explicit evidence.' });
   if (family === 'country' && !useCase)
@@ -269,7 +296,8 @@ function convertLegacyContent(input) {
     provenance: { sourcePath, sourceUrl, sourceHash, sourceReferences },
     canonicalUrlCandidate,
     publication: { title, slug, type: metadata.type || family,
-      status: metadata.status || (/Pending Verification/i.test(body) ? 'draft' : null),
+      status: publicationStatus.value,
+      statusEvidence,
       region, countryMarket: metadata.countryMarket || market,
       directionScope: family === 'country' ? directionScope : metadata.directionScope || (family === 'regional-directory' ? 'regional' : 'global'),
       useCase,

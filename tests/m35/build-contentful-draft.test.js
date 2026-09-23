@@ -132,10 +132,10 @@ test('legacy URL stays exact and separate from canonical candidate', () => {
 
 test('technical Draft state remains distinct from source publication status', () => {
   const record = countryRecord();
-  record.publication.status = 'Published';
+  record.publication.status = 'CURRENT';
   const draft = buildContentfulDraft(record);
   assert.equal(draft.technicalState, 'Draft');
-  assert.equal(draft.fields.publicationStatus, 'Published');
+  assert.equal(draft.fields.publicationStatus, 'CURRENT');
 });
 
 test('India golden parity reports supported fields without injecting dashboard metadata', () => {

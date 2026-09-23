@@ -24,14 +24,31 @@
     "canonicalUrlCandidate": { "type": ["string", "null"] },
     "publication": {
       "type": "object", "additionalProperties": false,
-      "required": ["title", "slug", "type", "status", "region", "countryMarket", "directionScope", "useCase", "publicationDate", "dataCutoffDate"],
+      "required": ["title", "slug", "type", "status", "statusEvidence", "region", "countryMarket", "directionScope", "useCase", "publicationDate", "dataCutoffDate"],
       "properties": {
         "title": { "type": "string" }, "slug": { "type": "string" },
-        "type": { "type": ["string", "null"] }, "status": { "type": ["string", "null"] },
+        "type": { "type": ["string", "null"] }, "status": { "enum": ["CURRENT", "HISTORICAL", null] },
+        "statusEvidence": { "type": "object", "required": ["evidenceType", "evidenceLocation", "mappingRule"],
+          "properties": { "evidenceType": { "enum": ["EXPLICIT_PAGE_METADATA", "LEGACY_NO_LIFECYCLE_EVIDENCE"] },
+            "evidenceLocation": { "type": ["string", "null"] },
+            "mappingRule": { "enum": ["M35_EXPLICIT_CANONICAL_PUBLICATION_STATUS", "LEGACY_LIFECYCLE_NOT_EVIDENCED"] } } },
         "region": { "type": ["string", "null"] }, "countryMarket": { "type": ["string", "null"] },
-        "directionScope": { "type": ["string", "null"] }, "useCase": { "type": ["string", "null"] },
+        "directionScope": { "description": "Source-evidenced scope only; null for generic country intelligence without directional claim.", "type": ["string", "null"] }, "useCase": { "description": "Source-evidenced payment/use-case category only; null for generic country intelligence without singular category.", "type": ["string", "null"] },
         "publicationDate": { "description": "Explicit publication-level date only; null when undated. Related-object, cutoff, period, file and commit dates are excluded.", "type": ["string", "null"] }, "dataCutoffDate": { "type": ["string", "null"] }
-      }
+      },
+      "allOf": [
+        { "if": { "properties": { "status": { "const": null } } },
+          "then": { "properties": { "statusEvidence": { "properties": {
+            "evidenceType": { "const": "LEGACY_NO_LIFECYCLE_EVIDENCE" },
+            "evidenceLocation": { "type": "null" },
+            "mappingRule": { "const": "LEGACY_LIFECYCLE_NOT_EVIDENCED" }
+          } } } } },
+        { "if": { "properties": { "status": { "enum": ["CURRENT", "HISTORICAL"] } } },
+          "then": { "properties": { "statusEvidence": { "properties": {
+            "evidenceType": { "const": "EXPLICIT_PAGE_METADATA" },
+            "mappingRule": { "const": "M35_EXPLICIT_CANONICAL_PUBLICATION_STATUS" }
+          } } } } }
+      ]
     },
     "editorialNarrative": { "type": "array", "items": { "type": "string" } },
     "executiveSummary": { "type": ["string", "null"] },
