@@ -1,0 +1,446 @@
+{
+  "schemaVersion": "1.0.0",
+  "summary": {
+    "REVIEW_REQUIRED": 32,
+    "BLOCKED_REQUIRED_FIELD": 0,
+    "IDENTITY_CONFLICT": 0,
+    "REVIEW_DISCOVERY": 0
+  },
+  "records": [
+    {
+      "sourcePath": "pages/chapters/betting-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:betting-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/bill-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:bill-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/cards-intelligence.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:cards-intelligence:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/corridor-factbook.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:corridor-factbook:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/education-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:education-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/gaming-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:gaming-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/gig-economy-creator-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:gig-economy-creator-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/government-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:government-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/healthcare-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:healthcare-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/industry-future-state.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:industry-future-state:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/industry-participants.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:industry-participants:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/marketplace-ecommerce.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:marketplace-ecommerce:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/payment-infrastructure.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:payment-infrastructure:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/remittances-diaspora.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:remittances-diaspora:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/rtp-directory.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:rtp-directory:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/stablecoins-cbdcs.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:stablecoins-cbdcs:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/strategic-opportunities.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:strategic-opportunities:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/top-companies.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:top-companies:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/trade-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:trade-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/travel-payments.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:travel-payments:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/chapters/wallets-mobile-money.html",
+      "sourceUnitKey": "gpir:intake:publication:chapter:wallets-mobile-money:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FORECAST_REVIEW",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/india.html",
+      "sourceUnitKey": "gpir:intake:publication:country:india:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/singapore.html",
+      "sourceUnitKey": "gpir:intake:publication:country:singapore:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/uae.html",
+      "sourceUnitKey": "gpir:intake:publication:country:uae:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ]
+    },
+    {
+      "sourcePath": "pages/countries/uk.html",
+      "sourceUnitKey": "gpir:intake:publication:country:uk:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "SOURCE_VERIFICATION_PENDING"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/africa.html",
+      "sourceUnitKey": "gpir:intake:publication:region:africa:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/americas.html",
+      "sourceUnitKey": "gpir:intake:publication:region:americas:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/apac.html",
+      "sourceUnitKey": "gpir:intake:publication:region:apac:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/europe.html",
+      "sourceUnitKey": "gpir:intake:publication:region:europe:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/latam.html",
+      "sourceUnitKey": "gpir:intake:publication:region:latam:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/regions/middle-east.html",
+      "sourceUnitKey": "gpir:intake:publication:region:middle-east:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "DATA_UNDER_DEVELOPMENT",
+        "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "sourcePath": "pages/research/global-payments-landscape.html",
+      "sourceUnitKey": "gpir:intake:publication:research:global-payments-landscape:html:legacy-primary",
+      "readinessClassification": "REVIEW_REQUIRED",
+      "migrationAction": "REVIEW",
+      "reasonCodes": [
+        "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+        "FIELD_UNRESOLVED_LEGACY_SOURCE_URL",
+        "IDENTITY_DERIVED",
+        "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+        "STRUCTURED_REVIEW_REQUIRED"
+      ]
+    }
+  ],
+  "discovery": [],
+  "migrationExecution": {
+    "status": "PASS",
+    "recordsProcessed": 32,
+    "newDraftsCreated": 31,
+    "existingDraftsReconciled": 1,
+    "readbackPassed": 32,
+    "readbackFailed": 0,
+    "duplicateIdentities": 0,
+    "unresolvedExceptions": 0,
+    "published": 0,
+    "draftUnpublished": 32,
+    "idempotency": {
+      "mode": "NO_WRITE",
+      "recordsChecked": 32,
+      "exactlyOneEntryMatches": 32,
+      "newCreatesRequired": 0,
+      "updatesRequired": 0,
+      "duplicates": 0,
+      "conflicts": 0,
+      "pass": true
+    },
+    "exceptions": []
+  }
+}

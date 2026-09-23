@@ -1,0 +1,7 @@
+# M35-F4J-3B legacy lifecycle policy
+
+The governed `publicationStatus` values remain `CURRENT`, `HISTORICAL`, and `null`. For an M35 legacy migration record, null with `statusEvidence.evidenceType = LEGACY_NO_LIFECYCLE_EVIDENCE` and `statusEvidence.mappingRule = LEGACY_LIFECYCLE_NOT_EVIDENCED` is an approved unresolved lifecycle state. It does not mean current, historical, Draft, Published, retired, or archived. The legacy migration Draft keeps the value null and does not treat that absence alone as a content-readiness blocker. New publications remain subject to the normal required lifecycle rule; the exception is enabled only in explicit legacy migration mode for a normalized extracted source record with that provenance marker.
+
+Content readiness, identity readiness, and review flags remain separate. Source verification, data development, asset association, forecast, structured review, and missing exact cutoff evidence retain their existing warnings or mapping gaps. Registry lookup remains required before F4K; no identity allocation occurs during manifest generation.
+
+Future lifecycle changes require positive governed evidence or action: null to `CURRENT` only on a governed current determination; null to `HISTORICAL` only on a governed historical determination; `CURRENT` to `HISTORICAL` only through governed supersession or lineage action. A newer file, Contentful publication, live page, date change, or identity allocation does not trigger a transition. This gate adds no lifecycle automation.

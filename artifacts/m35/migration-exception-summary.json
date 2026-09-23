@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "1.0.0",
+  "eligibleEstate": 32,
+  "exceptionClasses": {
+    "READY": 0,
+    "REVIEW_REQUIRED": 32,
+    "BLOCKED_REQUIRED_FIELD": 0,
+    "IDENTITY_CONFLICT": 0
+  },
+  "discovery": {
+    "emptySourcesReviewedStructurally": 16,
+    "emptyPlaceholdersExcluded": 16,
+    "stillRequiringHumanReview": 0
+  },
+  "blockingFields": {},
+  "reviewFlags": {
+    "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE": 32,
+    "STRUCTURED_REVIEW_REQUIRED": 26,
+    "FORECAST_REVIEW": 13,
+    "DATA_UNDER_DEVELOPMENT": 8,
+    "FIELD_UNRESOLVED_DASHBOARD_ASSET": 7,
+    "SOURCE_VERIFICATION_PENDING": 4
+  },
+  "fieldContract": {
+    "publicationDate": "OPTIONAL",
+    "editionLabel": "OPTIONAL",
+    "publicationStatus": "LEGACY_NULL_GOVERNED_WITH_PROVENANCE; NEW_PUBLICATION_REQUIRES_LIFECYCLE",
+    "directionScope": "CONDITIONAL_ON_SOURCE_DIRECTIONAL_SCOPE",
+    "useCasePaymentCategory": "CONDITIONAL_ON_SOURCE_PAYMENT_CATEGORY",
+    "dataCutOffDate": "NON_BLOCKING_MAPPING_GAP",
+    "dashboardAsset": "NON_BLOCKING_MAPPING_GAP",
+    "legacySourceUrl": "NON_BLOCKING_MAPPING_GAP"
+  },
+  "identityReconciliation": {
+    "EXISTING_GOVERNED_IDENTITY": 32,
+    "NO_EXISTING_IDENTITY": 0,
+    "IDENTITY_COLLISION_OR_CONFLICT": 0,
+    "REGISTRY_LOOKUP_UNAVAILABLE": 0
+  },
+  "reasonCodes": [
+    {
+      "reasonCode": "DATA_UNDER_DEVELOPMENT",
+      "recordCount": 8,
+      "classification": {
+        "REVIEW_REQUIRED": 8
+      },
+      "publicationFamilies": {
+        "country": 3,
+        "regional-directory": 5
+      },
+      "percentageOfEligibleEstate": 25,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "FIELD_UNRESOLVED_DASHBOARD_ASSET",
+      "recordCount": 7,
+      "classification": {
+        "REVIEW_REQUIRED": 7
+      },
+      "publicationFamilies": {
+        "country": 3,
+        "regional-directory": 4
+      },
+      "percentageOfEligibleEstate": 21.88,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "FIELD_UNRESOLVED_DATA_CUT_OFF_DATE",
+      "recordCount": 32,
+      "classification": {
+        "REVIEW_REQUIRED": 32
+      },
+      "publicationFamilies": {
+        "research-chapter": 21,
+        "country": 4,
+        "regional-directory": 6,
+        "research-publication": 1
+      },
+      "percentageOfEligibleEstate": 100,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "FIELD_UNRESOLVED_LEGACY_SOURCE_URL",
+      "recordCount": 1,
+      "classification": {
+        "REVIEW_REQUIRED": 1
+      },
+      "publicationFamilies": {
+        "research-publication": 1
+      },
+      "percentageOfEligibleEstate": 3.13,
+      "systemicCandidate": false
+    },
+    {
+      "reasonCode": "FORECAST_REVIEW",
+      "recordCount": 13,
+      "classification": {
+        "REVIEW_REQUIRED": 13
+      },
+      "publicationFamilies": {
+        "research-chapter": 13
+      },
+      "percentageOfEligibleEstate": 40.63,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "IDENTITY_DERIVED",
+      "recordCount": 32,
+      "classification": {
+        "REVIEW_REQUIRED": 32
+      },
+      "publicationFamilies": {
+        "research-chapter": 21,
+        "country": 4,
+        "regional-directory": 6,
+        "research-publication": 1
+      },
+      "percentageOfEligibleEstate": 100,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "LEGACY_LIFECYCLE_NOT_EVIDENCED",
+      "recordCount": 32,
+      "classification": {
+        "REVIEW_REQUIRED": 32
+      },
+      "publicationFamilies": {
+        "research-chapter": 21,
+        "country": 4,
+        "regional-directory": 6,
+        "research-publication": 1
+      },
+      "percentageOfEligibleEstate": 100,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "SOURCE_VERIFICATION_PENDING",
+      "recordCount": 4,
+      "classification": {
+        "REVIEW_REQUIRED": 4
+      },
+      "publicationFamilies": {
+        "country": 4
+      },
+      "percentageOfEligibleEstate": 12.5,
+      "systemicCandidate": true
+    },
+    {
+      "reasonCode": "STRUCTURED_REVIEW_REQUIRED",
+      "recordCount": 26,
+      "classification": {
+        "REVIEW_REQUIRED": 26
+      },
+      "publicationFamilies": {
+        "research-chapter": 19,
+        "regional-directory": 6,
+        "research-publication": 1
+      },
+      "percentageOfEligibleEstate": 81.25,
+      "systemicCandidate": true
+    }
+  ],
+  "migrationExecution": {
+    "status": "PASS",
+    "recordsProcessed": 32,
+    "newDraftsCreated": 31,
+    "existingDraftsReconciled": 1,
+    "readbackPassed": 32,
+    "readbackFailed": 0,
+    "duplicateIdentities": 0,
+    "unresolvedExceptions": 0,
+    "published": 0,
+    "draftUnpublished": 32,
+    "idempotency": {
+      "mode": "NO_WRITE",
+      "recordsChecked": 32,
+      "exactlyOneEntryMatches": 32,
+      "newCreatesRequired": 0,
+      "updatesRequired": 0,
+      "duplicates": 0,
+      "conflicts": 0,
+      "pass": true
+    }
+  }
+}
