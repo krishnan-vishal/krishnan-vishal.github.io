@@ -1,0 +1,51 @@
+name: M35 Contentful publication build
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Contentful API mode
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - delivery
+      expected_count:
+        description: Expected governed gpirPublication count
+        required: true
+        default: '32'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-publication-input:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.mode == 'preview' && 'contentful-preview' || 'contentful-production' }}
+    env:
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_DELIVERY_TOKEN: ${{ secrets.CONTENTFUL_DELIVERY_TOKEN }}
+      CONTENTFUL_PREVIEW_TOKEN: ${{ secrets.CONTENTFUL_PREVIEW_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate delivery configuration contract
+        run: node --test tests/m35/contentful-delivery-config.test.js
+      - name: Generate deterministic Contentful build input
+        run: >-
+          node scripts/m35/fetch-contentful-publications.js
+          --mode=${{ inputs.mode }}
+          --expected=${{ inputs.expected_count }}
+          --output=.generated/m35/contentful-publications.json
+      - name: Upload controlled build input
+        uses: actions/upload-artifact@v4
+        with:
+          name: m35-contentful-${{ inputs.mode }}
+          path: .generated/m35/contentful-publications.json
+          if-no-files-found: error
+          retention-days: 1
+
