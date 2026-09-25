@@ -67,7 +67,7 @@ function metadataRows(publication) {
 
 function commonHeader() {
   return `<a href="#chapter-content" class="skip-link">Skip to main content</a>
-<header class="header"><div class="container header-container"><div class="brand"><a href="/" class="brand-link" aria-label="FINTECHOISIS — Global Payments Intelligence Repository"><img src="/assets/branding/logos/fo-mark.svg" alt="" class="brand-logo"><div class="brand-text"><h1>FINTECHOISIS</h1><div class="brand-repository"><span class="repository-pill">GPIR</span><span class="repository-text">Global Payments Intelligence Repository</span></div></div></a></div><nav class="main-nav" aria-label="Primary navigation"><ul><li><a href="/#home">Home</a></li><li><a href="/#about">GPIR</a></li><li><a href="/#global">Markets</a></li><li><a href="/#research">Research</a></li><li><a href="/#contact">Contact</a></li></ul></nav></div></header>`;
+<header class="header"><div class="container header-container"><div class="brand"><a href="/" class="brand-link" aria-label="FINTECHOISIS — Global Payments Intelligence Repository"><img src="/assets/branding/logos/fo-mark.svg" alt="" class="brand-logo"><div class="brand-text"><h1>FINTECHOISIS</h1><div class="brand-repository"><span class="repository-pill">GPIR</span><span class="repository-text">Global Payments Intelligence Repository</span></div></div></a></div><nav class="main-nav" aria-label="Primary navigation"><ul><li><a href="/#home">Home</a></li><li><a href="/#about">GPIR</a></li><li><a href="/#global">Markets</a></li><li><a href="/#research">Research</a></li><li><a href="/#footer">Contact</a></li></ul></nav></div></header>`;
 }
 
 function commonFooter() {
