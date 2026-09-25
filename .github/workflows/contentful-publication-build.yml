@@ -33,19 +33,30 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate delivery configuration contract
-        run: node --test tests/m35/contentful-delivery-config.test.js
+      - name: Validate Contentful configuration and common frontend path
+        run: >-
+          node --test
+          tests/m35/contentful-delivery-config.test.js
+          tests/m35/contentful-frontend-activation.test.js
       - name: Generate deterministic Contentful build input
         run: >-
           node scripts/m35/fetch-contentful-publications.js
           --mode=${{ inputs.mode }}
           --expected=${{ inputs.expected_count }}
           --output=.generated/m35/contentful-publications.json
+      - name: Render controlled non-deploying publication output
+        run: >-
+          node scripts/m35/render-contentful-publications.js
+          --input=.generated/m35/contentful-publications.json
+          --output=.generated/m35/site
+          --expected=${{ inputs.expected_count }}
+          --controlled-validation
       - name: Upload controlled build input
         uses: actions/upload-artifact@v4
         with:
           name: m35-contentful-${{ inputs.mode }}
-          path: .generated/m35/contentful-publications.json
+          path: |
+            .generated/m35/contentful-publications.json
+            .generated/m35/site
           if-no-files-found: error
           retention-days: 1
-

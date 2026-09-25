@@ -1,0 +1,21 @@
+.gpir-publication { min-height: 70vh; background: var(--color-bg, #f8fafc); color: var(--color-text, #172033); }
+.gpir-publication-hero { padding: clamp(3rem, 7vw, 6rem) 0 2.5rem; background: linear-gradient(135deg, #0b1120, #15264a); color: #fff; }
+.gpir-publication-hero h1 { max-width: 24ch; margin: .75rem 0 1rem; font-size: clamp(2.25rem, 5vw, 4.5rem); line-height: 1.05; }
+.gpir-publication-hero > .container > p { max-width: 72ch; color: #d8e2f2; line-height: 1.7; }
+.gpir-publication-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .75rem; margin: 2rem 0 0; }
+.gpir-publication-meta-item { padding: .8rem 1rem; border: 1px solid rgba(255,255,255,.18); border-radius: .65rem; background: rgba(255,255,255,.06); }
+.gpir-publication-meta dt { color: #aebbd0; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+.gpir-publication-meta dd { margin: .25rem 0 0; font-weight: 700; }
+.gpir-publication-layout { max-width: 900px; padding-block: clamp(2rem, 5vw, 5rem); }
+.gpir-publication-summary, .gpir-publication-body, .gpir-publication-provenance, .gpir-auth-required, .gpir-asset-fallback { margin-bottom: 1.5rem; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid #dce3ed; border-radius: .85rem; background: #fff; box-shadow: 0 10px 30px rgba(15,23,42,.06); }
+.gpir-publication-body { line-height: 1.75; }
+.gpir-publication-body h2, .gpir-publication-body h3 { margin-top: 2rem; }
+.gpir-publication-body img { max-width: 100%; height: auto; }
+.gpir-asset-fallback { border-style: dashed; color: #5b6577; }
+.gpir-auth-required { border-color: #d6a94f; background: #fff9e9; }
+.gpir-publication-footer { padding: 2rem 0; background: #0b1120; color: #d8e2f2; }
+.gpir-publication-footer a { color: #fff; }
+.gpir-not-found { min-height: 100vh; display: grid; place-content: center; padding: 2rem; text-align: center; background: #0b1120; color: #fff; }
+.gpir-not-found h1 { margin: 0; font-size: clamp(5rem, 15vw, 10rem); }
+.gpir-not-found a { color: #0b1120; background: #f4b400; padding: .8rem 1.2rem; border-radius: .5rem; text-decoration: none; font-weight: 700; }
+@media (max-width: 720px) { .gpir-publication-meta { grid-template-columns: 1fr; } .gpir-publication-layout { padding-inline: 1rem; } }
