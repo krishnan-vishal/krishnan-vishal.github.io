@@ -97,6 +97,8 @@ test('fail-closed rendering does not emit protected body content', () => {
   const html = renderPublicationPage(adaptPublication(record()));
   assert.match(html, /Supabase access boundary/);
   assert.doesNotMatch(html, /Evidence-backed body/);
+  assert.match(html, /href="\/#footer">Contact<\/a>/);
+  assert.doesNotMatch(html, /href="\/#contact"/);
 });
 
 test('static build creates canonical route output, route manifest and 404', () => {
