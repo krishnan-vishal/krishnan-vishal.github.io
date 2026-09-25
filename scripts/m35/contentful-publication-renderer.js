@@ -1,6 +1,8 @@
 'use strict';
 
 const { authorizePublication, resolveProviderAuthorization } = require('./contentful-auth-boundary');
+const PROTECTED_PUBLICATION_ENDPOINT =
+  'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-protected-publication';
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, character => ({
@@ -78,7 +80,7 @@ function renderPublicationPage(publication, options = {}) {
   const publicMetadata = metadataRows(publication);
   const protectedContent = auth.allowed
     ? `<section class="gpir-publication-summary"><h2>Executive summary</h2><p>${escapeHtml(publication.summary)}</p></section><article class="gpir-publication-body">${renderRichText(publication.body)}</article>`
-    : '<section class="gpir-auth-required" role="status"><h2>Access required</h2><p>This publication requires authorization through the GPIR Supabase access boundary.</p></section>';
+    : '<section id="gpir-protected-content" class="gpir-auth-required" role="status" data-gpir-auth-state="denied"><h2>Access required</h2><p>This publication requires authorization through the GPIR Supabase access boundary.</p></section>';
   const provenance = publication.provenance.legacySourceUrl || publication.provenance.validationSummary
     ? `<aside class="gpir-publication-provenance"><h2>Source and provenance</h2>${publication.provenance.validationSummary ? `<p>${escapeHtml(publication.provenance.validationSummary)}</p>` : ''}${safeHref(publication.provenance.legacySourceUrl) ? `<p><a href="${escapeHtml(publication.provenance.legacySourceUrl)}">Legacy source reference</a></p>` : ''}</aside>` : '';
 
@@ -86,7 +88,7 @@ function renderPublicationPage(publication, options = {}) {
     ? '<aside class="gpir-asset-fallback" role="note">Associated visual assets remain under editorial review.</aside>' : '';
 
   return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(publication.title)} | GPIR | FINTECHOISIS</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(publication.canonicalUrl)}"><meta property="og:type" content="article"><meta property="og:site_name" content="FINTECHOISIS | GPIR"><meta property="og:title" content="${escapeHtml(publication.title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(publication.canonicalUrl)}"><link rel="icon" href="/assets/favicon/favicon.ico" sizes="any"><link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/typography.css"><link rel="stylesheet" href="/assets/css/layout.css"><link rel="stylesheet" href="/assets/css/components.css"><link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css"><link rel="stylesheet" href="/assets/css/footer.css"><link rel="stylesheet" href="/assets/css/site-polish.css"><link rel="stylesheet" href="/assets/css/contentful-publication.css"></head><body>${commonHeader()}<main id="chapter-content" class="gpir-publication" data-gpir-auth-authority="supabase" data-gpir-entitlement="gpir-publication" data-gpir-publication-id="${escapeHtml(publication.identity)}" data-gpir-auth-result="${auth.allowed ? 'controlled-validation' : 'required'}"><section class="gpir-publication-hero"><div class="container"><span class="page-tag">${escapeHtml(publication.publicationType)}</span><h1>${escapeHtml(publication.title)}</h1><p>${escapeHtml(publication.summary)}</p><dl class="gpir-publication-meta">${publicMetadata}</dl></div></section><div class="container gpir-publication-layout">${protectedContent}${assetFallback}${provenance}</div></main>${commonFooter()}</body></html>`;
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(publication.title)} | GPIR | FINTECHOISIS</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(publication.canonicalUrl)}"><meta property="og:type" content="article"><meta property="og:site_name" content="FINTECHOISIS | GPIR"><meta property="og:title" content="${escapeHtml(publication.title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(publication.canonicalUrl)}"><link rel="icon" href="/assets/favicon/favicon.ico" sizes="any"><link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/typography.css"><link rel="stylesheet" href="/assets/css/layout.css"><link rel="stylesheet" href="/assets/css/components.css"><link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css"><link rel="stylesheet" href="/assets/css/footer.css"><link rel="stylesheet" href="/assets/css/site-polish.css"><link rel="stylesheet" href="/assets/css/contentful-publication.css"><script type="module" src="/assets/js/gpir-protected-publication.mjs"></script></head><body>${commonHeader()}<main id="chapter-content" class="gpir-publication" data-gpir-auth-authority="supabase" data-gpir-entitlement="gpir-publication" data-gpir-publication-id="${escapeHtml(publication.identity)}" data-gpir-supabase-record-id="${escapeHtml(publication.supabaseRecordId)}" data-gpir-edge-endpoint="${PROTECTED_PUBLICATION_ENDPOINT}" data-gpir-auth-result="${auth.allowed ? 'controlled-validation' : 'required'}"><section class="gpir-publication-hero"><div class="container"><span class="page-tag">${escapeHtml(publication.publicationType)}</span><h1>${escapeHtml(publication.title)}</h1><p>${escapeHtml(publication.summary)}</p><dl class="gpir-publication-meta">${publicMetadata}</dl></div></section><div class="container gpir-publication-layout">${protectedContent}${assetFallback}${provenance}</div></main>${commonFooter()}</body></html>`;
 }
 
 async function renderPublicationPageWithProvider(publication, provider) {
@@ -99,4 +101,5 @@ function renderNotFoundPage() {
 }
 
 module.exports = { escapeHtml, renderNotFoundPage, renderPublicationPage,
-  renderPublicationPageWithProvider, renderRichText, safeHref };
+  renderPublicationPageWithProvider, renderRichText, safeHref,
+  PROTECTED_PUBLICATION_ENDPOINT };
