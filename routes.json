@@ -1,0 +1,263 @@
+{
+  "schemaVersion": "1.0.0",
+  "deploymentEligible": false,
+  "recordCount": 32,
+  "routes": [
+    {
+      "identity": "VK-GPIR-P-000000000026-5",
+      "route": "/africa-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/africa-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000027-3",
+      "route": "/americas-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/americas-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000028-1",
+      "route": "/apac-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/apac-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000005-9",
+      "route": "/cards-intelligence-gpir-domain-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/cards-intelligence-gpir-domain-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000029-9",
+      "route": "/europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000004-2",
+      "route": "/global-cross-border-bill-payments-family-financial-services-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-bill-payments-family-financial-services-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000006-7",
+      "route": "/global-cross-border-corridor-factbook-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-corridor-factbook-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000007-5",
+      "route": "/global-education-payments-industry-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-education-payments-industry-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000008-3",
+      "route": "/global-gaming-payments-industry-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-gaming-payments-industry-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000009-1",
+      "route": "/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000010-9",
+      "route": "/global-government-tax-public-sector-payments-ecosystem-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-government-tax-public-sector-payments-ecosystem-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000011-7",
+      "route": "/global-healthcare-medical-tourism-cross-border-health-payments-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-healthcare-medical-tourism-cross-border-health-payments-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000003-4",
+      "route": "/global-legalized-betting-gambling-lottery-wagering-payments-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-legalized-betting-gambling-lottery-wagering-payments-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000014-1",
+      "route": "/global-marketplace-e-commerce-seller-payouts-industry-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-marketplace-e-commerce-seller-payouts-industry-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000015-8",
+      "route": "/global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000032-3",
+      "route": "/global-payments-landscape/",
+      "canonicalUrl": "https://fintechoisis.com/global-payments-landscape/",
+      "publicationType": "Research Publication",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000016-6",
+      "route": "/global-remittance-diaspora-payments-industry-c2c-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-remittance-diaspora-payments-industry-c2c-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000017-4",
+      "route": "/global-rtp-directory-instant-payments-factbook-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-rtp-directory-instant-payments-factbook-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000021-6",
+      "route": "/global-trade-payments-industry-b2b-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-trade-payments-industry-b2b-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000022-4",
+      "route": "/global-travel-airline-hospitality-payments-ecosystem-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-travel-airline-hospitality-payments-ecosystem-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000023-2",
+      "route": "/global-wallets-mobile-money-super-apps-financial-inclusion-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/global-wallets-mobile-money-super-apps-financial-inclusion-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000001-8",
+      "route": "/india-gpir-country-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/india-gpir-country-intelligence-fintechoisis/",
+      "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000012-5",
+      "route": "/industry-future-state-2025-2040-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/industry-future-state-2025-2040-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000013-3",
+      "route": "/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000030-7",
+      "route": "/latam-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/latam-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000031-5",
+      "route": "/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/",
+      "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000002-6",
+      "route": "/singapore-gpir-country-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/singapore-gpir-country-intelligence-fintechoisis/",
+      "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000018-2",
+      "route": "/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000019-0",
+      "route": "/strategic-opportunities-industry-scorecards-action-frameworks-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/strategic-opportunities-industry-scorecards-action-frameworks-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000020-8",
+      "route": "/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/",
+      "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000024-0",
+      "route": "/united-arab-emirates-gpir-country-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/united-arab-emirates-gpir-country-intelligence-fintechoisis/",
+      "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000025-7",
+      "route": "/united-kingdom-gpir-country-intelligence-fintechoisis/",
+      "canonicalUrl": "https://fintechoisis.com/united-kingdom-gpir-country-intelligence-fintechoisis/",
+      "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    }
+  ]
+}
