@@ -68,10 +68,10 @@ test('manifest separates content readiness from unqueried identity readiness', (
   assert.equal(combineReadiness('READY', 'ALLOCATION_REQUIRED'), 'READY');
   assert.equal(combineReadiness('READY', 'CONFLICT'), 'IDENTITY_CONFLICT');
   const { manifest } = generateManifest(path.resolve(__dirname, '../..'));
-  assert.equal(manifest.records.length, 32);
+  assert.equal(manifest.records.length, 34);
   assert.ok(manifest.records.every(record =>
     record.identityReadiness === 'REGISTRY_LOOKUP_REQUIRED'));
-  assert.equal(Object.values(manifest.summary.contentReadiness).reduce((a, b) => a + b, 0), 32);
+  assert.equal(Object.values(manifest.summary.contentReadiness).reduce((a, b) => a + b, 0), 34);
   assert.ok(manifest.records.every(record => record.contentReadiness !== 'READY' ||
     record.readinessClassification !== 'READY'));
 });

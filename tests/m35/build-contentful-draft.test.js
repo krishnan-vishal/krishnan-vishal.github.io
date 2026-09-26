@@ -228,7 +228,7 @@ test('all five approved sources can build dry-run payloads twice without reposit
   assert.ok(first.every(draft => draft.fields.gpirPublicationId === null &&
     draft.publishEligible === false && draft.reviewRequired === true &&
     draft.fields.supabaseRecordId === null && draft.fields.validationStatus === 'WARN'));
-  assert.deepEqual(first.map(draft => draft.mediaAssociations.length), [1, 1, 0, 0, 0]);
+  assert.deepEqual(first.map(draft => draft.mediaAssociations.length), [2, 2, 0, 0, 0]);
   assert.ok(!bodyText(first[3]).includes('International Organizations'));
   assert.ok(!bodyText(first[3]).includes('References & Bibliography'));
   assert.ok(!bodyText(first[4]).includes('Primary: FXC Intelligence'));

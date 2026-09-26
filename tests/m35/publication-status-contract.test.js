@@ -72,7 +72,7 @@ test('common estate mapping leaves unsupported statuses unresolved without touch
   const root = path.resolve(__dirname, '../..');
   const before = fs.readFileSync(path.join(root, 'pages/chapters/corridor-factbook.html'));
   const { manifest } = generateManifest(root);
-  assert.equal(manifest.records.length, 32);
+  assert.equal(manifest.records.length, 34);
   assert.ok(manifest.records.every(record =>
     ['CURRENT', 'HISTORICAL', null].includes(record.publicationStatus.value)));
   assert.ok(manifest.records.every(record => record.publicationStatus.value === null ||

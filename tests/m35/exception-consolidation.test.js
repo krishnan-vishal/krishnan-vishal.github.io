@@ -16,7 +16,11 @@ test('all empty HTML sources consolidate as excluded placeholders', () => {
   assert.equal(manifest.summary.emptyPlaceholdersExcluded, 16);
   assert.equal(manifest.summary.discovery.REVIEW_DISCOVERY, 0);
   assert.equal(exceptions.discovery.length, 0);
-  assert.equal(manifest.records.length, 32);
+  assert.equal(manifest.records.length, 34);
+  assert.equal(manifest.discovery.filter(item =>
+    item.reasonCodes.includes('GENERATED_GOVERNED_PUBLICATION_SHELL')).length, 32);
+  assert.equal(manifest.discovery.filter(item =>
+    item.reasonCodes.includes('OUT_OF_SCOPE_APPLICATION_PAGE')).length, 46);
 });
 
 test('blocking fields are explicit and optional legacy metadata never blocks', () => {
@@ -61,7 +65,7 @@ test('one read-only batch distinguishes existing, missing and conflicting identi
 
 test('unavailable registry remains explicit and never implies allocation', () => {
   const { manifest } = generateManifest(root);
-  assert.equal(manifest.summary.identityReconciliation.REGISTRY_LOOKUP_UNAVAILABLE, 32);
+  assert.equal(manifest.summary.identityReconciliation.REGISTRY_LOOKUP_UNAVAILABLE, 34);
   assert.ok(manifest.records.every(item =>
     item.identityActionForF4K === 'REGISTRY_LOOKUP_REQUIRED'));
 });
@@ -73,7 +77,7 @@ test('common manifest engine recognizes a governed row from one read batch', asy
   const result = await generateManifestWithRegistry(root, {
     readIdentities: async keys => {
       calls++;
-      assert.equal(keys.length, 32);
+      assert.equal(keys.length, 34);
       return [{ sourceUnitKey: key, id: 'b7d85c60-40dd-42af-be54-3da9154fd433',
         gpirPublicationId: governedId('P', 2),
         editionLineageId: governedId('L', 2), identityStatus: 'GOVERNED_ASSIGNED' }];
@@ -81,6 +85,6 @@ test('common manifest engine recognizes a governed row from one read batch', asy
   });
   assert.equal(calls, 1);
   assert.equal(result.manifest.summary.identityReconciliation.EXISTING_GOVERNED_IDENTITY, 1);
-  assert.equal(result.manifest.summary.identityReconciliation.NO_EXISTING_IDENTITY, 31);
+  assert.equal(result.manifest.summary.identityReconciliation.NO_EXISTING_IDENTITY, 33);
   assert.equal(result.manifest.records[0].publicationIdentity, governedId('P', 2));
 });

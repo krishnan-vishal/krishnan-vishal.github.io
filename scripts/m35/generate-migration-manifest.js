@@ -47,8 +47,13 @@ function discover(sourcePath, html) {
   if (sourcePath === '404.html' || sourcePath === 'pages/template.html' ||
       sourcePath.startsWith('assets/'))
     return { state: 'APPLICATION_SHELL', reasonCodes: ['SHELL_OR_TEMPLATE'] };
+  if (/\bdata-gpir-entitlement=["']gpir-publication["']/i.test(html) &&
+      /\bdata-gpir-edge-endpoint=/i.test(html))
+    return { state: 'APPLICATION_SHELL', reasonCodes: ['GENERATED_GOVERNED_PUBLICATION_SHELL'] };
   if (sourcePath.startsWith('pages/legal/'))
     return { state: 'NON_PUBLICATION', reasonCodes: ['LEGAL_PAGE'] };
+  if (/^pages\/(?:fx|intelligence)\//.test(sourcePath))
+    return { state: 'NON_PUBLICATION', reasonCodes: ['OUT_OF_SCOPE_APPLICATION_PAGE'] };
   if (/^pages\/(?:chapters|countries|regions|research)\/[^/]+\.html$/.test(sourcePath))
     return { state: 'MIGRATION_ELIGIBLE', reasonCodes: ['PUBLICATION_PATH_AND_CONTENT'] };
   return { state: 'REVIEW_DISCOVERY', reasonCodes: ['UNCLASSIFIED_HTML_SOURCE'] };

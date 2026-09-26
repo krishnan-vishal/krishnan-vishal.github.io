@@ -63,7 +63,7 @@ test('review and quality flags remain independent of lifecycle null', () => {
 test('identity readiness stays separate from content readiness', () => {
   const { manifest } = generateManifest(root);
   assert.equal(manifest.summary.contentReadiness.BLOCKED_REQUIRED_FIELD, 0);
-  assert.equal(manifest.summary.identityReadiness.REGISTRY_LOOKUP_REQUIRED, 32);
+  assert.equal(manifest.summary.identityReadiness.REGISTRY_LOOKUP_REQUIRED, 34);
   assert.ok(manifest.records.every(record =>
     record.publicationStatus.value === null &&
     record.publicationStatus.mappingRule === 'LEGACY_LIFECYCLE_NOT_EVIDENCED' &&
