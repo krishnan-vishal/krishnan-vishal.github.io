@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "deploymentEligible": false,
-  "recordCount": 32,
+  "recordCount": 33,
   "routes": [
     {
       "identity": "VK-GPIR-P-000000000026-5",
@@ -224,6 +224,14 @@
       "route": "/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/",
       "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000033-1",
+      "route": "/stablecoins-cross-border-money-movement-c2c/",
+      "canonicalUrl": "https://fintechoisis.com/stablecoins-cross-border-money-movement-c2c/",
+      "publicationType": "Research Publication",
       "authAuthority": "supabase",
       "controlledValidation": false
     },
