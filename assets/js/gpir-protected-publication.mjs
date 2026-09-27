@@ -80,8 +80,14 @@ function appendDashboard(document, fragment, dashboard) {
   const href = safeMediaUrl(dashboard?.highResolutionHref || dashboard?.src);
   if (!src || !href || !dashboard.alt || dashboard.role !== 'PRIMARY_PUBLICATION_DASHBOARD') return;
   const section = document.createElement('section'); section.className = 'gpir-primary-dashboard';
+  const header = document.createElement('header'); header.className = 'gpir-dashboard-heading';
+  const headingGroup = document.createElement('div');
+  const kicker = document.createElement('span'); kicker.textContent = 'Visual intelligence';
   const heading = document.createElement('h2'); heading.id = 'gpir-primary-dashboard-title';
   heading.textContent = 'Primary dashboard'; section.setAttribute('aria-labelledby', heading.id);
+  const open = document.createElement('a'); open.href = href; open.className = 'gpir-dashboard-open';
+  open.textContent = 'Open high-resolution view';
+  headingGroup.append(kicker, heading); header.append(headingGroup, open);
   const figure = document.createElement('figure');
   const link = document.createElement('a'); link.href = href; link.className = 'gpir-dashboard-link';
   link.setAttribute('aria-label', `View high-resolution dashboard: ${dashboard.alt}`);
@@ -89,8 +95,9 @@ function appendDashboard(document, fragment, dashboard) {
   image.loading = 'lazy'; image.decoding = 'async';
   if (dashboard.width && dashboard.height) { image.width = dashboard.width; image.height = dashboard.height; }
   const caption = document.createElement('figcaption');
-  caption.textContent = `Dashboard reference ${dashboard.reference}`;
-  link.append(image); figure.append(link, caption); section.append(heading, figure); fragment.append(section);
+  const captionLabel = document.createElement('span'); captionLabel.textContent = 'Dashboard reference';
+  caption.append(captionLabel, document.createTextNode(` ${dashboard.reference}`));
+  link.append(image); figure.append(link, caption); section.append(header, figure); fragment.append(section);
 }
 
 function appendModules(document, fragment, modules) {
@@ -104,7 +111,9 @@ function appendModules(document, fragment, modules) {
     const number = module.moduleNumber || String(index + 1).padStart(2, '0');
     const id = `research-module-${number}`;
     const item = document.createElement('li'); const link = document.createElement('a');
-    link.href = `#${id}`; link.textContent = `${number} ${module.title || `Module ${index + 1}`}`;
+    const navNumber = document.createElement('span'); navNumber.textContent = number;
+    link.href = `#${id}`; link.append(navNumber,
+      document.createTextNode(module.title || `Module ${index + 1}`));
     item.append(link); list.append(item);
     const section = document.createElement('section'); section.id = id; section.className = 'gpir-research-module';
     const header = document.createElement('header'); const label = document.createElement('span');
@@ -127,7 +136,7 @@ export function renderProtectedPublication({ document, container, publication })
   const fragment = document.createDocumentFragment();
   const summary = document.createElement('section');
   summary.className = 'gpir-publication-summary';
-  const heading = document.createElement('h2'); heading.textContent = 'Executive summary';
+  const heading = document.createElement('h2'); heading.textContent = 'Executive intelligence';
   const paragraph = document.createElement('p'); paragraph.textContent = publication.summary || '';
   summary.append(heading, paragraph); fragment.append(summary);
   appendDashboard(document, fragment, publication.primaryDashboard);

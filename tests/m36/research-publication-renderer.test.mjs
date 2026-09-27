@@ -66,6 +66,16 @@ test('browser and server normalizers agree on module ordering', () => {
     normalizeResearchModules(null, moduleBody(4)).map(item => [item.moduleNumber, item.title]));
 });
 
+test('browser hydration uses the same visual intelligence structure as server rendering', () => {
+  const source = fs.readFileSync(path.join(process.cwd(),
+    'assets/js/gpir-protected-publication.mjs'), 'utf8');
+  assert.match(source, /gpir-dashboard-heading/);
+  assert.match(source, /Open high-resolution view/);
+  assert.match(source, /Executive intelligence/);
+  assert.match(source, /navNumber/);
+  assert.doesNotMatch(source, /Executive summary/);
+});
+
 test('authorized renderer emits module navigation, responsive dashboard and exact owner alt', () => {
   const publication = adaptPublication(record({ count: 10 }));
   const html = renderPublicationPage(publication,
@@ -78,6 +88,8 @@ test('authorized renderer emits module navigation, responsive dashboard and exac
   assert.match(html, /loading="lazy"/);
   assert.match(html, /width="1536" height="1024"/);
   assert.match(html, /class="gpir-dashboard-link"/);
+  assert.match(html, /class="gpir-dashboard-open">Open high-resolution view/);
+  assert.match(html, /<body class="gpir-publication-page">/);
 });
 
 test('missing dashboard is tolerated without empty dashboard markup', () => {
@@ -161,11 +173,15 @@ test('authorized Edge payload resolves governed dashboard asset only with alt te
 
 test('responsive and keyboard-focus CSS includes narrow viewport safeguards', () => {
   const css = fs.readFileSync(path.join(process.cwd(), 'assets/css/contentful-publication.css'), 'utf8');
-  assert.match(css, /overflow-x: clip/);
-  assert.match(css, /aspect-ratio: 3 \/ 2/);
+  assert.match(css, /overflow-x:\s*clip/);
+  assert.match(css, /aspect-ratio:\s*3\s*\/\s*2/);
   assert.match(css, /focus-visible/);
-  assert.match(css, /max-width: 360px/);
-  assert.match(css, /overflow-x: auto/);
+  assert.match(css, /max-width:\s*480px/);
+  assert.match(css, /overflow-x:\s*auto/);
+  assert.match(css, /var\(--hero-light-bg/);
+  assert.match(css, /font-family:var\(--font-primary/);
+  assert.match(css, /grid-template-columns:minmax\(220px, 270px\)/);
+  assert.match(css, /position:sticky/);
 });
 
 test('B3B umbrella identity and lineage remain unchanged', () => {
