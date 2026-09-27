@@ -59,6 +59,23 @@ test('public build metadata and generated artifacts contain no credentials', () 
   assert.equal(Object.hasOwn(artifact, 'generatedAt'), false);
 });
 
+test('governed presentation manifest activates only the exact publication identity', () => {
+  const stablecoin = buildArtifact(contentfulDeliveryConfig(base, 'delivery'), [{
+    sys: { id: 'stablecoin', contentType: { sys: { id: 'gpirPublication' } } },
+    fields: { gpirPublicationId: 'VK-GPIR-P-000000000033-1', publicationTitle: 'C2C' }
+  }]).records[0];
+  assert.equal(stablecoin.presentation.accessClass, 'AUTHENTICATED');
+  assert.deepEqual(stablecoin.presentation.topicContext,
+    ['Technology', 'Stablecoins & CBDCs', 'Stablecoins', 'Cross-Border Money Movement', 'C2C']);
+  assert.equal(JSON.stringify(stablecoin).includes('VK-GPIR-P-000000000018-2'), false);
+
+  const unrelated = buildArtifact(contentfulDeliveryConfig(base, 'delivery'), [{
+    sys: { id: 'unrelated', contentType: { sys: { id: 'gpirPublication' } } },
+    fields: { gpirPublicationId: 'VK-GPIR-P-000000000001-8', publicationTitle: 'Existing' }
+  }]).records[0];
+  assert.equal(Object.hasOwn(unrelated, 'presentation'), false);
+});
+
 test('Contentful failure produces no partial collection', async () => {
   const config = contentfulDeliveryConfig(base, 'delivery');
   await assert.rejects(fetchContentfulPublications(config, async () => ({ ok: false, status: 503 })),
@@ -70,4 +87,3 @@ test('CLI contract keeps production and preview modes explicit', () => {
     mode: 'preview', output: '.generated/test.json', expected: 32
   });
 });
-

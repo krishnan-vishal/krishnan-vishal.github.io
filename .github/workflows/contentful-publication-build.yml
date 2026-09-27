@@ -14,7 +14,7 @@ on:
       expected_count:
         description: Expected governed gpirPublication count
         required: true
-        default: '32'
+        default: '33'
 
 permissions:
   contents: read

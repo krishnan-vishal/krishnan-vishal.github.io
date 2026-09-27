@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { contentfulDeliveryConfig, publicBuildMetadata } =
   require('./contentful-delivery-config');
+const presentationManifest = require('./publication-presentation-manifest.json');
 
 function entriesUrl(config, skip = 0) {
   const root = `https://${config.host}/spaces/${encodeURIComponent(config.spaceId)}` +
@@ -18,17 +19,21 @@ function entriesUrl(config, skip = 0) {
   return `${root}?${query}`;
 }
 
-function projectEntry(entry) {
+function projectEntry(entry, presentations = presentationManifest) {
   if (!entry?.sys?.id || entry.sys.contentType?.sys?.id !== 'gpirPublication')
     throw new Error('Contentful returned an invalid gpirPublication entry.');
-  return {
+  const record = {
     entryId: entry.sys.id,
     fields: entry.fields && typeof entry.fields === 'object' ? entry.fields : {}
   };
+  const publicationId = record.fields.gpirPublicationId;
+  if (typeof publicationId === 'string' && presentations?.[publicationId])
+    record.presentation = structuredClone(presentations[publicationId]);
+  return record;
 }
 
-function buildArtifact(config, items) {
-  const records = items.map(projectEntry)
+function buildArtifact(config, items, presentations = presentationManifest) {
+  const records = items.map(entry => projectEntry(entry, presentations))
     .sort((a, b) => a.entryId.localeCompare(b.entryId, 'en'));
   return {
     schemaVersion: '1.0.0',
@@ -99,4 +104,3 @@ if (require.main === module) {
 }
 
 module.exports = { buildArtifact, entriesUrl, fetchContentfulPublications, parseArgs, projectEntry };
-
