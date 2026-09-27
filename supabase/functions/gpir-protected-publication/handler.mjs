@@ -29,7 +29,10 @@ function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY',
     'CONTENTFUL_SPACE_ID', 'CONTENTFUL_ENVIRONMENT', 'CONTENTFUL_DELIVERY_TOKEN'];
   const values = Object.fromEntries(names.map(name => [name, env[name]?.trim()]));
-  return names.every(name => values[name]) ? values : null;
+  if (!names.every(name => values[name])) return null;
+  const contentfulHost = (env.CONTENTFUL_HOST || 'cdn.contentful.com').trim().toLowerCase();
+  if (!['cdn.contentful.com', 'preview.contentful.com'].includes(contentfulHost)) return null;
+  return { ...values, CONTENTFUL_HOST: contentfulHost };
 }
 
 function bearerToken(request) {
@@ -53,7 +56,29 @@ function scalar(value) {
   return null;
 }
 
-function normalizedPayload(entry, publicationId, supabaseRecordId) {
+function localized(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value ?? null;
+  if (value.sys || value.url || value.fileName || value.details) return value;
+  return value['en-US'] ?? Object.values(value)[0] ?? null;
+}
+
+function resolvedDashboard(fields, collection) {
+  const linkId = localized(fields?.dashboardAsset)?.sys?.id || fields?.dashboardAsset?.sys?.id || null;
+  if (!linkId) return null;
+  const asset = collection?.includes?.Asset?.find(item => item?.sys?.id === linkId);
+  const file = localized(asset?.fields?.file);
+  const alt = scalar(asset?.fields?.description);
+  const source = typeof file?.url === 'string'
+    ? file.url.startsWith('//') ? `https:${file.url}` : file.url : null;
+  if (!asset || !file || !alt || !source || !/^https:\/\//i.test(source)) return null;
+  const reference = scalar(asset.fields.title) || String(file.fileName || '').replace(/\.[^.]+$/, '');
+  return Object.freeze({ reference, role: 'PRIMARY_PUBLICATION_DASHBOARD', src: source,
+    highResolutionHref: source, alt,
+    width: Number.isInteger(file.details?.image?.width) ? file.details.image.width : null,
+    height: Number.isInteger(file.details?.image?.height) ? file.details.image.height : null });
+}
+
+function normalizedPayload(entry, publicationId, supabaseRecordId, collection = null) {
   const fields = entry?.fields;
   if (!fields || scalar(fields.gpirPublicationId) !== publicationId ||
       scalar(fields.supabaseRecordId) !== supabaseRecordId) return null;
@@ -64,6 +89,7 @@ function normalizedPayload(entry, publicationId, supabaseRecordId) {
     publicationType: scalar(fields.publicationType),
     summary: scalar(fields.executiveSummary),
     body: fields.editorialBody ?? null,
+    primaryDashboard: resolvedDashboard(fields, collection),
     provenance: Object.freeze({
       validationSummary: scalar(fields.sourceValidationSummary),
       legacySourceUrl: scalar(fields.legacySourceUrl)
@@ -124,7 +150,7 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
 
     const query = new URLSearchParams({ content_type: 'gpirPublication',
       'fields.gpirPublicationId': input.publicationId, include: '2', limit: '2' });
-    const contentfulUrl = `https://cdn.contentful.com/spaces/${encodeURIComponent(config.CONTENTFUL_SPACE_ID)}` +
+    const contentfulUrl = `https://${config.CONTENTFUL_HOST}/spaces/${encodeURIComponent(config.CONTENTFUL_SPACE_ID)}` +
       `/environments/${encodeURIComponent(config.CONTENTFUL_ENVIRONMENT)}/entries?${query}`;
     let contentfulResponse;
     try {
@@ -138,7 +164,8 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     catch { return providerError('CONTENT_PROVIDER_ERROR', origin); }
     if (!Array.isArray(collection?.items) || collection.items.length !== 1)
       return denied(403, collection?.items?.length > 1 ? 'DUPLICATE_PUBLICATION' : 'UNKNOWN_PUBLICATION', origin);
-    const publication = normalizedPayload(collection.items[0], input.publicationId, input.supabaseRecordId);
+    const publication = normalizedPayload(collection.items[0], input.publicationId,
+      input.supabaseRecordId, collection);
     if (!publication) return denied(403, 'CONTENT_IDENTITY_MISMATCH', origin);
     return response(200, { status: 'ALLOW', publication }, origin);
   };

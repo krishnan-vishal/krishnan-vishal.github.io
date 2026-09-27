@@ -42,6 +42,86 @@ function appendRichText(document, parent, node) {
   if (element !== parent) parent.append(element);
 }
 
+function richTextValue(node) {
+  if (!node || typeof node !== 'object') return '';
+  if (node.nodeType === 'text') return String(node.value || '');
+  return (node.content || []).map(richTextValue).join('');
+}
+
+export function modulesFromRichText(body) {
+  if (!body || body.nodeType !== 'document' || !Array.isArray(body.content)) return [];
+  const modules = [];
+  let current = null;
+  for (const node of body.content) {
+    if (['heading-1', 'heading-2'].includes(node?.nodeType)) {
+      const heading = richTextValue(node).trim();
+      if (!heading) continue;
+      const match = /^(?:module\s+)?(\d{1,3})(?:\s*[—–:\-.]\s*|\s+)(.+)$/i.exec(heading);
+      current = { moduleNumber: match ? match[1].padStart(2, '0') : null,
+        title: match ? match[2].trim() : heading, nodes: [] };
+      modules.push(current);
+    } else if (current) current.nodes.push(node);
+  }
+  return modules.map((module, index) => ({
+    moduleNumber: module.moduleNumber || String(index + 1).padStart(2, '0'),
+    title: module.title,
+    sections: module.nodes.length ? [{ title: null, body: {
+      nodeType: 'document', data: {}, content: module.nodes } }] : []
+  }));
+}
+
+function safeMediaUrl(value) {
+  return typeof value === 'string' && (value.startsWith('/') || /^https:\/\//i.test(value))
+    ? value : null;
+}
+
+function appendDashboard(document, fragment, dashboard) {
+  const src = safeMediaUrl(dashboard?.src);
+  const href = safeMediaUrl(dashboard?.highResolutionHref || dashboard?.src);
+  if (!src || !href || !dashboard.alt || dashboard.role !== 'PRIMARY_PUBLICATION_DASHBOARD') return;
+  const section = document.createElement('section'); section.className = 'gpir-primary-dashboard';
+  const heading = document.createElement('h2'); heading.id = 'gpir-primary-dashboard-title';
+  heading.textContent = 'Primary dashboard'; section.setAttribute('aria-labelledby', heading.id);
+  const figure = document.createElement('figure');
+  const link = document.createElement('a'); link.href = href; link.className = 'gpir-dashboard-link';
+  link.setAttribute('aria-label', `View high-resolution dashboard: ${dashboard.alt}`);
+  const image = document.createElement('img'); image.src = src; image.alt = dashboard.alt;
+  image.loading = 'lazy'; image.decoding = 'async';
+  if (dashboard.width && dashboard.height) { image.width = dashboard.width; image.height = dashboard.height; }
+  const caption = document.createElement('figcaption');
+  caption.textContent = `Dashboard reference ${dashboard.reference}`;
+  link.append(image); figure.append(link, caption); section.append(heading, figure); fragment.append(section);
+}
+
+function appendModules(document, fragment, modules) {
+  if (!modules.length) return false;
+  const wrapper = document.createElement('div'); wrapper.className = 'gpir-research-modules';
+  const nav = document.createElement('nav'); nav.className = 'gpir-research-module-nav';
+  nav.setAttribute('aria-label', 'Research modules');
+  const navHeading = document.createElement('h2'); navHeading.textContent = 'Research modules';
+  const list = document.createElement('ol');
+  for (const [index, module] of modules.entries()) {
+    const number = module.moduleNumber || String(index + 1).padStart(2, '0');
+    const id = `research-module-${number}`;
+    const item = document.createElement('li'); const link = document.createElement('a');
+    link.href = `#${id}`; link.textContent = `${number} ${module.title || `Module ${index + 1}`}`;
+    item.append(link); list.append(item);
+    const section = document.createElement('section'); section.id = id; section.className = 'gpir-research-module';
+    const header = document.createElement('header'); const label = document.createElement('span');
+    label.textContent = `Module ${number}`; const heading = document.createElement('h2');
+    heading.id = `${id}-title`; heading.textContent = module.title || `Module ${index + 1}`;
+    section.setAttribute('aria-labelledby', heading.id); header.append(label, heading); section.append(header);
+    const content = document.createElement('div'); content.className = 'gpir-research-module-content';
+    for (const part of module.sections || []) {
+      if (part.title) { const subheading = document.createElement('h3'); subheading.textContent = part.title; content.append(subheading); }
+      if (part.body) appendRichText(document, content, part.body);
+      else if (typeof part.text === 'string') { const paragraph = document.createElement('p'); paragraph.textContent = part.text; content.append(paragraph); }
+    }
+    section.append(content); wrapper.append(section);
+  }
+  nav.append(navHeading, list); wrapper.prepend(nav); fragment.append(wrapper); return true;
+}
+
 export function renderProtectedPublication({ document, container, publication }) {
   if (!document || !container || !publication) return false;
   const fragment = document.createDocumentFragment();
@@ -50,8 +130,36 @@ export function renderProtectedPublication({ document, container, publication })
   const heading = document.createElement('h2'); heading.textContent = 'Executive summary';
   const paragraph = document.createElement('p'); paragraph.textContent = publication.summary || '';
   summary.append(heading, paragraph); fragment.append(summary);
-  const body = document.createElement('article'); body.className = 'gpir-publication-body';
-  appendRichText(document, body, publication.body); fragment.append(body);
+  appendDashboard(document, fragment, publication.primaryDashboard);
+  const modules = Array.isArray(publication.researchModules) && publication.researchModules.length
+    ? publication.researchModules : modulesFromRichText(publication.body);
+  if (!appendModules(document, fragment, modules)) {
+    const body = document.createElement('article'); body.className = 'gpir-publication-body';
+    appendRichText(document, body, publication.body); fragment.append(body);
+  }
+  if (Array.isArray(publication.historicalEditions) && publication.historicalEditions.length) {
+    const historical = document.createElement('section'); historical.className = 'gpir-historical-editions';
+    const historicalHeading = document.createElement('h2'); historicalHeading.textContent = 'Historical editions';
+    const historicalList = document.createElement('ul');
+    for (const edition of publication.historicalEditions) {
+      const item = document.createElement('li'); item.textContent = edition.title || edition.publicationId || '';
+      historicalList.append(item);
+    }
+    historical.append(historicalHeading, historicalList); fragment.append(historical);
+  }
+  if (publication.provenance?.validationSummary || publication.provenance?.legacySourceUrl) {
+    const provenance = document.createElement('aside'); provenance.className = 'gpir-publication-provenance';
+    const provenanceHeading = document.createElement('h2'); provenanceHeading.textContent = 'Source and provenance';
+    provenance.append(provenanceHeading);
+    if (publication.provenance.validationSummary) {
+      const validation = document.createElement('p');
+      validation.textContent = publication.provenance.validationSummary; provenance.append(validation);
+    }
+    const legacyUrl = safeMediaUrl(publication.provenance.legacySourceUrl);
+    if (legacyUrl) { const paragraph = document.createElement('p'); const link = document.createElement('a');
+      link.href = legacyUrl; link.textContent = 'Legacy source reference'; paragraph.append(link); provenance.append(paragraph); }
+    fragment.append(provenance);
+  }
   container.replaceChildren(fragment);
   container.dataset.gpirAuthState = 'allowed';
   return true;
