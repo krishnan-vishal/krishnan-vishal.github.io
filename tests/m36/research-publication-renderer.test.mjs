@@ -34,7 +34,7 @@ function record({ count = 3, dashboard = true, historicalEditions = [], identity
     useCasePaymentCategory: 'C2C', executiveSummary: 'Protected executive intelligence.',
     editorialBody: moduleBody(count), sourceValidationSummary: 'Governed source package.'
   }, presentation: { accessClass: 'AUTHENTICATED',
-    publicDescription: 'Governed GPIR research publication. Authentication required.',
+    publicDescription: 'A current GPIR research publication for registered readers.',
     topicContext: ['Technology', 'Stablecoins & CBDCs', 'Stablecoins', 'Cross-Border Money Movement', 'C2C'],
     primaryDashboard: dashboard ? { reference: 'VK-GPIR-STBL-C2C-2026-001',
       role: 'PRIMARY_PUBLICATION_DASHBOARD', src: '/fixture/dashboard.jpg',
@@ -117,12 +117,18 @@ test('topic breadcrumb is public metadata and does not imply shared lineage', ()
 });
 
 test('AUTHENTICATED static shell exposes SEO metadata but no protected body or dashboard', () => {
-  const html = renderPublicationPage(adaptPublication(record()));
-  assert.match(html, /Governed GPIR research publication\. Authentication required\./);
+  const html = renderPublicationPage(adaptPublication(record({ count: 10 })));
+  assert.match(html, /A current GPIR research publication for registered readers\./);
   assert.match(html, /rel="canonical" href="https:\/\/fintechoisis.com\/stablecoins-cross-border-money-movement-c2c\/"/);
   assert.match(html, /VK-GPIR-P-000000000033-1/);
   assert.match(html, /VK-GPIR-L-000000000033-1/);
-  assert.match(html, /Governed source provenance is available to authorized readers/);
+  assert.match(html, /Registered reader access/);
+  assert.match(html, /About this research/);
+  assert.match(html, /10 intelligence modules/);
+  assert.match(html, /Visual intelligence is available with registered-reader access/);
+  assert.match(html, /This GPIR publication includes governed source provenance and publication lineage/);
+  assert.match(html, /href="\/#global">Markets/);
+  assert.doesNotMatch(html, /Supabase|RPC|authorization boundary|Edge Function|Contentful access|Associated visual assets remain under editorial review/);
   assert.doesNotMatch(html, /Governed source package/);
   assert.doesNotMatch(html, /Protected executive intelligence/);
   assert.doesNotMatch(html, /Exact module text/);
@@ -136,7 +142,8 @@ test('identity mismatch and missing policy remain denied', () => {
     identity: 'VK-GPIR-P-000000000034-9' })));
   for (const authorization of [undefined, mismatch]) {
     const html = renderPublicationPage(publication, { authorization });
-    assert.match(html, /Access required/);
+    assert.match(html, /This GPIR intelligence publication is available to registered readers/);
+    assert.match(html, /data-gpir-auth-state="denied"/);
     assert.doesNotMatch(html, /Exact module text/);
   }
 });
@@ -182,6 +189,8 @@ test('responsive and keyboard-focus CSS includes narrow viewport safeguards', ()
   assert.match(css, /font-family:var\(--font-primary/);
   assert.match(css, /grid-template-columns:minmax\(220px, 270px\)/);
   assert.match(css, /position:sticky/);
+  assert.match(css, /min-height:\s*44px/);
+  assert.match(css, /\.gpir-discovery-navigation a:focus-visible|\.gpir-publication a:focus-visible/);
 });
 
 test('B3B umbrella identity and lineage remain unchanged', () => {

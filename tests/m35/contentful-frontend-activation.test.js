@@ -77,10 +77,12 @@ test('renderer escapes authored text and filters unsafe hyperlinks', () => {
   assert.match(html, /&lt;script&gt;/);
 });
 
-test('unresolved assets render a deterministic safe fallback', () => {
-  const publication = adaptPublication(record({ fields: { dashboardAsset: { sys: { id: 'asset-1' } } } }));
+test('unresolved protected assets do not expose misleading editorial state', () => {
+  const assetRecord = record({ fields: { dashboardAsset: { sys: { id: 'asset-1' } } } });
+  assetRecord.presentation = { accessClass: 'AUTHENTICATED' };
+  const publication = adaptPublication(assetRecord);
   const html = renderPublicationPage(publication, { authorization: controlledValidationAuthorization(publication) });
-  assert.match(html, /Associated visual assets remain under editorial review/);
+  assert.doesNotMatch(html, /Associated visual assets remain under editorial review/);
   assert.doesNotMatch(html, /asset-1/);
 });
 
@@ -94,8 +96,12 @@ test('auth boundary fails closed and accepts only the controlled Supabase capabi
 });
 
 test('fail-closed rendering does not emit protected body content', () => {
-  const html = renderPublicationPage(adaptPublication(record()));
-  assert.match(html, /Supabase access boundary/);
+  const deniedRecord = record();
+  deniedRecord.presentation = { accessClass: 'AUTHENTICATED' };
+  const html = renderPublicationPage(adaptPublication(deniedRecord));
+  assert.match(html, /This GPIR intelligence publication is available to registered readers/);
+  assert.match(html, /Continue exploring GPIR/);
+  assert.doesNotMatch(html, /Supabase access boundary|Edge Function|entitlement implementation/);
   assert.doesNotMatch(html, /Evidence-backed body/);
   assert.match(html, /href="\/#footer">Contact<\/a>/);
   assert.doesNotMatch(html, /href="\/#contact"/);
