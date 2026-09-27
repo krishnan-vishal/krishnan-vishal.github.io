@@ -16,5 +16,7 @@ function createSupabaseBrowserClient(options = {}) {
   });
 }
 
-module.exports = { createSupabaseBrowserClient };
-
+if (typeof module !== 'undefined' && module.exports)
+  module.exports = { createSupabaseBrowserClient };
+if (typeof globalThis !== 'undefined')
+  globalThis.GPIR_M34 = { ...(globalThis.GPIR_M34 || {}), createSupabaseBrowserClient };

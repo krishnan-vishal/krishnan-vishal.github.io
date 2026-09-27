@@ -83,4 +83,8 @@ function createPublicationAuthorizationProvider(options = {}) {
   return Object.freeze({ resolvePublicationAuthorization, observeAuthState });
 }
 
-module.exports = { createPublicationAuthorizationProvider, rpcDecision, validIdentity, validSession };
+if (typeof module !== 'undefined' && module.exports)
+  module.exports = { createPublicationAuthorizationProvider, rpcDecision, validIdentity, validSession };
+if (typeof globalThis !== 'undefined')
+  globalThis.GPIR_M34 = { ...(globalThis.GPIR_M34 || {}),
+    createPublicationAuthorizationProvider, rpcDecision, validIdentity, validSession };
