@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B1120">
+  <title>Create a free reader account | FINTECHOISIS GPIR</title>
+  <link rel="stylesheet" href="/assets/css/reader-auth.css">
+  <script src="/assets/js/gpir-supabase-public-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+  <script src="/scripts/m34/supabase-browser-client.js"></script>
+  <script src="/scripts/m34/publication-authorization-provider.js"></script>
+  <script src="/assets/js/gpir-reader-auth.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#reader-auth-main">Skip to account creation</a>
+  <main id="reader-auth-main" class="reader-auth-shell">
+    <a class="reader-auth-brand" href="/" aria-label="FINTECHOISIS GPIR home">FINTECHOISIS <span>GPIR</span></a>
+    <section class="reader-auth-card" aria-labelledby="reader-auth-title">
+      <p class="reader-auth-kicker">Free registered-reader access</p>
+      <h1 id="reader-auth-title">Create your GPIR account</h1>
+      <p>Verify your email to activate reader access. No phone number or paid plan is required.</p>
+      <form data-auth-form="signup" novalidate>
+        <label for="reader-email">Email address</label>
+        <input id="reader-email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        <label for="reader-password">Create a password</label>
+        <input id="reader-password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+        <p class="reader-auth-message" data-auth-message aria-live="polite"></p>
+        <button class="reader-auth-submit" type="submit">Create free account</button>
+      </form>
+      <p class="reader-auth-switch">Already registered? <a href="/reader/sign-in/">Sign in</a></p>
+    </section>
+  </main>
+</body>
+</html>
