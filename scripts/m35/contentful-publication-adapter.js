@@ -1,5 +1,7 @@
 'use strict';
 
+const { normalizeResearchPresentation } = require('./research-publication-model');
+
 const CANONICAL_ORIGIN = 'https://fintechoisis.com';
 const REQUIRED_FIELDS = Object.freeze([
   'gpirPublicationId', 'editionLineageId', 'supabaseRecordId',
@@ -57,6 +59,7 @@ function adaptPublication(record) {
   const supabaseRecordId = optionalString(fields, 'supabaseRecordId');
   if (!identity || !lineage || !supabaseRecordId)
     throw new Error('Governed publication, lineage and Supabase identities are required.');
+  const presentation = normalizeResearchPresentation(record.presentation, fields.editorialBody);
 
   return Object.freeze({
     schemaVersion: '1.0.0',
@@ -77,6 +80,12 @@ function adaptPublication(record) {
     canonicalUrl: `${CANONICAL_ORIGIN}${route}`,
     summary: optionalString(fields, 'executiveSummary'),
     body: fields.editorialBody,
+    researchModules: presentation.researchModules,
+    primaryDashboard: presentation.primaryDashboard,
+    topicContext: presentation.topicContext,
+    historicalEditions: presentation.historicalEditions,
+    accessClass: presentation.accessClass,
+    publicDescription: presentation.publicDescription,
     provenance: Object.freeze({
       legacySourceUrl: optionalString(fields, 'legacySourceUrl'),
       validationSummary: optionalString(fields, 'sourceValidationSummary')

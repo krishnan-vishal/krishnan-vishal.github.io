@@ -99,6 +99,31 @@ test('05 entitled authenticated user receives minimum protected payload', async 
   assert.equal(result.calls.length, 3); assert.equal(result.body.publication.body.content[0].content[0].value, 'Protected body fixture.');
   assert.equal(result.body.publication.entryId, undefined);
 });
+
+test('05b controlled owner preview may use the Contentful Preview API host', async () => {
+  let contentfulUrl = null;
+  const handler = createProtectedPublicationHandler({ env: {
+    ...env, CONTENTFUL_HOST: 'preview.contentful.com'
+  }, fetchImpl: async (url, options) => {
+    if (String(url).includes('/auth/v1/user')) return new Response(JSON.stringify({ id: userId }));
+    if (String(url).includes('/rpc/resolve_publication_entitlement'))
+      return new Response(JSON.stringify([{ decision: 'ALLOW' }]));
+    contentfulUrl = String(url);
+    return new Response(JSON.stringify({ items: [contentfulEntry()] }));
+  } });
+  const response = await handler(edgeRequest());
+  assert.equal(response.status, 200);
+  assert.match(contentfulUrl, /^https:\/\/preview\.contentful\.com\//);
+});
+
+test('05c arbitrary Contentful hosts fail closed', async () => {
+  const handler = createProtectedPublicationHandler({ env: {
+    ...env, CONTENTFUL_HOST: 'attacker.example'
+  }, fetchImpl: async () => { throw new Error('provider should not be called'); } });
+  const response = await handler(edgeRequest());
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).reason, 'PROVIDER_CONFIGURATION_ERROR');
+});
 test('06 entitlement RPC error returns no protected body', async () => {
   const result = await invoke({ rpcStatus: 500 });
   assert.equal(result.body.status, 'ERROR'); assert.equal(result.calls.length, 2);
