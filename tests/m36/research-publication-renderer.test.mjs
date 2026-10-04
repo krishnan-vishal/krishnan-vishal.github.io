@@ -136,6 +136,16 @@ test('AUTHENTICATED static shell exposes SEO metadata but no protected body or d
   assert.doesNotMatch(html, new RegExp(ownerAlt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
+test('PUBLIC publication is B3E-compatible without the registered-reader gate', () => {
+  const publication = adaptPublication(record({ count: 2,
+    presentation: { accessClass: 'PUBLIC' } }));
+  const html = renderPublicationPage(publication,
+    { authorization: controlledValidationAuthorization(publication) });
+  assert.match(html, /Exact module text 1\./);
+  assert.match(html, /Exact module text 2\./);
+  assert.doesNotMatch(html, /Registered reader access|gpir-reader-access|Create free GPIR account/);
+});
+
 test('identity mismatch and missing policy remain denied', () => {
   const publication = adaptPublication(record());
   const mismatch = controlledValidationAuthorization(adaptPublication(record({
@@ -186,9 +196,11 @@ test('responsive and keyboard-focus CSS includes narrow viewport safeguards', ()
   assert.match(css, /max-width:\s*480px/);
   assert.match(css, /overflow-x:\s*auto/);
   assert.match(css, /var\(--hero-light-bg/);
-  assert.match(css, /font-family:var\(--font-primary/);
-  assert.match(css, /grid-template-columns:minmax\(220px, 270px\)/);
+  assert.match(css, /--gpir-font-headline:'Calibri Light', Calibri, Arial, sans-serif/);
+  assert.match(css, /--gpir-font-body:Arial, Helvetica, sans-serif/);
+  assert.match(css, /grid-template-columns:auto minmax\(0, 1fr\)/);
   assert.match(css, /position:sticky/);
+  assert.match(css, /max-height:48px/);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /\.gpir-discovery-navigation a:focus-visible|\.gpir-publication a:focus-visible/);
 });

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "M36-C1-1.0",
+  "batchId": "M36-C1-20260927-01",
+  "batchLimit": 5,
+  "governance": {
+    "sourceApprovalAuthority": "OWNER",
+    "accessApprovalAuthority": "OWNER",
+    "allowedAccessClasses": [
+      "PUBLIC",
+      "AUTHENTICATED",
+      "ENTITLED"
+    ],
+    "publishAuthorized": false,
+    "routeActivationAuthorized": false
+  },
+  "candidates": [
+    {
+      "candidateKey": "bloom-master-overview-v1",
+      "includeInBatch": false,
+      "ownerDecision": "HOLD_EXCLUDE_FROM_BATCH",
+      "evidencedTitle": "BLOOM",
+      "evidencedModuleCount": 17,
+      "sourcePath": "F:\\RepositoryJFY26\\Digital Currency\\Stable Coins MFY26\\Master research Papers\\GPIR\\BLOOM_Master_Overview_Validated_Research_v1.0.docx",
+      "sourceApproval": null,
+      "sourceApprovalEvidence": "Filename and location evidence VALIDATED_RESEARCH and GPIR research-master status, but no separate owner-approval decision was found.",
+      "dashboardPath": null,
+      "dashboardRelationship": "UNKNOWN",
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "existingHtmlPath": null,
+      "legacyRelationship": null
+    },
+    {
+      "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+      "includeInBatch": true,
+      "ownerDecision": "OWNER_APPROVED",
+      "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+      "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Global_CrossBorder_Payments_Report ver 1.docx",
+      "sourceApproval": "OWNER_APPROVED",
+      "sourceApprovalEvidence": "M36-C1 owner reconciliation continuation decision.",
+      "dashboardPath": null,
+      "dashboardRelationship": "NONE",
+      "accessClass": "PUBLIC",
+      "accessApprovalEvidence": "M36-C1 final owner governance decision.",
+      "existingHtmlPath": null,
+      "legacyRelationship": null
+    },
+    {
+      "candidateKey": "inward-outward-remittances-fy26",
+      "includeInBatch": false,
+      "ownerDecision": "EXCLUDE_NOT_PUBLICATION_READY",
+      "evidencedTitle": "list of countries in world map , those has both outwards and inwards cross border payments and what would be the volumes.",
+      "evidencedModuleCount": 0,
+      "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Inw and Outw remittances FY26.docx",
+      "sourceApproval": null,
+      "sourceApprovalEvidence": "Research-report location is evidenced; the document itself does not evidence owner approval.",
+      "dashboardPath": null,
+      "dashboardRelationship": "UNKNOWN",
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "existingHtmlPath": null,
+      "legacyRelationship": null
+    },
+    {
+      "candidateKey": "cross-border-payments-resequenced",
+      "includeInBatch": true,
+      "ownerDecision": "OWNER_APPROVED",
+      "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+      "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Master Repository versions JFY26\\Masters_Repository_Cross_Border_Payments_Resequenced.docx",
+      "sourceApproval": "OWNER_APPROVED",
+      "sourceApprovalEvidence": "M36-C1 owner reconciliation continuation decision.",
+      "dashboardPath": null,
+      "dashboardRelationship": "NONE",
+      "accessClass": "PUBLIC",
+      "accessApprovalEvidence": "M36-C1 final owner governance decision.",
+      "existingHtmlPath": null,
+      "legacyRelationship": null
+    },
+    {
+      "candidateKey": "swift-global-money-movement-working-draft-v0-9",
+      "includeInBatch": false,
+      "ownerDecision": "HOLD_WORKING_DRAFT",
+      "evidencedTitle": "GPIR Global Payments Intelligence Repository White Paper — Working Draft — SWIFT and the Evolution of Global Money Movement",
+      "evidencedModuleCount": 34,
+      "sourcePath": "F:\\RepositoryJFY26\\Publications\\SWIFT\\GPIR_White_Paper_SWIFT_and_Global_Money_Movement_Volume_1_Working_Draft_v0.9_Corridor_Case_Studies.docx",
+      "sourceApproval": null,
+      "sourceApprovalEvidence": "The source explicitly identifies itself as a working draft, so approval cannot be inferred.",
+      "dashboardPath": null,
+      "dashboardRelationship": "UNKNOWN",
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "existingHtmlPath": null,
+      "legacyRelationship": null
+    }
+  ]
+}

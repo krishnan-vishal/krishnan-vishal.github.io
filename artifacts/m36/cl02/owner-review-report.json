@@ -1,0 +1,275 @@
+{
+  "schemaVersion": "M36-CL-02-1.0",
+  "status": "M36_CL02_OWNER_PREVIEW_READY",
+  "generatedAt": "2026-09-27T09:34:43.016Z",
+  "renderSystem": "EXISTING_B3E_PUBLICATION_RENDERER",
+  "externalWrites": {
+    "contentful": 0,
+    "supabase": 0,
+    "publishes": 0,
+    "routeActivations": 0
+  },
+  "publications": [
+    {
+      "publicationId": "VK-GPIR-P-000000000034-9",
+      "lineageId": "VK-GPIR-L-000000000034-9",
+      "entryId": "53bt9kTDAIHVvCCGne4HwL",
+      "access": "PUBLIC",
+      "dashboard": "NONE",
+      "expectedModules": 6,
+      "route": "/global-and-cross-border-payments-market-intelligence-report/",
+      "title": "Global & Cross-Border Payments — Market Intelligence Report",
+      "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+      "modulesRendered": 6,
+      "moduleOrdering": [
+        {
+          "number": "01",
+          "title": "Executive Overview"
+        },
+        {
+          "number": "02",
+          "title": "Country Classification & Estimated Flow Volumes"
+        },
+        {
+          "number": "03",
+          "title": "Regional Distribution of Global Flows"
+        },
+        {
+          "number": "04",
+          "title": "Strategic Partnership Tiering"
+        },
+        {
+          "number": "05",
+          "title": "Global Payment Geography"
+        },
+        {
+          "number": "06",
+          "title": "Key Takeaways"
+        }
+      ],
+      "sourceProvenance": "Owner-approved DOCX source; SHA-256 F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B; source unit gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx.",
+      "optionalMetadataEvidenceOnly": true,
+      "draftReadback": "PASS",
+      "contentIntegrity": "PASS",
+      "discoveryMetadata": "SUITABLE_FOR_LATER_DI_LANE",
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl02\\VK-GPIR-P-000000000034-9\\index.html",
+      "previewSha256": "5F6158A35CD7B4CB45A32B987A23B7C61B69FDE24F9B0F6CBDBDBD0680B4A4E3",
+      "published": false
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000035-6",
+      "lineageId": "VK-GPIR-L-000000000035-6",
+      "entryId": "5XUjNDKIxcoyHFM3x0meh3",
+      "access": "PUBLIC",
+      "dashboard": "NONE",
+      "expectedModules": 38,
+      "route": "/cross-border-payments/",
+      "title": "CROSS-BORDER PAYMENTS",
+      "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+      "modulesRendered": 38,
+      "moduleOrdering": [
+        {
+          "number": "01",
+          "title": "Disclaimer"
+        },
+        {
+          "number": "02",
+          "title": "Executive Summary"
+        },
+        {
+          "number": "03",
+          "title": "Table of Contents"
+        },
+        {
+          "number": "04",
+          "title": "Source Chapter Cross-Reference Guide"
+        },
+        {
+          "number": "05",
+          "title": "Glossary of Terms"
+        },
+        {
+          "number": "06",
+          "title": "Industry Overview"
+        },
+        {
+          "number": "07",
+          "title": "PART I: GLOBAL PAYMENT VERTICALS (CHAPTERS 1–10)"
+        },
+        {
+          "number": "08",
+          "title": "CHAPTER 1: Global Trade Payments Industry (B2B Cross-Border Payments)"
+        },
+        {
+          "number": "09",
+          "title": "CHAPTER 2: Global Remittance & Diaspora Payments Industry (C2C)"
+        },
+        {
+          "number": "10",
+          "title": "CHAPTER 3: Global Education Payments Industry"
+        },
+        {
+          "number": "11",
+          "title": "CHAPTER 4: Global Marketplace, E-Commerce & Seller Payouts Industry"
+        },
+        {
+          "number": "12",
+          "title": "CHAPTER 5: Global Gig Economy, Freelancer & Creator Payments Industry"
+        },
+        {
+          "number": "13",
+          "title": "CHAPTER 6: Global Cross-Border Bill Payments & Family Financial Services Industry"
+        },
+        {
+          "number": "14",
+          "title": "CHAPTER 7: Global Healthcare, Medical Tourism & Cross-Border Health Payments Industry"
+        },
+        {
+          "number": "15",
+          "title": "CHAPTER 8: Global Gaming Payments Industry"
+        },
+        {
+          "number": "16",
+          "title": "CHAPTER 9: Global Legalized Betting, Gambling, Lottery & Wagering Payments Industry"
+        },
+        {
+          "number": "17",
+          "title": "Cross-Segment Synthesis: Expanded 14-Segment Universe & 2030 Outlook"
+        },
+        {
+          "number": "18",
+          "title": "CHAPTER 10: Emerging Technologies Reshaping Cross-Border Payments (2026–2035)"
+        },
+        {
+          "number": "19",
+          "title": "PART II: INDUSTRY ECOSYSTEM & INFRASTRUCTURE (CHAPTERS 11–14)"
+        },
+        {
+          "number": "20",
+          "title": "CHAPTER 11: Industry Participant Analysis — Banks, Fintechs, Networks, Wallets & Emerging Challengers (2025–2035)"
+        },
+        {
+          "number": "21",
+          "title": "CHAPTER 12: Stablecoins, CBDCs, Tokenized Money & Digital Asset Payments"
+        },
+        {
+          "number": "22",
+          "title": "CHAPTER 13: Global Wallets, Mobile Money, Super Apps & Financial Inclusion Ecosystems"
+        },
+        {
+          "number": "23",
+          "title": "CHAPTER 14: Global Payment Infrastructure, Networks & Interoperability"
+        },
+        {
+          "number": "24",
+          "title": "Ecosystem Landscape"
+        },
+        {
+          "number": "25",
+          "title": "PART III: ADDITIONAL PAYMENT VERTICALS (CHAPTERS 21–22)"
+        },
+        {
+          "number": "26",
+          "title": "CHAPTER 21: Global Government, Tax, Social Benefits & Public Sector Payments Ecosystem (2021–2040)"
+        },
+        {
+          "number": "27",
+          "title": "CHAPTER 22: Global Travel, Airline, Hospitality & Tourism Payments Ecosystem (2021–2040)"
+        },
+        {
+          "number": "28",
+          "title": "PART IV: REGIONAL, STRATEGIC & FUTURE-STATE SYNTHESIS (CHAPTERS 26–28)"
+        },
+        {
+          "number": "29",
+          "title": "Regional Deep Dive"
+        },
+        {
+          "number": "30",
+          "title": "CHAPTER 26: Industry Future State (2025–2040)"
+        },
+        {
+          "number": "31",
+          "title": "CHAPTER 27: Strategic Opportunities, Industry Scorecards & Strategic Action Frameworks"
+        },
+        {
+          "number": "32",
+          "title": "Methodology & Source Reliability"
+        },
+        {
+          "number": "33",
+          "title": "Professional Career Summary"
+        },
+        {
+          "number": "34",
+          "title": "CHAPTER 28: Top Global Cross-Border Payments Companies, Wallets & Industry Participants"
+        },
+        {
+          "number": "35",
+          "title": "PART V: GLOBAL DIRECTORIES & FACTBOOKS (CHAPTERS 30–31)"
+        },
+        {
+          "number": "36",
+          "title": "CHAPTER 30: Global RTP Directory & Instant Payments Factbook"
+        },
+        {
+          "number": "37",
+          "title": "CHAPTER 31: Global Cross-Border Corridor Factbook"
+        },
+        {
+          "number": "38",
+          "title": "Sources & References"
+        }
+      ],
+      "sourceProvenance": "Owner-approved DOCX source; SHA-256 B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7; source unit gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx.",
+      "optionalMetadataEvidenceOnly": true,
+      "draftReadback": "PASS",
+      "contentIntegrity": "PASS",
+      "discoveryMetadata": "SUITABLE_FOR_LATER_DI_LANE",
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl02\\VK-GPIR-P-000000000035-6\\index.html",
+      "previewSha256": "D730EB92183E8D5BDBC087B1663B08ABF3B98A8008405A9FA7A4E2934F38ABE7",
+      "published": false
+    }
+  ],
+  "responsiveReview": {
+    "method": "CONTROLLED_LOCAL_BROWSER_VISUAL_AND_LAYOUT_METRICS",
+    "viewports": [
+      1440,
+      1024,
+      768,
+      390,
+      320
+    ],
+    "publicationsChecked": 2,
+    "documentOverflowAtAllViewports": false,
+    "moduleContentOverflowAtAllViewports": false,
+    "desktopNavigation": "PASS_STICKY_SIDEBAR",
+    "compactNavigation": "PASS_CONTAINED_HORIZONTAL_SCROLL",
+    "titleHierarchy": "PASS",
+    "metadataLayout": "PASS",
+    "spacingTypography": "PASS",
+    "sourceProvenance": "PASS",
+    "keyboardFocus": "PASS_VISIBLE_SKIP_LINK_OUTLINE",
+    "visualConsistency": "PASS_FINTECHOISIS_GPIR",
+    "result": "PASS"
+  },
+  "tests": {
+    "status": "PASS",
+    "total": 31,
+    "passed": 31,
+    "failed": 0,
+    "files": [
+      "tests/m36/cl02-owner-preview.test.mjs",
+      "tests/m36/content-factory-batch.test.mjs",
+      "tests/m36/research-publication-renderer.test.mjs"
+    ]
+  },
+  "filesChanged": [
+    "scripts/m36/generate-cl02-owner-previews.js",
+    "tests/m36/cl02-owner-preview.test.mjs",
+    "artifacts/m36/cl02/owner-review-report.json",
+    "artifacts/m36/cl02/VK-GPIR-P-000000000034-9/index.html",
+    "artifacts/m36/cl02/VK-GPIR-P-000000000035-6/index.html"
+  ],
+  "blockers": []
+}

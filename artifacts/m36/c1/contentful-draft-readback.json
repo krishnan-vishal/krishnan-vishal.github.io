@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "M36-C1-1.0",
+  "batchId": "M36-C1-20260927-01",
+  "mode": "CONTENTFUL_DRAFT_ONLY",
+  "generatedAt": "2026-09-27T08:38:34.238Z",
+  "externalWrites": {
+    "contentfulEntries": 2,
+    "contentfulAssets": 0,
+    "publishes": 0
+  },
+  "firstPass": {
+    "writes": 2,
+    "candidates": [
+      {
+        "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+        "pass": 1,
+        "operation": "CREATED_UNPUBLISHED_DRAFT",
+        "writes": 1,
+        "entryId": "53bt9kTDAIHVvCCGne4HwL",
+        "entryVersion": 1,
+        "publicationId": "VK-GPIR-P-000000000034-9",
+        "lineageId": "VK-GPIR-L-000000000034-9",
+        "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+        "access": "PUBLIC",
+        "dashboard": "NONE",
+        "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+        "published": false,
+        "archived": false,
+        "fieldNames": [
+          "canonicalUrlCandidate",
+          "editionLineageId",
+          "editorialBody",
+          "executiveSummary",
+          "gpirPublicationId",
+          "migrationStatus",
+          "publicationTitle",
+          "publicationType",
+          "slug",
+          "sourceValidationSummary",
+          "supabaseRecordId",
+          "validationStatus"
+        ],
+        "evidence": {
+          "title": "Global & Cross-Border Payments — Market Intelligence Report",
+          "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Global_CrossBorder_Payments_Report ver 1.docx",
+          "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+          "sourceSha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+          "sourceByteLength": 2430713,
+          "paragraphCount": 323,
+          "moduleCount": 6,
+          "summary": "Global cross-border payments encompass far more than consumer remittances alone — the true addressable market spans B2B trade settlement, corporate treasury flows, travel and tourism receipts, e-commerce, and cross-border investment activity. Measuring remittances in isolation significantly understates the size and strategic value of this market.",
+          "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+          "editorialBodySha256": "A949B044144984DC152F1BCB07378B20B75E3822C6B61FA01E1AC45E7E350BDF"
+        },
+        "readback": {
+          "state": "PASS",
+          "exactFieldMatch": true,
+          "unpublishedDraft": true,
+          "sourceHashMatch": true,
+          "routeUnique": true,
+          "fabricatedOptionalFields": []
+        }
+      },
+      {
+        "candidateKey": "cross-border-payments-resequenced",
+        "pass": 1,
+        "operation": "CREATED_UNPUBLISHED_DRAFT",
+        "writes": 1,
+        "entryId": "5XUjNDKIxcoyHFM3x0meh3",
+        "entryVersion": 1,
+        "publicationId": "VK-GPIR-P-000000000035-6",
+        "lineageId": "VK-GPIR-L-000000000035-6",
+        "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+        "access": "PUBLIC",
+        "dashboard": "NONE",
+        "canonicalRouteCandidate": "/cross-border-payments/",
+        "published": false,
+        "archived": false,
+        "fieldNames": [
+          "canonicalUrlCandidate",
+          "editionLineageId",
+          "editorialBody",
+          "executiveSummary",
+          "gpirPublicationId",
+          "migrationStatus",
+          "publicationTitle",
+          "publicationType",
+          "slug",
+          "sourceValidationSummary",
+          "supabaseRecordId",
+          "validationStatus"
+        ],
+        "evidence": {
+          "title": "CROSS-BORDER PAYMENTS",
+          "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Master Repository versions JFY26\\Masters_Repository_Cross_Border_Payments_Resequenced.docx",
+          "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+          "sourceSha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+          "sourceByteLength": 4899404,
+          "paragraphCount": 4701,
+          "moduleCount": 38,
+          "summary": "The global cross-border payments landscape represents one of the largest and most strategically significant flows of capital in the world economy. This repository consolidates wholesale and retail volumes, segment-level sizing, corridor concentration, and forward growth trajectories into a single reference document for strategic, investor, and partnership use.",
+          "canonicalRouteCandidate": "/cross-border-payments/",
+          "editorialBodySha256": "092E55168ABBC3780D3DE57F79C9F38F90EA228465B76880ACFF0B31C0A9DA6C"
+        },
+        "readback": {
+          "state": "PASS",
+          "exactFieldMatch": true,
+          "unpublishedDraft": true,
+          "sourceHashMatch": true,
+          "routeUnique": true,
+          "fabricatedOptionalFields": []
+        }
+      }
+    ]
+  },
+  "secondPass": {
+    "writes": 0,
+    "duplicateDrafts": 0,
+    "routeCollisions": 0,
+    "candidates": [
+      {
+        "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+        "pass": 2,
+        "operation": "EXISTING_DRAFT_REUSED",
+        "writes": 0,
+        "entryId": "53bt9kTDAIHVvCCGne4HwL",
+        "entryVersion": 1,
+        "publicationId": "VK-GPIR-P-000000000034-9",
+        "lineageId": "VK-GPIR-L-000000000034-9",
+        "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+        "access": "PUBLIC",
+        "dashboard": "NONE",
+        "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+        "published": false,
+        "archived": false,
+        "fieldNames": [
+          "canonicalUrlCandidate",
+          "editionLineageId",
+          "editorialBody",
+          "executiveSummary",
+          "gpirPublicationId",
+          "migrationStatus",
+          "publicationTitle",
+          "publicationType",
+          "slug",
+          "sourceValidationSummary",
+          "supabaseRecordId",
+          "validationStatus"
+        ],
+        "evidence": {
+          "title": "Global & Cross-Border Payments — Market Intelligence Report",
+          "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Global_CrossBorder_Payments_Report ver 1.docx",
+          "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+          "sourceSha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+          "sourceByteLength": 2430713,
+          "paragraphCount": 323,
+          "moduleCount": 6,
+          "summary": "Global cross-border payments encompass far more than consumer remittances alone — the true addressable market spans B2B trade settlement, corporate treasury flows, travel and tourism receipts, e-commerce, and cross-border investment activity. Measuring remittances in isolation significantly understates the size and strategic value of this market.",
+          "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+          "editorialBodySha256": "A949B044144984DC152F1BCB07378B20B75E3822C6B61FA01E1AC45E7E350BDF"
+        },
+        "readback": {
+          "state": "PASS",
+          "exactFieldMatch": true,
+          "unpublishedDraft": true,
+          "sourceHashMatch": true,
+          "routeUnique": true,
+          "fabricatedOptionalFields": []
+        }
+      },
+      {
+        "candidateKey": "cross-border-payments-resequenced",
+        "pass": 2,
+        "operation": "EXISTING_DRAFT_REUSED",
+        "writes": 0,
+        "entryId": "5XUjNDKIxcoyHFM3x0meh3",
+        "entryVersion": 1,
+        "publicationId": "VK-GPIR-P-000000000035-6",
+        "lineageId": "VK-GPIR-L-000000000035-6",
+        "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+        "access": "PUBLIC",
+        "dashboard": "NONE",
+        "canonicalRouteCandidate": "/cross-border-payments/",
+        "published": false,
+        "archived": false,
+        "fieldNames": [
+          "canonicalUrlCandidate",
+          "editionLineageId",
+          "editorialBody",
+          "executiveSummary",
+          "gpirPublicationId",
+          "migrationStatus",
+          "publicationTitle",
+          "publicationType",
+          "slug",
+          "sourceValidationSummary",
+          "supabaseRecordId",
+          "validationStatus"
+        ],
+        "evidence": {
+          "title": "CROSS-BORDER PAYMENTS",
+          "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Master Repository versions JFY26\\Masters_Repository_Cross_Border_Payments_Resequenced.docx",
+          "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+          "sourceSha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+          "sourceByteLength": 4899404,
+          "paragraphCount": 4701,
+          "moduleCount": 38,
+          "summary": "The global cross-border payments landscape represents one of the largest and most strategically significant flows of capital in the world economy. This repository consolidates wholesale and retail volumes, segment-level sizing, corridor concentration, and forward growth trajectories into a single reference document for strategic, investor, and partnership use.",
+          "canonicalRouteCandidate": "/cross-border-payments/",
+          "editorialBodySha256": "092E55168ABBC3780D3DE57F79C9F38F90EA228465B76880ACFF0B31C0A9DA6C"
+        },
+        "readback": {
+          "state": "PASS",
+          "exactFieldMatch": true,
+          "unpublishedDraft": true,
+          "sourceHashMatch": true,
+          "routeUnique": true,
+          "fabricatedOptionalFields": []
+        }
+      }
+    ]
+  },
+  "candidates": {
+    "global-cross-border-payments-market-intelligence-v1": {
+      "entryId": "53bt9kTDAIHVvCCGne4HwL",
+      "firstPassWritePerformed": true,
+      "publicationId": "VK-GPIR-P-000000000034-9",
+      "lineageId": "VK-GPIR-L-000000000034-9",
+      "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+      "access": "PUBLIC",
+      "dashboard": "NONE",
+      "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+      "evidence": {
+        "title": "Global & Cross-Border Payments — Market Intelligence Report",
+        "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Global_CrossBorder_Payments_Report ver 1.docx",
+        "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+        "sourceSha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+        "sourceByteLength": 2430713,
+        "paragraphCount": 323,
+        "moduleCount": 6,
+        "summary": "Global cross-border payments encompass far more than consumer remittances alone — the true addressable market spans B2B trade settlement, corporate treasury flows, travel and tourism receipts, e-commerce, and cross-border investment activity. Measuring remittances in isolation significantly understates the size and strategic value of this market.",
+        "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+        "editorialBodySha256": "A949B044144984DC152F1BCB07378B20B75E3822C6B61FA01E1AC45E7E350BDF"
+      },
+      "readback": {
+        "state": "PASS",
+        "exactFieldMatch": true,
+        "unpublishedDraft": true,
+        "sourceHashMatch": true,
+        "routeUnique": true,
+        "fabricatedOptionalFields": []
+      }
+    },
+    "cross-border-payments-resequenced": {
+      "entryId": "5XUjNDKIxcoyHFM3x0meh3",
+      "firstPassWritePerformed": true,
+      "publicationId": "VK-GPIR-P-000000000035-6",
+      "lineageId": "VK-GPIR-L-000000000035-6",
+      "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+      "access": "PUBLIC",
+      "dashboard": "NONE",
+      "canonicalRouteCandidate": "/cross-border-payments/",
+      "evidence": {
+        "title": "CROSS-BORDER PAYMENTS",
+        "sourcePath": "F:\\RepositoryJFY26\\Publications\\Research Report\\Master Repository versions JFY26\\Masters_Repository_Cross_Border_Payments_Resequenced.docx",
+        "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+        "sourceSha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+        "sourceByteLength": 4899404,
+        "paragraphCount": 4701,
+        "moduleCount": 38,
+        "summary": "The global cross-border payments landscape represents one of the largest and most strategically significant flows of capital in the world economy. This repository consolidates wholesale and retail volumes, segment-level sizing, corridor concentration, and forward growth trajectories into a single reference document for strategic, investor, and partnership use.",
+        "canonicalRouteCandidate": "/cross-border-payments/",
+        "editorialBodySha256": "092E55168ABBC3780D3DE57F79C9F38F90EA228465B76880ACFF0B31C0A9DA6C"
+      },
+      "readback": {
+        "state": "PASS",
+        "exactFieldMatch": true,
+        "unpublishedDraft": true,
+        "sourceHashMatch": true,
+        "routeUnique": true,
+        "fabricatedOptionalFields": []
+      }
+    }
+  }
+}

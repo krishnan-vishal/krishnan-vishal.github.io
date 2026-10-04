@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "M36-C1-1.0",
+  "batchId": "M36-C1-20260927-01",
+  "authority": "LIVE_GPIR_SUPABASE_IDENTITY_REGISTRY",
+  "mode": "AUTHORITATIVE_ALLOCATION_AND_READBACK",
+  "registryCount": 35,
+  "queriedAt": "2026-09-27T08:33:09Z",
+  "externalWrites": {
+    "publications": 2,
+    "lineages": 2,
+    "accessPolicies": 2
+  },
+  "candidates": {
+    "global-cross-border-payments-market-intelligence-v1": {
+      "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+      "sourceSha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+      "preAllocationSourceUnitMatches": 0,
+      "preAllocationExactSourceHashMatches": 0,
+      "readbackSourceUnitMatches": 1,
+      "readbackExactSourceHashMatches": 1,
+      "outcome": "NEW_PUBLICATION_ALLOCATED",
+      "identityAllocationPerformed": true,
+      "publicationId": "VK-GPIR-P-000000000034-9",
+      "lineageId": "VK-GPIR-L-000000000034-9",
+      "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+      "identityStatus": "GOVERNED_ASSIGNED",
+      "accessClass": "PUBLIC",
+      "accessPolicyStatus": "ACTIVE",
+      "accessDecisionSource": "M36_C1_FINAL_OWNER_DECISION",
+      "accessReviewState": "EVIDENCED"
+    },
+    "cross-border-payments-resequenced": {
+      "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+      "sourceSha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+      "preAllocationSourceUnitMatches": 0,
+      "preAllocationExactSourceHashMatches": 0,
+      "readbackSourceUnitMatches": 1,
+      "readbackExactSourceHashMatches": 1,
+      "outcome": "NEW_PUBLICATION_ALLOCATED",
+      "identityAllocationPerformed": true,
+      "publicationId": "VK-GPIR-P-000000000035-6",
+      "lineageId": "VK-GPIR-L-000000000035-6",
+      "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+      "identityStatus": "GOVERNED_ASSIGNED",
+      "accessClass": "PUBLIC",
+      "accessPolicyStatus": "ACTIVE",
+      "accessDecisionSource": "M36_C1_FINAL_OWNER_DECISION",
+      "accessReviewState": "EVIDENCED"
+    }
+  },
+  "relatedRowsObserved": [
+    {
+      "sourceUnitKey": "gpir:intake:publication:research:stablecoins-cross-border-money-movement-c2c:m36-b2",
+      "publicationId": "VK-GPIR-P-000000000033-1",
+      "lineageId": "VK-GPIR-L-000000000033-1",
+      "sourceSha256": "E5312D851FA852FB5B32D92988B325B0FFC8DBEF32D2525A4755CA822F2C69E0",
+      "relationship": "DIFFERENT_SOURCE_UNIT_AND_HASH_NO_DUPLICATE_INFERENCE"
+    }
+  ],
+  "credentialsIncluded": false
+}
