@@ -28,6 +28,154 @@ function renderText(node) {
   return text;
 }
 
+function tocTree(entries) {
+  const root = [];
+  const stack = [{ level: 0, children: root }];
+  for (const raw of entries || []) {
+    const level = Math.max(1, Math.min(9, Number(raw?.level) || 1));
+    while (stack.length > 1 && stack.at(-1).level >= level) stack.pop();
+    const node = { level, label: String(raw?.label || ''),
+      pageReference: raw?.pageReference == null ? null : String(raw.pageReference), children: [] };
+    stack.at(-1).children.push(node);
+    stack.push(node);
+  }
+  return root;
+}
+
+function renderTocNodes(nodes) {
+  if (!nodes.length) return '';
+  return `<ol>${nodes.map(node => `<li class="gpir-toc-level-${node.level}"><div><span class="gpir-toc-label">${escapeHtml(node.label)}</span>${node.pageReference ? `<span class="gpir-toc-page" aria-label="Source document page ${escapeHtml(node.pageReference)}">${escapeHtml(node.pageReference)}</span>` : ''}</div>${renderTocNodes(node.children)}</li>`).join('')}</ol>`;
+}
+
+function renderPublicationToc(node) {
+  const entries = Array.isArray(node?.data?.entries) ? node.data.entries : [];
+  return entries.length ? `<nav class="gpir-publication-toc" aria-label="Publication table of contents"><h3>Contents</h3>${renderTocNodes(tocTree(entries))}</nav>` : '';
+}
+
+function tablePresentation(rows) {
+  const normalized = (rows || []).map(row => Array.isArray(row?.cells)
+    ? row.cells.map(cell => String(cell ?? '').trim()) : []);
+  const columnCount = normalized.reduce((maximum, cells) => Math.max(maximum, cells.length), 0);
+  const rowCount = normalized.length;
+  if (!columnCount) return { layout: 'compact', columnCount: 0, columnWidths: [], minimumWidthRem: 0 };
+  const columnLengths = Array.from({ length: columnCount }, (_, columnIndex) =>
+    normalized.map(cells => (cells[columnIndex] || '').length));
+  const semanticWeights = columnLengths.map(lengths => {
+    const populated = lengths.filter(Boolean);
+    if (!populated.length) return 1;
+    const average = populated.reduce((total, length) => total + length, 0) / populated.length;
+    const peak = Math.max(...populated);
+    return Math.sqrt(Math.max(4, (average * .7) + (Math.min(peak, 120) * .3)));
+  });
+  const readabilityScore = columnLengths.reduce((total, lengths) =>
+    total + Math.min(36, Math.max(8, ...lengths)), 0);
+  const wide = readabilityScore >= 110 ||
+    (columnCount >= 5 && readabilityScore >= 72) || columnCount >= 8;
+  const compact = columnCount === 1 && rowCount <= 12 && readabilityScore < 36;
+  const layout = wide ? 'wide' : compact ? 'compact' : 'full';
+  const weightTotal = semanticWeights.reduce((total, weight) => total + weight, 0);
+  let columnWidths = semanticWeights.map(weight => (weight / weightTotal) * 100);
+  if (columnCount === 2 && layout === 'full') {
+    columnWidths = [Math.max(20, Math.min(65, columnWidths[0])), 0];
+    columnWidths[1] = 100 - columnWidths[0];
+  } else if (columnCount === 3 && layout === 'full') {
+    columnWidths = columnWidths.map(width => Math.max(16, width));
+    const adjustedTotal = columnWidths.reduce((total, width) => total + width, 0);
+    columnWidths = columnWidths.map(width => (width / adjustedTotal) * 100);
+  }
+  return { layout, columnCount,
+    columnWidths: columnWidths.map(width => Number(width.toFixed(2))),
+    minimumWidthRem: wide ? Math.max(52, Math.min(88, columnCount * 8 +
+      (readabilityScore >= 140 ? 8 : 0))) : 0 };
+}
+
+function renderPublicationTable(node) {
+  const rows = Array.isArray(node?.data?.rows) ? node.data.rows : [];
+  if (!rows.length) return '';
+  const presentation = tablePresentation(rows);
+  const body = rows.map(row => `<tr>${(row.cells || []).map(cell => {
+    const tag = row.header ? 'th' : 'td';
+    const scope = row.header ? ' scope="col"' : '';
+    return `<${tag}${scope}>${escapeHtml(cell).replace(/\r?\n/g, '<br>')}</${tag}>`;
+  }).join('')}</tr>`).join('');
+  const sourceBlock = node?.data?.sourceBlock ? ` data-gpir-source-block="${escapeHtml(node.data.sourceBlock)}"` : '';
+  const columns = presentation.layout === 'full'
+    ? `<colgroup>${presentation.columnWidths.map(width => `<col style="width:${width}%">`).join('')}</colgroup>` : '';
+  const minimumWidth = presentation.minimumWidthRem
+    ? ` style="--gpir-table-min-width:${presentation.minimumWidthRem}rem"` : '';
+  return `<div class="gpir-publication-table-region gpir-publication-table-region--${presentation.layout}" role="region" aria-label="Research table" tabindex="0" data-gpir-table-layout="${presentation.layout}" data-gpir-column-count="${presentation.columnCount}"${minimumWidth}${sourceBlock}><table>${columns}${body}</table></div>`;
+}
+
+function renderQuantitativeVisual(node) {
+  const data = node?.data || {};
+  const items = Array.isArray(data.items) ? data.items : [];
+  if (!items.length || data.unit !== 'percent') return '';
+  const rows = items.map(item => {
+    const lower = Math.max(0, Math.min(100, Number(item.lower)));
+    const upper = Math.max(lower, Math.min(100, Number(item.upper)));
+    if (!Number.isFinite(lower) || !Number.isFinite(upper)) return '';
+    const range = upper - lower;
+    return `<li class="gpir-quantitative-row" data-lower="${lower}" data-upper="${upper}"><span class="gpir-quantitative-category">${escapeHtml(item.category)}</span><span class="gpir-quantitative-track" aria-hidden="true"><span class="gpir-quantitative-baseline" style="width:${lower}%"></span>${range ? `<span class="gpir-quantitative-range" style="left:${lower}%;width:${range}%"></span>` : ''}</span></li>`;
+  }).join('');
+  if (!rows) return '';
+  const exactRows = items.map(item => `<tr><th scope="row">${escapeHtml(item.category)}</th><td>${escapeHtml(item.authoredValue)}</td></tr>`).join('');
+  const title = data.title || data.measureLabel || 'Quantitative comparison';
+  const sourceBlock = data.sourceBlock ? ` data-gpir-source-block="${escapeHtml(data.sourceBlock)}"` : '';
+  return `<figure class="gpir-quantitative-visual gpir-share-intelligence" aria-label="${escapeHtml(title)}"${sourceBlock}><figcaption>${escapeHtml(title)}</figcaption><div class="gpir-visual-exact-layout"><div class="gpir-share-intelligence__visual" aria-hidden="true"><ol>${rows}</ol></div><div class="gpir-exact-data" role="region" aria-label="Exact governed values" tabindex="0"><table><thead><tr><th>${escapeHtml(data.categoryLabel || 'Category')}</th><th>${escapeHtml(data.measureLabel || 'Value')}</th></tr></thead><tbody>${exactRows}</tbody></table></div></div></figure>`;
+}
+
+function renderRegionalSnapshot(node) {
+  const data = node?.data || {};
+  const items = Array.isArray(data.items) ? data.items : [];
+  if (!items.length) return '';
+  const visualRows = items.map(item => `<li class="gpir-quantitative-row" data-lower="${item.lower}" data-upper="${item.upper}"><span class="gpir-quantitative-category">${escapeHtml(item.category)}</span><span class="gpir-quantitative-track" aria-hidden="true"><span class="gpir-quantitative-baseline" style="width:${item.upper}%"></span></span><span class="gpir-quantitative-value">${escapeHtml(item.share)}</span></li>`).join('');
+  const exactRows = items.map(item => `<tr><th scope="row">${escapeHtml(item.category)}</th><td>${escapeHtml(item.annualVolume)}</td><td>${escapeHtml(item.share)}</td></tr>`).join('');
+  const columns = data.columns || ['Region', 'Annual Volume', 'Global Share'];
+  const sourceBlock = data.sourceBlock ? ` data-gpir-source-block="${escapeHtml(data.sourceBlock)}"` : '';
+  return `<figure class="gpir-regional-snapshot" aria-label="Regional Snapshot"${sourceBlock}><figcaption>${escapeHtml(data.title || 'Regional Snapshot')}</figcaption><div class="gpir-visual-exact-layout"><div class="gpir-exact-data" role="region" aria-label="Exact regional values" tabindex="0"><table><thead><tr>${columns.map(label => `<th>${escapeHtml(label)}</th>`).join('')}</tr></thead><tbody>${exactRows}</tbody></table></div><div class="gpir-regional-snapshot__visual"><ol>${visualRows}</ol></div></div></figure>`;
+}
+
+function renderMarketGrid(node) {
+  const data = node?.data || {};
+  const items = Array.isArray(data.items) ? data.items : [];
+  if (!items.length) return '';
+  const cards = items.map(item => {
+    const route = governedInternalRoute(item.drillDown);
+    const label = `<span class="gpir-market-name">${escapeHtml(item.name)}</span>${item.countryCode ? `<span class="gpir-market-code" aria-label="Country code ${escapeHtml(item.countryCode)}">${escapeHtml(item.countryCode)}</span>` : ''}`;
+    return `<li>${route ? `<a href="${escapeHtml(route)}">${label}</a>` : `<span>${label}</span>`}</li>`;
+  }).join('');
+  const sourceBlock = data.sourceBlock ? ` data-gpir-source-block="${escapeHtml(data.sourceBlock)}"` : '';
+  return `<section class="gpir-market-grid" aria-label="${escapeHtml(data.direction || 'Market')} markets"${sourceBlock}><ul>${cards}</ul></section>`;
+}
+
+function renderEmptyStructuredData(node) {
+  const data = node?.data || {};
+  const sourceBlock = data.sourceBlock ? ` data-gpir-source-block="${escapeHtml(data.sourceBlock)}"` : '';
+  return `<p class="gpir-empty-structured-data"${sourceBlock}>${escapeHtml(data.message || 'No structured data supplied in this source section.')}</p>`;
+}
+
+function renderTierMatrix(node) {
+  const data = node?.data || {};
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+  const columns = Array.isArray(data.columns) ? data.columns : [];
+  if (!rows.length || columns.length !== 4) return '';
+  const body = rows.map((row, index) => `<tr class="gpir-tier-${index + 1}">${row.map((cell, cellIndex) => `<${cellIndex === 0 ? 'th scope="row"' : 'td'} data-label="${escapeHtml(columns[cellIndex])}">${escapeHtml(cell)}</${cellIndex === 0 ? 'th' : 'td'}>`).join('')}</tr>`).join('');
+  const sourceBlock = data.sourceBlock ? ` data-gpir-source-block="${escapeHtml(data.sourceBlock)}"` : '';
+  return `<div class="gpir-tier-matrix" role="region" aria-label="${escapeHtml(data.title || 'Strategic tier matrix')}" tabindex="0"${sourceBlock}><table><thead><tr>${columns.map(label => `<th scope="col">${escapeHtml(label)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function governedInternalRoute(drillDown) {
+  const route = drillDown?.status === 'ACTIVE' ? String(drillDown.route || '') : '';
+  return /^\/(?!\/)[A-Za-z0-9][A-Za-z0-9/_-]*\/?(?:#[A-Za-z0-9_-]+)?$/.test(route) ? route : null;
+}
+
+function renderHeading(node, tag, children) {
+  const route = governedInternalRoute(node?.data?.drillDown);
+  const eligible = node?.data?.drillDown?.eligible === true;
+  const metadata = eligible ? ' data-gpir-drill-down-eligible="true"' : '';
+  return `<${tag}${metadata}>${route ? `<a href="${escapeHtml(route)}">${children}</a>` : children}</${tag}>`;
+}
+
 function renderRichText(node) {
   if (!node || typeof node !== 'object') return '';
   if (node.nodeType === 'text') return renderText(node);
@@ -35,8 +183,15 @@ function renderRichText(node) {
   const headings = { 'heading-1': 'h2', 'heading-2': 'h2', 'heading-3': 'h3',
     'heading-4': 'h4', 'heading-5': 'h5', 'heading-6': 'h6' };
   if (node.nodeType === 'document') return children;
+  if (node.nodeType === 'gpir-toc') return renderPublicationToc(node);
+  if (node.nodeType === 'gpir-table') return renderPublicationTable(node);
+  if (node.nodeType === 'gpir-quantitative-visual') return renderQuantitativeVisual(node);
+  if (node.nodeType === 'gpir-regional-snapshot') return renderRegionalSnapshot(node);
+  if (node.nodeType === 'gpir-market-grid') return renderMarketGrid(node);
+  if (node.nodeType === 'gpir-empty-structured-data') return renderEmptyStructuredData(node);
+  if (node.nodeType === 'gpir-tier-matrix') return renderTierMatrix(node);
   if (node.nodeType === 'paragraph') return children ? `<p>${children}</p>` : '';
-  if (headings[node.nodeType]) return `<${headings[node.nodeType]}>${children}</${headings[node.nodeType]}>`;
+  if (headings[node.nodeType]) return renderHeading(node, headings[node.nodeType], children);
   if (node.nodeType === 'unordered-list') return `<ul>${children}</ul>`;
   if (node.nodeType === 'ordered-list') return `<ol>${children}</ol>`;
   if (node.nodeType === 'list-item') return `<li>${children}</li>`;
@@ -104,7 +259,14 @@ function renderResearchModules(modules) {
           ? `<p>${escapeHtml(section.text).replace(/\r?\n/g, '<br>')}</p>` : '';
       return `${heading}${content}`;
     }).join('');
-    return `<section id="${id}" class="gpir-research-module" aria-labelledby="${id}-title"><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title">${escapeHtml(module.title || `Module ${index + 1}`)}</h2></header><div class="gpir-research-module-content">${body}</div></section>`;
+    const modifier = /disclaimer/i.test(module.title || '') ? ' gpir-research-module--disclaimer' : '';
+    const drillDown = module.drillDown || { eligible: true, status: 'UNRESOLVED' };
+    const route = governedInternalRoute(drillDown);
+    const drillDownMetadata = drillDown.eligible === true ? ' data-gpir-drill-down-eligible="true"' : '';
+    const heading = route ? `<a href="${escapeHtml(route)}">${escapeHtml(module.title || `Module ${index + 1}`)}</a>` : escapeHtml(module.title || `Module ${index + 1}`);
+    const sourceSha256 = module.provenance?.sourceSha256
+      ? ` data-gpir-source-sha256="${escapeHtml(module.provenance.sourceSha256)}"` : '';
+    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><div class="gpir-research-module-content">${body}</div></section>`;
   }).join('');
   return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>`;
 }
@@ -175,5 +337,5 @@ function renderNotFoundPage() {
 
 module.exports = { escapeHtml, renderNotFoundPage, renderPublicationPage,
   renderPublicationPageWithProvider, renderPrimaryDashboard, renderResearchModules,
-  renderRichText, renderTopicContext, safeHref,
+  renderRichText, renderTopicContext, safeHref, tablePresentation,
   PROTECTED_PUBLICATION_ENDPOINT };

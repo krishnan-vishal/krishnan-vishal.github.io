@@ -21,6 +21,14 @@ function normalizeSection(section) {
   return Object.freeze({ title, text, body });
 }
 
+function normalizeDrillDown(value) {
+  if (!value || typeof value !== 'object') return null;
+  const eligible = value.eligible === true;
+  const status = value.status === 'ACTIVE' ? 'ACTIVE' : 'UNRESOLVED';
+  const route = status === 'ACTIVE' && typeof value.route === 'string' ? value.route.trim() : null;
+  return Object.freeze({ eligible, status, route });
+}
+
 function normalizeExplicitModules(modules) {
   if (!Array.isArray(modules)) return [];
   return modules.map((module, index) => {
@@ -31,6 +39,7 @@ function normalizeExplicitModules(modules) {
     const sections = (module.sections || []).map(normalizeSection).filter(Boolean);
     if (!title && !sections.length) return null;
     return Object.freeze({ moduleNumber, title, sections: Object.freeze(sections),
+      drillDown: normalizeDrillDown(module.drillDown),
       provenance: module.provenance && typeof module.provenance === 'object'
         ? Object.freeze({ ...module.provenance }) : null });
   }).filter(Boolean);
@@ -57,7 +66,8 @@ function modulesFromRichText(body) {
     title: module.title,
     sections: Object.freeze(module.nodes.length ? [Object.freeze({ title: null, text: null,
       body: documentFrom(module.nodes) })] : []),
-    provenance: null
+    provenance: null,
+    drillDown: null
   }));
 }
 
@@ -113,4 +123,5 @@ function normalizeResearchPresentation(presentation = {}, body = null) {
 }
 
 module.exports = { modulesFromRichText, normalizeDashboard, normalizeHistoricalEditions,
-  normalizeResearchModules, normalizeResearchPresentation, normalizeTopicContext, plainText };
+  normalizeDrillDown, normalizeResearchModules, normalizeResearchPresentation, normalizeTopicContext,
+  plainText };

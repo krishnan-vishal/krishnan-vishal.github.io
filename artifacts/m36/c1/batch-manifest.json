@@ -1,0 +1,1115 @@
+{
+  "schemaVersion": "M36-C1-1.0",
+  "batchId": "M36-C1-20260927-01",
+  "generatedAt": "2026-09-27T08:40:42.431Z",
+  "status": "M36_C1_CONTENT_FACTORY_BATCH_PASS",
+  "counts": {
+    "candidates": 5,
+    "activeCandidates": 2,
+    "excluded": 3,
+    "eligible": 2,
+    "reviewRequired": 0,
+    "newPublicationsConfirmed": 2,
+    "newPublicationsAllocated": 2,
+    "existingReconciliations": 0
+  },
+  "governance": {
+    "publishAuthorized": false,
+    "routeActivationAuthorized": false,
+    "supabaseDuplicateCheck": "AUTHORITATIVE_READ_PASS",
+    "supabaseAuthority": "LIVE_GPIR_SUPABASE_IDENTITY_REGISTRY",
+    "contentfulReadback": "CONTENTFUL_MANAGEMENT_API_LIVE_READ",
+    "contentfulRecordCount": 35,
+    "externalWrites": {
+      "supabasePublications": 2,
+      "supabaseLineages": 2,
+      "supabaseAccessPolicies": 2,
+      "contentfulEntries": 2,
+      "contentfulAssets": 0,
+      "publishes": 0
+    }
+  },
+  "candidates": [
+    {
+      "candidateKey": "bloom-master-overview-v1",
+      "candidateStatus": "BLOCKED_GOVERNANCE",
+      "batchDisposition": "OWNER_EXCLUDED",
+      "ownerDecision": "HOLD_EXCLUDE_FROM_BATCH",
+      "reviewReasons": [],
+      "source": {
+        "path": "F:\\RepositoryJFY26\\Digital Currency\\Stable Coins MFY26\\Master research Papers\\GPIR\\BLOOM_Master_Overview_Validated_Research_v1.0.docx",
+        "exists": null,
+        "approval": null,
+        "approvalEvidence": "Filename and location evidence VALIDATED_RESEARCH and GPIR research-master status, but no separate owner-approval decision was found.",
+        "sha256": null,
+        "byteLength": null,
+        "deterministicExtraction": "NOT_RERUN_OWNER_EXCLUDED",
+        "extractionError": null
+      },
+      "evidencedMetadata": {
+        "title": "BLOOM",
+        "titleEvidence": "PRIOR_C1_INVENTORY",
+        "topic": "BLOOM",
+        "countryRegion": null,
+        "useCase": null,
+        "publicationStatus": null,
+        "publicationDate": null,
+        "editionLabel": null,
+        "dataCutoff": null
+      },
+      "structure": {
+        "moduleCount": 17,
+        "modules": []
+      },
+      "relationships": {
+        "existingHtml": null,
+        "legacy": null,
+        "existingPublicationIdentity": null,
+        "existingContentfulEntryId": null,
+        "duplicateCheck": "NOT_RERUN_OWNER_EXCLUDED",
+        "duplicateEvidence": null
+      },
+      "dashboard": {
+        "relationship": "UNKNOWN",
+        "exactAsset": null,
+        "embeddedMediaCount": 0,
+        "embeddedMediaChecksums": []
+      },
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "canonicalRouteCandidate": null,
+      "routeActivated": false,
+      "identity": {
+        "publicationId": null,
+        "lineageId": null,
+        "supabaseRecordId": null,
+        "allocated": false
+      },
+      "contentful": {
+        "draftId": null,
+        "assetIds": [],
+        "writePerformed": false,
+        "published": false
+      },
+      "readback": {
+        "state": "NOT_APPLICABLE_OWNER_EXCLUDED"
+      },
+      "publicDiscoveryMetadata": null
+    },
+    {
+      "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+      "batchDisposition": "ACTIVE",
+      "ownerDecision": "OWNER_APPROVED",
+      "candidateStatus": "READY_FOR_OWNER_REVIEW",
+      "reviewReasons": [],
+      "source": {
+        "path": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Global_CrossBorder_Payments_Report ver 1.docx",
+        "exists": true,
+        "approval": "OWNER_APPROVED",
+        "approvalEvidence": "M36-C1 owner reconciliation continuation decision.",
+        "sha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+        "byteLength": 2430713,
+        "deterministicExtraction": "PASS",
+        "extractionError": null
+      },
+      "evidencedMetadata": {
+        "title": "Global & Cross-Border Payments — Market Intelligence Report",
+        "titleEvidence": "docProps/core.xml dc:title",
+        "topic": "Global & Cross-Border Payments — Market Intelligence Report",
+        "countryRegion": null,
+        "useCase": null,
+        "publicationStatus": null,
+        "publicationDate": null,
+        "editionLabel": null,
+        "dataCutoff": null
+      },
+      "structure": {
+        "moduleCount": 6,
+        "modules": [
+          {
+            "sequence": 1,
+            "title": "01  Executive Overview",
+            "sectionCount": 0,
+            "paragraphCount": 2
+          },
+          {
+            "sequence": 2,
+            "title": "02  Country Classification & Estimated Flow Volumes",
+            "sectionCount": 0,
+            "paragraphCount": 217
+          },
+          {
+            "sequence": 3,
+            "title": "03  Regional Distribution of Global Flows",
+            "sectionCount": 2,
+            "paragraphCount": 37
+          },
+          {
+            "sequence": 4,
+            "title": "04  Strategic Partnership Tiering",
+            "sectionCount": 0,
+            "paragraphCount": 21
+          },
+          {
+            "sequence": 5,
+            "title": "06  Global Payment Geography",
+            "sectionCount": 1,
+            "paragraphCount": 25
+          },
+          {
+            "sequence": 6,
+            "title": "07  Key Takeaways",
+            "sectionCount": 0,
+            "paragraphCount": 4
+          }
+        ]
+      },
+      "relationships": {
+        "existingHtml": null,
+        "legacy": null,
+        "existingPublicationIdentity": "VK-GPIR-P-000000000034-9",
+        "existingContentfulEntryId": null,
+        "duplicateCheck": "PASS",
+        "duplicateEvidence": "NEW_PUBLICATION_ALLOCATED",
+        "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+        "supabaseReconciliation": {
+          "sourceUnitKey": "gpir:intake:publication:research:global-cross-border-payments-market-intelligence:v1:docx",
+          "sourceSha256": "F57CCA73682F6852024D200F344AA29DCADAA8E2A32FF98525EA767F5987975B",
+          "preAllocationSourceUnitMatches": 0,
+          "preAllocationExactSourceHashMatches": 0,
+          "readbackSourceUnitMatches": 1,
+          "readbackExactSourceHashMatches": 1,
+          "outcome": "NEW_PUBLICATION_ALLOCATED",
+          "identityAllocationPerformed": true,
+          "publicationId": "VK-GPIR-P-000000000034-9",
+          "lineageId": "VK-GPIR-L-000000000034-9",
+          "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+          "identityStatus": "GOVERNED_ASSIGNED",
+          "accessClass": "PUBLIC",
+          "accessPolicyStatus": "ACTIVE",
+          "accessDecisionSource": "M36_C1_FINAL_OWNER_DECISION",
+          "accessReviewState": "EVIDENCED"
+        }
+      },
+      "dashboard": {
+        "relationship": "NONE",
+        "exactAsset": null,
+        "embeddedMediaCount": 2,
+        "embeddedMediaChecksums": [
+          {
+            "embeddedName": "image1.jpg",
+            "byteLength": 85975,
+            "sha256": "920C2E5A99CB10F03D70D8A823895978DABDA04B726AD11030D8ED7843ED9E62"
+          },
+          {
+            "embeddedName": "image2.png",
+            "byteLength": 2312267,
+            "sha256": "A3CABD74BEDB7358247650EA0430CA764E2220FDD653AFFB92B02BB3FFDEA013"
+          }
+        ]
+      },
+      "accessClass": "PUBLIC",
+      "accessApprovalEvidence": "M36-C1 final owner governance decision.",
+      "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+      "routeActivated": false,
+      "identity": {
+        "publicationId": "VK-GPIR-P-000000000034-9",
+        "lineageId": "VK-GPIR-L-000000000034-9",
+        "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+        "allocated": true
+      },
+      "contentful": {
+        "draftId": "53bt9kTDAIHVvCCGne4HwL",
+        "assetIds": [],
+        "writePerformed": true,
+        "published": false
+      },
+      "readback": {
+        "state": "PASS",
+        "exactFieldMatch": true,
+        "unpublishedDraft": true,
+        "sourceHashMatch": true,
+        "routeUnique": true,
+        "fabricatedOptionalFields": []
+      },
+      "publicDiscoveryMetadata": {
+        "publicationId": "VK-GPIR-P-000000000034-9",
+        "title": "Global & Cross-Border Payments — Market Intelligence Report",
+        "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+        "topic": "Global & Cross-Border Payments — Market Intelligence Report",
+        "countryRegion": null,
+        "paymentUseCaseCategory": null,
+        "publicationStatus": null,
+        "accessClass": "PUBLIC",
+        "shortPublicSafeDescription": "Global cross-border payments encompass far more than consumer remittances alone — the true addressable market spans B2B trade settlement, corporate treasury flows, travel and tourism receipts, e-commerce, and cross-border investment activity. Measuring remittances in isolation significantly understates the size and strategic value of this market."
+      }
+    },
+    {
+      "candidateKey": "inward-outward-remittances-fy26",
+      "candidateStatus": "BLOCKED_GOVERNANCE",
+      "batchDisposition": "OWNER_EXCLUDED",
+      "ownerDecision": "EXCLUDE_NOT_PUBLICATION_READY",
+      "reviewReasons": [],
+      "source": {
+        "path": "F:\\RepositoryJFY26\\Publications\\Research Report\\Dashboards\\Inw and Outw remittances FY26.docx",
+        "exists": null,
+        "approval": null,
+        "approvalEvidence": "Research-report location is evidenced; the document itself does not evidence owner approval.",
+        "sha256": null,
+        "byteLength": null,
+        "deterministicExtraction": "NOT_RERUN_OWNER_EXCLUDED",
+        "extractionError": null
+      },
+      "evidencedMetadata": {
+        "title": "list of countries in world map , those has both outwards and inwards cross border payments and what would be the volumes.",
+        "titleEvidence": "PRIOR_C1_INVENTORY",
+        "topic": "list of countries in world map , those has both outwards and inwards cross border payments and what would be the volumes.",
+        "countryRegion": null,
+        "useCase": null,
+        "publicationStatus": null,
+        "publicationDate": null,
+        "editionLabel": null,
+        "dataCutoff": null
+      },
+      "structure": {
+        "moduleCount": 0,
+        "modules": []
+      },
+      "relationships": {
+        "existingHtml": null,
+        "legacy": null,
+        "existingPublicationIdentity": null,
+        "existingContentfulEntryId": null,
+        "duplicateCheck": "NOT_RERUN_OWNER_EXCLUDED",
+        "duplicateEvidence": null
+      },
+      "dashboard": {
+        "relationship": "UNKNOWN",
+        "exactAsset": null,
+        "embeddedMediaCount": 0,
+        "embeddedMediaChecksums": []
+      },
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "canonicalRouteCandidate": null,
+      "routeActivated": false,
+      "identity": {
+        "publicationId": null,
+        "lineageId": null,
+        "supabaseRecordId": null,
+        "allocated": false
+      },
+      "contentful": {
+        "draftId": null,
+        "assetIds": [],
+        "writePerformed": false,
+        "published": false
+      },
+      "readback": {
+        "state": "NOT_APPLICABLE_OWNER_EXCLUDED"
+      },
+      "publicDiscoveryMetadata": null
+    },
+    {
+      "candidateKey": "cross-border-payments-resequenced",
+      "batchDisposition": "ACTIVE",
+      "ownerDecision": "OWNER_APPROVED",
+      "candidateStatus": "READY_FOR_OWNER_REVIEW",
+      "reviewReasons": [],
+      "source": {
+        "path": "F:\\RepositoryJFY26\\Publications\\Research Report\\Master Repository versions JFY26\\Masters_Repository_Cross_Border_Payments_Resequenced.docx",
+        "exists": true,
+        "approval": "OWNER_APPROVED",
+        "approvalEvidence": "M36-C1 owner reconciliation continuation decision.",
+        "sha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+        "byteLength": 4899404,
+        "deterministicExtraction": "PASS",
+        "extractionError": null
+      },
+      "evidencedMetadata": {
+        "title": "CROSS-BORDER PAYMENTS",
+        "titleEvidence": "word/document.xml first non-empty paragraph",
+        "topic": "CROSS-BORDER PAYMENTS",
+        "countryRegion": null,
+        "useCase": null,
+        "publicationStatus": null,
+        "publicationDate": null,
+        "editionLabel": null,
+        "dataCutoff": null
+      },
+      "structure": {
+        "moduleCount": 38,
+        "modules": [
+          {
+            "sequence": 1,
+            "title": "Disclaimer",
+            "sectionCount": 0,
+            "paragraphCount": 5
+          },
+          {
+            "sequence": 2,
+            "title": "1. Executive Summary",
+            "sectionCount": 1,
+            "paragraphCount": 9
+          },
+          {
+            "sequence": 3,
+            "title": "Table of Contents",
+            "sectionCount": 0,
+            "paragraphCount": 413
+          },
+          {
+            "sequence": 4,
+            "title": "Source Chapter Cross-Reference Guide",
+            "sectionCount": 0,
+            "paragraphCount": 104
+          },
+          {
+            "sequence": 5,
+            "title": "2. Glossary of Terms",
+            "sectionCount": 0,
+            "paragraphCount": 66
+          },
+          {
+            "sequence": 6,
+            "title": "3. Industry Overview",
+            "sectionCount": 3,
+            "paragraphCount": 80
+          },
+          {
+            "sequence": 7,
+            "title": "PART I: GLOBAL PAYMENT VERTICALS (CHAPTERS 1–10)",
+            "sectionCount": 0,
+            "paragraphCount": 1
+          },
+          {
+            "sequence": 8,
+            "title": "CHAPTER 1: Global Trade Payments Industry (B2B Cross-Border Payments)",
+            "sectionCount": 26,
+            "paragraphCount": 265
+          },
+          {
+            "sequence": 9,
+            "title": "CHAPTER 2: Global Remittance & Diaspora Payments Industry (C2C)",
+            "sectionCount": 16,
+            "paragraphCount": 140
+          },
+          {
+            "sequence": 10,
+            "title": "CHAPTER 3: Global Education Payments Industry",
+            "sectionCount": 22,
+            "paragraphCount": 199
+          },
+          {
+            "sequence": 11,
+            "title": "CHAPTER 4: Global Marketplace, E-Commerce & Seller Payouts Industry",
+            "sectionCount": 29,
+            "paragraphCount": 258
+          },
+          {
+            "sequence": 12,
+            "title": "CHAPTER 5: Global Gig Economy, Freelancer & Creator Payments Industry",
+            "sectionCount": 30,
+            "paragraphCount": 207
+          },
+          {
+            "sequence": 13,
+            "title": "CHAPTER 6: Global Cross-Border Bill Payments & Family Financial Services Industry",
+            "sectionCount": 20,
+            "paragraphCount": 154
+          },
+          {
+            "sequence": 14,
+            "title": "CHAPTER 7: Global Healthcare, Medical Tourism & Cross-Border Health Payments Industry",
+            "sectionCount": 22,
+            "paragraphCount": 130
+          },
+          {
+            "sequence": 15,
+            "title": "CHAPTER 8: Global Gaming Payments Industry",
+            "sectionCount": 15,
+            "paragraphCount": 102
+          },
+          {
+            "sequence": 16,
+            "title": "CHAPTER 9: Global Legalized Betting, Gambling, Lottery & Wagering Payments Industry",
+            "sectionCount": 17,
+            "paragraphCount": 141
+          },
+          {
+            "sequence": 17,
+            "title": "Cross-Segment Synthesis: Expanded 14-Segment Universe & 2030 Outlook",
+            "sectionCount": 4,
+            "paragraphCount": 127
+          },
+          {
+            "sequence": 18,
+            "title": "CHAPTER 10: Emerging Technologies Reshaping Cross-Border Payments (2026–2035)",
+            "sectionCount": 12,
+            "paragraphCount": 40
+          },
+          {
+            "sequence": 19,
+            "title": "PART II: INDUSTRY ECOSYSTEM & INFRASTRUCTURE (CHAPTERS 11–14)",
+            "sectionCount": 0,
+            "paragraphCount": 1
+          },
+          {
+            "sequence": 20,
+            "title": "CHAPTER 11: Industry Participant Analysis — Banks, Fintechs, Networks, Wallets & Emerging Challengers (2025–2035)",
+            "sectionCount": 16,
+            "paragraphCount": 138
+          },
+          {
+            "sequence": 21,
+            "title": "CHAPTER 12: Stablecoins, CBDCs, Tokenized Money & Digital Asset Payments",
+            "sectionCount": 20,
+            "paragraphCount": 251
+          },
+          {
+            "sequence": 22,
+            "title": "CHAPTER 13: Global Wallets, Mobile Money, Super Apps & Financial Inclusion Ecosystems",
+            "sectionCount": 15,
+            "paragraphCount": 109
+          },
+          {
+            "sequence": 23,
+            "title": "CHAPTER 14: Global Payment Infrastructure, Networks & Interoperability",
+            "sectionCount": 10,
+            "paragraphCount": 80
+          },
+          {
+            "sequence": 24,
+            "title": "5. Ecosystem Landscape",
+            "sectionCount": 5,
+            "paragraphCount": 6
+          },
+          {
+            "sequence": 25,
+            "title": "PART III: ADDITIONAL PAYMENT VERTICALS (CHAPTERS 21–22)",
+            "sectionCount": 0,
+            "paragraphCount": 1
+          },
+          {
+            "sequence": 26,
+            "title": "CHAPTER 21: Global Government, Tax, Social Benefits & Public Sector Payments Ecosystem (2021–2040)",
+            "sectionCount": 12,
+            "paragraphCount": 61
+          },
+          {
+            "sequence": 27,
+            "title": "CHAPTER 22: Global Travel, Airline, Hospitality & Tourism Payments Ecosystem (2021–2040)",
+            "sectionCount": 11,
+            "paragraphCount": 99
+          },
+          {
+            "sequence": 28,
+            "title": "PART IV: REGIONAL, STRATEGIC & FUTURE-STATE SYNTHESIS (CHAPTERS 26–28)",
+            "sectionCount": 0,
+            "paragraphCount": 1
+          },
+          {
+            "sequence": 29,
+            "title": "9. Regional Deep Dive",
+            "sectionCount": 6,
+            "paragraphCount": 61
+          },
+          {
+            "sequence": 30,
+            "title": "CHAPTER 26: Industry Future State (2025–2040)",
+            "sectionCount": 15,
+            "paragraphCount": 166
+          },
+          {
+            "sequence": 31,
+            "title": "CHAPTER 27: Strategic Opportunities, Industry Scorecards & Strategic Action Frameworks",
+            "sectionCount": 10,
+            "paragraphCount": 165
+          },
+          {
+            "sequence": 32,
+            "title": "12. Methodology & Source Reliability",
+            "sectionCount": 11,
+            "paragraphCount": 153
+          },
+          {
+            "sequence": 33,
+            "title": "13. Professional Career Summary",
+            "sectionCount": 4,
+            "paragraphCount": 8
+          },
+          {
+            "sequence": 34,
+            "title": "CHAPTER 28: Top Global Cross-Border Payments Companies, Wallets & Industry Participants",
+            "sectionCount": 10,
+            "paragraphCount": 177
+          },
+          {
+            "sequence": 35,
+            "title": "PART V: GLOBAL DIRECTORIES & FACTBOOKS (CHAPTERS 30–31)",
+            "sectionCount": 0,
+            "paragraphCount": 1
+          },
+          {
+            "sequence": 36,
+            "title": "CHAPTER 30: Global RTP Directory & Instant Payments Factbook",
+            "sectionCount": 2,
+            "paragraphCount": 138
+          },
+          {
+            "sequence": 37,
+            "title": "CHAPTER 31: Global Cross-Border Corridor Factbook",
+            "sectionCount": 11,
+            "paragraphCount": 188
+          },
+          {
+            "sequence": 38,
+            "title": "15. Sources & References",
+            "sectionCount": 0,
+            "paragraphCount": 33
+          }
+        ]
+      },
+      "relationships": {
+        "existingHtml": null,
+        "legacy": null,
+        "existingPublicationIdentity": "VK-GPIR-P-000000000035-6",
+        "existingContentfulEntryId": null,
+        "duplicateCheck": "PASS",
+        "duplicateEvidence": "NEW_PUBLICATION_ALLOCATED",
+        "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+        "supabaseReconciliation": {
+          "sourceUnitKey": "gpir:intake:publication:research:cross-border-payments-industry-landscape:jfy26-resequenced:docx",
+          "sourceSha256": "B8440EEB821FA7408B1F8F894FA8DFAC44819B06A3D901F420CE61DFBF59A2F7",
+          "preAllocationSourceUnitMatches": 0,
+          "preAllocationExactSourceHashMatches": 0,
+          "readbackSourceUnitMatches": 1,
+          "readbackExactSourceHashMatches": 1,
+          "outcome": "NEW_PUBLICATION_ALLOCATED",
+          "identityAllocationPerformed": true,
+          "publicationId": "VK-GPIR-P-000000000035-6",
+          "lineageId": "VK-GPIR-L-000000000035-6",
+          "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+          "identityStatus": "GOVERNED_ASSIGNED",
+          "accessClass": "PUBLIC",
+          "accessPolicyStatus": "ACTIVE",
+          "accessDecisionSource": "M36_C1_FINAL_OWNER_DECISION",
+          "accessReviewState": "EVIDENCED"
+        }
+      },
+      "dashboard": {
+        "relationship": "NONE",
+        "exactAsset": null,
+        "embeddedMediaCount": 56,
+        "embeddedMediaChecksums": [
+          {
+            "embeddedName": "image1.png",
+            "byteLength": 111755,
+            "sha256": "A884793C7C6D4947C7A3B761D2A80FB6229803266C93E7C43A0FD6D877A36234"
+          },
+          {
+            "embeddedName": "image10.png",
+            "byteLength": 175670,
+            "sha256": "C0E7C6CF1CDA2D8D23C21EF056ACFEF306964B41BD86C17C815DDDFC2E1D3475"
+          },
+          {
+            "embeddedName": "image11.png",
+            "byteLength": 106924,
+            "sha256": "5EEA4A77F738FF20417B50E75C1BCE6D3BCEB57E2377EBBCC0748BDD7A657693"
+          },
+          {
+            "embeddedName": "image12.png",
+            "byteLength": 72063,
+            "sha256": "02034A4E097AA88C16694EF6D51BD38D780D9687FCC530FA1A80BC29EF1271D4"
+          },
+          {
+            "embeddedName": "image13.png",
+            "byteLength": 43729,
+            "sha256": "2FBF100C1C842BE57861B4A6E8B0A6915CF3A84BB22795549988EB6BD75CABF6"
+          },
+          {
+            "embeddedName": "image14.png",
+            "byteLength": 103097,
+            "sha256": "D535A1F38B4D45929B2B73EACF12C2A8174ED63B6D093199694A2832009F1537"
+          },
+          {
+            "embeddedName": "image15.png",
+            "byteLength": 87198,
+            "sha256": "478EBC96DD7D4711B8E9CBEE8164CA912248617B19EA4278FAC03B43F044E838"
+          },
+          {
+            "embeddedName": "image16.png",
+            "byteLength": 56471,
+            "sha256": "A1E14A86C934E5D3453764C9989B1E7CC14B94C57B92C6CA0207C1C01EC8324A"
+          },
+          {
+            "embeddedName": "image17.png",
+            "byteLength": 98605,
+            "sha256": "5CE58DE28E53704F179624ED53582D702AF038629D8FB5B30C80A9E4568D52D5"
+          },
+          {
+            "embeddedName": "image18.png",
+            "byteLength": 102553,
+            "sha256": "8BFE3E292F9D639C3EE4017318F5B4DDA878CD110C2E2AD94AA543C5E1C2101E"
+          },
+          {
+            "embeddedName": "image19.png",
+            "byteLength": 76483,
+            "sha256": "3A32D8F431046104CCB3E9B8651B045F6D3A2B132B825976294BE7B846153EC7"
+          },
+          {
+            "embeddedName": "image2.png",
+            "byteLength": 74952,
+            "sha256": "D5C953763ECD3259C8F05F5E9996529B7DAACEA8D9D81C9AAA77526DC656F128"
+          },
+          {
+            "embeddedName": "image20.png",
+            "byteLength": 107266,
+            "sha256": "66FC97A924E7FF42ABB33A72259887436244E2113EBA2958A1E20083F41FB027"
+          },
+          {
+            "embeddedName": "image21.png",
+            "byteLength": 78664,
+            "sha256": "C9B815BD7851322337FEBCE2E5C014E867E474494615E7EF84407F7EA2B8BEA2"
+          },
+          {
+            "embeddedName": "image22.png",
+            "byteLength": 80162,
+            "sha256": "4EF2AE2EAC1F9B3EC2FF2040DB3DD04D90A413C13875B28E6E66CA4EFA2C34B6"
+          },
+          {
+            "embeddedName": "image23.png",
+            "byteLength": 68600,
+            "sha256": "54CCE5F0928F7147AF98F7A6B5302FF5C41CDFA6ACC017B3A3398F8D81331D1B"
+          },
+          {
+            "embeddedName": "image24.png",
+            "byteLength": 95514,
+            "sha256": "A98A8E944BFC5CAB02E960720BD874A465B298FDDCE1E4EB07189862C579955D"
+          },
+          {
+            "embeddedName": "image25.png",
+            "byteLength": 49917,
+            "sha256": "5A0CCBD586BCBD8C5A413BAA77E7EF2D8FF36D1FFA3BA347B76950EE9C276B80"
+          },
+          {
+            "embeddedName": "image26.png",
+            "byteLength": 128401,
+            "sha256": "0A82FCFAB62455A987D6A6F4C30BE002FEFFD6A2DFB54BB890D442DAD7C1DE5C"
+          },
+          {
+            "embeddedName": "image27.png",
+            "byteLength": 51326,
+            "sha256": "352CC60584DE032543243746DB8ECFFEF787AD72509A7C9EE83D3F8BB85CBBE7"
+          },
+          {
+            "embeddedName": "image28.png",
+            "byteLength": 113120,
+            "sha256": "A10CF30983D4B9D3D5E3EACB545FE895914ADE05602C822EBE0FD80F498EE8F1"
+          },
+          {
+            "embeddedName": "image29.png",
+            "byteLength": 53436,
+            "sha256": "82A24CBD21350825E337A138AD8EFF31908AA2F3BD7D668746C1D35E29287DE0"
+          },
+          {
+            "embeddedName": "image3.png",
+            "byteLength": 63274,
+            "sha256": "41BBA4A571C0AB3330B6B75E7EE5A38F6136D5CD0E7C68C15DFF67BDA3D8D36F"
+          },
+          {
+            "embeddedName": "image30.png",
+            "byteLength": 64903,
+            "sha256": "565BDA5D3A86757E1703572D8D8D7A36F21276B1D0BF5B96ED610289A216E200"
+          },
+          {
+            "embeddedName": "image31.png",
+            "byteLength": 105229,
+            "sha256": "E436D8C3A17D02DDF0449BFE9CDEA3292FA01F1C05469FB2BA456FDB1A0DEBB3"
+          },
+          {
+            "embeddedName": "image32.png",
+            "byteLength": 167391,
+            "sha256": "3D7CA96650164DA36E741DAEE18A7950CF3775D2B61BCFAB95595D0C6DEA0801"
+          },
+          {
+            "embeddedName": "image33.png",
+            "byteLength": 154962,
+            "sha256": "678BFC866EA07A2B2B24F556EEC7AB4AFB42BB09F0F57B69A3FA34DF05A33C2E"
+          },
+          {
+            "embeddedName": "image34.png",
+            "byteLength": 54545,
+            "sha256": "934FFF449964417C75AA99DDD3372139DE979681090EEC08943DEC01B3AF1310"
+          },
+          {
+            "embeddedName": "image35.png",
+            "byteLength": 46331,
+            "sha256": "EC5271C249265D29531AC71582A7A2F21DE64BA5A9F500121912CC0282208A82"
+          },
+          {
+            "embeddedName": "image36.png",
+            "byteLength": 96865,
+            "sha256": "D4766317C7510181B611E5CFD3D9B6EFC4A37B951FD9CB6A1C1E19BB0E745BA5"
+          },
+          {
+            "embeddedName": "image37.png",
+            "byteLength": 59940,
+            "sha256": "61E959DCC10FA0AA2014E45D25B1D07D2B529B9320EB305CB40EADB86EC2FFD7"
+          },
+          {
+            "embeddedName": "image38.png",
+            "byteLength": 66348,
+            "sha256": "4B07E4E8CB2C0FBA6E2CB817ABE46D34F78457CD762964EED8E47076B35AD88D"
+          },
+          {
+            "embeddedName": "image39.png",
+            "byteLength": 63117,
+            "sha256": "53F577D13B0302731BDAF05B9A06B1D0016F840EE31C432B210D68EA2FB9901C"
+          },
+          {
+            "embeddedName": "image4.png",
+            "byteLength": 78548,
+            "sha256": "9969615FE0554CC7ED68779E68A64E9665796FBA8403E0C46F5594444EAD2411"
+          },
+          {
+            "embeddedName": "image40.png",
+            "byteLength": 68861,
+            "sha256": "0245E938F2A1267ECA7699201844E2ABEFE2F6B178A28BEE6EB865C1C68AF3D5"
+          },
+          {
+            "embeddedName": "image41.png",
+            "byteLength": 64072,
+            "sha256": "7165C41304060C3DE2309FE07E2A4276F3C614FDF1AFF8C1C4954D585D989F30"
+          },
+          {
+            "embeddedName": "image42.png",
+            "byteLength": 94873,
+            "sha256": "73AE67E0A9622FEF24849621A5CA55C2E449F147FCADFE8B8415041F7E16D90C"
+          },
+          {
+            "embeddedName": "image43.png",
+            "byteLength": 58673,
+            "sha256": "FD218A8790C77C73B57DD6F48F672D2764548E9A2BCD2A70E99E75413435E12C"
+          },
+          {
+            "embeddedName": "image44.png",
+            "byteLength": 62300,
+            "sha256": "CC67244CF1B158F7C4BC88E5CA3D8BEA79D5A8FD781EE59DBAFABF06899C388F"
+          },
+          {
+            "embeddedName": "image45.png",
+            "byteLength": 80393,
+            "sha256": "5073080FB8D7B9B7814A66421D025550F6CA107E1D87F9259BC84282AA48CCE4"
+          },
+          {
+            "embeddedName": "image46.png",
+            "byteLength": 54445,
+            "sha256": "94028C84B4A8FC4E4FB5C410C483DA4531A63C787703DCFDD7543141F379FBC6"
+          },
+          {
+            "embeddedName": "image47.png",
+            "byteLength": 87064,
+            "sha256": "40A84D6D521EB7AC4802FBFDE040DEF94DC24D2A66CDEEC91B195646262AE6F7"
+          },
+          {
+            "embeddedName": "image48.png",
+            "byteLength": 57139,
+            "sha256": "63B5CF6FD33A4CD90D26E3793965E0C11B245C68B04BD24ADB916EA12E97E370"
+          },
+          {
+            "embeddedName": "image49.png",
+            "byteLength": 88862,
+            "sha256": "2F40D3CA724D7EA4FBF20931E487FD1C8B3A547A2A681DEF220C93D54599CCAB"
+          },
+          {
+            "embeddedName": "image5.png",
+            "byteLength": 105645,
+            "sha256": "AC19BE3365C428FA4E74EA58F028D31BF178A40CA1ED4599F176D44C9CF51DB6"
+          },
+          {
+            "embeddedName": "image50.png",
+            "byteLength": 88106,
+            "sha256": "894F8968523BE9E7EF2DC7520B7286CAFDDF255D910AAF6FF9990299E1199D23"
+          },
+          {
+            "embeddedName": "image51.png",
+            "byteLength": 61101,
+            "sha256": "43F12C43F613C3B76C2D2227E0C33F316C7324E672F7122D23AB455941ECEB8C"
+          },
+          {
+            "embeddedName": "image52.png",
+            "byteLength": 48832,
+            "sha256": "8257294332524DD3582E03165FFD532E2B01DA4AA20C6021E83435705C326F46"
+          },
+          {
+            "embeddedName": "image53.png",
+            "byteLength": 82826,
+            "sha256": "480D61CD211343D57B72FC0BD05F26279699E4A11FC0B005EC6414F204981542"
+          },
+          {
+            "embeddedName": "image54.png",
+            "byteLength": 119632,
+            "sha256": "CE7B66A587B175B99774C0DDDC08A25C521CE8C97561A4D24F68FF1083EEA16F"
+          },
+          {
+            "embeddedName": "image55.png",
+            "byteLength": 72212,
+            "sha256": "9AC11E9086B618EDDA85793B46B28EE9CEA62F2D5D295B1E6F7FC1EA2CAFDF0F"
+          },
+          {
+            "embeddedName": "image56.png",
+            "byteLength": 73483,
+            "sha256": "C9A87ED989FBDFF5A9AAB09E0F3F75D90D35D40919B9B38B2667C83A5A30D7BD"
+          },
+          {
+            "embeddedName": "image6.png",
+            "byteLength": 82773,
+            "sha256": "834E58B711AE8D8CEF4C56C55CC6DEB9AB138E0898FF7FD29A2759868A5E391F"
+          },
+          {
+            "embeddedName": "image7.png",
+            "byteLength": 73608,
+            "sha256": "79EAF2935A79C490A187CF8985A6B6D833524075751D0BCE360044978CBC374C"
+          },
+          {
+            "embeddedName": "image8.png",
+            "byteLength": 61338,
+            "sha256": "37D39A786FE28DC1819D8517A2A141015509D3C5641DD5C4C4FC179F9BA02327"
+          },
+          {
+            "embeddedName": "image9.png",
+            "byteLength": 98256,
+            "sha256": "1FD8CF7859CC1D8033BECFABFB1516B9A08C07331C93619C7CE6D34FD65BE6C6"
+          }
+        ]
+      },
+      "accessClass": "PUBLIC",
+      "accessApprovalEvidence": "M36-C1 final owner governance decision.",
+      "canonicalRouteCandidate": "/cross-border-payments/",
+      "routeActivated": false,
+      "identity": {
+        "publicationId": "VK-GPIR-P-000000000035-6",
+        "lineageId": "VK-GPIR-L-000000000035-6",
+        "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+        "allocated": true
+      },
+      "contentful": {
+        "draftId": "5XUjNDKIxcoyHFM3x0meh3",
+        "assetIds": [],
+        "writePerformed": true,
+        "published": false
+      },
+      "readback": {
+        "state": "PASS",
+        "exactFieldMatch": true,
+        "unpublishedDraft": true,
+        "sourceHashMatch": true,
+        "routeUnique": true,
+        "fabricatedOptionalFields": []
+      },
+      "publicDiscoveryMetadata": {
+        "publicationId": "VK-GPIR-P-000000000035-6",
+        "title": "CROSS-BORDER PAYMENTS",
+        "canonicalRouteCandidate": "/cross-border-payments/",
+        "topic": "CROSS-BORDER PAYMENTS",
+        "countryRegion": null,
+        "paymentUseCaseCategory": null,
+        "publicationStatus": null,
+        "accessClass": "PUBLIC",
+        "shortPublicSafeDescription": "The global cross-border payments landscape represents one of the largest and most strategically significant flows of capital in the world economy. This repository consolidates wholesale and retail volumes, segment-level sizing, corridor concentration, and forward growth trajectories into a single reference document for strategic, investor, and partnership use."
+      }
+    },
+    {
+      "candidateKey": "swift-global-money-movement-working-draft-v0-9",
+      "candidateStatus": "BLOCKED_GOVERNANCE",
+      "batchDisposition": "OWNER_EXCLUDED",
+      "ownerDecision": "HOLD_WORKING_DRAFT",
+      "reviewReasons": [],
+      "source": {
+        "path": "F:\\RepositoryJFY26\\Publications\\SWIFT\\GPIR_White_Paper_SWIFT_and_Global_Money_Movement_Volume_1_Working_Draft_v0.9_Corridor_Case_Studies.docx",
+        "exists": null,
+        "approval": null,
+        "approvalEvidence": "The source explicitly identifies itself as a working draft, so approval cannot be inferred.",
+        "sha256": null,
+        "byteLength": null,
+        "deterministicExtraction": "NOT_RERUN_OWNER_EXCLUDED",
+        "extractionError": null
+      },
+      "evidencedMetadata": {
+        "title": "GPIR Global Payments Intelligence Repository White Paper — Working Draft — SWIFT and the Evolution of Global Money Movement",
+        "titleEvidence": "PRIOR_C1_INVENTORY",
+        "topic": "GPIR Global Payments Intelligence Repository White Paper — Working Draft — SWIFT and the Evolution of Global Money Movement",
+        "countryRegion": null,
+        "useCase": null,
+        "publicationStatus": null,
+        "publicationDate": null,
+        "editionLabel": null,
+        "dataCutoff": null
+      },
+      "structure": {
+        "moduleCount": 34,
+        "modules": []
+      },
+      "relationships": {
+        "existingHtml": null,
+        "legacy": null,
+        "existingPublicationIdentity": null,
+        "existingContentfulEntryId": null,
+        "duplicateCheck": "NOT_RERUN_OWNER_EXCLUDED",
+        "duplicateEvidence": null
+      },
+      "dashboard": {
+        "relationship": "UNKNOWN",
+        "exactAsset": null,
+        "embeddedMediaCount": 0,
+        "embeddedMediaChecksums": []
+      },
+      "accessClass": null,
+      "accessApprovalEvidence": null,
+      "canonicalRouteCandidate": null,
+      "routeActivated": false,
+      "identity": {
+        "publicationId": null,
+        "lineageId": null,
+        "supabaseRecordId": null,
+        "allocated": false
+      },
+      "contentful": {
+        "draftId": null,
+        "assetIds": [],
+        "writePerformed": false,
+        "published": false
+      },
+      "readback": {
+        "state": "NOT_APPLICABLE_OWNER_EXCLUDED"
+      },
+      "publicDiscoveryMetadata": null
+    }
+  ],
+  "newIdentities": [
+    {
+      "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+      "publicationId": "VK-GPIR-P-000000000034-9",
+      "lineageId": "VK-GPIR-L-000000000034-9",
+      "supabaseRecordId": "5d9c73c3-52e2-4dde-a621-7c8d0d5b2cab",
+      "allocated": true
+    },
+    {
+      "candidateKey": "cross-border-payments-resequenced",
+      "publicationId": "VK-GPIR-P-000000000035-6",
+      "lineageId": "VK-GPIR-L-000000000035-6",
+      "supabaseRecordId": "21c1e39f-cefa-4e57-8ade-57c69ab0d036",
+      "allocated": true
+    }
+  ],
+  "existingReconciliations": [],
+  "contentfulDraftIds": [
+    "53bt9kTDAIHVvCCGne4HwL",
+    "5XUjNDKIxcoyHFM3x0meh3"
+  ],
+  "assetIds": [],
+  "routeCandidates": [
+    {
+      "candidateKey": "bloom-master-overview-v1",
+      "route": null,
+      "activated": false
+    },
+    {
+      "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+      "route": "/global-and-cross-border-payments-market-intelligence-report/",
+      "activated": false
+    },
+    {
+      "candidateKey": "inward-outward-remittances-fy26",
+      "route": null,
+      "activated": false
+    },
+    {
+      "candidateKey": "cross-border-payments-resequenced",
+      "route": "/cross-border-payments/",
+      "activated": false
+    },
+    {
+      "candidateKey": "swift-global-money-movement-working-draft-v0-9",
+      "route": null,
+      "activated": false
+    }
+  ],
+  "publicDiscoveryMetadata": [
+    {
+      "publicationId": "VK-GPIR-P-000000000034-9",
+      "title": "Global & Cross-Border Payments — Market Intelligence Report",
+      "canonicalRouteCandidate": "/global-and-cross-border-payments-market-intelligence-report/",
+      "topic": "Global & Cross-Border Payments — Market Intelligence Report",
+      "countryRegion": null,
+      "paymentUseCaseCategory": null,
+      "publicationStatus": null,
+      "accessClass": "PUBLIC",
+      "shortPublicSafeDescription": "Global cross-border payments encompass far more than consumer remittances alone — the true addressable market spans B2B trade settlement, corporate treasury flows, travel and tourism receipts, e-commerce, and cross-border investment activity. Measuring remittances in isolation significantly understates the size and strategic value of this market."
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000035-6",
+      "title": "CROSS-BORDER PAYMENTS",
+      "canonicalRouteCandidate": "/cross-border-payments/",
+      "topic": "CROSS-BORDER PAYMENTS",
+      "countryRegion": null,
+      "paymentUseCaseCategory": null,
+      "publicationStatus": null,
+      "accessClass": "PUBLIC",
+      "shortPublicSafeDescription": "The global cross-border payments landscape represents one of the largest and most strategically significant flows of capital in the world economy. This repository consolidates wholesale and retail volumes, segment-level sizing, corridor concentration, and forward growth trajectories into a single reference document for strategic, investor, and partnership use."
+    }
+  ],
+  "ownerReviewQueue": [
+    {
+      "candidateKey": "global-cross-border-payments-market-intelligence-v1",
+      "status": "READY_FOR_OWNER_REVIEW",
+      "reviewReasons": [],
+      "contentfulDraftId": "53bt9kTDAIHVvCCGne4HwL"
+    },
+    {
+      "candidateKey": "cross-border-payments-resequenced",
+      "status": "READY_FOR_OWNER_REVIEW",
+      "reviewReasons": [],
+      "contentfulDraftId": "5XUjNDKIxcoyHFM3x0meh3"
+    }
+  ],
+  "ownerExcluded": [
+    {
+      "candidateKey": "bloom-master-overview-v1",
+      "ownerDecision": "HOLD_EXCLUDE_FROM_BATCH"
+    },
+    {
+      "candidateKey": "inward-outward-remittances-fy26",
+      "ownerDecision": "EXCLUDE_NOT_PUBLICATION_READY"
+    },
+    {
+      "candidateKey": "swift-global-money-movement-working-draft-v0-9",
+      "ownerDecision": "HOLD_WORKING_DRAFT"
+    }
+  ],
+  "tests": {
+    "status": "PASS",
+    "scope": "BOUNDED_M36_CONTENT_FACTORY_ONLY",
+    "files": [
+      "tests/m36/content-factory-batch.test.mjs",
+      "tests/m36/research-publication-renderer.test.mjs"
+    ],
+    "total": 27,
+    "passed": 27,
+    "failed": 0
+  },
+  "idempotency": {
+    "passes": 2,
+    "firstPassHash": "0BE6939E242F358A5EB9D3BDB557F7EB5A94099924C835F7707C42BFED1D9F48",
+    "secondPassHash": "0BE6939E242F358A5EB9D3BDB557F7EB5A94099924C835F7707C42BFED1D9F48",
+    "hashesMatch": true,
+    "duplicatePublicationIdentities": 0,
+    "duplicateLineageIdentities": 0,
+    "duplicateContentfulDrafts": 0,
+    "duplicateDashboardAssets": 0,
+    "duplicateRoutes": 0,
+    "unnecessaryWritesSecondPass": 0
+  },
+  "scaleoutStatus": "M36_CONTENT_FACTORY_SCALEOUT_READY"
+}
