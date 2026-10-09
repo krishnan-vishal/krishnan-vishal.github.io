@@ -37,7 +37,12 @@ for(const file of htmlFiles){
         if(!rawTarget || /^(?:#|https?:|mailto:|javascript:|data:|tel:)/i.test(rawTarget)) continue;
         const target = decode(rawTarget);
         if(!target.toLowerCase().endsWith(".html")) continue;
-        const targetPath = path.resolve(path.dirname(file), target);
+        // Browser paths beginning with "/" are rooted at the deployed site,
+        // not at the current Windows drive root. Resolve them from the
+        // repository root so this check has the same semantics on every OS.
+        const targetPath = target.startsWith("/")
+            ? path.resolve(ROOT, target.replace(/^\/+/, ""))
+            : path.resolve(path.dirname(file), target);
         if(!fs.existsSync(targetPath)) failures.push(`${path.relative(ROOT, file)} -> ${rawTarget}`);
     }
 }
