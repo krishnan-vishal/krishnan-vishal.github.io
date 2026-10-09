@@ -48,3 +48,24 @@ test('owner-approved presentation tokens and table containment remain locked', (
   assert.match(css, /gpir-publication-table-region--wide[\s\S]*overflow-x:\s*auto/);
   assert.match(css, /gpir-research-module-nav[\s\S]*max-height:\s*48px/);
 });
+
+test('activated public routes are exact, unique, ungated and preserve module counts', () => {
+  const registry = JSON.parse(fs.readFileSync(path.join(root, 'routes.json'), 'utf8'));
+  assert.equal(registry.recordCount, 35);
+  assert.equal(new Set(registry.routes.map(item => item.route.toLowerCase())).size,
+    registry.routes.length);
+  assert.equal(new Set(registry.routes.map(item => item.identity)).size,
+    registry.routes.length);
+  for (const target of targets) {
+    const registered = registry.routes.filter(item => item.identity === target.publicationId);
+    assert.equal(registered.length, 1);
+    assert.equal(registered[0].route, target.route);
+    assert.equal(registered[0].authAuthority, 'supabase');
+    const html = fs.readFileSync(path.join(root, target.slug, 'index.html'), 'utf8');
+    assert.equal((html.match(/id="research-module-[^"]+"[^>]*class="gpir-research-module(?:\s|"|--)/g) || []).length,
+      target.modules);
+    assert.doesNotMatch(html, /noindex|OWNER REVIEW|UNPUBLISHED|Registered reader access/i);
+    assert.match(html, new RegExp(target.publicationId));
+    assert.match(html, new RegExp(target.lineageId));
+  }
+});

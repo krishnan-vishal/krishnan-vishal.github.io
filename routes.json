@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "deploymentEligible": false,
-  "recordCount": 33,
+  "recordCount": 35,
   "routes": [
     {
       "identity": "VK-GPIR-P-000000000026-5",
@@ -36,10 +36,26 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000035-6",
+      "route": "/cross-border-payments/",
+      "canonicalUrl": "https://fintechoisis.com/cross-border-payments/",
+      "publicationType": "Research Publication",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000029-9",
       "route": "/europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis/",
       "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000034-9",
+      "route": "/global-and-cross-border-payments-market-intelligence-report/",
+      "canonicalUrl": "https://fintechoisis.com/global-and-cross-border-payments-market-intelligence-report/",
+      "publicationType": "Research Publication",
       "authAuthority": "supabase",
       "controlledValidation": false
     },

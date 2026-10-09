@@ -195,7 +195,7 @@ function prepareRoutes() {
     fs.writeFileSync(output, html, 'utf8');
     registry.routes.push({ identity: target.publicationId, route: target.route,
       canonicalUrl: `https://fintechoisis.com${target.route}`,
-      publicationType: 'Research Publication', authAuthority: 'public',
+      publicationType: 'Research Publication', authAuthority: 'supabase',
       controlledValidation: false });
     created.push({ publicationId: target.publicationId, route: target.route,
       path: output, sha256: sha256(Buffer.from(html)), modules: target.modules });
