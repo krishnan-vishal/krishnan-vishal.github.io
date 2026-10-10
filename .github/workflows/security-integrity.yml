@@ -54,11 +54,4 @@ jobs:
           find assets/js scripts -type f -name '*.js' -print0 | xargs -0 -n1 node --check
 
       - name: Scan for high-confidence secret patterns
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git grep --no-index -n -I -E '(AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY|password[[:space:]]*[:=][[:space:]]*[^[:space:]]+|api[_-]?key[[:space:]]*[:=][[:space:]]*[^[:space:]]+)' -- . ':(exclude)SECURITY.md' ':(exclude)docs/**'; then
-            echo 'High-confidence secret pattern detected. Review the matching file without exposing the value.'
-            exit 1
-          fi
-          echo 'No high-confidence secret patterns detected.'
+        run: node scripts/scan-high-confidence-secrets.js
