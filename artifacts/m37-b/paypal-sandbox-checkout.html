@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PayPal Sandbox Checkout | GPIR</title>
+  <link rel="stylesheet" href="/assets/css/variables.css">
+  <link rel="stylesheet" href="/assets/css/typography.css">
+  <link rel="stylesheet" href="/assets/css/layout.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/reader-auth.css">
+  <style>
+    body { background: var(--color-background, #f6f3ee); color: var(--color-text, #28262b); }
+    .sandbox-shell { width: min(760px, calc(100% - 2rem)); margin: 4rem auto; }
+    .sandbox-card { background: #fff; border: 1px solid rgba(40,38,43,.14); border-radius: 18px;
+      padding: clamp(1.5rem, 5vw, 3rem); box-shadow: 0 20px 55px rgba(40,38,43,.08); }
+    .sandbox-label { color: #9a5b12; font-size: .78rem; font-weight: 750; letter-spacing: .12em;
+      text-transform: uppercase; }
+    .sandbox-summary { border-block: 1px solid rgba(40,38,43,.12); margin: 1.5rem 0;
+      padding: 1.25rem 0; }
+    [data-paypal-status] { min-height: 1.5rem; margin-top: 1rem; }
+    [data-paypal-status][data-state="error"] { color: #9a2e2e; }
+    [data-paypal-status][data-state="success"] { color: #176b45; font-weight: 700; }
+  </style>
+  <script src="/assets/js/gpir-supabase-public-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+  <script src="/scripts/m34/supabase-browser-client.js"></script>
+  <script src="/assets/js/gpir-reader-auth.js"></script>
+</head>
+<body>
+  <main class="sandbox-shell">
+    <section class="sandbox-card" data-gpir-paypal-checkout="sandbox">
+      <span class="sandbox-label">PayPal Sandbox · Development only</span>
+      <h1>GPIR publication checkout</h1>
+      <p>This isolated preview creates and captures a test order through Supabase Edge Functions.
+        It cannot make a live payment.</p>
+      <div class="sandbox-summary">
+        <strong>Server-authoritative offer</strong>
+        <p>The title and price are resolved from the sandbox offer record; browser values are not trusted.</p>
+      </div>
+      <div data-paypal-buttons aria-label="PayPal Sandbox checkout"></div>
+      <p data-paypal-status role="status" aria-live="polite">Sandbox checkout is not configured.</p>
+    </section>
+  </main>
+  <script>
+    window.GPIR_PAYPAL_SANDBOX_CONFIG = Object.freeze({
+      environment: 'sandbox',
+      clientId: 'REPLACE_WITH_PAYPAL_SANDBOX_CLIENT_ID',
+      offerId: '00000000-0000-4000-8000-000000000000',
+      createOrderEndpoint: 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-paypal-create-order',
+      captureOrderEndpoint: 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-paypal-capture-order'
+    });
+  </script>
+  <script type="module" src="/assets/js/gpir-paypal-sandbox-checkout.mjs"></script>
+</body>
+</html>
