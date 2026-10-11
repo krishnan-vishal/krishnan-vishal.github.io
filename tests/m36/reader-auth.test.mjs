@@ -24,6 +24,7 @@ test('safe return only accepts same-origin GPIR-owned routes', () => {
   assert.equal(api.safeReturnTo('/stablecoins-cross-border-money-movement-c2c/?ref=reader'),
     '/stablecoins-cross-border-money-movement-c2c/?ref=reader');
   assert.equal(api.safeReturnTo('/reader/sign-in/'), '/reader/sign-in/');
+  assert.equal(api.safeReturnTo('/reader/my-gpir/#library'), '/reader/my-gpir/#library');
   assert.equal(api.safeReturnTo('https://attacker.example/'), '/');
   assert.equal(api.safeReturnTo('//attacker.example/'), '/');
   assert.equal(api.safeReturnTo('/not-a-gpir-route/'), '/');
