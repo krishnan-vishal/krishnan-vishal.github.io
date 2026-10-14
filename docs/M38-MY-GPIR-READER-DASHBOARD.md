@@ -13,6 +13,10 @@ M38 completes the authenticated My GPIR account surface on the established M34â€
 - `gpir:paypal-sandbox-captured` triggers a summary refresh only. It never grants access or changes browser-side entitlement state.
 - Empty Library, Payment History and Plan states explicitly report that Sandbox purchases and subscription billing are not active.
 
+### Persistent Codespaces Sandbox preview
+
+The workspace task starts the preview automatically and forwards port `4192`. The preview serves `/reader/my-gpir/` and replaces the browser-config script response with the fixed `hoewtptllwkcqrgryazu` Sandbox URL. The normal checked-in browser config and production Supabase project are left unchanged. Configure the Codespaces secret `GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY` with the Sandbox project's `sb_publishable_` key; without it, the preview returns `503` for the config request and does not fall back to production. The saved Codespaces secret is available again after restart. Sign in with an existing Sandbox reader account to load the reader-specific summary.
+
 ## Security and release boundary
 
 - `resolve_publication_entitlement` remains the publication-access authority.

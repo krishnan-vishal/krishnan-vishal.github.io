@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "My GPIR Sandbox preview",
+      "type": "shell",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/m38/serve-my-gpir-preview.mjs"],
+      "isBackground": true,
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": {
+        "owner": "my-gpir-preview",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^Starting My GPIR Sandbox preview$",
+          "endsPattern": "^My GPIR Sandbox preview: "
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

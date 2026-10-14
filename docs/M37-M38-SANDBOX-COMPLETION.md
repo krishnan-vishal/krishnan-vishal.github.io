@@ -14,6 +14,12 @@ Excluded production: `qlnvhfapctcpzqyuhhth`
 - **M37 PayPal lifecycle: HOLD at buyer approval.** Order `98U08950R3971671J` was created for the existing USD 1.00 offer. The available PayPal browser session returned `CANNOT_PAY_SELF`, so no buyer approval, capture, verified entitlement, refund or reversal was fabricated or claimed.
 - **Production: HOLD.** No production access, deployment, merge or live-payment activation was performed.
 
+## Persistent Codespaces preview
+
+The Codespaces workspace starts the dashboard preview automatically and forwards port `4192`. The preview root opens `/reader/my-gpir/` and overrides the shared public Supabase config route in memory with the fixed Sandbox URL `https://hoewtptllwkcqrgryazu.supabase.co`; the checked-in production browser config is not modified or served by the preview.
+
+Set a Codespaces secret named `GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY` to the `sb_publishable_` key from Sandbox project `hoewtptllwkcqrgryazu`. The preview refuses to provide browser configuration when the secret is absent or malformed and never falls back to the production project. Codespaces injects the saved secret after restart; no key or `.env` file belongs in the repository. After restart/opening the workspace, use the forwarded **My GPIR Sandbox preview** port. The dashboard still requires an authenticated Sandbox reader session.
+
 ## M38 repair and deployment
 
 The failure was not caused by missing tables or by the modern `sb_secret_` key format. Direct REST reads of the canonical M34 policy/profile tables correctly returned PostgreSQL `42501` because their permission boundary does not grant direct `service_role` SELECT access.

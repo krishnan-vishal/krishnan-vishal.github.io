@@ -4,6 +4,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createReaderSummaryHandler } from '../../supabase/functions/gpir-reader-summary/handler.mjs';
+import { createPreviewServer, previewConfiguration, sandboxProjectUrl }
+  from '../../scripts/m38/serve-my-gpir-preview.mjs';
 import { formatDate, formatMoney, normalizeReaderSummary,
   initializeReaderDashboard, requestReaderSummary } from '../../assets/js/gpir-reader-dashboard.mjs';
 import { activeSection, syncMyGpirNavigation } from '../../assets/js/my-gpir-navigation.mjs';
@@ -181,4 +183,46 @@ test('server endpoint is the only browser-to-payment-table boundary and emits no
   assert.match(index, /GPIR_SUPABASE_SECRET_KEY/);
   assert.doesNotMatch(fs.readFileSync(path.join(repo, 'reader/my-gpir/index.html'), 'utf8'),
     /sb_secret_|service_role|GPIR_SUPABASE_SECRET_KEY/);
+});
+
+test('Codespaces preview serves the dashboard with a fixed Sandbox-only browser config', async () => {
+  const env = { GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_preview_fixture' };
+  const config = previewConfiguration(env);
+  assert.deepEqual(config, { url: sandboxProjectUrl,
+    publishableKey: 'sb_publishable_preview_fixture' });
+  assert.equal(previewConfiguration({ GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY: '' }), null);
+  assert.equal(previewConfiguration({ GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY: 'service_role' }), null);
+
+  const server = createPreviewServer({ env });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = server.address();
+    const base = `http://127.0.0.1:${address.port}`;
+    const [dashboard, publicConfig] = await Promise.all([
+      fetch(base), fetch(`${base}/assets/js/gpir-supabase-public-config.js`)
+    ]);
+    assert.equal(dashboard.status, 200);
+    assert.match(await dashboard.text(), /data-reader-dashboard/);
+    assert.equal(publicConfig.status, 200);
+    assert.equal(publicConfig.headers.get('cache-control'), 'no-store');
+    const source = await publicConfig.text();
+    assert.match(source, /hoewtptllwkcqrgryazu\.supabase\.co/);
+    assert.match(source, /sb_publishable_preview_fixture/);
+    assert.doesNotMatch(source, /qlnvhfapctcpzqyuhhth|GPIR_SUPABASE_SECRET_KEY/);
+  } finally {
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
+
+test('Codespaces preview refuses configuration without a Sandbox publishable key', async () => {
+  const server = createPreviewServer({ env: {} });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}` +
+      '/assets/js/gpir-supabase-public-config.js');
+    assert.equal(response.status, 503);
+    assert.match(await response.text(), /GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY/);
+  } finally {
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
 });
