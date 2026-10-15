@@ -1,4 +1,6 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
+  production: 'qlnvhfapctcpzqyuhhth' });
 
 function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY', 'GPIR_SUPABASE_SECRET_KEY'];
@@ -6,8 +8,12 @@ function configuration(env) {
   if (!names.every(name => values[name])) return null;
   let url;
   try { url = new URL(values.SUPABASE_URL); } catch { return null; }
-  if (url.protocol !== 'https:' || !url.hostname.endsWith('.supabase.co')) return null;
-  return Object.freeze({ ...values, SUPABASE_URL: url.origin });
+  const environment = env.GPIR_PAYMENT_ENVIRONMENT?.trim().toLowerCase() ||
+    (url.hostname === `${PROJECTS.sandbox}.supabase.co` ? 'sandbox' : null);
+  if (!environment || !PROJECTS[environment] || url.protocol !== 'https:' ||
+      url.hostname !== `${PROJECTS[environment]}.supabase.co`) return null;
+  return Object.freeze({ ...values, SUPABASE_URL: url.origin,
+    PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment });
 }
 
 function allowedOrigins(env) {
@@ -66,6 +72,14 @@ function paymentSummary(row) {
     capturedAt: isoOrNull(row.captured_at) });
 }
 
+function subscriptionSummary(row) {
+  if (!UUID.test(row?.id || '') || typeof row?.status !== 'string' ||
+      !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
+        'PAYMENT_FAILED'].includes(row.status)) return null;
+  return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
+    effectiveUntil: isoOrNull(row.effective_until) });
+}
+
 function purchaseKey(row) { return `${row.supabase_record_id}:${row.publication_id}`; }
 
 function publicationCandidate(row) {
@@ -101,33 +115,48 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const serviceHeaders = { apikey: config.GPIR_SUPABASE_SECRET_KEY,
       authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}` };
     const offerQuery = new URLSearchParams({
-      select: 'supabase_record_id,publication_id', environment: 'eq.SANDBOX',
-      status: 'eq.SANDBOX_ACTIVE', order: 'publication_id.asc', limit: '100'
+      select: 'supabase_record_id,publication_id',
+      environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
+      status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
+      order: 'publication_id.asc', limit: '100'
     });
     const paymentQuery = new URLSearchParams({
       select: 'id,publication_id,supabase_record_id,currency,expected_amount_minor,captured_amount_minor,status,created_at,captured_at',
-      user_id: `eq.${user.id}`, order: 'created_at.desc', limit: '100'
+      user_id: `eq.${user.id}`, environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
+      order: 'created_at.desc', limit: '100'
     });
     const purchaseQuery = new URLSearchParams({
       select: 'publication_id,supabase_record_id,status,effective_from,revoked_at',
-      user_id: `eq.${user.id}`, order: 'effective_from.desc', limit: '100'
+      user_id: `eq.${user.id}`, environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
+      order: 'effective_from.desc', limit: '100'
     });
-    const [offersResult, paymentsResult, purchasesResult] = await Promise.all([
+    const subscriptionQuery = new URLSearchParams({
+      select: 'id,status,effective_from,effective_until', user_id: `eq.${user.id}`,
+      environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
+    });
+    const [candidatesResult, offersResult, paymentsResult, purchasesResult,
+      subscriptionsResult] = await Promise.all([
+      jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
+        { method: 'POST', headers: serviceHeaders, body: '{}' }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_offers?${offerQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_orders?${paymentQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_publication_purchase_entitlements?${purchaseQuery}`,
+        { headers: serviceHeaders }),
+      jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${subscriptionQuery}`,
         { headers: serviceHeaders })
     ]);
+    const policyCandidates = validRows(candidatesResult);
     const offers = validRows(offersResult);
     const rawPayments = validRows(paymentsResult);
     const purchases = validRows(purchasesResult);
-    if (!offers || !rawPayments || !purchases)
+    const rawSubscriptions = validRows(subscriptionsResult);
+    if (!policyCandidates || !offers || !rawPayments || !purchases || !rawSubscriptions)
       return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
 
     const candidates = new Map();
-    for (const row of [...offers, ...purchases]) {
+    for (const row of [...policyCandidates, ...offers, ...purchases]) {
       const candidate = publicationCandidate(row);
       if (!candidate)
         return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
@@ -151,9 +180,16 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const hasPlanAccess = publications.some((publication, index) =>
       decisions[index][0].decision === 'ALLOW' &&
       purchaseStates.get(purchaseKey(publication)) !== 'ACTIVE');
-    const plan = Object.freeze({ status: hasPlanAccess ? 'ACTIVE' : 'NOT_ENROLLED',
-      accessClass: hasPlanAccess ? 'ENTITLED' : null, effectiveFrom: null,
-      effectiveUntil: null, billingStatus: 'NOT_ACTIVE' });
+    const subscription = rawSubscriptions.length ? subscriptionSummary(rawSubscriptions[0]) : null;
+    if (rawSubscriptions.length && !subscription)
+      return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
+    const subscriptionActive = subscription?.status === 'ACTIVE';
+    const plan = Object.freeze({ status: subscriptionActive || hasPlanAccess ? 'ACTIVE' :
+      subscription ? 'INACTIVE' : 'NOT_ENROLLED',
+      accessClass: subscriptionActive || hasPlanAccess ? 'ENTITLED' : null,
+      effectiveFrom: subscription?.effectiveFrom || null,
+      effectiveUntil: subscription?.effectiveUntil || null,
+      billingStatus: subscription?.status || 'NOT_ACTIVE' });
     const library = publications.flatMap((publication, index) => {
       if (decisions[index][0].decision !== 'ALLOW') return [];
       const purchaseState = purchaseStates.get(purchaseKey(publication));
@@ -168,11 +204,12 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       memberSince: isoOrNull(user.created_at), emailVerified: Boolean(
         user.email_confirmed_at || user.confirmed_at) });
 
-    return response(200, Object.freeze({ status: 'OK', profile, library, payments, plan,
+    return response(200, Object.freeze({ status: 'OK', environment: config.environment,
+      profile, library, payments, plan,
       summary: Object.freeze({ libraryCount: library.length, paymentCount: payments.length,
         activePurchaseCount: purchases.filter(row => row.status === 'ACTIVE').length }),
       generatedAt: new Date(now()).toISOString() }), origin, env);
   };
 }
 
-export { configuration, paymentSummary, publicationCandidate };
+export { configuration, paymentSummary, publicationCandidate, subscriptionSummary };

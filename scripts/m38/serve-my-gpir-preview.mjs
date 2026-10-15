@@ -15,6 +15,19 @@ export function previewConfiguration(env = process.env) {
   return Object.freeze({ url: sandboxProjectUrl, publishableKey });
 }
 
+export function sandboxCheckoutConfiguration(env = process.env) {
+  const clientId = env.GPIR_SANDBOX_PAYPAL_CLIENT_ID?.trim();
+  const offerId = env.GPIR_SANDBOX_PAYPAL_OFFER_ID?.trim();
+  if (!previewConfiguration(env) || !clientId || clientId.length <= 10 ||
+      /replace|example|live/i.test(clientId) ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(offerId || ''))
+    return null;
+  return Object.freeze({ enabled: true, environment: 'sandbox', clientId, offerId,
+    supabaseUrl: sandboxProjectUrl,
+    createOrderEndpoint: `${sandboxProjectUrl}/functions/v1/gpir-paypal-create-order`,
+    captureOrderEndpoint: `${sandboxProjectUrl}/functions/v1/gpir-paypal-capture-order` });
+}
+
 export function createPreviewServer({ env = process.env } = {}) {
   return http.createServer((request, response) => {
     let pathname;
@@ -35,6 +48,20 @@ export function createPreviewServer({ env = process.env } = {}) {
       response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8',
         'cache-control': 'no-store' });
       response.end(`window.GPIR_SUPABASE_PUBLIC_CONFIG = Object.freeze(${JSON.stringify(config)});`);
+      return;
+    }
+
+    if (pathname === '/assets/js/gpir-paypal-sandbox-config.js') {
+      const config = sandboxCheckoutConfiguration(env);
+      if (!config) {
+        response.writeHead(503, { 'content-type': 'text/plain; charset=utf-8',
+          'cache-control': 'no-store' });
+        response.end('Set the approved Sandbox PayPal client and offer configuration.');
+        return;
+      }
+      response.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8',
+        'cache-control': 'no-store' });
+      response.end(`window.GPIR_PAYPAL_SANDBOX_CONFIG = Object.freeze(${JSON.stringify(config)});`);
       return;
     }
 

@@ -6,6 +6,7 @@ const env = Object.fromEntries([
   'GPIR_SUPABASE_SECRET_KEY',
   'GPIR_PAYPAL_ALLOWED_ORIGINS',
   'PAYPAL_ENVIRONMENT',
+  'GPIR_PAYPAL_PRODUCTION_ENABLED',
   'PAYPAL_CLIENT_ID',
   'PAYPAL_CLIENT_SECRET'
 ].map(name => [name, Deno.env.get(name)]));

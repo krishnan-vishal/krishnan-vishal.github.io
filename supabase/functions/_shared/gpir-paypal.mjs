@@ -1,19 +1,34 @@
 export const PAYPAL_SANDBOX_BASE = 'https://api-m.sandbox.paypal.com';
+export const PAYPAL_PRODUCTION_BASE = 'https://api-m.paypal.com';
+export const GPIR_SUPABASE_PROJECTS = Object.freeze({
+  sandbox: 'hoewtptllwkcqrgryazu',
+  production: 'qlnvhfapctcpzqyuhhth'
+});
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const PAYPAL_ID = /^[A-Z0-9]{8,32}$/i;
+export const PAYPAL_BILLING_ID = /^[A-Z0-9-]{8,64}$/i;
 
 export function paymentConfiguration(env, { webhook = false } = {}) {
   const required = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY',
     'GPIR_SUPABASE_SECRET_KEY', 'PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET'];
   if (webhook) required.push('PAYPAL_WEBHOOK_ID');
   const values = Object.fromEntries(required.map(name => [name, env[name]?.trim()]));
-  if (env.PAYPAL_ENVIRONMENT?.trim().toLowerCase() !== 'sandbox' ||
+  const environment = env.PAYPAL_ENVIRONMENT?.trim().toLowerCase();
+  if (!['sandbox', 'production'].includes(environment) ||
       !required.every(name => values[name])) return null;
+  if (environment === 'production' &&
+      env.GPIR_PAYPAL_PRODUCTION_ENABLED?.trim().toLowerCase() !== 'true') return null;
   let supabaseUrl;
   try { supabaseUrl = new URL(values.SUPABASE_URL); } catch { return null; }
-  if (supabaseUrl.protocol !== 'https:' || !supabaseUrl.hostname.endsWith('.supabase.co')) return null;
+  const projectRef = GPIR_SUPABASE_PROJECTS[environment];
+  if (supabaseUrl.protocol !== 'https:' ||
+      supabaseUrl.hostname !== `${projectRef}.supabase.co`) return null;
   return Object.freeze({ ...values, SUPABASE_URL: supabaseUrl.origin,
-    PAYPAL_ENVIRONMENT: 'sandbox', PAYPAL_BASE_URL: PAYPAL_SANDBOX_BASE });
+    PAYPAL_ENVIRONMENT: environment,
+    PAYMENT_ENVIRONMENT: environment.toUpperCase(),
+    ACTIVE_OFFER_STATUS: environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE',
+    PAYPAL_BASE_URL: environment === 'sandbox' ? PAYPAL_SANDBOX_BASE : PAYPAL_PRODUCTION_BASE,
+    SUPABASE_PROJECT_REF: projectRef });
 }
 
 export function allowedOrigins(env) {
@@ -153,6 +168,16 @@ export function storedOrder(data) {
       !Number.isSafeInteger(Number(row.expected_amount_minor)) ||
       Number(row.expected_amount_minor) <= 0) return null;
   return Object.freeze({ ...row, expected_amount_minor: Number(row.expected_amount_minor) });
+}
+
+export function storedSubscription(data) {
+  const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
+  if (!row || !UUID.test(row.local_subscription_id || '') ||
+      typeof row.paypal_plan_id !== 'string' || !PAYPAL_BILLING_ID.test(row.paypal_plan_id) ||
+      (row.paypal_subscription_id && !PAYPAL_BILLING_ID.test(row.paypal_subscription_id)) ||
+      !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
+        'PAYMENT_FAILED'].includes(row.subscription_status)) return null;
+  return Object.freeze(row);
 }
 
 export function verifiedCapture(order, expected) {

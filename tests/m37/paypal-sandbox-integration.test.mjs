@@ -19,7 +19,7 @@ const captureId = 'CAPTURE12345678';
 const publicationId = 'VK-GPIR-P-000000000018-2';
 
 const env = Object.freeze({
-  SUPABASE_URL: 'https://project.supabase.co',
+  SUPABASE_URL: 'https://hoewtptllwkcqrgryazu.supabase.co',
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
   GPIR_SUPABASE_SECRET_KEY: 'server_secret_fixture',
   GPIR_PAYPAL_ALLOWED_ORIGINS: origin,
@@ -60,9 +60,10 @@ function completedOrder(amount = '12.34') {
       status: 'COMPLETED', amount: { currency_code: 'USD', value: amount } }] } }] };
 }
 
-test('configuration is sandbox-only and fixes the provider base URL', () => {
+test('configuration fixes the sandbox provider and fails closed for production', () => {
   assert.equal(paymentConfiguration(env).PAYPAL_BASE_URL, PAYPAL_SANDBOX_BASE);
-  assert.equal(paymentConfiguration({ ...env, PAYPAL_ENVIRONMENT: 'live' }), null);
+  assert.equal(paymentConfiguration({ ...env, PAYPAL_ENVIRONMENT: 'production',
+    SUPABASE_URL: 'https://qlnvhfapctcpzqyuhhth.supabase.co' }), null);
   assert.equal(paymentConfiguration({ ...env, PAYPAL_CLIENT_SECRET: '' }), null);
 });
 
@@ -71,12 +72,12 @@ test('create-order authenticates the reader and uses only the server offer amoun
   const fetchImpl = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).endsWith('/auth/v1/user')) return json({ id: userId });
-    if (String(url).endsWith('/rpc/gpir_prepare_paypal_order')) return json([preparedRow()]);
+    if (String(url).endsWith('/rpc/gpir_prepare_paypal_order_v2')) return json([preparedRow()]);
     if (String(url).endsWith('/v1/oauth2/token')) return json({ access_token: 'oauth_fixture' });
     if (String(url).endsWith('/v2/checkout/orders'))
       return json({ id: paypalOrderId, status: 'CREATED' }, 201,
         { 'paypal-debug-id': 'debug-create' });
-    if (String(url).endsWith('/rpc/gpir_attach_paypal_order')) return json(true);
+    if (String(url).endsWith('/rpc/gpir_attach_paypal_order_v2')) return json(true);
     throw new Error(`Unexpected URL: ${url}`);
   };
   const handler = createPayPalCreateOrderHandler({ env, fetchImpl });
@@ -101,8 +102,8 @@ test('capture grants access only after exact completed server verification', asy
     if (value.endsWith('/auth/v1/user')) return json({ id: userId });
     if (value.includes('/rest/v1/rpc/')) {
       const name = value.split('/').at(-1); rpcNames.push(name);
-      if (name === 'gpir_get_paypal_order') return json([storedRow()]);
-      if (name === 'gpir_finalize_paypal_capture') {
+      if (name === 'gpir_get_paypal_order_v2') return json([storedRow()]);
+      if (name === 'gpir_finalize_paypal_capture_v2') {
         const body = JSON.parse(options.body);
         assert.equal(body.p_paypal_capture_id, captureId);
         assert.equal(body.p_captured_amount_minor, 1234);
@@ -120,7 +121,7 @@ test('capture grants access only after exact completed server verification', asy
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { status: 'CAPTURED', environment: 'sandbox',
     orderId: paypalOrderId, entitlement: 'SERVER_VERIFIED' });
-  assert.deepEqual(rpcNames, ['gpir_get_paypal_order', 'gpir_finalize_paypal_capture']);
+  assert.deepEqual(rpcNames, ['gpir_get_paypal_order_v2', 'gpir_finalize_paypal_capture_v2']);
 });
 
 test('amount mismatch fails closed before entitlement finalization', async () => {
@@ -128,8 +129,8 @@ test('amount mismatch fails closed before entitlement finalization', async () =>
   const fetchImpl = async (url) => {
     const value = String(url);
     if (value.endsWith('/auth/v1/user')) return json({ id: userId });
-    if (value.endsWith('/rpc/gpir_get_paypal_order')) return json([storedRow()]);
-    if (value.endsWith('/rpc/gpir_finalize_paypal_capture')) { finalized = true; return json(true); }
+    if (value.endsWith('/rpc/gpir_get_paypal_order_v2')) return json([storedRow()]);
+    if (value.endsWith('/rpc/gpir_finalize_paypal_capture_v2')) { finalized = true; return json(true); }
     if (value.endsWith('/v1/oauth2/token')) return json({ access_token: 'oauth_fixture' });
     if (value.endsWith(`/v2/checkout/orders/${paypalOrderId}/capture`))
       return json(completedOrder('12.35'), 201);
@@ -160,7 +161,7 @@ test('webhook preserves raw event during signature verification and suppresses d
       assert.ok(options.body.includes(`"webhook_event":${raw}`));
       return json({ verification_status: 'SUCCESS' });
     }
-    if (value.endsWith('/rpc/gpir_claim_paypal_webhook_event')) return json('DUPLICATE');
+    if (value.endsWith('/rpc/gpir_claim_paypal_webhook_event_v2')) return json('DUPLICATE');
     if (value.includes('/v2/checkout/orders/')) { providerOrderFetched = true; return json({}); }
     throw new Error(`Unexpected URL: ${url}`);
   };
@@ -207,10 +208,10 @@ test('verified completed webhook independently fetches and finalizes the capture
     if (value.endsWith(`/v2/checkout/orders/${paypalOrderId}`)) return json(completedOrder());
     if (value.includes('/rest/v1/rpc/')) {
       const name = value.split('/').at(-1); rpcNames.push(name);
-      if (name === 'gpir_claim_paypal_webhook_event') return json('CLAIMED');
-      if (name === 'gpir_get_paypal_order_for_webhook') return json([storedRow()]);
-      if (name === 'gpir_finalize_paypal_capture') return json(true);
-      if (name === 'gpir_finish_paypal_webhook_event') return json(true);
+      if (name === 'gpir_claim_paypal_webhook_event_v2') return json('CLAIMED');
+      if (name === 'gpir_get_paypal_order_for_webhook_v2') return json([storedRow()]);
+      if (name === 'gpir_finalize_paypal_capture_v2') return json(true);
+      if (name === 'gpir_finish_paypal_webhook_event_v2') return json(true);
     }
     throw new Error(`Unexpected URL: ${url}`);
   };
@@ -223,9 +224,9 @@ test('verified completed webhook independently fetches and finalizes the capture
   const response = await createPayPalWebhookHandler({ env, fetchImpl })(request);
   assert.equal(response.status, 200);
   assert.equal((await response.json()).status, 'PROCESSED');
-  assert.deepEqual(rpcNames, ['gpir_claim_paypal_webhook_event',
-    'gpir_get_paypal_order_for_webhook', 'gpir_finalize_paypal_capture',
-    'gpir_finish_paypal_webhook_event']);
+  assert.deepEqual(rpcNames, ['gpir_claim_paypal_webhook_event_v2',
+    'gpir_get_paypal_order_for_webhook_v2', 'gpir_finalize_paypal_capture_v2',
+    'gpir_finish_paypal_webhook_event_v2']);
 });
 
 test('verified refund webhook uses the known capture reversal path', async () => {
@@ -241,7 +242,7 @@ test('verified refund webhook uses the known capture reversal path', async () =>
     if (value.includes('/rest/v1/rpc/')) {
       const name = value.split('/').at(-1); const body = JSON.parse(options.body);
       rpcBodies.push({ name, body });
-      if (name === 'gpir_claim_paypal_webhook_event') return json('CLAIMED');
+      if (name === 'gpir_claim_paypal_webhook_event_v2') return json('CLAIMED');
       return json(true);
     }
     throw new Error(`Unexpected URL: ${url}`);
@@ -254,15 +255,17 @@ test('verified refund webhook uses the known capture reversal path', async () =>
     body: JSON.stringify(event) });
   const response = await createPayPalWebhookHandler({ env, fetchImpl })(request);
   assert.equal(response.status, 200);
-  const reversal = rpcBodies.find(call => call.name === 'gpir_reverse_paypal_capture');
+  const reversal = rpcBodies.find(call => call.name === 'gpir_reverse_paypal_capture_v2');
   assert.equal(reversal.body.p_paypal_capture_id, captureId);
   assert.equal(reversal.body.p_reversal_status, 'REFUNDED');
 });
 
 test('browser checkout requires sandbox config and trusts only SERVER_VERIFIED capture', async () => {
-  const config = { environment: 'sandbox', clientId: 'sandbox-client-public-123', offerId,
-    createOrderEndpoint: 'https://project.supabase.co/functions/v1/gpir-paypal-create-order',
-    captureOrderEndpoint: 'https://project.supabase.co/functions/v1/gpir-paypal-capture-order' };
+  const config = { enabled: true, environment: 'sandbox',
+    clientId: 'sandbox-client-public-123', offerId,
+    supabaseUrl: 'https://hoewtptllwkcqrgryazu.supabase.co',
+    createOrderEndpoint: 'https://hoewtptllwkcqrgryazu.supabase.co/functions/v1/gpir-paypal-create-order',
+    captureOrderEndpoint: 'https://hoewtptllwkcqrgryazu.supabase.co/functions/v1/gpir-paypal-capture-order' };
   const supabase = { auth: { async getSession() { return { data: { session: {
     user: { id: userId }, access_token: 'session_fixture' } } }; } } };
   assert.equal(validSandboxConfig(config), true);

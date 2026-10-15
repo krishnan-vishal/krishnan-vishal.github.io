@@ -13,7 +13,7 @@ export function createPayPalCreateOrderHandler({ env, fetchImpl = fetch }) {
     if (boundary.error) return boundary.error;
     const { origin } = boundary;
     const config = paymentConfiguration(env);
-    if (!config) return safeError(503, 'SANDBOX_CONFIGURATION_REQUIRED', origin, env);
+    if (!config) return safeError(503, 'PAYMENT_CONFIGURATION_REQUIRED', origin, env);
 
     let input;
     try { input = await request.json(); } catch {
@@ -23,15 +23,16 @@ export function createPayPalCreateOrderHandler({ env, fetchImpl = fetch }) {
     const user = await authenticateSupabaseUser({ request, config, fetchImpl });
     if (!user) return safeError(401, 'SESSION_REQUIRED', origin, env);
 
-    const prepared = await supabaseRpc({ config, name: 'gpir_prepare_paypal_order', fetchImpl,
+    const prepared = await supabaseRpc({ config, name: 'gpir_prepare_paypal_order_v2', fetchImpl,
       body: { p_user_id: user.id, p_offer_id: input.offerId,
-        p_client_request_id: input.clientRequestId } });
+        p_client_request_id: input.clientRequestId,
+        p_environment: config.PAYMENT_ENVIRONMENT } });
     const local = prepared.ok ? preparedOrder(prepared.data) : null;
     if (!local) return safeError(409, 'PAYMENT_OFFER_OR_REQUEST_UNAVAILABLE', origin, env);
     if (local.paypal_order_id) {
       if (!PAYPAL_ID.test(local.paypal_order_id))
         return safeError(503, 'PAYMENT_STATE_INVALID', origin, env);
-      return jsonResponse(200, { status: 'CREATED', environment: 'sandbox',
+      return jsonResponse(200, { status: 'CREATED', environment: config.PAYPAL_ENVIRONMENT,
         orderId: local.paypal_order_id }, origin, env);
     }
 
@@ -55,13 +56,14 @@ export function createPayPalCreateOrderHandler({ env, fetchImpl = fetch }) {
         !['CREATED', 'PAYER_ACTION_REQUIRED'].includes(provider.data?.status))
       return safeError(502, 'PAYPAL_ORDER_CREATION_FAILED', origin, env);
 
-    const attached = await supabaseRpc({ config, name: 'gpir_attach_paypal_order', fetchImpl,
+    const attached = await supabaseRpc({ config, name: 'gpir_attach_paypal_order_v2', fetchImpl,
       body: { p_local_order_id: local.local_order_id,
         p_paypal_order_id: provider.data.id, p_provider_status: provider.data.status,
-        p_provider_debug_id: provider.debugId } });
+        p_provider_debug_id: provider.debugId,
+        p_environment: config.PAYMENT_ENVIRONMENT } });
     if (!attached.ok || attached.data !== true)
       return safeError(503, 'PAYMENT_RECONCILIATION_PENDING', origin, env);
-    return jsonResponse(201, { status: 'CREATED', environment: 'sandbox',
+    return jsonResponse(201, { status: 'CREATED', environment: config.PAYPAL_ENVIRONMENT,
       orderId: provider.data.id }, origin, env);
   };
 }

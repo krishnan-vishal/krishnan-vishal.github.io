@@ -27,6 +27,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/assets/js/gpir-reader-auth.js"></script>
+  <script src="/assets/js/gpir-paypal-sandbox-config.js"></script>
 </head>
 <body>
   <main class="sandbox-shell">
@@ -43,15 +44,6 @@
       <p data-paypal-status role="status" aria-live="polite">Sandbox checkout is not configured.</p>
     </section>
   </main>
-  <script>
-    window.GPIR_PAYPAL_SANDBOX_CONFIG = Object.freeze({
-      environment: 'sandbox',
-      clientId: 'REPLACE_WITH_PAYPAL_SANDBOX_CLIENT_ID',
-      offerId: '00000000-0000-4000-8000-000000000000',
-      createOrderEndpoint: 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-paypal-create-order',
-      captureOrderEndpoint: 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-paypal-capture-order'
-    });
-  </script>
   <script type="module" src="/assets/js/gpir-paypal-sandbox-checkout.mjs"></script>
 </body>
 </html>

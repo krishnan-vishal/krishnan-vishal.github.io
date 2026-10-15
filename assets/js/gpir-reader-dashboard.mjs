@@ -1,6 +1,8 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
   'REFUNDED', 'REVERSED', 'VOIDED', 'FAILED']);
+const BILLING_STATES = new Set(['NOT_ACTIVE', 'APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED',
+  'CANCELLED', 'EXPIRED', 'PAYMENT_FAILED']);
 
 function isoOrNull(value) {
   if (typeof value !== 'string' || !value) return null;
@@ -24,7 +26,12 @@ export function normalizeReaderSummary(value) {
     }] : []);
   const planStatus = ['ACTIVE', 'INACTIVE', 'NOT_ENROLLED'].includes(value.plan.status)
     ? value.plan.status : 'NOT_ENROLLED';
-  return Object.freeze({ profile: Object.freeze({
+  const environment = ['sandbox', 'production'].includes(value.environment)
+    ? value.environment : null;
+  if (!environment) return null;
+  const billingStatus = BILLING_STATES.has(value.plan.billingStatus)
+    ? value.plan.billingStatus : 'NOT_ACTIVE';
+  return Object.freeze({ environment, profile: Object.freeze({
     email: typeof value.profile.email === 'string' ? value.profile.email : null,
     displayName: typeof value.profile.displayName === 'string' ? value.profile.displayName : null,
     memberSince: isoOrNull(value.profile.memberSince),
@@ -33,7 +40,7 @@ export function normalizeReaderSummary(value) {
   plan: Object.freeze({ status: planStatus,
     accessClass: value.plan.accessClass === 'ENTITLED' ? 'ENTITLED' : null,
     effectiveFrom: isoOrNull(value.plan.effectiveFrom),
-    effectiveUntil: isoOrNull(value.plan.effectiveUntil), billingStatus: 'NOT_ACTIVE' }),
+    effectiveUntil: isoOrNull(value.plan.effectiveUntil), billingStatus }),
   summary: Object.freeze({ libraryCount: library.length, paymentCount: payments.length,
     activePurchaseCount: Number.isInteger(value.summary?.activePurchaseCount)
       ? Math.max(0, value.summary.activePurchaseCount) : 0 }) });
@@ -141,8 +148,12 @@ function renderPlan(document, target, plan) {
   const title = plan.status === 'ACTIVE' ? 'GPIR entitled reader plan' :
     plan.status === 'INACTIVE' ? 'Reader plan inactive' : 'Free registered reader';
   const detail = plan.status === 'ACTIVE'
-    ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}. Subscription billing is not active.`
-    : 'Subscription billing is not active. No recurring plan or payment method is attached to this account.';
+    ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}.` +
+      (plan.billingStatus === 'ACTIVE' ? ' Subscription billing is active.' :
+        ' Subscription billing is not active.')
+    : plan.billingStatus === 'APPROVAL_PENDING'
+      ? 'Subscription approval is pending. Access will remain unchanged until the server verifies activation.'
+      : 'Subscription billing is not active. No recurring plan or payment method is attached to this account.';
   copy.append(textElement(document, 'h3', title), textElement(document, 'p', detail));
   box.append(copy, textElement(document, 'span', plan.status.replace('_', ' '), 'my-gpir-badge'));
   target.replaceChildren(box);
@@ -210,6 +221,7 @@ export async function initializeReaderDashboard({ global = window, document = gl
     return true;
   };
   refreshButton?.addEventListener('click', () => { void refresh(); });
+  global.addEventListener('gpir:paypal-payment-verified', () => { void refresh(); });
   global.addEventListener('gpir:paypal-sandbox-captured', () => { void refresh(); });
   return refresh();
 }

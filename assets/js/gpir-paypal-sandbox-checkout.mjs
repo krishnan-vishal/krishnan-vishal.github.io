@@ -9,10 +9,21 @@ function secureEndpoint(value) {
 }
 
 export function validSandboxConfig(config) {
-  return config?.environment === 'sandbox' &&
+  let supabaseUrl; let createUrl; let captureUrl;
+  try {
+    supabaseUrl = new URL(config?.supabaseUrl);
+    createUrl = new URL(config?.createOrderEndpoint);
+    captureUrl = new URL(config?.captureOrderEndpoint);
+  } catch { return false; }
+  return config?.environment === 'sandbox' && config.enabled === true &&
     typeof config.clientId === 'string' && config.clientId.length > 10 &&
     !/replace|example|live/i.test(config.clientId) && UUID.test(config.offerId || '') &&
-    secureEndpoint(config.createOrderEndpoint) && secureEndpoint(config.captureOrderEndpoint);
+    secureEndpoint(config.createOrderEndpoint) && secureEndpoint(config.captureOrderEndpoint) &&
+    supabaseUrl.protocol === 'https:' &&
+    supabaseUrl.hostname === 'hoewtptllwkcqrgryazu.supabase.co' &&
+    createUrl.origin === supabaseUrl.origin && captureUrl.origin === supabaseUrl.origin &&
+    createUrl.pathname === '/functions/v1/gpir-paypal-create-order' &&
+    captureUrl.pathname === '/functions/v1/gpir-paypal-capture-order';
 }
 
 async function authenticatedSession(supabase) {
