@@ -45,6 +45,17 @@ async function jsonFetch(fetchImpl, url, init) {
   return { ok: result.ok, status: result.status, data };
 }
 
+function postgrestDiagnostic(result) {
+  const error = result.data;
+  const code = typeof error?.code === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(error.code)
+    ? error.code : null;
+  const message = typeof error?.message === 'string'
+    ? error.message.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/\s+/g, ' ')
+      .trim().slice(0, 240) || null
+    : null;
+  return { status: result.status, code, message };
+}
+
 function validRows(result) {
   return result.ok && Array.isArray(result.data) ? result.data : null;
 }
@@ -90,7 +101,7 @@ function publicationCandidate(row) {
 }
 
 export function createReaderSummaryHandler({ env, fetchImpl = fetch,
-  now = () => Date.now() }) {
+  now = () => Date.now(), logger = console }) {
   return async function handle(request) {
     const origin = request.headers.get('origin');
     if (origin && !allowedOrigins(env).has(origin))
@@ -147,6 +158,11 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${subscriptionQuery}`,
         { headers: serviceHeaders })
     ]);
+    if (!candidatesResult.ok)
+      logger.error('gpir-reader-summary dependency failure', {
+        dependency: 'gpir_list_entitlement_candidates_v2',
+        ...postgrestDiagnostic(candidatesResult)
+      });
     const policyCandidates = validRows(candidatesResult);
     const offers = validRows(offersResult);
     const rawPayments = validRows(paymentsResult);

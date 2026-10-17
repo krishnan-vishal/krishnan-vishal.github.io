@@ -30,7 +30,7 @@ function json(value, status = 200) {
 function fetchPlan({ decision = 'DENY', payments = [], purchases = [],
   subscriptions = [],
   candidates = [], offers = [{ supabase_record_id: recordId, publication_id: publicationId }],
-  fail = null } = {}) {
+  fail = null, candidateFailure = null } = {}) {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {
     const value = String(url); calls.push({ url: value, init });
@@ -38,6 +38,8 @@ function fetchPlan({ decision = 'DENY', payments = [], purchases = [],
     if (value.endsWith('/auth/v1/user')) return json({ id: userId, email: 'reader@example.test',
       email_confirmed_at: '2026-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z',
       user_metadata: { display_name: 'GPIR Reader' } });
+    if (candidateFailure && value.endsWith('/rpc/gpir_list_entitlement_candidates_v2'))
+      return json(candidateFailure.body, candidateFailure.status);
     if (value.endsWith('/rpc/gpir_list_entitlement_candidates_v2')) return json(candidates);
     if (value.includes('/gpir_payment_offers?')) return json(offers);
     if (value.includes('/gpir_payment_orders?')) return json(payments);
@@ -54,10 +56,10 @@ function request({ token = 'reader.session.token', origin = 'https://fintechoisi
   return new Request('https://project.supabase.co/functions/v1/gpir-reader-summary', { method, headers });
 }
 
-async function invoke(options = {}, requestOptions = {}) {
+async function invoke(options = {}, requestOptions = {}, logger = console) {
   const plan = fetchPlan(options);
   const result = await createReaderSummaryHandler({ env, fetchImpl: plan.fetchImpl,
-    now: () => now })(request(requestOptions));
+    now: () => now, logger })(request(requestOptions));
   return { result, body: result.status === 204 ? null : await result.json(), calls: plan.calls };
 }
 
@@ -119,6 +121,22 @@ test('provider and malformed entitlement results fail closed', async () => {
   const malformed = await invoke({ decision: 'MAYBE' });
   assert.equal(malformed.result.status, 503);
   assert.equal(malformed.body.code, 'ENTITLEMENT_RESOLUTION_UNAVAILABLE');
+});
+
+test('candidate RPC failure logs only sanitized upstream diagnostics and keeps the generic response', async () => {
+  const diagnostics = [];
+  const logger = { error: (...args) => diagnostics.push(args) };
+  const { result, body } = await invoke({ candidateFailure: {
+    status: 404, body: { code: 'PGRST202',
+      message: 'Could not find the function in the schema cache\nfor this request',
+      details: 'sensitive detail', hint: 'sensitive hint' }
+  } }, {}, logger);
+  assert.equal(result.status, 503);
+  assert.deepEqual(body, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' });
+  assert.deepEqual(diagnostics, [['gpir-reader-summary dependency failure', {
+    dependency: 'gpir_list_entitlement_candidates_v2', status: 404, code: 'PGRST202',
+    message: 'Could not find the function in the schema cache for this request'
+  }]]);
 });
 
 test('browser client accepts only sanitized summaries and formats reader-safe values', async () => {
