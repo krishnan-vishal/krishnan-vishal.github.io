@@ -7,7 +7,9 @@
   }
   const RETURN_KEY = 'gpir.reader.returnTo';
   const C2C = '/stablecoins-cross-border-money-movement-c2c/';
-  const OWNED_ROUTES = new Set(['/', C2C, '/auth/callback/', '/reader/sign-in/', '/reader/create-account/']);
+  const OWNED_ROUTES = new Set(['/', C2C, '/auth/callback/', '/reader/sign-in/',
+    '/reader/create-account/', '/reader/my-gpir/', '/reader/profile/', '/reader/library/',
+    '/reader/payments/', '/reader/plan/']);
   const callback = '/auth/callback/';
 
   function safeReturnTo(value, origin = global.location.origin) {
@@ -118,13 +120,15 @@
         const { data } = await client.auth.getSession();
         if (data?.session?.user) {
           const email = document.createElement('span'); email.className = 'gpir-reader-state'; email.textContent = 'Reader';
+          const dashboard = document.createElement('a'); dashboard.className = 'gpir-reader-action';
+          dashboard.href = '/reader/my-gpir/'; dashboard.textContent = 'My GPIR';
           const signout = document.createElement('button'); signout.type = 'button'; signout.className = 'gpir-reader-action'; signout.textContent = 'Sign out';
           signout.addEventListener('click', async () => {
             try { const response = await client.auth.signOut(); if (response.error) throw response.error;
               global.location.reload(); }
             catch (error) { announce(null, friendlyError(error), true); }
           });
-          buttons.replaceChildren(email, signout);
+          buttons.replaceChildren(email, dashboard, signout);
         }
       }
     }
