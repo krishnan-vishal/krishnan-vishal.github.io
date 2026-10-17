@@ -125,6 +125,7 @@
           const signout = document.createElement('button'); signout.type = 'button'; signout.className = 'gpir-reader-action'; signout.textContent = 'Sign out';
           signout.addEventListener('click', async () => {
             try { const response = await client.auth.signOut(); if (response.error) throw response.error;
+              global.dispatchEvent(new global.CustomEvent('gpir:reader-signed-out'));
               global.location.reload(); }
             catch (error) { announce(null, friendlyError(error), true); }
           });
