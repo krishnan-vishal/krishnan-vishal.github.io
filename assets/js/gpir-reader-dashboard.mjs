@@ -1,8 +1,14 @@
+import { initializePayPalSubscription } from './gpir-paypal-subscription.mjs';
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
   'REFUNDED', 'REVERSED', 'VOIDED', 'FAILED']);
 const BILLING_STATES = new Set(['NOT_ACTIVE', 'APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED',
   'CANCELLED', 'EXPIRED', 'PAYMENT_FAILED']);
+
+function sectionAvailability(value, name) {
+  return value?.availability?.[name] === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
+}
 
 function isoOrNull(value) {
   if (typeof value !== 'string' || !value) return null;
@@ -12,18 +18,25 @@ function isoOrNull(value) {
 export function normalizeReaderSummary(value) {
   if (!value || value.status !== 'OK' || !value.profile || !Array.isArray(value.library) ||
       !Array.isArray(value.payments) || !value.plan) return null;
-  const library = value.library.flatMap(item => UUID.test(item?.supabaseRecordId || '') &&
+  const availability = Object.freeze({ profile: sectionAvailability(value, 'profile'),
+    library: sectionAvailability(value, 'library'),
+    payments: sectionAvailability(value, 'payments'),
+    plan: sectionAvailability(value, 'plan'),
+    subscriptionCheckout: sectionAvailability(value, 'subscriptionCheckout') });
+  const library = availability.library === 'AVAILABLE'
+    ? value.library.flatMap(item => UUID.test(item?.supabaseRecordId || '') &&
     typeof item?.publicationId === 'string' && item.publicationId ? [{
       publicationId: item.publicationId, supabaseRecordId: item.supabaseRecordId,
       accessClass: String(item.accessClass || ''), accessSource: String(item.accessSource || '')
-    }] : []);
-  const payments = value.payments.flatMap(item => UUID.test(item?.id || '') &&
+    }] : []) : [];
+  const payments = availability.payments === 'AVAILABLE'
+    ? value.payments.flatMap(item => UUID.test(item?.id || '') &&
     UUID.test(item?.supabaseRecordId || '') && typeof item?.publicationId === 'string' &&
     item.currency === 'USD' && PAYMENT_STATES.has(item.status) &&
     Number.isSafeInteger(item.expectedAmountMinor) ? [{ ...item,
       capturedAmountMinor: Number.isSafeInteger(item.capturedAmountMinor) ? item.capturedAmountMinor : null,
       createdAt: isoOrNull(item.createdAt), capturedAt: isoOrNull(item.capturedAt)
-    }] : []);
+    }] : []) : [];
   const planStatus = ['ACTIVE', 'INACTIVE', 'NOT_ENROLLED'].includes(value.plan.status)
     ? value.plan.status : 'NOT_ENROLLED';
   const environment = ['sandbox', 'production'].includes(value.environment)
@@ -31,7 +44,19 @@ export function normalizeReaderSummary(value) {
   if (!environment) return null;
   const billingStatus = BILLING_STATES.has(value.plan.billingStatus)
     ? value.plan.billingStatus : 'NOT_ACTIVE';
-  return Object.freeze({ environment, profile: Object.freeze({
+  const offer = availability.subscriptionCheckout === 'AVAILABLE' &&
+    UUID.test(value.subscriptionOffer?.id || '') && value.subscriptionOffer?.currency === 'USD' &&
+    Number.isSafeInteger(value.subscriptionOffer?.unitAmountMinor) &&
+    value.subscriptionOffer.unitAmountMinor > 0 &&
+    ['MONTH', 'YEAR'].includes(value.subscriptionOffer?.billingInterval)
+    ? Object.freeze({ id: value.subscriptionOffer.id,
+      displayName: typeof value.subscriptionOffer.displayName === 'string'
+        ? value.subscriptionOffer.displayName : 'GPIR reader plan',
+      currency: value.subscriptionOffer.currency,
+      unitAmountMinor: value.subscriptionOffer.unitAmountMinor,
+      billingInterval: value.subscriptionOffer.billingInterval }) : null;
+  return Object.freeze({ environment, availability, subscriptionOffer: offer,
+    profile: Object.freeze({
     email: typeof value.profile.email === 'string' ? value.profile.email : null,
     displayName: typeof value.profile.displayName === 'string' ? value.profile.displayName : null,
     memberSince: isoOrNull(value.profile.memberSince),
@@ -41,9 +66,11 @@ export function normalizeReaderSummary(value) {
     accessClass: value.plan.accessClass === 'ENTITLED' ? 'ENTITLED' : null,
     effectiveFrom: isoOrNull(value.plan.effectiveFrom),
     effectiveUntil: isoOrNull(value.plan.effectiveUntil), billingStatus }),
-  summary: Object.freeze({ libraryCount: library.length, paymentCount: payments.length,
+  summary: Object.freeze({
+    libraryCount: availability.library === 'AVAILABLE' ? library.length : null,
+    paymentCount: availability.payments === 'AVAILABLE' ? payments.length : null,
     activePurchaseCount: Number.isInteger(value.summary?.activePurchaseCount)
-      ? Math.max(0, value.summary.activePurchaseCount) : 0 }) });
+      ? Math.max(0, value.summary.activePurchaseCount) : null }) });
 }
 
 export function formatMoney(minor, currency = 'USD', locale = 'en-US') {
@@ -100,8 +127,13 @@ function renderProfile(document, target, profile) {
   target.replaceChildren(list);
 }
 
-function renderLibrary(document, target, library) {
+function renderLibrary(document, target, library, available = true) {
   if (!target) return;
+  if (!available) {
+    target.replaceChildren(emptyState(document, 'Your library is temporarily unavailable.',
+      'Protected publications remain locked until entitlement verification is available.'));
+    return;
+  }
   if (!library.length) {
     target.replaceChildren(emptyState(document, 'Your library is ready for its first publication.',
       'No paid publication or plan access has been activated for this account. Public GPIR research remains available from the main repository.'));
@@ -120,8 +152,13 @@ function renderLibrary(document, target, library) {
   target.replaceChildren(list);
 }
 
-function renderPayments(document, target, payments) {
+function renderPayments(document, target, payments, available = true) {
   if (!target) return;
+  if (!available) {
+    target.replaceChildren(emptyState(document, 'Payment history is temporarily unavailable.',
+      'No payment or subscription state has been inferred. Please try again later.'));
+    return;
+  }
   if (!payments.length) {
     target.replaceChildren(emptyState(document, 'No payment history yet.',
       'Sandbox purchases have not been activated for this account. No charge or payment method is on file.'));
@@ -142,12 +179,20 @@ function renderPayments(document, target, payments) {
   table.append(head, body); wrap.append(table); target.replaceChildren(wrap);
 }
 
-function renderPlan(document, target, plan) {
+function renderPlan(document, target, plan, available = true, libraryAvailable = true) {
   if (!target) return;
+  if (!available) {
+    target.replaceChildren(emptyState(document, 'Plan status is temporarily unavailable.',
+      'No subscription state or publication access has been inferred.'));
+    return;
+  }
   const box = textElement(document, 'div', '', 'my-gpir-plan'); const copy = document.createElement('div');
-  const title = plan.status === 'ACTIVE' ? 'GPIR entitled reader plan' :
+  const title = plan.status === 'ACTIVE' && plan.accessClass === 'ENTITLED'
+    ? 'GPIR entitled reader plan' : plan.status === 'ACTIVE' ? 'Reader billing plan active' :
     plan.status === 'INACTIVE' ? 'Reader plan inactive' : 'Free registered reader';
-  const detail = plan.status === 'ACTIVE'
+  const detail = plan.status === 'ACTIVE' && !libraryAvailable
+    ? 'Subscription billing is active. Publication access remains locked until entitlement verification is available.'
+    : plan.status === 'ACTIVE'
     ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}.` +
       (plan.billingStatus === 'ACTIVE' ? ' Subscription billing is active.' :
         ' Subscription billing is not active.')
@@ -164,18 +209,22 @@ function renderMetrics(document, summary) {
     purchases: summary.activePurchaseCount };
   for (const [name, value] of Object.entries(values)) {
     const target = document.querySelector(`[data-reader-metric="${name}"]`);
-    if (target) target.textContent = String(value);
+    if (target) target.textContent = Number.isInteger(value) ? String(value) : '—';
   }
 }
 
 export function renderReaderDashboard(document, summary) {
   renderMetrics(document, summary.summary); renderProfile(document,
     document.querySelector('[data-reader-profile]'), summary.profile);
-  renderLibrary(document, document.querySelector('[data-reader-library]'), summary.library);
-  renderPayments(document, document.querySelector('[data-reader-payments]'), summary.payments);
-  renderPlan(document, document.querySelector('[data-reader-plan]'), summary.plan);
+  renderLibrary(document, document.querySelector('[data-reader-library]'), summary.library,
+    summary.availability.library === 'AVAILABLE');
+  renderPayments(document, document.querySelector('[data-reader-payments]'), summary.payments,
+    summary.availability.payments === 'AVAILABLE');
+  renderPlan(document, document.querySelector('[data-reader-plan]'), summary.plan,
+    summary.availability.plan === 'AVAILABLE', summary.availability.library === 'AVAILABLE');
   const root = document.querySelector('[data-reader-dashboard]');
-  if (root) root.dataset.state = 'ready';
+  if (root) root.dataset.state = Object.values(summary.availability).includes('UNAVAILABLE')
+    ? 'partial' : 'ready';
 }
 
 export function clearReaderDashboard(document) {
@@ -187,6 +236,8 @@ export function clearReaderDashboard(document) {
     const target = document.querySelector(`[data-reader-metric="${name}"]`);
     if (target) target.textContent = '—';
   }
+  const subscription = document.querySelector('[data-gpir-paypal-subscription]');
+  if (subscription) subscription.hidden = true;
 }
 
 function dashboardEndpoint(global) {
@@ -229,12 +280,24 @@ export async function initializeReaderDashboard({ global = window, document = gl
       return false;
     }
     renderReaderDashboard(document, result.summary);
-    if (status) { status.textContent = 'Your account is up to date.'; status.className = 'my-gpir-status'; }
+    await initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl });
+    if (status) {
+      status.textContent = root.dataset.state === 'partial'
+        ? 'Your profile is available. Some protected account sections are temporarily unavailable.'
+        : 'Your account is up to date.';
+      status.className = root.dataset.state === 'partial'
+        ? 'my-gpir-status my-gpir-warning' : 'my-gpir-status';
+    }
     return true;
   };
   refreshButton?.addEventListener('click', () => { void refresh(); });
   global.addEventListener('gpir:paypal-payment-verified', () => { void refresh(); });
   global.addEventListener('gpir:paypal-sandbox-captured', () => { void refresh(); });
+  global.addEventListener('gpir:reader-signed-out', () => {
+    clearReaderDashboard(document); root.dataset.state = 'signed-out';
+    if (status) { status.textContent = 'Signed out. Protected account information was cleared.';
+      status.className = 'my-gpir-status'; }
+  });
   return refresh();
 }
 
