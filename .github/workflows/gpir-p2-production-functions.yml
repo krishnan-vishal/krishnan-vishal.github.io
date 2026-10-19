@@ -1,0 +1,107 @@
+
+name: GPIR P2 Production Functions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gpir-p2-production-functions
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy frozen P2 Edge Functions
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.GPIR_SUPABASE_DEPLOY_TOKEN }}
+      PROJECT_REF: qlnvhfapctcpzqyuhhth
+
+    steps:
+      - name: Check deployment credential
+        shell: bash
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Deployment token is unavailable."
+            exit 1
+          fi
+
+      - name: Check out frozen P2 release
+        uses: actions/checkout@v4
+        with:
+          ref: recovery/p2-production-consolidation
+          persist-credentials: false
+
+      - name: Confirm prepared P2 files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for name in \
+            gpir-paypal-create-subscription \
+            gpir-paypal-verify-subscription \
+            gpir-paypal-webhook \
+            gpir-reader-summary
+          do
+            test -s "supabase/functions/$name/index.ts"
+            test -s "supabase/functions/$name/handler.mjs"
+          done
+
+          test -s supabase/functions/_shared/gpir-paypal.mjs
+          echo "P2 release files confirmed."
+
+      - name: Read-only Production permission check
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          code=$(curl --silent --show-error \
+            --output /tmp/gpir-preflight.json \
+            --write-out '%{http_code}' \
+            --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$PROJECT_REF/functions")
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase permission check failed (HTTP $code). No deployment attempted."
+            exit 1
+          fi
+
+          echo "Production permission check PASS."
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+
+      - name: Deploy reader-facing functions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          supabase functions deploy gpir-paypal-create-subscription \
+            --project-ref "$PROJECT_REF" --use-api
+
+          supabase functions deploy gpir-paypal-verify-subscription \
+            --project-ref "$PROJECT_REF" --use-api
+
+          supabase functions deploy gpir-reader-summary \
+            --project-ref "$PROJECT_REF" --use-api
+
+      - name: Deploy signature-verified PayPal webhook
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          supabase functions deploy gpir-paypal-webhook \
+            --project-ref "$PROJECT_REF" \
+            --use-api \
+            --no-verify-jwt
+
+      - name: Deployment summary
+        run: |
+          echo "P2 Edge Functions deployment completed."
+          echo "This workflow does not modify Production secrets."
+          echo "Live PayPal checkout activation remains a separate owner-controlled step."
