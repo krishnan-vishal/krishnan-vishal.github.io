@@ -45,8 +45,17 @@ export function createPayPalVerifySubscriptionHandler({ env, fetchImpl = fetch }
         p_environment: config.PAYMENT_ENVIRONMENT } });
     if (!finalized.ok || finalized.data !== true)
       return safeError(503, 'SUBSCRIPTION_RECONCILIATION_PENDING', origin, env);
+    const confirmation = await supabaseRpc({ config,
+      name: 'gpir_subscription_payment_confirmed_v2', fetchImpl,
+      body: { p_user_id: user.id, p_paypal_subscription_id: input.subscriptionId,
+        p_environment: config.PAYMENT_ENVIRONMENT } });
+    if (!confirmation.ok || typeof confirmation.data !== 'boolean')
+      return safeError(503, 'PAYMENT_CONFIRMATION_UNAVAILABLE', origin, env);
+    const paymentConfirmed = confirmation.data === true;
     return jsonResponse(200, { status: 'ACTIVE', environment: config.PAYPAL_ENVIRONMENT,
-      entitlement: 'SERVER_VERIFIED', subscriptionId: input.subscriptionId }, origin, env);
+      verification: 'SERVER_VERIFIED', paymentConfirmed,
+      publicationAccess: paymentConfirmed ? 'PUBLICATION_SCOPED' : 'PAYMENT_CONFIRMATION_PENDING',
+      subscriptionId: input.subscriptionId }, origin, env);
   };
 }
 

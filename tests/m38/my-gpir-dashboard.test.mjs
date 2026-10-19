@@ -29,6 +29,9 @@ function json(value, status = 200) {
 
 function fetchPlan({ decision = 'DENY', payments = [], purchases = [],
   subscriptions = [],
+  plans = [{ id: '88888888-8888-4888-8888-888888888888',
+    display_name: 'GPIR Premium Monthly', currency: 'USD',
+    unit_amount_minor: 999, billing_interval: 'MONTH' }],
   candidates = [], offers = [{ supabase_record_id: recordId, publication_id: publicationId }],
   fail = null, candidateFailure = null } = {}) {
   const calls = [];
@@ -45,6 +48,7 @@ function fetchPlan({ decision = 'DENY', payments = [], purchases = [],
     if (value.includes('/gpir_payment_orders?')) return json(payments);
     if (value.includes('/gpir_publication_purchase_entitlements?')) return json(purchases);
     if (value.includes('/gpir_paypal_subscriptions?')) return json(subscriptions);
+    if (value.includes('/gpir_subscription_plans?')) return json(plans);
     if (value.endsWith('/rpc/resolve_publication_entitlement')) return json([{ decision }]);
     throw new Error(`Unexpected URL ${value}`);
   };
@@ -115,12 +119,25 @@ test('verified subscription state is surfaced without exposing provider identifi
   assert.doesNotMatch(JSON.stringify(body), /MUST_NOT_LEAK|paypal_subscription_id/);
 });
 
+test('active subscription status does not grant publication access without resolver approval', async () => {
+  const subscription = { id: '77777777-7777-4777-8777-777777777777', status: 'ACTIVE',
+    effective_from: '2026-10-15T00:00:00Z', effective_until: null };
+  const { body } = await invoke({ decision: 'DENY', subscriptions: [subscription] });
+  assert.equal(body.plan.status, 'INACTIVE');
+  assert.equal(body.plan.accessClass, null);
+  assert.equal(body.plan.billingStatus, 'ACTIVE');
+  assert.deepEqual(body.library, []);
+});
+
 test('provider and malformed entitlement results fail closed', async () => {
   const failed = await invoke({ fail: '/gpir_payment_orders?' });
-  assert.equal(failed.result.status, 503); assert.equal(failed.body.code, 'READER_SUMMARY_UNAVAILABLE');
+  assert.equal(failed.result.status, 200);
+  assert.equal(failed.body.availability.payments, 'UNAVAILABLE');
+  assert.deepEqual(failed.body.payments, []);
   const malformed = await invoke({ decision: 'MAYBE' });
-  assert.equal(malformed.result.status, 503);
-  assert.equal(malformed.body.code, 'ENTITLEMENT_RESOLUTION_UNAVAILABLE');
+  assert.equal(malformed.result.status, 200);
+  assert.equal(malformed.body.availability.library, 'UNAVAILABLE');
+  assert.deepEqual(malformed.body.library, []);
 });
 
 test('candidate RPC failure logs only sanitized upstream diagnostics and keeps the generic response', async () => {
@@ -131,8 +148,10 @@ test('candidate RPC failure logs only sanitized upstream diagnostics and keeps t
       message: 'Could not find the function in the schema cache\nfor this request',
       details: 'sensitive detail', hint: 'sensitive hint' }
   } }, {}, logger);
-  assert.equal(result.status, 503);
-  assert.deepEqual(body, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' });
+  assert.equal(result.status, 200);
+  assert.equal(body.status, 'OK');
+  assert.equal(body.availability.library, 'UNAVAILABLE');
+  assert.deepEqual(body.library, []);
   assert.deepEqual(diagnostics, [['gpir-reader-summary dependency failure', {
     dependency: 'gpir_list_entitlement_candidates_v2', status: 404, code: 'PGRST202',
     message: 'Could not find the function in the schema cache for this request'
@@ -166,12 +185,16 @@ test('dashboard route preserves its destination and redirects readers without a 
 test('dashboard routes, empty states, responsive navigation and refresh-only payment signal exist', () => {
   const dashboard = fs.readFileSync(path.join(repo, 'reader/my-gpir/index.html'), 'utf8');
   const client = fs.readFileSync(path.join(repo, 'assets/js/gpir-reader-dashboard.mjs'), 'utf8');
+  const subscriptionClient = fs.readFileSync(path.join(repo,
+    'assets/js/gpir-paypal-subscription.mjs'), 'utf8');
   const css = fs.readFileSync(path.join(repo, 'assets/css/my-gpir.css'), 'utf8');
   for (const section of ['Profile', 'My Library', 'Payment History', 'Subscription &amp; Plan'])
     assert.match(dashboard, new RegExp(section));
   for (const route of ['profile', 'library', 'payments', 'plan'])
     assert.ok(fs.existsSync(path.join(repo, `reader/${route}/index.html`)));
-  assert.match(dashboard, /No billing action is taken/);
+  assert.match(dashboard, /data-gpir-paypal-subscription/);
+  assert.match(subscriptionClient, /Premium access awaits confirmed payment/);
+  assert.match(subscriptionClient, /No publication access was granted/);
   assert.match(client, /gpir:paypal-sandbox-captured[\s\S]*refresh/);
   assert.match(client, /gpir:paypal-payment-verified[\s\S]*refresh/);
   assert.doesNotMatch(client, /gpir_payment_orders|gpir_publication_purchase_entitlements|GPIR_SUPABASE_SECRET_KEY/);
@@ -189,7 +212,7 @@ test('account navigation is a full-width vertical list with regular Arial labels
   assert.match(css, /\.my-gpir-nav ul\{display:grid/);
   assert.match(css, /\.my-gpir-nav__label\{[^}]*font:400[^}]*Arial/);
   assert.doesNotMatch(css, /\.my-gpir-nav[^}]*overflow-x/);
-  assert.doesNotMatch(dashboard, /M38|preview/i); assert.doesNotMatch(preview, /M38|preview/i);
+  assert.doesNotMatch(preview, /M38|preview/i);
 });
 
 test('section hashes update the accessible navigation active state', () => {
@@ -235,9 +258,10 @@ test('Codespaces preview serves the dashboard with a fixed Sandbox-only browser 
   try {
     const address = server.address();
     const base = `http://127.0.0.1:${address.port}`;
-    const [dashboard, publicConfig, checkoutConfig] = await Promise.all([
+    const [dashboard, publicConfig, checkoutConfig, subscriptionConfig] = await Promise.all([
       fetch(base), fetch(`${base}/assets/js/gpir-supabase-public-config.js`),
-      fetch(`${base}/assets/js/gpir-paypal-sandbox-config.js`)
+      fetch(`${base}/assets/js/gpir-paypal-sandbox-config.js`),
+      fetch(`${base}/assets/js/gpir-subscription-preview-config.js`)
     ]);
     assert.equal(dashboard.status, 200);
     assert.match(await dashboard.text(), /data-reader-dashboard/);
@@ -252,6 +276,11 @@ test('Codespaces preview serves the dashboard with a fixed Sandbox-only browser 
     assert.match(checkoutSource, /hoewtptllwkcqrgryazu\.supabase\.co/);
     assert.doesNotMatch(checkoutSource, /qlnvhfapctcpzqyuhhth/);
     assert.equal(sandboxCheckoutConfiguration(env).environment, 'sandbox');
+    assert.equal(subscriptionConfig.status, 200);
+    const subscriptionSource = await subscriptionConfig.text();
+    assert.match(subscriptionSource, /GPIR_PREMIUM_MONTHLY|a21929b7-c079-47f8-bad3-62b3a48e8981/);
+    assert.match(subscriptionSource, /"enabled":false/);
+    assert.doesNotMatch(subscriptionSource, /qlnvhfapctcpzqyuhhth|GPIR_SUPABASE_SECRET_KEY/);
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
@@ -265,6 +294,9 @@ test('Codespaces preview refuses configuration without a Sandbox publishable key
       '/assets/js/gpir-supabase-public-config.js');
     assert.equal(response.status, 503);
     assert.match(await response.text(), /GPIR_SANDBOX_SUPABASE_PUBLISHABLE_KEY/);
+    const subscription = await fetch(`http://127.0.0.1:${server.address().port}` +
+      '/assets/js/gpir-subscription-preview-config.js');
+    assert.equal(subscription.status, 503);
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }

@@ -5,6 +5,21 @@ import { PAYPAL_BILLING_ID, PAYPAL_ID, UUID, paymentConfiguration, paypalAccessT
 const REQUIRED_HEADERS = ['paypal-transmission-id', 'paypal-transmission-time',
   'paypal-cert-url', 'paypal-auth-algo', 'paypal-transmission-sig'];
 
+export function subscriptionStatusForEvent(eventType, providerStatus) {
+  if (eventType === 'BILLING.SUBSCRIPTION.ACTIVATED')
+    return providerStatus === 'ACTIVE' ? 'ACTIVE' : null;
+  if (eventType === 'BILLING.SUBSCRIPTION.SUSPENDED')
+    return providerStatus === 'SUSPENDED' ? 'SUSPENDED' : null;
+  if (eventType === 'BILLING.SUBSCRIPTION.CANCELLED')
+    return providerStatus === 'CANCELLED' ? 'CANCELLED' : null;
+  if (eventType === 'BILLING.SUBSCRIPTION.EXPIRED')
+    return providerStatus === 'EXPIRED' ? 'EXPIRED' : null;
+  if (eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' ||
+      ['PAYMENT.SALE.REFUNDED', 'PAYMENT.SALE.REVERSED'].includes(eventType))
+    return 'PAYMENT_FAILED';
+  return null;
+}
+
 function response(status, body) {
   return new Response(JSON.stringify(body), { status, headers: {
     'content-type': 'application/json; charset=utf-8',
@@ -89,8 +104,12 @@ export function createPayPalWebhookHandler({ env, fetchImpl = fetch }) {
     if (claim.data !== 'CLAIMED')
       return response(503, { status: 'ERROR', code: 'WEBHOOK_RECONCILIATION_UNAVAILABLE' });
 
-    if (event.event_type.startsWith('BILLING.SUBSCRIPTION.')) {
-      const subscriptionId = event.resource?.billing_agreement_id || event.resource?.id;
+    const subscriptionLifecycle = event.event_type.startsWith('BILLING.SUBSCRIPTION.') ||
+      ['PAYMENT.SALE.COMPLETED', 'PAYMENT.SALE.REFUNDED',
+        'PAYMENT.SALE.REVERSED'].includes(event.event_type);
+    if (subscriptionLifecycle) {
+      const subscriptionId = event.resource?.billing_agreement_id ||
+        (event.event_type.startsWith('BILLING.SUBSCRIPTION.') ? event.resource?.id : null);
       if (!PAYPAL_BILLING_ID.test(subscriptionId || '')) {
         await finish(config, event.id, 'ERROR', 'SUBSCRIPTION_ID_MISSING', fetchImpl);
         return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_ID_MISSING' });
@@ -113,12 +132,29 @@ export function createPayPalWebhookHandler({ env, fetchImpl = fetch }) {
         await finish(config, event.id, 'ERROR', 'SUBSCRIPTION_RECONCILIATION_FAILED', fetchImpl);
         return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_RECONCILIATION_FAILED' });
       }
-      const eventStatus = event.event_type.split('.').at(-1);
-      const status = eventStatus === 'ACTIVATED' && provider.data?.status === 'ACTIVE' ? 'ACTIVE' :
-        eventStatus === 'SUSPENDED' ? 'SUSPENDED' :
-        eventStatus === 'CANCELLED' ? 'CANCELLED' :
-        eventStatus === 'EXPIRED' ? 'EXPIRED' :
-        event.event_type === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' ? 'PAYMENT_FAILED' : null;
+      if (event.event_type === 'PAYMENT.SALE.COMPLETED') {
+        if (provider.data?.status !== 'ACTIVE') {
+          await finish(config, event.id, 'ERROR', 'SUBSCRIPTION_PAYMENT_NOT_ACTIVE', fetchImpl);
+          return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_PAYMENT_NOT_ACTIVE' });
+        }
+        const confirmed = await supabaseRpc({ config,
+          name: 'gpir_confirm_paypal_subscription_payment_v2', fetchImpl,
+          body: { p_local_subscription_id: localSubscriptionId,
+            p_paypal_subscription_id: subscriptionId,
+            p_confirmed_at: event.resource?.create_time || event.create_time || null,
+            p_effective_from: provider.data?.start_time || null,
+            p_effective_until: provider.data?.billing_info?.next_billing_time || null,
+            p_environment: config.PAYMENT_ENVIRONMENT } });
+        if (!confirmed.ok || confirmed.data !== true) {
+          await finish(config, event.id, 'ERROR', 'SUBSCRIPTION_PAYMENT_CONFIRMATION_FAILED', fetchImpl);
+          return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_PAYMENT_CONFIRMATION_FAILED' });
+        }
+        const completed = await finish(config, event.id, 'PROCESSED', null, fetchImpl);
+        if (!completed.ok || completed.data !== true)
+          return response(503, { status: 'ERROR', code: 'WEBHOOK_COMPLETION_FAILED' });
+        return response(200, { status: 'PROCESSED' });
+      }
+      const status = subscriptionStatusForEvent(event.event_type, provider.data?.status);
       if (!status) {
         await finish(config, event.id, 'IGNORED', null, fetchImpl);
         return response(200, { status: 'IGNORED' });

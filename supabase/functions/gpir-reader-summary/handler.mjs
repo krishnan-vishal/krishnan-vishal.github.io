@@ -87,8 +87,8 @@ function subscriptionSummary(row) {
   if (!UUID.test(row?.id || '') || typeof row?.status !== 'string' ||
       !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
         'PAYMENT_FAILED'].includes(row.status)) return null;
-  return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
-    effectiveUntil: isoOrNull(row.effective_until) });
+  return Object.freeze({ status: row.status, paymentConfirmed: isoOrNull(row.payment_confirmed_at) !== null,
+    effectiveFrom: isoOrNull(row.effective_from), effectiveUntil: isoOrNull(row.effective_until) });
 }
 
 function purchaseKey(row) { return `${row.supabase_record_id}:${row.publication_id}`; }
@@ -98,6 +98,24 @@ function publicationCandidate(row) {
       typeof row?.publication_id !== 'string' || !row.publication_id.trim()) return null;
   return Object.freeze({ supabase_record_id: row.supabase_record_id,
     publication_id: row.publication_id });
+}
+
+function subscriptionOffer(row) {
+  const amount = Number(row?.unit_amount_minor);
+  if (!UUID.test(row?.id || '') || typeof row?.display_name !== 'string' ||
+      !row.display_name.trim() || row.currency !== 'USD' ||
+      !Number.isSafeInteger(amount) || amount <= 0 ||
+      !['MONTH', 'YEAR'].includes(row.billing_interval)) return null;
+  return Object.freeze({ id: row.id, displayName: safeText(row.display_name),
+    currency: row.currency, unitAmountMinor: amount, billingInterval: row.billing_interval });
+}
+
+function reportDependencyFailure(logger, dependency, result) {
+  try {
+    logger.error('gpir-reader-summary dependency failure', {
+      dependency, ...postgrestDiagnostic(result)
+    });
+  } catch {}
 }
 
 export function createReaderSummaryHandler({ env, fetchImpl = fetch,
@@ -142,11 +160,17 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       order: 'effective_from.desc', limit: '100'
     });
     const subscriptionQuery = new URLSearchParams({
-      select: 'id,status,effective_from,effective_until', user_id: `eq.${user.id}`,
+      select: 'id,status,payment_confirmed_at,effective_from,effective_until', user_id: `eq.${user.id}`,
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
     });
+    const planQuery = new URLSearchParams({
+      select: 'id,display_name,currency,unit_amount_minor,billing_interval',
+      environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
+      status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
+      order: 'created_at.asc', limit: '1'
+    });
     const [candidatesResult, offersResult, paymentsResult, purchasesResult,
-      subscriptionsResult] = await Promise.all([
+      subscriptionsResult, plansResult] = await Promise.all([
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
         { method: 'POST', headers: serviceHeaders, body: '{}' }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_offers?${offerQuery}`,
@@ -156,29 +180,37 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_publication_purchase_entitlements?${purchaseQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${subscriptionQuery}`,
+        { headers: serviceHeaders }),
+      jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_subscription_plans?${planQuery}`,
         { headers: serviceHeaders })
     ]);
-    if (!candidatesResult.ok)
-      logger.error('gpir-reader-summary dependency failure', {
-        dependency: 'gpir_list_entitlement_candidates_v2',
-        ...postgrestDiagnostic(candidatesResult)
-      });
+
+    for (const [dependency, result] of [
+      ['gpir_list_entitlement_candidates_v2', candidatesResult],
+      ['gpir_payment_offers', offersResult],
+      ['gpir_payment_orders', paymentsResult],
+      ['gpir_publication_purchase_entitlements', purchasesResult],
+      ['gpir_paypal_subscriptions', subscriptionsResult],
+      ['gpir_subscription_plans', plansResult]
+    ]) if (!validRows(result)) reportDependencyFailure(logger, dependency, result);
+
     const policyCandidates = validRows(candidatesResult);
     const offers = validRows(offersResult);
     const rawPayments = validRows(paymentsResult);
     const purchases = validRows(purchasesResult);
     const rawSubscriptions = validRows(subscriptionsResult);
-    if (!policyCandidates || !offers || !rawPayments || !purchases || !rawSubscriptions)
-      return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
+    const rawPlans = validRows(plansResult);
 
+    let entitlementAvailable = Boolean(policyCandidates && offers && purchases);
     const candidates = new Map();
-    for (const row of [...policyCandidates, ...offers, ...purchases]) {
-      const candidate = publicationCandidate(row);
-      if (!candidate)
-        return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
-      candidates.set(purchaseKey(candidate), candidate);
+    if (entitlementAvailable) {
+      for (const row of [...policyCandidates, ...offers, ...purchases]) {
+        const candidate = publicationCandidate(row);
+        if (!candidate) { entitlementAvailable = false; break; }
+        candidates.set(purchaseKey(candidate), candidate);
+      }
     }
-    const publications = [...candidates.values()];
+    const publications = entitlementAvailable ? [...candidates.values()] : [];
 
     const entitlementResults = await Promise.all(publications.map(publication => jsonFetch(fetchImpl,
       `${config.SUPABASE_URL}/rest/v1/rpc/resolve_publication_entitlement`, {
@@ -189,43 +221,70 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       })));
     const decisions = entitlementResults.map(validRows);
     if (decisions.some(rows => !rows || rows.length !== 1 ||
-        !['ALLOW', 'DENY'].includes(rows[0]?.decision)))
-      return response(503, { status: 'ERROR', code: 'ENTITLEMENT_RESOLUTION_UNAVAILABLE' }, origin, env);
+        !['ALLOW', 'DENY'].includes(rows[0]?.decision))) {
+      entitlementAvailable = false;
+      const failed = entitlementResults.find((result, index) => {
+        const rows = decisions[index];
+        return !rows || rows.length !== 1 || !['ALLOW', 'DENY'].includes(rows[0]?.decision);
+      });
+      reportDependencyFailure(logger, 'resolve_publication_entitlement', failed || {});
+    }
 
-    const purchaseStates = new Map(purchases.map(row => [purchaseKey(row), row.status]));
-    const hasPlanAccess = publications.some((publication, index) =>
+    const purchaseStates = new Map((purchases || []).map(row => [purchaseKey(row), row.status]));
+    const hasPlanAccess = entitlementAvailable && publications.some((publication, index) =>
       decisions[index][0].decision === 'ALLOW' &&
       purchaseStates.get(purchaseKey(publication)) !== 'ACTIVE');
-    const subscription = rawSubscriptions.length ? subscriptionSummary(rawSubscriptions[0]) : null;
-    if (rawSubscriptions.length && !subscription)
-      return response(503, { status: 'ERROR', code: 'READER_SUMMARY_UNAVAILABLE' }, origin, env);
-    const subscriptionActive = subscription?.status === 'ACTIVE';
-    const plan = Object.freeze({ status: subscriptionActive || hasPlanAccess ? 'ACTIVE' :
+    let planAvailable = Boolean(rawSubscriptions);
+    const subscription = rawSubscriptions?.length ? subscriptionSummary(rawSubscriptions[0]) : null;
+    if (rawSubscriptions?.length && !subscription) {
+      planAvailable = false;
+      reportDependencyFailure(logger, 'gpir_paypal_subscriptions', subscriptionsResult);
+    }
+    const plan = Object.freeze({ status: hasPlanAccess ? 'ACTIVE' :
       subscription ? 'INACTIVE' : 'NOT_ENROLLED',
-      accessClass: subscriptionActive || hasPlanAccess ? 'ENTITLED' : null,
+      accessClass: entitlementAvailable && hasPlanAccess ? 'ENTITLED' : null,
       effectiveFrom: subscription?.effectiveFrom || null,
       effectiveUntil: subscription?.effectiveUntil || null,
-      billingStatus: subscription?.status || 'NOT_ACTIVE' });
-    const library = publications.flatMap((publication, index) => {
+      billingStatus: subscription?.status || 'NOT_ACTIVE',
+      paymentConfirmed: subscription?.paymentConfirmed === true });
+    const library = entitlementAvailable ? publications.flatMap((publication, index) => {
       if (decisions[index][0].decision !== 'ALLOW') return [];
       const purchaseState = purchaseStates.get(purchaseKey(publication));
       const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' : 'PLAN';
       return [Object.freeze({ publicationId: publication.publication_id,
         supabaseRecordId: publication.supabase_record_id,
         accessClass: 'ENTITLED', accessSource })];
-    });
-    const payments = rawPayments.map(paymentSummary).filter(Boolean);
+    }) : [];
+    let paymentsAvailable = Boolean(rawPayments);
+    const payments = rawPayments ? rawPayments.map(paymentSummary).filter(Boolean) : [];
+    if (rawPayments && payments.length !== rawPayments.length) {
+      paymentsAvailable = false;
+      reportDependencyFailure(logger, 'gpir_payment_orders', paymentsResult);
+    }
+    let checkoutOffer = rawPlans?.length ? subscriptionOffer(rawPlans[0]) : null;
+    if (rawPlans?.length && !checkoutOffer) {
+      reportDependencyFailure(logger, 'gpir_subscription_plans', plansResult);
+      checkoutOffer = null;
+    }
     const displayName = safeText(user.user_metadata?.display_name || user.user_metadata?.full_name);
     const profile = Object.freeze({ email: safeText(user.email, 254), displayName,
       memberSince: isoOrNull(user.created_at), emailVerified: Boolean(
         user.email_confirmed_at || user.confirmed_at) });
 
     return response(200, Object.freeze({ status: 'OK', environment: config.environment,
-      profile, library, payments, plan,
-      summary: Object.freeze({ libraryCount: library.length, paymentCount: payments.length,
-        activePurchaseCount: purchases.filter(row => row.status === 'ACTIVE').length }),
+      profile, library, payments, plan, subscriptionOffer: checkoutOffer,
+      availability: Object.freeze({ profile: 'AVAILABLE',
+        library: entitlementAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        subscriptionCheckout: checkoutOffer ? 'AVAILABLE' : 'UNAVAILABLE' }),
+      summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
+        paymentCount: paymentsAvailable ? payments.length : null,
+        activePurchaseCount: purchases
+          ? purchases.filter(row => row.status === 'ACTIVE').length : null }),
       generatedAt: new Date(now()).toISOString() }), origin, env);
   };
 }
 
-export { configuration, paymentSummary, publicationCandidate, subscriptionSummary };
+export { configuration, paymentSummary, publicationCandidate, subscriptionOffer,
+  subscriptionSummary };
