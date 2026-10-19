@@ -65,7 +65,8 @@ export function normalizeReaderSummary(value) {
   plan: Object.freeze({ status: planStatus,
     accessClass: value.plan.accessClass === 'ENTITLED' ? 'ENTITLED' : null,
     effectiveFrom: isoOrNull(value.plan.effectiveFrom),
-    effectiveUntil: isoOrNull(value.plan.effectiveUntil), billingStatus }),
+    effectiveUntil: isoOrNull(value.plan.effectiveUntil), billingStatus,
+    paymentConfirmed: value.plan.paymentConfirmed === true }),
   summary: Object.freeze({
     libraryCount: availability.library === 'AVAILABLE' ? library.length : null,
     paymentCount: availability.payments === 'AVAILABLE' ? payments.length : null,
