@@ -103,7 +103,7 @@ export function subscriptionConfig(global, summary) {
   if (!hostAllowed) return null;
   const origin = String(supabaseUrl || '').replace(/\/$/, '');
   return Object.freeze({ enabled: true, environment: summary.environment,
-    productionEnabled: false, planId: offer.id, supabaseUrl,
+    productionEnabled: summary.environment === 'production', planId: offer.id, supabaseUrl,
     createSubscriptionEndpoint: `${origin}/functions/v1/gpir-paypal-create-subscription`,
     verifySubscriptionEndpoint: `${origin}/functions/v1/gpir-paypal-verify-subscription` });
 }
