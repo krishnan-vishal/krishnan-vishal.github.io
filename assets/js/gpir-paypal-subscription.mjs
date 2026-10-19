@@ -14,7 +14,8 @@ export function approvalUrl(value, environment) {
   let url;
   try { url = new URL(value); } catch { return null; }
   const hostname = environment === 'sandbox' ? 'www.sandbox.paypal.com' : 'www.paypal.com';
-  return url.protocol === 'https:' && url.hostname === hostname ? url.href : null;
+  return url.protocol === 'https:' && url.hostname === hostname &&
+    !url.username && !url.password ? url.href : null;
 }
 
 export function validSubscriptionConfig(config) {
@@ -73,10 +74,13 @@ export async function verifySubscription({ config, supabase, subscriptionId,
   const result = await post(config.verifySubscriptionEndpoint, current.access_token,
     { subscriptionId }, fetchImpl);
   if (result?.environment !== config.environment || result?.status !== 'ACTIVE' ||
-      result?.entitlement !== 'SERVER_VERIFIED') return null;
-  eventTarget?.dispatchEvent?.(new CustomEvent('gpir:paypal-payment-verified', {
-    detail: { type: 'SUBSCRIPTION' }
-  }));
+      result?.verification !== 'SERVER_VERIFIED' ||
+      !['PUBLICATION_SCOPED', 'PAYMENT_CONFIRMATION_PENDING'].includes(
+        result?.publicationAccess)) return null;
+  if (result.paymentConfirmed === true)
+    eventTarget?.dispatchEvent?.(new CustomEvent('gpir:paypal-payment-verified', {
+      detail: { type: 'SUBSCRIPTION' }
+    }));
   return result;
 }
 
@@ -89,7 +93,14 @@ export function subscriptionConfig(global, summary) {
   const supabaseUrl = global.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
   const offer = summary?.subscriptionOffer;
   if (summary?.availability?.subscriptionCheckout !== 'AVAILABLE' ||
-      summary?.environment !== 'sandbox' || !UUID.test(offer?.id || '')) return null;
+      !['sandbox', 'production'].includes(summary?.environment) ||
+      !UUID.test(offer?.id || '')) return null;
+  const hostname = global.location?.hostname || '';
+  const hostAllowed = summary.environment === 'production'
+    ? ['fintechoisis.com', 'www.fintechoisis.com'].includes(hostname)
+    : ['localhost', '127.0.0.1', '::1'].includes(hostname) ||
+      /^[a-z0-9-]+-4192\.app\.github\.dev$/i.test(hostname);
+  if (!hostAllowed) return null;
   const origin = String(supabaseUrl || '').replace(/\/$/, '');
   return Object.freeze({ enabled: true, environment: summary.environment,
     productionEnabled: false, planId: offer.id, supabaseUrl,
@@ -99,7 +110,7 @@ export function subscriptionConfig(global, summary) {
 
 function cleanReturnLocation(global) {
   const params = new URLSearchParams(global.location.search);
-  for (const name of ['paypal-subscription', 'subscription_id', 'ba_token', 'token'])
+  for (const name of ['subscription', 'subscription_id', 'ba_token', 'token'])
     params.delete(name);
   const query = params.toString();
   global.history?.replaceState?.(null, '', `${global.location.pathname}${query ? `?${query}` : ''}` +
@@ -111,26 +122,39 @@ export async function initializePayPalSubscription({ global = globalThis,
   const root = document?.querySelector?.('[data-gpir-paypal-subscription]');
   if (!root) return false;
   const config = subscriptionConfig(global, summary);
-  if (!validSubscriptionConfig(config)) { root.hidden = true; return false; }
-  root.hidden = false;
   const button = root.querySelector('[data-subscription-start]');
+  if (!validSubscriptionConfig(config)) {
+    if (summary?.environment === 'production' && config) {
+      root.hidden = false;
+      if (button) { button.disabled = true; button.onclick = null; }
+      announce(root, 'Live subscription checkout is pending activation. No payment can be initiated.',
+        'pending');
+      return true;
+    }
+    root.hidden = true;
+    return false;
+  }
+  root.hidden = false;
   const storageKey = `gpir.paypal.subscription.request.${config.planId}`;
   const clearRequest = () => { try { global.sessionStorage?.removeItem?.(storageKey); } catch {} };
   const params = new URLSearchParams(global.location.search);
   const pendingId = params.get('subscription_id');
-  const returnState = params.get('paypal-subscription');
+  const returnState = params.get('subscription');
 
   if (summary.plan?.billingStatus === 'ACTIVE') {
     if (button) button.hidden = true;
-    announce(root, 'Your PayPal Sandbox subscription is active.', 'success');
+    announce(root, summary.plan.paymentConfirmed
+      ? 'Your PayPal subscription payment is confirmed.'
+      : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
+    summary.plan.paymentConfirmed ? 'success' : 'pending');
     return true;
   }
   if (returnState === 'cancelled') {
     clearRequest(); cleanReturnLocation(global);
-    announce(root, 'PayPal Sandbox subscription approval was cancelled.', 'idle');
-  } else if (returnState === 'approved' && BILLING_ID.test(pendingId || '')) {
+    announce(root, 'PayPal subscription approval was cancelled.', 'idle');
+  } else if (returnState === 'return' && BILLING_ID.test(pendingId || '')) {
     if (button) button.disabled = true;
-    announce(root, 'Verifying the approved PayPal Sandbox subscription…', 'pending');
+    announce(root, 'Verifying the approved PayPal subscription…', 'pending');
     const verified = await verifySubscription({ config, supabase: global.GPIR_SUPABASE_CLIENT,
       subscriptionId: pendingId, eventTarget: global, fetchImpl });
     if (button) button.disabled = false;
@@ -140,13 +164,16 @@ export async function initializePayPalSubscription({ global = globalThis,
       return false;
     }
     clearRequest();
-    announce(root, 'PayPal Sandbox subscription verified. Refreshing your account…', 'success');
+    announce(root, verified.paymentConfirmed
+      ? 'Payment confirmed. Refreshing your account…'
+      : 'Subscription verified; Premium access awaits confirmed payment.',
+    verified.paymentConfirmed ? 'success' : 'pending');
     return true;
   }
 
   if (button) button.onclick = async () => {
     button.disabled = true;
-    announce(root, 'Creating a secure PayPal Sandbox subscription…', 'pending');
+    announce(root, 'Creating a secure PayPal subscription…', 'pending');
     let clientRequestId = null;
     try { clientRequestId = global.sessionStorage?.getItem?.(storageKey); } catch {}
     if (!UUID.test(clientRequestId || '')) {
@@ -157,7 +184,7 @@ export async function initializePayPalSubscription({ global = globalThis,
       clientRequestId, fetchImpl });
     if (!created) {
       button.disabled = false;
-      announce(root, 'PayPal Sandbox subscription could not be started. No access was granted.', 'error');
+      announce(root, 'PayPal subscription could not be started. No access was granted.', 'error');
       return;
     }
     if (created.status === 'ACTIVE') {
@@ -166,7 +193,10 @@ export async function initializePayPalSubscription({ global = globalThis,
       button.disabled = false;
       if (verified) {
         clearRequest();
-        announce(root, 'PayPal Sandbox subscription verified. Refreshing your account…', 'success');
+        announce(root, verified.paymentConfirmed
+          ? 'Payment confirmed. Refreshing your account…'
+          : 'Subscription verified; Premium access awaits confirmed payment.',
+        verified.paymentConfirmed ? 'success' : 'pending');
       } else announce(root,
         'The subscription is not active. No publication access was granted.', 'error');
       return;
