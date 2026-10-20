@@ -241,9 +241,9 @@ function validateEntry(entry, approved, expectedBody) {
 
 async function loadSupabaseState(approved) {
   const idFilter = `in.(${approved.map(item => item.supabaseRecordId).join(',')})`;
-  const identitiesQuery = new URLSearchParams({ select: 'id,gpir_publication_id,identity_status,collision_state',
-    id: idFilter });
-  const identities = await supabaseRequest('GET', `/rest/v1/gpir_identity_publications?${identitiesQuery}`);
+  // CL-03C: bounded read-only RPC. Never grant direct identity-table access.
+  const identities = await supabaseRequest('POST', '/rest/v1/rpc/gpir_cl03c_identity_readback',
+    { p_ids: approved.map(item => item.supabaseRecordId) });
   exactSet(identities.map(item => item.id), approved.map(item => item.supabaseRecordId), 'Governed Supabase identities');
   for (const item of approved) {
     const identity = identities.find(candidate => candidate.id === item.supabaseRecordId);
@@ -329,6 +329,12 @@ async function main() {
       versionBefore: entry.sys.version });
   }
   const initialSupabaseState = await loadSupabaseState(approved);
+  // Fail closed before Contentful PUT: verify the actual API caller can upsert
+  // governed policy rows. This RPC must be SECURITY INVOKER and read-only.
+  const policyWritePreflight = await supabaseRequest('POST',
+    '/rest/v1/rpc/gpir_cl03c_policy_write_preflight', {});
+  if (policyWritePreflight !== true)
+    throw new Error('CL-03C policy-write permission preflight failed; no Contentful drafts changed.');
 
   const synchronized = [];
   for (const preflight of preflightEntries) {
