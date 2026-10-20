@@ -73,6 +73,14 @@ function paragraphNode(content) {
   return { nodeType: 'paragraph', data: {}, content: Array.isArray(content) ? content : [textNode(content)] };
 }
 
+function tableCellNode(value, header) {
+  return {
+    nodeType: header ? 'table-header-cell' : 'table-cell',
+    data: {},
+    content: [paragraphNode(value)]
+  };
+}
+
 function decodeEntities(value) {
   const named = {
     amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
@@ -110,21 +118,30 @@ function rowsFromTable(tableHtml, sourceBlock) {
   let rowMatch;
   while ((rowMatch = rowPattern.exec(tableHtml))) {
     const cells = [];
-    const types = [];
     const cellPattern = /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi;
     let cellMatch;
     while ((cellMatch = cellPattern.exec(rowMatch[1]))) {
-      types.push(cellMatch[1].toLowerCase());
-      cells.push(plainHtmlText(cellMatch[2]));
+      cells.push({
+        value: plainHtmlText(cellMatch[2]),
+        header: cellMatch[1].toLowerCase() === 'th'
+      });
     }
     if (!cells.length) throw new Error(`Empty legacy table row in ${sourceBlock}.`);
-    rows.push({ header: types.every(type => type === 'th'), cells });
+    rows.push({ cells });
   }
   if (!rows.length) throw new Error(`Legacy table has no rows in ${sourceBlock}.`);
   const width = rows[0].cells.length;
   if (!width || rows.some(row => row.cells.length !== width))
     throw new Error(`Legacy table column mismatch in ${sourceBlock}.`);
-  return { nodeType: 'gpir-table', data: { rows, sourceBlock }, content: [] };
+  return {
+    nodeType: 'table',
+    data: { sourceBlock },
+    content: rows.map(row => ({
+      nodeType: 'table-row',
+      data: {},
+      content: row.cells.map(cell => tableCellNode(cell.value, cell.header))
+    }))
+  };
 }
 
 function richNodesFromSection(sectionHtml, sourceBlock) {
@@ -189,10 +206,50 @@ async function requestJson(url, { method = 'GET', headers = {}, body = null } = 
   let parsed = null;
   try { parsed = raw ? JSON.parse(raw) : null; } catch { parsed = null; }
   if (!response.ok) {
+    if (response.status === 422 && new URL(url).hostname === 'api.contentful.com')
+      throw new Error(formatContentfulValidationError(parsed));
     const message = parsed?.message || parsed?.error || response.statusText || 'request failed';
     throw new Error(`${new URL(url).hostname} ${method} failed with HTTP ${response.status}: ${message}`);
   }
   return parsed;
+}
+
+function formatContentfulValidationError(error) {
+  const issues = Array.isArray(error?.details?.errors) ? error.details.errors : [];
+  const messages = {
+    required: 'A required value is missing.',
+    type: 'The value has an incompatible content type.',
+    in: 'The value is not one of the allowed options.',
+    size: 'The value does not meet the configured length constraint.',
+    linkContentType: 'The linked entry has an unsupported content type.',
+    linkMimetypeGroup: 'The linked asset has an unsupported MIME type.',
+    enabledNodeTypes: 'The Rich Text node type is not enabled.',
+    enabledMarks: 'The Rich Text mark is not enabled.',
+    nodes: 'A Rich Text node violates its configured structure.',
+    unique: 'The value is not unique.'
+  };
+  const sanitizedIssues = issues.map(issue => {
+    const pathParts = Array.isArray(issue.path) ? issue.path : [];
+    const fieldPath = pathParts.reduce((result, part) => {
+      if (typeof part === 'number' && Number.isInteger(part) && part >= 0)
+        return `${result}[${part}]`;
+      const safePart = typeof part === 'string' &&
+        /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(part) ? part : '[redacted]';
+      return result ? `${result}.${safePart}` : safePart;
+    }, '');
+    const validator = typeof issue.name === 'string' &&
+      /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(issue.name) ? issue.name : 'validation';
+    return {
+      fieldPath: fieldPath || 'unknown',
+      validator,
+      message: messages[validator] || 'Contentful rejected the value for this validation rule.'
+    };
+  });
+  const summary = sanitizedIssues.length
+    ? sanitizedIssues
+    : [{ fieldPath: 'unknown', validator: 'validation',
+      message: 'Contentful rejected the request; no field-level details were returned.' }];
+  return `api.contentful.com validation failed with HTTP 422: ${JSON.stringify(summary)}`;
 }
 
 function contentfulRequest(method, apiPath, body = null, headers = {}) {
@@ -247,13 +304,16 @@ function validateEntry(entry, approved, expectedBody) {
   return { exactBody, publishedCurrent };
 }
 
-function richTextInventory(document) {
+function richTextInventory(document, enabledNodeTypes = [], enabledMarks = []) {
   const nodeCounts = new Map();
   const nodes = [];
   const hyperlinks = [];
   const tableRepresentations = [];
   const findings = [];
-  function visit(node, path) {
+  const implicitNodeTypes = new Set([
+    'document', 'paragraph', 'text', 'table-row', 'table-cell', 'table-header-cell'
+  ]);
+  function visit(node, path, parentType = null) {
     if (!node || typeof node !== 'object' || Array.isArray(node)) {
       findings.push({ path, reason: 'Node is not an object.' });
       return;
@@ -272,36 +332,78 @@ function richTextInventory(document) {
         ? node.data.uri.startsWith('/') ? 'relative' : 'absolute'
         : 'missing'
     });
-    if (type === 'gpir-table') {
-      const rows = node.data?.rows;
+    if (type === 'table') {
       tableRepresentations.push({
         path,
         nodeType: type,
-        rows: Array.isArray(rows) ? rows.length : null,
-        maximumColumns: Array.isArray(rows)
-          ? Math.max(0, ...rows.map(row => Array.isArray(row.cells) ? row.cells.length : 0))
+        sourceBlock: typeof node.data?.sourceBlock === 'string' ? node.data.sourceBlock : null,
+        rows: Array.isArray(node.content) ? node.content.length : null,
+        maximumColumns: Array.isArray(node.content)
+          ? Math.max(0, ...node.content.map(row =>
+            Array.isArray(row.content) ? row.content.length : 0))
           : null,
-        richTextChildren: Array.isArray(node.content) ? node.content.length : null
+        headerRows: Array.isArray(node.content)
+          ? node.content.filter(row => Array.isArray(row.content) &&
+            row.content.length > 0 &&
+            row.content.every(cell => cell.nodeType === 'table-header-cell')).length
+          : null,
+        richTextChildren: Array.isArray(node.content)
+          ? node.content.reduce((sum, row) => sum + (Array.isArray(row.content)
+            ? row.content.reduce((cellSum, cell) =>
+              cellSum + (Array.isArray(cell.content) ? cell.content.length : 0), 0)
+            : 0), 0)
+          : null
       });
     }
     if (typeof type !== 'string')
       findings.push({ path, reason: 'nodeType is missing or not a string.' });
     if (!node.data || typeof node.data !== 'object' || Array.isArray(node.data))
       findings.push({ path, reason: 'data must be an object.' });
+    if (type && !implicitNodeTypes.has(type) && !enabledNodeTypes.includes(type))
+      findings.push({ path, reason: `Rich Text node type is not enabled: ${type}.` });
     if (type === 'text') {
       if (typeof node.value !== 'string' || !Array.isArray(node.marks))
         findings.push({ path, reason: 'Text nodes require a string value and marks array.' });
       else node.marks.forEach((mark, index) => {
-        if (typeof mark?.type !== 'string')
-          findings.push({ path: `${path}.marks[${index}]`, reason: 'Mark type is missing.' });
+        if (typeof mark?.type !== 'string' || !enabledMarks.includes(mark.type))
+          findings.push({ path: `${path}.marks[${index}]`, reason: 'Rich Text mark is invalid or not enabled.' });
       });
+      if (!['paragraph', 'hyperlink', 'heading-1', 'heading-2', 'heading-3',
+        'heading-4', 'heading-5', 'heading-6'].includes(parentType))
+        findings.push({ path, reason: 'Text nodes must be contained by an inline text container.' });
       return;
     }
     if (!Array.isArray(node.content))
       findings.push({ path, reason: 'Non-text nodes require a content array.' });
-    else node.content.forEach((child, index) => visit(child, `${path}.content[${index}]`));
+    else node.content.forEach((child, index) =>
+      visit(child, `${path}.content[${index}]`, type));
     if (type === 'hyperlink' && typeof node.data?.uri !== 'string')
       findings.push({ path, reason: 'Hyperlink nodes require data.uri.' });
+    if (type === 'document' && parentType !== null)
+      findings.push({ path, reason: 'Document nodes may only appear at the root.' });
+    if (type === 'paragraph' && !['document', 'table-cell', 'table-header-cell'].includes(parentType))
+      findings.push({ path, reason: 'Paragraph is nested in an invalid Rich Text parent.' });
+    if (type === 'hyperlink' && parentType !== 'paragraph')
+      findings.push({ path, reason: 'Hyperlink nodes must be contained by a paragraph.' });
+    if (type === 'table' && parentType !== 'document')
+      findings.push({ path, reason: 'Table nodes must be contained by the document.' });
+    if (type === 'table-row' && parentType !== 'table')
+      findings.push({ path, reason: 'Table rows must be contained by a table.' });
+    if (['table-cell', 'table-header-cell'].includes(type) && parentType !== 'table-row')
+      findings.push({ path, reason: 'Table cells must be contained by a table row.' });
+    if (type === 'table' && (!Array.isArray(node.content) || !node.content.length ||
+      typeof node.data?.sourceBlock !== 'string'))
+      findings.push({ path, reason: 'Table requires rows and its source reference.' });
+    if (type === 'table-row' && (!Array.isArray(node.content) || !node.content.length ||
+      node.content.some(cell => !['table-cell', 'table-header-cell'].includes(cell?.nodeType))))
+      findings.push({ path, reason: 'Table rows require native table cells.' });
+    if (['table-cell', 'table-header-cell'].includes(type) &&
+      (!Array.isArray(node.content) || !node.content.length ||
+       node.content.some(child => child?.nodeType !== 'paragraph')))
+      findings.push({ path, reason: 'Table cells require paragraph content.' });
+    if (type === 'paragraph' && Array.isArray(node.content) &&
+      node.content.some(child => !['text', 'hyperlink'].includes(child?.nodeType)))
+      findings.push({ path, reason: 'Paragraph contains an invalid Rich Text child.' });
   }
   visit(document, 'editorialBody');
   if (document?.nodeType !== 'document')
@@ -309,56 +411,82 @@ function richTextInventory(document) {
   return { nodeCounts, nodes, hyperlinks, tableRepresentations, findings };
 }
 
-async function inspectContentfulSchema(firstPublication) {
+async function inspectContentfulSchema(approved) {
   const contentType = await contentfulRequest('GET', '/content_types/gpirPublication');
-  const entry = await contentfulRequest('GET',
-    `/entries/${encodeURIComponent(firstPublication.contentfulEntryId)}`);
   const editorialField = contentType.fields?.find(field => field.id === 'editorialBody');
   const validations = editorialField?.validations || [];
   const enabledNodeTypes = [...new Set(validations.flatMap(validation =>
     Array.isArray(validation.enabledNodeTypes) ? validation.enabledNodeTypes : []))].sort();
   const enabledMarks = [...new Set(validations.flatMap(validation =>
     Array.isArray(validation.enabledMarks) ? validation.enabledMarks : []))].sort();
-  const { nodeCounts, nodes, hyperlinks, tableRepresentations, findings } =
-    richTextInventory(firstPublication.editorialBody);
-  const implicitNodeTypes = new Set(['document', 'paragraph', 'text']);
-  const unsupportedNodes = nodes.filter(node =>
-    !implicitNodeTypes.has(node.nodeType) && !enabledNodeTypes.includes(node.nodeType));
-  const unsupportedMarks = nodes.flatMap(node => node.marks.flatMap((markType, index) =>
-      enabledMarks.includes(markType) ? [] : [{
-        path: `${node.path}.marks[${index}]`,
-        markType
-      }]));
-  const fieldValidationChecks = (contentType.fields || []).flatMap(field => {
-    const value = scalar(entry.fields?.[field.id]);
-    return (field.validations || []).flatMap(validation => {
-      if (validation.size && typeof value === 'string') {
-        const length = value.length;
-        return [{
-          fieldId: field.id,
-          rule: 'size',
-          length,
-          minimum: validation.size.min ?? null,
-          maximum: validation.size.max ?? null,
-          passes: (validation.size.min == null || length >= validation.size.min) &&
-            (validation.size.max == null || length <= validation.size.max)
-        }];
-      }
-      if (Array.isArray(validation.in) && value !== undefined && value !== null) {
-        return [{
-          fieldId: field.id,
-          rule: 'in',
-          passes: validation.in.includes(value)
-        }];
-      }
-      return [];
+  const implicitNodeTypes = new Set([
+    'document', 'paragraph', 'text', 'table-row', 'table-cell', 'table-header-cell'
+  ]);
+  const publications = [];
+  for (const publication of approved) {
+    const entry = await contentfulRequest('GET',
+      `/entries/${encodeURIComponent(publication.contentfulEntryId)}`);
+    const { nodeCounts, nodes, hyperlinks, tableRepresentations, findings } =
+      richTextInventory(publication.editorialBody, enabledNodeTypes, enabledMarks);
+    const unsupportedNodes = nodes.filter(node =>
+      !implicitNodeTypes.has(node.nodeType) && !enabledNodeTypes.includes(node.nodeType));
+    const unsupportedMarks = nodes.flatMap(node => node.marks.flatMap((markType, index) =>
+        enabledMarks.includes(markType) ? [] : [{
+          path: `${node.path}.marks[${index}]`,
+          markType
+        }]));
+    const fieldValidationChecks = (contentType.fields || []).flatMap(field => {
+      const value = scalar(entry.fields?.[field.id]);
+      return (field.validations || []).flatMap(validation => {
+        if (validation.size && typeof value === 'string') {
+          const length = value.length;
+          return [{
+            fieldId: field.id,
+            rule: 'size',
+            length,
+            minimum: validation.size.min ?? null,
+            maximum: validation.size.max ?? null,
+            passes: (validation.size.min == null || length >= validation.size.min) &&
+              (validation.size.max == null || length <= validation.size.max)
+          }];
+        }
+        if (Array.isArray(validation.in) && value !== undefined && value !== null) {
+          return [{
+            fieldId: field.id,
+            rule: 'in',
+            passes: validation.in.includes(value)
+          }];
+        }
+        return [];
+      });
     });
-  });
-  const requiredFields = (contentType.fields || []).filter(field => field.required).map(field => ({
-    id: field.id,
-    present: Object.prototype.hasOwnProperty.call(entry.fields || {}, field.id)
-  }));
-  const missingRequiredFields = requiredFields.filter(field => !field.present);
+    const requiredFields = (contentType.fields || []).filter(field => field.required).map(field => ({
+      id: field.id,
+      present: Object.prototype.hasOwnProperty.call(entry.fields || {}, field.id)
+    }));
+    const missingRequiredFields = requiredFields.filter(field => !field.present);
+    const compatibility = unsupportedNodes.length || unsupportedMarks.length ||
+      findings.length || missingRequiredFields.length ||
+      fieldValidationChecks.some(check => !check.passes) ||
+      editorialField?.type !== 'RichText' ||
+      entry.sys?.contentType?.sys?.id !== contentType.sys?.id ? 'INCOMPATIBLE' : 'COMPATIBLE';
+    publications.push({
+      publicationId: publication.publicationId,
+      entryContentTypeMatches: entry.sys?.contentType?.sys?.id === contentType.sys?.id,
+      requiredFields,
+      missingRequiredFields,
+      fieldValidationChecks,
+      generatedPayload: {
+        nodeCounts: Object.fromEntries([...nodeCounts].sort(([a], [b]) => a.localeCompare(b))),
+        unsupportedNodes,
+        unsupportedMarks,
+        hyperlinks,
+        tableRepresentations,
+        findings
+      },
+      compatibility
+    });
+  }
   const schemaSummary = {
     contentType: contentType.sys?.id,
     contentTypeVersion: contentType.sys?.version,
@@ -378,30 +506,12 @@ async function inspectContentfulSchema(firstPublication) {
       enabledMarks
     } : null
   };
-  const findingsSummary = findings.map(finding => ({
-    path: finding.path,
-    reason: finding.reason
-  }));
   process.stdout.write(`${JSON.stringify({
     status: 'SCHEMA_INVESTIGATION_COMPLETE',
     contentType: schemaSummary,
-    firstPublication: firstPublication.publicationId,
-    entryContentTypeMatches: entry.sys?.contentType?.sys?.id === contentType.sys?.id,
-    requiredFields,
-    missingRequiredFields,
-    fieldValidationChecks,
-    generatedPayload: {
-      nodeCounts: Object.fromEntries([...nodeCounts].sort(([a], [b]) => a.localeCompare(b))),
-      unsupportedNodes,
-      unsupportedMarks,
-      hyperlinks,
-      tableRepresentations,
-      findings: findingsSummary
-    },
-    compatibility: unsupportedNodes.length || unsupportedMarks.length || findingsSummary.length ||
-      missingRequiredFields.length || fieldValidationChecks.some(check => !check.passes) ||
-      editorialField?.type !== 'RichText' ||
-      entry.sys?.contentType?.sys?.id !== contentType.sys?.id ? 'INCOMPATIBLE' : 'COMPATIBLE'
+    publications,
+    compatibility: publications.every(publication =>
+      publication.compatibility === 'COMPATIBLE') ? 'COMPATIBLE' : 'INCOMPATIBLE'
   }, null, 2)}\n`);
 }
 
@@ -468,7 +578,7 @@ async function main() {
       throw new Error(`${item.publicationId} canonical disclaimer reference is absent.`);
     const editorialBody = buildEditorialBody(mapping, sourceHtml, item.publicationId);
     const moduleHeadingCount = editorialBody.content.filter(node => node.nodeType === 'heading-1').length;
-    const tableCount = editorialBody.content.filter(node => node.nodeType === 'gpir-table').length;
+    const tableCount = editorialBody.content.filter(node => node.nodeType === 'table').length;
     if (moduleHeadingCount !== item.moduleCount + 1 || tableCount !== item.contentAssessment.sourceTableCount)
       throw new Error(`${item.publicationId} generated reconciliation shape mismatch.`);
     return { ...item, contentfulCanonicalRoute: routeReadback.canonicalUrlCandidate, mapping,
@@ -488,10 +598,7 @@ async function main() {
 
   if (process.argv.includes('--schema-inspect')) {
     requireContentfulConfiguration();
-    const firstPublication = approved.find(item =>
-      item.publicationId === expectedPublicationIds[0]);
-    if (!firstPublication) throw new Error('First approved CL-03C publication is missing.');
-    await inspectContentfulSchema(firstPublication);
+    await inspectContentfulSchema(approved);
     return;
   }
 
@@ -616,7 +723,16 @@ async function main() {
       visibleDisclaimer: item.visibleDisclaimer })), totals: result.totals, reportPath }, null, 2)}\n`);
 }
 
-main().catch(error => {
-  process.stderr.write(`${error.stack || error.message}\n`);
-  process.exitCode = 1;
-});
+module.exports = {
+  buildEditorialBody,
+  formatContentfulValidationError,
+  richTextInventory,
+  rowsFromTable
+};
+
+if (require.main === module) {
+  main().catch(error => {
+    process.stderr.write(`${error.stack || error.message}\n`);
+    process.exitCode = 1;
+  });
+}
