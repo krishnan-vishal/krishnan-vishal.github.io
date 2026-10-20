@@ -33,8 +33,20 @@ version checks before the first publish. Each publish uses the expected entry
 version and is immediately read back; any mismatch stops subsequent writes and
 records the actual partial state without rollback.
 
-Focused tests and local payload preparation pass. Production publication has
-not been executed by this implementation change; after the authorized workflow
-reports five publish/readback passes, merge through PR #457 is the existing
-GitHub Pages release trigger. No merge, publication, or deployment is claimed
-here.
+At the implementation checkpoint, focused tests and local payload preparation
+passed, while production publication and deployment were still pending. The
+subsequent authorized publication execution is recorded below; merge through
+PR #457 remains the existing GitHub Pages release trigger.
+
+## Authorized publication execution
+
+Workflow run
+[`39427438834`](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/39427438834)
+ran the `publish` operation at code commit
+`12c43df4aad45e6c84dd4611f07bf5ddfda66483`. Its exact-five preflight passed;
+all five version-3 draft revisions published and read back with the approved
+editorial-body checksums and canonical routes. Each now has published version
+`3` and entry version `4`; prior published version `1` was the preflight
+baseline. The sync job was skipped, no Supabase operation ran, and the release
+report records zero blockers. The Pages deployment remains pending PR merge
+and its resulting production verification.
