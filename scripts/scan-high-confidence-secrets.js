@@ -36,7 +36,14 @@ const FALSE_POSITIVE_ALLOWLIST = Object.freeze([
   ['tests/m36/reader-auth.test.mjs', 57, 'GENERIC_PASSWORD_ASSIGNMENT', 'ae785e8c9e9c686f34ee701d06a7c96c4f0cb393ab73025d6247233264ad9fac', 'Reserved example.test fixture input.'],
   ['tests/m36/reader-auth.test.mjs', 60, 'GENERIC_PASSWORD_ASSIGNMENT', 'f5afdcaac577b3dfce93099d57d0a766a8fa04688e14caa68e7ca8692bad39d1', 'Reserved example.test fixture input.'],
   ['tests/m36/reader-auth.test.mjs', 61, 'GENERIC_PASSWORD_ASSIGNMENT', 'cf59539f27610521a849be61f77faf07fe7e4eb2ecce63a3617dd8f67060c4d0', 'Reserved example.test fixture input.'],
-  ['tests/m36/reader-auth.test.mjs', 62, 'GENERIC_PASSWORD_ASSIGNMENT', '3ef257cd75a10fb2ee1b4c9ab2f289b830b2842f4a0c9d7ec2c8b27c18e6dc9e', 'Reserved example.test fixture input.']
+  ['tests/m36/reader-auth.test.mjs', 62, 'GENERIC_PASSWORD_ASSIGNMENT', '3ef257cd75a10fb2ee1b4c9ab2f289b830b2842f4a0c9d7ec2c8b27c18e6dc9e', 'Reserved example.test fixture input.'],
+[
+  'scripts/m36/synchronize-cl03c-contentful.js',
+  201,
+  'GENERIC_API_KEY_ASSIGNMENT',
+  'ac9f77042041f60283d65f080b46c47326bc0d6874c5aa5db082d26a37209212',
+  'Reviewed runtime Supabase API header sourced from a GitHub Actions secret; no hardcoded credential.'
+]
 ].map(([file, line, ruleId, fingerprint, rationale]) => ({ file, line, ruleId, fingerprint, rationale })));
 
 function fingerprint(ruleId, sourceLine) {
