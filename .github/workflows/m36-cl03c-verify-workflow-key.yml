@@ -1,0 +1,31 @@
+name: M36 CL-03C read-only Contentful schema inspection
+
+on:
+  push:
+    branches:
+      - fix/cl03c-preflight-20261020
+    paths:
+      - .github/workflows/m36-cl03c-verify-workflow-key.yml
+      - scripts/m36/synchronize-cl03c-contentful.js
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-contentful-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: contentful-production
+    env:
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+    steps:
+      - name: Check out the bounded CL-03C payload builder
+        uses: actions/checkout@v4
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect actual Contentful schema and generated payload (read-only)
+        run: node scripts/m36/synchronize-cl03c-contentful.js --schema-inspect

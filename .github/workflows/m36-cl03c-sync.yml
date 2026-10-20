@@ -1,10 +1,18 @@
-name: M36 CL-03C controlled synchronization
+name: M36 CL-03C controlled synchronization and publication
 
 on:
   workflow_dispatch:
     inputs:
+      operation:
+        description: Select synchronization or the separately authorized five-entry publish
+        required: true
+        default: synchronize
+        type: choice
+        options:
+          - synchronize
+          - publish
       confirmation:
-        description: Type M36-CL-03C to authorize the bounded synchronization
+        description: Type the exact confirmation required for the selected operation
         required: true
         type: string
 
@@ -12,11 +20,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: m36-cl03c-controlled-synchronization
+  group: m36-cl03c-controlled-contentful-operation
   cancel-in-progress: false
 
 jobs:
   synchronize-five-publications:
+    if: ${{ inputs.operation == 'synchronize' }}
     name: Synchronize five approved unpublished revisions
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -79,4 +88,67 @@ jobs:
           name: m36-cl03c-synchronization-report-${{ github.run_id }}
           path: artifacts/m36/cl03c/contentful-synchronization-report.json
           if-no-files-found: error
+          retention-days: 14
+
+  publish-five-approved-revisions:
+    if: ${{ inputs.operation == 'publish' }}
+    name: Publish five approved Contentful revisions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: contentful-production
+    env:
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+    steps:
+      - name: Verify manual publication authorization
+        shell: bash
+        env:
+          OWNER_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [[ "${OWNER_CONFIRMATION}" != "M36-CL-03C-PUBLISH" ]]; then
+            echo "::error::Confirmation must exactly match M36-CL-03C-PUBLISH."
+            exit 1
+          fi
+
+      - name: Check out the approved repository state
+        uses: actions/checkout@v4
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Confirm secure Contentful configuration presence
+        shell: bash
+        run: |
+          missing=0
+          for name in CONTENTFUL_MANAGEMENT_TOKEN CONTENTFUL_SPACE_ID CONTENTFUL_ENVIRONMENT
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required secure configuration: ${name}"
+              missing=1
+            fi
+          done
+          if [[ "${missing}" -ne 0 ]]; then
+            exit 1
+          fi
+          echo "Required Contentful credential and governed configuration names are present."
+
+      - name: Validate the exact five-entry release package
+        run: |
+          node --check scripts/m36/synchronize-cl03c-contentful.js
+          node --test tests/m36/cl03c-contentful-release.test.cjs
+          node scripts/m36/synchronize-cl03c-contentful.js --local-check
+
+      - name: Preflight and publish the five approved revisions
+        run: node scripts/m36/synchronize-cl03c-contentful.js --publish-approved
+
+      - name: Upload the credential-free Contentful release report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m36-cl03c-contentful-release-report-${{ github.run_id }}
+          path: artifacts/m36/cl03c/contentful-release-report.json
+          if-no-files-found: ignore
           retention-days: 14
