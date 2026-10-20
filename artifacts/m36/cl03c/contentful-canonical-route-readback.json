@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "M36-CL-03C-ROUTES-1.0",
+  "milestone": "M36-CL-03C",
+  "status": "PASS_READ_ONLY_CONTENTFUL_ROUTE_READBACK",
+  "readOnly": true,
+  "source": {
+    "api": "Contentful Management API",
+    "method": "GET",
+    "locale": "en-US",
+    "workflowRunId": "39375470592",
+    "workflowRunUrl": "https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/39375470592",
+    "retrievedAt": "2026-10-20T05:32:59Z"
+  },
+  "publications": [
+    {
+      "publicationId": "VK-GPIR-P-000000000003-4",
+      "contentfulEntryId": "7FBD5IpsZutLF63MKuOntS",
+      "canonicalUrlCandidate": "/global-legalized-betting-gambling-lottery-wagering-payments-gpir-research-fintechoisis/"
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000004-2",
+      "contentfulEntryId": "2DHHp4k0GbZXcYvCFLoCPw",
+      "canonicalUrlCandidate": "/global-cross-border-bill-payments-family-financial-services-gpir-research-fintechoisis/"
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000008-3",
+      "contentfulEntryId": "6e0k5jOAGiEjj1iBKcNtVz",
+      "canonicalUrlCandidate": "/global-gaming-payments-industry-gpir-research-fintechoisis/"
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000009-1",
+      "contentfulEntryId": "2l3AdU2yAK87mANrSwZiej",
+      "canonicalUrlCandidate": "/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/"
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000011-7",
+      "contentfulEntryId": "2XfDk3XcUCUtUzSQnx1f8l",
+      "canonicalUrlCandidate": "/global-healthcare-medical-tourism-cross-border-health-payments-gpir-research-fintechoisis/"
+    }
+  ]
+}
