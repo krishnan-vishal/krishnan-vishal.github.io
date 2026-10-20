@@ -5,53 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- GPIR Performance Tier — local device/network hints only, never
-     transmitted. Sets data-gpir-perf on <html> before first paint so
-     CSS and later scripts (world map, dashboards) can scale visual
-     complexity to what this device/connection can reasonably carry. -->
-<script>
-(function(){
-    try{
-        var nav = navigator;
-        var mem = nav.deviceMemory;
-        var cores = nav.hardwareConcurrency;
-        var conn = nav.connection || nav.mozConnection || nav.webkitConnection;
-        var saveData = !!(conn && conn.saveData);
-        var effType = conn && conn.effectiveType;
-        var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-        var lowMem = typeof mem === "number" && mem <= 2;
-        var lowCores = typeof cores === "number" && cores <= 2;
-        var slowNet = saveData || effType === "slow-2g" || effType === "2g" || effType === "3g";
-
-        var tier = "standard";
-        if (lowMem || lowCores || slowNet) tier = "constrained";
-        else if (typeof mem === "number" && mem >= 8 && typeof cores === "number" && cores >= 8 && !slowNet) tier = "high";
-
-        document.documentElement.setAttribute("data-gpir-perf", tier);
-        if (reduceMotion) document.documentElement.setAttribute("data-gpir-motion", "reduced");
-
-        window.GPIRPerf = {
-            tier: tier.toUpperCase(),
-            saveData: saveData,
-            effectiveType: effType || null,
-            deviceMemory: (typeof mem === "number") ? mem : null,
-            hardwareConcurrency: (typeof cores === "number") ? cores : null,
-            reduceMotion: reduceMotion
-        };
-    } catch(e){
-        document.documentElement.setAttribute("data-gpir-perf", "standard");
-        window.GPIRPerf = { tier: "STANDARD", saveData: false, effectiveType: null, deviceMemory: null, hardwareConcurrency: null, reduceMotion: false };
-    }
-})();
-</script>
-
-
 <title>Global Gig Economy, Freelancer & Creator Payments Industry | GPIR Research | FINTECHOISIS</title>
 <meta name="description" content="Executive research on gig economy, freelancer and creator payments: market sizing, EOR and payout infrastructure, top corridors, taxation and the 2030 outlook.">
 
-<meta http-equiv="refresh" content="0; url=https://fintechoisis.com/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/">
-<link rel="canonical" href="https://fintechoisis.com/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/">
+<link rel="canonical" href="https://krishnan-vishal.github.io/pages/chapters/gig-economy-creator-payments.html">
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FINTECHOISIS | GPIR">
@@ -66,37 +23,36 @@
 <meta name="twitter:image" content="https://krishnan-vishal.github.io/assets/branding/social/gpir-og-1200x630.png">
 
 
-<link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png">
+<link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../../assets/favicon/favicon.svg">
+<link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png">
 
-<link rel="stylesheet" href="../../assets/css/variables.css?v=20260822c">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap">
-<link rel="stylesheet" href="../../assets/css/typography.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/layout.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/components.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/responsive.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/header.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/hero.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/architecture.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/intelligence-library.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/payments-timeline.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/market.css?v=20260908a">
-<link rel="stylesheet" href="../../assets/css/command-centre.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/purpose.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/knowledge.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/research.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/dashboard.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/global.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/observatory.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/cards.css?v=20260822c">
+<link rel="stylesheet" href="../../assets/css/variables.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/typography.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/layout.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/components.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/responsive.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/header.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/hero.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/architecture.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/intelligence-library.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/payments-timeline.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/market.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/command-centre.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/purpose.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/knowledge.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/research.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/dashboard.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/global.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/observatory.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/cards.css?v=20260814">
 <link rel="stylesheet" href="../../assets/css/country-intelligence.css?v=20260815">
-<link rel="stylesheet" href="../../assets/css/about.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/footer.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/chapter-page.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/site-polish.css?v=20260822c">
+<link rel="stylesheet" href="../../assets/css/about.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/footer.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/chapter-page.css?v=20260814">
+<link rel="stylesheet" href="../../assets/css/site-polish.css?v=20260814">
 
-<link rel="stylesheet" href="../../assets/css/content-protection.css?v=20260822c">
+<link rel="stylesheet" href="../../assets/css/content-protection.css?v=20260814">
 
 </head>
 <body>
@@ -263,8 +219,6 @@
 
                 <ul class="mega-col-desc-list">
                     <li><a href="../../pages/countries/uae.html"><strong>United Arab Emirates</strong><small>Payment rails, regulation and fintech ecosystem.</small></a></li>
-                    <li><a href="../../pages/countries/saudi-arabia.html"><strong>Saudi Arabia</strong><small>SAMA oversight, Vision 2030 fintech licensing and sarie instant payments.</small></a></li>
-                    <li><a href="../../pages/countries/qatar.html"><strong>Qatar</strong><small>QCB oversight, Fawran instant payments and dense South Asia remittance corridors.</small></a></li>
                     <li><a href="../../pages/countries/india.html"><strong>India</strong><small>UPI, RBI oversight and remittance corridors.</small></a></li>
                     <li><a href="../../pages/countries/singapore.html"><strong>Singapore</strong><small>MAS, real-time rails and cross-border linkages.</small></a></li>
                     <li><a href="../../pages/countries/uk.html"><strong>United Kingdom</strong><small>Faster Payments, CHAPS, Open Banking and FCA oversight.</small></a></li>
@@ -1228,16 +1182,16 @@
 </footer>
 
 
-<script src="../../assets/js/fx-ticker.js?v=20260908a"></script>
+<script src="../../assets/js/fx-ticker.js?v=20260814"></script>
 
-<script src="../../assets/js/i18n.js?v=20260822c"></script>
+<script src="../../assets/js/i18n.js?v=20260814"></script>
 
-<script src="../../assets/js/footer-utilities.js?v=20260822c"></script>
-<script src="../../assets/js/content-search.js?v=20260822c"></script>
+<script src="../../assets/js/footer-utilities.js?v=20260814"></script>
+<script src="../../assets/js/content-search.js?v=20260814"></script>
 
-<script src="../../assets/js/script.js?v=20260822c"></script>
+<script src="../../assets/js/script.js?v=20260814"></script>
 
-<script src="../../assets/js/content-protection.js?v=20260822c"></script>
+<script src="../../assets/js/content-protection.js?v=20260814"></script>
 
 </body>
 </html>
