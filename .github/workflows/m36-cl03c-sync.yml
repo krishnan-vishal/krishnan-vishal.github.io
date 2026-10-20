@@ -1,0 +1,82 @@
+name: M36 CL-03C controlled synchronization
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type M36-CL-03C to authorize the bounded synchronization
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m36-cl03c-controlled-synchronization
+  cancel-in-progress: false
+
+jobs:
+  synchronize-five-publications:
+    name: Synchronize five approved unpublished revisions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: contentful-production
+    env:
+      GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+    steps:
+      - name: Verify manual authorization
+        shell: bash
+        env:
+          OWNER_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [[ "${OWNER_CONFIRMATION}" != "M36-CL-03C" ]]; then
+            echo "::error::Confirmation must exactly match M36-CL-03C."
+            exit 1
+          fi
+
+      - name: Check out the approved repository state
+        uses: actions/checkout@v4
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Confirm secure configuration presence
+        shell: bash
+        run: |
+          missing=0
+          for name in \
+            GPIR_SUPABASE_SECRET_KEY \
+            CONTENTFUL_MANAGEMENT_TOKEN \
+            CONTENTFUL_SPACE_ID \
+            CONTENTFUL_ENVIRONMENT
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required secure configuration: ${name}"
+              missing=1
+            fi
+          done
+          if [[ "${missing}" -ne 0 ]]; then
+            exit 1
+          fi
+          echo "Required credential and governed configuration names are present."
+
+      - name: Validate the bounded CL-03C package
+        run: |
+          node --check scripts/m36/synchronize-cl03c-contentful.js
+          node scripts/m36/synchronize-cl03c-contentful.js --local-check
+
+      - name: Save five approved unpublished revisions and PUBLIC policies
+        run: node scripts/m36/synchronize-cl03c-contentful.js
+
+      - name: Upload the credential-free synchronization report
+        uses: actions/upload-artifact@v4
+        with:
+          name: m36-cl03c-synchronization-report-${{ github.run_id }}
+          path: artifacts/m36/cl03c/contentful-synchronization-report.json
+          if-no-files-found: error
+          retention-days: 14
