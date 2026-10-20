@@ -1,4 +1,4 @@
-name: M36 CL-03C verify workflow Supabase key
+name: M36 CL-03C post-migration Supabase verification
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-workflow-key:
+  verify-cl03c-authorization:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     environment: contentful-production
@@ -19,40 +19,167 @@ jobs:
       GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
       SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
     steps:
-      - name: Verify service-role authentication without exposing the key
+      - name: Verify CL-03C identity, policy preflight, and upsert eligibility
         shell: bash
         run: |
           node --input-type=module <<'NODE'
+          const records = [
+            { id: 'ef992d9e-f2a6-4f65-94d2-ebec897c1339', publicationId: 'VK-GPIR-P-000000000003-4' },
+            { id: '1871bb85-709e-42bd-9cfd-f26e4688a7b7', publicationId: 'VK-GPIR-P-000000000004-2' },
+            { id: '2abed19a-3144-460d-a311-82f2ad9bad2f', publicationId: 'VK-GPIR-P-000000000008-3' },
+            { id: '754e2bcc-43f4-48de-8b7b-7d1f5da4c64a', publicationId: 'VK-GPIR-P-000000000009-1' },
+            { id: '1404ef1b-33f5-4b1f-98f0-c7535f71f3c9', publicationId: 'VK-GPIR-P-000000000011-7' }
+          ];
           const token = process.env.GPIR_SUPABASE_SECRET_KEY;
           const projectUrl = new URL(process.env.SUPABASE_URL);
-          if (!token || projectUrl.hostname !== 'qlnvhfapctcpzqyuhhth.supabase.co') {
-            process.stdout.write('CL-03C workflow-key verification: FAIL\n');
-            process.exit(1);
-          }
+          const results = {
+            identityReadback: { status: 'FAIL', records: [], blocker: null },
+            policyWritePreflight: { status: 'FAIL', blocker: null },
+            policyMappings: { status: 'FAIL', records: [], blocker: null },
+            upsertEligibility: { status: 'FAIL', records: [], blocker: null }
+          };
 
-          const response = await fetch(
-            `${projectUrl.origin}/auth/v1/admin/users?page=1&per_page=1`,
-            {
-              method: 'GET',
+          async function requestJson(path, options = {}) {
+            const response = await fetch(`${projectUrl.origin}${path}`, {
+              ...options,
               redirect: 'error',
               signal: AbortSignal.timeout(15000),
               headers: {
                 apikey: token,
                 authorization: `Bearer ${token}`,
-                accept: 'application/json'
+                accept: 'application/json',
+                ...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
+                ...options.headers
               }
+            });
+            if (!response.ok) {
+              await response.body?.cancel();
+              throw new Error(`HTTP ${response.status}`);
             }
-          );
-          await response.body?.cancel();
-
-          if (response.status !== 200) {
-            process.stdout.write(
-              `CL-03C workflow-key verification: FAIL (HTTP ${response.status})\n`
-            );
-            process.exit(1);
+            return response.json();
           }
 
-          process.stdout.write(
-            'CL-03C workflow-key verification: PASS (intended project; effective role service_role)\n'
-          );
+          if (!token || projectUrl.hostname !== 'qlnvhfapctcpzqyuhhth.supabase.co') {
+            results.identityReadback.blocker = 'Workflow key or fixed production project configuration unavailable.';
+            results.policyWritePreflight.blocker = 'Workflow key or fixed production project configuration unavailable.';
+          } else {
+            try {
+              const identities = await requestJson('/rest/v1/rpc/gpir_cl03c_identity_readback', {
+                method: 'POST',
+                body: JSON.stringify({ p_ids: records.map(record => record.id) })
+              });
+              const byId = new Map(Array.isArray(identities)
+                ? identities.map(identity => [identity.id, identity]) : []);
+              const valid = Array.isArray(identities) && identities.length === records.length &&
+                byId.size === records.length && records.every(record => {
+                  const identity = byId.get(record.id);
+                  return identity?.gpir_publication_id === record.publicationId &&
+                    ['SOURCE_NATIVE', 'GOVERNED_ASSIGNED'].includes(identity.identity_status) &&
+                    identity.collision_state === 'none';
+                });
+              results.identityReadback.status = valid ? 'PASS' : 'FAIL';
+              results.identityReadback.records = records.map(record => {
+                const identity = byId.get(record.id);
+                return {
+                  publicationId: record.publicationId,
+                  found: Boolean(identity),
+                  identityStatus: identity?.identity_status ?? null,
+                  collisionState: identity?.collision_state ?? null,
+                  matches: Boolean(identity &&
+                    identity.gpir_publication_id === record.publicationId &&
+                    ['SOURCE_NATIVE', 'GOVERNED_ASSIGNED'].includes(identity.identity_status) &&
+                    identity.collision_state === 'none')
+                };
+              });
+              if (!valid) results.identityReadback.blocker =
+                'Identity RPC did not return exactly five matching active, collision-free records.';
+            } catch (error) {
+              results.identityReadback.blocker = `Identity RPC failed: ${error.message}`;
+            }
+
+            try {
+              const preflight = await requestJson(
+                '/rest/v1/rpc/gpir_cl03c_policy_write_preflight',
+                { method: 'POST', body: '{}' }
+              );
+              results.policyWritePreflight.status = preflight === true ? 'PASS' : 'FAIL';
+              if (preflight !== true)
+                results.policyWritePreflight.blocker = 'Policy-write preflight RPC did not return true.';
+            } catch (error) {
+              results.policyWritePreflight.blocker = `Policy-write preflight RPC failed: ${error.message}`;
+            }
+
+            try {
+              const recordIds = records.map(record => record.id).join(',');
+              const publicationIds = records.map(record => record.publicationId).join(',');
+              const query = new URLSearchParams({
+                select: 'supabase_record_id,publication_id,access_class,status,review_state',
+                or: `(supabase_record_id.in.(${recordIds}),publication_id.in.(${publicationIds}))`
+              });
+              const policies = await requestJson(
+                `/rest/v1/gpir_publication_access_policies?${query}`,
+                { method: 'GET' }
+              );
+              const expectedById = new Map(records.map(record => [record.id, record.publicationId]));
+              const expectedByPublication = new Map(records.map(record => [record.publicationId, record.id]));
+              const seenIds = new Set();
+              const seenPublicationIds = new Set();
+              let valid = Array.isArray(policies);
+              for (const policy of policies || []) {
+                const expectedPublication = expectedById.get(policy.supabase_record_id);
+                const expectedId = expectedByPublication.get(policy.publication_id);
+                if (!expectedPublication || expectedPublication !== policy.publication_id ||
+                    expectedId !== policy.supabase_record_id ||
+                    seenIds.has(policy.supabase_record_id) ||
+                    seenPublicationIds.has(policy.publication_id)) {
+                  valid = false;
+                  continue;
+                }
+                seenIds.add(policy.supabase_record_id);
+                seenPublicationIds.add(policy.publication_id);
+              }
+              const operations = records.map(record => {
+                const policy = (policies || []).find(item =>
+                  item.supabase_record_id === record.id);
+                return {
+                  publicationId: record.publicationId,
+                  existingMappingMatches: !policy || policy.publication_id === record.publicationId,
+                  currentPolicy: policy ? {
+                    accessClass: policy.access_class,
+                    status: policy.status,
+                    reviewState: policy.review_state
+                  } : null,
+                  operation: !policy ? 'INSERT' :
+                    policy.access_class === 'PUBLIC' && policy.status === 'ACTIVE' &&
+                      policy.review_state === 'EVIDENCED' ? 'NO_OP' : 'UPDATE'
+                };
+              });
+              results.policyMappings.status = valid ? 'PASS' : 'FAIL';
+              results.policyMappings.records = operations;
+              if (!valid) results.policyMappings.blocker =
+                'Policy rows contain a mismatched, duplicate, or out-of-scope identity/publication mapping.';
+
+              const eligible = valid &&
+                results.identityReadback.status === 'PASS' &&
+                results.policyWritePreflight.status === 'PASS' &&
+                operations.length === records.length &&
+                operations.every(operation => operation.existingMappingMatches);
+              results.upsertEligibility.status = eligible ? 'PASS' : 'FAIL';
+              results.upsertEligibility.records = operations.map(operation => ({
+                publicationId: operation.publicationId,
+                operation: operation.operation,
+                eligible: eligible
+              }));
+              if (!eligible) results.upsertEligibility.blocker =
+                'Upsert prerequisites failed; no policy rows were written.';
+            } catch (error) {
+              results.policyMappings.blocker = `Policy mapping read failed: ${error.message}`;
+              results.upsertEligibility.blocker =
+                'Policy mapping could not be verified; no policy rows were written.';
+            }
+          }
+
+          process.stdout.write(`${JSON.stringify(results, null, 2)}\n`);
+          if (Object.values(results).some(result => result.status !== 'PASS'))
+            process.exit(1);
           NODE
