@@ -29,6 +29,14 @@ function requireSecureConfiguration() {
     'CONTENTFUL_ENVIRONMENT', 'GPIR_SUPABASE_SECRET_KEY']) {
     if (!env[name]) throw new Error(`Missing approved secure configuration: ${name}`);
   }
+  requireContentfulConfiguration();
+}
+
+function requireContentfulConfiguration() {
+  for (const name of ['CONTENTFUL_MANAGEMENT_TOKEN', 'CONTENTFUL_SPACE_ID',
+    'CONTENTFUL_ENVIRONMENT']) {
+    if (!env[name]) throw new Error(`Missing approved secure configuration: ${name}`);
+  }
   contentfulRoot = `https://api.contentful.com/spaces/${encodeURIComponent(env.CONTENTFUL_SPACE_ID)}` +
     `/environments/${encodeURIComponent(env.CONTENTFUL_ENVIRONMENT)}`;
 }
@@ -239,6 +247,137 @@ function validateEntry(entry, approved, expectedBody) {
   return { exactBody, publishedCurrent };
 }
 
+function richTextInventory(document) {
+  const nodeCounts = new Map();
+  const nodes = [];
+  const hyperlinks = [];
+  const tableRepresentations = [];
+  const findings = [];
+  function visit(node, path) {
+    if (!node || typeof node !== 'object' || Array.isArray(node)) {
+      findings.push({ path, reason: 'Node is not an object.' });
+      return;
+    }
+    const type = node.nodeType;
+    nodeCounts.set(type || '(missing)', (nodeCounts.get(type || '(missing)') || 0) + 1);
+    nodes.push({
+      path,
+      nodeType: type || null,
+      marks: Array.isArray(node.marks) ? node.marks.map(mark => mark?.type) : []
+    });
+    if (type === 'hyperlink') hyperlinks.push({
+      path,
+      hasUri: typeof node.data?.uri === 'string',
+      uriKind: typeof node.data?.uri === 'string'
+        ? node.data.uri.startsWith('/') ? 'relative' : 'absolute'
+        : 'missing'
+    });
+    if (type === 'gpir-table') {
+      const rows = node.data?.rows;
+      tableRepresentations.push({
+        path,
+        nodeType: type,
+        rows: Array.isArray(rows) ? rows.length : null,
+        maximumColumns: Array.isArray(rows)
+          ? Math.max(0, ...rows.map(row => Array.isArray(row.cells) ? row.cells.length : 0))
+          : null,
+        richTextChildren: Array.isArray(node.content) ? node.content.length : null
+      });
+    }
+    if (typeof type !== 'string')
+      findings.push({ path, reason: 'nodeType is missing or not a string.' });
+    if (!node.data || typeof node.data !== 'object' || Array.isArray(node.data))
+      findings.push({ path, reason: 'data must be an object.' });
+    if (type === 'text') {
+      if (typeof node.value !== 'string' || !Array.isArray(node.marks))
+        findings.push({ path, reason: 'Text nodes require a string value and marks array.' });
+      else node.marks.forEach((mark, index) => {
+        if (typeof mark?.type !== 'string')
+          findings.push({ path: `${path}.marks[${index}]`, reason: 'Mark type is missing.' });
+      });
+      return;
+    }
+    if (!Array.isArray(node.content))
+      findings.push({ path, reason: 'Non-text nodes require a content array.' });
+    else node.content.forEach((child, index) => visit(child, `${path}.content[${index}]`));
+    if (type === 'hyperlink' && typeof node.data?.uri !== 'string')
+      findings.push({ path, reason: 'Hyperlink nodes require data.uri.' });
+  }
+  visit(document, 'editorialBody');
+  if (document?.nodeType !== 'document')
+    findings.push({ path: 'editorialBody.nodeType', reason: 'Rich Text root must be document.' });
+  return { nodeCounts, nodes, hyperlinks, tableRepresentations, findings };
+}
+
+async function inspectContentfulSchema(firstPublication) {
+  const contentType = await contentfulRequest('GET', '/content_types/gpirPublication');
+  const entry = await contentfulRequest('GET',
+    `/entries/${encodeURIComponent(firstPublication.contentfulEntryId)}`);
+  const editorialField = contentType.fields?.find(field => field.id === 'editorialBody');
+  const validations = editorialField?.validations || [];
+  const enabledNodeTypes = [...new Set(validations.flatMap(validation =>
+    Array.isArray(validation.enabledNodeTypes) ? validation.enabledNodeTypes : []))].sort();
+  const enabledMarks = [...new Set(validations.flatMap(validation =>
+    Array.isArray(validation.enabledMarks) ? validation.enabledMarks : []))].sort();
+  const { nodeCounts, nodes, hyperlinks, tableRepresentations, findings } =
+    richTextInventory(firstPublication.editorialBody);
+  const implicitNodeTypes = new Set(['document', 'text']);
+  const unsupportedNodes = nodes.filter(node =>
+    !implicitNodeTypes.has(node.nodeType) && !enabledNodeTypes.includes(node.nodeType));
+  const unsupportedMarks = nodes.flatMap(node => node.marks.flatMap((markType, index) =>
+      enabledMarks.includes(markType) ? [] : [{
+        path: `${node.path}.marks[${index}]`,
+        markType
+      }]));
+  const requiredFields = (contentType.fields || []).filter(field => field.required).map(field => ({
+    id: field.id,
+    present: Object.prototype.hasOwnProperty.call(entry.fields || {}, field.id)
+  }));
+  const missingRequiredFields = requiredFields.filter(field => !field.present);
+  const schemaSummary = {
+    contentType: contentType.sys?.id,
+    contentTypeVersion: contentType.sys?.version,
+    fields: (contentType.fields || []).map(field => ({
+      id: field.id,
+      type: field.type,
+      required: field.required,
+      localized: field.localized,
+      validations: field.validations || []
+    })),
+    editorialBody: editorialField ? {
+      type: editorialField.type,
+      required: editorialField.required,
+      localized: editorialField.localized,
+      validations,
+      enabledNodeTypes,
+      enabledMarks
+    } : null
+  };
+  const findingsSummary = findings.map(finding => ({
+    path: finding.path,
+    reason: finding.reason
+  }));
+  process.stdout.write(`${JSON.stringify({
+    status: 'SCHEMA_INVESTIGATION_COMPLETE',
+    contentType: schemaSummary,
+    firstPublication: firstPublication.publicationId,
+    entryContentTypeMatches: entry.sys?.contentType?.sys?.id === contentType.sys?.id,
+    requiredFields,
+    missingRequiredFields,
+    generatedPayload: {
+      nodeCounts: Object.fromEntries([...nodeCounts].sort(([a], [b]) => a.localeCompare(b))),
+      unsupportedNodes,
+      unsupportedMarks,
+      hyperlinks,
+      tableRepresentations,
+      findings: findingsSummary
+    },
+    compatibility: unsupportedNodes.length || unsupportedMarks.length || findingsSummary.length ||
+      missingRequiredFields.length || editorialField?.type !== 'RichText' ||
+      entry.sys?.contentType?.sys?.id !== contentType.sys?.id ? 'INCOMPATIBLE' : 'COMPATIBLE'
+  }, null, 2)}\n`);
+}
+
 async function loadSupabaseState(approved) {
   const idFilter = `in.(${approved.map(item => item.supabaseRecordId).join(',')})`;
   // CL-03C: bounded read-only RPC. Never grant direct identity-table access.
@@ -317,6 +456,15 @@ async function main() {
       sourceTables: item.tableCount, canonicalRoute: item.contentfulCanonicalRoute,
       editorialBodySha256: item.editorialBodySha256
     })) }, null, 2)}\n`);
+    return;
+  }
+
+  if (process.argv.includes('--schema-inspect')) {
+    requireContentfulConfiguration();
+    const firstPublication = approved.find(item =>
+      item.publicationId === expectedPublicationIds[0]);
+    if (!firstPublication) throw new Error('First approved CL-03C publication is missing.');
+    await inspectContentfulSchema(firstPublication);
     return;
   }
 
