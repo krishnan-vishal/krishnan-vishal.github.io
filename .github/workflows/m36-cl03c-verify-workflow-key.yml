@@ -1,0 +1,58 @@
+name: M36 CL-03C verify workflow Supabase key
+
+on:
+  push:
+    branches:
+      - fix/cl03c-preflight-20261020
+    paths:
+      - .github/workflows/m36-cl03c-verify-workflow-key.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify-workflow-key:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: contentful-production
+    env:
+      GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+      SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
+    steps:
+      - name: Verify service-role authentication without exposing the key
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const token = process.env.GPIR_SUPABASE_SECRET_KEY;
+          const projectUrl = new URL(process.env.SUPABASE_URL);
+          if (!token || projectUrl.hostname !== 'qlnvhfapctcpzqyuhhth.supabase.co') {
+            process.stdout.write('CL-03C workflow-key verification: FAIL\n');
+            process.exit(1);
+          }
+
+          const response = await fetch(
+            `${projectUrl.origin}/auth/v1/admin/users?page=1&per_page=1`,
+            {
+              method: 'GET',
+              redirect: 'error',
+              signal: AbortSignal.timeout(15000),
+              headers: {
+                apikey: token,
+                authorization: `Bearer ${token}`,
+                accept: 'application/json'
+              }
+            }
+          );
+          await response.body?.cancel();
+
+          if (response.status !== 200) {
+            process.stdout.write(
+              `CL-03C workflow-key verification: FAIL (HTTP ${response.status})\n`
+            );
+            process.exit(1);
+          }
+
+          process.stdout.write(
+            'CL-03C workflow-key verification: PASS (intended project; effective role service_role)\n'
+          );
+          NODE
