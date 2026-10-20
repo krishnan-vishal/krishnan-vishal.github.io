@@ -252,7 +252,7 @@ async function loadSupabaseState(approved) {
       throw new Error(`${item.publicationId} Supabase governed identity is not active and collision-free.`);
   }
   const policiesQuery = new URLSearchParams({
-    select: 'supabase_record_id,publication_id,access_class,status,classification_source,review_state,premium_plan_id',
+    select: 'supabase_record_id,publication_id,access_class,status,classification_source,review_state',
     supabase_record_id: idFilter
   });
   const policies = await supabaseRequest('GET', `/rest/v1/gpir_publication_access_policies?${policiesQuery}`);
@@ -361,15 +361,14 @@ async function main() {
     const policy = initialSupabaseState.policies.find(candidate =>
       candidate.supabase_record_id === item.supabaseRecordId);
     return !policy || policy.access_class !== 'PUBLIC' || policy.status !== 'ACTIVE' ||
-      policy.review_state !== 'EVIDENCED' || policy.premium_plan_id !== null;
+      policy.review_state !== 'EVIDENCED';
   }).map(item => ({
     supabase_record_id: item.supabaseRecordId,
     publication_id: item.publicationId,
     access_class: 'PUBLIC',
     status: 'ACTIVE',
     classification_source: 'M36_CL03C_OWNER_APPROVAL',
-    review_state: 'EVIDENCED',
-    premium_plan_id: null
+    review_state: 'EVIDENCED'
   }));
   if (policiesToWrite.length) {
     await supabaseRequest('POST',
@@ -380,7 +379,7 @@ async function main() {
   for (const item of approved) {
     const policy = finalState.policies.find(candidate => candidate.supabase_record_id === item.supabaseRecordId);
     if (!policy || policy.publication_id !== item.publicationId || policy.access_class !== 'PUBLIC' ||
-      policy.status !== 'ACTIVE' || policy.review_state !== 'EVIDENCED' || policy.premium_plan_id !== null)
+      policy.status !== 'ACTIVE' || policy.review_state !== 'EVIDENCED')
       throw new Error(`${item.publicationId} PUBLIC classification readback failed.`);
   }
 
