@@ -1,6 +1,11 @@
 name: M36 CL-03C read-only canonical route readback
 
 on:
+  push:
+    branches:
+      - m36-cl03c-canonical-route-reconciliation
+    paths:
+      - .github/workflows/m36-cl03c-route-readback.yml
   workflow_dispatch:
     inputs:
       confirmation:
