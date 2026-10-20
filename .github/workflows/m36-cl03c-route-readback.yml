@@ -33,7 +33,8 @@ jobs:
       - name: Read the five canonical route fields
         shell: bash
         run: |
-          if [[ "${OWNER_CONFIRMATION}" != "M36-CL-03C-READ-ONLY" ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" &&
+            "${OWNER_CONFIRMATION}" != "M36-CL-03C-READ-ONLY" ]]; then
             echo "::error::Read-only confirmation did not match."
             exit 1
           fi
