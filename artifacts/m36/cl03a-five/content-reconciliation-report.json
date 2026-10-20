@@ -1,0 +1,606 @@
+{
+  "schemaVersion": "M36-CL-03B-1.0",
+  "milestone": "M36-CL-03B",
+  "status": "OWNER_PREVIEWS_RECONCILED_AWAITING_APPROVAL",
+  "sourceBaseline": "artifacts/m36/cl03a-five/_cl03a-baseline/owner-review-summary.json",
+  "sourceMappings": "artifacts/m36/cl03-scaleout/content-module-mappings.json",
+  "presentationProtocol": {
+    "publicationTitle": "Calibri Light 16px",
+    "sectionHeadings": "Calibri Light 14px",
+    "subheadings": "Calibri Light 14px",
+    "body": "Arial Regular 12px",
+    "paragraphAlignment": "JUSTIFIED_WITH_NORMAL_FINAL_LINE",
+    "paragraphSpacingPx": 0,
+    "lineHeight": 1.2,
+    "consecutiveHeadingSpacingPx": 2,
+    "statistics": "COMPACT_FULL_WIDTH_VERTICAL_BOXES",
+    "hero": "COMPACT"
+  },
+  "visualNormalizationStatus": "PASS",
+  "publications": [
+    {
+      "priority": 1,
+      "publicationId": "VK-GPIR-P-000000000003-4",
+      "lineageId": "VK-GPIR-L-000000000003-4",
+      "supabaseRecordId": "ef992d9e-f2a6-4f65-94d2-ebec897c1339",
+      "contentfulEntryId": "7FBD5IpsZutLF63MKuOntS",
+      "contentfulVersion": 2,
+      "contentfulPublishedVersion": 1,
+      "title": "Global Legalized Betting, Gambling, Lottery & Wagering Payments | GPIR Research | FINTECHOISIS",
+      "moduleCount": 5,
+      "moduleReadback": "5/5",
+      "existingCanonicalRoute": "/pages/chapters/betting-payments.html",
+      "canonicalUrl": "https://fintechoisis.com/pages/chapters/betting-payments.html",
+      "dashboardStatus": "NONE_PRESERVED",
+      "proposedAccessClassification": "PUBLIC_LEGACY_ROUTE_EVIDENCE_OWNER_CONFIRMATION_REQUIRED",
+      "currentAccessClassificationChanged": false,
+      "contentfulState": "PUBLISHED_CURRENT",
+      "currentRevisionIsDraft": false,
+      "sourceProvenance": "Source: pages/chapters/betting-payments.html; SHA-256: f500c456acf4b534f42224a5c1ad5669f7ae395b3eda837b3b412b5c3741fac0; Validation: WARN; Warnings: IDENTITY_DERIVED, STRUCTURED_REVIEW_REQUIRED; Structured candidates requiring review: 3/3",
+      "contentAssessment": {
+        "status": "COMPLETE_FROM_LEGACY_CANONICAL_HTML",
+        "mappedModuleCount": 5,
+        "expectedModuleCount": 5,
+        "missingModuleHeadings": [],
+        "emptyModules": [],
+        "sourceTableCount": 3,
+        "previewTableCount": 3,
+        "disclaimer": {
+          "state": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED"
+        },
+        "blockers": []
+      },
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl03a-five\\VK-GPIR-P-000000000003-4\\index.html",
+      "externalWrites": 0,
+      "contentReconciliation": {
+        "sourcePath": "pages/chapters/betting-payments.html",
+        "sourceSha256": "f500c456acf4b534f42224a5c1ad5669f7ae395b3eda837b3b412b5c3741fac0",
+        "before": {
+          "mappedModules": 5,
+          "expectedModules": 5,
+          "emptyModules": [],
+          "representedTableCount": 0,
+          "disclaimerState": "RECONCILIATION_REQUIRED"
+        },
+        "after": {
+          "restoredModules": 5,
+          "expectedModules": 5,
+          "emptyModules": [],
+          "tableCount": 3,
+          "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+          "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+          "unresolvedSections": []
+        },
+        "modules": [
+          {
+            "moduleNumber": "01",
+            "title": "Executive Summary",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "02",
+            "title": "9.1 Market Size",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "03",
+            "title": "9.3 Segments & Operators",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "04",
+            "title": "9.8—9.10 AML, KYC & Regulation",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "05",
+            "title": "9.13 Chapter Conclusion",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "priority": 2,
+      "publicationId": "VK-GPIR-P-000000000004-2",
+      "lineageId": "VK-GPIR-L-000000000004-2",
+      "supabaseRecordId": "1871bb85-709e-42bd-9cfd-f26e4688a7b7",
+      "contentfulEntryId": "2DHHp4k0GbZXcYvCFLoCPw",
+      "contentfulVersion": 2,
+      "contentfulPublishedVersion": 1,
+      "title": "Global Cross-Border Bill Payments & Family Financial Services | GPIR Research | FINTECHOISIS",
+      "moduleCount": 5,
+      "moduleReadback": "5/5",
+      "existingCanonicalRoute": "/pages/chapters/bill-payments.html",
+      "canonicalUrl": "https://fintechoisis.com/pages/chapters/bill-payments.html",
+      "dashboardStatus": "NONE_PRESERVED",
+      "proposedAccessClassification": "PUBLIC_LEGACY_ROUTE_EVIDENCE_OWNER_CONFIRMATION_REQUIRED",
+      "currentAccessClassificationChanged": false,
+      "contentfulState": "PUBLISHED_CURRENT",
+      "currentRevisionIsDraft": false,
+      "sourceProvenance": "Source: pages/chapters/bill-payments.html; SHA-256: 95ed52658abbf1a7202083ba091d905ac8ed1ca58432dfada2fb6486222ec849; Validation: WARN; Warnings: IDENTITY_DERIVED, STRUCTURED_REVIEW_REQUIRED; Structured candidates requiring review: 3/3",
+      "contentAssessment": {
+        "status": "COMPLETE_FROM_LEGACY_CANONICAL_HTML",
+        "mappedModuleCount": 5,
+        "expectedModuleCount": 5,
+        "missingModuleHeadings": [],
+        "emptyModules": [],
+        "sourceTableCount": 3,
+        "previewTableCount": 3,
+        "disclaimer": {
+          "state": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED"
+        },
+        "blockers": []
+      },
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl03a-five\\VK-GPIR-P-000000000004-2\\index.html",
+      "externalWrites": 0,
+      "contentReconciliation": {
+        "sourcePath": "pages/chapters/bill-payments.html",
+        "sourceSha256": "95ed52658abbf1a7202083ba091d905ac8ed1ca58432dfada2fb6486222ec849",
+        "before": {
+          "mappedModules": 5,
+          "expectedModules": 5,
+          "emptyModules": [
+            "6.3—6.10 Telecom, Utilities, Rent, Insurance & Subscriptions",
+            "6.12 AML & Fraud Framework"
+          ],
+          "representedTableCount": 0,
+          "disclaimerState": "RECONCILIATION_REQUIRED"
+        },
+        "after": {
+          "restoredModules": 5,
+          "expectedModules": 5,
+          "emptyModules": [],
+          "tableCount": 3,
+          "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+          "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+          "unresolvedSections": []
+        },
+        "modules": [
+          {
+            "moduleNumber": "01",
+            "title": "Executive Summary",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "02",
+            "title": "6.2 Family Maintenance Payments",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "03",
+            "title": "6.3—6.10 Telecom, Utilities, Rent, Insurance & Subscriptions",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "04",
+            "title": "6.12 AML & Fraud Framework",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "05",
+            "title": "6.18 Chapter Conclusion",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "priority": 3,
+      "publicationId": "VK-GPIR-P-000000000008-3",
+      "lineageId": "VK-GPIR-L-000000000008-3",
+      "supabaseRecordId": "2abed19a-3144-460d-a311-82f2ad9bad2f",
+      "contentfulEntryId": "6e0k5jOAGiEjj1iBKcNtVz",
+      "contentfulVersion": 2,
+      "contentfulPublishedVersion": 1,
+      "title": "Global Gaming Payments Industry | GPIR Research | FINTECHOISIS",
+      "moduleCount": 6,
+      "moduleReadback": "6/6",
+      "existingCanonicalRoute": "/pages/chapters/gaming-payments.html",
+      "canonicalUrl": "https://fintechoisis.com/pages/chapters/gaming-payments.html",
+      "dashboardStatus": "NONE_PRESERVED",
+      "proposedAccessClassification": "PUBLIC_LEGACY_ROUTE_EVIDENCE_OWNER_CONFIRMATION_REQUIRED",
+      "currentAccessClassificationChanged": false,
+      "contentfulState": "PUBLISHED_CURRENT",
+      "currentRevisionIsDraft": false,
+      "sourceProvenance": "Source: pages/chapters/gaming-payments.html; SHA-256: 5c48cf420cb7a81e2fe4f76b1c6dcf1ba9f4e1283c2d7619104e40bb266d71d3; Validation: WARN; Warnings: IDENTITY_DERIVED, STRUCTURED_REVIEW_REQUIRED; Structured candidates requiring review: 2/2",
+      "contentAssessment": {
+        "status": "COMPLETE_FROM_LEGACY_CANONICAL_HTML",
+        "mappedModuleCount": 6,
+        "expectedModuleCount": 6,
+        "missingModuleHeadings": [],
+        "emptyModules": [],
+        "sourceTableCount": 2,
+        "previewTableCount": 2,
+        "disclaimer": {
+          "state": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED"
+        },
+        "blockers": []
+      },
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl03a-five\\VK-GPIR-P-000000000008-3\\index.html",
+      "externalWrites": 0,
+      "contentReconciliation": {
+        "sourcePath": "pages/chapters/gaming-payments.html",
+        "sourceSha256": "5c48cf420cb7a81e2fe4f76b1c6dcf1ba9f4e1283c2d7619104e40bb266d71d3",
+        "before": {
+          "mappedModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [],
+          "representedTableCount": 0,
+          "disclaimerState": "RECONCILIATION_REQUIRED"
+        },
+        "after": {
+          "restoredModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [],
+          "tableCount": 2,
+          "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+          "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+          "unresolvedSections": []
+        },
+        "modules": [
+          {
+            "moduleNumber": "01",
+            "title": "Industry Definition",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "02",
+            "title": "8.1 Market Size",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "03",
+            "title": "8.3—8.4 Segments & Virtual Currencies",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "04",
+            "title": "8.5—8.6 Esports & Streaming Payments",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "05",
+            "title": "8.9 AML & Regulatory Considerations",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "06",
+            "title": "8.14 Chapter Conclusion",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "priority": 4,
+      "publicationId": "VK-GPIR-P-000000000009-1",
+      "lineageId": "VK-GPIR-L-000000000009-1",
+      "supabaseRecordId": "754e2bcc-43f4-48de-8b7b-7d1f5da4c64a",
+      "contentfulEntryId": "2l3AdU2yAK87mANrSwZiej",
+      "contentfulVersion": 2,
+      "contentfulPublishedVersion": 1,
+      "title": "Global Gig Economy, Freelancer & Creator Payments Industry | GPIR Research | FINTECHOISIS",
+      "moduleCount": 6,
+      "moduleReadback": "6/6",
+      "existingCanonicalRoute": "/pages/chapters/gig-economy-creator-payments.html",
+      "canonicalUrl": "https://fintechoisis.com/pages/chapters/gig-economy-creator-payments.html",
+      "dashboardStatus": "NONE_PRESERVED",
+      "proposedAccessClassification": "PUBLIC_LEGACY_ROUTE_EVIDENCE_OWNER_CONFIRMATION_REQUIRED",
+      "currentAccessClassificationChanged": false,
+      "contentfulState": "PUBLISHED_CURRENT",
+      "currentRevisionIsDraft": false,
+      "sourceProvenance": "Source: pages/chapters/gig-economy-creator-payments.html; SHA-256: d03c3bccfbd705010cfabea7463e4c5b2e3f2ed87bf97bc3c1551a9d248d1e5b; Validation: WARN; Warnings: IDENTITY_DERIVED, STRUCTURED_REVIEW_REQUIRED; Structured candidates requiring review: 2/2",
+      "contentAssessment": {
+        "status": "COMPLETE_FROM_LEGACY_CANONICAL_HTML",
+        "mappedModuleCount": 6,
+        "expectedModuleCount": 6,
+        "missingModuleHeadings": [],
+        "emptyModules": [],
+        "sourceTableCount": 2,
+        "previewTableCount": 2,
+        "disclaimer": {
+          "state": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED"
+        },
+        "blockers": []
+      },
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl03a-five\\VK-GPIR-P-000000000009-1\\index.html",
+      "externalWrites": 0,
+      "contentReconciliation": {
+        "sourcePath": "pages/chapters/gig-economy-creator-payments.html",
+        "sourceSha256": "d03c3bccfbd705010cfabea7463e4c5b2e3f2ed87bf97bc3c1551a9d248d1e5b",
+        "before": {
+          "mappedModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [
+            "5.4—5.8 Freelance, Creator & EOR Ecosystem"
+          ],
+          "representedTableCount": 0,
+          "disclaimerState": "RECONCILIATION_REQUIRED"
+        },
+        "after": {
+          "restoredModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [],
+          "tableCount": 2,
+          "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+          "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+          "unresolvedSections": []
+        },
+        "modules": [
+          {
+            "moduleNumber": "01",
+            "title": "Executive Summary",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "02",
+            "title": "5.2 Market Size",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "03",
+            "title": "5.4—5.8 Freelance, Creator & EOR Ecosystem",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "04",
+            "title": "5.9 Top Corridors",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "05",
+            "title": "5.11—5.12 AML & Taxation",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "06",
+            "title": "5.27 Chapter Conclusion",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          }
+        ]
+      }
+    },
+    {
+      "priority": 5,
+      "publicationId": "VK-GPIR-P-000000000011-7",
+      "lineageId": "VK-GPIR-L-000000000011-7",
+      "supabaseRecordId": "1404ef1b-33f5-4b1f-98f0-c7535f71f3c9",
+      "contentfulEntryId": "2XfDk3XcUCUtUzSQnx1f8l",
+      "contentfulVersion": 2,
+      "contentfulPublishedVersion": 1,
+      "title": "Global Healthcare, Medical Tourism & Cross-Border Health Payments | GPIR Research | FINTECHOISIS",
+      "moduleCount": 6,
+      "moduleReadback": "6/6",
+      "existingCanonicalRoute": "/pages/chapters/healthcare-payments.html",
+      "canonicalUrl": "https://fintechoisis.com/pages/chapters/healthcare-payments.html",
+      "dashboardStatus": "NONE_PRESERVED",
+      "proposedAccessClassification": "PUBLIC_LEGACY_ROUTE_EVIDENCE_OWNER_CONFIRMATION_REQUIRED",
+      "currentAccessClassificationChanged": false,
+      "contentfulState": "PUBLISHED_CURRENT",
+      "currentRevisionIsDraft": false,
+      "sourceProvenance": "Source: pages/chapters/healthcare-payments.html; SHA-256: 2d255fa7ac2544d17dd6024f3eecbc6d20d0704f8806c52349ab5c8de4bff7f9; Validation: WARN; Warnings: IDENTITY_DERIVED, STRUCTURED_REVIEW_REQUIRED; Structured candidates requiring review: 2/2",
+      "contentAssessment": {
+        "status": "COMPLETE_FROM_LEGACY_CANONICAL_HTML",
+        "mappedModuleCount": 6,
+        "expectedModuleCount": 6,
+        "missingModuleHeadings": [],
+        "emptyModules": [],
+        "sourceTableCount": 2,
+        "previewTableCount": 2,
+        "disclaimer": {
+          "state": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED"
+        },
+        "blockers": []
+      },
+      "previewPath": "C:\\Development\\GPIR\\krishnan-vishal.github.io\\artifacts\\m36\\cl03a-five\\VK-GPIR-P-000000000011-7\\index.html",
+      "externalWrites": 0,
+      "contentReconciliation": {
+        "sourcePath": "pages/chapters/healthcare-payments.html",
+        "sourceSha256": "2d255fa7ac2544d17dd6024f3eecbc6d20d0704f8806c52349ab5c8de4bff7f9",
+        "before": {
+          "mappedModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [],
+          "representedTableCount": 0,
+          "disclaimerState": "RECONCILIATION_REQUIRED"
+        },
+        "after": {
+          "restoredModules": 6,
+          "expectedModules": 6,
+          "emptyModules": [],
+          "tableCount": 2,
+          "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+          "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+          "unresolvedSections": []
+        },
+        "modules": [
+          {
+            "moduleNumber": "01",
+            "title": "Executive Summary",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "02",
+            "title": "7.2 Market Size",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "03",
+            "title": "7.5—7.6 Medical Tourism Destinations & Corridors",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 1
+          },
+          {
+            "moduleNumber": "04",
+            "title": "7.8—7.10 Insurance, TPAs & Telemedicine",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "05",
+            "title": "7.13—7.14 AML & Fraud",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          },
+          {
+            "moduleNumber": "06",
+            "title": "7.20—7.21 Outlook & Conclusion",
+            "status": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+            "tableCount": 0
+          }
+        ]
+      }
+    }
+  ],
+  "unresolvedSections": [],
+  "beforeAfterSummary": [
+    {
+      "publicationId": "VK-GPIR-P-000000000003-4",
+      "before": {
+        "mappedModules": 5,
+        "expectedModules": 5,
+        "emptyModules": [],
+        "representedTableCount": 0,
+        "disclaimerState": "RECONCILIATION_REQUIRED"
+      },
+      "after": {
+        "restoredModules": 5,
+        "expectedModules": 5,
+        "emptyModules": [],
+        "tableCount": 3,
+        "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+        "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+        "unresolvedSections": []
+      }
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000004-2",
+      "before": {
+        "mappedModules": 5,
+        "expectedModules": 5,
+        "emptyModules": [
+          "6.3—6.10 Telecom, Utilities, Rent, Insurance & Subscriptions",
+          "6.12 AML & Fraud Framework"
+        ],
+        "representedTableCount": 0,
+        "disclaimerState": "RECONCILIATION_REQUIRED"
+      },
+      "after": {
+        "restoredModules": 5,
+        "expectedModules": 5,
+        "emptyModules": [],
+        "tableCount": 3,
+        "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+        "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+        "unresolvedSections": []
+      }
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000008-3",
+      "before": {
+        "mappedModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [],
+        "representedTableCount": 0,
+        "disclaimerState": "RECONCILIATION_REQUIRED"
+      },
+      "after": {
+        "restoredModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [],
+        "tableCount": 2,
+        "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+        "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+        "unresolvedSections": []
+      }
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000009-1",
+      "before": {
+        "mappedModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [
+          "5.4—5.8 Freelance, Creator & EOR Ecosystem"
+        ],
+        "representedTableCount": 0,
+        "disclaimerState": "RECONCILIATION_REQUIRED"
+      },
+      "after": {
+        "restoredModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [],
+        "tableCount": 2,
+        "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+        "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+        "unresolvedSections": []
+      }
+    },
+    {
+      "publicationId": "VK-GPIR-P-000000000011-7",
+      "before": {
+        "mappedModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [],
+        "representedTableCount": 0,
+        "disclaimerState": "RECONCILIATION_REQUIRED"
+      },
+      "after": {
+        "restoredModules": 6,
+        "expectedModules": 6,
+        "emptyModules": [],
+        "tableCount": 2,
+        "sourceMethodology": "RESTORED_FROM_LEGACY_CANONICAL_HTML",
+        "disclaimer": "EXISTING_CANONICAL_DISCLAIMER_LINK_RESTORED",
+        "unresolvedSections": []
+      }
+    }
+  ],
+  "sourceAndDisclaimerRestoration": {
+    "sourcesMethodology": "PASS",
+    "disclaimerReferences": "PASS",
+    "disclaimerPolicy": "Existing canonical disclaimer links restored; no new legal language authored."
+  },
+  "mutationGuard": {
+    "contentfulWrites": 0,
+    "contentfulPublishes": 0,
+    "contentfulUnpublishes": 0,
+    "supabaseWrites": 0,
+    "identityChanges": 0,
+    "canonicalRouteChanges": 0,
+    "productionDeployments": 0,
+    "livePublications34And35Changed": 0
+  },
+  "remainingOwnerDecisions": [
+    "Approve the five locally reconciled legacy-source representations.",
+    "Approve the compact GPIR typography, spacing and vertically stacked metadata/statistics protocol.",
+    "Confirm the proposed access classification for each publication.",
+    "Confirm that restoration of the existing canonical disclaimer link is sufficient, or request a separately governed legal-text embed.",
+    "Separately authorize any future Contentful change because all five entries remain PUBLISHED_CURRENT."
+  ],
+  "nextGate": "OWNER_APPROVAL_OF_CL03B_RECONCILED_PREVIEWS_BEFORE_SEPARATELY_AUTHORIZED_CONTENTFUL_CHANGE"
+}

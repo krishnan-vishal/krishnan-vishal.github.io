@@ -1,0 +1,409 @@
+{
+  "schemaVersion": "M36-CL-03-SCALEOUT-1.0",
+  "renderer": "scripts/m35/contentful-publication-renderer.js",
+  "model": "scripts/m35/research-publication-model.js",
+  "mappingContract": {
+    "sourceModule": ".chapter-content > section[id] beginning with h2",
+    "destination": "presentation.researchModules[]",
+    "title": "source h2 text, unchanged",
+    "order": "source document order",
+    "body": "existing Contentful editorialBody nodes within the module boundary",
+    "dashboards": "separate reviewed association; never inferred from topic similarity"
+  },
+  "publications": {
+    "VK-GPIR-P-000000000003-4": {
+      "sourcePath": "pages/chapters/betting-payments.html",
+      "contentfulEntryId": "7FBD5IpsZutLF63MKuOntS",
+      "modules": [
+        {
+          "moduleNumber": "01",
+          "title": "Executive Summary",
+          "source": {
+            "selector": "#exec-summary",
+            "heading": "Executive Summary"
+          },
+          "destination": {
+            "presentationPath": "researchModules[0]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "02",
+          "title": "9.1 Market Size",
+          "source": {
+            "selector": "#market-size",
+            "heading": "9.1 Market Size"
+          },
+          "destination": {
+            "presentationPath": "researchModules[1]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "03",
+          "title": "9.3 Segments & Operators",
+          "source": {
+            "selector": "#segments",
+            "heading": "9.3 Segments & Operators"
+          },
+          "destination": {
+            "presentationPath": "researchModules[2]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "04",
+          "title": "9.8—9.10 AML, KYC & Regulation",
+          "source": {
+            "selector": "#regulatory",
+            "heading": "9.8—9.10 AML, KYC & Regulation"
+          },
+          "destination": {
+            "presentationPath": "researchModules[3]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "05",
+          "title": "9.13 Chapter Conclusion",
+          "source": {
+            "selector": "#outlook",
+            "heading": "9.13 Chapter Conclusion"
+          },
+          "destination": {
+            "presentationPath": "researchModules[4]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        }
+      ]
+    },
+    "VK-GPIR-P-000000000004-2": {
+      "sourcePath": "pages/chapters/bill-payments.html",
+      "contentfulEntryId": "2DHHp4k0GbZXcYvCFLoCPw",
+      "modules": [
+        {
+          "moduleNumber": "01",
+          "title": "Executive Summary",
+          "source": {
+            "selector": "#exec-summary",
+            "heading": "Executive Summary"
+          },
+          "destination": {
+            "presentationPath": "researchModules[0]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "02",
+          "title": "6.2 Family Maintenance Payments",
+          "source": {
+            "selector": "#family-maintenance",
+            "heading": "6.2 Family Maintenance Payments"
+          },
+          "destination": {
+            "presentationPath": "researchModules[1]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "03",
+          "title": "6.3—6.10 Telecom, Utilities, Rent, Insurance & Subscriptions",
+          "source": {
+            "selector": "#segments",
+            "heading": "6.3—6.10 Telecom, Utilities, Rent, Insurance & Subscriptions"
+          },
+          "destination": {
+            "presentationPath": "researchModules[2]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "04",
+          "title": "6.12 AML & Fraud Framework",
+          "source": {
+            "selector": "#regulatory",
+            "heading": "6.12 AML & Fraud Framework"
+          },
+          "destination": {
+            "presentationPath": "researchModules[3]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "05",
+          "title": "6.18 Chapter Conclusion",
+          "source": {
+            "selector": "#outlook",
+            "heading": "6.18 Chapter Conclusion"
+          },
+          "destination": {
+            "presentationPath": "researchModules[4]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        }
+      ]
+    },
+    "VK-GPIR-P-000000000008-3": {
+      "sourcePath": "pages/chapters/gaming-payments.html",
+      "contentfulEntryId": "6e0k5jOAGiEjj1iBKcNtVz",
+      "modules": [
+        {
+          "moduleNumber": "01",
+          "title": "Industry Definition",
+          "source": {
+            "selector": "#exec-summary",
+            "heading": "Industry Definition"
+          },
+          "destination": {
+            "presentationPath": "researchModules[0]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "02",
+          "title": "8.1 Market Size",
+          "source": {
+            "selector": "#market-size",
+            "heading": "8.1 Market Size"
+          },
+          "destination": {
+            "presentationPath": "researchModules[1]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "03",
+          "title": "8.3—8.4 Segments & Virtual Currencies",
+          "source": {
+            "selector": "#segments",
+            "heading": "8.3—8.4 Segments & Virtual Currencies"
+          },
+          "destination": {
+            "presentationPath": "researchModules[2]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "04",
+          "title": "8.5—8.6 Esports & Streaming Payments",
+          "source": {
+            "selector": "#esports-creator",
+            "heading": "8.5—8.6 Esports & Streaming Payments"
+          },
+          "destination": {
+            "presentationPath": "researchModules[3]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "05",
+          "title": "8.9 AML & Regulatory Considerations",
+          "source": {
+            "selector": "#regulatory",
+            "heading": "8.9 AML & Regulatory Considerations"
+          },
+          "destination": {
+            "presentationPath": "researchModules[4]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "06",
+          "title": "8.14 Chapter Conclusion",
+          "source": {
+            "selector": "#outlook",
+            "heading": "8.14 Chapter Conclusion"
+          },
+          "destination": {
+            "presentationPath": "researchModules[5]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        }
+      ]
+    },
+    "VK-GPIR-P-000000000009-1": {
+      "sourcePath": "pages/chapters/gig-economy-creator-payments.html",
+      "contentfulEntryId": "2l3AdU2yAK87mANrSwZiej",
+      "modules": [
+        {
+          "moduleNumber": "01",
+          "title": "Executive Summary",
+          "source": {
+            "selector": "#exec-summary",
+            "heading": "Executive Summary"
+          },
+          "destination": {
+            "presentationPath": "researchModules[0]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "02",
+          "title": "5.2 Market Size",
+          "source": {
+            "selector": "#market-size",
+            "heading": "5.2 Market Size"
+          },
+          "destination": {
+            "presentationPath": "researchModules[1]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "03",
+          "title": "5.4—5.8 Freelance, Creator & EOR Ecosystem",
+          "source": {
+            "selector": "#ecosystem",
+            "heading": "5.4—5.8 Freelance, Creator & EOR Ecosystem"
+          },
+          "destination": {
+            "presentationPath": "researchModules[2]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "04",
+          "title": "5.9 Top Corridors",
+          "source": {
+            "selector": "#corridors",
+            "heading": "5.9 Top Corridors"
+          },
+          "destination": {
+            "presentationPath": "researchModules[3]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "05",
+          "title": "5.11—5.12 AML & Taxation",
+          "source": {
+            "selector": "#regulatory",
+            "heading": "5.11—5.12 AML & Taxation"
+          },
+          "destination": {
+            "presentationPath": "researchModules[4]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "06",
+          "title": "5.27 Chapter Conclusion",
+          "source": {
+            "selector": "#outlook",
+            "heading": "5.27 Chapter Conclusion"
+          },
+          "destination": {
+            "presentationPath": "researchModules[5]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        }
+      ]
+    },
+    "VK-GPIR-P-000000000011-7": {
+      "sourcePath": "pages/chapters/healthcare-payments.html",
+      "contentfulEntryId": "2XfDk3XcUCUtUzSQnx1f8l",
+      "modules": [
+        {
+          "moduleNumber": "01",
+          "title": "Executive Summary",
+          "source": {
+            "selector": "#exec-summary",
+            "heading": "Executive Summary"
+          },
+          "destination": {
+            "presentationPath": "researchModules[0]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "02",
+          "title": "7.2 Market Size",
+          "source": {
+            "selector": "#market-size",
+            "heading": "7.2 Market Size"
+          },
+          "destination": {
+            "presentationPath": "researchModules[1]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "03",
+          "title": "7.5—7.6 Medical Tourism Destinations & Corridors",
+          "source": {
+            "selector": "#tourism",
+            "heading": "7.5—7.6 Medical Tourism Destinations & Corridors"
+          },
+          "destination": {
+            "presentationPath": "researchModules[2]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "04",
+          "title": "7.8—7.10 Insurance, TPAs & Telemedicine",
+          "source": {
+            "selector": "#ecosystem",
+            "heading": "7.8—7.10 Insurance, TPAs & Telemedicine"
+          },
+          "destination": {
+            "presentationPath": "researchModules[3]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "05",
+          "title": "7.13—7.14 AML & Fraud",
+          "source": {
+            "selector": "#regulatory",
+            "heading": "7.13—7.14 AML & Fraud"
+          },
+          "destination": {
+            "presentationPath": "researchModules[4]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        },
+        {
+          "moduleNumber": "06",
+          "title": "7.20—7.21 Outlook & Conclusion",
+          "source": {
+            "selector": "#outlook",
+            "heading": "7.20—7.21 Outlook & Conclusion"
+          },
+          "destination": {
+            "presentationPath": "researchModules[5]",
+            "richTextBoundary": "heading-1 plus following nodes until next heading-1"
+          },
+          "mappingPolicy": "PRESERVE_AUTHORED_ORDER_AND_TEXT"
+        }
+      ]
+    }
+  }
+}
