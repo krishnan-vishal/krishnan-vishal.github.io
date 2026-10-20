@@ -20,6 +20,53 @@ const expectedPublicationIds = Object.freeze([
   'VK-GPIR-P-000000000009-1',
   'VK-GPIR-P-000000000011-7'
 ]);
+const approvedReleaseManifest = Object.freeze({
+  sourceRunId: '39423907702',
+  spaceId: 'zym0dk277ju5',
+  environment: 'master',
+  publications: Object.freeze([
+    Object.freeze({
+      publicationId: 'VK-GPIR-P-000000000003-4',
+      contentfulEntryId: '7FBD5IpsZutLF63MKuOntS',
+      canonicalRoute: '/global-legalized-betting-gambling-lottery-wagering-payments-gpir-research-fintechoisis/',
+      editorialBodySha256: '16b5a3c21d3e7acbc6b8b7f4e43ce7d851b5bf80d35eadf1d0bfe7bdc730fb14',
+      expectedDraftVersion: 3,
+      expectedPublishedVersion: 1
+    }),
+    Object.freeze({
+      publicationId: 'VK-GPIR-P-000000000004-2',
+      contentfulEntryId: '2DHHp4k0GbZXcYvCFLoCPw',
+      canonicalRoute: '/global-cross-border-bill-payments-family-financial-services-gpir-research-fintechoisis/',
+      editorialBodySha256: '2da335e3da0cac2e5ea6248183ff075fc0e79360d5f214e8b3d383d61ca871d5',
+      expectedDraftVersion: 3,
+      expectedPublishedVersion: 1
+    }),
+    Object.freeze({
+      publicationId: 'VK-GPIR-P-000000000008-3',
+      contentfulEntryId: '6e0k5jOAGiEjj1iBKcNtVz',
+      canonicalRoute: '/global-gaming-payments-industry-gpir-research-fintechoisis/',
+      editorialBodySha256: '41441deee7a4916450885acdb4f78ca1b677c3e870c5e30d3de06fa906a6fcf2',
+      expectedDraftVersion: 3,
+      expectedPublishedVersion: 1
+    }),
+    Object.freeze({
+      publicationId: 'VK-GPIR-P-000000000009-1',
+      contentfulEntryId: '2l3AdU2yAK87mANrSwZiej',
+      canonicalRoute: '/global-gig-economy-freelancer-creator-payments-industry-gpir-research-fintechoisis/',
+      editorialBodySha256: 'ce3858ef84cddede6a8b0662f3a92fbeb6f7eda599980ad9030b8e103149849b',
+      expectedDraftVersion: 3,
+      expectedPublishedVersion: 1
+    }),
+    Object.freeze({
+      publicationId: 'VK-GPIR-P-000000000011-7',
+      contentfulEntryId: '2XfDk3XcUCUtUzSQnx1f8l',
+      canonicalRoute: '/global-healthcare-medical-tourism-cross-border-health-payments-gpir-research-fintechoisis/',
+      editorialBodySha256: 'a60ea3114f7a038af71ca738af1fe01a8346e71489ef97f70458a74302c311b8',
+      expectedDraftVersion: 3,
+      expectedPublishedVersion: 1
+    })
+  ])
+});
 
 const env = process.env;
 let contentfulRoot = null;
@@ -35,10 +82,13 @@ function requireSecureConfiguration() {
 function requireContentfulConfiguration() {
   for (const name of ['CONTENTFUL_MANAGEMENT_TOKEN', 'CONTENTFUL_SPACE_ID',
     'CONTENTFUL_ENVIRONMENT']) {
-    if (!env[name]) throw new Error(`Missing approved secure configuration: ${name}`);
+    if (!env[name]?.trim()) throw new Error(`Missing approved secure configuration: ${name}`);
   }
-  contentfulRoot = `https://api.contentful.com/spaces/${encodeURIComponent(env.CONTENTFUL_SPACE_ID)}` +
-    `/environments/${encodeURIComponent(env.CONTENTFUL_ENVIRONMENT)}`;
+  const spaceId = env.CONTENTFUL_SPACE_ID.trim();
+  const environment = env.CONTENTFUL_ENVIRONMENT.trim();
+  contentfulRoot = `https://api.contentful.com/spaces/${encodeURIComponent(spaceId)}` +
+    `/environments/${encodeURIComponent(environment)}`;
+  return { spaceId, environment };
 }
 
 function sha256(value) {
@@ -208,6 +258,8 @@ async function requestJson(url, { method = 'GET', headers = {}, body = null } = 
   if (!response.ok) {
     if (response.status === 422 && new URL(url).hostname === 'api.contentful.com')
       throw new Error(formatContentfulValidationError(parsed));
+    if (new URL(url).hostname === 'api.contentful.com')
+      throw new Error(`api.contentful.com ${method} failed with HTTP ${response.status}.`);
     const message = parsed?.message || parsed?.error || response.statusText || 'request failed';
     throw new Error(`${new URL(url).hostname} ${method} failed with HTTP ${response.status}: ${message}`);
   }
@@ -259,6 +311,147 @@ function contentfulRequest(method, apiPath, body = null, headers = {}) {
     ...(body === null ? {} : { 'content-type': 'application/vnd.contentful.management.v1+json' }),
     ...headers
   } });
+}
+
+function validateReleasePackage(approved, manifest = approvedReleaseManifest,
+  config = { spaceId: manifest.spaceId, environment: manifest.environment }) {
+  if (config.spaceId !== manifest.spaceId || config.environment !== manifest.environment)
+    throw new Error('Contentful space or environment does not match the approved release manifest.');
+  if (!Array.isArray(approved) || approved.length !== manifest.publications.length ||
+    approved.length !== 5)
+    throw new Error('The approved release must contain exactly five prepared publications.');
+  for (let index = 0; index < manifest.publications.length; index += 1) {
+    const expected = manifest.publications[index];
+    const item = approved[index];
+    if (!item || item.publicationId !== expected.publicationId ||
+      item.contentfulEntryId !== expected.contentfulEntryId ||
+      item.contentfulCanonicalRoute !== expected.canonicalRoute ||
+      item.editorialBodySha256 !== expected.editorialBodySha256)
+      throw new Error(`Approved release package mismatch at publication ${index + 1}.`);
+  }
+  return true;
+}
+
+function releaseEntryIdentity(entry, expected, label, { verifyBody = false } = {}) {
+  if (entry?.sys?.id !== expected.contentfulEntryId ||
+    entry?.sys?.contentType?.sys?.id !== 'gpirPublication' ||
+    entry?.sys?.space?.sys?.id !== approvedReleaseManifest.spaceId ||
+    entry?.sys?.environment?.sys?.id !== approvedReleaseManifest.environment ||
+    entry?.sys?.archivedVersion !== undefined)
+    throw new Error(`${label} entry identity, content type, environment, or lifecycle state mismatch.`);
+  const fields = entry.fields || {};
+  if (scalar(fields.gpirPublicationId) !== expected.publicationId ||
+    scalar(fields.canonicalUrlCandidate) !== expected.canonicalRoute ||
+    fields.dashboardAsset !== undefined)
+    throw new Error(`${label} publication identity, canonical route, or dashboard state mismatch.`);
+  if (verifyBody) {
+    const editorialBody = scalar(fields.editorialBody);
+    if (!editorialBody || bodyHash(editorialBody) !== expected.editorialBodySha256)
+      throw new Error(`${label} editorial body checksum mismatch.`);
+  }
+}
+
+function writeReleaseReport(report) {
+  const reportPath = path.join(root, 'artifacts/m36/cl03c/contentful-release-report.json');
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+}
+
+async function publishApprovedContentfulEntries(approved, {
+  spaceId, environment, request = contentfulRequest, writeReport = writeReleaseReport
+} = {}) {
+  validateReleasePackage(approved, approvedReleaseManifest, { spaceId, environment });
+  const report = {
+    schemaVersion: 'M36-CL-03C-CONTENTFUL-RELEASE-1.0',
+    sourceSynchronizationRunId: approvedReleaseManifest.sourceRunId,
+    status: 'PREFLIGHT_PENDING',
+    spaceId,
+    environment,
+    publications: approvedReleaseManifest.publications.map(item => ({
+      publicationId: item.publicationId,
+      entryId: item.contentfulEntryId,
+      canonicalRoute: item.canonicalRoute,
+      editorialBodySha256: item.editorialBodySha256,
+      expectedDraftVersion: item.expectedDraftVersion,
+      expectedPublishedVersion: item.expectedPublishedVersion,
+      status: 'PREFLIGHT_PENDING'
+    })),
+    blockers: []
+  };
+  writeReport(report);
+
+  const entries = [];
+  try {
+    for (let index = 0; index < approvedReleaseManifest.publications.length; index += 1) {
+      const expected = approvedReleaseManifest.publications[index];
+      const current = await request('GET', `/entries/${encodeURIComponent(expected.contentfulEntryId)}`);
+      releaseEntryIdentity(current, expected, expected.publicationId, { verifyBody: true });
+      if (current.sys.version !== expected.expectedDraftVersion ||
+        current.sys.publishedVersion !== expected.expectedPublishedVersion ||
+        current.sys.publishedAt == null)
+        throw new Error(`${expected.publicationId} draft or preserved published version mismatch.`);
+
+      const collection = await request('GET',
+        `/entries?content_type=gpirPublication&fields.gpirPublicationId=` +
+        `${encodeURIComponent(expected.publicationId)}&limit=2`);
+      if (collection.total !== 1 || collection.items?.[0]?.sys?.id !== expected.contentfulEntryId)
+        throw new Error(`${expected.publicationId} does not resolve to exactly one approved entry.`);
+      report.publications[index].status = 'PREFLIGHT_PASS';
+      entries.push(expected);
+      writeReport(report);
+    }
+  } catch (error) {
+    report.status = 'PREFLIGHT_FAILED_NO_PUBLISH';
+    report.blockers.push(error.message);
+    writeReport(report);
+    throw error;
+  }
+
+  report.status = 'PREFLIGHT_PASS';
+  writeReport(report);
+  for (let index = 0; index < entries.length; index += 1) {
+    const expected = entries[index];
+    const result = report.publications[index];
+    let publishResponse;
+    try {
+      publishResponse = await request('PUT',
+        `/entries/${encodeURIComponent(expected.contentfulEntryId)}/published`, null,
+        { 'x-contentful-version': String(expected.expectedDraftVersion) });
+    } catch (error) {
+      result.status = 'PUBLISH_FAILED_OR_UNKNOWN';
+      report.status = 'PUBLISH_STOPPED';
+      report.blockers.push(`${expected.publicationId}: ${error.message}`);
+      writeReport(report);
+      throw error;
+    }
+
+    try {
+      const currentReadback = await request('GET',
+        `/entries/${encodeURIComponent(expected.contentfulEntryId)}`);
+      releaseEntryIdentity(currentReadback, expected, `${expected.publicationId} readback`,
+        { verifyBody: true });
+      if (publishResponse?.sys?.id !== expected.contentfulEntryId ||
+        publishResponse.sys.version !== expected.expectedDraftVersion + 1 ||
+        publishResponse.sys.publishedVersion !== expected.expectedDraftVersion ||
+        currentReadback.sys.publishedVersion !== expected.expectedDraftVersion ||
+        currentReadback.sys.version !== expected.expectedDraftVersion + 1 ||
+        currentReadback.sys.publishedAt == null)
+        throw new Error(`${expected.publicationId} publish response or readback version mismatch.`);
+      result.status = 'PUBLISH_READBACK_PASS';
+      result.publishedVersion = currentReadback.sys.publishedVersion;
+      result.entryVersionAfterPublish = currentReadback.sys.version;
+      writeReport(report);
+    } catch (error) {
+      result.status = 'PUBLISH_ACCEPTED_READBACK_FAILED';
+      report.status = 'PUBLISH_STOPPED';
+      report.blockers.push(`${expected.publicationId}: ${error.message}`);
+      writeReport(report);
+      throw error;
+    }
+  }
+  report.status = 'PASS';
+  writeReport(report);
+  return report;
 }
 
 function supabaseRequest(method, apiPath, body = null, headers = {}) {
@@ -541,6 +734,11 @@ async function loadSupabaseState(approved) {
 }
 
 async function main() {
+  const selectedModes = ['--local-check', '--schema-inspect', '--publish-approved']
+    .filter(mode => process.argv.includes(mode));
+  if (selectedModes.length > 1)
+    throw new Error('Select only one CL-03C execution mode.');
+
   const mappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8'));
   const reconciliation = JSON.parse(fs.readFileSync(reconciliationPath, 'utf8'));
   const canonicalRoutes = JSON.parse(fs.readFileSync(canonicalRoutesPath, 'utf8'));
@@ -599,6 +797,12 @@ async function main() {
   if (process.argv.includes('--schema-inspect')) {
     requireContentfulConfiguration();
     await inspectContentfulSchema(approved);
+    return;
+  }
+
+  if (process.argv.includes('--publish-approved')) {
+    const config = requireContentfulConfiguration();
+    await publishApprovedContentfulEntries(approved, config);
     return;
   }
 
@@ -724,10 +928,13 @@ async function main() {
 }
 
 module.exports = {
+  approvedReleaseManifest,
   buildEditorialBody,
   formatContentfulValidationError,
+  publishApprovedContentfulEntries,
   richTextInventory,
-  rowsFromTable
+  rowsFromTable,
+  validateReleasePackage
 };
 
 if (require.main === module) {
