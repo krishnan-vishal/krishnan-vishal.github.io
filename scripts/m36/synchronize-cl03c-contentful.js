@@ -9,6 +9,7 @@ const locale = 'en-US';
 const supabaseUrl = 'https://qlnvhfapctcpzqyuhhth.supabase.co';
 const mappingsPath = path.join(root, 'artifacts/m36/cl03-scaleout/content-module-mappings.json');
 const reconciliationPath = path.join(root, 'artifacts/m36/cl03a-five/content-reconciliation-report.json');
+const canonicalRoutesPath = path.join(root, 'artifacts/m36/cl03c/contentful-canonical-route-readback.json');
 const reportPath = path.join(root, 'artifacts/m36/cl03c/contentful-synchronization-report.json');
 const disclaimer = 'This publication is provided for research and informational purposes only. It does not constitute financial, legal, regulatory or investment advice. Refer to the linked methodology, sources and full disclaimer for applicable qualifications.';
 const disclaimerRoute = '/pages/legal/disclaimer.html';
@@ -197,11 +198,13 @@ function contentfulRequest(method, apiPath, body = null, headers = {}) {
 
 function supabaseRequest(method, apiPath, body = null, headers = {}) {
   const secret = env.GPIR_SUPABASE_SECRET_KEY.trim();
-  return requestJson(`${supabaseUrl}${apiPath}`, { method, body, headers: {
-    apikey: secret, authorization: `Bearer ${secret}`,
-    ...(body === null ? {} : { 'content-type': 'application/json' }),
-    ...headers
-  } });
+  const requestHeaders = {
+    authorization: `Bearer ${secret}`,
+    ...(body === null ? {} : { 'content-type': 'application/json' })
+  };
+  requestHeaders['apikey'] = secret;
+  Object.assign(requestHeaders, headers);
+  return requestJson(`${supabaseUrl}${apiPath}`, { method, body, headers: requestHeaders });
 }
 
 function exactSet(actual, expected, label) {
@@ -219,7 +222,7 @@ function validateEntry(entry, approved, expectedBody) {
     ['gpirPublicationId', approved.publicationId],
     ['editionLineageId', approved.lineageId],
     ['supabaseRecordId', approved.supabaseRecordId],
-    ['canonicalUrlCandidate', approved.existingCanonicalRoute]
+    ['canonicalUrlCandidate', approved.contentfulCanonicalRoute]
   ];
   for (const [field, expected] of pairs) {
     if (scalar(entry.fields?.[field]) !== expected)
@@ -264,18 +267,32 @@ async function loadSupabaseState(approved) {
 async function main() {
   const mappings = JSON.parse(fs.readFileSync(mappingsPath, 'utf8'));
   const reconciliation = JSON.parse(fs.readFileSync(reconciliationPath, 'utf8'));
+  const canonicalRoutes = JSON.parse(fs.readFileSync(canonicalRoutesPath, 'utf8'));
   if (reconciliation.status !== 'OWNER_PREVIEWS_RECONCILED_AWAITING_APPROVAL' ||
     reconciliation.unresolvedSections?.length !== 0)
     throw new Error('CL-03B approved reconciliation baseline is not complete.');
+  if (canonicalRoutes.status !== 'PASS_READ_ONLY_CONTENTFUL_ROUTE_READBACK' ||
+    canonicalRoutes.readOnly !== true || canonicalRoutes.source?.method !== 'GET' ||
+    canonicalRoutes.source?.locale !== locale)
+    throw new Error('CL-03C Contentful canonical-route readback evidence is not valid.');
   exactSet(Object.keys(mappings.publications), expectedPublicationIds, 'CL-03 migration manifest');
   exactSet(reconciliation.publications.map(item => item.publicationId), expectedPublicationIds,
     'CL-03B reconciliation report');
+  exactSet(canonicalRoutes.publications.map(item => item.publicationId), expectedPublicationIds,
+    'CL-03C Contentful canonical-route readback');
+  const canonicalRouteByPublicationId = new Map(canonicalRoutes.publications.map(item =>
+    [item.publicationId, item]));
 
   const approved = reconciliation.publications.map(item => {
     const mapping = mappings.publications[item.publicationId];
+    const routeReadback = canonicalRouteByPublicationId.get(item.publicationId);
     if (!mapping || mapping.contentfulEntryId !== item.contentfulEntryId ||
       mapping.modules.length !== item.moduleCount || item.contentAssessment?.blockers?.length)
       throw new Error(`${item.publicationId} CL-03B mapping or completion mismatch.`);
+    if (!routeReadback || routeReadback.contentfulEntryId !== item.contentfulEntryId ||
+      typeof routeReadback.canonicalUrlCandidate !== 'string' ||
+      !/^\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(routeReadback.canonicalUrlCandidate))
+      throw new Error(`${item.publicationId} Contentful canonical-route readback mismatch.`);
     const sourcePath = path.join(root, mapping.sourcePath);
     const source = fs.readFileSync(sourcePath);
     if (sha256(source) !== item.contentReconciliation.sourceSha256)
@@ -288,7 +305,8 @@ async function main() {
     const tableCount = editorialBody.content.filter(node => node.nodeType === 'gpir-table').length;
     if (moduleHeadingCount !== item.moduleCount + 1 || tableCount !== item.contentAssessment.sourceTableCount)
       throw new Error(`${item.publicationId} generated reconciliation shape mismatch.`);
-    return { ...item, mapping, editorialBody, editorialBodySha256: bodyHash(editorialBody),
+    return { ...item, contentfulCanonicalRoute: routeReadback.canonicalUrlCandidate, mapping,
+      editorialBody, editorialBodySha256: bodyHash(editorialBody),
       researchModuleCount: item.moduleCount, governanceModuleCount: 1, tableCount };
   });
 
@@ -296,7 +314,7 @@ async function main() {
     process.stdout.write(`${JSON.stringify({ status: 'LOCAL_PREPARATION_PASS', publications: approved.map(item => ({
       publicationId: item.publicationId, entryId: item.contentfulEntryId,
       researchModules: item.researchModuleCount, governanceModules: item.governanceModuleCount,
-      sourceTables: item.tableCount, canonicalRoute: item.existingCanonicalRoute,
+      sourceTables: item.tableCount, canonicalRoute: item.contentfulCanonicalRoute,
       editorialBodySha256: item.editorialBodySha256
     })) }, null, 2)}\n`);
     return;
@@ -372,7 +390,7 @@ async function main() {
       supabaseRecordId: sync.item.supabaseRecordId,
       contentfulEntryId: sync.item.contentfulEntryId,
       title: sync.item.title,
-      canonicalRoute: sync.item.existingCanonicalRoute,
+      canonicalRoute: sync.item.contentfulCanonicalRoute,
       dashboardStatus: 'NONE_PRESERVED',
       governedIdentity: 'PRESERVED',
       contentSynchronization: 'PASS',
