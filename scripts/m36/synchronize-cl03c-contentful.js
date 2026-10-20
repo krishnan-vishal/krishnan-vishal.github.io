@@ -321,7 +321,7 @@ async function inspectContentfulSchema(firstPublication) {
     Array.isArray(validation.enabledMarks) ? validation.enabledMarks : []))].sort();
   const { nodeCounts, nodes, hyperlinks, tableRepresentations, findings } =
     richTextInventory(firstPublication.editorialBody);
-  const implicitNodeTypes = new Set(['document', 'text']);
+  const implicitNodeTypes = new Set(['document', 'paragraph', 'text']);
   const unsupportedNodes = nodes.filter(node =>
     !implicitNodeTypes.has(node.nodeType) && !enabledNodeTypes.includes(node.nodeType));
   const unsupportedMarks = nodes.flatMap(node => node.marks.flatMap((markType, index) =>
@@ -329,6 +329,31 @@ async function inspectContentfulSchema(firstPublication) {
         path: `${node.path}.marks[${index}]`,
         markType
       }]));
+  const fieldValidationChecks = (contentType.fields || []).flatMap(field => {
+    const value = scalar(entry.fields?.[field.id]);
+    return (field.validations || []).flatMap(validation => {
+      if (validation.size && typeof value === 'string') {
+        const length = value.length;
+        return [{
+          fieldId: field.id,
+          rule: 'size',
+          length,
+          minimum: validation.size.min ?? null,
+          maximum: validation.size.max ?? null,
+          passes: (validation.size.min == null || length >= validation.size.min) &&
+            (validation.size.max == null || length <= validation.size.max)
+        }];
+      }
+      if (Array.isArray(validation.in) && value !== undefined && value !== null) {
+        return [{
+          fieldId: field.id,
+          rule: 'in',
+          passes: validation.in.includes(value)
+        }];
+      }
+      return [];
+    });
+  });
   const requiredFields = (contentType.fields || []).filter(field => field.required).map(field => ({
     id: field.id,
     present: Object.prototype.hasOwnProperty.call(entry.fields || {}, field.id)
@@ -364,6 +389,7 @@ async function inspectContentfulSchema(firstPublication) {
     entryContentTypeMatches: entry.sys?.contentType?.sys?.id === contentType.sys?.id,
     requiredFields,
     missingRequiredFields,
+    fieldValidationChecks,
     generatedPayload: {
       nodeCounts: Object.fromEntries([...nodeCounts].sort(([a], [b]) => a.localeCompare(b))),
       unsupportedNodes,
@@ -373,7 +399,8 @@ async function inspectContentfulSchema(firstPublication) {
       findings: findingsSummary
     },
     compatibility: unsupportedNodes.length || unsupportedMarks.length || findingsSummary.length ||
-      missingRequiredFields.length || editorialField?.type !== 'RichText' ||
+      missingRequiredFields.length || fieldValidationChecks.some(check => !check.passes) ||
+      editorialField?.type !== 'RichText' ||
       entry.sys?.contentType?.sys?.id !== contentType.sys?.id ? 'INCOMPATIBLE' : 'COMPATIBLE'
   }, null, 2)}\n`);
 }
