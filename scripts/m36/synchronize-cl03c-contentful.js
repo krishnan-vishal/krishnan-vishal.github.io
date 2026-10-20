@@ -198,11 +198,13 @@ function contentfulRequest(method, apiPath, body = null, headers = {}) {
 
 function supabaseRequest(method, apiPath, body = null, headers = {}) {
   const secret = env.GPIR_SUPABASE_SECRET_KEY.trim();
-  return requestJson(`${supabaseUrl}${apiPath}`, { method, body, headers: {
-    apikey: secret, authorization: `Bearer ${secret}`,
-    ...(body === null ? {} : { 'content-type': 'application/json' }),
-    ...headers
-  } });
+  const requestHeaders = {
+    authorization: `Bearer ${secret}`,
+    ...(body === null ? {} : { 'content-type': 'application/json' })
+  };
+  requestHeaders['apikey'] = secret;
+  Object.assign(requestHeaders, headers);
+  return requestJson(`${supabaseUrl}${apiPath}`, { method, body, headers: requestHeaders });
 }
 
 function exactSet(actual, expected, label) {
