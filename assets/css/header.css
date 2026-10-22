@@ -2646,3 +2646,195 @@ button.ticker-card{
         height:42px;
     }
 }
+
+/* ==========================================================
+   GPIR UIX-01A PATCH 01 - Institutional header treatment
+   Presentation only: no structural or responsive changes.
+========================================================== */
+
+.header {
+    background: rgba(251, 248, 242, .97);
+    border-bottom-color: rgba(11, 31, 58, .12);
+}
+
+.header.scrolled {
+    background: rgba(251, 248, 242, .99);
+    border-bottom-color: rgba(194, 154, 75, .30);
+}
+
+.header .brand-link:focus-visible {
+    outline: 2px solid #0B1F3A;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* END GPIR UIX-01A PATCH 01 */
+
+/* ==========================================================
+   GPIR UIX-01A PATCH 02 - Header alignment
+   Full-width navigation and compact live reader controls.
+========================================================== */
+
+@media (min-width: 768px) {
+
+    .container.header-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-rows: auto auto;
+        align-items: center;
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        max-width: none;
+        min-height: 0;
+        padding: 10px 12px;
+        column-gap: 14px;
+        row-gap: 8px;
+    }
+
+    .header-container > .brand {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    .header-container > .search-toggle {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        flex-shrink: 0;
+    }
+
+    .header-container > .header-actions {
+        grid-column: 3;
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+        justify-self: end;
+        min-width: 0;
+    }
+
+    /* Preserve the actual reader controls and their destinations. */
+    .header-container [data-gpir-reader-actions] {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 7px;
+    }
+
+    .header-container .gpir-reader-action {
+        box-sizing: border-box;
+        min-height: 34px;
+        padding: 6px 11px;
+        font-size: 12px;
+        line-height: 1.3;
+        white-space: nowrap;
+    }
+
+    /* Navigation receives the full width of the second row. */
+    .header-container > .main-nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: flex;
+        min-width: 0;
+        width: 100%;
+        margin-left: 0;
+        gap: 8px;
+    }
+
+    .main-nav .header-tools {
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .header .repository-text {
+        display: none;
+    }
+}
+
+/* END GPIR UIX-01A PATCH 02 */
+
+
+/* ==========================================================
+   GPIR UIX-01A PATCH 03 - Compact mobile header
+   Presentation only. Existing reader controls remain live.
+========================================================== */
+
+@media (max-width: 767px) {
+
+    .container.header-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-rows: auto auto;
+        align-items: center;
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        column-gap: 10px;
+        row-gap: 8px;
+    }
+
+    .header-container > .brand {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    .header-container .brand-link {
+        min-width: 0;
+    }
+
+    .header-container .repository-text {
+        display: none;
+    }
+
+    .header-container > .search-toggle {
+        grid-column: 2;
+        grid-row: 1;
+        flex-shrink: 0;
+    }
+
+    .header-container > .nav-toggle {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+        flex-shrink: 0;
+    }
+
+    /* The existing navigation remains the fixed mobile drawer. */
+    .header-container > .main-nav {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    /* Existing live reader actions: compact second row. */
+    .header-container > .header-actions {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: end;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .header-container [data-gpir-reader-actions] {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 7px;
+    }
+
+    .header-container .gpir-reader-action {
+        box-sizing: border-box;
+        min-height: 32px;
+        padding: 5px 10px;
+        font-size: 12px;
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+}
+
+/* END GPIR UIX-01A PATCH 03 */

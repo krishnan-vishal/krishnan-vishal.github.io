@@ -203,7 +203,10 @@ function initializeAdaptiveNav(){
             ? searchToggleEl.getBoundingClientRect().width + containerGap
             : 0;
 
-        const available = containerRect.width - brandWidth - containerGap - toolsWidth - mainNavGap - searchToggleWidth - 4;
+        const isGridHeader = getComputedStyle(headerContainer).display === "grid";
+        const available = isGridHeader
+            ? Math.max(0, mainNav.getBoundingClientRect().width - toolsWidth - mainNavGap - 4)
+            : containerRect.width - brandWidth - containerGap - toolsWidth - mainNavGap - searchToggleWidth - 4;
 
         const listGap = getGapPx(list);
 
