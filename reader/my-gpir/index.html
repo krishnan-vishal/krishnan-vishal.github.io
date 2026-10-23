@@ -5,13 +5,13 @@
   <meta name="theme-color" content="#071A35"><meta name="robots" content="noindex,nofollow">
   <title>My GPIR | FINTECHOISIS</title>
   <link rel="stylesheet" href="/assets/css/reader-auth.css?v=2">
-  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261023f">
+  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261023g">
   <script src="/assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
   <script src="/assets/js/gpir-reader-auth.js" defer></script>
-  <script type="module" src="/assets/js/my-gpir-navigation.mjs"></script>
+  <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261023g"></script>
   <script type="module" src="/assets/js/gpir-reader-dashboard.mjs"></script>
 </head>
 <body class="my-gpir">
@@ -46,21 +46,21 @@
       <p class="my-gpir-status" data-reader-dashboard-status aria-live="polite">Loading your GPIR account&hellip;</p>
       <button class="my-gpir-refresh" type="button" data-reader-refresh>Refresh account</button>
     </div>
-    <div class="my-gpir-grid">
-      <section class="my-gpir-card my-gpir-card--metric" aria-label="Library count">
+    <div class="my-gpir-grid" data-reader-view="overview">
+      <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Library count">
         <p class="my-gpir-eyebrow">My Library</p><p class="my-gpir-metric" data-reader-metric="library">0</p><p class="my-gpir-metric-label">authorised publications</p>
       </section>
-      <section class="my-gpir-card my-gpir-card--metric" aria-label="Payment count">
+      <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Payment count">
         <p class="my-gpir-eyebrow">Payment History</p><p class="my-gpir-metric" data-reader-metric="payments">0</p><p class="my-gpir-metric-label">recorded transactions</p>
       </section>
-      <section class="my-gpir-card my-gpir-card--metric" aria-label="Purchase count">
+      <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Purchase count">
         <p class="my-gpir-eyebrow">Purchases</p><p class="my-gpir-metric" data-reader-metric="purchases">0</p><p class="my-gpir-metric-label">active one-time purchases</p>
       </section>
-      <section id="profile" class="my-gpir-card">
+      <section id="profile" class="my-gpir-card my-gpir-card--wide" data-view-panel="profile">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account</p><h2>Profile</h2></div><a href="/reader/profile/">View profile</a></header>
         <div data-reader-profile><div class="my-gpir-empty"><strong>Loading profile&hellip;</strong><p>Your verified reader details will appear here.</p></div></div>
       </section>
-      <section id="plan" class="my-gpir-card">
+      <section id="plan" class="my-gpir-card my-gpir-card--wide" data-view-panel="plan">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Access</p><h2>Subscription &amp; Plan</h2></div><a href="/reader/plan/">View plan</a></header>
         <div data-reader-plan><div class="my-gpir-empty"><strong>Loading plan status&hellip;</strong><p>No billing action is taken from this page.</p></div></div>
         <div class="my-gpir-subscription" data-gpir-paypal-subscription hidden>
@@ -70,11 +70,11 @@
           <p class="my-gpir-subscription__status" data-subscription-status aria-live="polite"></p>
         </div>
       </section>
-      <section id="library" class="my-gpir-card my-gpir-card--wide">
+      <section id="library" class="my-gpir-card my-gpir-card--wide" data-view-panel="library">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Research access</p><h2>My Library</h2></div><a href="/reader/library/">Open library</a></header>
         <div data-reader-library><div class="my-gpir-empty"><strong>Loading authorised publications&hellip;</strong></div></div>
       </section>
-      <section id="payments" class="my-gpir-card my-gpir-card--wide">
+      <section id="payments" class="my-gpir-card my-gpir-card--wide" data-view-panel="payments">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account activity</p><h2>Payment History</h2></div><a href="/reader/payments/">View history</a></header>
         <div data-reader-payments><div class="my-gpir-empty"><strong>Loading payment activity&hellip;</strong></div></div>
       </section>
