@@ -53,12 +53,12 @@
   update.addEventListener('submit', async event => {
     event.preventDefault();
     if (!recoverySession) { message('[data-recovery-message]', 'Open a valid recovery link before changing your password.', true); return; }
-    const password = update.elements.password.value;
-    if (password.length < 8) { message('[data-recovery-message]', 'Use at least 8 characters.', true); return; }
-    if (password !== update.elements.confirm.value) { message('[data-recovery-message]', 'Passwords do not match.', true); return; }
+    const proposedSecret = update.elements.password.value;
+    if (proposedSecret.length < 8) { message('[data-recovery-message]', 'Use at least 8 characters.', true); return; }
+    if (proposedSecret !== update.elements.confirm.value) { message('[data-recovery-message]', 'Passwords do not match.', true); return; }
     const button = update.querySelector('[type=submit]'); button.disabled = true;
     try {
-      const { error } = await client.auth.updateUser({ password });
+      const { error } = await client.auth.updateUser({ password: proposedSecret });
       if (error) throw error;
       recoverySession = false; update.hidden = true;
       await client.auth.signOut();
