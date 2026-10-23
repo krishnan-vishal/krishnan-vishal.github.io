@@ -56,3 +56,32 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-eyebrow{font-size:.65rem}
 @media(max-width:1000px){.my-gpir-nav ul{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.my-gpir-header__inner{min-height:3.8rem}.my-gpir-hero__inner{padding:.9rem 0 1rem}.my-gpir-hero h1{font-size:1.5rem}.my-gpir-hero p:last-child{font-size:.78rem}.my-gpir-nav ul{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}.my-gpir-nav a{min-height:3rem;padding:.45rem}.my-gpir-nav__description{display:none}.my-gpir-main{padding:.8rem 0 2rem}.my-gpir-card{padding:.85rem}}
+
+/* UIX-01F: denser overview while preserving readable touch targets and content. */
+.my-gpir-hero__inner{padding:.75rem 0 .85rem}
+.my-gpir-kicker{margin:0 0 .1rem}
+.my-gpir-hero h1{font-size:clamp(1.35rem,2.2vw,1.8rem)}
+.my-gpir-hero p:last-child{margin:.18rem 0 0;font-size:.78rem}
+.my-gpir-main{padding:.7rem 0 2rem}
+.my-gpir-nav{margin-bottom:.55rem}
+.my-gpir-nav ul{gap:.45rem}
+.my-gpir-nav a{min-height:3rem;padding:.4rem .5rem;gap:.45rem}
+.my-gpir-nav__description{font-size:.63rem}
+.my-gpir-toolbar{margin-bottom:.5rem;min-height:2.35rem}
+.my-gpir-status{font-size:.82rem;line-height:1.35}
+.my-gpir-refresh{min-height:2.3rem;padding:.35rem .65rem;font-size:.83rem}
+.my-gpir-grid{gap:.55rem}
+.my-gpir-card{padding:.8rem 1rem}
+.my-gpir-card--metric{min-height:6.15rem}
+.my-gpir-metric{font-size:1.65rem}
+.my-gpir-metric-label{font-size:.75rem}
+.my-gpir-card__header{margin-bottom:.45rem}
+.my-gpir-card__header h2{font-size:1.1rem}
+.my-gpir-profile{gap:.5rem}
+.my-gpir-profile div{padding:.55rem .7rem}
+.my-gpir-profile dt{font-size:.65rem}
+.my-gpir-profile dd{margin-top:.12rem;font-size:.85rem}
+.my-gpir-plan{gap:.6rem}
+.my-gpir-empty{padding:.7rem}
+@media(min-width:901px){.my-gpir-nav__description{display:none}.my-gpir-nav a{grid-template-columns:1.6rem minmax(0,1fr);min-height:2.65rem}.my-gpir-nav__icon{width:1.6rem;height:1.6rem}.my-gpir-card--metric{min-height:5.6rem}}
+@media(max-width:600px){.my-gpir-hero__inner{padding:.7rem 0}.my-gpir-hero h1{font-size:1.3rem}.my-gpir-hero p:last-child{font-size:.74rem}.my-gpir-nav a{min-height:2.85rem}.my-gpir-card--metric{min-height:5.4rem}.my-gpir-card{padding:.75rem}.my-gpir-toolbar{gap:.5rem}}
