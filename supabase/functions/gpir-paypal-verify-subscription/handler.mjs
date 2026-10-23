@@ -46,7 +46,8 @@ export function createPayPalVerifySubscriptionHandler({ env, fetchImpl = fetch }
     if (!finalized.ok || finalized.data !== true)
       return safeError(503, 'SUBSCRIPTION_RECONCILIATION_PENDING', origin, env);
     return jsonResponse(200, { status: 'ACTIVE', environment: config.PAYPAL_ENVIRONMENT,
-      entitlement: 'SERVER_VERIFIED', subscriptionId: input.subscriptionId }, origin, env);
+      entitlement: 'SERVER_VERIFIED', paymentConfirmed: false,
+      subscriptionId: input.subscriptionId }, origin, env);
   };
 }
 
