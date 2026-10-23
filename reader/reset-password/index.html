@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Choose new password | FINTECHOISIS GPIR</title>
+<link rel="stylesheet" href="/assets/css/reader-auth.css">
+<script src="/assets/js/gpir-supabase-public-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script src="/scripts/m34/supabase-browser-client.js"></script>
+<script src="/assets/js/gpir-password-recovery.js" defer></script></head>
+<body><a class="skip-link" href="#reader-auth-main">Skip to password reset</a>
+<main class="reader-auth-shell" id="reader-auth-main"><a class="reader-auth-brand" href="/">FINTECHOISIS <span>GPIR</span></a>
+<section class="reader-auth-card"><p class="reader-auth-kicker">Reader account recovery</p><h1>Choose a new password</h1>
+<p data-reset-status aria-live="polite">Validating your recovery link…</p>
+<form data-recovery-update hidden novalidate><label for="new-password">New password (at least 8 characters)</label>
+<input id="new-password" type="password" name="password" autocomplete="new-password" minlength="8" required>
+<button class="reader-auth-secondary" type="button" data-toggle-password aria-controls="new-password" aria-pressed="false">Show password</button>
+<label for="confirm-password">Confirm new password</label><input id="confirm-password" type="password" name="confirm" autocomplete="new-password" minlength="8" required>
+<p class="reader-auth-message" data-recovery-message aria-live="polite"></p>
+<button class="reader-auth-submit" type="submit">Update password</button></form>
+<p class="reader-auth-switch"><a href="/reader/forgot-password/">Request another recovery link</a> · <a href="/reader/sign-in/">Sign in</a></p>
+</section></main></body></html>
