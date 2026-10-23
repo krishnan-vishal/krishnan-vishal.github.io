@@ -177,11 +177,13 @@ export async function initializePayPalSubscription({ global = globalThis,
     announce(root, 'Subscription return could not be matched. No access was granted.', 'error');
     return false;
   }
-  if (summary.plan?.billingStatus === 'ACTIVE') {
+  if (summary.plan?.billingStatus === 'ACTIVE' || summary.plan?.billingStatus === 'APPROVAL_PENDING') {
     if (button) button.hidden = true;
     announce(root, summary.plan.paymentConfirmed
       ? 'Your PayPal subscription payment is confirmed.'
-      : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
+      : summary.plan.billingStatus === 'ACTIVE'
+        ? 'Existing PayPal subscription found. Premium access awaits confirmed payment; do not subscribe again.'
+        : 'An existing PayPal approval is pending. Do not start a duplicate subscription.',
       summary.plan.paymentConfirmed ? 'success' : 'pending');
     return true;
   }
