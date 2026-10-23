@@ -244,7 +244,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     // Publication access comes exclusively from resolve_publication_entitlement.
     const subscriptionActive = planAvailable && subscription?.status === 'ACTIVE';
     const plan = Object.freeze({ status: hasPlanAccess ? 'ACTIVE' :
-      subscriptionActive ? 'PENDING_PAYMENT_CONFIRMATION' :
+      subscriptionActive ? 'INACTIVE' :
       subscription ? 'INACTIVE' : 'NOT_ENROLLED',
       accessClass: entitlementAvailable && hasPlanAccess ? 'ENTITLED' : null,
       paymentConfirmed: false,
