@@ -144,14 +144,6 @@ export async function initializePayPalSubscription({ global = globalThis,
     try { pendingId = global.sessionStorage?.getItem?.(`${storageKey}.pending`); } catch {}
   }
 
-  if (summary.plan?.billingStatus === 'ACTIVE') {
-    if (button) button.hidden = true;
-    announce(root, summary.plan.paymentConfirmed
-      ? 'Your PayPal subscription payment is confirmed.'
-      : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
-    summary.plan.paymentConfirmed ? 'success' : 'pending');
-    return true;
-  }
   if (returnState === 'cancelled') {
     clearRequest(); cleanReturnLocation(global);
     announce(root, 'PayPal subscription approval was cancelled.', 'idle');
@@ -171,6 +163,26 @@ export async function initializePayPalSubscription({ global = globalThis,
       ? 'Payment confirmed. Refreshing your account…'
       : 'Subscription verified; Premium access awaits confirmed payment.',
     verified.paymentConfirmed ? 'success' : 'pending');
+    return true;
+  }
+
+  // Handle provider return before an ACTIVE summary can short-circuit verification.
+  if (returnState && !['cancelled', 'return', 'approved'].includes(returnState)) {
+    cleanReturnLocation(global);
+    announce(root, 'Unrecognised subscription return. No access was granted.', 'error');
+    return false;
+  }
+  if (['return', 'approved'].includes(returnState) && !BILLING_ID.test(pendingId || '')) {
+    cleanReturnLocation(global);
+    announce(root, 'Subscription return could not be matched. No access was granted.', 'error');
+    return false;
+  }
+  if (summary.plan?.billingStatus === 'ACTIVE') {
+    if (button) button.hidden = true;
+    announce(root, summary.plan.paymentConfirmed
+      ? 'Your PayPal subscription payment is confirmed.'
+      : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
+      summary.plan.paymentConfirmed ? 'success' : 'pending');
     return true;
   }
 
