@@ -115,10 +115,14 @@
     if (buttons) {
       const current = `${global.location.pathname}${global.location.search}${global.location.hash}`;
       const destination = safeReturnTo(current);
-      buttons.innerHTML = `<a class="gpir-reader-action" href="/reader/sign-in/?returnTo=${encodeURIComponent(destination)}">Sign in</a><a class="gpir-reader-action gpir-reader-action--primary" href="/reader/create-account/?returnTo=${encodeURIComponent(destination)}">Create account</a>`;
+      // Keep a neutral loading state until session resolution; never flash guest links.
+      let authenticated = false;
       if (client) {
-        const { data } = await client.auth.getSession();
-        if (data?.session?.user) {
+        try {
+          const { data } = await client.auth.getSession();
+          authenticated = !!data?.session?.user;
+        } catch { authenticated = false; }
+        if (authenticated) {
           const email = document.createElement('span'); email.className = 'gpir-reader-state'; email.textContent = 'Reader';
           const dashboard = document.createElement('a'); dashboard.className = 'gpir-reader-action';
           dashboard.href = '/reader/my-gpir/'; dashboard.textContent = 'My GPIR';
@@ -132,6 +136,7 @@
           buttons.replaceChildren(email, dashboard, signout);
         }
       }
+      if (!authenticated) buttons.innerHTML = `<a class="gpir-reader-action" href="/reader/sign-in/?returnTo=${encodeURIComponent(destination)}">Sign in</a><a class="gpir-reader-action gpir-reader-action--primary" href="/reader/create-account/?returnTo=${encodeURIComponent(destination)}">Create account</a>`;
     }
     if (path === callback) {
       const status = document.querySelector('[data-callback-status]');

@@ -21,3 +21,12 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-refresh:focus-visible,.my-gpir-nav a:focus-visible,.my-gpir-brand:focus-visible{outline:3px solid var(--gpir-gold);outline-offset:3px}
 @media(max-width:900px){.my-gpir-header__inner{gap:.75rem;padding:.8rem 0}.my-gpir-card,.my-gpir-card--metric{grid-column:1/-1}}
 @media(max-width:600px){.my-gpir-header__inner,.my-gpir-hero__inner,.my-gpir-main{width:min(100% - 1.2rem,1180px)}.my-gpir-brand>span>span{display:none}.my-gpir-header [data-gpir-reader-actions]{min-width:0}.my-gpir-reader-state{display:none}.my-gpir-nav a{grid-template-columns:2rem minmax(0,1fr) auto;gap:.7rem;min-height:4rem;padding:.65rem .8rem}.my-gpir-nav__icon{width:2rem;height:2rem}.my-gpir-nav__description{font-size:.73rem}.my-gpir-toolbar{align-items:flex-start;flex-direction:column}.my-gpir-profile{grid-template-columns:1fr}.my-gpir-library-item,.my-gpir-plan{grid-template-columns:1fr}.my-gpir-card{padding:1rem}}
+
+/* UIX-01C: light institutional reader header; preserve the navy workspace hero. */
+.my-gpir-header{background:#fbfaf7;color:var(--gpir-navy);border-bottom:2px solid var(--gpir-gold)}
+.my-gpir-brand,.my-gpir-brand strong{color:var(--gpir-navy)}
+.my-gpir-brand>span>span{color:#526278}
+.my-gpir-brand img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 0 1px rgba(7,26,53,.25))}
+.my-gpir-header .gpir-reader-state{color:#526278}
+.my-gpir-header .gpir-reader-action{border:1px solid #cbd5e1;background:#fff;color:var(--gpir-navy)}
+.my-gpir-header .gpir-reader-action:hover,.my-gpir-header .gpir-reader-action:focus-visible{border-color:var(--gpir-gold);color:var(--gpir-navy)}
