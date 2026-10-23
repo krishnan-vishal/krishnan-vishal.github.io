@@ -278,7 +278,8 @@ test('browser subscription adapter is sandbox-only and accepts only approved ser
       unitAmountMinor: 1200, billingInterval: 'MONTH' },
     availability: { profile: 'AVAILABLE', library: 'AVAILABLE', payments: 'AVAILABLE',
       plan: 'AVAILABLE', subscriptionCheckout: 'AVAILABLE' }, summary: {} });
-  const global = { GPIR_SUPABASE_PUBLIC_CONFIG: { url: sandboxUrl } };
+  const global = { GPIR_SUPABASE_PUBLIC_CONFIG: { url: sandboxUrl },
+    location: { hostname: 'localhost' } };
   const config = subscriptionConfig(global, summary);
   assert.equal(validSubscriptionConfig(config), true);
   assert.equal(subscriptionConfig(global, { ...summary, environment: 'production' }), null);
