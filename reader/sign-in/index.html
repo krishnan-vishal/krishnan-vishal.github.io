@@ -10,6 +10,7 @@
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
   <script src="/assets/js/gpir-reader-auth.js" defer></script>
+  <script src="/assets/js/gpir-password-recovery.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#reader-auth-main">Skip to sign in</a>
@@ -24,9 +25,11 @@
         <input id="reader-email" name="email" type="email" autocomplete="email" inputmode="email" required>
         <label for="reader-password">Password</label>
         <input id="reader-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="reader-auth-secondary" type="button" data-toggle-password aria-controls="reader-password" aria-pressed="false">Show password</button>
         <p class="reader-auth-message" data-auth-message aria-live="polite"></p>
         <button class="reader-auth-submit" type="submit">Sign in</button>
       </form>
+      <p class="reader-auth-switch"><a href="/reader/forgot-password/">Forgot password?</a></p>
       <p class="reader-auth-switch">New to GPIR? <a href="/reader/create-account/">Create a free account</a></p>
     </section>
   </main>
