@@ -12,3 +12,8 @@ body{margin:0;background:#f3f6fa;color:var(--reader-ink);font:16px/1.55 Inter,sy
 .gpir-reader-entry-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-block:1.15rem}.gpir-reader-entry-actions .gpir-reader-action{min-height:2.8rem}
 @media(max-width:720px){.gpir-reader-header{grid-column:1/-1;width:100%;padding:0 0 .7rem}.gpir-reader-header [data-gpir-reader-actions]{justify-content:flex-start}.reader-auth-shell{width:min(100% - 1.25rem,30rem)}}
 @media(max-width:360px){.gpir-reader-action{padding:.4rem .55rem;font-size:.8rem}.reader-auth-shell{width:calc(100% - 1rem)}}
+
+/* M34 reader password recovery controls */
+.reader-auth-secondary{justify-self:start;border:0;background:transparent;color:#193e69;font:inherit;font-size:.9rem;font-weight:650;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:.2rem 0}
+.reader-auth-secondary:focus-visible{outline:3px solid #c8a24a;outline-offset:2px}
+[hidden]{display:none!important}
