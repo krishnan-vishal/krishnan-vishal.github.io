@@ -85,3 +85,14 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-empty{padding:.7rem}
 @media(min-width:901px){.my-gpir-nav__description{display:none}.my-gpir-nav a{grid-template-columns:1.6rem minmax(0,1fr);min-height:2.65rem}.my-gpir-nav__icon{width:1.6rem;height:1.6rem}.my-gpir-card--metric{min-height:5.6rem}}
 @media(max-width:600px){.my-gpir-hero__inner{padding:.7rem 0}.my-gpir-hero h1{font-size:1.3rem}.my-gpir-hero p:last-child{font-size:.74rem}.my-gpir-nav a{min-height:2.85rem}.my-gpir-card--metric{min-height:5.4rem}.my-gpir-card{padding:.75rem}.my-gpir-toolbar{gap:.5rem}}
+
+/* UIX-01G: one account view at a time, with overview metrics as the landing view. */
+.my-gpir-grid[data-reader-view] > [data-view-panel]{display:none}
+.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"],
+.my-gpir-grid[data-reader-view="profile"] > [data-view-panel="profile"],
+.my-gpir-grid[data-reader-view="library"] > [data-view-panel="library"],
+.my-gpir-grid[data-reader-view="payments"] > [data-view-panel="payments"],
+.my-gpir-grid[data-reader-view="plan"] > [data-view-panel="plan"]{display:block}
+.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 4}
+.my-gpir-grid[data-reader-view]:not([data-reader-view="overview"]) > [data-view-panel]{grid-column:1/-1}
+@media(max-width:600px){.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:1/-1}}
