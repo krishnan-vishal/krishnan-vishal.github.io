@@ -203,6 +203,11 @@ test('Reader A sandbox subscription is server-created, approved and verified wit
     if (value.endsWith('/rpc/gpir_finalize_paypal_subscription_v2')) {
       finalized = true; return json(true);
     }
+    if (value.endsWith('/rpc/gpir_subscription_reconciliation_context_v1'))
+      return json([{ local_subscription_id: localSubscriptionId,
+        paypal_plan_id: paypalPlanId, expected_currency: 'USD',
+        expected_amount_minor: 999 }]);
+    if (value.includes('/transactions?')) return json({ transactions: [] });
     throw new Error(`Unexpected URL: ${url}`);
   };
   const verifiedResponse = await createPayPalVerifySubscriptionHandler({ env: paymentEnv,
