@@ -191,7 +191,9 @@ function renderPlan(document, target, plan, available = true, libraryAvailable =
   const title = plan.status === 'ACTIVE' && plan.accessClass === 'ENTITLED'
     ? 'GPIR entitled reader plan' : plan.status === 'ACTIVE' ? 'Reader billing plan active' :
     plan.status === 'INACTIVE' ? 'Reader plan inactive' : 'Free registered reader';
-  const detail = plan.status === 'ACTIVE' && !libraryAvailable
+  const detail = plan.billingStatus === 'ACTIVE' && !plan.paymentConfirmed
+    ? 'An existing PayPal billing subscription is recorded. Premium access awaits independently confirmed payment; do not subscribe again.'
+    : plan.status === 'ACTIVE' && !libraryAvailable
     ? 'Subscription billing is active. Publication access remains locked until entitlement verification is available.'
     : plan.status === 'ACTIVE'
     ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}.` +
