@@ -1,24 +1,27 @@
-# M37 G1-01 — Subscription payment evidence ledger
+# M37 Gate 1 — Payment ledger acceptance and follow-ups
 
-Status: IMPLEMENTED IN DRAFT; NOT DEPLOYED OR ACCEPTANCE-TESTED.
+Status (2026-10-24): **G1-01 and G1-02 Sandbox functional acceptance PASS; Production release NOT authorised.** Supersedes the outdated pre-acceptance status. No seed or additional checkout was used.
 
-Migration: `supabase/migrations/20261023000100_m37_g101_subscription_payment_evidence.sql`
-Rollback-only synthetic assertions: `tests/m37/g101-ledger.sql`
+## G1-01 — restricted evidence ledger
 
-Owner-provided Sandbox acceptance reference (for G1-02 reconciliation, **not** a seed or an independently verified API response):
-- PayPal merchant activity: completed recurring payment, USD 9.99 gross.
-- Transaction ID: `7UC82239V8074274K`
-- Recurring subscription ID: `I-674CH86A89ES`
-- Displayed timestamp: 2026-10-18 08:46:46 EDT.
-- No real transaction is inserted by this migration or test.
+Migration: `20261023000100_m37_g101_subscription_payment_evidence.sql`, followed by `20261023000200_m37_g102_align_payment_environment.sql`.
 
-G1-01 acceptance checklist:
-1. Confirm the migration fits the target Sandbox schema and apply there, not Live.
-2. Run `tests/m37/g101-ledger.sql` in a disposable database with the migration applied; expect the PASS notice and rollback.
-3. Verify no authenticated or anonymous reader can directly read/write the ledger.
-4. Check GitHub security/integrity checks on the final PR head.
-5. Only then mark G1-01 PASS.
+The original provider payment is recorded in Sandbox exactly once: local subscription `43361dfb-885c-4dfd-9e76-7aa770dfb039`, reader `53803c91-11cb-419e-822b-15f47b3a10a2`, PayPal subscription `I-674CH86A89ES`, transaction `7UC82239V8074274K`, USD 999 minor units, COMPLETED at `2026-10-18 12:46:46+00`, source PAYPAL_API, `matching_records = 1`.
 
-G1-02 must reconcile the actual provider transaction through the PayPal API or verified webhook, match it to the pre-existing GPIR subscription and authenticated reader, and use a restricted server-side write path. No browser-controlled payment-confirmation field is authoritative. ACTIVE subscription status alone does not grant publication access. Refund/reversal handling and entitlement integration remain separate Gate 1 deliverables.
+The ledger schema defines unique transaction/event constraints, RLS, and revoked direct anon/authenticated privileges. `tests/m37/g101-ledger.sql` contains rollback-only synthetic assertions; the existing Gate 1 CI runs Node tests, **not** this SQL script. Do not claim its execution is independently verified. Run only in a disposable database if separate SQL-test sign-off is required.
 
-No new checkout, duplicate subscription, production deployment, or live payment is authorized by this work.
+## G1-02 — original payment reconciliation
+
+Authenticated Sandbox API returned HTTP 200, ACTIVE, sandbox, SERVER_VERIFIED, `paymentConfirmed:true` for `I-674CH86A89ES`; the single real ledger row corroborates it. The original restricted writer's unassigned-record error was corrected in Sandbox. Its fix is preserved in the subsequent migration `20261024000100_m37_g102_fix_payment_writer_record.sql`; preserve migration order.
+
+On commit `cd3c49e85e298cf60896ddcd4fa416dbba876e2e`, M37 Gate 1 Reconciliation Tests (run 40095876918) and GPIR Security and Integrity (run 40095876864) completed successfully. These checks do not establish Production deployment compatibility.
+
+## Follow-ups / release holds
+
+1. G1-03: server-verified, idempotent recurring payment webhook reconciliation, renewal, failure/refund/reversal handling, and entitlement consequences. Existing webhook verifies signatures and updates subscription status, but does not complete renewal payment evidence.
+2. Production read-only schema/migration/RPC inventory, including legacy LIVE rows; environment-alignment migration intentionally aborts if such rows exist.
+3. Production configuration/deployment inventory: verify environment, credential presence (never values), webhook ID, origins, merchant/plan mappings, feature flag and function versions without activation.
+4. Production entitlement integration: verify deployed `resolve_publication_entitlement` for paid/unpaid/expired/revoked states and reader isolation. ACTIVE billing alone does not grant publication access.
+5. Keep PR #466 Draft and Production unchanged pending evidenced checks and explicit owner release approval.
+
+No additional payment, Production migration, deployment, live merchant mutation or PR merge is authorised here.
