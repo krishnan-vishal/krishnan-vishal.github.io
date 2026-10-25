@@ -74,9 +74,7 @@ export async function verifySubscription({ config, supabase, subscriptionId,
   const result = await post(config.verifySubscriptionEndpoint, current.access_token,
     { subscriptionId }, fetchImpl);
   if (result?.environment !== config.environment || result?.status !== 'ACTIVE' ||
-      result?.verification !== 'SERVER_VERIFIED' ||
-      !['PUBLICATION_SCOPED', 'PAYMENT_CONFIRMATION_PENDING'].includes(
-        result?.publicationAccess)) return null;
+      result?.entitlement !== 'SERVER_VERIFIED') return null;
   if (result.paymentConfirmed === true)
     eventTarget?.dispatchEvent?.(new CustomEvent('gpir:paypal-payment-verified', {
       detail: { type: 'SUBSCRIPTION' }
@@ -110,7 +108,7 @@ export function subscriptionConfig(global, summary) {
 
 function cleanReturnLocation(global) {
   const params = new URLSearchParams(global.location.search);
-  for (const name of ['subscription', 'subscription_id', 'ba_token', 'token'])
+  for (const name of ['subscription', 'subscription_id', 'paypal-subscription', 'ba_token', 'token'])
     params.delete(name);
   const query = params.toString();
   global.history?.replaceState?.(null, '', `${global.location.pathname}${query ? `?${query}` : ''}` +
@@ -136,23 +134,20 @@ export async function initializePayPalSubscription({ global = globalThis,
   }
   root.hidden = false;
   const storageKey = `gpir.paypal.subscription.request.${config.planId}`;
-  const clearRequest = () => { try { global.sessionStorage?.removeItem?.(storageKey); } catch {} };
+  const clearRequest = () => { try { global.sessionStorage?.removeItem?.(storageKey); global.sessionStorage?.removeItem?.(`${storageKey}.pending`); } catch {} };
   const params = new URLSearchParams(global.location.search);
-  const pendingId = params.get('subscription_id');
-  const returnState = params.get('subscription');
-
-  if (summary.plan?.billingStatus === 'ACTIVE') {
-    if (button) button.hidden = true;
-    announce(root, summary.plan.paymentConfirmed
-      ? 'Your PayPal subscription payment is confirmed.'
-      : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
-    summary.plan.paymentConfirmed ? 'success' : 'pending');
-    return true;
+  const returnState = params.get('paypal-subscription') || params.get('subscription');
+  // The provider return is only a navigation hint, never proof of ownership or payment.
+  // The server must match the authenticated reader, local subscription and PayPal ID.
+  let pendingId = params.get('subscription_id');
+  if (returnState === 'approved' && !pendingId) {
+    try { pendingId = global.sessionStorage?.getItem?.(`${storageKey}.pending`); } catch {}
   }
+
   if (returnState === 'cancelled') {
     clearRequest(); cleanReturnLocation(global);
     announce(root, 'PayPal subscription approval was cancelled.', 'idle');
-  } else if (returnState === 'return' && BILLING_ID.test(pendingId || '')) {
+  } else if (['return', 'approved'].includes(returnState) && BILLING_ID.test(pendingId || '')) {
     if (button) button.disabled = true;
     announce(root, 'Verifying the approved PayPal subscription…', 'pending');
     const verified = await verifySubscription({ config, supabase: global.GPIR_SUPABASE_CLIENT,
@@ -168,6 +163,28 @@ export async function initializePayPalSubscription({ global = globalThis,
       ? 'Payment confirmed. Refreshing your account…'
       : 'Subscription verified; Premium access awaits confirmed payment.',
     verified.paymentConfirmed ? 'success' : 'pending');
+    return true;
+  }
+
+  // Handle provider return before an ACTIVE summary can short-circuit verification.
+  if (returnState && !['cancelled', 'return', 'approved'].includes(returnState)) {
+    cleanReturnLocation(global);
+    announce(root, 'Unrecognised subscription return. No access was granted.', 'error');
+    return false;
+  }
+  if (['return', 'approved'].includes(returnState) && !BILLING_ID.test(pendingId || '')) {
+    cleanReturnLocation(global);
+    announce(root, 'Subscription return could not be matched. No access was granted.', 'error');
+    return false;
+  }
+  if (summary.plan?.billingStatus === 'ACTIVE' || summary.plan?.billingStatus === 'APPROVAL_PENDING') {
+    if (button) button.hidden = true;
+    announce(root, summary.plan.paymentConfirmed
+      ? 'Your PayPal subscription payment is confirmed.'
+      : summary.plan.billingStatus === 'ACTIVE'
+        ? 'Existing PayPal subscription found. Premium access awaits confirmed payment; do not subscribe again.'
+        : 'An existing PayPal approval is pending. Do not start a duplicate subscription.',
+      summary.plan.paymentConfirmed ? 'success' : 'pending');
     return true;
   }
 
@@ -201,6 +218,7 @@ export async function initializePayPalSubscription({ global = globalThis,
         'The subscription is not active. No publication access was granted.', 'error');
       return;
     }
+    try { global.sessionStorage?.setItem?.(`${storageKey}.pending`, created.subscriptionId); } catch {}
     global.location.assign(created.approvalUrl);
   };
   return true;

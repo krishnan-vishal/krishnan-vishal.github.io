@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M37 G1-03 — recurring-payment Sandbox release candidate
+
+- **Date / branch / PR:** 2026-10-25; `feature/m37-subscription-return-contract`; Draft PR #466. Production remains excluded.
+- **Implementation:** provider-verified recurring sale reconciliation now uses an ownership-complete v3 webhook lookup, advances the verified subscription period, and handles subscription sale refunds/reversals through immutable adjustment audit. Partial refunds preserve the period; a latest full refund/reversal expires it without changing provider billing status or another reader's records.
+- **Evidence:** consolidated mocked integration/regression suite 74/74 PASS; repository security/content/link checks and secret scan pass locally. These are not live provider or deployed database acceptance.
+- **Sandbox gate:** apply only `20261025000100_m37_g103_recurring_adjustments.sql` after confirming existing M37-B/M39 and G1-01/G1-02 dependencies; then deploy only `gpir-paypal-webhook` with gateway JWT disabled for the external PayPal callback and PayPal signature verification retained. Confirm required recurring/lifecycle webhook subscriptions.
+- **Blocker:** this environment has no Supabase CLI/private Sandbox credentials or PayPal credentials, so deployed RPCs, function settings, secret-name presence and webhook configuration could not be read. No database, webhook, secret, deployment, payment, Production or merge action occurred.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.

@@ -1,0 +1,23 @@
+name: M37 Gate 1 Reconciliation Tests
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/gpir-paypal-verify-subscription/**'
+      - 'supabase/functions/gpir-paypal-webhook/**'
+      - 'supabase/functions/_shared/gpir-*.mjs'
+      - 'tests/m37/**'
+      - 'tests/m38/controlled-delivery.test.mjs'
+      - '.github/workflows/m37-gate1-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reconciliation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Gate 1 regression tests
+        run: node --test tests/m37/paypal-sandbox-integration.test.mjs tests/m37/g102-reconciliation.test.mjs tests/m37/g102-handler.test.mjs tests/m37/g103-renewal.test.mjs tests/m37/g103-adjustment.test.mjs tests/m37/g103-contract.test.mjs tests/m37/g103-webhook-integration.test.mjs tests/m38/controlled-delivery.test.mjs

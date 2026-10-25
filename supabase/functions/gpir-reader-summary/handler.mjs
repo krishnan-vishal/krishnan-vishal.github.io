@@ -240,10 +240,14 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       planAvailable = false;
       reportDependencyFailure(logger, 'gpir_paypal_subscriptions', subscriptionsResult);
     }
+    // Provider ACTIVE is billing state, not proof of a completed payment or access.
+    // Publication access comes exclusively from resolve_publication_entitlement.
     const subscriptionActive = planAvailable && subscription?.status === 'ACTIVE';
-    const plan = Object.freeze({ status: subscriptionActive || hasPlanAccess ? 'ACTIVE' :
+    const plan = Object.freeze({ status: hasPlanAccess ? 'ACTIVE' :
+      subscriptionActive ? 'INACTIVE' :
       subscription ? 'INACTIVE' : 'NOT_ENROLLED',
-      accessClass: entitlementAvailable && (subscriptionActive || hasPlanAccess) ? 'ENTITLED' : null,
+      accessClass: entitlementAvailable && hasPlanAccess ? 'ENTITLED' : null,
+      paymentConfirmed: false,
       effectiveFrom: subscription?.effectiveFrom || null,
       effectiveUntil: subscription?.effectiveUntil || null,
       billingStatus: subscription?.status || 'NOT_ACTIVE' });

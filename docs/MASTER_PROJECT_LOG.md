@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M37 G1-03 — recurring-payment reconciliation release candidate
+
+- **Date / objective:** 2026-10-25; complete provider-verified recurring renewal, refund and reversal handling on Draft PR #466 without deployment, new payment, Production access or merge.
+- **Contract correction:** authoritative `gpir_get_paypal_subscription_for_webhook_v2` has no `user_id`. The implementation preserves v2 and adds service-only v3 returning the reader-owned subscription `user_id`. Existing payment writer and webhook claim/completion signatures remain unchanged.
+- **Result:** signed `PAYMENT.SALE.COMPLETED` events re-fetch PayPal subscription/transaction evidence, write each transaction once and advance the verified period. Signed `PAYMENT.SALE.REFUNDED` and `PAYMENT.SALE.REVERSED` events resolve the original evidence, re-fetch provider state, append an immutable adjustment and never create a second payment. Partial refunds preserve the period; latest full refunds/reversals expire it while later eligible payments and other readers remain isolated.
+- **Evidence / limit:** 74/74 consolidated mocked tests plus security/content/link/secret checks pass locally. No disposable PostgreSQL execution, live Sandbox provider event, migration, function deployment or configuration inspection occurred. The environment lacked Supabase CLI/private Sandbox credentials and PayPal credentials. PR remains Draft; Production untouched.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **Date / user request:** 2026-09-14; a green `run-ticker.yml` reportedly leaves `global_announcements` empty. Search every HTML anchor by default, require a cleaned 10–250 character title and a finance keyword in title or URL, deduplicate, and retain approved/ticker-eligible writes.

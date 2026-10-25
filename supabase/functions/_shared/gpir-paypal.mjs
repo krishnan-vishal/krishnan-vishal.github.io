@@ -6,6 +6,7 @@ export const GPIR_SUPABASE_PROJECTS = Object.freeze({
 });
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const PAYPAL_ID = /^[A-Z0-9]{8,32}$/i;
+export const PAYPAL_TRANSACTION_ID = /^[A-Z0-9]{3,50}$/i;
 export const PAYPAL_BILLING_ID = /^[A-Z0-9-]{8,64}$/i;
 
 export function paymentConfiguration(env, { webhook = false } = {}) {
@@ -73,10 +74,11 @@ export function bearerToken(request) {
 export async function authenticateSupabaseUser({ request, config, fetchImpl }) {
   const token = bearerToken(request);
   if (!token) return null;
+  const headers = new Headers({ authorization: `Bearer ${token}` });
+  headers.set('apikey', config.GPIR_SUPABASE_PUBLISHABLE_KEY);
   let response;
   try {
-    response = await fetchImpl(`${config.SUPABASE_URL}/auth/v1/user`, { headers: {
-      apikey: config.GPIR_SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${token}` } });
+    response = await fetchImpl(`${config.SUPABASE_URL}/auth/v1/user`, { headers });
   } catch { return null; }
   if (!response.ok) return null;
   let user;
@@ -85,12 +87,13 @@ export async function authenticateSupabaseUser({ request, config, fetchImpl }) {
 }
 
 export async function supabaseRpc({ config, name, body, fetchImpl }) {
+  const headers = new Headers({ authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`,
+    'content-type': 'application/json' });
+  headers.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
   let response;
   try {
     response = await fetchImpl(`${config.SUPABASE_URL}/rest/v1/rpc/${name}`, {
-      method: 'POST', headers: { apikey: config.GPIR_SUPABASE_SECRET_KEY,
-        authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`,
-        'content-type': 'application/json' }, body: JSON.stringify(body)
+      method: 'POST', headers, body: JSON.stringify(body)
     });
   } catch { return { ok: false, data: null, debugId: null }; }
   const debugId = response.headers.get('x-request-id');
