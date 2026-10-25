@@ -20,4 +20,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run Gate 1 regression tests
-        run: node --test tests/m37/g102-reconciliation.test.mjs tests/m37/g102-handler.test.mjs tests/m37/g103-renewal.test.mjs tests/m37/g103-webhook-integration.test.mjs tests/m38/controlled-delivery.test.mjs
+        run: node --test tests/m37/paypal-sandbox-integration.test.mjs tests/m37/g102-reconciliation.test.mjs tests/m37/g102-handler.test.mjs tests/m37/g103-renewal.test.mjs tests/m37/g103-adjustment.test.mjs tests/m37/g103-contract.test.mjs tests/m37/g103-webhook-integration.test.mjs tests/m38/controlled-delivery.test.mjs

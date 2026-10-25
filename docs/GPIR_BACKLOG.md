@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M37 recurring payment reconciliation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M37-G1-03 | 2026-10-25 | Provider-verified recurring renewals, refunds and reversals | SECURITY, DATA, AUTOMATION | High | IN PROGRESS | Owner-approved Sandbox migration/function deployment and real provider-event acceptance | Sandbox Gate 1 | `gpir-paypal-webhook`, subscription payment evidence | Reconcile recurring sales and negative adjustments without client ownership, duplicate payment or cross-reader access. | Mocked and SQL contract tests pass; Sandbox RPCs/configuration verified; real signed renewal/refund/reversal outcomes and entitlement behavior accepted. | Release-candidate code and migration implemented; 74/74 mocked tests pass. Live Sandbox inspection/acceptance blocked by unavailable private credentials/tools. | PENDING | Work branch | M37 G1-03 |
+
 ## Supabase announcement scraper
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

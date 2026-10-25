@@ -1,4 +1,5 @@
 import { reconcileSubscriptionSale } from './recurring-sale.mjs';
+import { reconcileSubscriptionAdjustment } from './recurring-adjustment.mjs';
 import { PAYPAL_BILLING_ID, PAYPAL_ID, UUID, paymentConfiguration, paypalAccessToken, paypalJson,
   sha256Hex, storedOrder, storedSubscription, supabaseRpc, verifiedCapture }
   from '../_shared/gpir-paypal.mjs';
@@ -103,6 +104,21 @@ export function createPayPalWebhookHandler({ env, fetchImpl = fetch }) {
       if (!finished.ok || finished.data !== true)
         return response(503, { status: 'ERROR', code: 'WEBHOOK_COMPLETION_FAILED' });
       return response(200, { status: renewal.status });
+    }
+
+    if (['PAYMENT.SALE.REFUNDED', 'PAYMENT.SALE.REVERSED'].includes(event.event_type)) {
+      const adjustment = await reconcileSubscriptionAdjustment({
+        event, config, accessToken, fetchImpl
+      });
+      if (!adjustment.ok) {
+        await finish(config, event.id, 'ERROR', adjustment.code, fetchImpl);
+        return response(503, { status: 'ERROR', code: adjustment.code });
+      }
+      const finished = await finish(config, event.id, 'PROCESSED', null, fetchImpl);
+      if (!finished.ok || finished.data !== true)
+        return response(503, { status: 'ERROR', code: 'WEBHOOK_COMPLETION_FAILED' });
+      return response(200, { status: adjustment.status,
+        adjustmentStatus: adjustment.adjustmentStatus });
     }
 
     if (event.event_type.startsWith('BILLING.SUBSCRIPTION.')) {

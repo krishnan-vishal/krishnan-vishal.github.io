@@ -16,7 +16,7 @@ export async function reconcileSubscriptionSale({ event, config, accessToken, fe
     return { ok: false, code: 'SUBSCRIPTION_PROVIDER_MISMATCH' };
   const localId = provider.data.custom_id;
   const lookup = await supabaseRpc({ config, fetchImpl,
-    name: 'gpir_get_paypal_subscription_for_webhook_v2',
+    name: 'gpir_get_paypal_subscription_for_webhook_v3',
     body: { p_local_subscription_id: localId, p_paypal_subscription_id: subscriptionId,
       p_environment: config.PAYMENT_ENVIRONMENT } });
   const local = lookup.ok ? storedSubscription(lookup.data) : null;
@@ -53,6 +53,9 @@ export async function reconcileSubscriptionSale({ event, config, accessToken, fe
     expectedCurrency: context.expected_currency,
     expectedAmountMinor: Number(context.expected_amount_minor) });
   if (!match) return { ok: false, code: 'SUBSCRIPTION_TRANSACTION_UNVERIFIED' };
+  const nextBillingTime = provider.data?.billing_info?.next_billing_time;
+  if (!Number.isFinite(Date.parse(nextBillingTime || '')))
+    return { ok: false, code: 'SUBSCRIPTION_PERIOD_UNVERIFIED' };
   const recorded = await supabaseRpc({ config, fetchImpl,
     name: 'gpir_record_verified_subscription_payment_v1',
     body: { p_local_subscription_id: localId, p_reader_user_id: local.user_id,
@@ -64,5 +67,14 @@ export async function reconcileSubscriptionSale({ event, config, accessToken, fe
       p_provider_event_id: event.id } });
   if (!recorded.ok || !['RECORDED', 'DUPLICATE'].includes(recorded.data))
     return { ok: false, code: 'SUBSCRIPTION_LEDGER_WRITE_FAILED' };
+  const finalized = await supabaseRpc({ config, fetchImpl,
+    name: 'gpir_finalize_paypal_subscription_v2',
+    body: { p_local_subscription_id: localId,
+      p_paypal_subscription_id: subscriptionId, p_status: 'ACTIVE',
+      p_effective_from: provider.data?.start_time || null,
+      p_effective_until: nextBillingTime,
+      p_environment: config.PAYMENT_ENVIRONMENT } });
+  if (!finalized.ok || finalized.data !== true)
+    return { ok: false, code: 'SUBSCRIPTION_PERIOD_RECONCILIATION_FAILED' };
   return { ok: true, status: recorded.data };
 }

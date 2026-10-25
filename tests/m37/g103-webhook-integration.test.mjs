@@ -23,8 +23,9 @@ function fixture({signature='SUCCESS',claim='CLAIMED',writer='RECORDED',status='
   if(u.endsWith('/v1/notifications/verify-webhook-signature'))return json({verification_status:signature});
   if(u.endsWith('/rpc/gpir_claim_paypal_webhook_event_v2'))return json(claim);
   if(u.endsWith('/v1/billing/subscriptions/'+subscription))
-   return json({id:subscription,custom_id:local,plan_id:plan,status:'ACTIVE'});
-  if(u.endsWith('/rpc/gpir_get_paypal_subscription_for_webhook_v2'))
+   return json({id:subscription,custom_id:local,plan_id:plan,status:'ACTIVE',
+    start_time:'2026-10-18T12:00:00Z',billing_info:{next_billing_time:'2026-11-18T12:00:00Z'}});
+  if(u.endsWith('/rpc/gpir_get_paypal_subscription_for_webhook_v3'))
    return json([{local_subscription_id:local,user_id:reader,paypal_plan_id:plan,
     paypal_subscription_id:subscription,subscription_status:'ACTIVE'}]);
   if(u.endsWith('/rpc/gpir_subscription_reconciliation_context_v1'))
@@ -34,6 +35,7 @@ function fixture({signature='SUCCESS',claim='CLAIMED',writer='RECORDED',status='
    id:txn,status,time:event.create_time,
    amount_with_breakdown:{gross_amount:{currency_code:'USD',value:'9.99'}}}]});
   if(u.endsWith('/rpc/gpir_record_verified_subscription_payment_v1'))return json(writer);
+  if(u.endsWith('/rpc/gpir_finalize_paypal_subscription_v2'))return json(true);
   if(u.endsWith('/rpc/gpir_finish_paypal_webhook_event_v2'))return json(true);
   throw Error('Unexpected '+u);
  };
