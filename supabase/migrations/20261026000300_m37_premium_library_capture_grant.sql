@@ -1,8 +1,8 @@
 -- Sandbox-only capture grant: full GPIR Premium Library for 30 days.
 -- Run only after 20261026000100 and 20261026000200.
 -- No offers or payments are seeded. Existing recurring entitlements are untouched.
-ALTER TABLE public.gpir_onetime_offers DROP CONSTRAINT IF EXISTS gpir_onetime_offers_supabase_record_id_fkey;
-ALTER TABLE public.gpir_onetime_orders DROP CONSTRAINT IF EXISTS gpir_onetime_orders_supabase_record_id_fkey;
+-- Keep the FK for publication-specific rows; nullable scope needs no FK removal.
+-- Existing order FK remains valid for nullable library scope.
 ALTER TABLE public.gpir_onetime_offers ALTER COLUMN supabase_record_id DROP NOT NULL;
 ALTER TABLE public.gpir_onetime_orders ALTER COLUMN supabase_record_id DROP NOT NULL;
 ALTER TABLE public.gpir_onetime_offers
