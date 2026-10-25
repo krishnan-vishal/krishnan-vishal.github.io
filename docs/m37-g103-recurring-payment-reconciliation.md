@@ -1,6 +1,8 @@
 # M37 G1-03 — recurring subscription payment reconciliation
 
-Status: SPECIFIED IN DRAFT; NOT IMPLEMENTED OR ACCEPTANCE-TESTED. G1-01/G1-02 Sandbox acceptance remains PASS. No Production changes authorised.
+Status: PARTIAL IMPLEMENTATION IN DRAFT; NOT ACCEPTANCE-TESTED. G1-01/G1-02 Sandbox acceptance remains PASS. No Production changes authorised.
+
+Implementation progress: `supabase/functions/gpir-paypal-webhook/recurring-sale.mjs` handles provider-verified `PAYMENT.SALE.COMPLETED` subscription renewals through the restricted ledger writer; `handler.mjs` routes the event after signature verification and idempotent event claim. `tests/m37/g103-renewal.test.mjs` adds synthetic renewal/duplicate/mismatch tests, and Gate 1 CI includes that file. CI result for the new head, deployed Sandbox acceptance, production RPC compatibility, recurring refund/reversal evidence and entitlement integration are **not yet confirmed**. This document does not mark G1-03 PASS.
 
 ## Scope
 Handle provider-confirmed recurring billing after the original subscription payment. Do not create a new checkout or reuse the original USD 9.99 transaction as a renewal fixture. A PayPal subscription ACTIVE state or a browser return is not proof of a new payment.
