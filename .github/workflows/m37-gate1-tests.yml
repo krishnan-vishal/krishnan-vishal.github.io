@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'supabase/functions/gpir-paypal-verify-subscription/**'
+      - 'supabase/functions/gpir-paypal-webhook/**'
       - 'supabase/functions/_shared/gpir-*.mjs'
       - 'tests/m37/**'
       - 'tests/m38/controlled-delivery.test.mjs'
@@ -19,4 +20,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run Gate 1 regression tests
-        run: node --test tests/m37/g102-reconciliation.test.mjs tests/m37/g102-handler.test.mjs tests/m38/controlled-delivery.test.mjs
+        run: node --test tests/m37/g102-reconciliation.test.mjs tests/m37/g102-handler.test.mjs tests/m37/g103-renewal.test.mjs tests/m38/controlled-delivery.test.mjs
