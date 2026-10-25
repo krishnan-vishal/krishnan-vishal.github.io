@@ -16,6 +16,27 @@ ALTER TABLE public.gpir_onetime_orders
    (publication_id = 'PREMIUM_LIBRARY' AND supabase_record_id IS NULL AND access_duration_days = 30)
    OR (publication_id <> 'PREMIUM_LIBRARY' AND supabase_record_id IS NOT NULL)
  );
+-- Preserve the existing publication identity validation for publication-specific offers,
+-- while accepting only the explicitly governed library SKU without a fake publication FK.
+CREATE FUNCTION public.gpir_validate_onetime_offer_scope()
+RETURNS trigger LANGUAGE plpgsql SET search_path = pg_catalog, public AS $
+BEGIN
+  IF NEW.pass_id = 'GPIR_PREMIUM_LIBRARY_30D' THEN
+    IF NEW.publication_id <> 'PREMIUM_LIBRARY' OR NEW.supabase_record_id IS NOT NULL
+       OR NEW.access_duration_days <> 30 THEN
+      RAISE EXCEPTION 'INVALID_PREMIUM_LIBRARY_OFFER';
+    END IF;
+  ELSE
+    RAISE EXCEPTION 'PUBLICATION_SPECIFIC_OFFER_DISABLED';
+  END IF;
+  RETURN NEW;
+END;
+$;
+DROP TRIGGER IF EXISTS gpir_onetime_offer_identity ON public.gpir_onetime_offers;
+CREATE TRIGGER gpir_onetime_offer_identity
+BEFORE INSERT OR UPDATE ON public.gpir_onetime_offers
+FOR EACH ROW EXECUTE FUNCTION public.gpir_validate_onetime_offer_scope();
+
 -- Existing RPCs remain; replace capture and reversal grants to use independent library entitlements.
 CREATE OR REPLACE FUNCTION public.gpir_finalize_onetime_capture(
   p_local_order_id uuid, p_paypal_order_id text, p_paypal_capture_id text,
