@@ -110,6 +110,24 @@ function subscriptionOffer(row) {
     currency: row.currency, unitAmountMinor: amount, billingInterval: row.billing_interval });
 }
 
+function oneTimePurchaseOffer(row) {
+  const amount = Number(row?.unit_amount_minor);
+  if (!UUID.test(row?.id || '') || !UUID.test(row?.supabase_record_id || '') ||
+      typeof row?.publication_id !== 'string' || !row.publication_id.trim() ||
+      typeof row?.display_name !== 'string' || !row.display_name.trim() ||
+      row.currency !== 'USD' || !Number.isSafeInteger(amount) || amount <= 0) return null;
+  return Object.freeze({ id: row.id, publicationId: safeText(row.publication_id),
+    supabaseRecordId: row.supabase_record_id, displayName: safeText(row.display_name),
+    currency: row.currency, unitAmountMinor: amount });
+}
+
+function paypalSandboxClientId(env, environment) {
+  const value = env.PAYPAL_CLIENT_ID?.trim();
+  return environment === 'sandbox' && typeof value === 'string' &&
+    /^[A-Za-z0-9_-]{11,256}$/.test(value) && !/replace|example|live/i.test(value)
+    ? value : null;
+}
+
 function reportDependencyFailure(logger, dependency, result) {
   try {
     logger.error('gpir-reader-summary dependency failure', {
@@ -144,7 +162,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const serviceHeaders = { apikey: config.GPIR_SUPABASE_SECRET_KEY,
       authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}` };
     const offerQuery = new URLSearchParams({
-      select: 'supabase_record_id,publication_id',
+      select: 'id,supabase_record_id,publication_id,display_name,currency,unit_amount_minor',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
       status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
       order: 'publication_id.asc', limit: '100'
@@ -230,6 +248,19 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       reportDependencyFailure(logger, 'resolve_publication_entitlement', failed || {});
     }
 
+    const parsedOffers = offers?.map(oneTimePurchaseOffer) || [];
+    const offersValid = Boolean(offers && parsedOffers.length === offers.length);
+    if (offers && !offersValid)
+      reportDependencyFailure(logger, 'gpir_payment_offers.checkout_contract', offersResult);
+    const paypalClientId = paypalSandboxClientId(env, config.environment);
+    const decisionByPublication = new Map(publications.map((publication, index) =>
+      [purchaseKey(publication), decisions[index]?.[0]?.decision]));
+    const purchaseOffers = entitlementAvailable && offersValid && paypalClientId
+      ? parsedOffers.filter(offer => decisionByPublication.get(purchaseKey({
+        supabase_record_id: offer.supabaseRecordId,
+        publication_id: offer.publicationId
+      })) === 'DENY') : [];
+
     const purchaseStates = new Map((purchases || []).map(row => [purchaseKey(row), row.status]));
     const hasPlanAccess = entitlementAvailable && publications.some((publication, index) =>
       decisions[index][0].decision === 'ALLOW' &&
@@ -277,10 +308,14 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
 
     return response(200, Object.freeze({ status: 'OK', environment: config.environment,
       profile, library, payments, plan, subscriptionOffer: checkoutOffer,
+      purchaseOffers: Object.freeze(purchaseOffers),
+      paymentCheckout: purchaseOffers.length ? Object.freeze({ provider: 'PAYPAL_ORDERS',
+        clientId: paypalClientId, currency: 'USD', intent: 'CAPTURE', recurrence: 'NONE' }) : null,
       availability: Object.freeze({ profile: 'AVAILABLE',
         library: entitlementAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        oneTimeCheckout: purchaseOffers.length ? 'AVAILABLE' : 'UNAVAILABLE',
         subscriptionCheckout: config.environment === 'sandbox' && checkoutOffer
           ? 'AVAILABLE' : 'UNAVAILABLE' }),
       summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
@@ -291,5 +326,5 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
   };
 }
 
-export { configuration, paymentSummary, publicationCandidate, subscriptionOffer,
-  subscriptionSummary };
+export { configuration, oneTimePurchaseOffer, paypalSandboxClientId, paymentSummary,
+  publicationCandidate, subscriptionOffer, subscriptionSummary };
