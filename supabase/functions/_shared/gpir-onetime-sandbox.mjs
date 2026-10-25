@@ -69,8 +69,10 @@ export async function authenticateSupabaseUser({ request, config, fetchImpl }) {
   if (!token) return null;
   let response;
   try {
-    response = await fetchImpl(`${config.SUPABASE_URL}/auth/v1/user`, { headers: {
-      apikey: config.GPIR_SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${token}` } });
+    const headers = new Headers();
+    headers.set('apikey', config.GPIR_SUPABASE_PUBLISHABLE_KEY);
+    headers.set('authorization', `Bearer ${token}`);
+    response = await fetchImpl(`${config.SUPABASE_URL}/auth/v1/user`, { headers });
   } catch { return null; }
   if (!response.ok) return null;
   let user;
@@ -81,10 +83,12 @@ export async function authenticateSupabaseUser({ request, config, fetchImpl }) {
 export async function supabaseRpc({ config, name, body, fetchImpl }) {
   let response;
   try {
+    const headers = new Headers();
+    headers.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
+    headers.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
+    headers.set('content-type', 'application/json');
     response = await fetchImpl(`${config.SUPABASE_URL}/rest/v1/rpc/${name}`, {
-      method: 'POST', headers: { apikey: config.GPIR_SUPABASE_SECRET_KEY,
-        authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`,
-        'content-type': 'application/json' }, body: JSON.stringify(body)
+      method: 'POST', headers, body: JSON.stringify(body)
     });
   } catch { return { ok: false, data: null, debugId: null }; }
   let data = null;
