@@ -135,7 +135,7 @@ export async function paypalJson({ config, accessToken, path, method = 'GET', bo
 
 export function normalizedOffer(row) {
   if (!row || !UUID.test(row.offer_id || '') || typeof row.pass_id !== 'string' ||
-      !UUID.test(row.supabase_record_id || '') || typeof row.publication_id !== 'string' ||
+      !(row.publication_id === 'PREMIUM_LIBRARY' && row.supabase_record_id == null && row.pass_id === 'GPIR_PREMIUM_LIBRARY_30D') ||
       typeof row.display_name !== 'string' || !isSupportedCurrency(row.currency) ||
       !Number.isSafeInteger(Number(row.unit_amount_minor)) || Number(row.unit_amount_minor) <= 0 ||
       !Number.isInteger(Number(row.access_duration_days)) || Number(row.access_duration_days) <= 0)
@@ -165,7 +165,7 @@ export function preparedOrder(data) {
 export function storedOrder(data) {
   const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
   if (!row || !UUID.test(row.local_order_id || '') || !PAYPAL_ID.test(row.paypal_order_id || '') ||
-      !UUID.test(row.supabase_record_id || '') || typeof row.publication_id !== 'string' ||
+      !(row.publication_id === 'PREMIUM_LIBRARY' && row.supabase_record_id == null) ||
       !isSupportedCurrency(row.currency) ||
       !Number.isSafeInteger(Number(row.expected_amount_minor)) ||
       Number(row.expected_amount_minor) <= 0 ||
