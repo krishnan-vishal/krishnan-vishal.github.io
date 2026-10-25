@@ -32,7 +32,7 @@ export function parsePayPalAmount(currency, value) {
 
 export function sandboxOnetimeEnabled(env) {
   if (env?.ONETIME_CHECKOUT_ENABLED !== 'true' ||
-      env?.PAYPAL_ENV !== 'sandbox') return false;
+      (env?.PAYPAL_ENVIRONMENT || env?.PAYPAL_ENV) !== 'sandbox') return false;
   try {
     const url = new URL(env.SUPABASE_URL);
     return url.protocol === 'https:' &&

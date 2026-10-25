@@ -1,22 +1,22 @@
-# GPIR One-Time Multicurrency Sandbox — Implementation Design (Approval Stage)
+# GPIR One-Time Multicurrency Sandbox — Implementation and Release Controls
 
-Status: DESIGN ONLY. No checkout code, Supabase migrations, PayPal configuration, deployments, or production changes authorized by this document.
+Status: ISOLATED IMPLEMENTATION COMPLETE; Sandbox deployment and provider acceptance pending. Production remains blocked.
 
 ## Isolation and invariants
 - Work only on branch `feature/onetime-multicurrency-sandbox` (created from `main`).
 - Never change existing subscription, dashboard, authentication, webhook, entitlement resolver, payment tables, or existing production feature flags without a separate exact-diff approval.
-- New Deno Supabase Edge Functions MUST refuse requests unless `PAYPAL_ENV=sandbox` and `SUPABASE_URL=https://hoewtptllwkcqrgryazu.supabase.co`. Pin PayPal to `https://api-m.sandbox.paypal.com`. No live fallback.
+- New Deno Supabase Edge Functions refuse requests unless the feature flag is true, the PayPal environment is Sandbox, and `SUPABASE_URL=https://hoewtptllwkcqrgryazu.supabase.co`. PayPal is pinned to `https://api-m.sandbox.paypal.com` with no live fallback.
 - Keep secrets in Sandbox Edge Function secrets only. Feature flag `ONETIME_CHECKOUT_ENABLED` defaults to false and is required true for all new endpoints and UI.
 - No link from the live dashboard until separately approved; direct standalone preview route only.
 
-## Proposed additive files
+## Additive implementation
 - `reader/pay-once/index.html` — standalone checkout page, separate PayPal SDK namespace.
 - `assets/js/gpir-payonce-multicurrency.mjs` — currency selector, eligible funding buttons, error/pending/success UX.
 - `supabase/functions/gpir-onetime-create-order/index.ts` and `handler.mjs`.
 - `supabase/functions/gpir-onetime-capture-order/index.ts` and `handler.mjs`.
 - `supabase/functions/gpir-onetime-webhook/index.ts` and `handler.mjs`.
 - `supabase/functions/_shared/gpir-onetime-sandbox.mjs` — independent sandbox-only OAuth, CORS, authentication, price lookup, idempotency and PayPal calls.
-- `supabase/migrations/<timestamp>_gpir_onetime_sandbox.sql` — new `onetime_purchases` store and strictly scoped RPCs only; do not alter existing tables.
+- `supabase/migrations/20261025000200_m37_onetime_multicurrency_sandbox.sql` — isolated offer, order, entitlement and webhook-event stores plus service-role RPCs; no offer or price seed.
 - `tests/m37/onetime-multicurrency.test.mjs` — sandbox isolation, JPY decimals, duplicate capture, signature rejection, refund, amount tampering and flag OFF.
 
 ## API contract
@@ -33,7 +33,7 @@ Status: DESIGN ONLY. No checkout code, Supabase migrations, PayPal configuration
 - Show processing, cancelled, declined, pending, completed with verified expiry date.
 
 ## Entitlement integration hold
-The existing reader dashboard relies on `gpir-reader-summary` and `resolve_publication_entitlement`. New purchase data cannot automatically grant existing protected-publication access. Build and test an independent pass lookup first. BEFORE any shared resolver/dashboard wiring, present exact diff for owner approval. Never claim complete access before that integration.
+The existing protected-publication endpoint relies on `resolve_publication_entitlement`. The isolated purchase resolver is implemented, but the exact shared `OR EXISTS` integration remains intentionally unapplied pending owner approval. See `docs/m37/onetime-entitlement-integration-approval.md`. Never claim complete protected-publication access before that approval and verification.
 
 ## Phase 1 manual PayPal Sandbox prerequisites (NOT verified)
 1. Confirm existing sandbox business merchant country and whether guest checkout is enabled.
