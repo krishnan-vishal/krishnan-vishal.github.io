@@ -1,4 +1,6 @@
 import { initializePayPalSubscription } from './gpir-paypal-subscription.mjs';
+import { initializePayPalSandboxCheckout, sandboxCheckoutConfig }
+  from './gpir-paypal-sandbox-checkout.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
@@ -22,6 +24,7 @@ export function normalizeReaderSummary(value) {
     library: sectionAvailability(value, 'library'),
     payments: sectionAvailability(value, 'payments'),
     plan: sectionAvailability(value, 'plan'),
+    oneTimeCheckout: sectionAvailability(value, 'oneTimeCheckout'),
     subscriptionCheckout: sectionAvailability(value, 'subscriptionCheckout') });
   const library = availability.library === 'AVAILABLE'
     ? value.library.flatMap(item => UUID.test(item?.supabaseRecordId || '') &&
@@ -55,7 +58,32 @@ export function normalizeReaderSummary(value) {
       currency: value.subscriptionOffer.currency,
       unitAmountMinor: value.subscriptionOffer.unitAmountMinor,
       billingInterval: value.subscriptionOffer.billingInterval }) : null;
-  return Object.freeze({ environment, availability, subscriptionOffer: offer,
+  const purchaseOffers = availability.oneTimeCheckout === 'AVAILABLE' &&
+    Array.isArray(value.purchaseOffers) ? value.purchaseOffers.flatMap(item =>
+      UUID.test(item?.id || '') && UUID.test(item?.supabaseRecordId || '') &&
+      typeof item?.publicationId === 'string' && item.publicationId &&
+      typeof item?.displayName === 'string' && item.displayName.trim() &&
+      item.currency === 'USD' && Number.isSafeInteger(item.unitAmountMinor) &&
+      item.unitAmountMinor > 0 ? [Object.freeze({ id: item.id,
+        publicationId: item.publicationId, supabaseRecordId: item.supabaseRecordId,
+        displayName: item.displayName, currency: item.currency,
+        unitAmountMinor: item.unitAmountMinor })] : []) : [];
+  const checkout = value.paymentCheckout;
+  const paymentCheckout = availability.oneTimeCheckout === 'AVAILABLE' &&
+    checkout?.provider === 'PAYPAL_ORDERS' && checkout.currency === 'USD' &&
+    checkout.intent === 'CAPTURE' && checkout.recurrence === 'NONE' &&
+    typeof checkout.clientId === 'string' &&
+    /^[A-Za-z0-9_-]{11,256}$/.test(checkout.clientId) &&
+    !/replace|example|live/i.test(checkout.clientId) &&
+    purchaseOffers.length === value.purchaseOffers.length
+    ? Object.freeze({ provider: checkout.provider, clientId: checkout.clientId,
+      currency: checkout.currency, intent: checkout.intent,
+      recurrence: checkout.recurrence }) : null;
+  const normalizedAvailability = Object.freeze({ ...availability,
+    oneTimeCheckout: paymentCheckout && purchaseOffers.length
+      ? 'AVAILABLE' : 'UNAVAILABLE' });
+  return Object.freeze({ environment, availability: normalizedAvailability,
+    subscriptionOffer: offer, purchaseOffers: Object.freeze(purchaseOffers), paymentCheckout,
     profile: Object.freeze({
     email: typeof value.profile.email === 'string' ? value.profile.email : null,
     displayName: typeof value.profile.displayName === 'string' ? value.profile.displayName : null,
@@ -241,6 +269,8 @@ export function clearReaderDashboard(document) {
   }
   const subscription = document.querySelector('[data-gpir-paypal-subscription]');
   if (subscription) subscription.hidden = true;
+  const checkout = document.querySelector('[data-gpir-paypal-checkout="sandbox"]');
+  if (checkout) checkout.hidden = true;
 }
 
 function dashboardEndpoint(global) {
@@ -284,6 +314,8 @@ export async function initializeReaderDashboard({ global = window, document = gl
     }
     renderReaderDashboard(document, result.summary);
     await initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl });
+    await initializePayPalSandboxCheckout({ global, document,
+      config: sandboxCheckoutConfig(global, result.summary), supabase: client, fetchImpl });
     if (status) {
       status.textContent = root.dataset.state === 'partial'
         ? 'Your profile is available. Some protected account sections are temporarily unavailable.'

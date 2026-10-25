@@ -20,6 +20,7 @@ const sandboxUrl = 'https://hoewtptllwkcqrgryazu.supabase.co';
 const userA = '22222222-2222-4222-8222-222222222222';
 const userB = '33333333-3333-4333-8333-333333333333';
 const planId = '44444444-4444-4444-8444-444444444444';
+const offerId = '99999999-9999-4999-8999-999999999999';
 const requestId = '55555555-5555-4555-8555-555555555555';
 const localSubscriptionId = '66666666-6666-4666-8666-666666666666';
 const recordId = '77777777-7777-4777-8777-777777777777';
@@ -32,7 +33,7 @@ const approvalUrl = `https://www.sandbox.paypal.com/webapps/billing/subscription
 const summaryEnv = Object.freeze({ SUPABASE_URL: sandboxUrl,
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
   GPIR_SUPABASE_SECRET_KEY: 'server_fixture', GPIR_ALLOWED_ORIGINS: origin,
-  GPIR_PAYMENT_ENVIRONMENT: 'sandbox' });
+  GPIR_PAYMENT_ENVIRONMENT: 'sandbox', PAYPAL_CLIENT_ID: 'sandbox_client_fixture' });
 const paymentEnv = Object.freeze({ SUPABASE_URL: sandboxUrl,
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
   GPIR_SUPABASE_SECRET_KEY: 'server_fixture', GPIR_PAYPAL_ALLOWED_ORIGINS: origin,
@@ -52,7 +53,9 @@ function summaryRequest(token = 'reader-session-fixture') {
 function summaryFixture({ userId = userA, email = 'reader-a@example.test',
   candidateFailure = false, decision = 'DENY', payments = [], purchases = [],
   subscriptions = [], candidates = [{ publication_id: publicationId,
-    supabase_record_id: recordId }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
+    supabase_record_id: recordId }], offers = [{ id: offerId, publication_id: publicationId,
+    supabase_record_id: recordId, display_name: 'GPIR publication', currency: 'USD',
+    unit_amount_minor: 1200 }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
     currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH' }] } = {}) {
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
@@ -63,7 +66,7 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
     if (value.endsWith('/rpc/gpir_list_entitlement_candidates_v2'))
       return candidateFailure ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
         : json(candidates);
-    if (value.includes('/gpir_payment_offers?')) return json(candidates);
+    if (value.includes('/gpir_payment_offers?')) return json(offers);
     if (value.includes('/gpir_payment_orders?')) return json(payments);
     if (value.includes('/gpir_publication_purchase_entitlements?')) return json(purchases);
     if (value.includes('/gpir_paypal_subscriptions?')) return json(subscriptions);
@@ -73,6 +76,25 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
   };
   return { calls, fetchImpl };
 }
+
+test('Sandbox summary exposes only denied publications as USD pay-once Orders offers', async () => {
+  const available = await invokeSummary({ decision: 'DENY' });
+  assert.equal(available.body.availability.oneTimeCheckout, 'AVAILABLE');
+  assert.equal(available.body.purchaseOffers.length, 1);
+  assert.equal(available.body.purchaseOffers[0].id, offerId);
+  assert.deepEqual(available.body.paymentCheckout, {
+    provider: 'PAYPAL_ORDERS', clientId: 'sandbox_client_fixture', currency: 'USD',
+    intent: 'CAPTURE', recurrence: 'NONE'
+  });
+  const normalized = normalizeReaderSummary(available.body);
+  assert.equal(normalized.availability.oneTimeCheckout, 'AVAILABLE');
+  assert.equal(normalized.paymentCheckout.recurrence, 'NONE');
+
+  const entitled = await invokeSummary({ decision: 'ALLOW' });
+  assert.equal(entitled.body.availability.oneTimeCheckout, 'UNAVAILABLE');
+  assert.deepEqual(entitled.body.purchaseOffers, []);
+  assert.equal(entitled.body.paymentCheckout, null);
+});
 
 async function invokeSummary(options = {}) {
   const fixture = summaryFixture(options); const diagnostics = [];
@@ -301,17 +323,20 @@ test('sign-out clears protected dashboard fields before reload', () => {
   }));
   const metrics = ['library', 'payments', 'purchases'].map(name => ({ name, textContent: '1' }));
   const subscription = { hidden: false };
+  const checkout = { hidden: false };
   const document = { querySelector(selector) {
     const protectedMatch = selector.match(/^\[data-reader-(profile|library|payments|plan)\]$/);
     if (protectedMatch) return protectedTargets.find(target => target.name === protectedMatch[1]);
     const metricMatch = selector.match(/^\[data-reader-metric="(library|payments|purchases)"\]$/);
     if (metricMatch) return metrics.find(target => target.name === metricMatch[1]);
-    return selector === '[data-gpir-paypal-subscription]' ? subscription : null;
+    if (selector === '[data-gpir-paypal-subscription]') return subscription;
+    return selector === '[data-gpir-paypal-checkout="sandbox"]' ? checkout : null;
   } };
   clearReaderDashboard(document);
   assert.ok(protectedTargets.every(target => target.children.length === 0));
   assert.ok(metrics.every(target => target.textContent === '—'));
   assert.equal(subscription.hidden, true);
+  assert.equal(checkout.hidden, true);
   const auth = fs.readFileSync(path.join(process.cwd(), 'assets/js/gpir-reader-auth.js'), 'utf8');
   const dashboard = fs.readFileSync(path.join(process.cwd(),
     'assets/js/gpir-reader-dashboard.mjs'), 'utf8');

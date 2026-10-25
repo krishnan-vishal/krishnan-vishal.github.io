@@ -5,14 +5,14 @@
   <meta name="theme-color" content="#071A35"><meta name="robots" content="noindex,nofollow">
   <title>My GPIR | FINTECHOISIS</title>
   <link rel="stylesheet" href="/assets/css/reader-auth.css?v=2">
-  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261023g">
+  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261025p">
   <script src="/assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
   <script src="/assets/js/gpir-reader-auth.js" defer></script>
   <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261023g"></script>
-  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=m37-466"></script>
+  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=m37-payonce-1"></script>
 </head>
 <body class="my-gpir">
   <a class="skip-link" href="#my-gpir-main">Skip to your account</a>
@@ -64,7 +64,7 @@
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Access</p><h2>Subscription &amp; Plan</h2></div><a href="/reader/plan/">View plan</a></header>
         <div data-reader-plan><div class="my-gpir-empty"><strong>Loading plan status&hellip;</strong><p>No billing action is taken from this page.</p></div></div>
         <div class="my-gpir-subscription" data-gpir-paypal-subscription hidden>
-          <p><strong>GPIR Premium Monthly</strong></p>
+          <p><strong>GPIR Premium Monthly &mdash; recurring PayPal subscription</strong></p>
           <p>USD 9.99 per month. Recurring billing continues until canceled; no trial or setup fee.</p>
           <button class="my-gpir-refresh" type="button" data-subscription-start>Subscribe with PayPal</button>
           <p class="my-gpir-subscription__status" data-subscription-status aria-live="polite"></p>
@@ -76,6 +76,15 @@
       </section>
       <section id="payments" class="my-gpir-card my-gpir-card--wide" data-view-panel="payments">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account activity</p><h2>Payment History</h2></div><a href="/reader/payments/">View history</a></header>
+        <div class="my-gpir-checkout" data-gpir-paypal-checkout="sandbox" hidden>
+          <h3>Buy a publication once</h3>
+          <p>Choose an available publication, then use any eligible method PayPal shows. This is a single USD payment with no automatic renewal.</p>
+          <label for="gpir-paypal-offer">Publication</label>
+          <select id="gpir-paypal-offer" data-paypal-offer></select>
+          <p class="my-gpir-checkout__price" data-paypal-offer-price></p>
+          <div class="my-gpir-checkout__buttons" data-paypal-buttons></div>
+          <p class="my-gpir-subscription__status" data-paypal-status aria-live="polite"></p>
+        </div>
         <div data-reader-payments><div class="my-gpir-empty"><strong>Loading payment activity&hellip;</strong></div></div>
       </section>
     </div>

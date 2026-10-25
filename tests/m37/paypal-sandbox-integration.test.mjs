@@ -6,7 +6,9 @@ import { createPayPalCreateOrderHandler } from '../../supabase/functions/gpir-pa
 import { createPayPalCaptureOrderHandler } from '../../supabase/functions/gpir-paypal-capture-order/handler.mjs';
 import { createPayPalWebhookHandler, verificationBody } from '../../supabase/functions/gpir-paypal-webhook/handler.mjs';
 import { PAYPAL_SANDBOX_BASE, paymentConfiguration, verifiedCapture } from '../../supabase/functions/_shared/gpir-paypal.mjs';
-import { captureSandboxOrder, createSandboxOrder, validSandboxConfig } from '../../assets/js/gpir-paypal-sandbox-checkout.mjs';
+import { captureSandboxOrder, createSandboxOrder, initializePayPalSandboxCheckout,
+  sandboxCheckoutConfig, validSandboxConfig }
+  from '../../assets/js/gpir-paypal-sandbox-checkout.mjs';
 
 const origin = 'https://fintechoisis.com';
 const userId = '22222222-2222-4222-8222-222222222222';
@@ -262,7 +264,9 @@ test('verified refund webhook uses the known capture reversal path', async () =>
 
 test('browser checkout requires sandbox config and trusts only SERVER_VERIFIED capture', async () => {
   const config = { enabled: true, environment: 'sandbox',
-    clientId: 'sandbox-client-public-123', offerId,
+    clientId: 'sandbox-client-public-123', currency: 'USD', intent: 'CAPTURE',
+    recurrence: 'NONE', offers: [{ id: offerId, displayName: 'GPIR publication',
+      currency: 'USD', unitAmountMinor: 1234 }],
     supabaseUrl: 'https://hoewtptllwkcqrgryazu.supabase.co',
     createOrderEndpoint: 'https://hoewtptllwkcqrgryazu.supabase.co/functions/v1/gpir-paypal-create-order',
     captureOrderEndpoint: 'https://hoewtptllwkcqrgryazu.supabase.co/functions/v1/gpir-paypal-capture-order' };
@@ -270,7 +274,10 @@ test('browser checkout requires sandbox config and trusts only SERVER_VERIFIED c
     user: { id: userId }, access_token: 'session_fixture' } } }; } } };
   assert.equal(validSandboxConfig(config), true);
   assert.equal(validSandboxConfig({ ...config, environment: 'live' }), false);
-  const created = await createSandboxOrder({ config, supabase, requestId,
+  assert.equal(validSandboxConfig({ ...config, recurrence: 'SUBSCRIPTION' }), false);
+  assert.equal(validSandboxConfig({ ...config, offers: [{ ...config.offers[0],
+    currency: 'EUR' }] }), false);
+  const created = await createSandboxOrder({ config, offerId, supabase, requestId,
     fetchImpl: async () => json({ status: 'CREATED', environment: 'sandbox',
       orderId: paypalOrderId }) });
   assert.equal(created, paypalOrderId);
@@ -283,6 +290,67 @@ test('browser checkout requires sandbox config and trusts only SERVER_VERIFIED c
   assert.equal(verified.entitlement, 'SERVER_VERIFIED');
 });
 
+test('pay-once config is sandbox-only and cannot be promoted to recurring collection', () => {
+  const summary = { environment: 'sandbox',
+    availability: { oneTimeCheckout: 'AVAILABLE' },
+    paymentCheckout: { provider: 'PAYPAL_ORDERS', clientId: 'sandbox-client-public-123',
+      currency: 'USD', intent: 'CAPTURE', recurrence: 'NONE' },
+    purchaseOffers: [{ id: offerId, displayName: 'GPIR publication',
+      currency: 'USD', unitAmountMinor: 1234 }] };
+  const global = { location: { hostname: 'localhost' },
+    GPIR_SUPABASE_PUBLIC_CONFIG: { url: 'https://hoewtptllwkcqrgryazu.supabase.co' } };
+  assert.equal(validSandboxConfig(sandboxCheckoutConfig(global, summary)), true);
+  assert.equal(sandboxCheckoutConfig(global, { ...summary, environment: 'production' }), null);
+  assert.equal(sandboxCheckoutConfig(global, { ...summary,
+    paymentCheckout: { ...summary.paymentCheckout, recurrence: 'SUBSCRIPTION' } }), null);
+});
+
+test('Sandbox checkout renders only PayPal-eligible one-time buttons for the selected offer', async () => {
+  const summary = { environment: 'sandbox',
+    availability: { oneTimeCheckout: 'AVAILABLE' },
+    paymentCheckout: { provider: 'PAYPAL_ORDERS', clientId: 'sandbox-client-public-123',
+      currency: 'USD', intent: 'CAPTURE', recurrence: 'NONE' },
+    purchaseOffers: [{ id: offerId, displayName: 'GPIR publication',
+      currency: 'USD', unitAmountMinor: 1234 }] };
+  const select = { value: '', onchange: null, replaceChildren(...children) {
+    this.children = children; this.value = children[0]?.value || '';
+  } };
+  const price = { textContent: '' }; const status = { textContent: '', dataset: {} };
+  const container = { children: [], replaceChildren(...children) { this.children = children; } };
+  const root = { hidden: true, querySelector(selector) {
+    return ({ '[data-paypal-offer]': select, '[data-paypal-offer-price]': price,
+      '[data-paypal-buttons]': container, '[data-paypal-status]': status })[selector] || null;
+  }, dispatchEvent() {} };
+  const document = { querySelector(selector) {
+    return selector === '[data-gpir-paypal-checkout="sandbox"]' ? root : null;
+  }, createElement() { return { value: '', textContent: '', dataset: {} }; },
+  head: { append() {} } };
+  let buttonOptions = null; let rendered = false; let requestBody = null;
+  const global = { document, location: { hostname: 'localhost' },
+    GPIR_SUPABASE_PUBLIC_CONFIG: { url: 'https://hoewtptllwkcqrgryazu.supabase.co' },
+    paypal: { Buttons(options) { buttonOptions = options; return {
+      isEligible: () => true, render: async target => { rendered = target === container; }
+    }; } } };
+  const supabase = { auth: { async getSession() { return { data: { session: {
+    user: { id: userId }, access_token: 'session_fixture' } } }; } } };
+  const config = sandboxCheckoutConfig(global, summary);
+  const ready = await initializePayPalSandboxCheckout({ global, document, config, supabase,
+    fetchImpl: async (_url, options) => {
+      requestBody = JSON.parse(options.body);
+      return json({ status: 'CREATED', environment: 'sandbox', orderId: paypalOrderId });
+    } });
+  assert.equal(ready, true); assert.equal(root.hidden, false); assert.equal(rendered, true);
+  assert.equal(select.children.length, 1); assert.match(price.textContent, /No automatic renewal/);
+  assert.equal(await buttonOptions.createOrder(), paypalOrderId);
+  assert.equal(requestBody.offerId, offerId);
+
+  let ineligibleRendered = false;
+  global.paypal.Buttons = () => ({ isEligible: () => false,
+    render: async () => { ineligibleRendered = true; } });
+  assert.equal(await initializePayPalSandboxCheckout({ global, document, config, supabase }), false);
+  assert.equal(ineligibleRendered, false);
+});
+
 test('browser payment adapters contain no secrets and retain server verification', () => {
   const repo = process.cwd();
   const frontend = fs.readFileSync(path.join(repo,
@@ -293,5 +361,7 @@ test('browser payment adapters contain no secrets and retain server verification
   assert.doesNotMatch(subscription, /PAYPAL_CLIENT_SECRET|GPIR_SUPABASE_SECRET_KEY|sb_secret_/);
   assert.doesNotMatch(frontend, /resolve_publication_entitlement|publication_purchase_entitlements/);
   assert.doesNotMatch(subscription, /resolve_publication_entitlement|publication_purchase_entitlements/);
+  assert.match(frontend, /currency=USD&intent=capture&components=buttons,funding-eligibility/);
+  assert.doesNotMatch(frontend, /vault=true|intent=subscription|createSubscription/);
   assert.equal(verifiedCapture(completedOrder(), storedRow()).captureId, captureId);
 });
