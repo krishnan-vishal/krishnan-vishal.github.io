@@ -56,3 +56,12 @@ These cannot be confirmed or performed with current GitHub-only connector access
 - Which publications a pass grants access to.
 - Separate PayPal Sandbox app vs reuse existing Sandbox app.
 - Approval of exact shared-code entitlement wiring diff after independent functionality passes.
+
+## Owner direction — PayPal-governed international acceptance (2026-10-25)
+- Do not hardcode promises that every payment method works in every currency or jurisdiction. PayPal merchant and buyer eligibility, merchant onboarding, risk controls and the SDK's funding-source `isEligible()` result govern the visible options.
+- Provide the seven requested checkout currencies as selectable *only after* the server-side price for each currency is approved and configured. If a currency is unavailable to the merchant or PayPal declines it, show a clear, non-looping unavailable message and offer another configured currency; never silently convert amounts.
+- Keep a single standalone checkout page and one PayPal SDK instance per currency selection. Tear down the prior SDK and buttons before switching currencies; use `data-namespace=paypal_onetime` to avoid the existing subscription SDK.
+- Render PayPal wallet, guest card and local APM buttons individually only when PayPal reports eligibility. Avoid an exhaustive country-by-country custom funding matrix or bespoke bank integrations.
+- PayPal guest-card availability and local-bank availability are conditional, not guaranteed. A successful capture, not SDK eligibility or buyer approval alone, triggers access.
+- Use one narrow Sandbox acceptance pass: seven currency formatting/server-price checks, representative eligible wallet and guest-card flows, any available local APM, pending/denied/refund, idempotency and recurring-subscription regression. Record unavailable methods as NOT ELIGIBLE rather than repeatedly retrying.
+- Never run real payments or deploy to production. Existing Phase 1 merchant settings and price decisions remain pending; no PayPal merchant eligibility has yet been verified.
