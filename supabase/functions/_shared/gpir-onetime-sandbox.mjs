@@ -35,7 +35,7 @@ export function corsHeaders(origin, env) {
     vary: 'Origin', 'x-content-type-options': 'nosniff' };
   if (origin && allowedOrigins(env).has(origin)) {
     headers['access-control-allow-origin'] = origin;
-    headers['access-control-allow-headers'] = 'authorization, content-type';
+    headers['access-control-allow-headers'] = 'authorization, apikey, content-type';
     headers['access-control-allow-methods'] = 'GET, POST, OPTIONS';
   }
   return headers;

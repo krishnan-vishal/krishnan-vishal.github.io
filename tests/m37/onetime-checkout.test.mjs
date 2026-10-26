@@ -16,10 +16,10 @@ const userId = '22222222-2222-4222-8222-222222222222';
 const offerId = '33333333-3333-4333-8333-333333333333';
 const requestId = '44444444-4444-4444-8444-444444444444';
 const localOrderId = '55555555-5555-4555-8555-555555555555';
-const recordId = '66666666-6666-4666-8666-666666666666';
 const paypalOrderId = 'ORDER-12345678';
 const captureId = 'CAPTURE-12345678';
-const publicationId = 'VK-GPIR-P-000000000018-2';
+const passId = 'GPIR_PREMIUM_LIBRARY_30D';
+const publicationId = 'PREMIUM_LIBRARY';
 const effectiveUntil = '2026-11-24T12:00:00.000Z';
 
 const env = Object.freeze({
@@ -46,17 +46,17 @@ function request(url, body, token = 'reader_session_fixture') {
 }
 
 function offerRow(currency = 'USD', amount = 1234) {
-  return { offer_id: offerId, pass_id: 'publication-30d', publication_id: publicationId,
-    supabase_record_id: recordId, display_name: 'GPIR publication pass', currency,
+  return { offer_id: offerId, pass_id: passId, publication_id: publicationId,
+    supabase_record_id: null, display_name: 'GPIR Premium Library - 30 Day Pass', currency,
     unit_amount_minor: amount, access_duration_days: 30 };
 }
 
 function preparedRow(overrides = {}) {
   return { local_order_id: localOrderId, paypal_order_id: null,
     provider_request_id: `gpir-onetime-${localOrderId}`, offer_id: offerId,
-    pass_id: 'publication-30d', publication_id: publicationId,
-    supabase_record_id: recordId, sku: 'GPIR-PUB-018-30D',
-    display_name: 'GPIR publication pass', currency: 'USD',
+    pass_id: passId, publication_id: publicationId,
+    supabase_record_id: null, sku: passId,
+    display_name: 'GPIR Premium Library - 30 Day Pass', currency: 'USD',
     expected_amount_minor: 1234, access_duration_days: 30,
     order_status: 'CREATED', ...overrides };
 }
@@ -64,7 +64,7 @@ function preparedRow(overrides = {}) {
 function storedRow(overrides = {}) {
   return { local_order_id: localOrderId, paypal_order_id: paypalOrderId,
     paypal_capture_id: null, publication_id: publicationId,
-    supabase_record_id: recordId, currency: 'USD', expected_amount_minor: 1234,
+    supabase_record_id: null, currency: 'USD', expected_amount_minor: 1234,
     access_duration_days: 30, order_status: 'CREATED', effective_until: null,
     ...overrides };
 }
@@ -85,10 +85,22 @@ test('Sandbox configuration is feature-flagged and cannot target Production', ()
     PAYPAL_BASE_URL: 'https://api-m.paypal.com' }), null);
 });
 
+test('browser preflight allows the publishable-key request headers', async () => {
+  const response = await createOnetimeCreateOrderHandler({ env })(new Request(
+    'https://sandbox/functions/v1/gpir-onetime-create-order', {
+      method: 'OPTIONS',
+      headers: { origin }
+    }));
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), origin);
+  assert.equal(response.headers.get('access-control-allow-headers'),
+    'authorization, apikey, content-type');
+});
+
 test('create request accepts only the seven supported currencies', () => {
   for (const currency of ['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'JPY', 'CAD'])
-    assert.equal(validCreateInput({ passId: 'publication-30d', currency, requestId }), true);
-  assert.equal(validCreateInput({ passId: 'publication-30d', currency: 'INR', requestId }), false);
+    assert.equal(validCreateInput({ passId, currency, requestId }), true);
+  assert.equal(validCreateInput({ passId, currency: 'INR', requestId }), false);
 });
 
 test('offer catalog requires an authenticated reader and exposes only server offers', async () => {
@@ -123,7 +135,7 @@ test('create-order ignores browser price tampering and uses the server-controlle
   };
   const response = await createOnetimeCreateOrderHandler({ env, fetchImpl })(request(
     'https://sandbox/functions/v1/gpir-onetime-create-order',
-    { passId: 'publication-30d', currency: 'USD', requestId, amount: '0.01' }));
+    { passId, currency: 'USD', requestId, amount: '0.01' }));
   assert.equal(response.status, 201);
   const provider = calls.find(call => call.url.endsWith('/v2/checkout/orders'));
   const providerBody = JSON.parse(provider.options.body);
@@ -143,7 +155,7 @@ test('duplicate create returns the existing provider order without a second PayP
   };
   const response = await createOnetimeCreateOrderHandler({ env, fetchImpl })(request(
     'https://sandbox/functions/v1/gpir-onetime-create-order',
-    { passId: 'publication-30d', currency: 'USD', requestId }));
+    { passId, currency: 'USD', requestId }));
   assert.equal(response.status, 200); assert.equal(paypalCalled, false);
 });
 
