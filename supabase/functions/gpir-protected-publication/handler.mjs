@@ -23,7 +23,7 @@ function response(status, body, origin, env) {
   };
   if (origin && allowedOrigins(env).has(origin)) {
     headers['access-control-allow-origin'] = origin;
-    headers['access-control-allow-headers'] = 'authorization, content-type';
+    headers['access-control-allow-headers'] = 'authorization, apikey, content-type, x-client-info';
     headers['access-control-allow-methods'] = 'POST, OPTIONS';
   }
   return new Response(status === 204 ? null : JSON.stringify(body), { status, headers });
