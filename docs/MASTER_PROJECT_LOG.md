@@ -2639,3 +2639,10 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - Schedule: the existing single `GPIR FX Market Data Refresh` workflow remains hourly—the fastest useful cadence for the current daily reference source—but moves from minute 0 to minute 7 to avoid top-of-hour concentration. No M-21/Continuous Intelligence workflow was touched.
 - Integrity: previous-valid-business-day variance, immutable daily archiving and history-driven weekly intelligence are unchanged. Current browser polling does not request historical or weekly files.
 - Validation: FX JavaScript/generator/test syntax, `node scripts/test-fx.js`, `node scripts/validate-fx.js` and `git diff --check` pass. Recommendation remains owner review and merge of PR #361; no worker merge is authorised.
+
+## 2026-10-26 — M37 USD Sandbox checkout readiness gate
+
+- Activated only the USD `GPIR_PREMIUM_LIBRARY_30D` Sandbox offer at its existing approved 999 minor units and 30-day duration. AUD, CAD, EUR, GBP and SGD remain `DRAFT`.
+- Verified the authenticated hosted preview sequence in unified logs: Auth `POST 200`, Edge Function preflight `OPTIONS 204`, and authenticated catalogue `GET 200` from `gpir-onetime-create-order` v8. The catalogue RPC returned exactly one USD offer.
+- Confirmed the one-time order count remains zero and the recurring-subscription count remains one. No payment, PayPal approval, capture, Production change, recurring-subscription mutation or price edit occurred.
+- Runtime configuration is hard-failed to Supabase Sandbox `hoewtptllwkcqrgryazu` and PayPal Sandbox `https://api-m.sandbox.paypal.com`; configured REST credentials are present, and existing project evidence includes a completed Sandbox PayPal capture. Direct PayPal Dashboard ownership inspection requires an authenticated developer session and was not fabricated.

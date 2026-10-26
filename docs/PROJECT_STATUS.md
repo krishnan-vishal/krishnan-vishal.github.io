@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M37 — USD Sandbox checkout readiness gate
+
+- **Sandbox-only activation:** On 2026-10-26, exactly one `GPIR_PREMIUM_LIBRARY_30D` offer was promoted from `DRAFT` to `SANDBOX_ACTIVE` in Supabase project `hoewtptllwkcqrgryazu`: USD, 999 minor units, 30 days. AUD, CAD, EUR, GBP and SGD remain `DRAFT`; no price or duration changed.
+- **Authenticated catalogue evidence:** The hosted private preview authenticated the Sandbox reader, completed the corrected CORS preflight, and received `GET 200` from `gpir-onetime-create-order` v8. The live catalogue RPC returned exactly the active USD offer. Request ID: `01a176bc-fb56-7fe3-a370-a1b931113962`.
+- **Payment boundary:** No one-time order was created and no PayPal approval or capture was initiated. The one-time order count remains zero and the existing recurring-subscription count remains one.
+- **Merchant configuration:** The deployed one-time function rejects non-Sandbox PayPal configuration, uses `https://api-m.sandbox.paypal.com`, and receives the configured REST app client ID/secret. Existing project evidence includes a completed Sandbox PayPal capture. PayPal documents Business Sandbox accounts as the merchant side of Sandbox transactions. Direct Dashboard ownership inspection remains unavailable without a PayPal Developer login; no credential was requested or exposed.
+
 ### SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **User request:** 2026-09-14 request to scan all page anchors by default because official indexes use tables, lists and divs rather than only article cards. Keep only 10–250 character titles whose title or URL contains a specified finance keyword; preserve approved and ticker-eligible Supabase writes.
