@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>GPIR Six-Currency Checkout — Sandbox Only</title>
+<style>body{margin:0;background:#0b203d;color:#142746;font:16px Arial,sans-serif}main{max-width:760px;margin:3rem auto;background:white;padding:2rem;border-radius:16px}h1{font-weight:500}label,select,input,button{display:block;margin:.8rem 0}input,select{padding:.8rem;width:100%;box-sizing:border-box}button{background:#c7a24d;border:0;padding:1rem;border-radius:8px;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.notice{background:#f4f6fa;padding:1rem;border-radius:8px}#paypal-buttons{margin-top:1rem}#status{white-space:pre-wrap}</style>
+</head><body><main><h1>GPIR Premium Library — Sandbox Checkout</h1>
+<p class="notice"><strong>Sandbox only.</strong> Test transactions only. No live PayPal charges. This page must be served from an explicitly authorized Sandbox origin.</p>
+<p>One-time Premium Library access: 30 days, no automatic renewal. Existing monthly recurring subscription is unchanged.</p>
+<section id="auth"><label for="email">Sandbox reader email</label><input id="email" type="email" autocomplete="username"><label for="password">Sandbox reader password</label><input id="password" type="password" autocomplete="current-password"><button id="signin">Sign in to Sandbox</button></section>
+<section id="checkout" hidden><p id="reader"></p><label for="currency">Payment currency</label><select id="currency" disabled><option>Loading verified Sandbox offers…</option></select><p id="price"></p><div id="paypal-buttons"></div><button id="signout">Sign out</button></section>
+<p id="status" role="status" aria-live="polite"></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script type="module">
+const PROJECT='hoewtptllwkcqrgryazu',BASE='https://'+PROJECT+'.supabase.co',PASS='GPIR_PREMIUM_LIBRARY_30D';
+const $=id=>document.getElementById(id),status=msg=>{$('status').textContent=msg};
+const config=window.GPIR_SANDBOX_PUBLIC_CONFIG;
+if(!config||config.url!==BASE||!/^sb_publishable_[A-Za-z0-9_-]+$/.test(config.publishableKey||'')){
+ status('Sandbox public configuration is missing. Do not substitute Production credentials.');$('signin').disabled=true;
+}else{
+ const client=window.supabase.createClient(BASE,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+ let offers=[],sdkCurrency='',sdkClientId='';
+ async function api(slug,method,body){
+  const {data:{session}}=await client.auth.getSession();if(!session)throw Error('Sign in required');
+  const res=await fetch(BASE+'/functions/v1/'+slug,{method,headers:{'authorization':'Bearer '+session.access_token,'apikey':config.publishableKey,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const data=await res.json();if(!res.ok)throw Error(data.code||'Checkout request failed');return data;
+ }
+ async function start(){
+  const {data:{user}}=await client.auth.getUser();if(!user){$('auth').hidden=false;$('checkout').hidden=true;return;}
+  $('auth').hidden=true;$('checkout').hidden=false;$('reader').textContent='Signed in: '+user.email;
+  try{
+   const catalog=await api('gpir-onetime-create-order','GET');
+   if(catalog.environment!=='sandbox')throw Error('Non-Sandbox response blocked');
+   offers=(catalog.offers||[]).filter(x=>x.passId===PASS&&['USD','EUR','GBP','SGD','AUD','CAD'].includes(x.currency)&&x.amountMinor===999&&x.durationDays===30);
+   if(offers.length!==6)throw Error('Six approved offers not available; found '+offers.length);
+   sdkClientId=catalog.clientId;
+   $('currency').replaceChildren(...offers.map(o=>new Option(o.currency+' — '+o.amount+' '+o.currency,o.currency)));
+   $('currency').disabled=false;$('currency').value='USD';await render();status('Sandbox offers verified: 6/6.');
+  }catch(e){status('Checkout unavailable: '+e.message)}
+ }
+ async function loadSdk(currency){
+  if(sdkCurrency===currency&&window.paypal)return;
+  document.querySelectorAll('script[data-paypal-sdk]').forEach(s=>s.remove());delete window.paypal;
+  const s=document.createElement('script');s.dataset.paypalSdk='true';
+  s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(sdkClientId)+'&currency='+encodeURIComponent(currency)+'&intent=capture&components=buttons';
+  await new Promise((resolve,reject)=>{s.onload=resolve;s.onerror=()=>reject(Error('PayPal SDK failed to load'));document.head.appendChild(s)});
+  sdkCurrency=currency;
+ }
+ async function render(){
+  const currency=$('currency').value,offer=offers.find(o=>o.currency===currency);if(!offer)return;
+  $('currency').disabled=true;$('price').textContent='One-time payment: '+offer.amount+' '+currency+' · 30 days';$('paypal-buttons').replaceChildren();
+  try{
+   await loadSdk(currency);
+   await window.paypal.Buttons({
+    createOrder:async()=>{const data=await api('gpir-onetime-create-order','POST',{passId:PASS,currency,requestId:crypto.randomUUID()});return data.orderId},
+    onApprove:async data=>{status('Verifying PayPal payment…');const result=await api('gpir-onetime-capture-order','POST',{orderId:data.orderID});status(result.status==='CAPTURED'?'Sandbox payment verified. Premium access through '+result.effectiveUntil:'Payment pending; access is not yet activated.')},
+    onCancel:()=>status('Payment cancelled. No entitlement granted.'),
+    onError:e=>status('PayPal checkout error: '+(e?.message||'Please retry'))
+   }).render('#paypal-buttons');
+  }catch(e){status('Checkout unavailable: '+e.message)}finally{$('currency').disabled=false}
+ }
+ $('signin').onclick=async()=>{try{const r=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value});if(r.error)throw r.error;$('password').value='';await start()}catch(e){status(e.message)}};
+ $('signout').onclick=async()=>{await client.auth.signOut();location.reload()};
+ $('currency').onchange=()=>render();start();
+}
+</script></body></html>
