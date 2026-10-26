@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M37 — USD Sandbox order-preparation repair
+
+- **Root cause:** the live `gpir_prepare_onetime_order` RPC failed before insertion because its offer lookup used unqualified `pass_id` and `currency` names that collide with `RETURNS TABLE` output variables. The first qualified-function migration then exposed a second migration/runtime mismatch: the live offer column is `unit_amount_minor`, while the earlier RPC migrations referenced `amount_minor`.
+- **Sandbox correction:** migrations `20261026060838_m37_fix_prepare_onetime_order_ambiguity` and `20261026061020_m37_fix_prepare_offer_amount_column` replace only the Sandbox preparation RPC. The final function uses qualified columns, the live `unit_amount_minor` field, the existing `PREMIUM_LIBRARY` plus null-record sentinel identity, Sandbox-active/30-day gates, the existing idempotency constraint, and service-role-only execution. Edge Function v8 was not redeployed.
+- **Verification:** a direct RPC call for the authenticated Sandbox reader returned one `CREATED` preparation for `GPIR_PREMIUM_LIBRARY_30D`: USD, 999 minor units, 30 days, `publication_id=PREMIUM_LIBRARY`, `supabase_record_id=null`. Local order `80768804-c0a7-4659-ac8b-04ad42fc8d5c` has null PayPal order and capture IDs. The Edge route was not invoked, so no PayPal order or capture was requested.
+- **Scope retained:** USD remains the only `SANDBOX_ACTIVE` currency; AUD, CAD, EUR, GBP and SGD remain `DRAFT`. Production, recurring subscriptions, approved prices and authorization/payment validation were unchanged. Stop before the next browser payment attempt.
+
 ### M37 — USD Sandbox checkout readiness gate
 
 - **Sandbox-only activation:** On 2026-10-26, exactly one `GPIR_PREMIUM_LIBRARY_30D` offer was promoted from `DRAFT` to `SANDBOX_ACTIVE` in Supabase project `hoewtptllwkcqrgryazu`: USD, 999 minor units, 30 days. AUD, CAD, EUR, GBP and SGD remain `DRAFT`; no price or duration changed.

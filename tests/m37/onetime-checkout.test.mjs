@@ -8,7 +8,7 @@ import { createOnetimeCaptureOrderHandler }
   from '../../supabase/functions/gpir-onetime-capture-order/handler.mjs';
 import { createOnetimeWebhookHandler, verificationBody }
   from '../../supabase/functions/gpir-onetime-webhook/handler.mjs';
-import { onetimeConfiguration, verifiedCapture }
+import { onetimeConfiguration, preparedOrder, verifiedCapture }
   from '../../supabase/functions/_shared/gpir-onetime-sandbox.mjs';
 
 const origin = 'https://gpir-m37-4192.app.github.dev';
@@ -122,6 +122,18 @@ test('create request accepts only the seven supported currencies', () => {
   for (const currency of ['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'JPY', 'CAD'])
     assert.equal(validCreateInput({ passId, currency, requestId }), true);
   assert.equal(validCreateInput({ passId, currency: 'INR', requestId }), false);
+});
+
+test('prepared order accepts only the Premium Library sentinel identity', () => {
+  const accepted = preparedOrder([preparedRow({ expected_amount_minor: 999 })]);
+  assert.equal(accepted?.passId, passId);
+  assert.equal(accepted?.publicationId, publicationId);
+  assert.equal(accepted?.supabaseRecordId, null);
+  assert.equal(accepted?.expectedAmountMinor, 999);
+  assert.equal(preparedOrder([preparedRow({ publication_id: null })]), null);
+  assert.equal(preparedOrder([preparedRow({
+    supabase_record_id: '66666666-6666-4666-8666-666666666666'
+  })]), null);
 });
 
 test('offer catalog requires an authenticated reader and exposes only server offers', async () => {
@@ -336,6 +348,19 @@ test('migration enforces RLS, expiry, refund isolation and seeds no commercial p
   assert.match(sql, /status = 'SANDBOX_ACTIVE'/);
   assert.doesNotMatch(sql, /INSERT INTO public\.gpir_onetime_offers[\s\S]*VALUES\s*\(/);
   assert.doesNotMatch(sql, /CREATE OR REPLACE FUNCTION public\.resolve_publication_entitlement/);
+});
+
+test('preparation repair matches the live offer schema and keeps service-role isolation', () => {
+  const sql = fs.readFileSync(path.join(process.cwd(), 'supabase/migrations',
+    '20261026061020_m37_fix_prepare_offer_amount_column.sql'), 'utf8');
+  assert.match(sql, /offer\.pass_id = p_pass_id/);
+  assert.match(sql, /offer\.currency = p_currency/);
+  assert.match(sql, /selected_offer\.unit_amount_minor/);
+  assert.doesNotMatch(sql, /selected_offer\.amount_minor/);
+  assert.match(sql, /offer\.publication_id = 'PREMIUM_LIBRARY'/);
+  assert.match(sql, /offer\.supabase_record_id IS NULL/);
+  assert.match(sql, /REVOKE ALL[\s\S]*FROM PUBLIC, anon, authenticated/);
+  assert.match(sql, /GRANT EXECUTE[\s\S]*TO service_role/);
 });
 
 test('standalone UI uses a PayPal namespace and renders only SDK-eligible funding sources', () => {
