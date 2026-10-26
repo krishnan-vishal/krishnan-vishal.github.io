@@ -1,6 +1,8 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
   production: 'qlnvhfapctcpzqyuhhth' });
+const SANDBOX_PREVIEW_ORIGIN =
+  'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
 
 function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY', 'GPIR_SUPABASE_SECRET_KEY'];
@@ -17,8 +19,13 @@ function configuration(env) {
 }
 
 function allowedOrigins(env) {
-  return new Set(String(env.GPIR_ALLOWED_ORIGINS || '').split(',')
+  const origins = new Set(String(env.GPIR_ALLOWED_ORIGINS || '').split(',')
     .map(value => value.trim()).filter(Boolean));
+  try {
+    if (new URL(env.SUPABASE_URL).hostname === `${PROJECTS.sandbox}.supabase.co`)
+      origins.add(SANDBOX_PREVIEW_ORIGIN);
+  } catch {}
+  return origins;
 }
 
 function response(status, body, origin, env) {
@@ -89,6 +96,18 @@ function subscriptionSummary(row) {
         'PAYMENT_FAILED'].includes(row.status)) return null;
   return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
     effectiveUntil: isoOrNull(row.effective_until) });
+}
+
+function libraryPassSummary(row, environment, currentTime) {
+  const effectiveFrom = isoOrNull(row?.effective_from);
+  const effectiveUntil = isoOrNull(row?.effective_until);
+  const orderEnvironment = row?.gpir_onetime_orders?.environment;
+  if (!UUID.test(row?.id || '') || !UUID.test(row?.source_order_id || '') ||
+      row?.scope !== 'PREMIUM_LIBRARY' || row?.status !== 'ACTIVE' || row?.revoked_at != null ||
+      orderEnvironment !== environment || !effectiveFrom || !effectiveUntil ||
+      Date.parse(effectiveFrom) > currentTime || Date.parse(effectiveUntil) <= currentTime) return null;
+  return Object.freeze({ status: 'ACTIVE', scope: row.scope,
+    effectiveFrom, effectiveUntil, sourceOrderId: row.source_order_id });
 }
 
 function purchaseKey(row) { return `${row.supabase_record_id}:${row.publication_id}`; }
@@ -163,6 +182,14 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       select: 'id,status,effective_from,effective_until', user_id: `eq.${user.id}`,
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
     });
+    const libraryPassQuery = new URLSearchParams({
+      select: 'id,source_order_id,scope,status,effective_from,effective_until,revoked_at,gpir_onetime_orders!inner(environment)',
+      user_id: `eq.${user.id}`, status: 'eq.ACTIVE', revoked_at: 'is.null',
+      effective_from: `lte.${new Date(now()).toISOString()}`,
+      effective_until: `gt.${new Date(now()).toISOString()}`,
+      'gpir_onetime_orders.environment': `eq.${config.PAYMENT_ENVIRONMENT}`,
+      order: 'effective_until.desc', limit: '1'
+    });
     const planQuery = new URLSearchParams({
       select: 'id,display_name,currency,unit_amount_minor,billing_interval',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
@@ -170,7 +197,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       order: 'created_at.asc', limit: '1'
     });
     const [candidatesResult, offersResult, paymentsResult, purchasesResult,
-      subscriptionsResult, plansResult] = await Promise.all([
+      subscriptionsResult, plansResult, libraryPassesResult] = await Promise.all([
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
         { method: 'POST', headers: serviceHeaders, body: '{}' }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_offers?${offerQuery}`,
@@ -182,6 +209,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${subscriptionQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_subscription_plans?${planQuery}`,
+        { headers: serviceHeaders }),
+      jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_onetime_library_entitlements?${libraryPassQuery}`,
         { headers: serviceHeaders })
     ]);
 
@@ -191,7 +220,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       ['gpir_payment_orders', paymentsResult],
       ['gpir_publication_purchase_entitlements', purchasesResult],
       ['gpir_paypal_subscriptions', subscriptionsResult],
-      ['gpir_subscription_plans', plansResult]
+      ['gpir_subscription_plans', plansResult],
+      ['gpir_onetime_library_entitlements', libraryPassesResult]
     ]) if (!validRows(result)) reportDependencyFailure(logger, dependency, result);
 
     const policyCandidates = validRows(candidatesResult);
@@ -200,6 +230,14 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const purchases = validRows(purchasesResult);
     const rawSubscriptions = validRows(subscriptionsResult);
     const rawPlans = validRows(plansResult);
+    const rawLibraryPasses = validRows(libraryPassesResult);
+    let libraryPassAvailable = Boolean(rawLibraryPasses);
+    const libraryPass = rawLibraryPasses?.length
+      ? libraryPassSummary(rawLibraryPasses[0], config.PAYMENT_ENVIRONMENT, now()) : null;
+    if (rawLibraryPasses?.length && !libraryPass) {
+      libraryPassAvailable = false;
+      reportDependencyFailure(logger, 'gpir_onetime_library_entitlements', libraryPassesResult);
+    }
 
     let entitlementAvailable = Boolean(policyCandidates && offers && purchases);
     const candidates = new Map();
@@ -231,7 +269,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     }
 
     const purchaseStates = new Map((purchases || []).map(row => [purchaseKey(row), row.status]));
-    const hasPlanAccess = entitlementAvailable && publications.some((publication, index) =>
+    const hasPlanAccess = entitlementAvailable && !libraryPass && publications.some((publication, index) =>
       decisions[index][0].decision === 'ALLOW' &&
       purchaseStates.get(purchaseKey(publication)) !== 'ACTIVE');
     let planAvailable = Boolean(rawSubscriptions);
@@ -250,7 +288,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const library = entitlementAvailable ? publications.flatMap((publication, index) => {
       if (decisions[index][0].decision !== 'ALLOW') return [];
       const purchaseState = purchaseStates.get(purchaseKey(publication));
-      const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' : 'PLAN';
+      const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' :
+        libraryPass ? 'PREMIUM_LIBRARY_PASS' : 'PLAN';
       return [Object.freeze({ publicationId: publication.publication_id,
         supabaseRecordId: publication.supabase_record_id,
         accessClass: 'ENTITLED', accessSource })];
@@ -272,11 +311,12 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
         user.email_confirmed_at || user.confirmed_at) });
 
     return response(200, Object.freeze({ status: 'OK', environment: config.environment,
-      profile, library, payments, plan, subscriptionOffer: checkoutOffer,
+      profile, library, payments, plan, libraryPass, subscriptionOffer: checkoutOffer,
       availability: Object.freeze({ profile: 'AVAILABLE',
         library: entitlementAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        libraryPass: libraryPassAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         subscriptionCheckout: config.environment === 'sandbox' && checkoutOffer
           ? 'AVAILABLE' : 'UNAVAILABLE' }),
       summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
@@ -288,4 +328,4 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
 }
 
 export { configuration, paymentSummary, publicationCandidate, subscriptionOffer,
-  subscriptionSummary };
+  subscriptionSummary, libraryPassSummary };

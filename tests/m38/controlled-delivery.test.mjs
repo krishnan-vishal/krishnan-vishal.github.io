@@ -24,6 +24,8 @@ const requestId = '55555555-5555-4555-8555-555555555555';
 const localSubscriptionId = '66666666-6666-4666-8666-666666666666';
 const recordId = '77777777-7777-4777-8777-777777777777';
 const paymentId = '88888888-8888-4888-8888-888888888888';
+const libraryPassId = '99999999-9999-4999-8999-999999999999';
+const libraryOrderId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const publicationId = 'VK-GPIR-P-TEST-1';
 const paypalPlanId = 'P-SANDBOXPLAN123';
 const paypalSubscriptionId = 'I-SANDBOXSUB123';
@@ -51,6 +53,7 @@ function summaryRequest(token = 'reader-session-fixture') {
 
 function summaryFixture({ userId = userA, email = 'reader-a@example.test',
   candidateFailure = false, decision = 'DENY', payments = [], purchases = [],
+  libraryPasses = [],
   subscriptions = [], candidates = [{ publication_id: publicationId,
     supabase_record_id: recordId }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
     currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH' }] } = {}) {
@@ -68,6 +71,7 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
     if (value.includes('/gpir_publication_purchase_entitlements?')) return json(purchases);
     if (value.includes('/gpir_paypal_subscriptions?')) return json(subscriptions);
     if (value.includes('/gpir_subscription_plans?')) return json(plans);
+    if (value.includes('/gpir_onetime_library_entitlements?')) return json(libraryPasses);
     if (value.endsWith('/rpc/resolve_publication_entitlement')) return json([{ decision }]);
     throw new Error(`Unexpected URL: ${url}`);
   };
@@ -131,6 +135,24 @@ test('Reader A and Reader B summaries remain isolated by authenticated user id',
     assert.match(call.value, new RegExp(`user_id=eq\\.${userB}`));
     assert.doesNotMatch(call.value, new RegExp(userA));
   }
+});
+
+test('active Premium Library pass is reported without becoming a recurring plan', async () => {
+  const result = await invokeSummary({ decision: 'ALLOW', libraryPasses: [{
+    id: libraryPassId, source_order_id: libraryOrderId, scope: 'PREMIUM_LIBRARY',
+    status: 'ACTIVE', effective_from: '2026-10-16T00:00:00Z',
+    effective_until: '2026-11-15T00:00:00Z', revoked_at: null,
+    gpir_onetime_orders: { environment: 'SANDBOX' }
+  }] });
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.libraryPass.status, 'ACTIVE');
+  assert.equal(result.body.libraryPass.sourceOrderId, libraryOrderId);
+  assert.equal(result.body.library[0].accessSource, 'PREMIUM_LIBRARY_PASS');
+  assert.equal(result.body.plan.status, 'NOT_ENROLLED');
+  assert.equal(result.body.plan.billingStatus, 'NOT_ACTIVE');
+  const normalized = normalizeReaderSummary(result.body);
+  assert.equal(normalized.libraryPass.scope, 'PREMIUM_LIBRARY');
+  assert.equal(normalized.library[0].accessSource, 'PREMIUM_LIBRARY_PASS');
 });
 
 test('incomplete payment and pending subscription never grant publication entitlement', async () => {

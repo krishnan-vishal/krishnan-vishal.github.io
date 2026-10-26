@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M37 Premium Library reader acceptance
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M37-READER-ACCEPTANCE | 2026-10-26 | Complete purchased Premium Library reader-access acceptance in Sandbox | READER EXPERIENCE, AUTHORIZATION, PAYMENTS | High | IN PROGRESS | Interactive sign-in by the purchased Sandbox reader | Stage 1 | `gpir-reader-summary`, `gpir-protected-publication`, owner-private M37 preview | Prove the 30-day pass, four policy decisions, negative/rollback cases and actual protected-content opening without creating another payment or changing Production. | Actual reader JWT returns four catalogue entries and an eligible protected publication opens; no-entitlement, unauthenticated, expired, revoked and unpublished access fail closed; recurring authorization remains unchanged. | Database and rollback-safe authorization checks pass; Sandbox functions and preview integration deployed; actual-JWT browser exercise remains pending reader sign-in. | PENDING | Work branch | M37 |
+
 ## Supabase announcement scraper
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

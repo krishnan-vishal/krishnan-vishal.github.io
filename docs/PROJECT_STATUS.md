@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### M37 — Premium Library reader access acceptance
+
+- **Database evidence:** Sandbox order `bf8e9e51-d584-45b8-9bde-841dff778625` belongs to reader `7284c937-bdc8-4233-9cda-126cb32860f2` (`testxyz@fintechoisis.com`). Its SERVER_VERIFIED ACTIVE Premium Library pass `86b90bec-ed06-4303-bdbe-8bbb3cb38926` runs from `2026-10-26T06:25:34.700012Z` through `2026-11-25T06:25:34.700012Z`, exactly 2,592,000 seconds (30 days).
+- **Authorization evidence:** all four ACTIVE ENTITLED policies returned ALLOW under rollback-safe claims for the purchased reader. An authenticated user without a matching entitlement and an unauthenticated caller returned DENY. Transient expired and revoked pass states returned DENY and were rolled back; the successful pass remains ACTIVE and unchanged. A transient PUBLIC policy returned ALLOW without payment, and a transient INACTIVE policy returned DENY. The recurring subscription branch independently returned ALLOW under a transient policy-to-plan link and its stored subscription/plan state was unchanged after rollback.
+- **Reader correction:** `gpir-reader-summary` now reads the active one-time pass, reports its exact window, labels catalogue entries `PREMIUM_LIBRARY_PASS`, and does not misrepresent the pass as recurring billing. `gpir-protected-publication` accepts only configured origins plus the fixed owner-private preview origin when its own Supabase URL is the Sandbox project. Production URLs do not inherit this fallback.
+- **Sandbox deployment:** reader summary v19 (`57fe9e723bcf9098288088acc8ba5481f7574882b27c1459cf25174331c1c0bf`) and protected publication v2 (`0c98be0214b9d9e10e048992ea221d337453ecc5920c2e1f2db1de8bb8ac4877`) are ACTIVE in `hoewtptllwkcqrgryazu`; both return `OPTIONS 204` with the exact owner-private preview origin. No migration ran.
+- **Preview deployment:** owner-private Sites version `appgprj_6adedfee16248191b735995ce741ebb0~appgver_7d61077647a081918411b095d7fa27b1`, deployment `appgdep_6adef94ccb1c8191b31d6768e07565a6`, source `e1c4d72c8eb772044284ba9fbdb7f2c18b6775d1`. It persists the Sandbox Supabase session, shows pass dates and the four-item library, and opens content only through the protected endpoint. Payment controls are absent.
+- **Remaining gate:** actual-JWT browser ALLOW and protected-content rendering require the reader to sign in interactively to the owner-private preview. No password was requested, recovered or changed. Production, prices, recurring subscriptions and the successful pass were not modified.
+
 ### M37 — USD Sandbox order-preparation repair
 
 - **Root cause:** the live `gpir_prepare_onetime_order` RPC failed before insertion because its offer lookup used unqualified `pass_id` and `currency` names that collide with `RETURNS TABLE` output variables. The first qualified-function migration then exposed a second migration/runtime mismatch: the live offer column is `unit_amount_minor`, while the earlier RPC migrations referenced `amount_minor`.

@@ -44,6 +44,14 @@ export function normalizeReaderSummary(value) {
   if (!environment) return null;
   const billingStatus = BILLING_STATES.has(value.plan.billingStatus)
     ? value.plan.billingStatus : 'NOT_ACTIVE';
+  const libraryPass = value.libraryPass?.status === 'ACTIVE' &&
+    value.libraryPass?.scope === 'PREMIUM_LIBRARY' &&
+    UUID.test(value.libraryPass?.sourceOrderId || '') &&
+    isoOrNull(value.libraryPass?.effectiveFrom) && isoOrNull(value.libraryPass?.effectiveUntil)
+    ? Object.freeze({ status: 'ACTIVE', scope: 'PREMIUM_LIBRARY',
+      sourceOrderId: value.libraryPass.sourceOrderId,
+      effectiveFrom: isoOrNull(value.libraryPass.effectiveFrom),
+      effectiveUntil: isoOrNull(value.libraryPass.effectiveUntil) }) : null;
   const offer = availability.subscriptionCheckout === 'AVAILABLE' &&
     UUID.test(value.subscriptionOffer?.id || '') && value.subscriptionOffer?.currency === 'USD' &&
     Number.isSafeInteger(value.subscriptionOffer?.unitAmountMinor) &&
@@ -55,7 +63,7 @@ export function normalizeReaderSummary(value) {
       currency: value.subscriptionOffer.currency,
       unitAmountMinor: value.subscriptionOffer.unitAmountMinor,
       billingInterval: value.subscriptionOffer.billingInterval }) : null;
-  return Object.freeze({ environment, availability, subscriptionOffer: offer,
+  return Object.freeze({ environment, availability, subscriptionOffer: offer, libraryPass,
     profile: Object.freeze({
     email: typeof value.profile.email === 'string' ? value.profile.email : null,
     displayName: typeof value.profile.displayName === 'string' ? value.profile.displayName : null,
@@ -147,6 +155,7 @@ function renderLibrary(document, target, library, available = true) {
     identity.append(textElement(document, 'strong', item.publicationId),
       textElement(document, 'code', item.supabaseRecordId));
     const label = item.accessSource === 'ONE_TIME_PURCHASE' ? 'Purchased' :
+      item.accessSource === 'PREMIUM_LIBRARY_PASS' ? 'Premium Library pass' :
       item.accessSource === 'PLAN' ? 'Plan access' : 'Reader access';
     row.append(identity, textElement(document, 'span', label, 'my-gpir-badge')); list.append(row);
   }
@@ -180,7 +189,7 @@ function renderPayments(document, target, payments, available = true) {
   table.append(head, body); wrap.append(table); target.replaceChildren(wrap);
 }
 
-function renderPlan(document, target, plan, available = true, libraryAvailable = true) {
+function renderPlan(document, target, plan, libraryPass, available = true, libraryAvailable = true) {
   if (!target) return;
   if (!available) {
     target.replaceChildren(emptyState(document, 'Plan status is temporarily unavailable.',
@@ -188,10 +197,15 @@ function renderPlan(document, target, plan, available = true, libraryAvailable =
     return;
   }
   const box = textElement(document, 'div', '', 'my-gpir-plan'); const copy = document.createElement('div');
-  const title = plan.status === 'ACTIVE' && plan.accessClass === 'ENTITLED'
+  const title = libraryPass ? 'Premium Library pass active' :
+    plan.status === 'ACTIVE' && plan.accessClass === 'ENTITLED'
     ? 'GPIR entitled reader plan' : plan.status === 'ACTIVE' ? 'Reader billing plan active' :
     plan.status === 'INACTIVE' ? 'Reader plan inactive' : 'Free registered reader';
-  const detail = plan.status === 'ACTIVE' && !libraryAvailable
+  const detail = libraryPass
+    ? `One-time Premium Library access is active through ${formatDate(libraryPass.effectiveUntil)}.` +
+      (plan.billingStatus === 'ACTIVE' ? ' Subscription billing is also active.' :
+        ' No recurring subscription is attached to this pass.')
+    : plan.status === 'ACTIVE' && !libraryAvailable
     ? 'Subscription billing is active. Publication access remains locked until entitlement verification is available.'
     : plan.status === 'ACTIVE'
     ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}.` +
@@ -201,7 +215,8 @@ function renderPlan(document, target, plan, available = true, libraryAvailable =
       ? 'Subscription approval is pending. Access will remain unchanged until the server verifies activation.'
       : 'Subscription billing is not active. No recurring plan or payment method is attached to this account.';
   copy.append(textElement(document, 'h3', title), textElement(document, 'p', detail));
-  box.append(copy, textElement(document, 'span', plan.status.replace('_', ' '), 'my-gpir-badge'));
+  box.append(copy, textElement(document, 'span', libraryPass ? 'PASS ACTIVE' :
+    plan.status.replace('_', ' '), 'my-gpir-badge'));
   target.replaceChildren(box);
 }
 
@@ -222,6 +237,7 @@ export function renderReaderDashboard(document, summary) {
   renderPayments(document, document.querySelector('[data-reader-payments]'), summary.payments,
     summary.availability.payments === 'AVAILABLE');
   renderPlan(document, document.querySelector('[data-reader-plan]'), summary.plan,
+    summary.libraryPass,
     summary.availability.plan === 'AVAILABLE', summary.availability.library === 'AVAILABLE');
   const root = document.querySelector('[data-reader-dashboard]');
   if (root) root.dataset.state = Object.values(summary.availability).includes('UNAVAILABLE')
