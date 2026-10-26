@@ -97,6 +97,27 @@ test('browser preflight allows the publishable-key request headers', async () =>
     'authorization, apikey, content-type');
 });
 
+test('browser preflight permits only the isolated hosted Sandbox preview', async () => {
+  const previewOrigin =
+    'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
+  const handler = createOnetimeCreateOrderHandler({
+    env: { ...env, GPIR_ONETIME_ALLOWED_ORIGINS: origin }
+  });
+  const allowed = await handler(new Request(
+    'https://sandbox/functions/v1/gpir-onetime-create-order', {
+      method: 'OPTIONS', headers: { origin: previewOrigin }
+    }));
+  assert.equal(allowed.status, 204);
+  assert.equal(allowed.headers.get('access-control-allow-origin'), previewOrigin);
+
+  const denied = await handler(new Request(
+    'https://sandbox/functions/v1/gpir-onetime-create-order', {
+      method: 'OPTIONS', headers: { origin: 'https://fintechoisis.com' }
+    }));
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.get('access-control-allow-origin'), null);
+});
+
 test('create request accepts only the seven supported currencies', () => {
   for (const currency of ['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'JPY', 'CAD'])
     assert.equal(validCreateInput({ passId, currency, requestId }), true);

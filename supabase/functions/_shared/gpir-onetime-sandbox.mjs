@@ -3,6 +3,8 @@ import { formatPayPalAmount, isSupportedCurrency, parsePayPalAmount }
 
 export const ONETIME_SANDBOX_PROJECT = 'hoewtptllwkcqrgryazu';
 export const PAYPAL_SANDBOX_BASE = 'https://api-m.sandbox.paypal.com';
+export const ONETIME_SANDBOX_PREVIEW_ORIGIN =
+  'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const PAYPAL_ID = /^[A-Z0-9-]{8,64}$/i;
 
@@ -26,8 +28,9 @@ export function onetimeConfiguration(env, { webhook = false } = {}) {
 }
 
 export function allowedOrigins(env) {
-  return new Set(String(env?.GPIR_ONETIME_ALLOWED_ORIGINS || '').split(',')
-    .map(value => value.trim()).filter(Boolean));
+  return new Set([ONETIME_SANDBOX_PREVIEW_ORIGIN,
+    ...String(env?.GPIR_ONETIME_ALLOWED_ORIGINS || '').split(',')
+      .map(value => value.trim()).filter(Boolean)]);
 }
 
 export function corsHeaders(origin, env) {
