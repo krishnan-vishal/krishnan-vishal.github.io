@@ -252,6 +252,8 @@ test('27 configured Sandbox preview origin receives bounded CORS preflight', asy
   assert.equal(response.status, 204);
   assert.equal(response.headers.get('access-control-allow-origin'), sandboxOrigin);
   assert.equal(response.headers.get('access-control-allow-methods'), 'POST, OPTIONS');
+  assert.equal(response.headers.get('access-control-allow-headers'),
+    'authorization, apikey, content-type, x-client-info');
   assert.equal(plan.calls.length, 0);
 });
 

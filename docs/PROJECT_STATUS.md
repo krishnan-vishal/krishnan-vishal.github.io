@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M37-SC01B — PayPal currency switching repair
+
+- **Root cause:** the hosted six-currency page removed the active PayPal SDK script, assigned `window.paypal = undefined`, and reloaded the currency-specific SDK into the same global namespace. A later or overlapping asynchronous load could therefore expose a missing, partial or stale global and fail at `window.paypal.Buttons`.
+- **Repair:** the checkout now lazy-loads one PayPal SDK instance per approved currency into a documented `data-namespace`, retains each loaded instance for reuse, and never deletes or recreates the default `window.paypal` global. A monotonic render revision prevents an older SDK load or button render from committing after a newer currency selection. Funding sources still render only when `buttons.isEligible()` returns true.
+- **Coverage:** focused tests exercise USD, EUR, GBP, SGD, AUD and CAD, reverse-order SDK completion, returning to the cached USD instance, and rapid changes where only the latest revision remains current. Existing Sandbox authentication, server-authoritative prices, capture/entitlement functions and recurring-subscription modules are unchanged.
+- **Recovery review:** stash `codex-m37-reader-integration-before-pr468-sync` was inspected rather than blindly applied. Its reader-summary fallback/CORS and focused tests are retained in the working tree; its older protected-publication CORS edit is superseded by the current branch implementation, which also permits `x-client-info`. The unrelated UIX review files remain untouched.
+- **State:** implementation and focused local validation are complete on `feature/onetime-multicurrency-sandbox`; commit, push, owner-private redeployment and six-currency hosted browser acceptance are pending at this checkpoint. Production remains unchanged.
+
 ### M37 — Premium Library reader access acceptance
 
 - **Database evidence:** Sandbox order `bf8e9e51-d584-45b8-9bde-841dff778625` belongs to reader `7284c937-bdc8-4233-9cda-126cb32860f2` (`testxyz@fintechoisis.com`). Its SERVER_VERIFIED ACTIVE Premium Library pass `86b90bec-ed06-4303-bdbe-8bbb3cb38926` runs from `2026-10-26T06:25:34.700012Z` through `2026-11-25T06:25:34.700012Z`, exactly 2,592,000 seconds (30 days).

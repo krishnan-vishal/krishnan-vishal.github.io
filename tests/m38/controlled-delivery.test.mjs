@@ -51,8 +51,21 @@ function summaryRequest(token = 'reader-session-fixture') {
     headers: { origin, authorization: `Bearer ${token}` } });
 }
 
+test('reader summary preflight permits the public key and JWT headers used by the browser', async () => {
+  const response = await createReaderSummaryHandler({ env: summaryEnv })(new Request(
+    `${sandboxUrl}/functions/v1/gpir-reader-summary`, {
+      method: 'OPTIONS', headers: { origin,
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'apikey,authorization,content-type' }
+    }));
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), origin);
+  assert.equal(response.headers.get('access-control-allow-headers'),
+    'apikey, authorization, content-type');
+});
+
 function summaryFixture({ userId = userA, email = 'reader-a@example.test',
-  candidateFailure = false, decision = 'DENY', payments = [], purchases = [],
+  candidateFailure = false, missingCandidateRpc = false, decision = 'DENY', payments = [], purchases = [],
   libraryPasses = [],
   subscriptions = [], candidates = [{ publication_id: publicationId,
     supabase_record_id: recordId }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
@@ -64,7 +77,8 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
       email_confirmed_at: '2026-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z',
       user_metadata: { display_name: userId === userA ? 'Reader A' : 'Reader B' } });
     if (value.endsWith('/rpc/gpir_list_entitlement_candidates_v2'))
-      return candidateFailure ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
+      return candidateFailure ? json({ code: 'PGRST500', message: 'Provider unavailable' }, 500)
+        : missingCandidateRpc ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
         : json(candidates);
     if (value.includes('/gpir_payment_offers?')) return json(candidates);
     if (value.includes('/gpir_payment_orders?')) return json(payments);
@@ -106,10 +120,25 @@ test('candidate dependency failure preserves identity and billing while Library 
   assert.equal(result.calls.some(call => call.value.endsWith(
     '/rpc/resolve_publication_entitlement')), false);
   assert.equal(result.diagnostics[0][1].dependency, 'gpir_list_entitlement_candidates_v2');
-  assert.equal(result.diagnostics[0][1].code, 'PGRST202');
+  assert.equal(result.diagnostics[0][1].code, 'PGRST500');
   const normalized = normalizeReaderSummary(result.body);
   assert.equal(normalized.availability.library, 'UNAVAILABLE');
   assert.deepEqual(normalized.library, []);
+});
+
+test('Sandbox uses the fixed four-policy snapshot only when candidate RPC is absent', async () => {
+  const result = await invokeSummary({ missingCandidateRpc: true, decision: 'ALLOW',
+    candidates: [] });
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.availability.library, 'AVAILABLE');
+  assert.deepEqual(result.body.library.map(item => item.publicationId), [
+    'VK-GPIR-P-000000000001-8', 'VK-GPIR-P-000000000002-6',
+    'VK-GPIR-P-000000000003-4', 'VK-GPIR-P-000000000004-2'
+  ]);
+  assert.ok(result.body.library.every(item => item.accessSource === 'PLAN'));
+  assert.equal(result.diagnostics.length, 0);
+  assert.equal(result.calls.filter(call => call.value.endsWith(
+    '/rpc/resolve_publication_entitlement')).length, 4);
 });
 
 test('Reader A and Reader B summaries remain isolated by authenticated user id', async () => {

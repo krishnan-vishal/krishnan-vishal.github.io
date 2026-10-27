@@ -10,6 +10,8 @@ import { createOnetimeWebhookHandler, verificationBody }
   from '../../supabase/functions/gpir-onetime-webhook/handler.mjs';
 import { onetimeConfiguration, preparedOrder, verifiedCapture }
   from '../../supabase/functions/_shared/gpir-onetime-sandbox.mjs';
+import { CHECKOUT_CURRENCIES, createLatestRenderGuard, createPayPalSdkLoader,
+  namespaceFor } from '../../sandbox/checkout-six-currency/paypal-sdk-loader.mjs';
 
 const origin = 'https://gpir-m37-4192.app.github.dev';
 const userId = '22222222-2222-4222-8222-222222222222';
@@ -372,6 +374,62 @@ test('standalone UI uses a PayPal namespace and renders only SDK-eligible fundin
   assert.match(script, /entitlement !== 'SERVER_VERIFIED'/);
   assert.match(page, /This is a one-time purchase/);
   assert.doesNotMatch(script + page, /PAYPAL_CLIENT_SECRET|GPIR_SUPABASE_SECRET_KEY/);
+});
+
+test('isolated six-currency checkout loads public config first and renders eligible funding only', () => {
+  const checkout = fs.readFileSync(path.join(process.cwd(),
+    'sandbox/checkout-six-currency/index.html'), 'utf8');
+  const config = fs.readFileSync(path.join(process.cwd(),
+    'sandbox/checkout-six-currency/config.js'), 'utf8');
+  const loader = fs.readFileSync(path.join(process.cwd(),
+    'sandbox/checkout-six-currency/paypal-sdk-loader.mjs'), 'utf8');
+  assert.ok(checkout.indexOf('./config.js') < checkout.indexOf('@supabase/supabase-js'));
+  assert.match(checkout, /CHECKOUT_CURRENCIES\.includes\(x\.currency\)/);
+  assert.match(checkout, /x\.amountMinor===999&&x\.durationDays===30/);
+  assert.match(checkout, /createPayPalSdkLoader\(\)/);
+  assert.match(checkout, /renderGuard\.isCurrent\(revision\)/);
+  assert.match(checkout, /buttons\.isEligible\(\)/);
+  assert.match(loader, /dataset\.namespace = namespace/);
+  assert.match(loader, /components=buttons,funding-eligibility/);
+  assert.match(checkout, /noindex,nofollow/);
+  assert.match(config, /hoewtptllwkcqrgryazu\.supabase\.co/);
+  assert.match(config, /sb_publishable_/);
+  assert.doesNotMatch(checkout + config + loader,
+    /PAYPAL_CLIENT_SECRET|GPIR_SUPABASE_SECRET_KEY|sb_secret_/i);
+  assert.doesNotMatch(checkout + loader, /window\.paypal\s*=|querySelectorAll\([^)]*data-paypal-sdk/);
+});
+
+test('currency SDK loader isolates all six currencies and reuses USD when selected again', async () => {
+  const scripts = [];
+  const document = { createElement() {
+    const listeners = new Map();
+    return { dataset: {}, addEventListener(name, listener) { listeners.set(name, listener); },
+      dispatch(name) { listeners.get(name)?.(); } };
+  }, head: { appendChild(script) { scripts.push(script); } } };
+  const global = { document };
+  const load = createPayPalSdkLoader({ global, document });
+  const pending = CHECKOUT_CURRENCIES.map(currency => load({ clientId: 'sandbox-client', currency }));
+  assert.equal(scripts.length, 6);
+  for (const script of [...scripts].reverse()) {
+    const currency = script.dataset.paypalSdkCurrency;
+    global[script.dataset.namespace] = { currency, Buttons() {}, FUNDING: { PAYPAL: 'paypal' } };
+    script.dispatch('load');
+  }
+  const sdks = await Promise.all(pending);
+  assert.deepEqual(sdks.map(sdk => sdk.currency), CHECKOUT_CURRENCIES);
+  assert.deepEqual(scripts.map(script => script.dataset.namespace),
+    CHECKOUT_CURRENCIES.map(namespaceFor));
+  assert.ok(scripts.every(script => script.src.includes('funding-eligibility')));
+  assert.strictEqual(await load({ clientId: 'sandbox-client', currency: 'USD' }), sdks[0]);
+  assert.equal(scripts.length, 6);
+});
+
+test('rapid currency changes allow only the latest render revision to commit', () => {
+  const guard = createLatestRenderGuard();
+  const revisions = CHECKOUT_CURRENCIES.map(() => guard.begin());
+  const backToUsd = guard.begin();
+  assert.ok(revisions.every(revision => !guard.isCurrent(revision)));
+  assert.equal(guard.isCurrent(backToUsd), true);
 });
 
 test('new checkout modules do not import or mutate recurring subscription code', () => {

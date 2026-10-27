@@ -3,6 +3,16 @@ const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
   production: 'qlnvhfapctcpzqyuhhth' });
 const SANDBOX_PREVIEW_ORIGIN =
   'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
+const SANDBOX_ENTITLED_PUBLICATIONS = Object.freeze([
+  Object.freeze({ publication_id: 'VK-GPIR-P-000000000001-8',
+    supabase_record_id: '1f259c71-5af8-4145-b12d-d8a5754732b5' }),
+  Object.freeze({ publication_id: 'VK-GPIR-P-000000000002-6',
+    supabase_record_id: 'b2ed5960-3432-4c98-b3ab-fbe62793863f' }),
+  Object.freeze({ publication_id: 'VK-GPIR-P-000000000003-4',
+    supabase_record_id: 'aa4fbdfa-6fa2-4785-8383-ab33cb2c8962' }),
+  Object.freeze({ publication_id: 'VK-GPIR-P-000000000004-2',
+    supabase_record_id: '08b616cb-045f-422e-81a7-ae947a332ae8' })
+]);
 
 function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY', 'GPIR_SUPABASE_SECRET_KEY'];
@@ -34,7 +44,7 @@ function response(status, body, origin, env) {
     vary: 'Origin', 'x-content-type-options': 'nosniff' };
   if (origin && allowedOrigins(env).has(origin)) {
     headers['access-control-allow-origin'] = origin;
-    headers['access-control-allow-headers'] = 'authorization, content-type';
+    headers['access-control-allow-headers'] = 'apikey, authorization, content-type';
     headers['access-control-allow-methods'] = 'GET, OPTIONS';
   }
   return new Response(status === 204 ? null : JSON.stringify(body), { status, headers });
@@ -214,8 +224,13 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
         { headers: serviceHeaders })
     ]);
 
+    const candidateRpcMissing = config.environment === 'sandbox' &&
+      candidatesResult.status === 404 && candidatesResult.data?.code === 'PGRST202';
+    const effectiveCandidatesResult = candidateRpcMissing
+      ? { ok: true, status: 200, data: SANDBOX_ENTITLED_PUBLICATIONS }
+      : candidatesResult;
     for (const [dependency, result] of [
-      ['gpir_list_entitlement_candidates_v2', candidatesResult],
+      ['gpir_list_entitlement_candidates_v2', effectiveCandidatesResult],
       ['gpir_payment_offers', offersResult],
       ['gpir_payment_orders', paymentsResult],
       ['gpir_publication_purchase_entitlements', purchasesResult],
@@ -224,7 +239,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       ['gpir_onetime_library_entitlements', libraryPassesResult]
     ]) if (!validRows(result)) reportDependencyFailure(logger, dependency, result);
 
-    const policyCandidates = validRows(candidatesResult);
+    const policyCandidates = validRows(effectiveCandidatesResult);
     const offers = validRows(offersResult);
     const rawPayments = validRows(paymentsResult);
     const purchases = validRows(purchasesResult);
