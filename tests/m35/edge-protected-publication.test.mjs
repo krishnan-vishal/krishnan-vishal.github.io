@@ -18,6 +18,7 @@ const userId = '22222222-2222-4222-8222-222222222222';
 const env = Object.freeze({
   SUPABASE_URL: 'https://project.supabase.co',
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
+  GPIR_ALLOWED_ORIGINS: 'https://fintechoisis.com',
   CONTENTFUL_SPACE_ID: 'space-fixture',
   CONTENTFUL_ENVIRONMENT: 'master',
   CONTENTFUL_DELIVERY_TOKEN: 'contentful-server-secret'
@@ -238,4 +239,42 @@ test('26 production-origin preflight is bounded and contains no response body', 
   assert.equal(result.response.status, 204);
   assert.equal(result.response.headers.get('access-control-allow-origin'), 'https://fintechoisis.com');
   assert.equal(result.calls.length, 0);
+});
+
+test('27 configured Sandbox preview origin receives bounded CORS preflight', async () => {
+  const sandboxOrigin = 'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
+  const plan = fetchPlan();
+  const handler = createProtectedPublicationHandler({ env: {
+    ...env, GPIR_ALLOWED_ORIGINS: sandboxOrigin
+  }, fetchImpl: plan.fetchImpl });
+  const response = await handler(edgeRequest({ origin: sandboxOrigin, token: null,
+    method: 'OPTIONS' }));
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), sandboxOrigin);
+  assert.equal(response.headers.get('access-control-allow-methods'), 'POST, OPTIONS');
+  assert.equal(response.headers.get('access-control-allow-headers'),
+    'authorization, apikey, content-type, x-client-info');
+  assert.equal(plan.calls.length, 0);
+});
+
+test('28 Sandbox preview origin fallback is scoped to the Sandbox project URL', async () => {
+  const sandboxOrigin = 'https://gpir-m37-sandbox-checkout-20261026.amusedhill18.chatgpt.site';
+  const plan = fetchPlan();
+  const handler = createProtectedPublicationHandler({ env: {
+    ...env, SUPABASE_URL: 'https://hoewtptllwkcqrgryazu.supabase.co',
+    GPIR_ALLOWED_ORIGINS: ''
+  }, fetchImpl: plan.fetchImpl });
+  const response = await handler(edgeRequest({ origin: sandboxOrigin, token: null,
+    method: 'OPTIONS' }));
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), sandboxOrigin);
+
+  const nonSandbox = createProtectedPublicationHandler({ env: {
+    ...env, SUPABASE_URL: 'https://qlnvhfapctcpzqyuhhth.supabase.co',
+    GPIR_ALLOWED_ORIGINS: ''
+  }, fetchImpl: plan.fetchImpl });
+  const denied = await nonSandbox(edgeRequest({ origin: sandboxOrigin, token: null,
+    method: 'OPTIONS' }));
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.get('access-control-allow-origin'), null);
 });

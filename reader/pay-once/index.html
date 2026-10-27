@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#071a35">
+  <title>GPIR Pay Once — Sandbox | FINTECHOISIS</title>
+  <link rel="stylesheet" href="/assets/css/reader-auth.css?v=2">
+  <link rel="stylesheet" href="/assets/css/gpir-pay-once.css?v=20261025">
+  <script src="/assets/js/gpir-supabase-public-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+  <script src="/scripts/m34/supabase-browser-client.js"></script>
+  <script src="/assets/js/gpir-reader-auth.js" defer></script>
+  <script type="module" src="/assets/js/gpir-payonce-multicurrency.mjs?v=20261025"></script>
+</head>
+<body class="gpir-payonce-page">
+  <a class="skip-link" href="#checkout">Skip to checkout</a>
+  <header class="gpir-payonce-header">
+    <a href="/" aria-label="FINTECHOISIS home"><img src="/assets/branding/logos/fo-mark.svg" alt="">
+      <span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
+    <span class="gpir-payonce-badge">PayPal Sandbox</span>
+  </header>
+  <main id="checkout" class="gpir-payonce-shell" data-gpir-payonce>
+    <section class="gpir-payonce-card">
+      <p class="gpir-payonce-kicker">Authenticated reader purchase</p>
+      <h1>Purchase a GPIR publication pass</h1>
+      <p>Select an owner-approved offer. PayPal decides which wallet, guest-card, and local methods are eligible for this buyer and currency.</p>
+      <div class="gpir-payonce-alert" role="note"><strong>Sandbox only.</strong> This page cannot use Production PayPal or Production Supabase.</div>
+      <label for="gpir-payonce-offer">Publication pass and currency</label>
+      <select id="gpir-payonce-offer" data-payonce-offer aria-describedby="gpir-payonce-currencies"></select>
+      <p id="gpir-payonce-currencies" class="gpir-payonce-support">Supported configuration: USD, EUR, GBP, SGD, AUD, JPY and CAD. A currency appears only after its exact price and pass duration are approved.</p>
+      <p class="gpir-payonce-status" data-payonce-status data-state="loading" aria-live="polite">Loading owner-approved offers…</p>
+      <div class="gpir-payonce-buttons" data-payonce-buttons></div>
+      <p class="gpir-payonce-terms">This is a one-time purchase. It does not renew and does not alter GPIR Premium Monthly subscriptions. Access is granted only after server verification of a completed PayPal capture.</p>
+    </section>
+  </main>
+  <footer>FINTECHOISIS · Secure GPIR reader checkout</footer>
+</body>
+</html>

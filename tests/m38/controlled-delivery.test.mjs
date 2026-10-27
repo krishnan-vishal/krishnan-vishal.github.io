@@ -24,6 +24,8 @@ const requestId = '55555555-5555-4555-8555-555555555555';
 const localSubscriptionId = '66666666-6666-4666-8666-666666666666';
 const recordId = '77777777-7777-4777-8777-777777777777';
 const paymentId = '88888888-8888-4888-8888-888888888888';
+const libraryPassId = '99999999-9999-4999-8999-999999999999';
+const libraryOrderId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const publicationId = 'VK-GPIR-P-TEST-1';
 const paypalPlanId = 'P-SANDBOXPLAN123';
 const paypalSubscriptionId = 'I-SANDBOXSUB123';
@@ -49,8 +51,22 @@ function summaryRequest(token = 'reader-session-fixture') {
     headers: { origin, authorization: `Bearer ${token}` } });
 }
 
+test('reader summary preflight permits the public key and JWT headers used by the browser', async () => {
+  const response = await createReaderSummaryHandler({ env: summaryEnv })(new Request(
+    `${sandboxUrl}/functions/v1/gpir-reader-summary`, {
+      method: 'OPTIONS', headers: { origin,
+        'access-control-request-method': 'GET',
+        'access-control-request-headers': 'apikey,authorization,content-type' }
+    }));
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('access-control-allow-origin'), origin);
+  assert.equal(response.headers.get('access-control-allow-headers'),
+    'apikey, authorization, content-type');
+});
+
 function summaryFixture({ userId = userA, email = 'reader-a@example.test',
-  candidateFailure = false, decision = 'DENY', payments = [], purchases = [],
+  candidateFailure = false, missingCandidateRpc = false, decision = 'DENY', payments = [], purchases = [],
+  libraryPasses = [],
   subscriptions = [], candidates = [{ publication_id: publicationId,
     supabase_record_id: recordId }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
     currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH' }] } = {}) {
@@ -61,13 +77,15 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
       email_confirmed_at: '2026-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z',
       user_metadata: { display_name: userId === userA ? 'Reader A' : 'Reader B' } });
     if (value.endsWith('/rpc/gpir_list_entitlement_candidates_v2'))
-      return candidateFailure ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
+      return candidateFailure ? json({ code: 'PGRST500', message: 'Provider unavailable' }, 500)
+        : missingCandidateRpc ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
         : json(candidates);
     if (value.includes('/gpir_payment_offers?')) return json(candidates);
     if (value.includes('/gpir_payment_orders?')) return json(payments);
     if (value.includes('/gpir_publication_purchase_entitlements?')) return json(purchases);
     if (value.includes('/gpir_paypal_subscriptions?')) return json(subscriptions);
     if (value.includes('/gpir_subscription_plans?')) return json(plans);
+    if (value.includes('/gpir_onetime_library_entitlements?')) return json(libraryPasses);
     if (value.endsWith('/rpc/resolve_publication_entitlement')) return json([{ decision }]);
     throw new Error(`Unexpected URL: ${url}`);
   };
@@ -102,10 +120,25 @@ test('candidate dependency failure preserves identity and billing while Library 
   assert.equal(result.calls.some(call => call.value.endsWith(
     '/rpc/resolve_publication_entitlement')), false);
   assert.equal(result.diagnostics[0][1].dependency, 'gpir_list_entitlement_candidates_v2');
-  assert.equal(result.diagnostics[0][1].code, 'PGRST202');
+  assert.equal(result.diagnostics[0][1].code, 'PGRST500');
   const normalized = normalizeReaderSummary(result.body);
   assert.equal(normalized.availability.library, 'UNAVAILABLE');
   assert.deepEqual(normalized.library, []);
+});
+
+test('Sandbox uses the fixed four-policy snapshot only when candidate RPC is absent', async () => {
+  const result = await invokeSummary({ missingCandidateRpc: true, decision: 'ALLOW',
+    candidates: [] });
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.availability.library, 'AVAILABLE');
+  assert.deepEqual(result.body.library.map(item => item.publicationId), [
+    'VK-GPIR-P-000000000001-8', 'VK-GPIR-P-000000000002-6',
+    'VK-GPIR-P-000000000003-4', 'VK-GPIR-P-000000000004-2'
+  ]);
+  assert.ok(result.body.library.every(item => item.accessSource === 'PLAN'));
+  assert.equal(result.diagnostics.length, 0);
+  assert.equal(result.calls.filter(call => call.value.endsWith(
+    '/rpc/resolve_publication_entitlement')).length, 4);
 });
 
 test('Reader A and Reader B summaries remain isolated by authenticated user id', async () => {
@@ -131,6 +164,24 @@ test('Reader A and Reader B summaries remain isolated by authenticated user id',
     assert.match(call.value, new RegExp(`user_id=eq\\.${userB}`));
     assert.doesNotMatch(call.value, new RegExp(userA));
   }
+});
+
+test('active Premium Library pass is reported without becoming a recurring plan', async () => {
+  const result = await invokeSummary({ decision: 'ALLOW', libraryPasses: [{
+    id: libraryPassId, source_order_id: libraryOrderId, scope: 'PREMIUM_LIBRARY',
+    status: 'ACTIVE', effective_from: '2026-10-16T00:00:00Z',
+    effective_until: '2026-11-15T00:00:00Z', revoked_at: null,
+    gpir_onetime_orders: { environment: 'SANDBOX' }
+  }] });
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.libraryPass.status, 'ACTIVE');
+  assert.equal(result.body.libraryPass.sourceOrderId, libraryOrderId);
+  assert.equal(result.body.library[0].accessSource, 'PREMIUM_LIBRARY_PASS');
+  assert.equal(result.body.plan.status, 'NOT_ENROLLED');
+  assert.equal(result.body.plan.billingStatus, 'NOT_ACTIVE');
+  const normalized = normalizeReaderSummary(result.body);
+  assert.equal(normalized.libraryPass.scope, 'PREMIUM_LIBRARY');
+  assert.equal(normalized.library[0].accessSource, 'PREMIUM_LIBRARY_PASS');
 });
 
 test('incomplete payment and pending subscription never grant publication entitlement', async () => {
@@ -273,7 +324,8 @@ test('browser subscription adapter is sandbox-only and accepts only approved ser
       unitAmountMinor: 1200, billingInterval: 'MONTH' },
     availability: { profile: 'AVAILABLE', library: 'AVAILABLE', payments: 'AVAILABLE',
       plan: 'AVAILABLE', subscriptionCheckout: 'AVAILABLE' }, summary: {} });
-  const global = { GPIR_SUPABASE_PUBLIC_CONFIG: { url: sandboxUrl } };
+  const global = { GPIR_SUPABASE_PUBLIC_CONFIG: { url: sandboxUrl },
+    location: { hostname: 'gpir-m37-4192.app.github.dev' } };
   const config = subscriptionConfig(global, summary);
   assert.equal(validSubscriptionConfig(config), true);
   assert.equal(subscriptionConfig(global, { ...summary, environment: 'production' }), null);
