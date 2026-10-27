@@ -1,0 +1,22 @@
+name: M37 Production Non-Monetary Gate
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/gpir-onetime-*/**'
+      - 'supabase/functions/_shared/gpir-onetime-*.mjs'
+      - 'tests/m37/onetime-production-nonmonetary.test.mjs'
+      - '.github/workflows/m37-production-nonmonetary.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run non-monetary Production contract tests
+        run: node --test tests/m37/onetime-production-nonmonetary.test.mjs
