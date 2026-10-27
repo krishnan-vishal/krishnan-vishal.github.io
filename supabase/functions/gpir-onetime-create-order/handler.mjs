@@ -35,7 +35,7 @@ export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
     }
     if (!validInput(input)) return safeError(400, 'INVALID_ORDER_REQUEST', origin, env);
     const prepared = await supabaseRpc({ config, name: 'gpir_m37_prepare_order', fetchImpl,
-      body: { p_user_id: user.id, p_pass_id: input.passId, p_currency: input.currency,
+      body: { p_user_id: user.id, p_currency: input.currency,
         p_client_request_id: input.requestId } });
     const local = prepared.ok ? preparedOrder(prepared.data) : null;
     if (!local) return safeError(409, 'PAYMENT_OFFER_OR_REQUEST_UNAVAILABLE', origin, env);
@@ -61,7 +61,7 @@ export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
       return safeError(502, 'PAYPAL_ORDER_CREATION_FAILED', origin, env);
     const attached = await supabaseRpc({ config, name: 'gpir_m37_attach_order', fetchImpl,
       body: { p_local_order_id: local.local_order_id, p_paypal_order_id: provider.data.id,
-        p_provider_status: provider.data.status, p_provider_debug_id: provider.debugId } });
+         } });
     if (!attached.ok || attached.data !== true)
       return safeError(503, 'PAYMENT_RECONCILIATION_PENDING', origin, env);
     return jsonResponse(201, { status: 'CREATED', environment: 'live',
