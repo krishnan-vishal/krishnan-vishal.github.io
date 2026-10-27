@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#071a35">
+<title>Premium Library — Six-Currency Access | FINTECHOISIS</title>
+<style>body{margin:0;background:#071a35;font:16px Arial,sans-serif;color:#182c45}main{max-width:720px;margin:5vh auto;background:#fff;padding:clamp(20px,5vw,44px);border-radius:14px}h1{font-weight:500}label,select{display:block;margin:18px 0 8px}select{width:100%;padding:13px;font:inherit;border:1px solid #91a2b8;border-radius:6px}.notice{padding:16px;background:#fff6e6;border-left:4px solid #ba862c}a{color:#0b4a8b}small{color:#52647b}</style></head>
+<body><main><p><a href="/">FINTECHOISIS / GPIR</a></p><h1>Premium Library — 30-day access</h1>
+<p>Choose your preferred payment currency. Each one-time pass provides 30 days of Premium Library access and does not renew automatically.</p>
+<label for="currency">Payment currency</label><select id="currency"><option value="USD">USD — 9.99</option><option value="EUR">EUR — 9.99</option><option value="GBP">GBP — 9.99</option><option value="SGD">SGD — 9.99</option><option value="AUD">AUD — 9.99</option><option value="CAD">CAD — 9.99</option></select>
+<p id="price" aria-live="polite">One-time access: USD 9.99 / 30 days</p>
+<p class="notice" role="status"><strong>Checkout not yet available.</strong> Live payments are disabled while Production payment security and entitlement integration are finalized. No payment will be taken from this page.</p>
+<p><a href="/reader/my-gpir/">Return to My GPIR</a></p><small>Existing monthly subscriptions remain separate and unchanged.</small></main>
+<script>const select=document.getElementById('currency');select.addEventListener('change',()=>{document.getElementById('price').textContent='One-time access: '+select.value+' 9.99 / 30 days'});</script></body></html>
