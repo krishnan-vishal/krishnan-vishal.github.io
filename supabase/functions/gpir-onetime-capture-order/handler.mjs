@@ -28,9 +28,8 @@ export function createOnetimeCaptureOrderHandler({ env, fetchImpl = fetch }) {
     if (!validInput(input)) return safeError(400, 'INVALID_CAPTURE_REQUEST', origin, env);
     const user = await authenticateSupabaseUser({ request, config, fetchImpl });
     if (!user) return safeError(401, 'SESSION_REQUIRED', origin, env);
-    const lookup = await supabaseRpc({ config, name: 'gpir_get_onetime_order', fetchImpl,
-      body: { p_user_id: user.id, p_paypal_order_id: input.orderId,
-        p_environment: config.PAYMENT_ENVIRONMENT } });
+    const lookup = await supabaseRpc({ config, name: 'gpir_m37_get_reader_order', fetchImpl,
+      body: { p_user_id: user.id, p_paypal_order_id: input.orderId } });
     const local = lookup.ok ? storedOrder(lookup.data) : null;
     if (!local) return safeError(404, 'PAYMENT_ORDER_NOT_FOUND', origin, env);
     if (local.order_status === 'CAPTURED' && PAYPAL_ID.test(local.paypal_capture_id || ''))
@@ -49,28 +48,21 @@ export function createOnetimeCaptureOrderHandler({ env, fetchImpl = fetch }) {
     if (!capture) {
       const status = captureStatus(provider.data);
       if (['PENDING', 'APPROVED'].includes(status)) {
-        await supabaseRpc({ config, name: 'gpir_mark_onetime_order_status', fetchImpl,
-          body: { p_paypal_order_id: local.paypal_order_id, p_paypal_capture_id: null,
-            p_provider_status: status, p_environment: config.PAYMENT_ENVIRONMENT } });
+        // Pending or denied provider status never grants an entitlement.
         return jsonResponse(202, { status: 'PENDING', environment: 'live',
           orderId: local.paypal_order_id }, origin, env);
       }
       if (['DENIED', 'DECLINED', 'VOIDED', 'CANCELLED'].includes(status)) {
-        await supabaseRpc({ config, name: 'gpir_mark_onetime_order_status', fetchImpl,
-          body: { p_paypal_order_id: local.paypal_order_id, p_paypal_capture_id: null,
-            p_provider_status: status, p_environment: config.PAYMENT_ENVIRONMENT } });
+        // Pending or denied provider status never grants an entitlement.
         return safeError(409, 'PAYPAL_PAYMENT_NOT_COMPLETED', origin, env);
       }
       return safeError(409, 'CAPTURE_NOT_COMPLETED_OR_MISMATCHED', origin, env);
     }
-    const finalized = await supabaseRpc({ config, name: 'gpir_finalize_onetime_capture', fetchImpl,
-      body: { p_local_order_id: local.local_order_id,
+    const finalized = await supabaseRpc({ config, name: 'gpir_m37_finalize_verified_capture', fetchImpl,
+      body: { p_order_id: local.local_order_id,
         p_paypal_order_id: local.paypal_order_id,
         p_paypal_capture_id: capture.captureId, p_currency: capture.currency,
-        p_captured_amount_minor: capture.amountMinor,
-        p_provider_status: capture.providerStatus,
-        p_provider_debug_id: provider.debugId,
-        p_environment: config.PAYMENT_ENVIRONMENT } });
+        p_amount_minor: capture.amountMinor } });
     const effectiveUntil = finalized.ok ? finalizedEntitlement(finalized.data) : null;
     if (!effectiveUntil)
       return safeError(503, 'PAYMENT_RECONCILIATION_PENDING', origin, env);
