@@ -1,0 +1,79 @@
+{
+  "release": "M37-SIX-CURRENCY",
+  "environment": "production",
+  "activation": "DISABLED",
+  "product": {
+    "passId": "GPIR_PREMIUM_LIBRARY_30D",
+    "scope": "PREMIUM_LIBRARY",
+    "durationDays": 30,
+    "renewal": "NONE",
+    "accessRequires": "SERVER_VERIFIED_COMPLETED_CAPTURE"
+  },
+  "offers": [
+    {
+      "currency": "USD",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    },
+    {
+      "currency": "EUR",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    },
+    {
+      "currency": "GBP",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    },
+    {
+      "currency": "SGD",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    },
+    {
+      "currency": "AUD",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    },
+    {
+      "currency": "CAD",
+      "amountMinor": 999,
+      "displayAmount": "9.99",
+      "enabledForPayment": false
+    }
+  ],
+  "reader": {
+    "checkoutRoute": "/reader/premium-library-checkout/",
+    "requiresAuthenticatedReader": true,
+    "entitlementVisibleInMyGPIR": true
+  },
+  "payment": {
+    "provider": "PAYPAL",
+    "flow": "ORDERS_V2_CAPTURE",
+    "serverSidePriceAuthority": true,
+    "merchantLiveEligibility": "UNVERIFIED",
+    "fundingMethods": "PAYPAL_IS_ELIGIBLE_ONLY",
+    "secrets": "SERVER_ONLY",
+    "captureIdempotency": "REQUIRED",
+    "webhookSignatureVerification": "REQUIRED",
+    "refundReversalHandling": "REQUIRED"
+  },
+  "subscription": {
+    "existingRecurring": "PRESERVE_UNCHANGED",
+    "oneTimePass": "NOT_A_RECURRING_SUBSCRIPTION"
+  },
+  "releaseGates": [
+    "production_additive_schema_and_rls_review",
+    "production_live_paypal_merchant_credentials",
+    "production_functions_and_webhook_signature",
+    "reader_entitlement_resolver_and_dashboard",
+    "repeat_purchase_policy",
+    "negative_case_and_idempotency_tests",
+    "explicit_activation_approval"
+  ]
+}
