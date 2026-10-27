@@ -9,6 +9,7 @@
 <section id="checkout" hidden><p id="reader"></p><label for="currency">Payment currency</label><select id="currency" disabled><option>Loading verified Sandbox offers…</option></select><p id="price"></p><div id="paypal-buttons"></div><button id="signout">Sign out</button></section>
 <p id="status" role="status" aria-live="polite"></p>
 </main>
+<script src="./config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script type="module">
 const PROJECT='hoewtptllwkcqrgryazu',BASE='https://'+PROJECT+'.supabase.co',PASS='GPIR_PREMIUM_LIBRARY_30D';
@@ -39,7 +40,7 @@ if(!config||config.url!==BASE||!/^sb_publishable_[A-Za-z0-9_-]+$/.test(config.pu
  }
  async function loadSdk(currency){
   if(sdkCurrency===currency&&window.paypal)return;
-  document.querySelectorAll('script[data-paypal-sdk]').forEach(s=>s.remove());delete window.paypal;
+  document.querySelectorAll('script[data-paypal-sdk]').forEach(s=>s.remove());window.paypal=undefined;
   const s=document.createElement('script');s.dataset.paypalSdk='true';
   s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(sdkClientId)+'&currency='+encodeURIComponent(currency)+'&intent=capture&components=buttons';
   await new Promise((resolve,reject)=>{s.onload=resolve;s.onerror=()=>reject(Error('PayPal SDK failed to load'));document.head.appendChild(s)});
