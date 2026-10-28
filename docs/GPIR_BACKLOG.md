@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M37 final Production payment integration
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M37-FINAL | 2026-10-28 | Complete international one-time reader payment integration in existing PR #469 while preserving recurring subscriptions and keeping Production offers disabled until acceptance | PAYMENTS, AUTHORIZATION, READER EXPERIENCE, SECURITY | High | IN PROGRESS | Owner review/merge and separately authorized Production deployment/activation | Stage 1 | Production M37 Edge Functions, My GPIR, existing M37 tables/RPCs | Connect Production preparation/attachment/finalization contracts, verified idempotent webhook reconciliation, one 30-day entitlement per capture, six-currency history/access display and fail-closed recovery. | Server-authoritative 9.99 pricing in USD/EUR/GBP/SGD/AUD/CAD; exact verified capture; duplicates and failed states grant nothing; delayed reconciliation recovers; My GPIR reports history/pass expiry; recurring code unchanged; checks green; offers remain disabled. | Implementation complete on PR #469: exact Production RPCs are connected, webhook uses the existing unique event ledger and verified PayPal readback, capture recovery and My GPIR integration are implemented, focused M37/M38 tests pass, and live read-only contract verification confirms zero Production M37 payment rows plus disabled six-currency offers. Publication remains owner-controlled. | PENDING owner merge | PR #469 work branch | M37 |
+
 ## Supabase announcement scraper
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
