@@ -1,4 +1,5 @@
 import { initializePayPalSubscription } from './gpir-paypal-subscription.mjs';
+import { initializePayPalOnetimeCheckout } from './gpir-paypal-onetime.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
@@ -6,6 +7,8 @@ const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'D
 const ONETIME_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
 const BILLING_STATES = new Set(['NOT_ACTIVE', 'APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED',
   'CANCELLED', 'EXPIRED', 'PAYMENT_FAILED']);
+const PROTECTED_SECTIONS = Object.freeze(['profile', 'library', 'payments', 'plan',
+  'libraryPass']);
 
 function sectionAvailability(value, name) {
   return value?.availability?.[name] === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
@@ -254,7 +257,11 @@ export function renderReaderDashboard(document, summary) {
     summary.libraryPass,
     summary.availability.plan === 'AVAILABLE', summary.availability.library === 'AVAILABLE');
   const root = document.querySelector('[data-reader-dashboard]');
-  if (root) root.dataset.state = Object.values(summary.availability).includes('UNAVAILABLE')
+  if (root) root.dataset.state = readerDashboardState(summary);
+}
+
+export function readerDashboardState(summary) {
+  return PROTECTED_SECTIONS.some(name => summary?.availability?.[name] === 'UNAVAILABLE')
     ? 'partial' : 'ready';
 }
 
@@ -269,6 +276,8 @@ export function clearReaderDashboard(document) {
   }
   const subscription = document.querySelector('[data-gpir-paypal-subscription]');
   if (subscription) subscription.hidden = true;
+  const onetime = document.querySelector('[data-gpir-paypal-onetime]');
+  if (onetime) onetime.hidden = true;
 }
 
 function dashboardEndpoint(global) {
@@ -311,7 +320,10 @@ export async function initializeReaderDashboard({ global = window, document = gl
       return false;
     }
     renderReaderDashboard(document, result.summary);
-    await initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl });
+    await Promise.allSettled([
+      initializePayPalOnetimeCheckout({ global, document, fetchImpl }),
+      initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl })
+    ]);
     if (status) {
       status.textContent = root.dataset.state === 'partial'
         ? 'Your profile is available. Some protected account sections are temporarily unavailable.'
@@ -323,6 +335,7 @@ export async function initializeReaderDashboard({ global = window, document = gl
   };
   refreshButton?.addEventListener('click', () => { void refresh(); });
   global.addEventListener('gpir:paypal-payment-verified', () => { void refresh(); });
+  global.addEventListener('gpir:onetime-payment-verified', () => { void refresh(); });
   global.addEventListener('gpir:paypal-sandbox-captured', () => { void refresh(); });
   global.addEventListener('gpir:reader-signed-out', () => {
     clearReaderDashboard(document); root.dataset.state = 'signed-out';

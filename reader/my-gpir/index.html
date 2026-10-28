@@ -5,14 +5,14 @@
   <meta name="theme-color" content="#071A35"><meta name="robots" content="noindex,nofollow">
   <title>My GPIR | FINTECHOISIS</title>
   <link rel="stylesheet" href="/assets/css/reader-auth.css?v=2">
-  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261023g">
+  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261028a">
   <script src="/assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
   <script src="/assets/js/gpir-reader-auth.js" defer></script>
   <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261023g"></script>
-  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs"></script>
+  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261028a"></script>
 </head>
 <body class="my-gpir">
   <a class="skip-link" href="#my-gpir-main">Skip to your account</a>
@@ -62,8 +62,23 @@
       </section>
       <section id="plan" class="my-gpir-card my-gpir-card--wide" data-view-panel="plan">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Access</p><h2>Subscription &amp; Plan</h2></div><a href="/reader/plan/">View plan</a></header>
-        <div data-reader-plan><div class="my-gpir-empty"><strong>Loading plan status&hellip;</strong><p>No billing action is taken from this page.</p></div></div>
+        <div data-reader-plan><div class="my-gpir-empty"><strong>Loading plan status&hellip;</strong><p>Secure purchase options load after account verification.</p></div></div>
+        <div class="my-gpir-onetime" data-gpir-paypal-onetime hidden>
+          <div class="my-gpir-purchase-heading">
+            <div><p class="my-gpir-eyebrow">One-time pass</p><h3>GPIR Premium Library &mdash; 30-Day Pass</h3></div>
+            <span class="my-gpir-badge">No renewal</span>
+          </div>
+          <p>Choose an owner-approved currency. The price below is loaded from GPIR&rsquo;s authenticated payment service.</p>
+          <div class="my-gpir-onetime__controls">
+            <label for="gpir-onetime-currency">Purchase currency</label>
+            <select id="gpir-onetime-currency" data-onetime-currency disabled></select>
+          </div>
+          <p class="my-gpir-onetime__offer" data-onetime-offer></p>
+          <div class="my-gpir-onetime__target" data-onetime-buttons></div>
+          <p class="my-gpir-onetime__status" data-onetime-status aria-live="polite"></p>
+        </div>
         <div class="my-gpir-subscription" data-gpir-paypal-subscription hidden>
+          <p class="my-gpir-eyebrow">Recurring subscription</p>
           <p><strong>GPIR Premium Monthly</strong></p>
           <p>USD 9.99 per month. Recurring billing continues until canceled; no trial or setup fee.</p>
           <button class="my-gpir-refresh" type="button" data-subscription-start>Subscribe with PayPal</button>
