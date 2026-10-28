@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M37-UI-01 — Reader checkout integration
+
+- **Owner request / state:** on 2026-10-28, the owner reported the six Production one-time offers `LIVE_ACTIVE` and `ONETIME_CHECKOUT_ENABLED=true`. No Production write or payment was performed during this UI work. PR #469 is already merged; the focused follow-on implementation is on `codex/m37-ui-reader-checkout` pending an owner-authorized GitHub review route.
+- **Reader integration:** My GPIR now retrieves the authenticated `gpir-onetime-create-order` catalogue and displays only valid server-returned USD, EUR, GBP, SGD, AUD and CAD offers. Order creation sends pass, currency and idempotency identifiers only; no browser amount is submitted. PayPal SDK instances remain currency-specific and capture is accepted only when `gpir-onetime-capture-order` returns `CAPTURED`, `live`, `SERVER_VERIFIED` and an authoritative expiry.
+- **Refresh and failure boundary:** a verified capture refreshes the reader summary, payment history, plan state and displayed entitlement expiry. Pending, cancelled, failed or unverified browser outcomes dispatch no access-refresh event and grant nothing. The broad protected-section warning no longer treats Production's intentionally unavailable legacy recurring-checkout catalogue as a data outage; genuine library, payments, plan or library-pass failures still produce the warning.
+- **Recurring isolation / validation:** the existing recurring subscription JavaScript and backend handlers are unchanged. Focused M37/M38 reader, production payment, webhook, entitlement and recurring tests pass 34/34. No real-money transaction was attempted.
+
 ### M37 — Final Production implementation and release gate
 
 - **Owner / branch / PR:** Vishal Krishnan; `release/m37-six-currency-disabled-prep`; existing PR #469 into `main`, continued from checkpoint `14863fb`. No replacement PR or payment architecture was created.
