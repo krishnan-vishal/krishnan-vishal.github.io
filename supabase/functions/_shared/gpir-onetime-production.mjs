@@ -1,4 +1,5 @@
-import { formatPayPalAmount, isSupportedCurrency, parsePayPalAmount }
+import { ONETIME_AMOUNT_MINOR, ONETIME_DURATION_DAYS, formatPayPalAmount,
+  isSupportedCurrency, parsePayPalAmount }
   from './gpir-onetime-currency.mjs';
 
 export const ONETIME_PRODUCTION_PROJECT = 'qlnvhfapctcpzqyuhhth';
@@ -98,6 +99,25 @@ export async function supabaseRpc({ config, name, body, fetchImpl }) {
   return { ok: response.ok, data, debugId: response.headers.get('x-request-id') };
 }
 
+export async function supabaseRest({ config, table, query = '', method = 'GET', body,
+  prefer, fetchImpl }) {
+  let response;
+  try {
+    const headers = new Headers();
+    headers.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
+    headers.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
+    headers.set('content-type', 'application/json');
+    if (prefer) headers.set('prefer', prefer);
+    response = await fetchImpl(`${config.SUPABASE_URL}/rest/v1/${table}${query}`, {
+      method, headers, body: body === undefined ? undefined : JSON.stringify(body)
+    });
+  } catch { return { ok: false, status: 503, data: null, debugId: null }; }
+  let data = null;
+  try { data = await response.json(); } catch {}
+  return { ok: response.ok, status: response.status, data,
+    debugId: response.headers.get('x-request-id') };
+}
+
 function basicCredentials(clientId, clientSecret) {
   try { return globalThis.btoa(`${clientId}:${clientSecret}`); } catch { return null; }
 }
@@ -139,8 +159,8 @@ export function normalizedOffer(row) {
   if (!row || !UUID.test(row.offer_id || '') || typeof row.pass_id !== 'string' ||
       !(row.publication_id === 'PREMIUM_LIBRARY' && row.supabase_record_id == null && row.pass_id === 'GPIR_PREMIUM_LIBRARY_30D') ||
       typeof row.display_name !== 'string' || !isSupportedCurrency(row.currency) ||
-      !Number.isSafeInteger(Number(row.unit_amount_minor)) || Number(row.unit_amount_minor) <= 0 ||
-      !Number.isInteger(Number(row.access_duration_days)) || Number(row.access_duration_days) <= 0)
+      Number(row.unit_amount_minor) !== ONETIME_AMOUNT_MINOR ||
+      Number(row.access_duration_days) !== ONETIME_DURATION_DAYS)
     return null;
   const amountMinor = Number(row.unit_amount_minor);
   return Object.freeze({ offerId: row.offer_id, passId: row.pass_id,
@@ -175,6 +195,21 @@ export function storedOrder(data) {
     return null;
   return Object.freeze({ ...row, expected_amount_minor: Number(row.expected_amount_minor),
     access_duration_days: Number(row.access_duration_days) });
+}
+
+export function productionStoredOrder(data) {
+  const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
+  if (!row || !UUID.test(row.id || '') || !PAYPAL_ID.test(row.paypal_order_id || '') ||
+      !isSupportedCurrency(row.currency) || Number(row.amount_minor) !== ONETIME_AMOUNT_MINOR ||
+      Number(row.duration_days) !== ONETIME_DURATION_DAYS ||
+      !['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
+        'REFUNDED', 'REVERSED'].includes(row.status) ||
+      (row.paypal_capture_id && !PAYPAL_ID.test(row.paypal_capture_id))) return null;
+  return Object.freeze({ local_order_id: row.id, paypal_order_id: row.paypal_order_id,
+    paypal_capture_id: row.paypal_capture_id || null, order_status: row.status,
+    publication_id: 'PREMIUM_LIBRARY', supabase_record_id: null,
+    currency: row.currency, expected_amount_minor: Number(row.amount_minor),
+    access_duration_days: Number(row.duration_days) });
 }
 
 export function verifiedCapture(order, local) {

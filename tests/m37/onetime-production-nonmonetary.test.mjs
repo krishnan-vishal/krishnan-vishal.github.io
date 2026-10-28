@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { onetimeConfiguration, allowedOrigins, normalizedOffer, verifiedCapture }
   from '../../supabase/functions/_shared/gpir-onetime-production.mjs';
 import { isSupportedCurrency, formatPayPalAmount, parsePayPalAmount }
@@ -47,6 +48,8 @@ test('non-Premium and unapproved currency offers rejected', () => {
   assert.equal(normalizedOffer(row)?.amount,'9.99');
   assert.equal(normalizedOffer({...row,currency:'JPY'}),null);
   assert.equal(normalizedOffer({...row,publication_id:'OTHER'}),null);
+  assert.equal(normalizedOffer({...row,unit_amount_minor:1000}),null);
+  assert.equal(normalizedOffer({...row,access_duration_days:31}),null);
 });
 test('payment capture must match currency, amount, order and COMPLETED', () => {
   const local={paypal_order_id:'ORDER-12345678',local_order_id:'123e4567-e89b-42d3-a456-426614174000',currency:'EUR',expected_amount_minor:999};
@@ -62,4 +65,24 @@ test('disabled checkout cannot create an order or call PayPal',async()=>{
   assert.equal(response.status,503);
   assert.equal((await response.json()).code,'ONETIME_CHECKOUT_DISABLED');
   assert.equal(calls,0);
+});
+
+test('repository release contract keeps all six Production offers disabled and one grant per order', () => {
+  const manifest = JSON.parse(fs.readFileSync(
+    'release/m37/six-currency-offers.production.json', 'utf8'));
+  assert.equal(manifest.activation, 'DISABLED');
+  assert.deepEqual(manifest.offers.map(offer => offer.currency), currencies);
+  assert.ok(manifest.offers.every(offer => offer.amountMinor === 999 &&
+    offer.displayAmount === '9.99' && offer.enabledForPayment === false));
+  const catalog = fs.readFileSync(
+    'supabase/migrations/20261027000100_m37_six_currency_disabled_catalog.sql', 'utf8');
+  const evidence = fs.readFileSync(
+    'supabase/migrations/20261027000200_m37_production_disabled_payment_evidence_foundation.sql',
+    'utf8');
+  assert.match(catalog, /onetime_status text NOT NULL DEFAULT 'DISABLED'/);
+  assert.match(catalog, /CHECK \(onetime_amount_minor=999\)/);
+  assert.match(catalog, /CHECK \(onetime_duration_days=30\)/);
+  assert.match(evidence, /source_order_id uuid NOT NULL UNIQUE/);
+  assert.match(evidence, /paypal_capture_id text UNIQUE/);
+  assert.match(evidence, /provider_event_id text NOT NULL UNIQUE/);
 });

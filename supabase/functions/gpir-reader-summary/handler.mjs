@@ -1,6 +1,7 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
   production: 'qlnvhfapctcpzqyuhhth' });
+const ONETIME_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
 
 function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY', 'GPIR_SUPABASE_SECRET_KEY'];
@@ -83,12 +84,41 @@ function paymentSummary(row) {
     capturedAt: isoOrNull(row.captured_at) });
 }
 
+function m37PaymentSummary(row) {
+  const amount = Number(row?.amount_minor);
+  if (!UUID.test(row?.id || '') || !ONETIME_CURRENCIES.has(row?.currency) || amount !== 999 ||
+      !['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
+        'REFUNDED', 'REVERSED'].includes(row?.status)) return null;
+  return Object.freeze({ id: row.id, publicationId: 'PREMIUM_LIBRARY',
+    supabaseRecordId: null, paymentKind: 'PREMIUM_LIBRARY_PASS', currency: row.currency,
+    expectedAmountMinor: amount,
+    capturedAmountMinor: ['CAPTURED', 'REFUNDED', 'REVERSED'].includes(row.status) ? amount : null,
+    status: row.status, createdAt: isoOrNull(row.created_at),
+    capturedAt: isoOrNull(row.captured_at) });
+}
+
 function subscriptionSummary(row) {
   if (!UUID.test(row?.id || '') || typeof row?.status !== 'string' ||
       !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
         'PAYMENT_FAILED'].includes(row.status)) return null;
   return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
     effectiveUntil: isoOrNull(row.effective_until) });
+}
+
+function m37LibraryPassSummary(row, currentTime) {
+  const effectiveFrom = isoOrNull(row?.effective_from);
+  const effectiveUntil = isoOrNull(row?.effective_until);
+  const revokedAt = isoOrNull(row?.revoked_at);
+  if (!UUID.test(row?.id || '') || !UUID.test(row?.source_order_id || '') ||
+      !['ACTIVE', 'REVOKED'].includes(row?.status) || !effectiveFrom || !effectiveUntil ||
+      Date.parse(effectiveUntil) <= Date.parse(effectiveFrom) ||
+      (row.status === 'ACTIVE' && row.revoked_at != null) ||
+      (row.status === 'REVOKED' && !revokedAt)) return null;
+  const status = row.status === 'REVOKED' ? 'REVOKED' :
+    Date.parse(effectiveFrom) > currentTime ? 'PENDING' :
+    Date.parse(effectiveUntil) <= currentTime ? 'EXPIRED' : 'ACTIVE';
+  return Object.freeze({ status, scope: 'PREMIUM_LIBRARY', sourceOrderId: row.source_order_id,
+    effectiveFrom, effectiveUntil, revokedAt });
 }
 
 function purchaseKey(row) { return `${row.supabase_record_id}:${row.publication_id}`; }
@@ -133,16 +163,19 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const token = bearerToken(request);
     if (!token) return response(401, { status: 'ERROR', code: 'SESSION_REQUIRED' }, origin, env);
 
-    const userHeaders = { apikey: config.GPIR_SUPABASE_PUBLISHABLE_KEY,
-      authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+    const userHeaders = new Headers();
+    userHeaders.set('apikey', config.GPIR_SUPABASE_PUBLISHABLE_KEY);
+    userHeaders.set('authorization', `Bearer ${token}`);
+    userHeaders.set('content-type', 'application/json');
     const userResult = await jsonFetch(fetchImpl, `${config.SUPABASE_URL}/auth/v1/user`,
       { headers: userHeaders });
     const user = userResult.data;
     if (!userResult.ok || !UUID.test(user?.id || ''))
       return response(401, { status: 'ERROR', code: 'SESSION_INVALID' }, origin, env);
 
-    const serviceHeaders = { apikey: config.GPIR_SUPABASE_SECRET_KEY,
-      authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}` };
+    const serviceHeaders = new Headers();
+    serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
+    serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
     const offerQuery = new URLSearchParams({
       select: 'supabase_record_id,publication_id',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
@@ -169,8 +202,17 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
       order: 'created_at.asc', limit: '1'
     });
+    const m37PaymentQuery = new URLSearchParams({
+      select: 'id,currency,amount_minor,status,created_at,captured_at',
+      user_id: `eq.${user.id}`, environment: 'eq.PRODUCTION',
+      order: 'created_at.desc', limit: '100'
+    });
+    const m37PassQuery = new URLSearchParams({
+      select: 'id,source_order_id,status,effective_from,effective_until,revoked_at',
+      user_id: `eq.${user.id}`, order: 'effective_until.desc', limit: '100'
+    });
     const [candidatesResult, offersResult, paymentsResult, purchasesResult,
-      subscriptionsResult, plansResult] = await Promise.all([
+      subscriptionsResult, plansResult, m37PaymentsResult, m37PassesResult] = await Promise.all([
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
         { method: 'POST', headers: serviceHeaders, body: '{}' }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_offers?${offerQuery}`,
@@ -182,7 +224,13 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${subscriptionQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_subscription_plans?${planQuery}`,
-        { headers: serviceHeaders })
+        { headers: serviceHeaders }),
+      config.environment === 'production'
+        ? jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_m37_onetime_orders?${m37PaymentQuery}`,
+          { headers: serviceHeaders }) : Promise.resolve({ ok: true, status: 200, data: [] }),
+      config.environment === 'production'
+        ? jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_m37_library_entitlements?${m37PassQuery}`,
+          { headers: serviceHeaders }) : Promise.resolve({ ok: true, status: 200, data: [] })
     ]);
 
     for (const [dependency, result] of [
@@ -191,7 +239,9 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       ['gpir_payment_orders', paymentsResult],
       ['gpir_publication_purchase_entitlements', purchasesResult],
       ['gpir_paypal_subscriptions', subscriptionsResult],
-      ['gpir_subscription_plans', plansResult]
+      ['gpir_subscription_plans', plansResult],
+      ['gpir_m37_onetime_orders', m37PaymentsResult],
+      ['gpir_m37_library_entitlements', m37PassesResult]
     ]) if (!validRows(result)) reportDependencyFailure(logger, dependency, result);
 
     const policyCandidates = validRows(candidatesResult);
@@ -200,6 +250,18 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const purchases = validRows(purchasesResult);
     const rawSubscriptions = validRows(subscriptionsResult);
     const rawPlans = validRows(plansResult);
+    const rawM37Payments = validRows(m37PaymentsResult);
+    const rawM37Passes = validRows(m37PassesResult);
+    let libraryPassAvailable = Boolean(rawM37Passes);
+    const libraryPasses = rawM37Passes
+      ? rawM37Passes.map(row => m37LibraryPassSummary(row, now())).filter(Boolean) : [];
+    if (rawM37Passes && libraryPasses.length !== rawM37Passes.length) {
+      libraryPassAvailable = false;
+      reportDependencyFailure(logger, 'gpir_m37_library_entitlements', m37PassesResult);
+    }
+    const libraryPass = libraryPassAvailable
+      ? libraryPasses.find(pass => pass.status === 'ACTIVE') || libraryPasses[0] || null : null;
+    const activeLibraryPass = libraryPass?.status === 'ACTIVE';
 
     let entitlementAvailable = Boolean(policyCandidates && offers && purchases);
     const candidates = new Map();
@@ -231,7 +293,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     }
 
     const purchaseStates = new Map((purchases || []).map(row => [purchaseKey(row), row.status]));
-    const hasPlanAccess = entitlementAvailable && publications.some((publication, index) =>
+    const hasPlanAccess = entitlementAvailable && !activeLibraryPass && publications.some((publication, index) =>
       decisions[index][0].decision === 'ALLOW' &&
       purchaseStates.get(purchaseKey(publication)) !== 'ACTIVE');
     let planAvailable = Boolean(rawSubscriptions);
@@ -250,16 +312,24 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const library = entitlementAvailable ? publications.flatMap((publication, index) => {
       if (decisions[index][0].decision !== 'ALLOW') return [];
       const purchaseState = purchaseStates.get(purchaseKey(publication));
-      const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' : 'PLAN';
+      const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' :
+        activeLibraryPass ? 'PREMIUM_LIBRARY_PASS' : 'PLAN';
       return [Object.freeze({ publicationId: publication.publication_id,
         supabaseRecordId: publication.supabase_record_id,
         accessClass: 'ENTITLED', accessSource })];
     }) : [];
-    let paymentsAvailable = Boolean(rawPayments);
-    const payments = rawPayments ? rawPayments.map(paymentSummary).filter(Boolean) : [];
-    if (rawPayments && payments.length !== rawPayments.length) {
+    let paymentsAvailable = Boolean(rawPayments && rawM37Payments);
+    const legacyPayments = rawPayments ? rawPayments.map(paymentSummary).filter(Boolean) : [];
+    const m37Payments = rawM37Payments ? rawM37Payments.map(m37PaymentSummary).filter(Boolean) : [];
+    const payments = [...legacyPayments, ...m37Payments].sort((left, right) =>
+      String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+    if ((rawPayments && legacyPayments.length !== rawPayments.length) ||
+        (rawM37Payments && m37Payments.length !== rawM37Payments.length)) {
       paymentsAvailable = false;
-      reportDependencyFailure(logger, 'gpir_payment_orders', paymentsResult);
+      if (rawPayments && legacyPayments.length !== rawPayments.length)
+        reportDependencyFailure(logger, 'gpir_payment_orders', paymentsResult);
+      if (rawM37Payments && m37Payments.length !== rawM37Payments.length)
+        reportDependencyFailure(logger, 'gpir_m37_onetime_orders', m37PaymentsResult);
     }
     let checkoutOffer = rawPlans?.length ? subscriptionOffer(rawPlans[0]) : null;
     if (rawPlans?.length && !checkoutOffer) {
@@ -272,20 +342,22 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
         user.email_confirmed_at || user.confirmed_at) });
 
     return response(200, Object.freeze({ status: 'OK', environment: config.environment,
-      profile, library, payments, plan, subscriptionOffer: checkoutOffer,
+      profile, library, payments, plan, libraryPass, subscriptionOffer: checkoutOffer,
       availability: Object.freeze({ profile: 'AVAILABLE',
         library: entitlementAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
+        libraryPass: libraryPassAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         subscriptionCheckout: config.environment === 'sandbox' && checkoutOffer
           ? 'AVAILABLE' : 'UNAVAILABLE' }),
       summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
         paymentCount: paymentsAvailable ? payments.length : null,
-        activePurchaseCount: purchases
-          ? purchases.filter(row => row.status === 'ACTIVE').length : null }),
+        activePurchaseCount: purchases && libraryPassAvailable
+          ? purchases.filter(row => row.status === 'ACTIVE').length +
+            libraryPasses.filter(pass => pass.status === 'ACTIVE').length : null }),
       generatedAt: new Date(now()).toISOString() }), origin, env);
   };
 }
 
-export { configuration, paymentSummary, publicationCandidate, subscriptionOffer,
-  subscriptionSummary };
+export { configuration, m37LibraryPassSummary, m37PaymentSummary, paymentSummary,
+  publicationCandidate, subscriptionOffer, subscriptionSummary };

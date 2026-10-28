@@ -1,6 +1,8 @@
 // Independent, six-currency one-time checkout currency primitives.
 // This module contains no prices, secrets, or subscription dependencies.
 export const ONETIME_CURRENCIES = Object.freeze(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
+export const ONETIME_AMOUNT_MINOR = 999;
+export const ONETIME_DURATION_DAYS = 30;
 const DECIMALS = Object.freeze({ USD: 2, EUR: 2, GBP: 2, SGD: 2, AUD: 2, CAD: 2 });
 
 export function isSupportedCurrency(currency) {

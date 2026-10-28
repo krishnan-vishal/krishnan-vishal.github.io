@@ -5,7 +5,7 @@ import { isSupportedCurrency } from '../_shared/gpir-onetime-currency.mjs';
 
 function validInput(value) {
   return value && typeof value === 'object' && !Array.isArray(value) &&
-    typeof value.passId === 'string' && /^[a-z0-9][a-z0-9_-]{2,63}$/i.test(value.passId) &&
+    value.passId === 'GPIR_PREMIUM_LIBRARY_30D' &&
     isSupportedCurrency(value.currency) &&
     UUID.test(value.requestId || '');
 }

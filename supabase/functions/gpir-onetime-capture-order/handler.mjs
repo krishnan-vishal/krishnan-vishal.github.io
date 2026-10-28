@@ -39,9 +39,14 @@ export function createOnetimeCaptureOrderHandler({ env, fetchImpl = fetch }) {
 
     const accessToken = await paypalAccessToken({ config, fetchImpl });
     if (!accessToken) return safeError(503, 'PAYPAL_PROVIDER_UNAVAILABLE', origin, env);
-    const provider = await paypalJson({ config, accessToken, fetchImpl,
+    let provider = await paypalJson({ config, accessToken, fetchImpl,
       path: `/v2/checkout/orders/${encodeURIComponent(local.paypal_order_id)}/capture`,
       method: 'POST', requestId: `capture-${local.local_order_id}`, body: {} });
+    if (!provider.ok && provider.status === 422) {
+      const reconciled = await paypalJson({ config, accessToken, fetchImpl,
+        path: `/v2/checkout/orders/${encodeURIComponent(local.paypal_order_id)}` });
+      if (reconciled.ok) provider = reconciled;
+    }
     if (!provider.ok) return safeError(provider.status === 422 ? 409 : 502,
       'PAYPAL_CAPTURE_FAILED', origin, env);
     const capture = verifiedCapture(provider.data, local);

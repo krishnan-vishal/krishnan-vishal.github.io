@@ -18,6 +18,10 @@ A separate additive migration `m37_six_currency_disabled_catalog` was applied an
 4. Verify test suite, repository security workflow, database RPC permissions, disabled behavior, no recurring subscription regression, and controlled deployed readbacks.
 5. Only then merge #469 and deploy disabled functions/schema; activate separately when live provider configuration and operational checks pass.
 
+## PR #469 integration outcome — 2026-10-28
+
+Steps 1–4 are implemented and locally verified on the single integration PR. The exact Production RPC permissions, table constraints, six disabled catalogue rows and additive resolver branches were read back without mutation. Production handlers, webhook reconciliation, My GPIR history/pass expiry, capture recovery and negative/idempotency tests are complete. Step 5 remains human-controlled: owner review/merge, disabled deployment and a separate activation decision. PRs #466–#468 remain unmerged into this release branch as whole branches.
+
 ## Explicit prohibitions
 - Do not merge #466/#467/#468 en masse.
 - Do not create fabricated live PayPal billing plan IDs.

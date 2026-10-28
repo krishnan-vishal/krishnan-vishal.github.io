@@ -15,9 +15,9 @@ Applied to Production Supabase project `qlnvhfapctcpzqyuhhth` as migration `m37_
 - `gpir_m37_has_library_access`: anon false, authenticated true, service_role true.
 - No payment or entitlement data was inserted by this gate.
 
-## Mandatory integration hold
+## Integration completion — 2026-10-28
 
-The staged one-time Edge Functions currently reference earlier Sandbox `gpir_*` RPC contracts. They must be adapted to the Production `gpir_m37_*` contracts, and provider order/capture amount/currency must be verified server-side **before** finalization. The current publication entitlement resolver is unchanged: it does not yet call `gpir_m37_has_library_access()`. Do not activate checkout or merge PR #469 until that integration and negative tests are complete.
+The former integration hold is resolved in PR #469. The one-time create, capture and webhook handlers now use the Production `gpir_m37_*` preparation, attachment, reader-order, finalization and revocation contracts. Amount, currency, order identity, capture identity and `COMPLETED` state are independently verified from PayPal before finalization. Focused tests cover duplicate, delayed, pending, denied, cancelled, mismatched, unverified, refund and reversal paths. The publication resolver now calls `gpir_m37_has_library_access()` additively. Checkout and all six Production offers remain disabled pending owner acceptance.
 
 ## Operational caution
 

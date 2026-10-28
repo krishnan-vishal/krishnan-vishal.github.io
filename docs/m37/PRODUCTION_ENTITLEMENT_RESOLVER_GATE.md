@@ -17,5 +17,5 @@ inside the existing `ENTITLED` decision branch. It did **not** remove or rewrite
 
 This is a static definition/readback check, **not** a live purchase test. Existing pass tables remain empty, and checkout remains disabled.
 
-## Edge Function integration hold
-The release branch's create/capture/webhook handlers still use Sandbox-derived RPC names. They must be adapted to the newly deployed `gpir_m37_*` schema and server-side provider verification, then run negative/idempotency tests before deployment. Do not activate payment or merge PR #469 until complete.
+## Edge Function integration completion — 2026-10-28
+The create, capture and webhook handlers now use the Production `gpir_m37_*` contracts and independently verify PayPal order, capture, amount, currency and completed state before the finalizer can create access. Negative, duplicate, delayed-reconciliation and refund/reversal tests pass. This resolves the former code-integration hold without activating payment; owner review, merge and separately authorized deployment/activation remain required.

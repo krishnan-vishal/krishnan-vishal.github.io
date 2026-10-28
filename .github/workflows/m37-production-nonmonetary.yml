@@ -4,7 +4,9 @@ on:
     paths:
       - 'supabase/functions/gpir-onetime-*/**'
       - 'supabase/functions/_shared/gpir-onetime-*.mjs'
-      - 'tests/m37/onetime-production-nonmonetary.test.mjs'
+      - 'tests/m37/onetime-production-*.test.mjs'
+      - 'supabase/functions/gpir-reader-summary/**'
+      - 'assets/js/gpir-reader-dashboard.mjs'
       - '.github/workflows/m37-production-nonmonetary.yml'
   workflow_dispatch:
 permissions:
@@ -19,4 +21,4 @@ jobs:
         with:
           node-version: '22'
       - name: Run non-monetary Production contract tests
-        run: node --test tests/m37/onetime-production-nonmonetary.test.mjs
+        run: node --test tests/m37/onetime-production-*.test.mjs

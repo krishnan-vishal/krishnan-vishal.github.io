@@ -31,3 +31,7 @@ Production Supabase project qlnvhfapctcpzqyuhhth has no gpir_onetime_offers, gpi
 
 ## Gate result
 This branch is a safe documentation-only release preparation branch. It does not deploy, modify production tables, create payment endpoints, or activate payments.
+
+## Final implementation update — 2026-10-28
+
+PR #469 is no longer documentation-only: it contains the disabled Production Edge handlers, verified webhook reconciliation, delayed-capture recovery and My GPIR ledger/pass integration. Read-only Production verification confirms the additive schema/RPC package and resolver are installed, all six offers remain disabled, and the M37 ledgers remain empty. The code is ready for owner release review after local and GitHub checks; no function was deployed and no payment was activated by this update.
