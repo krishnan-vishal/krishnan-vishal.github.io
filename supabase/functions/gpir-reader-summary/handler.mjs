@@ -61,6 +61,23 @@ function validRows(result) {
   return result.ok && Array.isArray(result.data) ? result.data : null;
 }
 
+// M39: retain the existing RPC as primary; recover only from stale PostgREST RPC discovery.
+async function fetchPolicyCandidates(fetchImpl, config, headers) {
+  const primary = await jsonFetch(fetchImpl,
+    `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
+    { method: 'POST', headers, body: '{}' });
+  if (primary.ok || primary.data?.code !== 'PGRST202') return primary;
+
+  const query = new URLSearchParams({
+    select: 'publication_id,supabase_record_id',
+    status: 'eq.ACTIVE', access_class: 'eq.ENTITLED',
+    order: 'publication_id.asc', limit: '500'
+  });
+  return jsonFetch(fetchImpl,
+    `${config.SUPABASE_URL}/rest/v1/gpir_publication_access_policies?${query}`,
+    { headers });
+}
+
 function safeText(value, max = 160) {
   const text = typeof value === 'string' ? value.trim() : '';
   return text ? text.slice(0, max) : null;
@@ -213,8 +230,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     });
     const [candidatesResult, offersResult, paymentsResult, purchasesResult,
       subscriptionsResult, plansResult, m37PaymentsResult, m37PassesResult] = await Promise.all([
-      jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/rpc/gpir_list_entitlement_candidates_v2`,
-        { method: 'POST', headers: serviceHeaders, body: '{}' }),
+      fetchPolicyCandidates(fetchImpl, config, serviceHeaders),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_offers?${offerQuery}`,
         { headers: serviceHeaders }),
       jsonFetch(fetchImpl, `${config.SUPABASE_URL}/rest/v1/gpir_payment_orders?${paymentQuery}`,
