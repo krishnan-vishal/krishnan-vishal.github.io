@@ -60,8 +60,7 @@ export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
         !['CREATED', 'PAYER_ACTION_REQUIRED'].includes(provider.data?.status))
       return safeError(502, 'PAYPAL_ORDER_CREATION_FAILED', origin, env);
     const attached = await supabaseRpc({ config, name: 'gpir_m37_attach_order', fetchImpl,
-      body: { p_local_order_id: local.local_order_id, p_paypal_order_id: provider.data.id,
-         } });
+      body: { p_local_order_id: local.local_order_id, p_paypal_order_id: provider.data.id } });
     if (!attached.ok || attached.data !== true)
       return safeError(503, 'PAYMENT_RECONCILIATION_PENDING', origin, env);
     return jsonResponse(201, { status: 'CREATED', environment: 'live',
