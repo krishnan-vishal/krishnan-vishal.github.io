@@ -15,7 +15,7 @@ export function onetimeConfiguration(env, { webhook = false } = {}) {
   if (webhook) required.push('ONETIME_PAYPAL_WEBHOOK_ID');
   const values = Object.fromEntries(required.map(name => [name, env?.[name]?.trim()]));
   const environment = (env?.PAYPAL_ENVIRONMENT || env?.PAYPAL_ENV || '').trim().toLowerCase();
-  if (env?.ONETIME_CHECKOUT_ENABLED !== 'true' || environment !== 'live' ||
+  if ((!webhook && env?.ONETIME_CHECKOUT_ENABLED !== 'true') || environment !== 'live' ||
       !required.every(name => values[name])) return null;
   let url;
   try { url = new URL(values.SUPABASE_URL); } catch { return null; }
