@@ -31,6 +31,7 @@ const env = Object.freeze({ SUPABASE_URL: supabaseUrl,
   PAYPAL_ENVIRONMENT: 'live', PAYPAL_BASE_URL: 'https://api-m.paypal.com',
   PAYPAL_CLIENT_ID: 'live-client-fixture', PAYPAL_CLIENT_SECRET: 'live-secret-fixture',
   ONETIME_PAYPAL_WEBHOOK_ID: 'WH-ONETIME-FIXTURE' });
+const webhookEnv = Object.freeze({ ...env, ONETIME_CHECKOUT_ENABLED: undefined });
 
 function json(value, status = 200, headers = {}) {
   return new Response(JSON.stringify(value), { status,
@@ -233,7 +234,7 @@ test('verified completed webhook securely attaches, verifies and finalizes the P
       return json([{ provider_event_id: event.id }]);
     throw new Error(`Unexpected URL: ${value}`);
   };
-  const response = await createOnetimeWebhookHandler({ env, fetchImpl,
+  const response = await createOnetimeWebhookHandler({ env: webhookEnv, fetchImpl,
     now: () => Date.parse('2026-10-28T00:00:02Z') })(request);
   assert.equal(response.status, 200);
   assert.equal((await response.json()).status, 'PROCESSED');
@@ -265,7 +266,7 @@ test('duplicate verified webhook is ignored by the provider-event uniqueness rec
     if (value.includes('/v2/checkout/orders/')) providerOrderRead = true;
     throw new Error(`Unexpected URL: ${value}`);
   };
-  const response = await createOnetimeWebhookHandler({ env, fetchImpl })(fixture.request);
+  const response = await createOnetimeWebhookHandler({ env: webhookEnv, fetchImpl })(fixture.request);
   assert.equal(response.status, 200);
   assert.equal((await response.json()).status, 'DUPLICATE_IGNORED');
   assert.equal(providerOrderRead, false);
@@ -283,9 +284,23 @@ test('unverified webhook cannot write an event or grant access', async () => {
     if (value.includes('/rest/v1/')) databaseCalled = true;
     throw new Error(`Unexpected URL: ${value}`);
   };
-  const response = await createOnetimeWebhookHandler({ env, fetchImpl })(fixture.request);
+  const response = await createOnetimeWebhookHandler({ env: webhookEnv, fetchImpl })(fixture.request);
   assert.equal(response.status, 401);
   assert.equal(databaseCalled, false);
+});
+
+test('webhook with missing signature headers cannot call PayPal or the database', async () => {
+  let externalCalled = false;
+  const request = new Request(`${supabaseUrl}/functions/v1/gpir-onetime-webhook`, {
+    method: 'POST', body: JSON.stringify({ id: 'WH-EVENT-MISSING-HEADERS-1',
+      event_type: 'PAYMENT.CAPTURE.COMPLETED' })
+  });
+  const response = await createOnetimeWebhookHandler({ env: webhookEnv,
+    fetchImpl: async () => { externalCalled = true; throw new Error('unexpected external call'); }
+  })(request);
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).code, 'WEBHOOK_HEADERS_REQUIRED');
+  assert.equal(externalCalled, false);
 });
 
 test('verified refund webhook uses the Production revocation contract', async () => {
@@ -308,7 +323,7 @@ test('verified refund webhook uses the Production revocation contract', async ()
       return json([{ provider_event_id: event.id }]);
     throw new Error(`Unexpected URL: ${value}`);
   };
-  const response = await createOnetimeWebhookHandler({ env, fetchImpl,
+  const response = await createOnetimeWebhookHandler({ env: webhookEnv, fetchImpl,
     now: () => Date.parse('2026-10-28T00:00:02Z') })(fixture.request);
   assert.equal(response.status, 200);
   assert.deepEqual(rpcCalls, [{ p_paypal_capture_id: captureId, p_status: 'REFUNDED' }]);

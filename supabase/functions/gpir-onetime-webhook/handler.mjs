@@ -94,7 +94,7 @@ export function createOnetimeWebhookHandler({ env, fetchImpl = fetch,
     if (request.method !== 'POST')
       return response(405, { status: 'ERROR', code: 'METHOD_NOT_ALLOWED' });
     const config = onetimeConfiguration(env, { webhook: true });
-    if (!config) return response(503, { status: 'ERROR', code: 'ONETIME_CHECKOUT_DISABLED' });
+    if (!config) return response(503, { status: 'ERROR', code: 'ONETIME_WEBHOOK_UNAVAILABLE' });
     const headers = webhookHeaders(request);
     if (!headers) return response(400, { status: 'ERROR', code: 'WEBHOOK_HEADERS_REQUIRED' });
     let rawEvent;

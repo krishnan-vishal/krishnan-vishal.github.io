@@ -7,6 +7,8 @@ import { isSupportedCurrency, formatPayPalAmount, parsePayPalAmount }
   from '../../supabase/functions/_shared/gpir-onetime-currency.mjs';
 import { createOnetimeCreateOrderHandler }
   from '../../supabase/functions/gpir-onetime-create-order/handler.mjs';
+import { createOnetimeCaptureOrderHandler }
+  from '../../supabase/functions/gpir-onetime-capture-order/handler.mjs';
 
 const env = {
   SUPABASE_URL: 'https://qlnvhfapctcpzqyuhhth.supabase.co',
@@ -35,6 +37,19 @@ test('production config is fail closed for disabled, sandbox, wrong project, wro
   assert.equal(onetimeConfiguration({...env,PAYPAL_BASE_URL:'https://api-m.sandbox.paypal.com'}), null);
   assert.equal(onetimeConfiguration(env)?.PAYMENT_ENVIRONMENT,'LIVE');
 });
+test('webhook config is independent of checkout activation and remains fail closed', () => {
+  const webhookEnv = {...env,ONETIME_CHECKOUT_ENABLED:undefined,
+    ONETIME_PAYPAL_WEBHOOK_ID:'WH-ONETIME-FIXTURE'};
+  assert.equal(onetimeConfiguration(webhookEnv,{webhook:true})?.PAYMENT_ENVIRONMENT,'LIVE');
+  assert.equal(onetimeConfiguration({...webhookEnv,ONETIME_CHECKOUT_ENABLED:'false'},
+    {webhook:true})?.PAYMENT_ENVIRONMENT,'LIVE');
+  assert.equal(onetimeConfiguration({...webhookEnv,ONETIME_PAYPAL_WEBHOOK_ID:undefined},
+    {webhook:true}),null);
+  assert.equal(onetimeConfiguration({...webhookEnv,PAYPAL_ENVIRONMENT:'sandbox'},
+    {webhook:true}),null);
+  assert.equal(onetimeConfiguration({...webhookEnv,
+    SUPABASE_URL:'https://hoewtptllwkcqrgryazu.supabase.co'},{webhook:true}),null);
+});
 test('allowed browser origins do not include sandbox preview', () => {
   const origins=allowedOrigins(env);
   assert.equal(origins.has('https://fintechoisis.com'),true);
@@ -62,6 +77,19 @@ test('disabled checkout cannot create an order or call PayPal',async()=>{
   let calls=0;
   const handler=createOnetimeCreateOrderHandler({env:{...env,ONETIME_CHECKOUT_ENABLED:'false'},fetchImpl:()=>{calls++;throw Error('unexpected external call')}});
   const response=await handler(new Request('https://example.test/',{method:'GET',headers:{origin:'https://fintechoisis.com'}}));
+  assert.equal(response.status,503);
+  assert.equal((await response.json()).code,'ONETIME_CHECKOUT_DISABLED');
+  assert.equal(calls,0);
+});
+test('disabled checkout cannot capture an order or call PayPal',async()=>{
+  let calls=0;
+  const handler=createOnetimeCaptureOrderHandler({
+    env:{...env,ONETIME_CHECKOUT_ENABLED:'false'},
+    fetchImpl:()=>{calls++;throw Error('unexpected external call')}
+  });
+  const response=await handler(new Request('https://example.test/',{method:'POST',
+    headers:{origin:'https://fintechoisis.com','content-type':'application/json'},
+    body:JSON.stringify({orderId:'PAYPAL-ORDER-123'})}));
   assert.equal(response.status,503);
   assert.equal((await response.json()).code,'ONETIME_CHECKOUT_DISABLED');
   assert.equal(calls,0);
