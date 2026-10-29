@@ -10,6 +10,7 @@ const BILLING_STATES = new Set(['NOT_ACTIVE', 'APPROVAL_PENDING', 'ACTIVE', 'SUS
   'CANCELLED', 'EXPIRED', 'PAYMENT_FAILED']);
 const PROTECTED_SECTIONS = Object.freeze(['profile', 'library', 'payments', 'plan',
   'libraryPass']);
+const dashboardInitializations = new WeakMap();
 
 function sectionAvailability(value, name) {
   return value?.availability?.[name] === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'AVAILABLE';
@@ -462,12 +463,19 @@ export function readerDashboardState(summary) {
     ? 'partial' : 'ready';
 }
 
+export function readerDashboardStatus(summary) {
+  return readerDashboardState(summary) === 'partial'
+    ? Object.freeze({ message: 'Some account sections are temporarily unavailable. Unverified information remains hidden.',
+      className: 'my-gpir-status my-gpir-warning' })
+    : Object.freeze({ message: 'Your account is up to date.', className: 'my-gpir-status' });
+}
+
 export function clearReaderDashboard(document) {
   for (const selector of ['[data-reader-profile]', '[data-reader-library]',
     '[data-reader-payments]', '[data-reader-plan]']) {
     document.querySelector(selector)?.replaceChildren();
   }
-  for (const name of ['library', 'payments', 'purchases']) {
+  for (const name of ['library', 'payments', 'purchases', 'account']) {
     const target = document.querySelector(`[data-reader-metric="${name}"]`);
     if (target) target.textContent = '—';
   }
@@ -484,36 +492,45 @@ function dashboardEndpoint(global) {
   return url ? `${String(url).replace(/\/$/, '')}/functions/v1/gpir-reader-summary` : null;
 }
 
-export async function initializeReaderDashboard({ global = window, document = global.document,
-  fetchImpl = global.fetch?.bind(global) } = {}) {
-  const root = document?.querySelector?.('[data-reader-dashboard]');
-  if (!root) return false;
+async function setupReaderDashboard({ global, document, fetchImpl, root }) {
   const client = global.GPIR_SUPABASE_CLIENT;
   const returnTo = `${global.location.pathname}${global.location.search}${global.location.hash}`;
-  let sessionResult;
-  try { sessionResult = await client?.auth?.getSession(); } catch {}
-  const session = sessionResult?.data?.session;
+  let session = null;
+  try {
+    session = global.GPIRReaderAuth?.sessionReady
+      ? await global.GPIRReaderAuth.sessionReady
+      : (await client?.auth?.getSession())?.data?.session;
+  } catch {}
   if (!session?.user || !session.access_token) {
     global.GPIRReaderAuth?.rememberReturnTo?.(returnTo);
-    global.location.assign(`/reader/sign-in/?returnTo=${encodeURIComponent(returnTo)}`); return false;
+    global.location.assign(`/reader/sign-in/?returnTo=${encodeURIComponent(returnTo)}`);
+    return false;
   }
   const endpoint = dashboardEndpoint(global);
   const status = document.querySelector('[data-reader-dashboard-status]');
   const refreshButton = document.querySelector('[data-reader-refresh]');
-  const refresh = async () => {
-    if (refreshButton) refreshButton.disabled = true;
-    if (status) status.textContent = 'Refreshing your GPIR account…';
+  let requestInFlight = null;
+  let signedOut = false;
+  const performRefresh = async () => {
+    if (refreshButton) { refreshButton.disabled = true; refreshButton.textContent = 'Refresh account'; }
+    if (status) { status.textContent = root.dataset.state === 'loading'
+      ? 'Loading your GPIR account…' : 'Refreshing your GPIR account…';
+      status.className = 'my-gpir-status'; }
     const result = await requestReaderSummary({ endpoint, token: session.access_token, fetchImpl });
     if (refreshButton) refreshButton.disabled = false;
     if (result.status !== 'OK') {
       clearReaderDashboard(document);
       if (result.code === 'SESSION_REQUIRED') {
         global.GPIRReaderAuth?.rememberReturnTo?.(returnTo);
-        global.location.assign(`/reader/sign-in/?returnTo=${encodeURIComponent(returnTo)}`); return false;
+        global.location.assign(`/reader/sign-in/?returnTo=${encodeURIComponent(returnTo)}`);
+        return false;
       }
-      root.dataset.state = 'error';
-      if (status) { status.textContent = 'Your account summary is temporarily unavailable. Please try again.';
-        status.className = 'my-gpir-status my-gpir-error'; }
+      root.dataset.state = 'unavailable';
+      if (refreshButton) refreshButton.textContent = 'Retry account load';
+      if (status) {
+        status.textContent = 'Your account data could not be loaded. Protected information remains hidden.';
+        status.className = 'my-gpir-status my-gpir-error';
+      }
       return false;
     }
     renderReaderDashboard(document, result.summary);
@@ -522,24 +539,38 @@ export async function initializeReaderDashboard({ global = window, document = gl
       initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl })
     ]);
     if (status) {
-      status.textContent = root.dataset.state === 'partial'
-        ? 'Your profile is available. Some protected account sections are temporarily unavailable.'
-        : 'Your account is up to date.';
-      status.className = root.dataset.state === 'partial'
-        ? 'my-gpir-status my-gpir-warning' : 'my-gpir-status';
+      const presentation = readerDashboardStatus(result.summary);
+      status.textContent = presentation.message; status.className = presentation.className;
     }
     return true;
+  };
+  const refresh = () => {
+    if (signedOut) return Promise.resolve(false);
+    if (requestInFlight) return requestInFlight;
+    requestInFlight = performRefresh().finally(() => { requestInFlight = null; });
+    return requestInFlight;
   };
   refreshButton?.addEventListener('click', () => { void refresh(); });
   global.addEventListener('gpir:paypal-payment-verified', () => { void refresh(); });
   global.addEventListener('gpir:onetime-payment-verified', () => { void refresh(); });
   global.addEventListener('gpir:paypal-sandbox-captured', () => { void refresh(); });
   global.addEventListener('gpir:reader-signed-out', () => {
-    clearReaderDashboard(document); root.dataset.state = 'signed-out';
+    signedOut = true; clearReaderDashboard(document); root.dataset.state = 'signed-out';
     if (status) { status.textContent = 'Signed out. Protected account information was cleared.';
       status.className = 'my-gpir-status'; }
   });
   return refresh();
+}
+
+export async function initializeReaderDashboard({ global = window, document = global.document,
+  fetchImpl = global.fetch?.bind(global) } = {}) {
+  const root = document?.querySelector?.('[data-reader-dashboard]');
+  if (!root) return false;
+  const existing = dashboardInitializations.get(root);
+  if (existing) return existing;
+  const initialization = setupReaderDashboard({ global, document, fetchImpl, root });
+  dashboardInitializations.set(root, initialization);
+  return initialization;
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {

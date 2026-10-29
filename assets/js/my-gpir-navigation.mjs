@@ -1,4 +1,5 @@
 const SECTIONS = new Set(['profile', 'library', 'payments', 'plan']);
+const navigationGlobals = new WeakSet();
 
 export function activeSection(hash = '') {
   const section = String(hash).replace(/^#/, '').toLowerCase();
@@ -45,9 +46,16 @@ export function enableMyGpirKeyboardNavigation(document) {
   return true;
 }
 
+export function initializeMyGpirNavigation(global, document) {
+  if (!global || !document) return false;
+  const sync = () => syncMyGpirNavigation(document, global.location.hash);
+  enableMyGpirKeyboardNavigation(document); sync();
+  if (navigationGlobals.has(global)) return false;
+  navigationGlobals.add(global);
+  global.addEventListener('hashchange', sync);
+  return true;
+}
+
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  const sync = () => syncMyGpirNavigation(document, window.location.hash);
-  enableMyGpirKeyboardNavigation(document);
-  sync();
-  window.addEventListener('hashchange', sync);
+  initializeMyGpirNavigation(window, document);
 }

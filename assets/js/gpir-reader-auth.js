@@ -75,6 +75,53 @@
   }
   function returnAfterLogin() { global.location.assign(consumeReturnTo()); }
 
+  function sessionOnce(client) {
+    if (!client?.auth?.getSession) return Promise.resolve(null);
+    return Promise.resolve(client.auth.getSession())
+      .then(result => result?.data?.session || null).catch(() => null);
+  }
+
+  function readerAction(href, text, action, primary = false) {
+    const link = document.createElement('a');
+    link.className = `gpir-reader-action${primary ? ' gpir-reader-action--primary' : ''}`;
+    link.href = href; link.textContent = text; link.dataset.readerAuthAction = action;
+    return link;
+  }
+
+  function renderGuestActions(buttons, destination) {
+    if (!buttons) return false;
+    const signInHref = `/reader/sign-in/?returnTo=${encodeURIComponent(destination)}`;
+    const createHref = `/reader/create-account/?returnTo=${encodeURIComponent(destination)}`;
+    const existing = [...buttons.querySelectorAll('[data-reader-auth-action]')];
+    if (existing.length === 2 && buttons.children.length === 2 &&
+        existing[0].dataset.readerAuthAction === 'sign-in' &&
+        existing[1].dataset.readerAuthAction === 'create-account') {
+      existing[0].href = signInHref; existing[1].href = createHref;
+    } else buttons.replaceChildren(readerAction(signInHref, 'Sign in', 'sign-in'),
+      readerAction(createHref, 'Create account', 'create-account', true));
+    buttons.dataset.readerAuthState = 'guest';
+    return true;
+  }
+
+  function renderAuthenticatedActions(buttons, client) {
+    const state = document.createElement('span');
+    state.className = 'gpir-reader-state'; state.textContent = 'Reader';
+    const dashboard = readerAction('/reader/my-gpir/', 'My GPIR', 'dashboard');
+    const signout = document.createElement('button');
+    signout.type = 'button'; signout.className = 'gpir-reader-action';
+    signout.textContent = 'Sign out'; signout.dataset.readerAuthAction = 'sign-out';
+    signout.addEventListener('click', async () => {
+      try {
+        const response = await client.auth.signOut();
+        if (response.error) throw response.error;
+        global.dispatchEvent(new global.CustomEvent('gpir:reader-signed-out'));
+        global.location.reload();
+      } catch (error) { announce(null, friendlyError(error), true); }
+    });
+    buttons.replaceChildren(state, dashboard, signout);
+    buttons.dataset.readerAuthState = 'authenticated';
+  }
+
   async function handleForm(form, client) {
     const type = form.dataset.authForm;
     form.addEventListener('submit', async event => {
@@ -109,34 +156,18 @@
     for (const form of forms) {
       formDestination();
       if (!client) { announce(form, 'Reader access is temporarily unavailable. Please try again later.', true); continue; }
-      await handleForm(form, client);
+      if (form.dataset.readerAuthBound !== 'true') {
+        form.dataset.readerAuthBound = 'true';
+        await handleForm(form, client);
+      }
     }
     const buttons = document.querySelector('[data-gpir-reader-actions]');
     if (buttons) {
       const current = `${global.location.pathname}${global.location.search}${global.location.hash}`;
       const destination = safeReturnTo(current);
-      // Keep a neutral loading state until session resolution; never flash guest links.
-      let authenticated = false;
-      if (client) {
-        try {
-          const { data } = await client.auth.getSession();
-          authenticated = !!data?.session?.user;
-        } catch { authenticated = false; }
-        if (authenticated) {
-          const email = document.createElement('span'); email.className = 'gpir-reader-state'; email.textContent = 'Reader';
-          const dashboard = document.createElement('a'); dashboard.className = 'gpir-reader-action';
-          dashboard.href = '/reader/my-gpir/'; dashboard.textContent = 'My GPIR';
-          const signout = document.createElement('button'); signout.type = 'button'; signout.className = 'gpir-reader-action'; signout.textContent = 'Sign out';
-          signout.addEventListener('click', async () => {
-            try { const response = await client.auth.signOut(); if (response.error) throw response.error;
-              global.dispatchEvent(new global.CustomEvent('gpir:reader-signed-out'));
-              global.location.reload(); }
-            catch (error) { announce(null, friendlyError(error), true); }
-          });
-          buttons.replaceChildren(email, dashboard, signout);
-        }
-      }
-      if (!authenticated) buttons.innerHTML = `<a class="gpir-reader-action" href="/reader/sign-in/?returnTo=${encodeURIComponent(destination)}">Sign in</a><a class="gpir-reader-action gpir-reader-action--primary" href="/reader/create-account/?returnTo=${encodeURIComponent(destination)}">Create account</a>`;
+      const session = await sessionReady;
+      if (session?.user && client) renderAuthenticatedActions(buttons, client);
+      else renderGuestActions(buttons, destination);
     }
     if (path === callback) {
       const status = document.querySelector('[data-callback-status]');
@@ -146,15 +177,16 @@
         hashParams.get('error_description') || hashParams.get('error');
       if (codeError) { if (status) status.textContent = friendlyError({ message: codeError }); return; }
       if (!client) { if (status) status.textContent = 'Email verification could not be completed right now. Please try again later.'; return; }
-      const { data, error } = await client.auth.getSession();
-      if (error) { if (status) status.textContent = friendlyError(error); return; }
-      if (data?.session) returnAfterLogin();
+      const session = await sessionReady;
+      if (session) returnAfterLogin();
       else if (status) status.textContent = 'Your email link was received. Sign in to continue, or create an account if you have not registered yet.';
     }
   }
   const sharedClient = initializeClient();
+  const sessionReady = sessionOnce(sharedClient);
   global.GPIRReaderAuth = Object.freeze({ safeReturnTo, rememberReturnTo, consumeReturnTo,
-    friendlyError, submitCredentials });
+    friendlyError, submitCredentials, renderGuestActions, renderAuthenticatedActions,
+    sessionReady });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { void initialize(); });
   else void initialize();
 })(window, document);
