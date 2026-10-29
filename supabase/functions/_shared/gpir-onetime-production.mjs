@@ -197,10 +197,13 @@ export function storedOrder(data) {
     access_duration_days: Number(row.access_duration_days) });
 }
 
-export function productionStoredOrder(data) {
+export function productionStoredOrder(data, { restrictedReaderUuid = null } = {}) {
   const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
   if (!row || !UUID.test(row.id || '') || !PAYPAL_ID.test(row.paypal_order_id || '') ||
-      !isSupportedCurrency(row.currency) || Number(row.amount_minor) !== ONETIME_AMOUNT_MINOR ||
+      !isSupportedCurrency(row.currency) ||
+      !(Number(row.amount_minor) === ONETIME_AMOUNT_MINOR ||
+        (row.currency === 'USD' && Number(row.amount_minor) === 100 &&
+          UUID.test(restrictedReaderUuid || '') && row.user_id === restrictedReaderUuid)) ||
       Number(row.duration_days) !== ONETIME_DURATION_DAYS ||
       !['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
         'REFUNDED', 'REVERSED'].includes(row.status) ||
