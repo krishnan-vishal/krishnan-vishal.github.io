@@ -1,6 +1,6 @@
 :root{color-scheme:light;--gpir-navy:#071a35;--gpir-navy-2:#0d2b52;--gpir-blue:#1f5f9d;--gpir-gold:#c8a24a;--gpir-ink:#13243a;--gpir-muted:#5b6879;--gpir-line:#d8e1eb;--gpir-paper:#f4f7fb;--gpir-white:#fff;--gpir-good:#126047}
 *{box-sizing:border-box}
-body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15px/1.55 Arial,sans-serif}
 .my-gpir .skip-link{position:fixed;left:1rem;top:-5rem;z-index:20;padding:.7rem 1rem;background:#fff;color:#111}.my-gpir .skip-link:focus{top:1rem}
 .my-gpir-header{background:var(--gpir-navy);color:#fff;border-bottom:3px solid var(--gpir-gold)}
 .my-gpir-header__inner{width:min(100% - 2rem,1180px);margin:auto;min-height:5rem;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2rem}
@@ -96,6 +96,7 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-grid[data-reader-view="plan"] > [data-view-panel="plan"]{display:block}
 .my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 4}
 .my-gpir-grid[data-reader-view]:not([data-reader-view="overview"]) > [data-view-panel]{grid-column:1/-1}
+@media(max-width:900px){.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 6}}
 @media(max-width:600px){.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:1/-1}}
 
 
@@ -164,4 +165,37 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
   .my-gpir-table tr{grid-template-columns:1fr}
   .my-gpir-table td,.my-gpir-payment-publication{grid-column:1/-1}
   .my-gpir-product__header{align-items:flex-start;flex-direction:column}
+}
+
+/* M39-02: compact account navigation, profile, library and overview presentation. */
+.my-gpir-nav,.my-gpir-nav ul,.my-gpir-nav li,.my-gpir-nav a{min-width:0;max-width:100%}
+.my-gpir-nav a{align-content:center}
+.my-gpir-nav__label,.my-gpir-nav__description{overflow-wrap:anywhere}
+.my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 3}
+.my-gpir-metric--context{overflow-wrap:anywhere;font-size:1.35rem;line-height:1.2}
+.my-gpir-publication{display:grid;gap:.65rem;min-width:0;padding:.85rem;border:1px solid var(--gpir-line);border-radius:.6rem;background:#fbfdff}
+.my-gpir-publication__header{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;min-width:0}
+.my-gpir-publication h3{min-width:0;margin:0;color:var(--gpir-navy);font:300 1.08rem/1.3 "Calibri Light",Calibri,Arial,sans-serif;overflow-wrap:anywhere}
+.my-gpir-publication__summary{margin:0;color:var(--gpir-muted);font-size:.82rem}
+.my-gpir-publication__metadata{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:0}
+.my-gpir-publication__metadata div{min-width:0;padding:.5rem .6rem;border-radius:.45rem;background:#f1f5f9}
+.my-gpir-publication__metadata dt{color:var(--gpir-muted);font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.my-gpir-publication__metadata dd{margin:.12rem 0 0;overflow-wrap:anywhere;font-size:.78rem}
+.my-gpir-publication__action{justify-self:start;display:inline-flex;align-items:center;min-height:2.35rem;padding:.4rem .7rem;border:1px solid #9db2ca;border-radius:.45rem;background:#fff;color:var(--gpir-blue);font-weight:700;text-decoration:none}
+.my-gpir-publication__action:hover{border-color:var(--gpir-blue);background:#f5f9fd}
+.my-gpir-publication__action:focus-visible{outline:3px solid var(--gpir-gold);outline-offset:3px}
+@media(max-width:900px){
+  .my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 6}
+  .my-gpir-publication__metadata{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .my-gpir-nav ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .my-gpir-nav a{width:100%;overflow:hidden}
+  .my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:1/-1}
+  .my-gpir-publication__header{align-items:flex-start;flex-direction:column}
+  .my-gpir-publication__metadata{grid-template-columns:1fr}
+  .my-gpir-publication__action{width:100%;justify-content:center}
+}
+@media(max-width:380px){
+  .my-gpir-nav ul{grid-template-columns:1fr}
 }

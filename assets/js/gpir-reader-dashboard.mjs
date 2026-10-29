@@ -20,6 +20,21 @@ function isoOrNull(value) {
   const time = Date.parse(value); return Number.isFinite(time) ? new Date(time).toISOString() : null;
 }
 
+function safeText(value, max = 160) {
+  if (typeof value !== 'string') return null;
+  const text = value.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/\s+/g, ' ').trim();
+  return text ? text.slice(0, max) : null;
+}
+
+function safePublicationDestination(value) {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return null;
+  try {
+    const url = new URL(value, 'https://fintechoisis.com');
+    return url.origin === 'https://fintechoisis.com'
+      ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch { return null; }
+}
+
 function normalizedPaymentStatus(value) {
   return PAYMENT_STATES.has(value) ? value :
     typeof value === 'string' && PAYMENT_STATUS_PATTERN.test(value) ? 'UNCONFIRMED' : null;
@@ -36,9 +51,14 @@ export function normalizeReaderSummary(value) {
     subscriptionCheckout: sectionAvailability(value, 'subscriptionCheckout') });
   const library = availability.library === 'AVAILABLE'
     ? value.library.flatMap(item => UUID.test(item?.supabaseRecordId || '') &&
-    typeof item?.publicationId === 'string' && item.publicationId ? [{
+    typeof item?.publicationId === 'string' && item.publicationId &&
+    item.accessClass === 'ENTITLED' ? [{
       publicationId: item.publicationId, supabaseRecordId: item.supabaseRecordId,
-      accessClass: String(item.accessClass || ''), accessSource: String(item.accessSource || '')
+      accessClass: String(item.accessClass || ''), accessSource: String(item.accessSource || ''),
+      title: safeText(item.title || item.publicationTitle, 180),
+      summary: safeText(item.summary || item.description, 280),
+      publishedAt: isoOrNull(item.publishedAt),
+      destination: safePublicationDestination(item.destination)
     }] : []) : [];
   const payments = availability.payments === 'AVAILABLE'
     ? value.payments.flatMap(item => {
@@ -84,8 +104,11 @@ export function normalizeReaderSummary(value) {
       billingInterval: value.subscriptionOffer.billingInterval }) : null;
   return Object.freeze({ environment, availability, subscriptionOffer: offer, libraryPass,
     profile: Object.freeze({
-    email: typeof value.profile.email === 'string' ? value.profile.email : null,
-    displayName: typeof value.profile.displayName === 'string' ? value.profile.displayName : null,
+    email: safeText(value.profile.email, 254),
+    displayName: safeText(value.profile.displayName, 120),
+    country: safeText(value.profile.country, 80),
+    organization: safeText(value.profile.organization, 140),
+    accountStatus: safeText(value.profile.accountStatus, 60),
     memberSince: isoOrNull(value.profile.memberSince),
     emailVerified: value.profile.emailVerified === true
   }), library: Object.freeze(library), payments: Object.freeze(payments),
@@ -237,13 +260,45 @@ function emptyState(document, title, detail) {
   box.append(textElement(document, 'strong', title), textElement(document, 'p', detail)); return box;
 }
 
+export function readerProfileEntries(profile) {
+  const values = [];
+  if (profile?.displayName) values.push(['Reader name', profile.displayName]);
+  if (profile?.email) {
+    values.push([profile.emailVerified ? 'Verified email' : 'Email address', profile.email]);
+    values.push(['Email status', profile.emailVerified ? 'Verified' : 'Not verified']);
+  }
+  if (profile?.country) values.push(['Country', profile.country]);
+  if (profile?.organization) values.push(['Organization', profile.organization]);
+  if (profile?.accountStatus) values.push(['Account status', profile.accountStatus]);
+  if (profile?.memberSince) values.push(['Member since', formatDate(profile.memberSince)]);
+  return Object.freeze(values.map(entry => Object.freeze(entry)));
+}
+
+export function publicationPresentation(item) {
+  const accessLabel = item?.accessSource === 'ONE_TIME_PURCHASE' ? 'One-time purchase' :
+    item?.accessSource === 'PREMIUM_LIBRARY_PASS' ? 'Premium Library pass' :
+    item?.accessSource === 'PLAN' ? 'Reader plan' : 'Authorized access';
+  const metadata = [
+    ['Publication ID', item?.publicationId],
+    ['Record ID', item?.supabaseRecordId],
+    ['Access source', accessLabel]
+  ];
+  if (item?.publishedAt) metadata.push(['Published', formatDate(item.publishedAt)]);
+  return Object.freeze({ title: item?.title || 'Authorized publication',
+    summary: item?.summary || null,
+    metadata: Object.freeze(metadata.filter(([, value]) => Boolean(value))
+      .map(entry => Object.freeze(entry))),
+    destination: safePublicationDestination(item?.destination) });
+}
+
 function renderProfile(document, target, profile) {
   if (!target) return;
-  const values = [
-    ['Reader name', profile.displayName || 'Not provided'], ['Email address', profile.email || 'Not available'],
-    ['Email status', profile.emailVerified ? 'Verified' : 'Verification pending'],
-    ['Member since', formatDate(profile.memberSince)]
-  ];
+  const values = readerProfileEntries(profile);
+  if (!values.length) {
+    target.replaceChildren(emptyState(document, 'Profile details are not available.',
+      'No optional reader profile fields were supplied by the authorized account response.'));
+    return;
+  }
   const list = textElement(document, 'dl', '', 'my-gpir-profile');
   for (const [label, value] of values) {
     const group = document.createElement('div');
@@ -266,14 +321,28 @@ function renderLibrary(document, target, library, available = true) {
   }
   const list = textElement(document, 'ul', '', 'my-gpir-list');
   for (const item of library) {
-    const row = textElement(document, 'li', '', 'my-gpir-library-item');
-    const identity = document.createElement('div');
-    identity.append(textElement(document, 'strong', item.publicationId),
-      textElement(document, 'code', item.supabaseRecordId));
-    const label = item.accessSource === 'ONE_TIME_PURCHASE' ? 'Purchased' :
-      item.accessSource === 'PREMIUM_LIBRARY_PASS' ? 'Premium Library pass' :
-      item.accessSource === 'PLAN' ? 'Plan access' : 'Reader access';
-    row.append(identity, textElement(document, 'span', label, 'my-gpir-badge')); list.append(row);
+    const presentation = publicationPresentation(item);
+    const row = textElement(document, 'li', '', 'my-gpir-publication');
+    const header = textElement(document, 'div', '', 'my-gpir-publication__header');
+    header.append(textElement(document, 'h3', presentation.title),
+      textElement(document, 'span', 'Authorized', 'my-gpir-badge'));
+    row.append(header);
+    if (presentation.summary) row.append(textElement(document, 'p', presentation.summary,
+      'my-gpir-publication__summary'));
+    const metadata = textElement(document, 'dl', '', 'my-gpir-publication__metadata');
+    for (const [label, value] of presentation.metadata) {
+      const group = document.createElement('div');
+      group.append(textElement(document, 'dt', label), textElement(document, 'dd', value));
+      metadata.append(group);
+    }
+    row.append(metadata);
+    if (presentation.destination) {
+      const action = textElement(document, 'a', 'Open publication', 'my-gpir-publication__action');
+      action.href = presentation.destination;
+      action.setAttribute('aria-label', `Open ${presentation.title}`);
+      row.append(action);
+    }
+    list.append(row);
   }
   target.replaceChildren(list);
 }
@@ -355,17 +424,26 @@ function renderPlan(document, target, plan, libraryPass, available = true,
   target.replaceChildren(products);
 }
 
+export function overviewValues(summary) {
+  const account = summary?.availability?.profile === 'AVAILABLE'
+    ? summary.profile?.accountStatus || (summary.profile?.emailVerified ? 'Verified' : 'Available')
+    : null;
+  return Object.freeze({ library: summary?.summary?.libraryCount,
+    payments: summary?.summary?.paymentCount,
+    purchases: summary?.summary?.activePurchaseCount, account });
+}
+
 function renderMetrics(document, summary) {
-  const values = { library: summary.libraryCount, payments: summary.paymentCount,
-    purchases: summary.activePurchaseCount };
+  const values = overviewValues(summary);
   for (const [name, value] of Object.entries(values)) {
     const target = document.querySelector(`[data-reader-metric="${name}"]`);
-    if (target) target.textContent = Number.isInteger(value) ? String(value) : '—';
+    if (target) target.textContent = Number.isInteger(value) || typeof value === 'string'
+      ? String(value) : '—';
   }
 }
 
 export function renderReaderDashboard(document, summary) {
-  renderMetrics(document, summary.summary); renderProfile(document,
+  renderMetrics(document, summary); renderProfile(document,
     document.querySelector('[data-reader-profile]'), summary.profile);
   renderLibrary(document, document.querySelector('[data-reader-library]'), summary.library,
     summary.availability.library === 'AVAILABLE');

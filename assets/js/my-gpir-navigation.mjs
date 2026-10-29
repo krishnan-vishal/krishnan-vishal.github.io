@@ -5,6 +5,15 @@ export function activeSection(hash = '') {
   return SECTIONS.has(section) ? section : 'overview';
 }
 
+export function navigationKeyIndex(key, currentIndex, length) {
+  if (!Number.isInteger(currentIndex) || !Number.isInteger(length) || length < 1) return null;
+  if (key === 'Home') return 0;
+  if (key === 'End') return length - 1;
+  if (key === 'ArrowRight' || key === 'ArrowDown') return (currentIndex + 1) % length;
+  if (key === 'ArrowLeft' || key === 'ArrowUp') return (currentIndex - 1 + length) % length;
+  return null;
+}
+
 export function syncMyGpirNavigation(document, hash = '') {
   const navigation = document?.querySelector?.('[data-my-gpir-navigation]');
   if (!navigation) return false;
@@ -20,8 +29,25 @@ export function syncMyGpirNavigation(document, hash = '') {
   return true;
 }
 
+export function enableMyGpirKeyboardNavigation(document) {
+  const navigation = document?.querySelector?.('[data-my-gpir-navigation]');
+  if (!navigation || navigation.dataset.keyboardNavigation === 'ready') return false;
+  navigation.dataset.keyboardNavigation = 'ready';
+  navigation.addEventListener('keydown', event => {
+    const current = event.target?.closest?.('[data-gpir-section]');
+    if (!current) return;
+    const links = [...navigation.querySelectorAll('[data-gpir-section]')];
+    const nextIndex = navigationKeyIndex(event.key, links.indexOf(current), links.length);
+    if (nextIndex === null) return;
+    event.preventDefault();
+    links[nextIndex].focus();
+  });
+  return true;
+}
+
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const sync = () => syncMyGpirNavigation(document, window.location.hash);
+  enableMyGpirKeyboardNavigation(document);
   sync();
   window.addEventListener('hashchange', sync);
 }
