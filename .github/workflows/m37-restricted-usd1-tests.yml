@@ -1,0 +1,26 @@
+name: M37 Restricted USD1 Checkout Tests
+on:
+  pull_request:
+    paths:
+      - 'assets/js/gpir-paypal-onetime.mjs'
+      - 'supabase/functions/gpir-onetime-*/**'
+      - 'supabase/functions/_shared/gpir-onetime-*.mjs'
+      - 'tests/m37/**'
+      - 'tests/m37-restricted-usd1.test.mjs'
+      - '.github/workflows/m37-restricted-usd1-tests.yml'
+  push:
+    branches:
+      - feature/m37-usd1-restricted-checkout
+jobs:
+  restricted-checkout:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Targeted M37 checkout and capture tests
+        run: |
+          node --test tests/m37-restricted-usd1.test.mjs tests/m37/reader-checkout-integration.test.mjs tests/m37/onetime-production-nonmonetary.test.mjs tests/m37/onetime-production-integration.test.mjs
