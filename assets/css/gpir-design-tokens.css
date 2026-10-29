@@ -1,0 +1,24 @@
+/* GPIR Gate 1 — canonical presentation tokens (opt-in; not yet imported) */
+:root {
+  --gpir-navy-900:#0F1F3A;
+  --gpir-ink-700:#2D3748;
+  --gpir-ink-500:#5B6475;
+  --gpir-gold-700:#8A6A1F;
+  --gpir-gold-500:#C9A24A;
+  --gpir-cream-50:#FBF8F1;
+  --gpir-surface:#FFFFFF;
+  --gpir-line:#E3DCCB;
+  --gpir-font-display:Georgia,serif;
+  --gpir-font-body:Arial,sans-serif;
+  --gpir-space-1:4px;
+  --gpir-space-2:8px;
+  --gpir-space-3:12px;
+  --gpir-space-4:16px;
+  --gpir-space-6:24px;
+  --gpir-space-8:32px;
+  --gpir-radius-sm:8px;
+  --gpir-radius-md:16px;
+  --gpir-radius-lg:24px;
+  --gpir-focus-ring:2px solid var(--gpir-navy-900);
+}
+/* This file intentionally does not override existing live styles. */
