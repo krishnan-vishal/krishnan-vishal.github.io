@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { preparedOrder, verifiedCapture } from '../supabase/functions/_shared/gpir-onetime-production.mjs';
+import { preparedOrder, productionStoredOrder, verifiedCapture } from '../supabase/functions/_shared/gpir-onetime-production.mjs';
 import { validInput } from '../supabase/functions/gpir-onetime-create-order/handler.mjs';
 
 const id='11111111-1111-4111-8111-111111111111';
@@ -36,4 +36,18 @@ test('capture must match stored USD1 amount and order',()=>{
   assert.equal(verifiedCapture({...provider,purchase_units:[{...provider.purchase_units[0],
     payments:{captures:[{...provider.purchase_units[0].payments.captures[0],
       amount:{currency_code:'USD',value:'9.99'}}]}}]},local),null);
+});
+
+test('webhook stored order keeps USD9.99 for normal readers',()=>{
+ const row={id, user_id:'22222222-2222-4222-8222-222222222222',
+ paypal_order_id:'ORDER12345',currency:'USD',amount_minor:999,duration_days:30,status:'CREATED'};
+ assert.equal(productionStoredOrder([row]).expected_amount_minor,999);
+});
+test('USD1 webhook requires exact configured reader UUID and USD currency',()=>{
+ const row={id,user_id:'22222222-2222-4222-8222-222222222222',
+ paypal_order_id:'ORDER12345',currency:'USD',amount_minor:100,duration_days:30,status:'CREATED'};
+ assert.equal(productionStoredOrder([row]),null);
+ assert.equal(productionStoredOrder([row],{restrictedReaderUuid:id}),null);
+ assert.equal(productionStoredOrder([row],{restrictedReaderUuid:row.user_id}).expected_amount_minor,100);
+ assert.equal(productionStoredOrder([{...row,currency:'EUR'}],{restrictedReaderUuid:row.user_id}),null);
 });
