@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { preparedOrder, verifiedCapture } from '../../supabase/functions/_shared/gpir-onetime-production.mjs';
-import { validInput } from '../../supabase/functions/gpir-onetime-create-order/handler.mjs';
+import { preparedOrder, verifiedCapture } from '../supabase/functions/_shared/gpir-onetime-production.mjs';
+import { validInput } from '../supabase/functions/gpir-onetime-create-order/handler.mjs';
 
 const id='11111111-1111-4111-8111-111111111111';
 const row={local_order_id:id,offer_id:'00000000-0000-4000-8000-000000000100',
