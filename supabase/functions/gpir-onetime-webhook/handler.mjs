@@ -144,7 +144,7 @@ export function createOnetimeWebhookHandler({ env, fetchImpl = fetch,
           body: { p_local_order_id: localOrderId, p_paypal_order_id: paypalOrderId } });
         if (attached.ok && attached.data === true) row.paypal_order_id = paypalOrderId;
       }
-      const local = row ? productionStoredOrder([row]) : null;
+      const local = row ? productionStoredOrder([row], { restrictedReaderUuid: env.GPIR_M37_USD1_TEST_ENABLED === 'true' ? env.GPIR_M37_TEST_READER_UUID : null }) : null;
       const capture = local ? verifiedCapture(orderResult.data, local) : null;
       if (!capture || capture.captureId !== event.resource?.id) {
         await finish(config, event.id, 'ERROR', fetchImpl, now);

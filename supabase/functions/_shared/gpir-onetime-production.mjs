@@ -170,13 +170,13 @@ export function normalizedOffer(row) {
     durationDays: Number(row.access_duration_days) });
 }
 
-export function preparedOrder(data) {
+export function preparedOrder(data, { restrictedTest = false } = {}) {
   const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
-  const offer = row ? normalizedOffer({ offer_id: row.offer_id, pass_id: row.pass_id,
+  const offer = row ? (restrictedTest && row.currency === 'USD' && Number(row.expected_amount_minor) === 100 && Number(row.access_duration_days) === 30 && row.pass_id === 'GPIR_PREMIUM_LIBRARY_30D' && row.publication_id === 'PREMIUM_LIBRARY' && row.supabase_record_id == null ? Object.freeze({ offerId: row.offer_id, passId: row.pass_id, publicationId: row.publication_id, displayName: row.display_name, currency: 'USD', amountMinor: 100, amount: '1.00', durationDays: 30 }) : normalizedOffer({ offer_id: row.offer_id, pass_id: row.pass_id,
     publication_id: row.publication_id, supabase_record_id: row.supabase_record_id,
     display_name: row.display_name, currency: row.currency,
     unit_amount_minor: row.expected_amount_minor,
-    access_duration_days: row.access_duration_days }) : null;
+    access_duration_days: row.access_duration_days })) : null;
   if (!offer || !UUID.test(row.local_order_id || '') || typeof row.sku !== 'string' ||
       typeof row.provider_request_id !== 'string' || !row.provider_request_id) return null;
   if (row.paypal_order_id && !PAYPAL_ID.test(row.paypal_order_id)) return null;
@@ -197,10 +197,13 @@ export function storedOrder(data) {
     access_duration_days: Number(row.access_duration_days) });
 }
 
-export function productionStoredOrder(data) {
+export function productionStoredOrder(data, { restrictedReaderUuid = null } = {}) {
   const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
   if (!row || !UUID.test(row.id || '') || !PAYPAL_ID.test(row.paypal_order_id || '') ||
-      !isSupportedCurrency(row.currency) || Number(row.amount_minor) !== ONETIME_AMOUNT_MINOR ||
+      !isSupportedCurrency(row.currency) ||
+      !(Number(row.amount_minor) === ONETIME_AMOUNT_MINOR ||
+        (row.currency === 'USD' && Number(row.amount_minor) === 100 &&
+          UUID.test(restrictedReaderUuid || '') && row.user_id === restrictedReaderUuid)) ||
       Number(row.duration_days) !== ONETIME_DURATION_DAYS ||
       !['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
         'REFUNDED', 'REVERSED'].includes(row.status) ||

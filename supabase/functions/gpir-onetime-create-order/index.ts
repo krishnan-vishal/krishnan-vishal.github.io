@@ -10,7 +10,9 @@ const env = Object.fromEntries([
   'PAYPAL_ENV',
   'PAYPAL_BASE_URL',
   'PAYPAL_CLIENT_ID',
-  'PAYPAL_CLIENT_SECRET'
+  'PAYPAL_CLIENT_SECRET',
+  'GPIR_M37_TEST_READER_UUID',
+  'GPIR_M37_USD1_TEST_ENABLED'
 ].map(name => [name, Deno.env.get(name)]));
 
 Deno.serve(createOnetimeCreateOrderHandler({ env }));

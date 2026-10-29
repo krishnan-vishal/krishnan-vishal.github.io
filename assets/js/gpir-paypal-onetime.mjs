@@ -27,11 +27,12 @@ function normalizeOffer(value) {
   if (!value || !UUID.test(value.offerId || '') || value.passId !== PASS_ID ||
       value.publicationId !== PUBLICATION_ID || value.supabaseRecordId != null ||
       typeof value.displayName !== 'string' || !value.displayName.trim() ||
-      !CHECKOUT_CURRENCIES.includes(value.currency) || value.amountMinor !== AMOUNT_MINOR ||
-      value.amount !== '9.99' || value.durationDays !== DURATION_DAYS) return null;
+      !CHECKOUT_CURRENCIES.includes(value.currency) || !((value.amountMinor === AMOUNT_MINOR && value.amount === '9.99' && value.restrictedTest !== true) ||
+        (value.currency === 'USD' && value.amountMinor === 100 && value.amount === '1.00' && value.restrictedTest === true)) || value.durationDays !== DURATION_DAYS) return null;
   return Object.freeze({ offerId: value.offerId, passId: PASS_ID,
     publicationId: PUBLICATION_ID, displayName: value.displayName.trim(),
-    currency: value.currency, amountMinor: AMOUNT_MINOR, amount: value.amount,
+    currency: value.currency, amountMinor: value.amountMinor, amount: value.amount,
+    restrictedTest: value.restrictedTest === true,
     durationDays: DURATION_DAYS });
 }
 
@@ -110,7 +111,8 @@ export async function createOnetimeOrder({ global = globalThis, catalog, offer,
   if (!listed || !UUID.test(requestId || '')) throw new Error('INVALID_ORDER_REQUEST');
   const result = await authenticatedJson({ config: catalog, supabase,
     endpoint: catalog.createEndpoint, method: 'POST', fetchImpl,
-    body: { passId: approved.passId, currency: approved.currency, requestId } });
+    body: { passId: approved.passId, currency: approved.currency, requestId,
+      ...(approved.restrictedTest ? { restrictedTest: true } : {}) } });
   if (result?.status !== 'CREATED' || result?.environment !== 'live' ||
       !PAYPAL_ID.test(result?.orderId || '')) throw new Error('ORDER_CREATION_FAILED');
   return result.orderId;
