@@ -22,3 +22,22 @@
   --gpir-focus-ring:2px solid var(--gpir-navy-900);
 }
 /* This file intentionally does not override existing live styles. */
+
+/* Gate 1: progressive visual enhancement, scoped to homepage primitives.
+   No changes to navigation mechanics, authentication, payments or content. */
+body{background-color:var(--gpir-cream-50);}
+.header{border-bottom:1px solid var(--gpir-line);box-shadow:0 2px 14px rgba(15,31,58,.045);}
+.header .brand-link:focus-visible,
+.header .main-nav a:focus-visible,
+.header .header-actions a:focus-visible,
+.header button:focus-visible,
+main a:focus-visible{outline:var(--gpir-focus-ring);outline-offset:3px;}
+.header .brand-text h1{color:var(--gpir-navy-900);}
+.header .repository-text{color:var(--gpir-ink-500);}
+.header .repository-pill{background:var(--gpir-gold-500);color:var(--gpir-navy-900);}
+.header .search-toggle{border-radius:var(--gpir-radius-sm);}
+.header .search-panel{border:1px solid var(--gpir-line);border-radius:var(--gpir-radius-md);}
+.header .search-result:hover,.header .search-result:focus-visible{background:var(--gpir-cream-50);}
+@media (prefers-reduced-motion:reduce){
+  .header,.header .brand-logo,.header .search-toggle{transition:none!important;}
+}
