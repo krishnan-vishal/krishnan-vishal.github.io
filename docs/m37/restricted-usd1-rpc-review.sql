@@ -1,8 +1,17 @@
 -- M37 restricted one-time USD 1 test. REVIEW ONLY; do not apply before approval.
 -- Feature flag and authenticated UUID gate are enforced by the create-order Edge Function.
 -- This RPC is service-role-only and never changes the public currency catalogue.
--- Requires securely configured DB setting app.gpir_m37_test_reader_uuid (not stored in repo).
--- Apply constraint change and RPC together only after release approval.
+-- DB reader allowlist is stored as a private, RLS-protected singleton row.
+-- The UUID is provisioned separately after approval; no email/UUID is committed.
+-- Apply migration and separately provision the allowlist only after release approval.
+CREATE TABLE IF NOT EXISTS public.gpir_m37_restricted_test_reader (
+  singleton boolean PRIMARY KEY DEFAULT true CHECK (singleton),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT
+);
+ALTER TABLE public.gpir_m37_restricted_test_reader ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.gpir_m37_restricted_test_reader FROM PUBLIC, anon, authenticated;
+-- No client RLS policies; only privileged service-role access through the RPC.
+
 ALTER TABLE public.gpir_m37_onetime_orders
   DROP CONSTRAINT gpir_m37_onetime_orders_amount_minor_check;
 ALTER TABLE public.gpir_m37_onetime_orders
@@ -21,7 +30,8 @@ BEGIN
   IF current_setting('request.jwt.claim.role', true) IS DISTINCT FROM 'service_role'
     THEN RAISE EXCEPTION 'SERVICE_ROLE_REQUIRED'; END IF;
   IF p_user_id IS NULL OR p_client_request_id IS NULL OR p_currency <> 'USD'
-    OR p_user_id::text IS DISTINCT FROM nullif(current_setting('app.gpir_m37_test_reader_uuid', true), '')
+    OR NOT EXISTS (SELECT 1 FROM public.gpir_m37_restricted_test_reader r
+      WHERE r.singleton = true AND r.user_id = p_user_id)
     THEN RAISE EXCEPTION 'INVALID_RESTRICTED_REQUEST'; END IF;
   INSERT INTO public.gpir_m37_onetime_orders
     (user_id, currency, amount_minor, duration_days, client_request_id)
