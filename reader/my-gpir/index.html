@@ -10,9 +10,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
-  <script src="/assets/js/gpir-reader-auth.js" defer></script>
-  <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261029b"></script>
-  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261029b"></script>
+  <script src="/assets/js/gpir-reader-auth.js?v=20261029c" defer></script>
+  <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261029c"></script>
+  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261029c"></script>
 </head>
 <body class="my-gpir">
   <a class="skip-link" href="#my-gpir-main">Skip to your account</a>
@@ -22,7 +22,7 @@
         <img src="/assets/branding/logos/fo-mark.svg" alt="">
         <span><strong>FINTECHOISIS</strong><span>Global Payments Intelligence Repository</span></span>
       </a>
-      <div data-gpir-reader-actions aria-label="Reader account actions" aria-live="polite"><a class="gpir-reader-action" href="/reader/my-gpir/" aria-label="Open reader account; sign in may be required">Reader account</a></div>
+      <div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions" aria-live="polite"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Freader%2Fmy-gpir%2F">Sign in</a><a class="gpir-reader-action gpir-reader-action--primary" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Freader%2Fmy-gpir%2F">Create account</a></div>
     </div>
   </header>
   <section class="my-gpir-hero">

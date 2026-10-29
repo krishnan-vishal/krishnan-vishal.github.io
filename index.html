@@ -201,7 +201,8 @@ content="#0B1120">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" defer></script>
 <script src="scripts/m34/supabase-browser-client.js?v=20261023d" defer></script>
 <script src="scripts/m34/publication-authorization-provider.js?v=20261023d" defer></script>
-<script src="assets/js/gpir-reader-auth.js?v=20261023d" defer></script>
+<link rel="stylesheet" href="assets/css/reader-auth.css?v=3">
+<script src="assets/js/gpir-reader-auth.js?v=20261029c" defer></script>
 </head>
 
 <body>
@@ -928,7 +929,7 @@ content="#0B1120">
 </button>
 
 <div class="header-actions">
-    <div data-gpir-reader-actions aria-label="Reader account" aria-live="polite"><a class="gpir-reader-action" href="/reader/my-gpir/" aria-label="Open reader account; sign in may be required">Reader account</a></div><noscript><a href="/reader/sign-in/">Sign in</a> <a href="/reader/create-account/">Create account</a></noscript>
+    <div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account" aria-live="polite"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2F">Sign in</a><a class="gpir-reader-action gpir-reader-action--primary" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2F">Create account</a></div><noscript><a href="/reader/sign-in/">Sign in</a> <a href="/reader/create-account/">Create account</a></noscript>
 
     </div>
 
