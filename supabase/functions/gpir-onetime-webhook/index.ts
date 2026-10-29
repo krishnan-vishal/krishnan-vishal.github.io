@@ -11,7 +11,9 @@ const env = Object.fromEntries([
   'PAYPAL_BASE_URL',
   'PAYPAL_CLIENT_ID',
   'PAYPAL_CLIENT_SECRET',
-  'ONETIME_PAYPAL_WEBHOOK_ID'
+  'ONETIME_PAYPAL_WEBHOOK_ID',
+  'GPIR_M37_TEST_READER_UUID',
+  'GPIR_M37_USD1_TEST_ENABLED'
 ].map(name => [name, Deno.env.get(name)]));
 
 Deno.serve(createOnetimeWebhookHandler({ env }));
