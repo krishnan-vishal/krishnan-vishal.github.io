@@ -44,6 +44,16 @@ test('catalog exposes only valid server-returned currencies in the approved orde
     .map(value => value.currency), ['EUR', 'CAD']);
 });
 
+test('restricted USD1 offer is only accepted with explicit server test marker', () => {
+  const testOffer={...offer('USD'),amountMinor:100,amount:'1.00',restrictedTest:true};
+  const result=normalizeOnetimeOffers([testOffer]);
+  assert.equal(result.length,1);
+  assert.equal(result[0].restrictedTest,true);
+  assert.equal(result[0].amount,'1.00');
+  assert.deepEqual(normalizeOnetimeOffers([{...testOffer,restrictedTest:false}]),[]);
+  assert.deepEqual(normalizeOnetimeOffers([{...testOffer,currency:'EUR'}]),[]);
+});
+
 test('catalog GET is authenticated and bound to the production project and host', async () => {
   const global = globalConfig();
   let request;
