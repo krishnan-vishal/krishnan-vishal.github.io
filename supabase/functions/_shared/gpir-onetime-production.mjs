@@ -185,7 +185,9 @@ export function preparedOrder(data) {
 }
 
 export function storedOrder(data) {
-  const row = Array.isArray(data) && data.length === 1 ? data[0] : null;
+  const raw = Array.isArray(data) && data.length === 1 ? data[0] : null;
+  const row = raw ? { ...raw, expected_amount_minor: raw.expected_amount_minor ?? raw.amount_minor,
+    access_duration_days: raw.access_duration_days ?? raw.duration_days } : null;
   if (!row || !UUID.test(row.local_order_id || '') || !PAYPAL_ID.test(row.paypal_order_id || '') ||
       !(row.publication_id === 'PREMIUM_LIBRARY' && row.supabase_record_id == null) ||
       !isSupportedCurrency(row.currency) ||
