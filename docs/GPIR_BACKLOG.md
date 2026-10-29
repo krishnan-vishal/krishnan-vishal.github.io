@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 Reader Summary reliability
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-READER-RELIABILITY | 2026-10-29 | Validate primary, restricted PGRST202 fallback and dual-failure Reader Summary responses and prepare controlled Production deployment | READER EXPERIENCE, AUTHORIZATION, SECURITY | High | IN PROGRESS | Owner review, successful GitHub checks and separately controlled Production Edge Function deployment | Stage 1 | `gpir-reader-summary`, M39 reliability tests | Preserve the existing primary/fallback helper, prove resolver-authoritative ALLOW filtering, fail closed on unavailable or malformed candidates, preserve independent account/billing data, and avoid sensitive dependency logs. | Deterministic primary, fallback, malformed-candidate and dual-failure tests pass; M37 payments/subscriptions remain green; repository validators pass; no Production mutation or deployment occurs during preparation. | Implementation and local release gate complete: M37-M39 tests pass 48/48; validators and secret scan pass; upstream error messages were removed from dependency diagnostics. Six unrelated M35 estate-count tests remain failing on files unchanged from main. | PENDING owner review/deployment | Work branch | M39 |
+
 ## M37 final Production payment integration
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

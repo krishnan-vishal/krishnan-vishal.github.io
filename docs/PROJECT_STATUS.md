@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39 — Reader Summary reliability and controlled deployment readiness
+
+- **Owner / branch / base:** Vishal Krishnan; `feature/m39-reader-ui-refinement`; reconciled on 2026-10-29 against `origin/main` `54abe9c`. The branch was four commits ahead with no missing main commit. Uncommitted M37 acceptance documentation and unrelated UIX review files in the original checkout were preserved and not staged.
+- **Candidate retrieval:** the existing `fetchPolicyCandidates()` helper remains unchanged. `gpir_list_entitlement_candidates_v2` stays primary. Only HTTP responses carrying `PGRST202` use the restricted `gpir_publication_access_policies` fallback filtered to `ACTIVE` / `ENTITLED` and limited to publication identity fields. Every valid primary or fallback candidate still requires a reader-scoped `resolve_publication_entitlement` result; only `ALLOW` enters the library.
+- **Failure isolation and logging:** deterministic dual-failure coverage proves an HTTP 404 / `PGRST202` primary response followed by an HTTP 503 fallback still returns HTTP 200 with profile, payment history, active subscription and plan data preserved; the library is unavailable and empty, `libraryCount` is null, and no resolver call occurs. Dependency logs retain only bounded status/code diagnostics and no longer echo untrusted upstream messages that could contain credentials or reader information.
+- **Regression evidence:** primary success, restricted fallback, malformed fallback identity and dual-failure scenarios pass. The complete focused M37-M39 suite passes 48/48, including Production one-time payment, webhook, entitlement, reader checkout and recurring-subscription isolation. Content, link, announcement, intent, high-confidence-secret, syntax and whitespace checks pass. The performance audit reports five advisory warnings. A broader M35 run retains six pre-existing estate-count failures in files unchanged from `origin/main`; they are not attributed to M39.
+- **Scope / release boundary:** this reliability pass changes only `gpir-reader-summary`, its M38 failure mock, the new M39 tests and governance handoff records. The branch also retains its earlier M39 reader UI refinements. No database data, migration, payment, subscription, entitlement, secret, Edge Function, Production deployment, main merge or publication state changed. State: **IMPLEMENTATION COMPLETE / READY FOR OWNER REVIEW AND CONTROLLED PRODUCTION DEPLOYMENT; MERGE AND DEPLOYMENT REMAIN OWNER-CONTROLLED.**
+
 ### M37-UI-01 — Reader checkout integration
 
 - **Owner request / state:** on 2026-10-28, the owner reported the six Production one-time offers `LIVE_ACTIVE` and `ONETIME_CHECKOUT_ENABLED=true`. No Production write or payment was performed during this UI work. PR #469 is already merged; the focused follow-on implementation is on `codex/m37-ui-reader-checkout` pending an owner-authorized GitHub review route.

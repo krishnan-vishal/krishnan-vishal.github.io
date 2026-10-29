@@ -50,11 +50,7 @@ function postgrestDiagnostic(result) {
   const error = result.data;
   const code = typeof error?.code === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(error.code)
     ? error.code : null;
-  const message = typeof error?.message === 'string'
-    ? error.message.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/\s+/g, ' ')
-      .trim().slice(0, 240) || null
-    : null;
-  return { status: result.status, code, message };
+  return { status: result.status, code };
 }
 
 function validRows(result) {
