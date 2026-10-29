@@ -25,6 +25,16 @@ export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
       const listed = await supabaseRpc({ config, name: 'gpir_m37_list_offers',
         body: {}, fetchImpl });
       const offers = Array.isArray(listed.data) ? listed.data.map(normalizedOffer).filter(Boolean) : [];
+      const testAuthorized = env.GPIR_M37_USD1_TEST_ENABLED === 'true' &&
+        UUID.test(env.GPIR_M37_TEST_READER_UUID || '') &&
+        user.id === env.GPIR_M37_TEST_READER_UUID;
+      if (testAuthorized) {
+        const usd = offers.find(offer => offer.currency === 'USD');
+        if (usd) offers.splice(offers.indexOf(usd), 1, {
+          ...usd, displayName: 'GPIR Premium Library - 30 Day Pass (restricted test)',
+          amountMinor: 100, amount: '1.00', restrictedTest: true
+        });
+      }
       if (!listed.ok) return safeError(503, 'OFFER_CATALOG_UNAVAILABLE', origin, env);
       return jsonResponse(200, { status: 'READY', environment: 'live',
         clientId: config.PAYPAL_CLIENT_ID, offers }, origin, env);
