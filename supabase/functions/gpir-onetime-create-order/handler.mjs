@@ -7,7 +7,8 @@ function validInput(value) {
   return value && typeof value === 'object' && !Array.isArray(value) &&
     value.passId === 'GPIR_PREMIUM_LIBRARY_30D' &&
     isSupportedCurrency(value.currency) &&
-    UUID.test(value.requestId || '');
+    UUID.test(value.requestId || '') &&
+    (value.restrictedTest === undefined || value.restrictedTest === true);
 }
 
 export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
@@ -34,10 +35,18 @@ export function createOnetimeCreateOrderHandler({ env, fetchImpl = fetch }) {
       return safeError(400, 'MALFORMED_REQUEST', origin, env);
     }
     if (!validInput(input)) return safeError(400, 'INVALID_ORDER_REQUEST', origin, env);
-    const prepared = await supabaseRpc({ config, name: 'gpir_m37_prepare_order', fetchImpl,
-      body: { p_user_id: user.id, p_currency: input.currency,
+    const testRequested = input.restrictedTest === true;
+    const testAuthorized = env.GPIR_M37_USD1_TEST_ENABLED === 'true' &&
+      UUID.test(env.GPIR_M37_TEST_READER_UUID || '') &&
+      user.id === env.GPIR_M37_TEST_READER_UUID &&
+      input.currency === 'USD';
+    if (testRequested && !testAuthorized)
+      return safeError(403, 'RESTRICTED_TEST_NOT_AUTHORIZED', origin, env);
+    const prepared = await supabaseRpc({ config,
+      name: testRequested ? 'gpir_m37_prepare_restricted_usd1_order' : 'gpir_m37_prepare_order',
+      fetchImpl, body: { p_user_id: user.id, p_currency: input.currency,
         p_client_request_id: input.requestId } });
-    const local = prepared.ok ? preparedOrder(prepared.data) : null;
+    const local = prepared.ok ? preparedOrder(prepared.data, { restrictedTest: testRequested }) : null;
     if (!local) return safeError(409, 'PAYMENT_OFFER_OR_REQUEST_UNAVAILABLE', origin, env);
     if (local.paypal_order_id) return jsonResponse(200, { status: 'CREATED',
       environment: 'live', orderId: local.paypal_order_id }, origin, env);
