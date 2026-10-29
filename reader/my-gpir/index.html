@@ -5,14 +5,14 @@
   <meta name="theme-color" content="#071A35"><meta name="robots" content="noindex,nofollow">
   <title>My GPIR | FINTECHOISIS</title>
   <link rel="stylesheet" href="/assets/css/reader-auth.css?v=2">
-  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261029a">
+  <link rel="stylesheet" href="/assets/css/my-gpir.css?v=20261029b">
   <script src="/assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
   <script src="/scripts/m34/supabase-browser-client.js"></script>
   <script src="/scripts/m34/publication-authorization-provider.js"></script>
   <script src="/assets/js/gpir-reader-auth.js" defer></script>
-  <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261023g"></script>
-  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261029a"></script>
+  <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261029b"></script>
+  <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261029b"></script>
 </head>
 <body class="my-gpir">
   <a class="skip-link" href="#my-gpir-main">Skip to your account</a>
@@ -36,10 +36,10 @@
     <nav class="my-gpir-nav" aria-label="My GPIR account" data-my-gpir-navigation>
       <ul>
         <li><a href="/reader/my-gpir/" data-gpir-section="overview" aria-current="page"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Overview</span><span class="my-gpir-nav__description">Account summary and access status</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/reader/profile/" data-gpir-section="profile"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Profile</span><span class="my-gpir-nav__description">Reader identity and verified email</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/reader/library/" data-gpir-section="library"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5A2.5 2.5 0 0 1 18 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z"></path><path d="M7.5 15.5H18M8.5 8h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">My Library</span><span class="my-gpir-nav__description">Authorised publications available to read</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/reader/payments/" data-gpir-section="payments"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4Z"></path><path d="M9 8h6M9 12h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Payment History</span><span class="my-gpir-nav__description">Recorded one-time purchase activity</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/reader/plan/" data-gpir-section="plan"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.3 4.7 5.2.8-3.8 3.7.9 5.3-4.6-2.5-4.6 2.5.9-5.3-3.8-3.7 5.2-.8L12 3Z"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Subscription &amp; Plan</span><span class="my-gpir-nav__description">Current reader plan and billing availability</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
+        <li><a href="/reader/my-gpir/#profile" data-gpir-section="profile"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Profile</span><span class="my-gpir-nav__description">Reader identity and verified email</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
+        <li><a href="/reader/my-gpir/#library" data-gpir-section="library"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5A2.5 2.5 0 0 1 18 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z"></path><path d="M7.5 15.5H18M8.5 8h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">My Library</span><span class="my-gpir-nav__description">Authorised publications available to read</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
+        <li><a href="/reader/my-gpir/#payments" data-gpir-section="payments"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4Z"></path><path d="M9 8h6M9 12h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Payment History</span><span class="my-gpir-nav__description">Recorded one-time purchase activity</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
+        <li><a href="/reader/my-gpir/#plan" data-gpir-section="plan"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.3 4.7 5.2.8-3.8 3.7.9 5.3-4.6-2.5-4.6 2.5.9-5.3-3.8-3.7 5.2-.8L12 3Z"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Subscription &amp; Plan</span><span class="my-gpir-nav__description">Current reader plan and billing availability</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
       </ul>
     </nav>
     <div class="my-gpir-toolbar">
@@ -48,20 +48,23 @@
     </div>
     <div class="my-gpir-grid" data-reader-view="overview">
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Library count">
-        <p class="my-gpir-eyebrow">My Library</p><p class="my-gpir-metric" data-reader-metric="library">0</p><p class="my-gpir-metric-label">authorised publications</p>
+        <p class="my-gpir-eyebrow">My Library</p><p class="my-gpir-metric" data-reader-metric="library">&mdash;</p><p class="my-gpir-metric-label">authorised publications</p>
       </section>
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Payment count">
-        <p class="my-gpir-eyebrow">Payment History</p><p class="my-gpir-metric" data-reader-metric="payments">0</p><p class="my-gpir-metric-label">recorded transactions</p>
+        <p class="my-gpir-eyebrow">Payment History</p><p class="my-gpir-metric" data-reader-metric="payments">&mdash;</p><p class="my-gpir-metric-label">recorded transactions</p>
       </section>
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Purchase count">
-        <p class="my-gpir-eyebrow">Purchases</p><p class="my-gpir-metric" data-reader-metric="purchases">0</p><p class="my-gpir-metric-label">active one-time purchases</p>
+        <p class="my-gpir-eyebrow">Purchases</p><p class="my-gpir-metric" data-reader-metric="purchases">&mdash;</p><p class="my-gpir-metric-label">active one-time purchases</p>
+      </section>
+      <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Reader account context">
+        <p class="my-gpir-eyebrow">Account</p><p class="my-gpir-metric my-gpir-metric--context" data-reader-metric="account">&mdash;</p><p class="my-gpir-metric-label">reader account status</p>
       </section>
       <section id="profile" class="my-gpir-card my-gpir-card--wide" data-view-panel="profile">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account</p><h2>Profile</h2></div><a href="/reader/profile/">View profile</a></header>
+        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account</p><h2>Profile</h2></div></header>
         <div data-reader-profile><div class="my-gpir-empty"><strong>Loading profile&hellip;</strong><p>Your verified reader details will appear here.</p></div></div>
       </section>
       <section id="plan" class="my-gpir-card my-gpir-card--wide" data-view-panel="plan">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Access</p><h2>Subscription &amp; Plan</h2></div><a href="/reader/plan/">View plan</a></header>
+        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Access</p><h2>Subscription &amp; Plan</h2></div></header>
         <div data-reader-plan><div class="my-gpir-empty"><strong>Loading plan status&hellip;</strong><p>Secure purchase options load after account verification.</p></div></div>
         <div class="my-gpir-onetime" data-gpir-paypal-onetime hidden>
           <div class="my-gpir-purchase-heading">
@@ -86,11 +89,11 @@
         </div>
       </section>
       <section id="library" class="my-gpir-card my-gpir-card--wide" data-view-panel="library">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Research access</p><h2>My Library</h2></div><a href="/reader/library/">Open library</a></header>
+        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Research access</p><h2>My Library</h2></div></header>
         <div data-reader-library><div class="my-gpir-empty"><strong>Loading authorised publications&hellip;</strong></div></div>
       </section>
       <section id="payments" class="my-gpir-card my-gpir-card--wide" data-view-panel="payments">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account activity</p><h2>Payment History</h2></div><a href="/reader/payments/">View history</a></header>
+        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account activity</p><h2>Payment History</h2></div></header>
         <div data-reader-payments><div class="my-gpir-empty"><strong>Loading payment activity&hellip;</strong></div></div>
       </section>
     </div>

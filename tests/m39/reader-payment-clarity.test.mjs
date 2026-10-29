@@ -137,6 +137,6 @@ test('responsive payment layout uses bounded mobile cards and preserves focus st
   assert.match(css, /\.my-gpir-nav a:focus-visible[\s\S]*outline:3px solid var\(--gpir-gold\)/);
   assert.match(dashboard, /date\.dataset\.label = 'Transaction date'/);
   assert.match(dashboard, /statusBadge\(document, presentation\.statusLabel, presentation\.tone\)/);
-  assert.match(html, /my-gpir\.css\?v=20261029a/);
-  assert.match(html, /gpir-reader-dashboard\.mjs\?v=20261029a/);
+  assert.match(html, /my-gpir\.css\?v=20261029b/);
+  assert.match(html, /gpir-reader-dashboard\.mjs\?v=20261029b/);
 });
