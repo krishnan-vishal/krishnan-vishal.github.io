@@ -63,6 +63,8 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
     if (value.endsWith('/rpc/gpir_list_entitlement_candidates_v2'))
       return candidateFailure ? json({ code: 'PGRST202', message: 'Function unavailable' }, 404)
         : json(candidates);
+    if (value.includes('/gpir_publication_access_policies?') && candidateFailure)
+      return json({ code: 'PGRST503', message: 'Restricted fallback unavailable' }, 503);
     if (value.includes('/gpir_payment_offers?')) return json(candidates);
     if (value.includes('/gpir_payment_orders?')) return json(payments);
     if (value.includes('/gpir_publication_purchase_entitlements?')) return json(purchases);
@@ -102,7 +104,7 @@ test('candidate dependency failure preserves identity and billing while Library 
   assert.equal(result.calls.some(call => call.value.endsWith(
     '/rpc/resolve_publication_entitlement')), false);
   assert.equal(result.diagnostics[0][1].dependency, 'gpir_list_entitlement_candidates_v2');
-  assert.equal(result.diagnostics[0][1].code, 'PGRST202');
+  assert.equal(result.diagnostics[0][1].code, 'PGRST503');
   const normalized = normalizeReaderSummary(result.body);
   assert.equal(normalized.availability.library, 'UNAVAILABLE');
   assert.deepEqual(normalized.library, []);
