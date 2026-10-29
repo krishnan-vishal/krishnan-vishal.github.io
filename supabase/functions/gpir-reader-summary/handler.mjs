@@ -99,7 +99,9 @@ function paymentSummary(row) {
 
 function m37PaymentSummary(row) {
   const amount = Number(row?.amount_minor);
-  if (!UUID.test(row?.id || '') || !ONETIME_CURRENCIES.has(row?.currency) || amount !== 999 ||
+  if (!UUID.test(row?.id || '') || !ONETIME_CURRENCIES.has(row?.currency) ||
+      !(amount === 999 || (amount === 100 && row.currency === 'USD' &&
+        row.duration_days === 30 && row.environment === 'PRODUCTION')) ||
       !['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
         'REFUNDED', 'REVERSED'].includes(row?.status)) return null;
   return Object.freeze({ id: row.id, publicationId: 'PREMIUM_LIBRARY',
@@ -216,7 +218,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       order: 'created_at.asc', limit: '1'
     });
     const m37PaymentQuery = new URLSearchParams({
-      select: 'id,currency,amount_minor,status,created_at,captured_at',
+      select: 'id,currency,amount_minor,duration_days,environment,status,created_at,captured_at',
       user_id: `eq.${user.id}`, environment: 'eq.PRODUCTION',
       order: 'created_at.desc', limit: '100'
     });
