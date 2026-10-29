@@ -4,6 +4,7 @@ import { initializePayPalOnetimeCheckout } from './gpir-paypal-onetime.mjs';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_STATES = new Set(['CREATED', 'APPROVED', 'PENDING', 'CAPTURED', 'DENIED',
   'REFUNDED', 'REVERSED', 'VOIDED', 'FAILED']);
+const PAYMENT_STATUS_PATTERN = /^[A-Z][A-Z0-9_]{0,31}$/;
 const ONETIME_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
 const BILLING_STATES = new Set(['NOT_ACTIVE', 'APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED',
   'CANCELLED', 'EXPIRED', 'PAYMENT_FAILED']);
@@ -17,6 +18,11 @@ function sectionAvailability(value, name) {
 function isoOrNull(value) {
   if (typeof value !== 'string' || !value) return null;
   const time = Date.parse(value); return Number.isFinite(time) ? new Date(time).toISOString() : null;
+}
+
+function normalizedPaymentStatus(value) {
+  return PAYMENT_STATES.has(value) ? value :
+    typeof value === 'string' && PAYMENT_STATUS_PATTERN.test(value) ? 'UNCONFIRMED' : null;
 }
 
 export function normalizeReaderSummary(value) {
@@ -35,15 +41,20 @@ export function normalizeReaderSummary(value) {
       accessClass: String(item.accessClass || ''), accessSource: String(item.accessSource || '')
     }] : []) : [];
   const payments = availability.payments === 'AVAILABLE'
-    ? value.payments.flatMap(item => UUID.test(item?.id || '') &&
-    ((UUID.test(item?.supabaseRecordId || '') && typeof item?.publicationId === 'string') ||
-      (item?.paymentKind === 'PREMIUM_LIBRARY_PASS' &&
-        item?.publicationId === 'PREMIUM_LIBRARY' && item?.supabaseRecordId == null)) &&
-    ONETIME_CURRENCIES.has(item.currency) && PAYMENT_STATES.has(item.status) &&
-    Number.isSafeInteger(item.expectedAmountMinor) ? [{ ...item,
-      capturedAmountMinor: Number.isSafeInteger(item.capturedAmountMinor) ? item.capturedAmountMinor : null,
-      createdAt: isoOrNull(item.createdAt), capturedAt: isoOrNull(item.capturedAt)
-    }] : []) : [];
+    ? value.payments.flatMap(item => {
+      const status = normalizedPaymentStatus(item?.status);
+      if (!UUID.test(item?.id || '') ||
+          !((UUID.test(item?.supabaseRecordId || '') && typeof item?.publicationId === 'string') ||
+            (item?.paymentKind === 'PREMIUM_LIBRARY_PASS' &&
+              item?.publicationId === 'PREMIUM_LIBRARY' && item?.supabaseRecordId == null)) ||
+          !ONETIME_CURRENCIES.has(item.currency) || !status ||
+          !Number.isSafeInteger(item.expectedAmountMinor) || item.expectedAmountMinor < 0) return [];
+      return [{ ...item, status,
+        capturedAmountMinor: Number.isSafeInteger(item.capturedAmountMinor) &&
+          item.capturedAmountMinor >= 0 ? item.capturedAmountMinor : null,
+        createdAt: isoOrNull(item.createdAt), capturedAt: isoOrNull(item.capturedAt)
+      }];
+    }) : [];
   const planStatus = ['ACTIVE', 'INACTIVE', 'NOT_ENROLLED'].includes(value.plan.status)
     ? value.plan.status : 'NOT_ENROLLED';
   const environment = ['sandbox', 'production'].includes(value.environment)
@@ -99,6 +110,103 @@ export function formatDate(value, locale = 'en-US') {
   const iso = isoOrNull(value); if (!iso) return 'Not available';
   return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric' })
     .format(new Date(iso));
+}
+
+export function paymentPresentation(payment, locale = 'en-US') {
+  const status = normalizedPaymentStatus(payment?.status) || 'UNCONFIRMED';
+  const expected = formatMoney(payment?.expectedAmountMinor, payment?.currency, locale);
+  const captured = formatMoney(payment?.capturedAmountMinor, payment?.currency, locale);
+  const statusValues = {
+    CREATED: ['Order created — not paid', 'neutral'],
+    APPROVED: ['Approved — capture pending', 'pending'],
+    PENDING: ['Payment processing', 'pending'],
+    CAPTURED: ['Payment completed', 'success'],
+    FAILED: ['Payment failed', 'error'],
+    DENIED: ['Payment denied', 'error'],
+    VOIDED: ['Order voided', 'neutral'],
+    REFUNDED: ['Payment refunded', 'warning'],
+    REVERSED: ['Payment reversed', 'warning'],
+    UNCONFIRMED: ['Status unconfirmed', 'neutral']
+  };
+  const [statusLabel, tone] = statusValues[status];
+  if (['CREATED', 'APPROVED', 'PENDING'].includes(status)) {
+    return Object.freeze({ status, statusLabel, tone, amountLabel: 'Expected amount',
+      amountValue: expected, amountNote: null });
+  }
+  if (status === 'CAPTURED') {
+    return Object.freeze({ status, statusLabel, tone, amountLabel: 'Paid amount',
+      amountValue: captured === '—' ? 'Not available' : captured, amountNote: null });
+  }
+  if (['FAILED', 'DENIED', 'VOIDED'].includes(status)) {
+    return Object.freeze({ status, statusLabel, tone, amountLabel: 'Not paid',
+      amountValue: null, amountNote: expected === '—' ? null : `Expected amount ${expected}` });
+  }
+  if (status === 'REFUNDED' || status === 'REVERSED') {
+    return Object.freeze({ status, statusLabel, tone,
+      amountLabel: status === 'REFUNDED' ? 'Refunded' : 'Reversed', amountValue: null,
+      amountNote: captured === '—' ? null : `Original paid amount ${captured}` });
+  }
+  return Object.freeze({ status, statusLabel, tone, amountLabel: 'Amount unconfirmed',
+    amountValue: null, amountNote: expected === '—' ? null : `Reported expected amount ${expected}` });
+}
+
+export function recurringSubscriptionPresentation(plan, { available = true,
+  libraryAvailable = true } = {}) {
+  if (!available) return Object.freeze({ title: 'Recurring subscription',
+    statusLabel: 'Status unavailable', tone: 'neutral',
+    detail: 'Subscription billing status is temporarily unavailable.',
+    accessDetail: 'No publication access has been inferred.' });
+  const states = {
+    ACTIVE: ['Active', 'success', 'Recurring subscription billing is active.'],
+    APPROVAL_PENDING: ['Approval pending', 'pending',
+      'Subscription approval is pending; billing activation is not yet confirmed.'],
+    SUSPENDED: ['Suspended', 'warning', 'Recurring subscription billing is suspended.'],
+    CANCELLED: ['Cancelled', 'neutral', 'The recurring subscription is cancelled.'],
+    EXPIRED: ['Expired', 'neutral', 'The recurring subscription has expired.'],
+    PAYMENT_FAILED: ['Payment failed', 'error',
+      'The recurring subscription reports a payment failure.'],
+    NOT_ACTIVE: ['Not active', 'neutral', 'No active recurring subscription is reported.']
+  };
+  const [statusLabel, tone, detail] = states[plan?.billingStatus] || states.NOT_ACTIVE;
+  const accessDetail = !libraryAvailable
+    ? 'Publication access verification is temporarily unavailable.'
+    : plan?.status === 'ACTIVE' && plan?.accessClass === 'ENTITLED'
+      ? 'Publication access is authorized by the current server response.'
+      : 'Publication access is not authorized by the current server response.';
+  return Object.freeze({ title: 'Recurring subscription', statusLabel, tone, detail,
+    accessDetail });
+}
+
+export function libraryPassPresentation(libraryPass, { available = true,
+  libraryAvailable = true } = {}) {
+  if (!available) return Object.freeze({ title: 'One-time Premium Library pass',
+    statusLabel: 'Status unavailable', tone: 'neutral',
+    detail: 'One-time pass status is temporarily unavailable.' });
+  if (!libraryPass) return Object.freeze({ title: 'One-time Premium Library pass',
+    statusLabel: 'No active pass', tone: 'neutral',
+    detail: 'No one-time Premium Library pass is reported for this account.' });
+  if (libraryPass.status === 'ACTIVE') {
+    const expiry = isoOrNull(libraryPass.effectiveUntil)
+      ? ` through ${formatDate(libraryPass.effectiveUntil)}` : '';
+    const restriction = libraryAvailable ? '' :
+      ' Protected publications remain locked until entitlement verification is available.';
+    return Object.freeze({ title: 'One-time Premium Library pass', statusLabel: 'Active',
+      tone: 'success', detail: `One-time Premium Library access is active${expiry}.${restriction}` });
+  }
+  if (libraryPass.status === 'PENDING') {
+    const begins = isoOrNull(libraryPass.effectiveFrom)
+      ? ` ${formatDate(libraryPass.effectiveFrom)}` : '';
+    return Object.freeze({ title: 'One-time Premium Library pass', statusLabel: 'Pending',
+      tone: 'pending', detail: `One-time Premium Library access begins${begins}; it is not active yet.` });
+  }
+  if (libraryPass.status === 'EXPIRED') {
+    const expiry = isoOrNull(libraryPass.effectiveUntil)
+      ? ` ${formatDate(libraryPass.effectiveUntil)}` : '';
+    return Object.freeze({ title: 'One-time Premium Library pass', statusLabel: 'Expired',
+      tone: 'neutral', detail: `The one-time Premium Library pass expired${expiry}.` });
+  }
+  return Object.freeze({ title: 'One-time Premium Library pass', statusLabel: 'Revoked',
+    tone: 'error', detail: 'The one-time Premium Library pass was revoked and grants no access.' });
 }
 
 export async function requestReaderSummary({ endpoint, token, fetchImpl = fetch }) {
@@ -170,6 +278,13 @@ function renderLibrary(document, target, library, available = true) {
   target.replaceChildren(list);
 }
 
+function statusBadge(document, label, tone) {
+  const badge = textElement(document, 'span', label,
+    `my-gpir-status-badge my-gpir-status-badge--${tone}`);
+  badge.setAttribute('aria-label', `Status: ${label}`);
+  return badge;
+}
+
 function renderPayments(document, target, payments, available = true) {
   if (!target) return;
   if (!available) {
@@ -185,56 +300,59 @@ function renderPayments(document, target, payments, available = true) {
   const wrap = textElement(document, 'div', '', 'my-gpir-table-wrap');
   const table = textElement(document, 'table', '', 'my-gpir-table');
   const head = document.createElement('thead'); const headRow = document.createElement('tr');
-  for (const label of ['Date', 'Publication', 'Amount', 'Status']) headRow.append(textElement(document, 'th', label));
+  for (const label of ['Transaction date', 'Publication', 'Amount', 'Status'])
+    headRow.append(textElement(document, 'th', label));
   head.append(headRow); const body = document.createElement('tbody');
   for (const payment of payments) {
     const row = document.createElement('tr');
-    row.append(textElement(document, 'td', formatDate(payment.createdAt)),
-      textElement(document, 'td', payment.publicationId),
-      textElement(document, 'td', formatMoney(payment.capturedAmountMinor ?? payment.expectedAmountMinor,
-        payment.currency)), textElement(document, 'td', payment.status)); body.append(row);
+    const presentation = paymentPresentation(payment);
+    const date = document.createElement('td'); date.dataset.label = 'Transaction date';
+    date.append(textElement(document, 'span', `Created ${formatDate(payment.createdAt)}`,
+      'my-gpir-payment-primary'));
+    if (payment.capturedAt) date.append(textElement(document, 'small',
+      `Completed ${formatDate(payment.capturedAt)}`, 'my-gpir-payment-note'));
+    const publication = document.createElement('td'); publication.dataset.label = 'Publication';
+    publication.className = 'my-gpir-payment-publication';
+    publication.append(textElement(document, 'strong', payment.publicationId));
+    if (payment.supabaseRecordId) publication.append(textElement(document, 'code',
+      payment.supabaseRecordId));
+    const amount = document.createElement('td'); amount.dataset.label = 'Amount';
+    amount.append(textElement(document, 'strong', presentation.amountLabel,
+      'my-gpir-payment-primary'));
+    if (presentation.amountValue) amount.append(textElement(document, 'span',
+      presentation.amountValue));
+    if (presentation.amountNote) amount.append(textElement(document, 'small',
+      presentation.amountNote, 'my-gpir-payment-note'));
+    const status = document.createElement('td'); status.dataset.label = 'Status';
+    status.append(statusBadge(document, presentation.statusLabel, presentation.tone));
+    row.append(date, publication, amount, status); body.append(row);
   }
   table.append(head, body); wrap.append(table); target.replaceChildren(wrap);
 }
 
-function renderPlan(document, target, plan, libraryPass, available = true, libraryAvailable = true) {
+function productPanel(document, product, presentation, accessDetail = null) {
+  const panel = textElement(document, 'article', '', 'my-gpir-product');
+  panel.dataset.product = product;
+  const header = textElement(document, 'div', '', 'my-gpir-product__header');
+  header.append(textElement(document, 'h3', presentation.title),
+    statusBadge(document, presentation.statusLabel, presentation.tone));
+  panel.append(header, textElement(document, 'p', presentation.detail,
+    'my-gpir-product__detail'));
+  if (accessDetail) panel.append(textElement(document, 'p', accessDetail,
+    'my-gpir-product__access'));
+  return panel;
+}
+
+function renderPlan(document, target, plan, libraryPass, available = true,
+  libraryAvailable = true, libraryPassAvailable = true) {
   if (!target) return;
-  if (!available) {
-    target.replaceChildren(emptyState(document, 'Plan status is temporarily unavailable.',
-      'No subscription state or publication access has been inferred.'));
-    return;
-  }
-  const box = textElement(document, 'div', '', 'my-gpir-plan'); const copy = document.createElement('div');
-  const title = libraryPass?.status === 'ACTIVE' ? 'Premium Library pass active' :
-    libraryPass?.status === 'PENDING' ? 'Premium Library pass pending' :
-    libraryPass?.status === 'EXPIRED' ? 'Premium Library pass expired' :
-    libraryPass?.status === 'REVOKED' ? 'Premium Library pass revoked' :
-    plan.status === 'ACTIVE' && plan.accessClass === 'ENTITLED'
-    ? 'GPIR entitled reader plan' : plan.status === 'ACTIVE' ? 'Reader billing plan active' :
-    plan.status === 'INACTIVE' ? 'Reader plan inactive' : 'Free registered reader';
-  const detail = libraryPass?.status === 'ACTIVE'
-    ? `One-time Premium Library access is active through ${formatDate(libraryPass.effectiveUntil)}.` +
-      (plan.billingStatus === 'ACTIVE' ? ' Subscription billing is also active.' :
-        ' No recurring subscription is attached to this pass.')
-    : libraryPass?.status === 'PENDING'
-      ? `One-time Premium Library access begins ${formatDate(libraryPass.effectiveFrom)}.`
-    : libraryPass?.status === 'EXPIRED'
-      ? `One-time Premium Library access expired ${formatDate(libraryPass.effectiveUntil)}.`
-    : libraryPass?.status === 'REVOKED'
-      ? 'The one-time Premium Library entitlement was revoked and does not grant access.'
-    : plan.status === 'ACTIVE' && !libraryAvailable
-    ? 'Subscription billing is active. Publication access remains locked until entitlement verification is available.'
-    : plan.status === 'ACTIVE'
-    ? `Access is active${plan.effectiveUntil ? ` through ${formatDate(plan.effectiveUntil)}` : ''}.` +
-      (plan.billingStatus === 'ACTIVE' ? ' Subscription billing is active.' :
-        ' Subscription billing is not active.')
-    : plan.billingStatus === 'APPROVAL_PENDING'
-      ? 'Subscription approval is pending. Access will remain unchanged until the server verifies activation.'
-      : 'Subscription billing is not active. No recurring plan or payment method is attached to this account.';
-  copy.append(textElement(document, 'h3', title), textElement(document, 'p', detail));
-  box.append(copy, textElement(document, 'span', libraryPass
-    ? `PASS ${libraryPass.status}` : plan.status.replace('_', ' '), 'my-gpir-badge'));
-  target.replaceChildren(box);
+  const subscription = recurringSubscriptionPresentation(plan, { available, libraryAvailable });
+  const pass = libraryPassPresentation(libraryPass,
+    { available: libraryPassAvailable, libraryAvailable });
+  const products = textElement(document, 'div', '', 'my-gpir-products');
+  products.append(productPanel(document, 'subscription', subscription,
+    subscription.accessDetail), productPanel(document, 'pass', pass));
+  target.replaceChildren(products);
 }
 
 function renderMetrics(document, summary) {
@@ -255,7 +373,8 @@ export function renderReaderDashboard(document, summary) {
     summary.availability.payments === 'AVAILABLE');
   renderPlan(document, document.querySelector('[data-reader-plan]'), summary.plan,
     summary.libraryPass,
-    summary.availability.plan === 'AVAILABLE', summary.availability.library === 'AVAILABLE');
+    summary.availability.plan === 'AVAILABLE', summary.availability.library === 'AVAILABLE',
+    summary.availability.libraryPass === 'AVAILABLE');
   const root = document.querySelector('[data-reader-dashboard]');
   if (root) root.dataset.state = readerDashboardState(summary);
 }
