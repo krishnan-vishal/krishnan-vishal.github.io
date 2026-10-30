@@ -298,3 +298,12 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-right .world-map-card{margin:12px 0!important;}
  .hero .hero-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
 }
+
+/* 30 Oct owner adjustment: genuinely thin tickers, no tall fallback containers. */
+#fx-ribbon,#market-ribbon{height:25px!important;min-height:25px!important;max-height:25px!important;border:0!important;}
+#fx-ribbon .market-title,#market-ribbon .market-title{height:25px!important;line-height:25px!important;padding:0 10px!important;font-size:10px!important;}
+#fx-ribbon .ticker-wrapper,#market-ribbon .ticker-wrapper{height:25px!important;min-height:25px!important;max-height:25px!important;}
+#fx-ribbon .ticker-track,#market-ribbon .ticker-track{height:25px!important;min-height:25px!important;max-height:25px!important;font-size:10px!important;line-height:25px!important;}
+#fx-ribbon .ticker-track *,#market-ribbon .ticker-track *{font-size:10px!important;line-height:25px!important;}
+#fx-ribbon .market-time,#market-ribbon .market-time{height:25px!important;line-height:25px!important;font-size:10px!important;padding:0 8px!important;}
+#fx-ribbon .ticker-wrapper:has(#fxTicker:empty)::after,#market-ribbon .ticker-wrapper:has(#announcementTicker:empty)::after{font-size:10px!important;line-height:25px!important;}
