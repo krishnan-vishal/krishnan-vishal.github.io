@@ -386,3 +386,22 @@ body{color:var(--gpir-ink-700);}
 .hero .hero-stats .stat-item{padding:8px 12px!important;border-radius:0!important;}
 .hero .hero-ribbon{grid-row:6!important;margin:0 24px 8px!important;}
 }
+
+/* M39 layout containment: approved compact hero, no image overflow into KPI strip. */
+@media(min-width:1024px){
+.hero .hero-grid{grid-template-columns:minmax(0,43%) minmax(0,57%)!important;grid-template-rows:50px 120px 82px 62px auto auto!important;overflow:hidden!important;}
+.hero .hero-right .world-map-card{position:relative!important;grid-column:2!important;grid-row:1/5!important;align-self:stretch!important;height:314px!important;min-height:0!important;max-height:314px!important;overflow:hidden!important;contain:paint!important;}
+.hero .hero-right .world-map-card picture{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;margin:0!important;overflow:hidden!important;}
+.hero .hero-right .world-map-card picture img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;object-position:76% 36%!important;}
+.hero .hero-identity{grid-row:1!important;margin-top:0!important;}
+.hero .hero-left h1{grid-row:2!important;font-size:clamp(2.2rem,3.35vw,3.8rem)!important;line-height:1.05!important;}
+.hero .hero-intro{grid-row:3!important;font-size:clamp(12px,.95vw,14px)!important;line-height:1.35!important;overflow:hidden!important;}
+.hero .hero-buttons{grid-row:4!important;margin-bottom:0!important;}
+.hero .hero-stats{position:relative!important;z-index:2!important;grid-column:1/3!important;grid-row:5!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;margin:0 24px!important;padding:0!important;background:#fcfaf5!important;}
+.hero .hero-ribbon{position:relative!important;z-index:2!important;grid-column:1/3!important;grid-row:6!important;margin:0 24px 10px!important;background:#fcfaf5!important;}
+}
+@media(max-width:1023px){
+.hero .hero-right .world-map-card{position:relative!important;height:260px!important;max-height:260px!important;overflow:hidden!important;contain:paint!important;}
+.hero .hero-right .world-map-card picture{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;}
+.hero .hero-right .world-map-card picture img{width:100%!important;height:100%!important;max-height:100%!important;object-fit:cover!important;object-position:76% center!important;}
+}
