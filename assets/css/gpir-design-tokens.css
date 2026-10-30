@@ -153,3 +153,35 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-tag{font-size:10px;letter-spacing:.08em;}
  .hero .hero-buttons{gap:8px;}
 }
+
+/* P0 visual acceptance refinement — 30 Oct 2026: compact first viewport. */
+@media(min-width:1024px){
+ .header .container.header-container{grid-template-columns:minmax(0,1fr) 56px minmax(230px,1fr);grid-template-rows:auto auto;column-gap:14px;row-gap:0;padding-block:5px 4px;}
+ .header-container>.brand{grid-column:1;grid-row:1;}
+ .header-container>.search-toggle{grid-column:2;grid-row:1;justify-self:center;margin:0;}
+ .header-container>.header-actions{grid-column:3;grid-row:1;justify-self:end;}
+ .header-container>.main-nav{grid-column:1/4;grid-row:2;}
+ .header .brand-logo{width:40px;height:40px;}
+ .hero{padding:24px 0 30px!important;}
+ .hero .hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,2.5vw,38px);align-items:center;}
+ .hero .hero-left h1{font-size:clamp(2.2rem,3vw,3.15rem);line-height:1.06;max-width:none;margin:8px 0 12px;}
+ .hero .hero-tag{font-size:10px;}
+ .hero .hero-intro{font-size:clamp(13px,1vw,15px);line-height:1.48;max-width:66ch;}
+ .hero .hero-buttons{margin-top:14px;gap:10px;}
+ .hero .hero-stats{margin-top:14px;padding-top:10px;}
+ .hero .world-map-card{transform:none;}
+}
+#fx-ribbon .ticker-wrapper:has(#fxTicker:empty)::after{
+ content:"FX reference rates are currently unavailable";
+ display:block;color:#d8e4f2;font:12px/36px Arial,sans-serif;padding-left:14px;
+}
+#fx-ribbon .ticker-wrapper:has(#fxTicker:empty){height:36px;}
+@media(min-width:768px) and (max-width:1023px){
+ .hero{padding:24px 0!important;}
+ .hero .hero-left h1{font-size:clamp(1.8rem,3.3vw,2.5rem);line-height:1.08;}
+ .hero .hero-buttons{margin-top:12px;}
+}
+@media(max-width:767px){
+ .hero{padding:22px 0 30px!important;}
+ .hero .hero-left h1{font-size:clamp(1.85rem,7.2vw,2.55rem);line-height:1.1;}
+}
