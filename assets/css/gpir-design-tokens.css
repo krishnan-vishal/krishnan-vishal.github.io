@@ -330,3 +330,19 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-ribbon{margin:0 14px 12px!important;}
 }
 @media(max-width:480px){#fx-ribbon .market-title,#market-ribbon .market-title{min-width:82px!important;width:82px!important;flex-basis:82px!important;font-size:9px!important;padding:0 3px!important;}}
+
+/* M39 owner visual correction: a single full-bleed hero artwork, not a split-screen duplicate. */
+@media(min-width:1024px){
+ .hero .hero-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:0!important;width:100%!important;max-width:none!important;}
+ .hero .hero-right .world-map-card{grid-column:1!important;grid-row:1!important;width:100%!important;margin:0!important;max-width:none!important;display:block!important;}
+ .hero .world-map-card picture,.hero .world-map-card img{display:block!important;width:100%!important;max-width:none!important;max-height:none!important;height:auto!important;object-fit:cover!important;}
+ .hero .hero-identity,.hero .hero-left h1,.hero .hero-intro,.hero .hero-stats,.hero .hero-ribbon{display:none!important;}
+ .hero .hero-buttons{grid-column:1!important;grid-row:2!important;display:flex!important;justify-content:center!important;align-items:center!important;margin:0!important;padding:12px 20px 16px!important;background:#fcfaf5!important;}
+}
+@media(max-width:1023px){
+ .hero .hero-grid{display:flex!important;flex-direction:column!important;width:100%!important;max-width:none!important;gap:0!important;}
+ .hero .hero-identity,.hero .hero-left h1,.hero .hero-intro,.hero .hero-stats,.hero .hero-ribbon{display:none!important;}
+ .hero .hero-right .world-map-card{order:0!important;width:100%!important;max-width:none!important;margin:0!important;}
+ .hero .world-map-card picture,.hero .world-map-card img{display:block!important;width:100%!important;max-height:none!important;height:auto!important;object-fit:contain!important;}
+ .hero .hero-buttons{order:1!important;display:flex!important;justify-content:center!important;flex-wrap:wrap!important;gap:10px!important;margin:0!important;padding:12px 14px 18px!important;}
+}
