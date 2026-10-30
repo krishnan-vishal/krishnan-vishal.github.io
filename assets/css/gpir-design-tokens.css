@@ -59,3 +59,59 @@ body{color:var(--gpir-ink-700);}
 @media(max-width:900px){.hero-grid{grid-template-columns:minmax(0,1fr);padding-inline:clamp(16px,4vw,32px);gap:32px;}.hero-left{max-width:100%;}.hero-right{width:100%;}.hero{padding-block:42px 56px;}}
 @media(max-width:520px){.hero{padding-block:30px 44px;}.hero-grid{padding-inline:16px;gap:24px;}.hero-left h1,.hero-left .hero-title{overflow-wrap:break-word;}.container.header-container{width:calc(100% - 24px);padding-inline:6px;}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}.hero *{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+/* P0 homepage recovery — approved compact information architecture.
+   Preserves original world map, links, ticker data and reader controls. */
+@media(min-width:1024px){
+ .header .container.header-container{display:grid;grid-template-columns:minmax(230px,1fr) auto minmax(245px,1fr);grid-template-rows:auto auto;align-items:center;column-gap:20px;row-gap:5px;max-width:1480px;min-height:0;padding-block:12px 9px;}
+ .header-container>.brand{grid-column:1/3;grid-row:1;justify-self:start;}
+ .header-container>.search-toggle{grid-column:3;grid-row:1;justify-self:start;}
+ .header-container>.header-actions{grid-column:3;grid-row:1;justify-self:end;margin:0;}
+ .header-container>.main-nav{grid-column:1/4;grid-row:2;justify-self:center;margin:0;max-width:100%;min-width:0;}
+ .header-container>.main-nav>ul{justify-content:center;flex-wrap:nowrap;gap:clamp(3px,.5vw,9px);}
+ .header-container>.nav-toggle{grid-row:2;}
+ .header .brand-logo{width:46px;height:46px;}
+ .header .brand-text h1{font-size:clamp(1.2rem,1.7vw,1.6rem);}
+ .header .brand-repository{margin-top:3px;}
+}
+#fx-ribbon{height:36px!important;min-height:36px!important;max-height:36px!important;overflow:hidden;display:flex;align-items:center;}
+#fx-ribbon .market-title{height:36px;min-height:36px;display:flex;align-items:center;padding-inline:12px;white-space:nowrap;font-size:11px;}
+#fx-ribbon .ticker-wrapper{min-width:0;flex:1;overflow:hidden;}
+#fx-ribbon .market-time{font-size:10px;white-space:nowrap;}
+#market-ribbon{min-height:36px!important;max-height:42px!important;height:36px!important;overflow:hidden;display:flex;align-items:center;}
+#market-ribbon .market-title{min-height:36px;height:36px;display:flex;align-items:center;padding-inline:12px;white-space:nowrap;font-size:11px;}
+#market-ribbon .ticker-wrapper{min-width:0;flex:1;overflow:hidden;}
+#market-ribbon .market-time{flex-shrink:0;font-size:11px;}
+.hero{min-height:0!important;padding:clamp(28px,3.5vw,52px) 0!important;background:linear-gradient(110deg,#071b35 0%,#0c2a4c 55%,#102a48 100%)!important;color:#fff!important;}
+.hero::before{opacity:.12;}
+.hero .hero-grid{width:min(1440px,calc(100% - 48px));margin:auto;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:clamp(20px,3vw,48px);padding:0;align-items:center;}
+.hero .hero-identity .hero-brand,.hero .hero-identity .hero-brandline{display:none!important;}
+.hero .hero-tag{font-size:11px;letter-spacing:.14em;color:#e7c16a;background:transparent;border:0;padding:0;}
+.hero .hero-left h1{font-family:Georgia,serif;font-size:clamp(2.2rem,3.6vw,4.1rem);line-height:1.09;letter-spacing:-.035em;color:#fff!important;margin:14px 0 16px;}
+.hero .hero-left h1 span{color:#fff;}
+.hero .hero-left h1 span:first-child{color:#edc36d;}
+.hero .hero-intro{font-size:clamp(14px,1.1vw,16px);line-height:1.6;color:#e0e8f3;max-width:62ch;}
+.hero .hero-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px;}
+.hero .btn-primary{background:#d7aa48;color:#081e3c;border-radius:999px;}
+.hero .btn-secondary{border-radius:999px;border:1px solid #d9e1ed;color:#fff;}
+.hero .hero-divider,.hero .hero-ribbon{display:none!important;}
+.hero .hero-stats{margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2);}
+.hero .hero-stats h2{color:#f1c66e!important;}
+.hero .hero-stats span{color:#dce5ef!important;}
+.hero .hero-right{min-width:0;align-items:center;}
+.hero .world-map-card{width:100%;max-width:100%;overflow:hidden;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 18px 45px rgba(0,0,0,.17);}
+.hero .world-map-card picture,.hero .world-map-card img{display:block;width:100%;height:auto;object-fit:contain;}
+@media(max-width:1023px){
+ .hero .hero-grid{grid-template-columns:1fr;width:min(760px,calc(100% - 32px));padding:0;gap:24px;}
+ .hero .hero-left h1{font-size:clamp(2.1rem,6vw,3.6rem);}
+ .hero .hero-right{width:100%;}
+ #market-ribbon .market-title{max-width:155px;}
+}
+@media(max-width:600px){
+ #fx-ribbon .market-time,#market-ribbon .market-time{display:none;}
+ #market-ribbon .market-title{font-size:9px;max-width:118px;padding-inline:8px;}
+ #fx-ribbon .market-title{font-size:9px;padding-inline:8px;}
+ .hero{padding:28px 0 34px!important;}
+ .hero .hero-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+ .hero .hero-buttons>a{width:100%;text-align:center;justify-content:center;}
+}
