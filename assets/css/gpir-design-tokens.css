@@ -371,3 +371,18 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-stats{display:grid!important;order:2!important;}
  .hero .hero-ribbon{display:block!important;order:3!important;}
 }
+
+/* M39 approved compact hero composition */
+@media(min-width:1024px){
+.hero .hero-grid{grid-template-columns:40% 60%!important;grid-template-rows:54px 130px 90px 68px auto auto!important;}
+.hero .hero-identity{grid-row:1!important;align-self:center!important;}
+.hero .hero-left h1{grid-row:2!important;font-size:clamp(2.3rem,3.5vw,4rem)!important;align-self:center!important;}
+.hero .hero-intro{grid-row:3!important;font-size:clamp(12px,1vw,15px)!important;line-height:1.4!important;align-self:center!important;}
+.hero .hero-buttons{grid-row:4!important;align-self:center!important;}
+.hero .hero-right .world-map-card{grid-row:1/5!important;min-height:0!important;height:342px!important;overflow:hidden!important;}
+.hero .world-map-card picture{left:-43%!important;top:0!important;width:143%!important;height:342px!important;}
+.hero .world-map-card img{height:342px!important;object-fit:cover!important;object-position:right center!important;}
+.hero .hero-stats{grid-row:5!important;margin:0 24px!important;gap:0!important;}
+.hero .hero-stats .stat-item{padding:8px 12px!important;border-radius:0!important;}
+.hero .hero-ribbon{grid-row:6!important;margin:0 24px 8px!important;}
+}
