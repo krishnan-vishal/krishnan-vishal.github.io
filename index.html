@@ -205,6 +205,7 @@ content="#0B1120">
 <!-- M39 Gate 1: scoped visual foundation; no functional changes -->
 <link rel="stylesheet" href="assets/css/gpir-design-tokens.css?v=20261030b">
 <script src="assets/js/gpir-reader-auth.js?v=20261029c" defer></script>
+<link rel="stylesheet" href="assets/css/gpir-hero-composite.css?v=20261030a">
 </head>
 
 <body>
@@ -1042,221 +1043,32 @@ content="#0B1120">
 </section> <!-- market-ribbon -->
 
 
-<section id="home" class="hero">
-
-    <div class="hero-overlay"></div>
-    <div class="hero-texture"></div>
-
-    <div class="container hero-grid">
-
-        <div class="hero-left">
-
-            <!-- Editorial Label -->
-
-<div class="hero-identity">
-
-    <span class="hero-tag" data-i18n="hero.eyebrow">
-        THE INDEPENDENT KNOWLEDGE PLATFORM
-    </span>
-
-    <h2 class="hero-brand">
-        FINTECHOISIS
-    </h2>
-
-    <p class="hero-brandline" data-i18n="hero.tagline">
-        Global Payments Intelligence
-    </p>
-
-</div>
-
-<!-- Main Heading -->
-
-<h1>
-
-    <span>Intelligence Across</span>
-
-    <span>150+ Countries</span>
-
-</h1>
-
-<!-- Executive Introduction -->
-
-<p class="hero-intro">
-
-FINTECHOISIS is an independent knowledge platform dedicated to global payments,
-    cross-border money movement, financial infrastructure, fintech innovation and
-    regulatory developments — providing evidence-led intelligence drawn from
-    published institutional and market sources.
-</p>
-
-<!-- CTA -->
-
-<div class="hero-buttons">
-
-    <a href="#repository" class="btn-primary">
-    Explore Intelligence →
-</a>
-
-<a href="#research" class="btn-secondary">
-    Explore Research →
-</a>
-
-</div>
-
-<div class="hero-divider"></div>
-
-
-
-<!-- Repository Metrics -->
-
-<div class="hero-stats">
-
-    <div class="stat-item">
-
-        <h2>150+</h2>
-
-        <span>Country Intelligence</span>
-
-    </div>
-
-    <div class="stat-item">
-
-        <h2>30+</h2>
-
-        <span>Knowledge Domains</span>
-
-    </div>
-
-    <div class="stat-item">
-
-        <h2>500+</h2>
-
-        <span>Curated Sources</span>
-
-    </div>
-
-    <div class="stat-item">
-
-        <h2>Continuous</h2>
-
-        <span>Editorial Updates</span>
-
-    </div>
-
-</div>
-
-
-<div class="hero-ribbon">
-
-    <span>Payments</span>
-
-    <span>Banking</span>
-
-    <span>Fintech</span>
-
-    <span>Regulation</span>
-
-    <span>Treasury</span>
-
-    <span>Digital Assets</span>
-
-    <span>AI</span>
-
-</div>
-
-</div>   <!-- hero-left -->
-
-<div class="hero-right">
-
-    <div class="world-map-card">
-<!--
-    <div class="map-header">
-
-        <span class="map-label">
-
-            GLOBAL PAYMENTS COVERAGE
-
-        </span>
-
-        <h3>
-
-            150+ Countries
-
-        </h3>
-
-    </div>
-
-    <div class="coverage-overview">
-
-    <div class="coverage-box">
-
-        <h4>150+</h4>
-
-        <span>Countries</span>
-
-    </div>
-
-    <div class="coverage-box">
-
-        <h4>35+</h4>
-
-        <span>Knowledge Domains</span>
-
-    </div>
-
-    <div class="coverage-box">
-
-        <h4>24×7</h4>
-
-        <span>Market Intelligence</span>
-
-    </div>
--->
-    
-    <picture>
-        <source type="image/webp" sizes="(max-width:900px) 92vw, 760px" srcset="assets/maps/world/hero-global-coverage-map-w480.webp 480w, assets/maps/world/hero-global-coverage-map-w640.webp 640w, assets/maps/world/hero-global-coverage-map-w800.webp 800w, assets/maps/world/hero-global-coverage-map.webp 1536w">
-        <img src="assets/maps/world/hero-global-coverage-map-w800.png" srcset="assets/maps/world/hero-global-coverage-map-w480.png 480w, assets/maps/world/hero-global-coverage-map-w640.png 640w, assets/maps/world/hero-global-coverage-map-w800.png 800w, assets/maps/world/hero-global-coverage-map.png 1536w" sizes="(max-width:900px) 92vw, 760px" alt="Global Payments Intelligence Repository global payment coverage map" fetchpriority="high" decoding="async" width="1536" height="1024">
-    </picture>
-    
-        </div>   <!-- world-map-card -->
-
-</div>   <!-- hero-right -->
-
-</div>   <!-- hero-grid -->
- 
-<!--
-    <div class="map-footer">
-
-
-        <span>APAC</span>
-
-        <span>EMEA</span>
-
-        <span>Americas</span>
-
-    </div>
-
--->
-
-<!--
-<div class="pulse pulse-1"></div>
-
-<div class="pulse pulse-2"></div>
-
-<div class="pulse pulse-3"></div>
--->
-
-
-
-</div>
-        </div>
-
-    </div>
-
-    <div class="scroll-indicator">
-        ↓ Scroll to Explore Intelligence →
-    </div>
-
+<section id="home" class="hero gpir-composite-hero" aria-label="Global payments intelligence coverage">
+ <div class="gpir-hero-main">
+  <div class="gpir-hero-copy">
+   <p class="gpir-hero-eyebrow">THE INDEPENDENT KNOWLEDGE PLATFORM</p>
+   <h1>Intelligence Across <span>150+ Countries</span></h1>
+   <p class="gpir-hero-description">Mapping the global payments ecosystem through continuous intelligence, curated insights, and trusted knowledge.</p>
+   <div class="gpir-hero-actions"><a class="btn-primary" href="#repository">Explore Global Intelligence →</a><a class="btn-secondary" href="#research">Explore Research →</a></div>
+  </div>
+  <div class="gpir-hero-map" role="img" aria-label="World map illustrating connected global payments markets">
+   <img src="assets/maps/world/hero-global-coverage-map.webp" alt="" width="1536" height="1024" decoding="async" fetchpriority="high">
+   <span class="gpir-region gpir-region-na">North America<small>Real-time Payments</small></span>
+   <span class="gpir-region gpir-region-eu">Europe<small>Instant Payments</small></span>
+   <span class="gpir-region gpir-region-apac">APAC<small>Digital Wallets</small></span>
+   <span class="gpir-region gpir-region-me">Middle East<small>Cross-Border Hub</small></span>
+   <span class="gpir-region gpir-region-la">Latin America<small>Growing Flows</small></span>
+   <span class="gpir-region gpir-region-af">Africa<small>Financial Inclusion</small></span>
+   <span class="gpir-region gpir-region-oc">Oceania<small>Innovation Gateway</small></span>
+  </div>
+ </div>
+ <div class="gpir-hero-kpis" aria-label="Repository highlights">
+  <div><strong>150+</strong><span>Countries</span><small>Global Coverage</small></div>
+  <div><strong>50+</strong><span>Knowledge Domains</span><small>Curated Intelligence</small></div>
+  <div><strong>24×7</strong><span>Market Intelligence</span><small>Continuous Updates</small></div>
+  <div><strong>Published &amp;</strong><span>Curated References</span><small>Trusted &amp; Verified</small></div>
+ </div>
+ <nav class="gpir-hero-regions" aria-label="Key regions"><b>KEY REGIONS</b><span>APAC</span><span>Europe</span><span>Middle East</span><span>Africa</span><span>North America</span><span>Latin America</span><span>Oceania</span></nav>
 </section>
 
 <!-- =====================================================
