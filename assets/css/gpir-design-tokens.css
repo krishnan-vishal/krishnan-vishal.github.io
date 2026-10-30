@@ -307,3 +307,26 @@ body{color:var(--gpir-ink-700);}
 #fx-ribbon .ticker-track *,#market-ribbon .ticker-track *{font-size:10px!important;line-height:25px!important;}
 #fx-ribbon .market-time,#market-ribbon .market-time{height:25px!important;line-height:25px!important;font-size:10px!important;padding:0 8px!important;}
 #fx-ribbon .ticker-wrapper:has(#fxTicker:empty)::after,#market-ribbon .ticker-wrapper:has(#announcementTicker:empty)::after{font-size:10px!important;line-height:25px!important;}
+
+/* M39 homepage composition: compact aligned market labels and seamless wide hero. */
+#fx-ribbon,#market-ribbon{width:100%!important;gap:0!important;}
+#fx-ribbon .market-title,#market-ribbon .market-title{display:flex!important;align-items:center!important;justify-content:center!important;min-width:120px!important;width:120px!important;flex:0 0 120px!important;padding:0 8px!important;line-height:1!important;text-align:center!important;font-size:10px!important;letter-spacing:.025em!important;}
+#fx-ribbon .ticker-wrapper,#market-ribbon .ticker-wrapper{flex:1 1 0!important;}
+.hero{padding:0!important;background:#fcfaf5!important;overflow:hidden!important;}
+.hero .hero-grid{width:100%!important;max-width:none!important;grid-template-columns:minmax(0,37%) minmax(0,63%)!important;column-gap:0!important;align-items:center!important;}
+.hero .hero-identity,.hero .hero-left h1,.hero .hero-intro,.hero .hero-buttons{margin-left:clamp(20px,2.3vw,48px)!important;margin-right:clamp(10px,1.5vw,28px)!important;}
+.hero .hero-identity{margin-top:24px!important;}
+.hero .hero-left h1{font-size:clamp(2.3rem,4vw,4.6rem)!important;overflow-wrap:normal!important;}
+.hero .hero-right .world-map-card{align-self:stretch!important;display:flex!important;align-items:center!important;background:#fcfaf5!important;}
+.hero .world-map-card picture{width:100%!important;}
+.hero .world-map-card img{width:100%!important;max-height:none!important;height:auto!important;object-fit:contain!important;}
+.hero .hero-stats{margin:0 24px!important;padding:0 0 8px!important;}
+.hero .hero-ribbon{margin:0 24px 16px!important;}
+@media(max-width:1023px){
+ .hero .hero-grid{grid-template-columns:minmax(0,1fr)!important;}
+ .hero .hero-identity,.hero .hero-left h1,.hero .hero-intro,.hero .hero-buttons{margin-left:18px!important;margin-right:18px!important;}
+ .hero .hero-right .world-map-card{margin:0!important;}
+ .hero .hero-stats{margin:8px 14px!important;}
+ .hero .hero-ribbon{margin:0 14px 12px!important;}
+}
+@media(max-width:480px){#fx-ribbon .market-title,#market-ribbon .market-title{min-width:82px!important;width:82px!important;flex-basis:82px!important;font-size:9px!important;padding:0 3px!important;}}
