@@ -30,3 +30,10 @@
 #home.gpir-composite-hero .gpir-hero-map>img{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;}
 #home.gpir-composite-hero .gpir-hero-map::after{content:'';position:absolute;z-index:1;pointer-events:none;left:0;right:0;bottom:0;height:25%;background:linear-gradient(to bottom,transparent,#fcfaf5 92%);}
 #home.gpir-composite-hero .gpir-hero-kpis{margin-top:0!important;clear:both!important;}
+
+/* M39 precise fix: hard-clip baked-in infographic KPI row, keep new KPIs outside map. */
+#home.gpir-composite-hero .gpir-hero-map{overflow:hidden!important;clip-path:inset(0)!important;}
+#home.gpir-composite-hero .gpir-hero-map>img{clip-path:inset(0 0 43% 0)!important;-webkit-mask-image:none!important;mask-image:none!important;}
+#home.gpir-composite-hero .gpir-hero-map::after{height:46%!important;background:linear-gradient(to bottom,rgba(252,250,245,0) 0%,#fcfaf5 48%)!important;}
+#home.gpir-composite-hero .gpir-hero-main{overflow:hidden!important;isolation:isolate!important;}
+#home.gpir-composite-hero .gpir-hero-kpis{position:relative!important;z-index:10!important;background:#fff!important;}
