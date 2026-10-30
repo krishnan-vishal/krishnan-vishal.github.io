@@ -1,0 +1,62 @@
+/* M39 isolated composite hero. No overlap, no inherited split-hero grid. */
+#home.gpir-composite-hero{display:block!important;position:relative!important;isolation:isolate!important;overflow:hidden!important;background:#fcfaf5!important;padding:0!important;margin:0!important;min-height:0!important;height:auto!important;}
+#home.gpir-composite-hero *{box-sizing:border-box;}
+#home .gpir-hero-main{position:relative;display:grid;grid-template-columns:minmax(0,43%) minmax(0,57%);width:100%;height:400px;max-height:400px;overflow:hidden;background:#fcfaf5;}
+#home .gpir-hero-copy{position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;padding:24px 0 20px clamp(26px,3.2vw,60px);min-width:0;}
+#home .gpir-hero-eyebrow{color:#bd851c;font-size:12px;letter-spacing:.17em;font-weight:700;margin:0 0 15px!important;}
+#home .gpir-hero-copy h1{display:block!important;color:#102b51!important;font-family:Georgia,serif!important;font-size:clamp(37px,3.7vw,65px)!important;line-height:1.04!important;letter-spacing:-.035em!important;margin:0 0 16px!important;font-weight:700!important;}
+#home .gpir-hero-copy h1 span{display:block!important;color:#bf8a24!important;white-space:nowrap;}
+#home .gpir-hero-description{font-size:clamp(14px,1.2vw,18px);line-height:1.45;color:#50617b;max-width:600px;margin:0 0 19px!important;}
+#home .gpir-hero-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+#home .gpir-hero-actions a{display:inline-flex!important;align-items:center;justify-content:center;min-height:44px;padding:11px 20px!important;border-radius:28px;text-decoration:none;font-size:14px;font-weight:650;white-space:nowrap;}
+#home .gpir-hero-actions .btn-primary{background:#d9aa40!important;color:#0c2549!important;border:1px solid #d9aa40!important;}
+#home .gpir-hero-actions .btn-secondary{background:transparent!important;color:#102b51!important;border:1px solid #102b51!important;}
+#home .gpir-hero-map{position:relative;overflow:hidden;height:400px;min-height:0;background:#fcfaf5;}
+#home .gpir-hero-map:before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,#fcfaf5 0%,rgba(252,250,245,.4) 13%,transparent 31%);}
+#home .gpir-hero-map>img{position:absolute;display:block!important;width:166%!important;height:150%!important;max-width:none!important;max-height:none!important;left:-66%;top:-5%;object-fit:fill!important;opacity:.88;mix-blend-mode:multiply;}
+#home .gpir-region{position:absolute;z-index:2;display:block;padding:5px 9px;border:1px solid #d6aa50;border-radius:7px;background:rgba(255,253,249,.93);color:#14294c;font-size:11px;font-weight:700;line-height:1.2;box-shadow:0 2px 8px #0b27400e;white-space:nowrap;}
+#home .gpir-region small{display:block;font-size:9px;font-weight:400;margin-top:2px;}
+#home .gpir-region-na{left:13%;top:20%}#home .gpir-region-eu{left:50%;top:11%}#home .gpir-region-apac{right:3%;top:28%}#home .gpir-region-me{left:56%;top:42%}#home .gpir-region-la{left:8%;top:66%}#home .gpir-region-af{left:46%;top:76%}#home .gpir-region-oc{right:2%;top:77%}
+#home .gpir-hero-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:4;margin:0 clamp(20px,3.2vw,60px);padding:0!important;min-height:76px;background:#fff;border:1px solid #e0e4eb;border-radius:9px;overflow:hidden;}
+#home .gpir-hero-kpis>div{display:flex;flex-direction:column;justify-content:center;padding:10px 22px;border-right:1px solid #e1e4e9;min-width:0;}
+#home .gpir-hero-kpis>div:last-child{border:0}#home .gpir-hero-kpis strong{color:#c18b23;font-size:25px;line-height:1.05}#home .gpir-hero-kpis span{color:#14294c;font-size:13px;font-weight:700;margin-top:3px}#home .gpir-hero-kpis small{color:#5b6980;font-size:11px;margin-top:2px}
+#home .gpir-hero-regions{display:flex;align-items:center;justify-content:space-around;gap:10px;flex-wrap:wrap;position:relative;z-index:4;margin:7px clamp(20px,3.2vw,60px) 13px;min-height:43px;padding:8px 14px;border:1px solid #e0e4eb;border-radius:8px;background:#fff;color:#1b3559;font-size:12px;}
+#home .gpir-hero-regions b{color:#bf8a24;font-size:11px}#home .gpir-hero-regions span{white-space:nowrap}
+@media(max-width:1023px){#home .gpir-hero-main{height:auto;max-height:none;grid-template-columns:1fr}#home .gpir-hero-copy{padding:24px 20px 8px}#home .gpir-hero-copy h1{font-size:clamp(33px,7vw,54px)!important}#home .gpir-hero-map{height:270px}#home .gpir-hero-map>img{height:150%!important}#home .gpir-hero-kpis{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 14px}#home .gpir-hero-kpis>div:nth-child(2){border-right:0}#home .gpir-hero-kpis>div{border-bottom:1px solid #e0e4eb}#home .gpir-hero-regions{margin:7px 14px 14px}#home .gpir-region{font-size:10px}#home .gpir-region small{font-size:8px}}
+@media(max-width:520px){#home .gpir-hero-copy h1 span{white-space:normal}#home .gpir-hero-map{height:215px}#home .gpir-region{display:none}#home .gpir-hero-kpis strong{font-size:20px}#home .gpir-hero-kpis>div{padding:10px}#home .gpir-hero-actions a{font-size:12px;padding:9px 13px!important}}
+
+/* M39 final visual cleanup: suppress legacy infographic footer inside the map artwork. */
+#home.gpir-composite-hero .gpir-hero-map{isolation:isolate!important;background:#fcfaf5!important;}
+#home.gpir-composite-hero .gpir-hero-map>img{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;}
+#home.gpir-composite-hero .gpir-hero-map::after{content:'';position:absolute;z-index:1;pointer-events:none;left:0;right:0;bottom:0;height:25%;background:linear-gradient(to bottom,transparent,#fcfaf5 92%);}
+#home.gpir-composite-hero .gpir-hero-kpis{margin-top:0!important;clear:both!important;}
+
+/* M39 precise fix: hard-clip baked-in infographic KPI row, keep new KPIs outside map. */
+#home.gpir-composite-hero .gpir-hero-map{overflow:hidden!important;clip-path:inset(0)!important;}
+#home.gpir-composite-hero .gpir-hero-map>img{clip-path:inset(0 0 43% 0)!important;-webkit-mask-image:none!important;mask-image:none!important;}
+#home.gpir-composite-hero .gpir-hero-map::after{height:46%!important;background:linear-gradient(to bottom,rgba(252,250,245,0) 0%,#fcfaf5 48%)!important;}
+#home.gpir-composite-hero .gpir-hero-main{overflow:hidden!important;isolation:isolate!important;}
+#home.gpir-composite-hero .gpir-hero-kpis{position:relative!important;z-index:10!important;background:#fff!important;}
+
+/* M39 owner adjustment: compact reference-size KPI/footer strips and region symbols. */
+#home.gpir-composite-hero .gpir-hero-kpis{height:76px!important;min-height:76px!important;max-height:76px!important;overflow:hidden!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div{height:74px!important;min-height:0!important;padding:7px 12px 7px 66px!important;position:relative!important;justify-content:center!important;overflow:hidden!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:before{content:'◎';position:absolute;left:16px;top:17px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #dfe5ed;border-radius:50%;font-size:27px;color:#112f5c;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(2):before{content:'▱';font-size:28px}#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(3):before{content:'↻';font-size:27px}#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(4):before{content:'▤';font-size:25px}
+#home.gpir-composite-hero .gpir-hero-kpis strong{font-size:23px!important;line-height:1!important;white-space:nowrap!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(4) strong{font-size:13px!important;color:#14294c!important;}
+#home.gpir-composite-hero .gpir-hero-kpis span{font-size:12px!important;line-height:1.2!important;margin-top:2px!important;}
+#home.gpir-composite-hero .gpir-hero-kpis small{font-size:10px!important;line-height:1.15!important;}
+#home.gpir-composite-hero .gpir-hero-regions{height:51px!important;min-height:51px!important;max-height:51px!important;padding:5px 12px!important;margin-top:7px!important;margin-bottom:12px!important;flex-wrap:nowrap!important;gap:7px!important;overflow:hidden!important;}
+#home.gpir-composite-hero .gpir-hero-regions span{display:inline-flex!important;align-items:center!important;gap:7px!important;font-size:11px!important;white-space:nowrap!important;}
+#home.gpir-composite-hero .gpir-hero-regions i{font-style:normal!important;font-size:23px!important;line-height:1!important;}
+@media(max-width:1023px){#home.gpir-composite-hero .gpir-hero-kpis{height:auto!important;max-height:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}#home.gpir-composite-hero .gpir-hero-regions{height:auto!important;max-height:none!important;flex-wrap:wrap!important;}}
+@media(max-width:520px){#home.gpir-composite-hero .gpir-hero-kpis>div{padding-left:50px!important;}#home.gpir-composite-hero .gpir-hero-kpis>div:before{left:7px!important;width:34px;height:34px;}#home.gpir-composite-hero .gpir-hero-kpis strong{font-size:19px!important;}}
+
+/* M39 approved region silhouettes and vertically centered ticker labels. */
+#home.gpir-composite-hero .gpir-hero-regions .gpir-region-map-icon{display:inline-block!important;flex:0 0 31px!important;width:31px!important;height:34px!important;vertical-align:middle!important;}
+#home.gpir-composite-hero .gpir-hero-regions>span{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;}
+#fx-ribbon .market-title,#market-ribbon .market-title{display:flex!important;align-items:center!important;justify-content:center!important;align-self:stretch!important;box-sizing:border-box!important;height:100%!important;min-height:0!important;margin:0!important;padding:0 8px!important;text-align:center!important;line-height:1.1!important;white-space:nowrap!important;}
+#fx-ribbon,#market-ribbon{display:flex!important;align-items:stretch!important;min-height:32px!important;height:32px!important;}
+#fx-ribbon .ticker-wrapper,#market-ribbon .ticker-wrapper{display:flex!important;align-items:center!important;min-width:0!important;}
+@media(max-width:700px){#home.gpir-composite-hero .gpir-hero-regions .gpir-region-map-icon{width:25px!important;height:27px!important;flex-basis:25px!important;}#fx-ribbon .market-title,#market-ribbon .market-title{font-size:9px!important;padding:0 4px!important;}}
