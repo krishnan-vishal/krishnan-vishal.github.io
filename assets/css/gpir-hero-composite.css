@@ -52,3 +52,11 @@
 #home.gpir-composite-hero .gpir-hero-regions i{font-style:normal!important;font-size:23px!important;line-height:1!important;}
 @media(max-width:1023px){#home.gpir-composite-hero .gpir-hero-kpis{height:auto!important;max-height:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}#home.gpir-composite-hero .gpir-hero-regions{height:auto!important;max-height:none!important;flex-wrap:wrap!important;}}
 @media(max-width:520px){#home.gpir-composite-hero .gpir-hero-kpis>div{padding-left:50px!important;}#home.gpir-composite-hero .gpir-hero-kpis>div:before{left:7px!important;width:34px;height:34px;}#home.gpir-composite-hero .gpir-hero-kpis strong{font-size:19px!important;}}
+
+/* M39 approved region silhouettes and vertically centered ticker labels. */
+#home.gpir-composite-hero .gpir-hero-regions .gpir-region-map-icon{display:inline-block!important;flex:0 0 31px!important;width:31px!important;height:34px!important;vertical-align:middle!important;}
+#home.gpir-composite-hero .gpir-hero-regions>span{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;}
+#fx-ribbon .market-title,#market-ribbon .market-title{display:flex!important;align-items:center!important;justify-content:center!important;align-self:stretch!important;box-sizing:border-box!important;height:100%!important;min-height:0!important;margin:0!important;padding:0 8px!important;text-align:center!important;line-height:1.1!important;white-space:nowrap!important;}
+#fx-ribbon,#market-ribbon{display:flex!important;align-items:stretch!important;min-height:32px!important;height:32px!important;}
+#fx-ribbon .ticker-wrapper,#market-ribbon .ticker-wrapper{display:flex!important;align-items:center!important;min-width:0!important;}
+@media(max-width:700px){#home.gpir-composite-hero .gpir-hero-regions .gpir-region-map-icon{width:25px!important;height:27px!important;flex-basis:25px!important;}#fx-ribbon .market-title,#market-ribbon .market-title{font-size:9px!important;padding:0 4px!important;}}
