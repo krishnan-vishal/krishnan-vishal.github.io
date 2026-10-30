@@ -37,3 +37,18 @@
 #home.gpir-composite-hero .gpir-hero-map::after{height:46%!important;background:linear-gradient(to bottom,rgba(252,250,245,0) 0%,#fcfaf5 48%)!important;}
 #home.gpir-composite-hero .gpir-hero-main{overflow:hidden!important;isolation:isolate!important;}
 #home.gpir-composite-hero .gpir-hero-kpis{position:relative!important;z-index:10!important;background:#fff!important;}
+
+/* M39 owner adjustment: compact reference-size KPI/footer strips and region symbols. */
+#home.gpir-composite-hero .gpir-hero-kpis{height:76px!important;min-height:76px!important;max-height:76px!important;overflow:hidden!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div{height:74px!important;min-height:0!important;padding:7px 12px 7px 66px!important;position:relative!important;justify-content:center!important;overflow:hidden!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:before{content:'◎';position:absolute;left:16px;top:17px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #dfe5ed;border-radius:50%;font-size:27px;color:#112f5c;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(2):before{content:'▱';font-size:28px}#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(3):before{content:'↻';font-size:27px}#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(4):before{content:'▤';font-size:25px}
+#home.gpir-composite-hero .gpir-hero-kpis strong{font-size:23px!important;line-height:1!important;white-space:nowrap!important;}
+#home.gpir-composite-hero .gpir-hero-kpis>div:nth-child(4) strong{font-size:13px!important;color:#14294c!important;}
+#home.gpir-composite-hero .gpir-hero-kpis span{font-size:12px!important;line-height:1.2!important;margin-top:2px!important;}
+#home.gpir-composite-hero .gpir-hero-kpis small{font-size:10px!important;line-height:1.15!important;}
+#home.gpir-composite-hero .gpir-hero-regions{height:51px!important;min-height:51px!important;max-height:51px!important;padding:5px 12px!important;margin-top:7px!important;margin-bottom:12px!important;flex-wrap:nowrap!important;gap:7px!important;overflow:hidden!important;}
+#home.gpir-composite-hero .gpir-hero-regions span{display:inline-flex!important;align-items:center!important;gap:7px!important;font-size:11px!important;white-space:nowrap!important;}
+#home.gpir-composite-hero .gpir-hero-regions i{font-style:normal!important;font-size:23px!important;line-height:1!important;}
+@media(max-width:1023px){#home.gpir-composite-hero .gpir-hero-kpis{height:auto!important;max-height:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}#home.gpir-composite-hero .gpir-hero-regions{height:auto!important;max-height:none!important;flex-wrap:wrap!important;}}
+@media(max-width:520px){#home.gpir-composite-hero .gpir-hero-kpis>div{padding-left:50px!important;}#home.gpir-composite-hero .gpir-hero-kpis>div:before{left:7px!important;width:34px;height:34px;}#home.gpir-composite-hero .gpir-hero-kpis strong{font-size:19px!important;}}
