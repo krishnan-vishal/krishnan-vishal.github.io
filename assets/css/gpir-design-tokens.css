@@ -245,3 +245,56 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
  .hero .hero-stats .stat-item{padding:10px!important;}
 }
+
+/* GPIR approved P0 header/hero — ivory, navy, gold; non-distorted existing coverage asset */
+.header{background:#fcfaf5!important;color:#0b2345!important;}
+.header .container.header-container{max-width:none!important;width:calc(100% - 40px)!important;margin:auto!important;}
+@media(min-width:1024px){
+ .header .container.header-container{grid-template-columns:minmax(350px,1fr) minmax(280px,540px) auto!important;grid-template-rows:64px 42px!important;column-gap:12px!important;row-gap:0!important;padding:2px 0!important;}
+ .header-container>.brand{grid-column:1!important;grid-row:1!important;justify-self:start!important;}
+ .header-container>.search-toggle{grid-column:2!important;grid-row:1!important;justify-self:stretch!important;width:100%!important;max-width:none!important;height:40px!important;border:1px solid #d4dce5!important;border-radius:7px!important;background:#fff!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;padding:0 14px!important;}
+ .header-container>.search-toggle::after{content:"Search GPIR — countries, corridors, rails, regulations, partners…";font:13px Arial,sans-serif;color:#66758b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+ .header-container>.search-toggle svg{flex:0 0 20px;width:20px!important;height:20px!important;}
+ .header-container>.header-actions{grid-column:3!important;grid-row:1!important;justify-self:end!important;}
+ .header-container>.main-nav{grid-column:1/4!important;grid-row:2!important;justify-self:center!important;display:flex!important;align-items:center!important;gap:8px!important;}
+ .header-container>.main-nav>ul{gap:clamp(2px,.35vw,8px)!important;}
+ .header-container .header-tools{margin-left:8px!important;}
+ .header-container .repository-btn{padding:9px 17px!important;}
+}
+#fx-ribbon,#market-ribbon{height:32px!important;min-height:32px!important;max-height:32px!important;display:flex!important;align-items:stretch!important;overflow:hidden!important;padding:0!important;}
+#fx-ribbon .market-title,#market-ribbon .market-title{min-width:unset!important;width:auto!important;flex:0 0 auto!important;padding:0 14px!important;font-size:11px!important;line-height:32px!important;white-space:nowrap!important;}
+#fx-ribbon .ticker-wrapper,#market-ribbon .ticker-wrapper{min-width:0!important;flex:1!important;height:32px!important;overflow:hidden!important;}
+#fx-ribbon .ticker-track,#market-ribbon .ticker-track{height:32px!important;min-height:0!important;align-items:center!important;font-size:11px!important;white-space:nowrap!important;}
+#fx-ribbon .market-time,#market-ribbon .market-time{height:32px!important;line-height:32px!important;font-size:10px!important;white-space:nowrap!important;}
+#market-ribbon:has(#announcementTicker:empty){display:flex!important;}
+#market-ribbon .ticker-wrapper:has(#announcementTicker:empty)::after{content:"Latest verified global payments announcements will appear here";color:#c8d5e4;font:11px/32px Arial,sans-serif;padding-left:12px;}
+.hero{background:#fcfaf5!important;color:#0b2345!important;padding:18px 0 16px!important;}
+.hero .hero-overlay,.hero .hero-texture{display:none!important;}
+.hero .hero-grid{display:grid!important;grid-template-columns:minmax(0,40%) minmax(0,60%)!important;grid-template-rows:auto auto auto auto!important;gap:0 10px!important;width:calc(100% - 56px)!important;max-width:1660px!important;margin:auto!important;align-items:center!important;}
+.hero .hero-left,.hero .hero-right{display:contents!important;}
+.hero .hero-identity{grid-column:1;grid-row:1;align-self:end;margin:8px 0 10px!important;}
+.hero .hero-tag{color:#b88218!important;font-size:12px!important;letter-spacing:.16em!important;}
+.hero .hero-left h1{grid-column:1;grid-row:2;align-self:end;font-family:Georgia,serif!important;font-size:clamp(2.8rem,4.4vw,5rem)!important;line-height:1.03!important;color:#09234a!important;margin:0 0 12px!important;max-width:100%!important;}
+.hero .hero-left h1 span{display:block!important;color:#09234a!important;}
+.hero .hero-left h1 span:nth-child(2){color:#b98723!important;}
+.hero .hero-intro{grid-column:1;grid-row:3;color:#50627c!important;font-size:clamp(13px,1.1vw,17px)!important;line-height:1.5!important;max-width:560px!important;margin:0 0 14px!important;}
+.hero .hero-buttons{grid-column:1;grid-row:4;margin:0!important;align-self:start;gap:9px!important;}
+.hero .hero-buttons a{font-size:clamp(12px,1vw,15px)!important;padding:12px 18px!important;white-space:nowrap;}
+.hero .hero-buttons .btn-primary{background:#d6a83f!important;color:#081f3e!important;}
+.hero .hero-buttons .btn-secondary{color:#0b2345!important;border:1px solid #0b2345!important;}
+.hero .hero-right .world-map-card{grid-column:2;grid-row:1/5;align-self:center;max-width:none!important;width:100%!important;max-height:none!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;}
+.hero .world-map-card picture{display:block!important;width:100%!important;}
+.hero .world-map-card img{display:block!important;width:100%!important;height:auto!important;max-height:440px!important;object-fit:contain!important;object-position:center!important;}
+.hero .hero-stats{grid-column:1/3;grid-row:5;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:12px 0 0!important;padding:0!important;}
+.hero .hero-stats .stat-item{background:#fff!important;border:1px solid #e1e4e8!important;border-radius:8px!important;padding:10px 14px!important;}
+.hero .hero-stats h2{color:#b88724!important;font-size:clamp(1.2rem,2vw,1.8rem)!important;}
+.hero .hero-stats span{color:#173252!important;}
+.hero .hero-ribbon{grid-column:1/3;grid-row:6;margin-top:8px!important;}
+.hero .hero-divider,.hero .scroll-indicator{display:none!important;}
+@media(max-width:1023px){
+ .hero .hero-grid{grid-template-columns:1fr!important;width:calc(100% - 28px)!important;}
+ .hero .hero-identity,.hero .hero-left h1,.hero .hero-intro,.hero .hero-buttons,.hero .hero-right .world-map-card,.hero .hero-stats,.hero .hero-ribbon{grid-column:1!important;grid-row:auto!important;}
+ .hero .hero-left h1{font-size:clamp(2rem,7vw,3.7rem)!important;}
+ .hero .hero-right .world-map-card{margin:12px 0!important;}
+ .hero .hero-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
