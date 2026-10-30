@@ -1,0 +1,2 @@
+GPIR PR #478 isolated Cloudflare preview build trigger.
+No production deployment authorization. No application behavior changes.
