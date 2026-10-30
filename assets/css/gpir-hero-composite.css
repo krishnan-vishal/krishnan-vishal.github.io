@@ -24,3 +24,9 @@
 #home .gpir-hero-regions b{color:#bf8a24;font-size:11px}#home .gpir-hero-regions span{white-space:nowrap}
 @media(max-width:1023px){#home .gpir-hero-main{height:auto;max-height:none;grid-template-columns:1fr}#home .gpir-hero-copy{padding:24px 20px 8px}#home .gpir-hero-copy h1{font-size:clamp(33px,7vw,54px)!important}#home .gpir-hero-map{height:270px}#home .gpir-hero-map>img{height:150%!important}#home .gpir-hero-kpis{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 14px}#home .gpir-hero-kpis>div:nth-child(2){border-right:0}#home .gpir-hero-kpis>div{border-bottom:1px solid #e0e4eb}#home .gpir-hero-regions{margin:7px 14px 14px}#home .gpir-region{font-size:10px}#home .gpir-region small{font-size:8px}}
 @media(max-width:520px){#home .gpir-hero-copy h1 span{white-space:normal}#home .gpir-hero-map{height:215px}#home .gpir-region{display:none}#home .gpir-hero-kpis strong{font-size:20px}#home .gpir-hero-kpis>div{padding:10px}#home .gpir-hero-actions a{font-size:12px;padding:9px 13px!important}}
+
+/* M39 final visual cleanup: suppress legacy infographic footer inside the map artwork. */
+#home.gpir-composite-hero .gpir-hero-map{isolation:isolate!important;background:#fcfaf5!important;}
+#home.gpir-composite-hero .gpir-hero-map>img{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;mask-image:linear-gradient(to bottom,#000 0%,#000 61%,transparent 83%)!important;}
+#home.gpir-composite-hero .gpir-hero-map::after{content:'';position:absolute;z-index:1;pointer-events:none;left:0;right:0;bottom:0;height:25%;background:linear-gradient(to bottom,transparent,#fcfaf5 92%);}
+#home.gpir-composite-hero .gpir-hero-kpis{margin-top:0!important;clear:both!important;}
