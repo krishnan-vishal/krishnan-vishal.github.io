@@ -115,3 +115,41 @@ body{color:var(--gpir-ink-700);}
  .hero .hero-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
  .hero .hero-buttons>a{width:100%;text-align:center;justify-content:center;}
 }
+
+/* P0 owner screenshot corrections: compact first screen and tablet/mobile layout */
+@media(min-width:1024px){
+ .header .container.header-container{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);padding-block:8px 6px;}
+ .header-container>.brand{grid-column:1/3;}
+ .header-container>.main-nav{width:max-content;max-width:100%;}
+ .header-container>.main-nav>ul{gap:clamp(2px,.35vw,7px);}
+}
+#fx-ribbon,#market-ribbon{box-sizing:border-box!important;padding:0!important;margin:0!important;}
+#fx-ribbon .ticker-track,#market-ribbon .ticker-track{min-height:0;}
+#market-ribbon:has(#announcementTicker:empty){display:none!important;}
+.hero .hero-grid{align-items:center;}
+.hero .hero-left{min-width:0;}
+.hero .hero-left h1{overflow-wrap:normal;max-width:15ch;}
+.hero .world-map-card{margin:0;}
+@media(min-width:768px) and (max-width:1023px){
+ .hero .hero-grid{width:min(940px,calc(100% - 36px));grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;}
+ .hero .hero-left h1{font-size:clamp(1.9rem,3.6vw,2.7rem);max-width:none;}
+ .hero .hero-intro{font-size:13px;line-height:1.45;}
+ .hero .hero-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+ .hero .hero-right{align-self:center;}
+}
+@media(max-width:767px){
+ .header .container.header-container{min-height:0;padding-block:8px;}
+ .header .brand-logo{max-width:42px;max-height:42px;}
+ .header .brand-text h1{font-size:clamp(1rem,5vw,1.3rem);}
+ .header-container .gpir-reader-action{padding:7px 9px;font-size:12px;}
+ .hero .hero-grid{width:calc(100% - 28px);gap:16px;}
+ .hero .hero-left h1{font-size:clamp(1.9rem,8vw,2.7rem);max-width:none;line-height:1.12;margin:12px 0;}
+ .hero .hero-intro{font-size:13px;line-height:1.5;}
+ .hero .hero-stats{margin-top:14px;}
+ .hero .hero-right{order:2;}
+}
+@media(max-width:420px){
+ .hero .hero-left h1{font-size:clamp(1.8rem,8.4vw,2.25rem);}
+ .hero .hero-tag{font-size:10px;letter-spacing:.08em;}
+ .hero .hero-buttons{gap:8px;}
+}
