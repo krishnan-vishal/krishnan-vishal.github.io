@@ -569,6 +569,47 @@ LAST UPDATED
     padding:0 14px;
 }
 
+/* Global Alerts uses the dark GPIR ribbon: override the earlier light-theme
+   ticker styles and keep non-live status text stationary. */
+#market-ribbon .ticker-track{
+    color:#f5f7fa;
+}
+
+#market-ribbon .ticker-track:hover,
+#market-ribbon .ticker-track:focus-within{
+    animation-play-state:paused;
+}
+
+#market-ribbon .ticker-track.ticker-track--status{
+    width:100%;
+    min-width:0;
+    justify-content:center;
+    animation:none;
+    transform:none;
+    will-change:auto;
+}
+
+#market-ribbon .ticker-card--compact{
+    color:#f5f7fa;
+    border-right-color:rgba(255,255,255,.22);
+}
+
+#market-ribbon .ticker-card--compact .ticker-tag,
+#market-ribbon .ticker-card--compact .ticker-lifecycle{
+    color:#f0cf72;
+}
+
+#market-ribbon .ticker-empty{
+    color:#f7e7b2;
+    font-weight:600;
+}
+
+#market-ribbon .ticker-empty:hover,
+#market-ribbon .ticker-empty:focus-visible{
+    color:#ffffff;
+    text-decoration:underline;
+}
+
 /*=====================================================
 ANIMATION
 ======================================================*/

@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39-G1 — Homepage navigation and Global Alerts completion
+
+- **Owner / branch / base:** Vishal Krishnan; `codex/m39-g1-alerts`; latest `origin/main` base `e9d9d50` on 2026-10-31. Work was isolated from the unrelated dirty `m38-production-resume` checkout.
+- **Navigation:** desktop/tablet mega-menus now use intentional click/Enter activation only; the active trigger toggles closed, outside click closes, and Escape closes then restores trigger focus. Hover/focus CSS no longer rotates the caret or reveals a closed desktop panel. The existing mobile tap accordion and long-menu scrolling remain intact.
+- **Global Alerts:** the homepage keeps the deployed read-only `gpir-public-alerts` endpoint and never uses static historical announcements as a live fallback. The renderer distinguishes loading, legitimate empty and API-unavailable states; non-live states are stationary. Live records require a meaningful headline, summary, category, publisher, valid authoritative timestamp and credential-free HTTPS source URL, and reject explicit non-approved, ineligible, unverified or restricted flags. Live-only items open the existing detail panel and use the verified original source rather than a nonexistent generated page as their fallback link.
+- **Presentation / evidence:** dark-ribbon alert text now uses high-contrast white/gold styling and actual announcements pause on hover or keyboard focus. The focused deterministic suite passes 10/10. A Windows browser screenshot was not captured because browser control could not verify the current Edge URL safely; no visual result is claimed.
+- **Production dependency / boundary:** a read-only request to the deployed endpoint returned HTTP 200 with `alerts: []`, `windowHours: 12` and `generatedAt: 2026-10-31T06:00:27.810Z`. Source for the deployed `gpir-public-alerts` and `gpir-intelligence-fetch` functions is not present on `main`, so the reported upstream `summary_narration` publication gap cannot be safely corrected or deployed in this frontend PR. No database record, schema, approval state, Edge Function, production deployment or main merge changed. State: **IMPLEMENTATION COMPLETE / READY FOR OWNER REVIEW; LIVE DATA DEPENDS ON ELIGIBLE UPSTREAM PUBLICATION.**
+
 ### M39 — Reader Summary reliability and controlled deployment readiness
 
 - **Owner / branch / base:** Vishal Krishnan; `feature/m39-reader-ui-refinement`; reconciled on 2026-10-29 against `origin/main` `54abe9c`. The branch was four commits ahead with no missing main commit. Uncommitted M37 acceptance documentation and unrelated UIX review files in the original checkout were preserved and not staged.

@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-G1 Homepage navigation and Global Alerts
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-G1-UI | 2026-10-31 | Correct accidental homepage mega-menu activation and complete the existing read-only Global Alerts integration | READER EXPERIENCE, INTELLIGENCE, SECURITY | High | IN PROGRESS | Owner PR review/merge; eligible Production publications with complete summaries and authoritative source timestamps | Stage 1 | homepage navigation, `gpir-public-alerts` reader | Make desktop menus click-driven, preserve mobile/keyboard behavior, show only eligible 12-hour public alerts, distinguish unavailable from empty, and retain archive access without exposing private credentials. | Hover never opens; click toggles; outside/Escape close; mobile works; valid alert renders; expired/unapproved/malformed records do not; empty/failure are distinct and readable; no deployment. | Frontend implementation complete on `codex/m39-g1-alerts`; focused suite passes 10/10. Deployed endpoint returned a legitimate empty feed. Upstream function source is not versioned in this repository, so the known `summary_narration` publication gap remains a Production dependency requiring owner-controlled function work. | PENDING owner review | Work branch | M39-G1 |
+
 ## M39 Reader Summary reliability
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
