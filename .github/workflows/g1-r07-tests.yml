@@ -1,0 +1,28 @@
+name: G1 R07 targeted tests
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/_shared/gpir-event-identity.mjs'
+      - 'supabase/functions/gpir-intelligence-publish/handler.mjs'
+      - 'supabase/functions/gpir-public-intelligence/handler.mjs'
+      - 'supabase/migrations/20261101000000_g1_r07_event_consolidation.sql'
+      - 'tests/g1-r07-event-consolidation.test.mjs'
+      - '.github/workflows/g1-r07-tests.yml'
+  workflow_dispatch:
+jobs:
+  targeted:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check supabase/functions/_shared/gpir-event-identity.mjs
+          node --check supabase/functions/gpir-intelligence-publish/handler.mjs
+          node --check supabase/functions/gpir-public-intelligence/handler.mjs
+      - name: Run G1 R07 tests
+        run: node --test tests/g1-r07-event-consolidation.test.mjs
