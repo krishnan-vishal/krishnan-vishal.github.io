@@ -1,0 +1,14 @@
+// Conservative event identity: identical normalized announcement subject + date + event type.
+// Ambiguous paraphrases remain distinct pending human clustering; never merge by keywords alone.
+const normalize = v => String(v || '').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+export async function eventIdentity(candidate, validation) {
+ const subject=normalize(candidate.title);
+ const type=normalize(candidate.event_type || 'announcement');
+ const date=String(validation.sourcePublishedAt || '').slice(0,10);
+ if(subject.length < 8 || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('G1_R07_EVENT_IDENTITY_REVIEW');
+ const canonical=[type,subject,date].join('|');
+ const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
+ const key=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
+ return {p_event_key:key,p_issuer: String(candidate.source_id),p_event_type:type,p_subject:subject,
+   p_event_date:date,p_geography:'UNSPECIFIED',p_keywords:validation.relevanceTerms || [],p_outcome_status:'PENDING'};
+}
