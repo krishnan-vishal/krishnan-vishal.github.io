@@ -361,19 +361,7 @@ function initializeMegaMenuHoverIntent(){
     // floating stale over unrelated content.
     const SCROLL_CLOSE_THRESHOLD = 80;
 
-    // Touch devices (tablets, touch laptops) don't fire hover reliably,
-    // so above the mobile-accordion breakpoint they need tap-to-toggle
-    // instead of relying on mouseenter/mouseleave.
-    const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
-
     const mobileQuery = window.matchMedia("(max-width:767px)");
-
-    // Escape-close refocuses the trigger for accessibility, but that
-    // focus() call itself fires "focusin" — which the per-item listener
-    // below would otherwise read as "user tabbed/clicked in, reopen me,"
-    // undoing the very close it's part of. This flag tells that listener
-    // to skip the reopen for the one focusin caused by our own call.
-    let suppressFocusOpen = false;
 
     // Captured the moment any menu opens (not lazily on first scroll
     // event, which would already reflect the post-scroll position and
@@ -452,16 +440,9 @@ function initializeMegaMenuHoverIntent(){
                 });
             };
 
-            // closeInstant() alone can't hide the panel here: the pointer
-            // is still physically resting over it (that's how it got
-            // clicked), so CSS's own `:hover` fallback -- kept for
-            // graceful no-JS degradation -- keeps it visible regardless
-            // of the is-open class, for the entire window between "link
-            // clicked" and "browser actually swaps in the new page". An
-            // inline !important override is the one thing that outranks
-            // a stylesheet :hover rule in the cascade, so it's the only
-            // way to guarantee the panel is gone for that window rather
-            // than visibly riding out the navigation.
+            // Hide the panel immediately while a selected link's navigation
+            // is starting, then clear the temporary inline state if the page
+            // remains active.
             const closeForNavigation = () => {
                 closeInstant();
                 menu.style.setProperty("opacity", "0", "important");
@@ -524,46 +505,25 @@ function initializeMegaMenuHoverIntent(){
                 link.addEventListener("click", () => closeForNavigation());
             });
 
-            if(hoverCapable){
-
-                item.addEventListener("mouseenter", open);
-                item.addEventListener("mouseleave", scheduleClose);
-
-            }
-
-            // On the click-to-toggle branch, a pointer click focuses the trigger
-            // *before* the click event fires, so an unconditional open() here
-            // would already be open by the time the click handler reads
-            // wasOpen — cancelling the tap out from under it. Keyboard (tab)
-            // focus should still open it, so gate on :focus-visible, which
-            // browsers only set true for non-pointer focus.
-            item.addEventListener("focusin", () => {
-                if(suppressFocusOpen) return;
-                if(!hoverCapable && !trigger.matches(":focus-visible")) return;
-                open();
-            });
-
             item.addEventListener("focusout", (e) => {
                 if(!item.contains(e.relatedTarget)){
                     scheduleClose();
                 }
             });
 
-            if(!hoverCapable){
+            // Desktop and tablet mega-menus are deliberately click/keyboard
+            // activated. Pointer movement and focus alone never open a panel.
+            trigger.addEventListener("click", (e) => {
 
-                trigger.addEventListener("click", (e) => {
+                if(mobileQuery.matches) return;
 
-                    if(mobileQuery.matches) return;
+                e.preventDefault();
 
-                    e.preventDefault();
+                const wasOpen = item.classList.contains("is-open");
 
-                    const wasOpen = item.classList.contains("is-open");
+                if(wasOpen) close(); else open();
 
-                    if(wasOpen) close(); else open();
-
-                });
-
-            }
+            });
 
         } catch(err){
             console.error("[GPIR] mega-menu item setup failed:", err);
@@ -571,19 +531,15 @@ function initializeMegaMenuHoverIntent(){
 
     });
 
-    if(!hoverCapable){
+    document.addEventListener("click", (e) => {
 
-        document.addEventListener("click", (e) => {
+        if(mobileQuery.matches) return;
 
-            if(mobileQuery.matches) return;
-
-            controllers.forEach(c => {
-                if(c.item.classList.contains("is-open") && !c.item.contains(e.target)) c.closeInstant();
-            });
-
+        controllers.forEach(c => {
+            if(c.item.classList.contains("is-open") && !c.item.contains(e.target)) c.closeInstant();
         });
 
-    }
+    });
 
     document.addEventListener("keydown", (e) => {
 
@@ -595,9 +551,7 @@ function initializeMegaMenuHoverIntent(){
 
         openController.closeInstant();
 
-        suppressFocusOpen = true;
         openController.trigger.focus();
-        suppressFocusOpen = false;
 
     });
 
@@ -642,17 +596,13 @@ function initializeMegaMenuHoverIntent(){
 
 function initializeSmoothScroll(){
 
-    const mobileMegaQuery = window.matchMedia("(max-width:767px)");
-
-    const hoverCapable = window.matchMedia("(hover:hover) and (pointer:fine)").matches;
-
     document
         .querySelectorAll('a[href^="#"]')
         .forEach(anchor=>{
 
             anchor.addEventListener("click",function(e){
 
-                if(this.classList.contains("nav-mega-trigger") && (mobileMegaQuery.matches || !hoverCapable)) return;
+                if(this.classList.contains("nav-mega-trigger")) return;
 
                 const href=this.getAttribute("href");
 

@@ -1735,8 +1735,6 @@ button.ticker-card{
 
 }
 
-.nav-item-mega:hover > .nav-mega-trigger .mega-caret,
-.nav-item-mega:focus-within > .nav-mega-trigger .mega-caret,
 .nav-item-mega.is-open > .nav-mega-trigger .mega-caret{
 
     transform:rotate(180deg);

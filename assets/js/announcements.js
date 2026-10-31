@@ -35,6 +35,7 @@
     let records = [];
     let recordsById = {};
     let contentRegistry = [];
+    let liveFeedState = "loading";
 
     const GLOBE_SVG = '<svg class="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
 
@@ -66,6 +67,15 @@
         return dateStr;
     }
 
+    function formatPublicationDateTime(record){
+        const instant = window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.publicationInstant(record);
+        if(!instant) return formatDate(record.publishedDate);
+        return `${instant.toLocaleString("en-GB", {
+            day: "numeric", month: "long", year: "numeric",
+            hour: "2-digit", minute: "2-digit", timeZone: "UTC"
+        })} UTC`;
+    }
+
     function recencyStatus(dateStr){
         if(!dateStr) return null;
         const parts = dateStr.split("-").map(n => parseInt(n,10));
@@ -86,7 +96,7 @@
     }
 
     // Published records remain available to Search, ASK GPIR and detail
-    // retrieval forever. The 24-hour ticker window is a separate
+    // retrieval forever. The 12-hour ticker window is a separate
     // presentation rule below; expiry never deletes intelligence.
     function publishedRecords(){
         return records
@@ -106,7 +116,9 @@
     function liveRecords(){
         const lifecycle = window.GPIRAnnouncementLifecycle;
         if(!lifecycle) return [];
-        return publishedRecords().filter(record => lifecycle.isLive(record, new Date()));
+        // Static announcements are historical intelligence, not a live-feed
+        // fallback. Only the read-only public endpoint can populate this row.
+        return publishedRecords().filter(record => record.gpirPublicFeed && lifecycle.isLive(record, new Date()));
     }
 
     function tickerTime(record){
@@ -115,7 +127,7 @@
     }
 
     function tickerLocation(record){
-        return String(record.countryCode || record.region || record.country || "GLOBAL").toUpperCase();
+        return String(record.countryCode || record.region || record.country || "UNSPECIFIED").toUpperCase();
     }
 
     // Ticker priority order, most to least urgent — new/unlisted
@@ -154,9 +166,16 @@
         // may appear in the ticker. Expired records remain in the archive.
         const tickerRecords = liveRecords();
         if(!tickerRecords.length){
-            track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No verified alerts published in the last 12 hours · View intelligence archive →</a>';
+            track.classList.add("ticker-track--status");
+            const message = liveFeedState === "failed"
+                ? "Global Alerts are temporarily unavailable"
+                : liveFeedState === "loading"
+                    ? "Checking for current verified alerts…"
+                    : "No verified alerts published in the last 12 hours";
+            track.innerHTML = `<a class="ticker-empty" href="pages/intelligence/index.html">${escapeHtml(message)} · View intelligence archive →</a>`;
             return;
         }
+        track.classList.remove("ticker-track--status");
         const showingLive = true;
         const sequenceHTML = tickerRecords.map(record => {
 
@@ -167,15 +186,14 @@
                 const publicationInstant = window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.publicationInstant(record);
                 const dateTime = publicationInstant ? publicationInstant.toISOString() : (record.publicationDate || record.publishedDate || "");
 
-                // A real href (not a plain button) means every card is a
-                // genuine, shareable, crawlable link to its own summary
-                // page (pages/intelligence/{id}.html, built by
-                // scripts/generate-intelligence-pages.js) even without
-                // JS. The click handler below still intercepts a normal
-                // left-click to open the faster in-page panel instead --
-                // ctrl/cmd/middle-click and "open in new tab" fall
-                // through to the real page untouched.
-                return `<a href="pages/intelligence/${escapeHtml(record.id)}.html" class="ticker-card ticker-card--compact${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
+                // Static records retain their permanent detail URL. Public-feed
+                // records may not have a generated page yet, so use the verified
+                // original source as their non-JavaScript/new-tab destination;
+                // an ordinary click still opens GPIR's in-page detail panel.
+                const detailHref = record.gpirPublicFeed
+                    ? record.source.url
+                    : `pages/intelligence/${record.id}.html`;
+                return `<a href="${escapeHtml(detailHref)}"${record.gpirPublicFeed ? ' target="_blank" rel="noopener noreferrer"' : ""} class="ticker-card ticker-card--compact${isSuspension ? " ticker-card--suspension" : ""}" data-intel-id="${escapeHtml(record.id)}">
                     <time datetime="${escapeHtml(dateTime)}">${escapeHtml(tickerTime(record))}</time>
                     <span class="ticker-country">${escapeHtml(tickerLocation(record))}</span>
                     <span class="ticker-headline">${escapeHtml(record.headline || record.tickerHeadline || record.title)}</span>
@@ -247,7 +265,7 @@
                         ${record.organisation && record.organisation !== record.source.name ? `<dt>Organisation</dt><dd>${escapeHtml(record.organisation)}</dd>` : ""}
                         <dt>Source</dt><dd>${escapeHtml(record.source.name)}</dd>
                         <dt>Publication</dt><dd>${escapeHtml(record.source.publicationTitle)}</dd>
-                        <dt>Published</dt><dd>${escapeHtml(formatDate(record.publishedDate))}</dd>
+                        <dt>Published</dt><dd>${escapeHtml(formatPublicationDateTime(record))}</dd>
                         ${record.lastUpdated ? `<dt>Last Updated</dt><dd>${escapeHtml(formatDate(record.lastUpdated))}</dd>` : ""}
                         <dt>Retrieved</dt><dd>${escapeHtml(formatDate(record.retrievedDate))}</dd>
                     </dl>
@@ -309,6 +327,7 @@
         `;
 
         const sourceBlock = buildSourceBlock(record, trust);
+        const location = [record.country, record.region && record.region !== record.country ? record.region : ""].filter(Boolean).join(" · ");
 
         const summaryBlock = record.summary ? `
             <h4 class="intel-summary-heading">GPIR Summary</h4>
@@ -348,7 +367,7 @@
         return `
             <div class="intel-detail-meta">
                 <span class="intel-detail-flag">${flagMarkup(record)}</span>
-                <span class="intel-detail-country">${escapeHtml(record.country)}${record.region && record.region !== record.country ? " · " + escapeHtml(record.region) : ""}</span>
+                ${location ? `<span class="intel-detail-country">${escapeHtml(location)}</span>` : ""}
                 <span class="intel-detail-category">${escapeHtml(record.category)}${record.subCategory ? " / " + escapeHtml(record.subCategory) : ""}</span>
             </div>
             <h2 class="intel-detail-title">${escapeHtml(record.title)}</h2>
@@ -455,22 +474,43 @@
 
     // Production read-only feed; static archive remains separately available.
     const LIVE_FEED_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-alerts";
+    function cleanText(value){
+        return typeof value === "string" ? value.trim() : "";
+    }
+    function verifiedSourceUrl(value){
+        try{
+            const url = new URL(value);
+            return url.protocol === "https:" && !url.username && !url.password && Boolean(url.hostname) ? url.href : "";
+        } catch(_err){
+            return "";
+        }
+    }
     function normalizeLiveFeed(data){
         return (Array.isArray(data.alerts) ? data.alerts : []).map(item => {
-            if(!item.id || !item.publishedAt || !item.sourceUrl) return null;
+            if(!item || (item.publicationStatus && item.publicationStatus !== "approved")) return null;
+            if(item.tickerEligible === false || item.sourceVerified === false || item.hasUnresolvedRestrictions === true) return null;
+            const id = cleanText(item.id);
+            const headline = cleanText(item.headline || item.title);
+            const summary = cleanText(item.summary);
+            const category = cleanText(item.category);
+            const sourceName = cleanText(item.sourceName || item.publisher);
+            const sourceUrl = verifiedSourceUrl(item.sourceUrl);
+            if(!id || !headline || !summary || !category || !sourceName || !sourceUrl || !item.publishedAt) return null;
             const timestamp = new Date(item.publishedAt);
             if(Number.isNaN(timestamp.getTime())) return null;
             return {
-                id: String(item.id),
-                title: String(item.title || ""),
-                headline: String(item.title || ""),
-                summary: String(item.summary || ""),
+                id,
+                title: headline,
+                headline,
+                summary,
                 publishedDate: timestamp.toISOString().slice(0,10),
                 sourcePublicationTimestamp: timestamp.toISOString(),
-                category: String(item.category || "Payments"),
-                country: "Global", region: "GLOBAL",
+                category,
+                country: cleanText(item.country),
+                countryCode: cleanText(item.countryCode),
+                region: cleanText(item.region),
                 status: "GPIR_CLASSIFIED", contentStatus: "CONTENT_VERIFIED",
-                source: { name: String(item.sourceName || "Original Publisher"), publicationTitle: String(item.sourceName || "Original Publisher"), url: String(item.sourceUrl) },
+                source: { name: sourceName, publicationTitle: sourceName, url: sourceUrl },
                 sourceOrgId: null,
                 gpirPublicFeed: true
             };
@@ -481,6 +521,7 @@
             .then(response => { if(!response.ok) throw new Error("public alerts unavailable"); return response.json(); })
             .then(data => {
                 const fresh = normalizeLiveFeed(data);
+                liveFeedState = "ready";
                 // The API applies the source-registry domain check; the
                 // browser's static trust registry may not yet contain every
                 // globally registered institution. Preserve the server
@@ -490,6 +531,7 @@
                 renderTicker();
             }).catch(() => {
                 // Fail closed: do not present historical records as live.
+                liveFeedState = "failed";
                 renderTicker();
             });
     }

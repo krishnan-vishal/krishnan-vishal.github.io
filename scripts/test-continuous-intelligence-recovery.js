@@ -18,6 +18,8 @@ const ANNOUNCEMENTS_PATH = path.join(ROOT, "assets", "data", "announcements.json
 const REGISTRY_PATH = path.join(ROOT, "assets", "data", "content-registry.json");
 const ARCHIVE_PATH = path.join(ROOT, "pages", "intelligence", "index.html");
 const TICKER_PATH = path.join(ROOT, "assets", "js", "announcements.js");
+const SEARCH_PATH = path.join(ROOT, "assets", "js", "content-search.js");
+const ASK_PATH = path.join(ROOT, "assets", "js", "script.js");
 
 function digest(filePath) {
     return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -160,8 +162,33 @@ try {
 }
 
 const ticker = fs.readFileSync(TICKER_PATH, "utf8");
-check(ticker.includes("showingLive ? currentLiveRecords : publishedRecords()"), "ticker must fall back from LIVE to retained published intelligence");
-check(ticker.includes("ARCHIVED · HISTORICAL INTELLIGENCE"), "ticker detail must label fallback records as archived/historical");
+const archive = fs.readFileSync(ARCHIVE_PATH, "utf8");
+const search = fs.readFileSync(SEARCH_PATH, "utf8");
+const ask = fs.readFileSync(ASK_PATH, "utf8");
+const recentPublicAlert = {
+    id: "p1-recent-public-alert",
+    status: "GPIR_CLASSIFIED",
+    contentStatus: "CONTENT_VERIFIED",
+    sourcePublicationTimestamp: "2026-10-31T00:00:00.000Z",
+    gpirPublicFeed: true
+};
+check(lifecycle.isLive(recentPublicAlert, new Date("2026-10-31T11:59:59.999Z")) &&
+    !lifecycle.isLive(recentPublicAlert, new Date("2026-10-31T12:00:00.000Z")),
+"ticker lifecycle must include eligible public alerts only inside the preceding 12 hours");
+check(ticker.includes("record.gpirPublicFeed && lifecycle.isLive(record, new Date())"),
+    "ticker must require both public-feed eligibility and the 12-hour lifecycle");
+check(ticker.includes("No verified alerts published in the last 12 hours"),
+    "ticker must render a readable empty state when no eligible alert exists");
+check(ticker.includes('liveFeedState = "failed"') && ticker.includes("Global Alerts are temporarily unavailable") &&
+    !ticker.includes("showingLive ? currentLiveRecords : publishedRecords()"),
+"API failure must render an unavailable state without exposing retained announcements as live");
+check(archive.includes('id="historical-publications"') && archive.includes("data-archive"),
+    "historical announcements must remain accessible through the repository archive");
+check(search.includes("ANNOUNCEMENTS_URL") && search.includes("announcementEntries") && search.includes("record.status === \"GPIR_CLASSIFIED\""),
+    "Search must continue indexing published historical announcements");
+check(ask.includes('settleDataset(dataPrefix + "announcements.json", "announcement data")') &&
+    ask.includes("announcements: announcements.ok ? (announcements.data.records || []) : []"),
+"ASK GPIR must continue retrieving the complete published announcement corpus");
 check(lifecycle.partition(publishedCorpus, new Date("2100-01-01T00:00:00.000Z")).archive.length === publishedCorpus.filter(lifecycle.isPublished).length, "archive must retain all expired published intelligence");
 
 immutablePaths.forEach(filePath => {
