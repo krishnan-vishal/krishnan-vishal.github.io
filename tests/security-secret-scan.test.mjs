@@ -91,8 +91,8 @@ test('end-to-end git scan rejects synthetic signatures without exposing values',
   }
 });
 
-test('repository scan accepts only the thirteen exact reviewed false positives', () => {
+test('repository scan accepts only the twelve exact reviewed false positives', () => {
   const findings = scanRepository();
-  assert.equal(findings.length, 13);
+  assert.equal(findings.length, 12);
   assert.equal(findings.every(finding => finding.allowed), true);
 });

@@ -14,8 +14,8 @@ const datasetBytes = fs.readFileSync(datasetPath);
 const data = JSON.parse(datasetBytes);
 const base = { id: "boundary", status: "GPIR_CLASSIFIED", contentStatus: "PUBLISHED", lifecycleStatus: "CURRENT", publicationDate: "2026-09-08", publicationTime: "12:00:00Z" };
 
-assert.equal(lifecycle.isLive(base, new Date("2026-09-09T11:59:59Z")), true, "record must be live before 24 hours");
-assert.equal(lifecycle.isLive(base, new Date("2026-09-09T12:00:00Z")), false, "24-hour boundary must archive exactly");
+assert.equal(lifecycle.isLive(base, new Date("2026-09-08T23:59:59Z")), true, "record must be live before 12 hours");
+assert.equal(lifecycle.isLive(base, new Date("2026-09-09T00:00:00Z")), false, "12-hour boundary must archive exactly");
 assert.equal(lifecycle.isLive({ ...base, publicationTime: null }, new Date("2026-09-08T13:00:00Z")), false, "date-only data must never invent a live timestamp");
 assert.equal(lifecycle.partition([base], new Date("2026-09-10T12:00:00Z")).archive.length, 1, "expired records must be retained in archive");
 assert.equal(announcementEntries(data).length, data.records.filter(record => record.status === "GPIR_CLASSIFIED").length, "Search must retain every validated archived record");
@@ -32,7 +32,7 @@ assert.equal(candidate.sourceUrl, "https://rbi.org.in/update", "original source 
 
 const backfill = filterDiscoveredByDate([{ discovered: [{ publicationDate: "2026-08-14" }, { publicationDate: "2026-08-15" }, { publicationDate: "2026-09-09" }, { publicationDate: "2026-09-10" }] }], "2026-08-15", "2026-09-09");
 assert.deepEqual(backfill[0].discovered.map(item => item.publicationDate), ["2026-08-15", "2026-09-09"], "backfill window must be inclusive and bounded");
-assert.equal(lifecycle.isLive({ ...base, publicationDate: "2026-08-20" }, new Date("2026-09-09T00:00:00Z")), false, "backfilled records older than 24 hours must go directly to archive");
+assert.equal(lifecycle.isLive({ ...base, publicationDate: "2026-08-20" }, new Date("2026-09-09T00:00:00Z")), false, "backfilled records older than 12 hours must go directly to archive");
 assert.equal(Buffer.compare(datasetBytes, fs.readFileSync(datasetPath)), 0, "read-only discovery and tests must preserve last-known-good publication data");
 
-console.log("Announcement lifecycle tests passed: relevance, geography, 24-hour boundary, archive retention, URLs, deduplication, publication dates, Search/ASK retrieval, backfill routing and last-known-good protection.");
+console.log("Announcement lifecycle tests passed: relevance, geography, 12-hour boundary, archive retention, URLs, deduplication, publication dates, Search/ASK retrieval, backfill routing and last-known-good protection.");

@@ -1483,11 +1483,12 @@ function initializeReaderAssistant(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
+    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?limit=100";
     let contextPromise = null;
 
     // Each dataset settles independently (never rejects the shared
     // Promise.all) so an unrelated dataset failing can't take down
-    // announcements.json with it -- mirrors the isolation already used
+    // the authoritative intelligence repository with it -- mirrors the isolation already used
     // by assets/js/content-search.js for its optional datasets.
     const settleDataset = (url, label) => fetch(url)
         .then(response => {
@@ -1505,7 +1506,7 @@ function initializeReaderAssistant(){
         contextPromise = Promise.all([
             settleDataset(dataPrefix + "content-registry.json", "content registry"),
             settleDataset(dataPrefix + "trusted-sources.json", "trusted source registry"),
-            settleDataset(dataPrefix + "announcements.json", "announcement data"),
+            settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository"),
             settleDataset(dataPrefix + "dashboard-metadata.json", "dashboard metadata"),
             settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives")
         ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
@@ -1590,7 +1591,7 @@ function initializeReaderAssistant(){
     };
 
     const answerAnnouncementQuery = (normalized, context) => {
-        // A genuine announcements.json failure is reported honestly and must
+        // A genuine repository failure is reported honestly and must
         // never be presented the same as a query that simply matched zero
         // records (see loadContext()'s per-dataset settleDataset()).
         if(!context.announcementsAvailable){
@@ -1627,9 +1628,10 @@ function initializeReaderAssistant(){
         }
         const items = matches.map(record => {
             const source = record.source && record.source.url ? ` · <a href="${escape(record.source.url)}" target="_blank" rel="noopener noreferrer">Original source</a>` : "";
-            return `<li><a href="${escape(rootPrefix + "pages/intelligence/" + record.id + ".html")}">${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
+            const destination = record.pageUrl || record.canonicalUrl || (record.source && record.source.url) || (rootPrefix + "pages/intelligence/" + record.id + ".html");
+            return `<li><a href="${escape(destination)}"${/^https:\/\//i.test(destination) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
         }).join("");
-        answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the structured announcement records; no factual summary was generated.</p>`;
+        answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the authoritative read-only intelligence repository; no factual summary was generated in the browser.</p>`;
         return true;
     };
 

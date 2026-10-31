@@ -82,7 +82,7 @@ assert(fs.readFileSync(path.join(ROOT, "assets/js/content-search.js"), "utf8").i
 // M-18.4B regression coverage: ASK GPIR announcement retrieval must stay
 // available when an unrelated optional dataset (registry / trusted sources /
 // dashboard metadata / dashboard narratives) fails, and must only report
-// "unavailable" when announcements.json itself genuinely fails.
+// "unavailable" when the authoritative repository itself genuinely fails.
 //
 // script.js's initializeReaderAssistant() is a browser-only closure, so it
 // is exercised here in a real vm context with a minimal DOM/fetch stub
@@ -154,6 +154,11 @@ function buildAskGpirSandbox(datasetAvailability){
   };
 
   const fetchStub = (url) => {
+    if(String(url).includes("/functions/v1/gpir-public-intelligence")){
+      const data = datasetAvailability.announcements === false ? null : announcements;
+      if(data === null) return Promise.resolve({ ok: false, status: 500 });
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(data) });
+    }
     const name = Object.keys(datasetFiles).find(file => url.endsWith(file));
     const data = name ? datasetFiles[name] : null;
     if(data === null) return Promise.resolve({ ok: false, status: 500 });
@@ -212,8 +217,8 @@ async function runAskGpirResilienceTests(){
       assert(!isUnavailable(html), "D: trusted sources failure must not surface the generic unavailable message");
       assert(countListItems(html) === 2, "D: trusted sources failure must still return the 2 published India announcements");
     }],
-    ["E: announcements.json failure", { announcements: false }, "show india announcements", html => {
-      assert(isUnavailable(html), "E: a genuine announcements.json failure must surface the honest unavailable message");
+    ["E: repository failure", { announcements: false }, "show india announcements", html => {
+      assert(isUnavailable(html), "E: a genuine repository failure must surface the honest unavailable message");
       assert(countListItems(html) === 0, "E: an unavailable announcement dataset must not render fabricated results");
     }],
     ["F: baseline current query", {}, "show regulatory announcements", html => {
@@ -223,11 +228,11 @@ async function runAskGpirResilienceTests(){
       assert(actual >= expected, `F: baseline regulatory announcement query must return at least all ${expected} category-matched records (received ${actual})`);
     }],
     ["G: historical query returns retained archive", {}, "show historical announcements", html => {
-      assert(!isUnavailable(html), "G: historical query must not report unavailable when announcements.json is fine");
+      assert(!isUnavailable(html), "G: historical query must not report unavailable when the repository is fine");
       assert(!isNoMatch(html) && countListItems(html) === historicalRecords.length, "G: historical query must return every validated archived record");
     }],
     ["H: Qatar verification-pending record excluded", {}, "show qatar announcements", html => {
-      assert(!isUnavailable(html), "H: Qatar query must not report unavailable when announcements.json is fine");
+      assert(!isUnavailable(html), "H: Qatar query must not report unavailable when the repository is fine");
       assert(isNoMatch(html) && countListItems(html) === 0, "H: SOURCE_VERIFICATION_REQUIRED Qatar record must remain excluded from published results");
     }],
     ["I: implicit RBI event query", {}, "RBI cross-border payment changes September 2026", html => {
