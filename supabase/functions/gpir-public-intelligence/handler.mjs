@@ -42,7 +42,10 @@ async function jsonFetch(fetchImpl, url, headers) {
   return data;
 }
 
-export function normalizeRepositoryRows({ announcements, sources, now = Date.now() }) {
+export function normalizeRepositoryRows({ announcements, sources, events = [], eventSources = [], now = Date.now() }) {
+  const byAnnouncement = new Map(events.map(e => [e.announcement_id,e]));
+  const byEvent = new Map();
+  for (const link of eventSources) { if (!byEvent.has(link.event_id)) byEvent.set(link.event_id, []); byEvent.get(link.event_id).push(link); }
   const bySource = new Map((sources || [])
     .filter(source => source.source_status === 'GREEN')
     .map(source => [source.source_id, source]));
@@ -55,6 +58,10 @@ export function normalizeRepositoryRows({ announcements, sources, now = Date.now
         summary.length < 40 || !Number.isFinite(publishedTime) ||
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
+    const event = byAnnouncement.get(row.id);
+    const verifiedSources = (byEvent.get(event?.id) || []).filter(link =>
+      bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
+      .map(link => ({name:bySource.get(link.source_id).source_name,url:link.canonical_url,publishedAt:link.source_published_at}));
     const live = row.ticker_eligible === true && isWithinLiveWindow(published.toISOString(), now);
     const category = Array.isArray(row.topic_headers) && row.topic_headers[0]
       ? row.topic_headers[0] : 'Payments';
@@ -79,6 +86,11 @@ export function normalizeRepositoryRows({ announcements, sources, now = Date.now
       tickerEligible: live,
       canonicalUrl: row.canonical_url,
       pageUrl: row.canonical_url,
+      keywords: event?.keywords || [],
+      outcomeStatus: event?.outcome_status || 'PENDING',
+      geography: event?.geography || null,
+      eventId: event?.id || null,
+      sources: verifiedSources.length ? verifiedSources : [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString()}],
       source: {
         name: source.source_name,
         publicationTitle: source.source_name,
@@ -118,11 +130,15 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const sourceQuery = new URLSearchParams({
           select: 'source_id,source_name,official_url,source_status', limit: '500'
         });
-        const [announcements, sources] = await Promise.all([
+        const eventQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
+        const linksQuery = new URLSearchParams({select:'event_id,source_id,canonical_url,source_published_at',limit:'5000'});
+        const [announcements, sources, events, eventSources] = await Promise.all([
           jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${announcementQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${sourceQuery}`, headers)
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${sourceQuery}`, headers),
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_events?${eventQuery}`, headers),
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_event_sources?${linksQuery}`, headers)
         ]);
-        rows = { announcements, sources };
+        rows = { announcements, sources, events, eventSources };
       }
       let records = normalizeRepositoryRows({ ...rows, now: now() });
       if (queryText) records = records.filter(record => [
