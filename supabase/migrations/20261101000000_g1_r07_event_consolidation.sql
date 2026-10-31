@@ -48,16 +48,62 @@ begin
     or p_event_date is null or p_geography is null
     or p_outcome_status not in ('CONFIRMED','ANNOUNCED','PENDING')
     or coalesce(p_validation_payload->>'source_verified','false') <> 'true'
+    or coalesce(p_validation_payload->>'canonical_verified','false') <> 'true'
+    or coalesce(p_validation_payload->>'timestamp_verified','false') <> 'true'
+    or coalesce(p_validation_payload->>'content_verified','false') <> 'true'
+    or coalesce(p_validation_payload->>'relevance_verified','false') <> 'true'
+    or coalesce(p_validation_payload->>'summary_grounded','false') <> 'true'
  then raise exception 'G1_R07_EVENT_EVIDENCE_REQUIRED'; end if;
  select * into candidate_record from public.intelligence_candidates where id=p_candidate_id;
  if not found then raise exception 'G1_R07_CANDIDATE_MISSING'; end if;
  select * into source_record from public.source_registry where source_id=candidate_record.source_id;
  required_confidence := case source_record.trust_tier when 'T1' then 70 when 'T1.5' then 80 when 'T2' then 90 else null end;
  if source_record.source_status is distinct from 'GREEN' or required_confidence is null
-   or candidate_record.confidence_score < required_confidence
+   or candidate_record.confidence_score is null or candidate_record.confidence_score < required_confidence
    or candidate_record.candidate_status not in ('PENDING','REVIEW','VALIDATING')
  then raise exception 'G1_R07_SOURCE_NOT_ELIGIBLE'; end if;
  if candidate_record.canonical_url is null or candidate_record.canonical_url !~ '^https://' or
+   p_content_fingerprint is null or p_content_fingerprint !~ '^[0-9a-f]{64}
+   abs(extract(epoch from (p_source_published_at - candidate_record.published_at))) > 129600
+ then raise exception 'G1_R07_SOURCE_INVALID'; end if;
+ perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_event_key, 0));
+ select * into existing_event from public.gpir_intelligence_events where event_key=p_event_key for update;
+ if found then
+   -- Only attach independently validated corroborating evidence. Never create a second alert.
+   if existing_event.announcement_id is null then raise exception 'G1_R07_EVENT_PENDING_REVIEW'; end if;
+   if exists(select 1 from public.intelligence_publication_audits a where a.candidate_id=p_candidate_id and a.decision='PUBLISHED')
+   then raise exception 'G1_R07_ALREADY_PUBLISHED'; end if;
+   insert into public.gpir_intelligence_event_sources(event_id,source_id,canonical_url,source_published_at,evidence_excerpt)
+   values(existing_event.id,candidate_record.source_id,candidate_record.canonical_url,p_source_published_at,
+     left(coalesce(p_validation_payload->>'evidence_excerpt',''),1000))
+   on conflict (event_id,canonical_url) do nothing;
+   update public.intelligence_candidates set candidate_status='DUPLICATE',ticker_eligible=false,
+     validation_notes='G1_R07_SOURCE_ATTACHED_TO_CANONICAL_EVENT',validated_at=clock_timestamp()
+     where id=p_candidate_id;
+   insert into public.intelligence_publication_audits(candidate_id,announcement_id,decision,reason_code,canonical_url,
+     content_fingerprint,source_published_at,validation_payload,completed_at)
+   values(p_candidate_id,null,'DUPLICATE','G1_R07_SOURCE_ATTACHED',candidate_record.canonical_url,
+     p_content_fingerprint,p_source_published_at,p_validation_payload,clock_timestamp())
+   on conflict (candidate_id) do update set decision='DUPLICATE',reason_code='G1_R07_SOURCE_ATTACHED',
+     completed_at=excluded.completed_at,validation_payload=excluded.validation_payload;
+   return existing_event.announcement_id;
+ end if;
+ announcement_identifier := public.gpir_publish_validated_candidate(p_candidate_id,p_summary,p_source_published_at,
+   p_content_fingerprint,p_validation_payload);
+ insert into public.gpir_intelligence_events(event_key,announcement_id,issuer,event_type,subject,event_date,
+   geography,keywords,outcome_status)
+ values(p_event_key,announcement_identifier,p_issuer,p_event_type,p_subject,p_event_date,p_geography,
+   coalesce(p_keywords,'{}'),p_outcome_status)
+ returning * into existing_event;
+ insert into public.gpir_intelligence_event_sources(event_id,source_id,canonical_url,source_published_at,evidence_excerpt)
+ values(existing_event.id,candidate_record.source_id,candidate_record.canonical_url,p_source_published_at,
+   left(coalesce(p_validation_payload->>'evidence_excerpt',''),1000));
+ return announcement_identifier;
+end $$;
+revoke all on function public.gpir_publish_consolidated_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text) from public,anon,authenticated;
+grant execute on function public.gpir_publish_consolidated_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text) to service_role;
+ or
+   length(btrim(coalesce(p_summary,''))) < 120 or
    abs(extract(epoch from (p_source_published_at - candidate_record.published_at))) > 129600
  then raise exception 'G1_R07_SOURCE_INVALID'; end if;
  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_event_key, 0));
