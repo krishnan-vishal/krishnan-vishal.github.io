@@ -23,12 +23,14 @@ test('public feed exposes verified links only and preserves archived lifecycle',
  canonical_url:'https://bank.example/news',published_at:'2026-10-31T09:00:00Z',ticker_eligible:true,
  topic_headers:['Payments'],publication_status:'approved'};
  const data=normalizeRepositoryRows({announcements:[announcement],sources:[{source_id:'A',source_status:'GREEN',source_name:'Bank',official_url:'https://bank.example'}],
- events:[{id:'e',announcement_id:'a',keywords:['payments'],outcome_status:'PENDING',geography:'UNSPECIFIED'}],
- eventSources:[{event_id:'e',source_id:'A',canonical_url:'https://bank.example/news',source_published_at:'2026-10-31T09:00:00Z'},
- {event_id:'e',source_id:'A',canonical_url:'https://attacker.example/false',source_published_at:'2026-10-31T09:00:00Z'}],
+ topics:[{id:'e',announcement_id:'a',keywords:['payments'],outcome_status:'PENDING',geography:'UNSPECIFIED'}],
+ developments:[{id:'d',topic_id:'e',event_type:'LAUNCH',effective_date:'2026-10-31',summary:'Validated payments and remittance interoperability initiative published with detailed evidence and implementation milestones.',outcome_status:'PENDING'}],
+ topicSources:[{topic_id:'e',development_id:'d',source_id:'A',canonical_url:'https://bank.example/news',source_published_at:'2026-10-31T09:00:00Z'},
+ {topic_id:'e',development_id:'d',source_id:'A',canonical_url:'https://attacker.example/false',source_published_at:'2026-10-31T09:00:00Z'}],
  now:Date.parse('2026-11-02T09:00:00Z')});
  assert.equal(data.length,1);assert.equal(data[0].sources.length,1);
  assert.equal(data[0].displayLifecycleStatus,'ARCHIVED');assert.equal(data[0].outcomeStatus,'PENDING');
+ assert.equal(data[0].developments.length,1);
 });
 
 test('unapproved T3 source remains REVIEW before repository publication',async()=>{
@@ -41,4 +43,25 @@ test('unapproved T3 source remains REVIEW before repository publication',async()
  const result=await processCandidate({candidate,repository:repo,fetchImpl:async()=>new Response('<html><body>Insufficient evidence</body></html>',{
    status:200,headers:{'content-type':'text/html'}})});
  assert.equal(result.decision,'REVIEW');assert.equal(published,false);assert.equal(recorded.decision,'REVIEW');
+});
+
+test('multiple publishing entities appear on one topic card with separately dated developments',()=>{
+ const announcements=[{id:'a',source_id:'A',title:'Regional payments interoperability initiative announced',
+ summary_narration:'A verified cross-border payments initiative with published implementation details and regulatory commentary.',
+ canonical_url:'https://bank.example/notice',published_at:'2026-10-31T09:00:00Z',ticker_eligible:true,
+ topic_headers:['Payments'],publication_status:'approved'}];
+ const sources=[{source_id:'A',source_name:'Central Bank',source_status:'GREEN',official_url:'https://bank.example'},
+ {source_id:'B',source_name:'Payments Association',source_status:'GREEN',official_url:'https://association.example'}];
+ const topics=[{id:'t',announcement_id:'a',keywords:['cross-border'],outcome_status:'ANNOUNCED',geography:'APAC'}];
+ const developments=[{id:'d1',topic_id:'t',event_type:'ANNOUNCEMENT',effective_date:'2026-10-31',
+ summary:'The central bank announced the regional payments initiative, identifying its participants and a proposed timeline for operational rollout.',outcome_status:'ANNOUNCED'},
+ {id:'d2',topic_id:'t',event_type:'CONFIRMATION',effective_date:'2026-11-01',
+ summary:'The payments association confirmed additional implementation details about the same regional payments initiative, with source-specific dates and scope.',outcome_status:'CONFIRMED'}];
+ const topicSources=[{topic_id:'t',development_id:'d1',source_id:'A',canonical_url:'https://bank.example/notice',source_published_at:'2026-10-31T09:00:00Z'},
+ {topic_id:'t',development_id:'d2',source_id:'B',canonical_url:'https://association.example/confirmation',source_published_at:'2026-11-01T09:00:00Z'}];
+ const result=normalizeRepositoryRows({announcements,sources,topics,developments,topicSources,now:Date.parse('2026-11-02T09:00:00Z')});
+ assert.equal(result.length,1);assert.equal(result[0].sources.length,2);
+ assert.equal(result[0].developments.length,2);
+ assert.match(result[0].summary,/central bank announced/);
+ assert.match(result[0].summary,/payments association confirmed/);
 });
