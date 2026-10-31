@@ -30,3 +30,15 @@ test('public feed exposes verified links only and preserves archived lifecycle',
  assert.equal(data.length,1);assert.equal(data[0].sources.length,1);
  assert.equal(data[0].displayLifecycleStatus,'ARCHIVED');assert.equal(data[0].outcomeStatus,'PENDING');
 });
+
+test('unapproved T3 source remains REVIEW before repository publication',async()=>{
+ const {processCandidate}=await import('../supabase/functions/gpir-intelligence-publish/handler.mjs');
+ let published=false;let recorded=null;
+ const candidate={id:'00000000-0000-4000-8000-000000000001',source_id:'T3',canonical_url:'https://example.org/notice',
+   title:'Regional payments interoperability initiative announced',published_at:'2026-10-31T09:00:00Z',confidence_score:99};
+ const repo={start:async()=>{},source:async()=>({source_id:'T3',source_name:'Example',source_status:'GREEN',trust_tier:'T3',official_url:'https://example.org'}),
+   record:async(_c,v)=>{recorded=v},duplicate:async()=>false,publish:async()=>{published=true}};
+ const result=await processCandidate({candidate,repository:repo,fetchImpl:async()=>new Response('<html><body>Insufficient evidence</body></html>',{
+   status:200,headers:{'content-type':'text/html'}})});
+ assert.equal(result.decision,'REVIEW');assert.equal(published,false);assert.equal(recorded.decision,'REVIEW');
+});
