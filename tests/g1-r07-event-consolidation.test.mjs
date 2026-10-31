@@ -65,3 +65,20 @@ test('multiple publishing entities appear on one topic card with separately date
  assert.match(result[0].summary,/central bank announced/);
  assert.match(result[0].summary,/payments association confirmed/);
 });
+
+test('SQL release gate enforces service-role access, T3 exclusion and fail-closed topic matching',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const sql=await readFile(new URL('../supabase/migrations/20261101000000_g1_r07_event_consolidation.sql',import.meta.url),'utf8');
+ assert.match(sql,/enable row level security/g);
+ assert.match(sql,/revoke all on public\.gpir_intelligence_topics/);
+ assert.match(sql,/when 'T1' then 70 when 'T1\.5' then 80 when 'T2' then 90 else null/);
+ assert.match(sql,/G1_R07_TOPIC_MATCH_REVIEW_REQUIRED/);
+ assert.match(sql,/pg_advisory_xact_lock/);
+ assert.match(sql,/G1_R07_INVALID_EVIDENCE/);
+ assert.match(sql,/public\.gpir_publish_validated_candidate/);
+});
+test('different reporting headline cannot automatically claim the same topic key',async()=>{
+ const a=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'LAUNCH',source_id:'A'},validation);
+ const b=await eventIdentity({title:'Central bank unveils cross-border payment connectivity',event_type:'LAUNCH',source_id:'B'},validation);
+ assert.notEqual(a.p_event_key,b.p_event_key);
+});
