@@ -8,11 +8,11 @@ test('same event reported by different source URLs shares event identity',async(
  const b=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'LAUNCH',source_id:'B'},validation);
  assert.equal(a.p_event_key,b.p_event_key);
 });
-test('different date and event type never collide',async()=>{
+test('same topic persists across milestone and date',async()=>{
  const a=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'LAUNCH',source_id:'A'},validation);
  const b=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'ANNOUNCEMENT',source_id:'A'},validation);
  const c=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'LAUNCH',source_id:'A'},{...validation,sourcePublishedAt:'2026-11-01T09:00:00Z'});
- assert.notEqual(a.p_event_key,b.p_event_key);assert.notEqual(a.p_event_key,c.p_event_key);
+ assert.equal(a.p_event_key,b.p_event_key);assert.equal(a.p_event_key,c.p_event_key);
 });
 test('missing evidence does not produce event identity',async()=>{
  await assert.rejects(()=>eventIdentity({title:'Short'},validation),/G1_R07_EVENT_IDENTITY_REVIEW/);
@@ -81,4 +81,16 @@ test('different reporting headline cannot automatically claim the same topic key
  const a=await eventIdentity({title:'Regional payments network launches interoperability',event_type:'LAUNCH',source_id:'A'},validation);
  const b=await eventIdentity({title:'Central bank unveils cross-border payment connectivity',event_type:'LAUNCH',source_id:'B'},validation);
  assert.notEqual(a.p_event_key,b.p_event_key);
+});
+
+test('verified subject alias groups differently worded reports; unverified alias cannot',async()=>{
+ const a=await eventIdentity({title:'Regional payments network launches interoperability',source_id:'A'},validation);
+ const alias={verified:true,subject:'Regional payments network launches interoperability',
+ evidenceUrls:['https://central.example/notice','https://association.example/report']};
+ const b=await eventIdentity({title:'Central bank unveils cross-border payment connectivity',source_id:'B'},
+ {...validation,verifiedTopicIdentity:alias});
+ const unverified=await eventIdentity({title:'Central bank unveils cross-border payment connectivity',source_id:'B'},
+ {...validation,verifiedTopicIdentity:{...alias,verified:false}});
+ assert.equal(a.p_event_key,b.p_event_key);
+ assert.notEqual(a.p_event_key,unverified.p_event_key);
 });
