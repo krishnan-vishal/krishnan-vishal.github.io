@@ -1797,8 +1797,6 @@ button.ticker-card{
     z-index:200;
 }
 
-.nav-item-mega:hover > .mega-menu,
-.nav-item-mega:focus-within > .mega-menu,
 .nav-item-mega.is-open > .mega-menu{
 
     opacity:1;
