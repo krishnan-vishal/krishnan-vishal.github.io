@@ -43,7 +43,7 @@
     })();
 
     const DASHBOARD_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "assets/data/dashboard-metadata.json");
-    const ANNOUNCEMENTS_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "assets/data/announcements.json");
+    const ANNOUNCEMENTS_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?limit=100";
 
     // Existing dashboard cards are structured records, not indexed prose. Each
     // published record becomes one search entry from its own already-existing
@@ -72,7 +72,7 @@
                 id: "announcement-" + record.id,
                 pageTitle: record.headline || record.title,
                 sectionTitle: "Global Announcement",
-                url: "pages/intelligence/" + record.id + ".html",
+                url: record.pageUrl || record.canonicalUrl || (record.source && record.source.url) || ("pages/intelligence/" + record.id + ".html"),
                 type: "Global Announcement",
                 category: [record.category, record.subcategory || record.subCategory].filter(Boolean).join(" / "),
                 header: "Global Announcements",
@@ -295,7 +295,7 @@
             id: entry.id,
             pageTitle: entry.pageTitle,
             sectionTitle: entry.sectionTitle,
-            href: PAGE_PREFIX + entry.url,
+            href: /^[a-z][a-z0-9+.-]*:/i.test(entry.url) ? entry.url : PAGE_PREFIX + entry.url,
             type: entry.type,
             category: entry.category,
             header: entry.header,

@@ -186,9 +186,10 @@ check(archive.includes('id="historical-publications"') && archive.includes("data
     "historical announcements must remain accessible through the repository archive");
 check(search.includes("ANNOUNCEMENTS_URL") && search.includes("announcementEntries") && search.includes("record.status === \"GPIR_CLASSIFIED\""),
     "Search must continue indexing published historical announcements");
-check(ask.includes('settleDataset(dataPrefix + "announcements.json", "announcement data")') &&
+check(ask.includes('gpir-public-intelligence?limit=100') &&
+    ask.includes('settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository")') &&
     ask.includes("announcements: announcements.ok ? (announcements.data.records || []) : []"),
-"ASK GPIR must continue retrieving the complete published announcement corpus");
+"ASK GPIR must retrieve the complete published announcement corpus from the read-only authoritative repository API");
 check(lifecycle.partition(publishedCorpus, new Date("2100-01-01T00:00:00.000Z")).archive.length === publishedCorpus.filter(lifecycle.isPublished).length, "archive must retain all expired published intelligence");
 
 immutablePaths.forEach(filePath => {
