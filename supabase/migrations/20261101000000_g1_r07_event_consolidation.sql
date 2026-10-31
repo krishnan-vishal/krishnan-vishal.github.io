@@ -39,6 +39,8 @@ create or replace function public.gpir_publish_consolidated_candidate(
 declare existing_event public.gpir_intelligence_events%rowtype;
  announcement_identifier uuid;
  candidate_record public.intelligence_candidates%rowtype;
+ source_record public.source_registry%rowtype;
+ required_confidence numeric;
 begin
  if p_event_key is null or p_event_key !~ '^[a-f0-9]{64}$'
     or length(btrim(coalesce(p_issuer,''))) < 3
@@ -49,6 +51,15 @@ begin
  then raise exception 'G1_R07_EVENT_EVIDENCE_REQUIRED'; end if;
  select * into candidate_record from public.intelligence_candidates where id=p_candidate_id;
  if not found then raise exception 'G1_R07_CANDIDATE_MISSING'; end if;
+ select * into source_record from public.source_registry where source_id=candidate_record.source_id;
+ required_confidence := case source_record.trust_tier when 'T1' then 70 when 'T1.5' then 80 when 'T2' then 90 else null end;
+ if source_record.source_status is distinct from 'GREEN' or required_confidence is null
+   or candidate_record.confidence_score < required_confidence
+   or candidate_record.candidate_status not in ('PENDING','REVIEW','VALIDATING')
+ then raise exception 'G1_R07_SOURCE_NOT_ELIGIBLE'; end if;
+ if candidate_record.canonical_url is null or candidate_record.canonical_url !~ '^https://' or
+   abs(extract(epoch from (p_source_published_at - candidate_record.published_at))) > 129600
+ then raise exception 'G1_R07_SOURCE_INVALID'; end if;
  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_event_key, 0));
  select * into existing_event from public.gpir_intelligence_events where event_key=p_event_key for update;
  if found then
