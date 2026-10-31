@@ -101,6 +101,11 @@ begin
    -- A corroborating report is not a second publication; keep its own evidence and date.
    if exists(select 1 from public.gpir_intelligence_topic_sources where canonical_url=c.canonical_url)
    then raise exception 'G1_R07_DUPLICATE_SOURCE_URL'; end if;
+   -- A different headline or milestone must never be silently attached by a supplied key.
+   -- No second publication is allowed until subject-level matching is independently verified.
+   if lower(regexp_replace(btrim(c.title),'[^a-zA-Z0-9]+',' ','g')) <>
+      lower(regexp_replace(btrim(t.subject),'[^a-zA-Z0-9]+',' ','g'))
+   then raise exception 'G1_R07_TOPIC_MATCH_REVIEW_REQUIRED'; end if;
    announcement_identifier := t.announcement_id;
    update public.intelligence_candidates set candidate_status='DUPLICATE',
      ticker_eligible=false,validated_at=clock_timestamp(),
