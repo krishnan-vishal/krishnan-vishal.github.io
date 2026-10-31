@@ -9,6 +9,8 @@ const crypto = require("crypto");
 const ROOT = path.resolve(__dirname, "..");
 const OUTPUT_ROOT = path.join(ROOT, ".cloudflare-preview-dist");
 
+// The repository root mixes public site files with internal tooling and governance.
+// Keep every preview input explicit so adding a repository file cannot publish it.
 const ROOT_FILES = [
   "404.html",
   "index.html",
