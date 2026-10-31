@@ -4,7 +4,7 @@
     if(typeof module === "object" && module.exports) module.exports = api;
     if(root) root.GPIRAnnouncementLifecycle = api;
 })(typeof window !== "undefined" ? window : globalThis, function(){
-    const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
+    const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
     function publicationInstant(record){
         // Freshness is tied to the authoritative source publication, never
