@@ -42,10 +42,12 @@ async function jsonFetch(fetchImpl, url, headers) {
   return data;
 }
 
-export function normalizeRepositoryRows({ announcements, sources, events = [], eventSources = [], now = Date.now() }) {
-  const byAnnouncement = new Map(events.map(e => [e.announcement_id,e]));
-  const byEvent = new Map();
-  for (const link of eventSources) { if (!byEvent.has(link.event_id)) byEvent.set(link.event_id, []); byEvent.get(link.event_id).push(link); }
+export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [], topicSources = [], now = Date.now() }) {
+  const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
+  const byTopicSources = new Map();
+  const byTopicDevelopments = new Map();
+  for (const link of topicSources) { if (!byTopicSources.has(link.topic_id)) byTopicSources.set(link.topic_id, []); byTopicSources.get(link.topic_id).push(link); }
+  for (const d of developments) { if (!byTopicDevelopments.has(d.topic_id)) byTopicDevelopments.set(d.topic_id, []); byTopicDevelopments.get(d.topic_id).push(d); }
   const bySource = new Map((sources || [])
     .filter(source => source.source_status === 'GREEN')
     .map(source => [source.source_id, source]));
@@ -58,10 +60,17 @@ export function normalizeRepositoryRows({ announcements, sources, events = [], e
         summary.length < 40 || !Number.isFinite(publishedTime) ||
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
-    const event = byAnnouncement.get(row.id);
-    const verifiedSources = (byEvent.get(event?.id) || []).filter(link =>
+    const topic = byAnnouncement.get(row.id);
+    const verifiedSources = (byTopicSources.get(topic?.id) || []).filter(link =>
       bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
       .map(link => ({name:bySource.get(link.source_id).source_name,url:link.canonical_url,publishedAt:link.source_published_at}));
+    const verifiedDevelopmentIds = new Set((byTopicSources.get(topic?.id) || []).filter(link =>
+      bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
+      .map(link => link.development_id));
+    const verifiedDevelopments = (byTopicDevelopments.get(topic?.id) || [])
+      .filter(d => verifiedDevelopmentIds.has(d.id) && typeof d.summary === 'string' && d.summary.trim().length >= 120)
+      .sort((a,b) => String(a.effective_date).localeCompare(String(b.effective_date)))
+      .map(d => ({date:d.effective_date,eventType:d.event_type,summary:d.summary,outcomeStatus:d.outcome_status}));
     const live = row.ticker_eligible === true && isWithinLiveWindow(published.toISOString(), now);
     const category = Array.isArray(row.topic_headers) && row.topic_headers[0]
       ? row.topic_headers[0] : 'Payments';
@@ -73,7 +82,10 @@ export function normalizeRepositoryRows({ announcements, sources, events = [], e
       displayLifecycleStatus: live ? 'LIVE' : 'ARCHIVED',
       headline: title,
       title,
-      summary,
+      summary: verifiedDevelopments.length
+        ? verifiedDevelopments.map(d => d.summary).join(' ').slice(0, 3000)
+        : summary,
+      developments: verifiedDevelopments,
       category,
       subcategory: null,
       country: null,
@@ -86,10 +98,10 @@ export function normalizeRepositoryRows({ announcements, sources, events = [], e
       tickerEligible: live,
       canonicalUrl: row.canonical_url,
       pageUrl: row.canonical_url,
-      keywords: event?.keywords || [],
-      outcomeStatus: event?.outcome_status || 'PENDING',
-      geography: event?.geography || null,
-      eventId: event?.id || null,
+      keywords: topic?.keywords || [],
+      outcomeStatus: topic?.outcome_status || 'PENDING',
+      geography: topic?.geography || null,
+      eventId: topic?.id || null,
       sources: verifiedSources.length ? verifiedSources : [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString()}],
       source: {
         name: source.source_name,
@@ -130,15 +142,17 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const sourceQuery = new URLSearchParams({
           select: 'source_id,source_name,official_url,source_status', limit: '500'
         });
-        const eventQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
-        const linksQuery = new URLSearchParams({select:'event_id,source_id,canonical_url,source_published_at',limit:'5000'});
-        const [announcements, sources, events, eventSources] = await Promise.all([
+        const topicQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
+        const developmentsQuery = new URLSearchParams({select:'id,topic_id,event_type,effective_date,summary,outcome_status',limit:'5000'});
+        const linksQuery = new URLSearchParams({select:'topic_id,development_id,source_id,canonical_url,source_published_at',limit:'5000'});
+        const [announcements, sources, topics, developments, topicSources] = await Promise.all([
           jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${announcementQuery}`, headers),
           jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${sourceQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_events?${eventQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_event_sources?${linksQuery}`, headers)
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topics?${topicQuery}`, headers),
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_developments?${developmentsQuery}`, headers),
+          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topic_sources?${linksQuery}`, headers)
         ]);
-        rows = { announcements, sources, events, eventSources };
+        rows = { announcements, sources, topics, developments, topicSources };
       }
       let records = normalizeRepositoryRows({ ...rows, now: now() });
       if (queryText) records = records.filter(record => [
