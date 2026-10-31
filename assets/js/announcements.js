@@ -94,7 +94,7 @@
                 if(r.status !== "GPIR_CLASSIFIED") return false;
                 if(r.lifecycleStatus === "DEVELOPING") return false;
                 if(r.contentStatus === "CONTENT_UNDER_REVIEW") return false;
-                return evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
+                return r.gpirPublicFeed || evaluateTrust(r).sourceStatus !== "SOURCE_BLOCKED";
             })
             .sort((a, b) => {
                 const rank = categoryPriority(a) - categoryPriority(b);
@@ -240,7 +240,7 @@
 
     function buildSourceBlock(record, trust){
 
-        if(trust.sourceStatus === "SOURCE_VERIFIED"){
+        if(trust.sourceStatus === "SOURCE_VERIFIED" || record.gpirPublicFeed){
             return `
                 <div class="intel-source-block">
                     <dl class="intel-source-list">
@@ -299,13 +299,13 @@
 
     function buildDetailMarkup(record){
 
-        const trust = evaluateTrust(record);
+        const trust = record.gpirPublicFeed ? {sourceStatus:"SOURCE_VERIFIED",confidence:"HIGH"} : evaluateTrust(record);
         const statusMeta = SOURCE_STATUS_META[trust.sourceStatus] || SOURCE_STATUS_META.SOURCE_REQUIRES_VERIFICATION;
         const badges = `
             <span class="intel-badge intel-badge--status intel-badge--${statusMeta.cls}">${statusMeta.icon} ${escapeHtml(statusMeta.label)}</span>
             <span class="intel-badge intel-badge--confidence">Confidence: ${escapeHtml(trust.confidence)}</span>
             <span class="intel-badge intel-badge--content">${escapeHtml(CONTENT_STATUS_META[record.contentStatus] || "Content: Under Review")}</span>
-            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.isLive(record, new Date()) ? "LIVE · LATEST 24H" : "ARCHIVED · HISTORICAL INTELLIGENCE")}</span>
+            <span class="intel-badge intel-badge--lifecycle">${escapeHtml(window.GPIRAnnouncementLifecycle && window.GPIRAnnouncementLifecycle.isLive(record, new Date()) ? "LIVE · LATEST 12H" : "ARCHIVED · HISTORICAL INTELLIGENCE")}</span>
         `;
 
         const sourceBlock = buildSourceBlock(record, trust);
@@ -453,6 +453,47 @@
 
     }
 
+    // Production read-only feed; static archive remains separately available.
+    const LIVE_FEED_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-alerts";
+    function normalizeLiveFeed(data){
+        return (Array.isArray(data.alerts) ? data.alerts : []).map(item => {
+            if(!item.id || !item.publishedAt || !item.sourceUrl) return null;
+            const timestamp = new Date(item.publishedAt);
+            if(Number.isNaN(timestamp.getTime())) return null;
+            return {
+                id: String(item.id),
+                title: String(item.title || ""),
+                headline: String(item.title || ""),
+                summary: String(item.summary || ""),
+                publishedDate: timestamp.toISOString().slice(0,10),
+                sourcePublicationTimestamp: timestamp.toISOString(),
+                category: String(item.category || "Payments"),
+                country: "Global", region: "GLOBAL",
+                status: "GPIR_CLASSIFIED", contentStatus: "CONTENT_VERIFIED",
+                source: { name: String(item.sourceName || "Original Publisher"), publicationTitle: String(item.sourceName || "Original Publisher"), url: String(item.sourceUrl) },
+                sourceOrgId: null,
+                gpirPublicFeed: true
+            };
+        }).filter(Boolean);
+    }
+    function loadLiveFeed(){
+        return fetch(LIVE_FEED_URL, {cache:"no-store"})
+            .then(response => { if(!response.ok) throw new Error("public alerts unavailable"); return response.json(); })
+            .then(data => {
+                const fresh = normalizeLiveFeed(data);
+                // The API applies the source-registry domain check; the
+                // browser's static trust registry may not yet contain every
+                // globally registered institution. Preserve the server
+                // approval and never use the static feed as live fallback.
+                records = records.filter(record => !record.gpirPublicFeed).concat(fresh);
+                fresh.forEach(record => { recordsById[record.id] = record; });
+                renderTicker();
+            }).catch(() => {
+                // Fail closed: do not present historical records as live.
+                renderTicker();
+            });
+    }
+
     function load(){
 
         const dataReady = Promise.all([
@@ -482,6 +523,7 @@
             try{
                 renderTicker();
                 initializeDetailPanel();
+                loadLiveFeed();
             } catch(err){
                 // One malformed record must not blank the whole ticker
                 // silently forever -- surface it and leave whatever
