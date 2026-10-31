@@ -150,21 +150,14 @@
         // rest of the ticker -- skip that record rather than letting a
         // single throw abort the whole .map() before assignment.
         //
-        // The 24-hour live window can genuinely be empty (nothing was
-        // validated in the last day) without the ticker itself having
-        // no honest content to show. Prefer live records when there are
-        // any; otherwise fall back to the full published set rather than
-        // leaving the ticker permanently blank -- each card still opens
-        // its real detail panel, which labels itself ARCHIVED (not LIVE)
-        // via GPIRAnnouncementLifecycle.isLive() for a non-live record,
-        // so nothing here claims a freshness the data doesn't have.
-        const currentLiveRecords = liveRecords();
-        const showingLive = currentLiveRecords.length > 0;
-        const tickerRecords = showingLive ? currentLiveRecords : publishedRecords();
+        // Only source-published announcements within the 12-hour live window
+        // may appear in the ticker. Expired records remain in the archive.
+        const tickerRecords = liveRecords();
         if(!tickerRecords.length){
-            track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No validated announcements in the latest 24-hour window · View historical intelligence →</a>';
+            track.innerHTML = '<a class="ticker-empty" href="pages/intelligence/index.html">No verified alerts published in the last 12 hours · View intelligence archive →</a>';
             return;
         }
+        const showingLive = true;
         const sequenceHTML = tickerRecords.map(record => {
 
             try{
