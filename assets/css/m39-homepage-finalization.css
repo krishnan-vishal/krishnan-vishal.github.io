@@ -35,3 +35,31 @@ body:has(#command-centre) a:focus-visible{outline:3px solid var(--m39-gold);outl
  body:has(#command-centre) :is(#command-centre,#dashboard-gallery,#architecture-library) :is(.grid,.cards-grid,.dashboard-grid,.architecture-grid,.card-grid){grid-template-columns:minmax(0,1fr)!important}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Actual section component classes: close the large whitespace visible in review. */
+#command-centre .command-header,#architecture-library .architecture-header,
+#intelligence-library .library-header,#research .research-header,
+#dashboard-gallery .section-heading{margin:0 auto 18px!important;padding:0!important}
+#command-centre .command-header>p,#architecture-library .architecture-header>p,
+#intelligence-library .library-header>p,#dashboard-gallery .section-intro{
+ max-width:880px;margin:8px auto 14px!important;line-height:1.45!important;
+ font-size:clamp(13px,1.2vw,16px)!important;
+}
+#command-centre .command-grid,#dashboard-gallery .dashboard-grid,
+#architecture-library .architecture-grid,#intelligence-library .library-grid{
+ gap:clamp(12px,1.5vw,22px)!important;margin-top:14px!important;align-items:stretch;
+}
+#command-centre .command-card{padding:clamp(16px,2vw,24px)!important;min-height:0!important}
+#command-centre .command-icon{margin-bottom:8px!important}
+#command-centre .command-icon img{max-height:64px!important;width:auto!important}
+#command-centre .command-card h3{margin:6px 0!important;font-family:"Calibri Light",Calibri,Arial,sans-serif!important}
+#command-centre .command-card p{margin:6px 0 0!important}
+#dashboard-gallery .dashboard-card,#architecture-library .architecture-card{min-height:0!important}
+#architecture-library .architecture-header h2{max-width:none!important}
+#architecture-library .architecture-header>p{max-width:900px}
+.m39-section-link{color:inherit;text-decoration:none}
+.m39-section-link:hover,.m39-section-link:focus-visible{text-decoration:underline;text-decoration-color:#c99b42;text-underline-offset:4px}
+@media(max-width:640px){#command-centre .command-grid,#dashboard-gallery .dashboard-grid,
+#architecture-library .architecture-grid,#intelligence-library .library-grid{
+ grid-template-columns:minmax(0,1fr)!important}
+}
