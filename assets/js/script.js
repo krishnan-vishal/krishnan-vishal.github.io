@@ -218,35 +218,11 @@ function initializeM39Alignment(){
             : `<li><a href="${href}">${label}</a><span class="m39-status m39-status--published">Published</span></li>`;
     };
 
-    const navList = document.querySelector("#main-nav > ul");
-    if(navList){
-        navList.classList.add("m39-aligned-nav");
-        navList.innerHTML = `<li><a href="/#home">Home</a></li>${GPIR_M39_DOMAINS.map(domain => {
-            const searchDomain = domain.id === "search-gpir";
-            const menuClass = searchDomain ? "mega-menu mega-menu--headed mega-menu--more" : "mega-menu mega-menu--headed";
-            const topicList = domain.topics.map(topic => topicMarkup(topic, true)).join("");
-            const cta = searchDomain
-                ? `<button type="button" class="mega-col-cta m39-menu-ask" data-gpir-ask-context="${escapeMarkup(domain.ask)}">Open ASK GPIR →</button>`
-                : `<a class="mega-col-cta" href="${escapeMarkup(domain.landing)}">Explore ${escapeMarkup(domain.title)} →</a>`;
-            return `<li class="nav-item-mega${searchDomain ? " nav-more-item" : ""}"${searchDomain ? " data-nav-more" : ""}>
-                <a href="/#domain-${escapeMarkup(domain.id)}" class="nav-mega-trigger" aria-haspopup="true" aria-expanded="false">
-                    <span>${escapeMarkup(domain.title)}</span>
-                    <svg class="mega-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </a>
-                <div class="${menuClass}">
-                    <div class="mega-menu-inner mega-menu-inner--headed m39-menu-inner">
-                        <div class="mega-col mega-col--headed">
-                            <div class="mega-col-header"><span class="mega-col-heading"><strong>${escapeMarkup(domain.title)}</strong><small>${escapeMarkup(domain.summary)}</small></span></div>
-                            <ul class="mega-col-desc-list">${topicList}</ul>
-                            ${cta}
-                        </div>
-                        ${searchDomain ? '<ul class="nav-more-list" aria-label="Additional navigation"></ul>' : ""}
-                    </div>
-                </div>
-            </li>`;
-        }).join("")}`;
-        document.getElementById("main-nav")?.setAttribute("aria-label", "Primary navigation");
-    }
+    // Preserve the approved production mega-menu HTML, its three-column
+    // hierarchy, icons, descriptions and existing interaction controllers.
+    // M39's canonical topic mapping remains available to the homepage
+    // domain cards and contextual ASK GPIR without replacing the live menu.
+    document.getElementById("main-nav")?.setAttribute("aria-label", "Primary navigation");
 
     const domainGrid = document.getElementById("m39-domain-grid");
     if(domainGrid){
