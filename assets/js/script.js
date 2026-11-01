@@ -1457,6 +1457,13 @@ function initializeReaderAssistant(){
             <button type="button" data-gpir-assistant-example="Explain this page">Explain this page</button>
             <button type="button" data-gpir-assistant-example="Explore this topic">Explore this topic</button>
         </div>
+        <form class="gpir-assistant-question-form" role="search">
+            <label for="gpir-assistant-question">Your question</label>
+            <div class="gpir-assistant-question-row">
+                <input id="gpir-assistant-question" type="search" placeholder="Ask about a country, corridor, payment rail or regulation" autocomplete="off" required>
+                <button type="submit">Ask</button>
+            </div>
+        </form>
         <div class="gpir-assistant-answer" aria-live="polite"></div>
     `;
 
@@ -1767,15 +1774,22 @@ function initializeReaderAssistant(){
         const searchToggle = document.getElementById("search-toggle");
         if(!overlay.classList.contains("is-open")) searchToggle?.click();
         if(assistant.hidden) askButton.click();
-        input.value = query;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
+        questionInput.value = query;
         answerQuery(query);
+    });
+
+    const questionForm = assistant.querySelector(".gpir-assistant-question-form");
+    const questionInput = assistant.querySelector("#gpir-assistant-question");
+    questionForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const question = questionInput.value.trim();
+        if(question) answerQuery(question);
     });
 
     askButton.addEventListener("click", () => {
         assistant.hidden = !assistant.hidden;
         askButton.setAttribute("aria-expanded", String(!assistant.hidden));
-        if(!assistant.hidden) assistant.querySelector("[data-gpir-assistant-example]")?.focus();
+        if(!assistant.hidden) questionInput.focus();
     });
 
     assistant.querySelector(".gpir-assistant-close").addEventListener("click", closeAssistant);
