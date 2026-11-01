@@ -91,3 +91,22 @@ body:has(#command-centre) :is(#command-centre,#dashboard-gallery,#architecture-l
 #command-centre .command-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:900px){#command-centre .command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){#command-centre .command-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* M39 review: ASK GPIR must expose a usable question field, separate from search. */
+.gpir-assistant-question-form{display:grid;gap:7px;margin:12px 0 16px}
+.gpir-assistant-question-form label{font:600 13px Arial,sans-serif;color:var(--m39-navy)}
+.gpir-assistant-question-row{display:flex;gap:8px;min-width:0}
+.gpir-assistant-question-row input{flex:1;min-width:0;min-height:42px;padding:9px 12px;border:1px solid #b6c0ce;border-radius:8px;background:#fff;color:#102747;font:14px Arial,sans-serif;pointer-events:auto}
+.gpir-assistant-question-row button{padding:8px 18px;border:0;border-radius:8px;background:var(--m39-navy);color:#fff;cursor:pointer}
+.gpir-assistant-question-row :is(input,button):focus-visible{outline:2px solid var(--m39-gold);outline-offset:2px}
+/* Shared library hierarchy and tighter card rhythm. */
+#architecture-library .architecture-header,#intelligence-library .library-header{max-width:920px!important;text-align:center!important}
+#architecture-library .architecture-header h2,#intelligence-library .library-header h2{font-family:"Calibri Light",Calibri,Arial,sans-serif!important}
+#architecture-library .architecture-grid,#intelligence-library .library-grid{margin-top:12px!important;gap:16px!important}
+#intelligence-library .library-header>p{max-width:880px;margin:8px auto 14px!important;font-size:clamp(13px,1.2vw,16px)!important;line-height:1.45!important}
+#intelligence-library .library-card{min-height:0!important;display:flex;flex-direction:column}
+#intelligence-library .library-image{display:block;overflow:hidden}
+#intelligence-library .library-image img{display:block;width:100%;height:clamp(130px,13vw,185px)!important;object-fit:contain}
+#intelligence-library .library-content{padding:14px 16px!important;flex:1}
+#intelligence-library .library-content h3{font-family:"Calibri Light",Calibri,Arial,sans-serif!important;margin:8px 0!important}
+@media(max-width:600px){.gpir-assistant-question-row{flex-wrap:wrap}.gpir-assistant-question-row button{min-height:42px}}
