@@ -110,3 +110,9 @@ body:has(#command-centre) :is(#command-centre,#dashboard-gallery,#architecture-l
 #intelligence-library .library-content{padding:14px 16px!important;flex:1}
 #intelligence-library .library-content h3{font-family:"Calibri Light",Calibri,Arial,sans-serif!important;margin:8px 0!important}
 @media(max-width:600px){.gpir-assistant-question-row{flex-wrap:wrap}.gpir-assistant-question-row button{min-height:42px}}
+
+/* Publication honesty: placeholder intelligence visuals are not finished assets. */
+#intelligence-library .m39-coming-soon{display:inline-block;vertical-align:middle;margin-left:6px;font:600 10px Arial,sans-serif;color:#705116;background:#f5ecd7;border-radius:12px;padding:4px 8px}
+#intelligence-library .library-link{pointer-events:none;color:#735e3b!important;text-decoration:none;cursor:default}
+#intelligence-library .library-image{pointer-events:none;cursor:default}
+#intelligence-library .library-image img{opacity:.8}
