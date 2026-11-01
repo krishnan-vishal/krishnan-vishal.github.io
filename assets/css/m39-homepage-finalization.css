@@ -165,3 +165,23 @@
     margin-left: 8px;
   }
 }
+
+/* M39 final menu polish: internal spacing and readable pending labels only.
+   No navigation structure, column assignment, or trigger behavior changes. */
+@media (min-width: 768px) {
+  .header .mega-menu-inner--headed > .mega-col--headed {
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+  .header .mega-col--headed > .mega-col-header:not(:first-child) {
+    margin-top: 18px;
+  }
+  .header .mega-col--headed > .mega-col-desc-list {
+    margin-bottom: 0;
+  }
+  .header .mega-col--headed > .mega-col-desc-list + .mega-col-header {
+    margin-top: 18px;
+  }
+}
+.header .mega-item-soon strong { color: #64748b; }
+.header .mega-item-soon small { color: #718096; }
