@@ -1,4 +1,5 @@
 import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -164,10 +165,11 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
     },
 
     async publish(candidate, validation) {
-      const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_validated_candidate`, {
+      const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_consolidated_candidate`, {
         method: 'POST', headers,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
+          ...await eventIdentity(candidate, validation),
           p_summary: validation.summary,
           p_source_published_at: validation.sourcePublishedAt,
           p_content_fingerprint: validation.contentFingerprint,
