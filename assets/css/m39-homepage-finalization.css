@@ -119,3 +119,49 @@
     flex-wrap: wrap;
   }
 }
+
+/* M39 navigation containment: keep eight approved menu triggers in one desktop row.
+   Scoped to the existing header; does not restyle the approved mega-menu cards. */
+@media (min-width: 768px) {
+  .header .header-container > .main-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+  .header .main-nav > ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(3px, .4vw, 8px);
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    list-style: none;
+  }
+  .header .main-nav > ul > .nav-item-mega {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    position: relative;
+  }
+  .header .main-nav > ul > .nav-item-mega > .nav-mega-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+    font-size: clamp(10px, .78vw, 14px);
+    padding-inline: 2px;
+  }
+  .header .main-nav > .header-tools {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    margin-left: 8px;
+  }
+}
