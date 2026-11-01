@@ -1756,6 +1756,22 @@ function initializeReaderAssistant(){
         }).catch(() => { answer.innerHTML = "<p>Published content search is temporarily unavailable.</p>"; });
     };
 
+    // M39: route homepage contextual prompts into the existing ASK GPIR reader.
+    // No new API, entitlement bypass, or second assistant implementation.
+    document.addEventListener("click", event => {
+        const trigger = event.target.closest("[data-gpir-ask-context]");
+        if(!trigger) return;
+        event.preventDefault();
+        const query = trigger.getAttribute("data-gpir-ask-context")?.trim();
+        if(!query) return;
+        const searchToggle = document.getElementById("search-toggle");
+        if(!overlay.classList.contains("is-open")) searchToggle?.click();
+        if(assistant.hidden) askButton.click();
+        input.value = query;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        answerQuery(query);
+    });
+
     askButton.addEventListener("click", () => {
         assistant.hidden = !assistant.hidden;
         askButton.setAttribute("aria-expanded", String(!assistant.hidden));
