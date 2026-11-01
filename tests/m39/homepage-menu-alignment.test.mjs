@@ -54,20 +54,29 @@ test("every published local destination resolves to an existing route", () => {
     }
 });
 
-test("homepage uses the compact directory and only three published feature cards", () => {
-    assert.match(html, /<body class="m39-aligned-home">/);
-    assert.match(html, /id="m39-domain-grid"/);
-    assert.equal((html.match(/class="m39-feature-card"/g) || []).length, 3);
-    assert.match(css, /body\.m39-aligned-home > :is\([^)]*#command-centre[^)]*#founder[^)]*\)\s*\{[^}]*display:none!important/s);
-    assert.match(css, /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
-    assert.match(css, /@media\(max-width:360px\)/);
+test("homepage restores the approved production visual structure", () => {
+    assert.match(html, /<body>/);
+    assert.doesNotMatch(html, /m39-aligned-home|id="m39-directory"|id="featured-intelligence"/);
+    for(const id of ["command-centre", "dashboard-gallery", "architecture-library", "intelligence-library", "payments-timeline", "repository", "research", "market-gallery", "global", "observatory", "about", "founder"]){
+        assert.match(html, new RegExp(`id="${id}"`), `production section is present: ${id}`);
+    }
+    assert.match(html, /Payment Verticals/i);
+    assert.match(html, /Industry &amp; Infrastructure/i);
+    assert.match(html, /Regional &amp; Strategic/i);
+    assert.match(html, /class="footer-grid"/);
+    assert.match(html, /class="footer-utility"/);
 });
 
-test("menu, footer and ASK GPIR share the aligned discovery model", () => {
-    assert.match(scriptSource, /function initializeM39Alignment\(\)/);
-    assert.match(scriptSource, /m39-aligned-nav/);
-    assert.match(html, /class="m39-footer-links"/);
-    assert.match(css, /#footer \.footer-grid,#footer \.footer-utility\{display:none!important\}/);
+test("production mega-menu and footer remain authoritative while ASK GPIR stays aligned", () => {
+    assert.doesNotMatch(scriptSource, /function initializeM39Alignment\(\)|m39-aligned-nav/);
+    assert.match(html, /class="mega-menu-inner mega-menu-inner--headed"/);
+    assert.ok((html.match(/class="mega-col mega-col--headed"/g) || []).length >= 3);
+    assert.match(html, /class="mega-col-icon"/);
+    assert.match(html, /class="footer-cta"/);
+    assert.doesNotMatch(html, /class="m39-footer-links"/);
+    assert.doesNotMatch(css, /body:has|m39-domain|m39-menu-inner|#footer/);
+    assert.match(css, /\.m39-ask-context/);
+    assert.match(css, /#intelligence-library \.m39-coming-soon/);
     assert.match(scriptSource, /gpir-public-alerts/);
     assert.match(scriptSource, /gpir-public-intelligence\?limit=100/);
     assert.match(scriptSource, /Global Alerts and historical intelligence/);

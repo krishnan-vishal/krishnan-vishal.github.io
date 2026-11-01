@@ -4,6 +4,8 @@ Reference: all populated rows in `Menu Heading.xlsx`, including the expanded 14-
 
 Status rule: **Published** means an existing repository route or read-only interface resolves. **Coming Soon** means no verified published destination exists. Protected publications continue to use the existing Contentful/Supabase authorization boundary.
 
+Visual-restoration rule: production `main` remains the reader-facing visual authority. The `#domain-*` values below are stable audit keys for the eight-domain mapping; they are not rendered as a duplicate homepage directory. Contextual entry points use the existing production sections: Markets → `#global`, Money Movement → `#market-cross-border`, Ecosystem → `#market-networks`, Rails & Infrastructure → `#architecture-library`, Intelligence → `#dashboard-gallery`, Regulation → `#observatory`, Resources → `#research`, and Search GPIR → the existing global search/ASK GPIR interface.
+
 | Primary header | Subtopic | Homepage destination | Menu destination | Content authority | Content status | ASK GPIR search context | Destination URL |
 |---|---|---|---|---|---|---|---|
 | Markets | Global | `#domain-markets` | Markets › Global | Existing static publication | Published | Markets and countries | `/global-and-cross-border-payments-market-intelligence-report/` |
@@ -12,7 +14,7 @@ Status rule: **Published** means an existing repository route or read-only inter
 | Markets | Middle East / GCC | `#domain-markets` | Markets › Middle East / GCC | Existing static publication | Published | Markets and countries | `/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/` |
 | Markets | Africa | `#domain-markets` | Markets › Africa | Existing static publication | Published | Markets and countries | `/africa-country-directory-gpir-regional-intelligence-fintechoisis/` |
 | Markets | APAC | `#domain-markets` | Markets › APAC | Existing static publication | Published | Markets and countries | `/apac-country-directory-gpir-regional-intelligence-fintechoisis/` |
-| Markets | Country Intelligence | `#featured-intelligence` | Markets › Country Intelligence | Contentful / Supabase governed publication | Published | Markets and countries | `/#featured-intelligence` |
+| Markets | Country Intelligence | `#global` | Markets › Country Intelligence | Contentful / Supabase governed publication | Published | Markets and countries | `/#global` |
 | Money Movement | Cross-Border Payments | `#domain-money-movement` | Money Movement › Cross-Border Payments | Existing static publication | Published | Flows and corridors | `/cross-border-payments/` |
 | Money Movement | Remittances | `#domain-money-movement` | Money Movement › Remittances | Contentful / Supabase governed publication | Published | Flows and corridors | `/global-remittance-diaspora-payments-industry-c2c-gpir-research-fintechoisis/` |
 | Money Movement | P2P | `#domain-money-movement` | Money Movement › P2P | No verified publication route | Coming Soon | Flows and corridors | — |
@@ -36,7 +38,7 @@ Status rule: **Published** means an existing repository route or read-only inter
 | Rails & Infrastructure | Cards | `#domain-rails-infrastructure` | Rails & Infrastructure › Cards | Existing static publication | Published | Rails and infrastructure | `/cards-intelligence-gpir-domain-fintechoisis/` |
 | Rails & Infrastructure | Digital Assets | `#domain-rails-infrastructure` | Rails & Infrastructure › Digital Assets | Contentful / Supabase governed publication | Published | Rails and infrastructure | `/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/` |
 | Rails & Infrastructure | Stablecoins | `#domain-rails-infrastructure` | Rails & Infrastructure › Stablecoins | Contentful / Supabase governed publication | Published | Rails and infrastructure | `/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/` |
-| Intelligence | Dashboards | `#domain-intelligence` | Intelligence › Dashboards | Existing static publication / Supabase metadata | Published | Dashboards and intelligence | `/#featured-intelligence` |
+| Intelligence | Dashboards | `#dashboard-gallery` | Intelligence › Dashboards | Existing static publication / Supabase metadata | Published | Dashboards and intelligence | `/#dashboard-gallery` |
 | Intelligence | Market Data | `#domain-intelligence` | Intelligence › Market Data | Existing static publication | Published | Dashboards and intelligence | `/pages/fx/index.html` |
 | Intelligence | Corridor Intelligence | `#domain-intelligence` | Intelligence › Corridor Intelligence | Contentful / Supabase governed publication | Published | Dashboards and intelligence | `/global-cross-border-corridor-factbook-gpir-research-fintechoisis/` |
 | Intelligence | Pricing & FX | `#domain-intelligence` | Intelligence › Pricing & FX | Existing static publication | Published | Dashboards and intelligence | `/pages/fx/index.html` |

@@ -17,7 +17,7 @@ const GPIR_M39_DOMAINS = Object.freeze([
             { label: "Middle East / GCC", href: "/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
             { label: "Africa", href: "/africa-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
             { label: "APAC", href: "/apac-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
-            { label: "Country Intelligence", href: "/#featured-intelligence", authority: "Contentful / Supabase governed publication" }
+            { label: "Country Intelligence", href: "/#global", authority: "Contentful / Supabase governed publication" }
         ]
     },
     {
@@ -75,9 +75,9 @@ const GPIR_M39_DOMAINS = Object.freeze([
         title: "Intelligence",
         summary: "Dashboards, corridors, pricing, competition and forecasts.",
         ask: "Show the published GPIR dashboards, corridor intelligence, pricing and forecasts.",
-        landing: "/#featured-intelligence",
+        landing: "/#dashboard-gallery",
         topics: [
-            { label: "Dashboards", href: "/#featured-intelligence", authority: "Static publication / Supabase metadata" },
+            { label: "Dashboards", href: "/#dashboard-gallery", authority: "Static publication / Supabase metadata" },
             { label: "Market Data", href: "/pages/fx/index.html", authority: "Static publication" },
             { label: "Corridor Intelligence", href: "/global-cross-border-corridor-factbook-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
             { label: "Pricing & FX", href: "/pages/fx/index.html", authority: "Static publication" },
@@ -121,7 +121,7 @@ const GPIR_M39_DOMAINS = Object.freeze([
         title: "Search GPIR",
         summary: "One discovery interface for repository intelligence and Global Alerts.",
         ask: "Help me search GPIR for published intelligence and verified Global Alerts.",
-        landing: "/#m39-directory",
+        landing: "/#about",
         topics: [
             { label: "ABOUT FINTECHOISIS", href: "/#about", authority: "Static homepage" },
             { label: "CONTACT", href: "mailto:krishnanvishal12@gmail.com", authority: "Existing contact channel" }
@@ -156,8 +156,6 @@ function initializeWebsite(){
     safeInit(initializeSmoothScroll);
 
     safeInit(initializeBackToTop);
-
-    safeInit(initializeM39Alignment);
 
     safeInit(initializeMobileNav);
 
@@ -194,57 +192,6 @@ function initializeWebsite(){
     safeInit(initializeReadingProgress);
 
     safeInit(initializeTickerVisibilityPause);
-
-}
-
-function initializeM39Alignment(){
-
-    const escapeMarkup = value => String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-
-    const topicMarkup = (topic, menu = false) => {
-        const label = escapeMarkup(topic.label);
-        if(topic.status === "coming-soon"){
-            return menu
-                ? `<li class="mega-item-soon"><strong>${label} <span class="soon-tag">Coming Soon</span></strong></li>`
-                : `<li><span>${label}</span><span class="m39-status">Coming Soon</span></li>`;
-        }
-        const href = escapeMarkup(topic.href);
-        return menu
-            ? `<li><a href="${href}"><strong>${label}</strong><small>Published</small></a></li>`
-            : `<li><a href="${href}">${label}</a><span class="m39-status m39-status--published">Published</span></li>`;
-    };
-
-    // Preserve the approved production mega-menu HTML, its three-column
-    // hierarchy, icons, descriptions and existing interaction controllers.
-    // M39's canonical topic mapping remains available to the homepage
-    // domain cards and contextual ASK GPIR without replacing the live menu.
-    document.getElementById("main-nav")?.setAttribute("aria-label", "Primary navigation");
-
-    const domainGrid = document.getElementById("m39-domain-grid");
-    if(domainGrid){
-        domainGrid.innerHTML = GPIR_M39_DOMAINS.map((domain, index) => {
-            const publishedCount = domain.topics.filter(topic => topic.status !== "coming-soon").length;
-            const comingSoonCount = domain.topics.length - publishedCount;
-            return `<article id="domain-${escapeMarkup(domain.id)}" class="m39-domain-card">
-                <div class="m39-domain-number" aria-hidden="true">${String(index + 1).padStart(2, "0")}</div>
-                <h3><a href="${escapeMarkup(domain.landing)}">${escapeMarkup(domain.title)}</a></h3>
-                <p>${escapeMarkup(domain.summary)}</p>
-                <p class="m39-domain-count">${publishedCount} published${comingSoonCount ? ` · ${comingSoonCount} Coming Soon` : ""}</p>
-                <ul>${domain.topics.map(topic => topicMarkup(topic)).join("")}</ul>
-                <button type="button" class="m39-ask-context" data-gpir-ask-context="${escapeMarkup(domain.ask)}">Ask GPIR about ${escapeMarkup(domain.title)}</button>
-            </article>`;
-        }).join("");
-    }
-
-    const repositoryButton = document.querySelector(".repository-btn");
-    if(repositoryButton){
-        repositoryButton.href = "/#m39-directory";
-        repositoryButton.textContent = "Repository →";
-    }
 
 }
 
