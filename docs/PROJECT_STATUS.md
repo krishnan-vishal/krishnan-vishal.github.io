@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### G1 — Governed publication gate and rolling 15-day public repository
+
+- **Branch / base:** `codex/g1-15day-closure`, based on `origin/main` `296d312` after the merged G1 publication and event-consolidation work. M39, G2, payments, authentication and subscriptions are unchanged.
+- **Publication gate:** a read-only Production queue check found two pending GREEN-source candidates meeting the stored trust/confidence metadata threshold, but the unchanged source validator returned `REVIEW / SOURCE_TIMESTAMP_MISSING` for both original pages despite HTTP 200 responses. No candidate is governance-eligible, so no candidate was selected, approved, published or written to Production. The newest blocked row is RBI candidate `0efd7ebd-3035-4132-a6ae-61ca771fb3b9`, published-at `2026-09-10T00:00:00Z`, at `https://rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63566`.
+- **15-day repository:** `gpir-public-intelligence` now requests approved announcements from the rolling 15-day cutoff and independently enforces an inclusive 15-day lower boundary plus a no-future-record upper boundary during response normalization. The existing 12-hour LIVE/ticker rule is unchanged; records from 12 hours through 15 days remain HISTORICAL, and older Supabase rows are not deleted or mutated. The response adds `windowDays: 15` while preserving the `records` contract used by Search GPIR and ASK GPIR.
+- **Evidence / release boundary:** focused G1 and G1-R07 tests pass 15/15, including exact-boundary inclusion, one-millisecond-outside exclusion and 13-hour historical retention. No Edge Function deployment, database write, publication, merge or Production change occurred. State: **IMPLEMENTATION READY FOR OWNER REVIEW; FIRST GOVERNED PUBLICATION BLOCKED BY MISSING SOURCE TIMESTAMP EVIDENCE.**
+
 ### M39-G1 — Homepage navigation and Global Alerts completion
 
 - **Owner / branch / base:** Vishal Krishnan; `codex/m39-g1-alerts`; latest `origin/main` base `e9d9d50` on 2026-10-31. Work was isolated from the unrelated dirty `m38-production-resume` checkout.

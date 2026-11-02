@@ -1,5 +1,8 @@
 import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
 
+export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
+const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
 const DEFAULT_ORIGINS = Object.freeze([
   'https://fintechoisis.com',
   'https://codex-m39-g1-alerts-krishnan-vishal-github-io.krishnanvishal12.workers.dev'
@@ -58,6 +61,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
     const publishedTime = Date.parse(row.published_at || '');
     if (!source || row.publication_status !== 'approved' || title.length < 12 ||
         summary.length < 40 || !Number.isFinite(publishedTime) ||
+        publishedTime < now - PUBLIC_REPOSITORY_WINDOW_MS || publishedTime > now ||
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
     const topic = byAnnouncement.get(row.id);
@@ -128,6 +132,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const queryText = String(requestUrl.searchParams.get('q') || '').trim().toLowerCase().slice(0, 120);
     const limit = Math.max(1, Math.min(100, Number(requestUrl.searchParams.get('limit')) || 50));
     const offset = Math.max(0, Math.min(5000, Number(requestUrl.searchParams.get('offset')) || 0));
+    const requestNow = now();
     try {
       let rows;
       if (loadRows) rows = await loadRows();
@@ -137,7 +142,9 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         headers.set('authorization', `Bearer ${config.key}`);
         const announcementQuery = new URLSearchParams({
           select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
-          publication_status: 'eq.approved', order: 'published_at.desc,id.asc', limit: '1000'
+          publication_status: 'eq.approved',
+          published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}`,
+          order: 'published_at.desc,id.asc', limit: '1000'
         });
         const sourceQuery = new URLSearchParams({
           select: 'source_id,source_name,official_url,source_status', limit: '500'
@@ -154,7 +161,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         ]);
         rows = { announcements, sources, topics, developments, topicSources };
       }
-      let records = normalizeRepositoryRows({ ...rows, now: now() });
+      let records = normalizeRepositoryRows({ ...rows, now: requestNow });
       if (queryText) records = records.filter(record => [
         record.title, record.summary, record.category, record.source?.name
       ].filter(Boolean).join(' ').toLowerCase().includes(queryText));
@@ -162,7 +169,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       records = records.slice(offset, offset + limit);
       return response(200, {
         status: 'OK', source: 'global_announcements', total, limit, offset,
-        records, generatedAt: new Date(now()).toISOString()
+        windowDays: PUBLIC_REPOSITORY_WINDOW_DAYS,
+        records, generatedAt: new Date(requestNow).toISOString()
       }, origin, env);
     } catch {
       return response(503, { status: 'ERROR', code: 'REPOSITORY_UNAVAILABLE' }, origin, env);

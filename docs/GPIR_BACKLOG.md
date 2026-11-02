@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## G1 final Production closure
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| G1-FINAL-CLOSURE | 2026-11-02 | Complete one governed intelligence publication and expose an explicit rolling 15-day historical repository | INTELLIGENCE, DATA, GOVERNANCE | Critical | BLOCKED | A queue candidate whose original page supplies validator-readable authoritative publication time; owner approval before publication and deployment | Stage 1 | `gpir-intelligence-publish`, `gpir-public-intelligence`, Search GPIR, ASK GPIR | Retain the 12-hour Global Alerts lifecycle, return approved Supabase intelligence from the latest 15 days without deleting older rows, and publish only after complete source validation and owner authorization. | Inclusive 15-day boundary; older records excluded only from public retrieval; Search/ASK record contract preserved; focused tests green; exact eligible candidate presented before any write. | API change complete and focused tests pass 15/15. Production queue contains two metadata-qualified candidates, but both return `REVIEW / SOURCE_TIMESTAMP_MISSING`; no governed publication is eligible and no Production write occurred. | PENDING candidate evidence, owner review/deployment | Pending commit / PR | G1 |
+
 ## M39-G1 Homepage navigation and Global Alerts
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
