@@ -137,8 +137,11 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const date = requestUrl.searchParams.get('date');
     const year = requestUrl.searchParams.get('year');
     const lifecycle = requestUrl.searchParams.get('lifecycle');
+    const category = String(requestUrl.searchParams.get('category') || '').trim().toLowerCase().slice(0,100);
+    const day = String(requestUrl.searchParams.get('day') || '').trim().toLowerCase();
     if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return response(400,{status:'ERROR',code:'INVALID_DATE'},origin,env);
     if (year && !/^\d{4}$/.test(year)) return response(400,{status:'ERROR',code:'INVALID_YEAR'},origin,env);
+    if (day && !['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].includes(day)) return response(400,{status:'ERROR',code:'INVALID_DAY'},origin,env);
     if (lifecycle && !['LIVE','ARCHIVED'].includes(lifecycle)) return response(400,{status:'ERROR',code:'INVALID_LIFECYCLE'},origin,env);
     try {
       let rows;
@@ -159,8 +162,18 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const topicQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
         const developmentsQuery = new URLSearchParams({select:'id,topic_id,event_type,effective_date,summary,outcome_status',limit:'5000'});
         const linksQuery = new URLSearchParams({select:'topic_id,development_id,source_id,canonical_url,source_published_at',limit:'5000'});
-        const [announcements, sources, topics, developments, topicSources] = await Promise.all([
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${announcementQuery}`, headers),
+        // Fetch all approved announcements in bounded PostgREST pages, not just the first 1,000.
+        // Fail closed if a page cannot be retrieved; never report a truncated archive as complete.
+        const announcements = [];
+        for (let page = 0; ; page++) {
+          const pageQuery = new URLSearchParams(announcementQuery);
+          pageQuery.set('offset', String(page * 1000));
+          const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${pageQuery}`, headers);
+          announcements.push(...batch);
+          if (batch.length < 1000) break;
+          if (page >= 99) throw new Error('REPOSITORY_PAGE_LIMIT');
+        }
+        const [sources, topics, developments, topicSources] = await Promise.all([
           jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${sourceQuery}`, headers),
           jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topics?${topicQuery}`, headers),
           jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_developments?${developmentsQuery}`, headers),
@@ -172,6 +185,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       if (date) records = records.filter(record=>record.publicationDate===date);
       if (year) records = records.filter(record=>record.publicationYear===year);
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
+      if (category) records = records.filter(record=>record.category.toLowerCase()===category);
+      if (day) records = records.filter(record=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(record.publishedAt)).toLowerCase()===day);
       if (queryText) records = records.filter(record => [
         record.title, record.summary, record.category, record.source?.name
       ].filter(Boolean).join(' ').toLowerCase().includes(queryText));
