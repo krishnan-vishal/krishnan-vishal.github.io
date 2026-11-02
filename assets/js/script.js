@@ -517,6 +517,8 @@ function initializeMegaMenuHoverIntent(){
 
             if(!menu || !trigger) return;
 
+            const menuScrollRegion = menu.querySelector?.(".mega-menu-inner");
+
             // Wire aria-controls to a real id so assistive tech can
             // associate the trigger with the panel it expands, without
             // adding roles the interaction model doesn't actually support.
@@ -597,6 +599,10 @@ function initializeMegaMenuHoverIntent(){
                         other.closeInstant();
                     }
                 });
+                if(menuScrollRegion){
+                    menuScrollRegion.scrollTop = 0;
+                    menuScrollRegion.scrollLeft = 0;
+                }
                 applyEdgeGuard();
                 item.classList.add("is-open");
                 trigger.setAttribute("aria-expanded","true");

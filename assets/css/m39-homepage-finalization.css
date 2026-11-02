@@ -169,11 +169,21 @@
 /* M39 final menu polish: internal spacing and readable pending labels only.
    No navigation structure, column assignment, or trigger behavior changes. */
 @media (min-width: 768px) {
+  .header .mega-menu--headed {
+    height: auto;
+    min-height: 0;
+  }
   .header .mega-menu-inner--headed {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 30px);
     row-gap: 8px;
+    height: auto;
+    min-height: 0;
+    max-height: 60vh;
+    max-height: min(60vh, calc(100dvh - 160px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding-right: 12px;
   }
 }
@@ -181,22 +191,30 @@
 .header .mega-menu-inner--headed > .mega-col--headed {
   justify-content: flex-start;
   align-items: stretch;
+  align-self: start;
+  height: max-content;
   min-width: 0;
+  min-height: 0;
 }
 .header .mega-col--headed > .mega-col-header {
+  flex: 0 0 auto;
   align-items: flex-start;
   min-width: 0;
   padding-bottom: 10px;
   margin-bottom: 4px;
+  break-after: avoid;
 }
 .header .mega-col--headed > .mega-col-header:not(:first-child) {
   margin-top: 16px;
 }
 .header .mega-col--headed > .mega-col-desc-list {
+  flex: 0 0 auto;
   width: 100%;
   min-width: 0;
   margin: 0;
   gap: 0;
+  break-before: avoid;
+  break-inside: avoid;
 }
 .header .mega-col-desc-list > li {
   box-sizing: border-box;
