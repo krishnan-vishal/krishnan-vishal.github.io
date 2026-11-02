@@ -8,6 +8,11 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const navigationSource = fs.readFileSync(path.join(root, "assets/js/script.js"), "utf8");
 const headerCss = fs.readFileSync(path.join(root, "assets/css/header.css"), "utf8");
+const timelineCss = fs.readFileSync(path.join(root, "assets/css/payments-timeline.css"), "utf8");
+const homeHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const contentSearchSource = fs.readFileSync(path.join(root, "assets/js/content-search.js"), "utf8");
+const searchIndex = JSON.parse(fs.readFileSync(path.join(root, "assets/data/search-index.json"), "utf8"));
+const dashboardMetadata = JSON.parse(fs.readFileSync(path.join(root, "assets/data/dashboard-metadata.json"), "utf8"));
 const lifecycleSource = fs.readFileSync(path.join(root, "assets/js/announcement-lifecycle.js"), "utf8");
 const announcementsSource = fs.readFileSync(path.join(root, "assets/js/announcements.js"), "utf8");
 const marketCss = fs.readFileSync(path.join(root, "assets/css/market.css"), "utf8");
@@ -86,7 +91,7 @@ function createNavigationHarness({ mobile = false } = {}){
     vm.runInContext(navigationSource, context);
     context.initializeMegaMenuHoverIntent();
     if(mobile) context.initializeMobileMegaAccordion();
-    return { document, item, trigger, menu };
+    return { document, item, trigger, menu, windowTarget };
 }
 
 function htmlEscape(value){
@@ -192,14 +197,24 @@ function validAlert(overrides = {}){
     };
 }
 
-test("desktop mega-menu ignores hover and toggles on intentional click", () => {
+test("desktop mega-menu opens on pointer movement and toggles on intentional click", () => {
     const { item, trigger } = createNavigationHarness();
-    assert.equal(item.listeners.has("mouseenter"), false);
-    trigger.fire("click");
+    item.fire("pointermove", { pointerType: "mouse" });
     assert.equal(item.classList.contains("is-open"), true);
     assert.equal(trigger.attributes.get("aria-expanded"), "true");
     trigger.fire("click");
     assert.equal(item.classList.contains("is-open"), false);
+    trigger.fire("click");
+    assert.equal(item.classList.contains("is-open"), true);
+});
+
+test("stationary pointer during scroll does not open a desktop mega-menu", () => {
+    const { item, trigger, windowTarget } = createNavigationHarness();
+    assert.equal(item.listeners.has("mouseenter"), false);
+    windowTarget.fire("scroll");
+    item.fire("pointermove", { pointerType: "mouse" });
+    assert.equal(item.classList.contains("is-open"), false);
+    assert.equal(trigger.attributes.get("aria-expanded"), undefined);
 });
 
 test("desktop outside click and Escape close, with Escape restoring focus", () => {
@@ -226,6 +241,46 @@ test("desktop panel and caret visibility remain controller-class driven", () => 
     assert.match(headerCss, /\.nav-item-mega\.is-open > \.mega-menu\s*\{[^}]*opacity:1/s);
     assert.doesNotMatch(headerCss, /\.nav-item-mega:(?:hover|focus-within) > \.nav-mega-trigger \.mega-caret/);
     assert.doesNotMatch(headerCss, /\.nav-item-mega:(?:hover|focus-within) > \.mega-menu\s*\{[^}]*opacity:1/s);
+});
+
+test("timeline keeps three bounded desktop columns and contained SVG icons", () => {
+    assert.match(timelineCss, /#payments-timeline \.timeline-eras\s*\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/s);
+    assert.match(timelineCss, /#payments-timeline \.era-icon > svg\s*\{[^}]*width:24px;[^}]*height:24px;[^}]*max-width:24px;[^}]*max-height:24px;/s);
+    assert.match(timelineCss, /@media \(max-width:1024px\)\s*\{[\s\S]*#payments-timeline \.timeline-eras\s*\{[^}]*grid-template-columns:1fr/);
+    assert.match(homeHtml, /payments-timeline\.css\?v=20261102a/);
+});
+
+test("Search GPIR still returns indexed Australia and TerraPay research", async () => {
+    const module = { exports: {} };
+    const context = vm.createContext({
+        module,
+        console,
+        document: {
+            currentScript: null,
+            querySelector: () => null,
+            createElement: () => {
+                let value = "";
+                return {
+                    set textContent(text){ value = text == null ? "" : String(text); },
+                    get innerHTML(){ return htmlEscape(value); }
+                };
+            }
+        },
+        fetch: async url => {
+            const value = String(url);
+            if(value.includes("search-index.json")) return { ok: true, json: async () => searchIndex };
+            if(value.includes("dashboard-metadata.json")) return { ok: true, json: async () => dashboardMetadata };
+            if(value.includes("gpir-public-intelligence")) return { ok: true, json: async () => ({ records: [] }) };
+            throw new Error(`Unexpected Search GPIR request: ${value}`);
+        }
+    });
+    vm.runInContext(contentSearchSource, context);
+    await module.exports.load();
+    for(const query of ["Australia", "TerraPay"]){
+        const result = module.exports.search(query, { limit: 8 });
+        assert.ok(result.total > 0, `${query} should retain indexed research results`);
+        assert.ok(result.results.some(item => `${item.pageTitle} ${item.sectionTitle} ${item.excerptHtml}`.toLowerCase().includes(query.toLowerCase())));
+    }
 });
 
 test("valid recent approved alert renders summary, classification and verified source", async () => {

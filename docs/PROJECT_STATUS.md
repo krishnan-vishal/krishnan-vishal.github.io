@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39/G1 — Final homepage repair and historical repository verification
+
+- **Branch / base:** `codex/m39-g1-final-homepage-repair` from latest `origin/main` `8822ed2`. Scope is limited to homepage navigation, timeline presentation, the public repository date renderer, focused tests and governance records; authentication, payments, entitlements, FX, Global Alerts data flow and Supabase rows are unchanged.
+- **Navigation:** desktop/tablet mega-menus retain click/Enter, Escape focus restoration, outside-click closing and mobile accordion behavior while adding intentional pointer-movement hover. A post-scroll guard prevents a stationary pointer or incidental end-of-scroll jitter from opening a menu. Panels remain viewport-bounded with internal scroll, and opening Search GPIR closes any menu before the overlay appears.
+- **Timeline:** the existing three-card research structure is unchanged. Scoped selectors, explicit SVG maximum dimensions and an updated cache key prevent inherited/stale rules from enlarging icons. Desktop remains three columns; 1024px tablet and mobile stack to one contained column with compact spacing.
+- **G1 repository:** the deployed `scope=history` API returned exactly two records, IDs `407b51ed-be74-4d48-b0cb-c5bf370762e1` and `127952ce-aaba-4e44-8d19-feaadd4def37`, both `ARCHIVED` / `HISTORICAL`, with summaries and verified MAS links. The page already displayed both; its date formatter now renders verified `mas.gov.sg` timestamps in `Asia/Singapore`, restoring the original 28 October and 23 October source dates without changing Production data or API eligibility.
+- **Acceptance evidence:** the focused suite passes 38/38. Headless browser checks at 1440×900, 1024×768 and 390×844 confirm hover/click/Escape/search isolation, stationary-scroll protection, mobile accordion behavior, viewport-contained navigation, desktop three-column timeline, tablet/mobile stacking and 24×24 SVGs. Search GPIR retains Australia and TerraPay results. State: **RELEASE CANDIDATE READY FOR PR/CI; MERGE, DEPLOYMENT AND POST-DEPLOYMENT VERIFICATION PENDING.**
+
 ### G1 — Governed publication gate and rolling 15-day public repository
 
 - **Branch / base:** `codex/g1-15day-closure`, based on `origin/main` `296d312` after the merged G1 publication and event-consolidation work. M39, G2, payments, authentication and subscriptions are unchanged.

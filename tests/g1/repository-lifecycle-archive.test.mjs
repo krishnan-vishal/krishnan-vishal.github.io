@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { createPublicIntelligenceHandler } from '../../supabase/functions/gpir-public-intelligence/handler.mjs';
+
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const repositoryHtml=fs.readFileSync(path.join(root,'intelligence-repository/index.html'),'utf8');
 
 const now=Date.parse('2026-11-02T12:00:00Z');
 const source={source_id:'S1',source_name:'Official Payments Authority',official_url:'https://payments.example',source_status:'GREEN'};
@@ -19,3 +25,4 @@ test('offset pagination returns a deterministic archive slice',async()=>{const a
 
 test('published intelligence transitions from LIVE to ARCHIVED without deletion',async()=>{const live=await get('scope=history&lifecycle=LIVE');assert.equal(live.body.total,1);const archived=await get('scope=history&lifecycle=ARCHIVED');assert.equal(archived.body.total,2);assert.equal(archived.body.records.some(record=>record.id==='old'),true);});
 test('source evidence stays linked to archived cards',async()=>{const {body}=await get('scope=history&lifecycle=ARCHIVED');for(const record of body.records){assert.equal(record.sources[0].url,record.canonicalUrl);assert.ok(record.sources.length>=1&&record.sources.length<=4);}});
+test('repository renders MAS timestamps in the original Singapore publication date',()=>{assert.match(repositoryHtml,/host==='mas\.gov\.sg'\|\|host\.endsWith\('\.mas\.gov\.sg'\)/);assert.match(repositoryHtml,/timeZone:publicationTimeZone\(record\)/);assert.match(repositoryHtml,/return'Asia\/Singapore'/);});
