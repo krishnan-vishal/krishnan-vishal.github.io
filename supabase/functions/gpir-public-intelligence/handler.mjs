@@ -45,7 +45,7 @@ async function jsonFetch(fetchImpl, url, headers) {
   return data;
 }
 
-export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [], topicSources = [], now = Date.now() }) {
+export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [], topicSources = [], now = Date.now(), windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
   const byTopicSources = new Map();
   const byTopicDevelopments = new Map();
@@ -61,7 +61,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
     const publishedTime = Date.parse(row.published_at || '');
     if (!source || row.publication_status !== 'approved' || title.length < 12 ||
         summary.length < 40 || !Number.isFinite(publishedTime) ||
-        publishedTime < now - PUBLIC_REPOSITORY_WINDOW_MS || publishedTime > now ||
+        (windowDays !== null && publishedTime < now - windowDays * 86400000) || publishedTime > now ||
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
     const topic = byAnnouncement.get(row.id);
@@ -106,7 +106,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       outcomeStatus: topic?.outcome_status || 'PENDING',
       geography: topic?.geography || null,
       eventId: topic?.id || null,
-      sources: verifiedSources.length ? verifiedSources : [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString()}],
+      sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString()}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
       source: {
         name: source.source_name,
         publicationTitle: source.source_name,
@@ -133,6 +133,13 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const limit = Math.max(1, Math.min(100, Number(requestUrl.searchParams.get('limit')) || 50));
     const offset = Math.max(0, Math.min(5000, Number(requestUrl.searchParams.get('offset')) || 0));
     const requestNow = now();
+    const history = requestUrl.searchParams.get('scope') === 'history';
+    const date = requestUrl.searchParams.get('date');
+    const year = requestUrl.searchParams.get('year');
+    const lifecycle = requestUrl.searchParams.get('lifecycle');
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return response(400,{status:'ERROR',code:'INVALID_DATE'},origin,env);
+    if (year && !/^\d{4}$/.test(year)) return response(400,{status:'ERROR',code:'INVALID_YEAR'},origin,env);
+    if (lifecycle && !['LIVE','ARCHIVED'].includes(lifecycle)) return response(400,{status:'ERROR',code:'INVALID_LIFECYCLE'},origin,env);
     try {
       let rows;
       if (loadRows) rows = await loadRows();
@@ -143,7 +150,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const announcementQuery = new URLSearchParams({
           select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
           publication_status: 'eq.approved',
-          published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}`,
+          ...(history ? {} : { published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}` }),
           order: 'published_at.desc,id.asc', limit: '1000'
         });
         const sourceQuery = new URLSearchParams({
@@ -161,7 +168,10 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         ]);
         rows = { announcements, sources, topics, developments, topicSources };
       }
-      let records = normalizeRepositoryRows({ ...rows, now: requestNow });
+      let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
+      if (date) records = records.filter(record=>record.publicationDate===date);
+      if (year) records = records.filter(record=>record.publicationYear===year);
+      if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
       if (queryText) records = records.filter(record => [
         record.title, record.summary, record.category, record.source?.name
       ].filter(Boolean).join(' ').toLowerCase().includes(queryText));
@@ -169,7 +179,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       records = records.slice(offset, offset + limit);
       return response(200, {
         status: 'OK', source: 'global_announcements', total, limit, offset,
-        windowDays: PUBLIC_REPOSITORY_WINDOW_DAYS,
+        windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
+        scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()
       }, origin, env);
     } catch {
