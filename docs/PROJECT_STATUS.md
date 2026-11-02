@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M39/G1 acceptance recovery — source accepted; production data blocker retained
+
+- **M39 / PR #482:** `feature/m39-homepage-finalization` head `ee85dcf` was verified against its deployed Cloudflare preview on 2026-11-02. The preview returned HTTP 200 and contains the approved **8 navigation headers, 37 subheader groups and 157 topic entries**, plus the existing FX ticker, Global Alerts ticker and footer. Desktop click/Escape/outside-click behavior, mobile accordion behavior, route resolution and structural preservation pass the focused deterministic suite. A brittle test assertion was corrected to treat HTML class order as semantically irrelevant; no reader markup, CSS or behavior changed. Direct visual rendering remains **UNVERIFIED** because this recovery deliberately did not use Windows browser control. The source-level result supports moving PR #482 out of Draft for owner visual acceptance; merge remains owner-controlled.
+- **G1 / merged PR #480:** Production has ACTIVE `gpir-intelligence-publish`, `gpir-public-intelligence` and `gpir-public-alerts` functions. The active `*/10 * * * *` cron job targets the publisher; 144/144 runs in the prior 24 hours succeeded. Both public endpoints returned HTTP 200. The live feed correctly reported zero alerts for its 12-hour window, and the historical endpoint reported `status: OK` with zero eligible records.
+- **G1 blocker:** Production contains 77 approved legacy announcement rows, but only 38 have an authoritative timestamp and none has a summary meeting the deployed repository's minimum quality gate. Publication audits contain 20 `REVIEW` and zero `PUBLISHED` decisions; candidates remain 494 `PENDING` and 214 `REVIEW`. No canonical-URL or published-fingerprint duplicate was found. The deployed/repository G1 implementation has no explicit 15-day repository window, and Search GPIR/ASK GPIR are deployed against the empty public repository. State: **INFRASTRUCTURE WORKING / PRODUCTION PUBLICATION AND REQUESTED 15-DAY REPOSITORY NOT COMPLETE**. Minimum correction requires a separately owner-approved G1 data/release change; this homepage branch makes no database or function change.
+- **Boundary:** No payment, authentication, subscription, entitlement, Contentful, schema, production deployment or merge changed. G2 FX ticker work may proceed independently, but must not be described as dependent on G1 closure.
+
 ### M39-G1 — Homepage navigation and Global Alerts completion
 
 - **Owner / branch / base:** Vishal Krishnan; `codex/m39-g1-alerts`; latest `origin/main` base `e9d9d50` on 2026-10-31. Work was isolated from the unrelated dirty `m38-production-resume` checkout.

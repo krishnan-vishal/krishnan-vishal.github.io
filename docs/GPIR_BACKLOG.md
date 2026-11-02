@@ -7,6 +7,13 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39/G1 acceptance recovery
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-ACCEPTANCE | 2026-11-02 | Complete source-level M39 acceptance without Windows browser control | READER EXPERIENCE, GOVERNANCE | High | COMPLETED | Owner visual acceptance and merge decision | Stage 1 | PR #482 homepage navigation | Verify deployed preview, exact 8/37/157 navigation contract, behavior tests, routes, responsive rules and preserved homepage surfaces. | Preview HTTP 200; exact counts; focused source checks pass; visual limitations explicit; no redesign. | Source-level acceptance passed. One class-order-only test defect was corrected without changing reader code. Direct rendered visual remains owner acceptance work. | 2026-11-02 | `feature/m39-homepage-finalization` | M39 |
+| G1-PROD-ACCEPTANCE | 2026-11-02 | Verify merged G1 production publication, 12-hour alerts, 15-day repository and Search/ASK integration | INTELLIGENCE, AUTOMATION, DATA | High | BLOCKED | Owner-approved production data/release correction | Stage 1 | Supabase G1 functions, cron, Global Alerts, Search GPIR, ASK GPIR | Perform one read-only production verification and distinguish healthy infrastructure from missing eligible publication data. | Active schedule/functions; validated publication; live/archive lifecycle; 15-day repository; deployed Search/ASK consumers. | Scheduler and public functions are healthy, but zero records pass the repository gate, no G1 audit is PUBLISHED, and no explicit 15-day repository window exists. | PENDING | PR #480 merged; no new production change | G1 |
+
 ## M39-G1 Homepage navigation and Global Alerts
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

@@ -69,7 +69,7 @@ test("homepage restores the approved production visual structure", () => {
 
 test("production mega-menu and footer remain authoritative while ASK GPIR stays aligned", () => {
     assert.doesNotMatch(scriptSource, /function initializeM39Alignment\(\)|m39-aligned-nav/);
-    assert.match(html, /class="mega-menu-inner mega-menu-inner--headed"/);
+    assert.match(html, /class="(?=[^"]*\bmega-menu-inner\b)(?=[^"]*\bmega-menu-inner--headed\b)[^"]*"/);
     assert.ok((html.match(/class="mega-col mega-col--headed"/g) || []).length >= 3);
     assert.match(html, /class="mega-col-icon"/);
     assert.match(html, /class="footer-cta"/);
