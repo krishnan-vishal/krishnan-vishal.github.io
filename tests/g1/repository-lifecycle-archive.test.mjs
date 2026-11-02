@@ -16,3 +16,6 @@ test('invalid date and lifecycle are rejected',async()=>{assert.equal((await get
 
 test('category and weekday filters match approved records',async()=>{const a=await get('scope=history&category=CROSS_BORDER_PAYMENTS');assert.equal(a.body.total,3);const weekday=new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(now-48*3600000));const b=await get('scope=history&day='+weekday);assert.ok(b.body.total>=1);assert.equal((await get('day=notaday')).status,400);});
 test('offset pagination returns a deterministic archive slice',async()=>{const a=await get('scope=history&limit=1&offset=1');assert.equal(a.body.total,3);assert.equal(a.body.records.length,1);assert.equal(a.body.records[0].id,'archived');});
+
+test('published intelligence transitions from LIVE to ARCHIVED without deletion',async()=>{const live=await get('scope=history&lifecycle=LIVE');assert.equal(live.body.total,1);const archived=await get('scope=history&lifecycle=ARCHIVED');assert.equal(archived.body.total,2);assert.equal(archived.body.records.some(record=>record.id==='old'),true);});
+test('source evidence stays linked to archived cards',async()=>{const {body}=await get('scope=history&lifecycle=ARCHIVED');for(const record of body.records){assert.equal(record.sources[0].url,record.canonicalUrl);assert.ok(record.sources.length>=1&&record.sources.length<=4);}});
