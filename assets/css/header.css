@@ -1771,6 +1771,8 @@ button.ticker-card{
 
     width:min(760px, 90vw);
 
+    max-width:calc(100vw - 32px);
+
     background:#ffffff;
 
     border:1px solid var(--border-light);
@@ -1840,7 +1842,7 @@ button.ticker-card{
 
     gap:8px 28px;
 
-    max-height:60vh;
+    max-height:min(60vh, calc(100vh - 190px));
 
     overflow-y:auto;
 
@@ -1933,7 +1935,7 @@ button.ticker-card{
 
     gap:8px 30px;
 
-    max-height:60vh;
+    max-height:min(60vh, calc(100vh - 190px));
 
     overflow-y:auto;
 

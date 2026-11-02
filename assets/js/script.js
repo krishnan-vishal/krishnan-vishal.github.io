@@ -355,6 +355,8 @@ function initializeMegaMenuHoverIntent(){
 
     const EDGE_MARGIN = 16;
 
+    const SCROLL_HOVER_GUARD = 180;
+
     // How far the reader has to scroll away from where a menu was opened
     // before it's treated as "genuinely left the navigation context" (v1
     // menu-accessibility sprint, GPIR-MENU-01) rather than a mega-menu
@@ -367,6 +369,8 @@ function initializeMegaMenuHoverIntent(){
     // event, which would already reflect the post-scroll position and
     // never see a delta). Read by the scroll listener below.
     let scrollAnchorY = null;
+
+    let lastScrollAt = Number.NEGATIVE_INFINITY;
 
     // Single registry every item's controls are added to, so the singleton
     // rule ("only one mega-menu open at a time") and the scroll/resize
@@ -511,8 +515,29 @@ function initializeMegaMenuHoverIntent(){
                 }
             });
 
-            // Desktop and tablet mega-menus are deliberately click/keyboard
-            // activated. Pointer movement and focus alone never open a panel.
+            // Pointer movement within a trigger is intentional hover. Layout
+            // movement during scrolling does not emit pointermove, so a
+            // stationary pointer cannot open a menu merely because the sticky
+            // header moved beneath it. The short post-scroll guard also avoids
+            // incidental pointer jitter at the end of a wheel/touchpad scroll.
+            item.addEventListener("pointermove", (e) => {
+
+                if(mobileQuery.matches || e.pointerType === "touch") return;
+
+                if(Date.now() - lastScrollAt < SCROLL_HOVER_GUARD) return;
+
+                if(!item.classList.contains("is-open")) open();
+
+            }, { passive:true });
+
+            item.addEventListener("pointerleave", () => {
+
+                if(!mobileQuery.matches) scheduleClose();
+
+            });
+
+            // Click and keyboard activation continue to toggle the same
+            // controller state and aria-expanded contract.
             trigger.addEventListener("click", (e) => {
 
                 if(mobileQuery.matches) return;
@@ -559,6 +584,8 @@ function initializeMegaMenuHoverIntent(){
     // triggered, it's no longer relevant to what's on screen -- close it
     // rather than leaving it floating over unrelated content.
     window.addEventListener("scroll", () => {
+
+        lastScrollAt = Date.now();
 
         if(scrollAnchorY === null) return;
 
@@ -1280,6 +1307,12 @@ function initializeSearch(){
     };
 
     const open = () => {
+
+        document.querySelectorAll(".nav-item-mega.is-open").forEach(item => {
+            item.classList.remove("is-open");
+            const trigger = item.querySelector(":scope > .nav-mega-trigger");
+            if(trigger) trigger.setAttribute("aria-expanded","false");
+        });
 
         overlay.classList.add("is-open");
 
