@@ -173,11 +173,24 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           if (batch.length < 1000) break;
           if (page >= 99) throw new Error('REPOSITORY_PAGE_LIMIT');
         }
+        // Page related evidence too: a complete archive cannot silently lose its sources.
+        async function allRows(table, query, pageSize = 1000) {
+          const results = [];
+          for (let page = 0; ; page++) {
+            const params = new URLSearchParams(query);
+            params.set('limit', String(pageSize));
+            params.set('offset', String(page * pageSize));
+            const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/${table}?${params}`, headers);
+            results.push(...batch);
+            if (batch.length < pageSize) return results;
+            if (page >= 99) throw new Error('EVIDENCE_PAGE_LIMIT');
+          }
+        }
         const [sources, topics, developments, topicSources] = await Promise.all([
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${sourceQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topics?${topicQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_developments?${developmentsQuery}`, headers),
-          jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topic_sources?${linksQuery}`, headers)
+          allRows('source_registry', sourceQuery),
+          allRows('gpir_intelligence_topics', topicQuery),
+          allRows('gpir_intelligence_developments', developmentsQuery),
+          allRows('gpir_intelligence_topic_sources', linksQuery)
         ]);
         rows = { announcements, sources, topics, developments, topicSources };
       }
