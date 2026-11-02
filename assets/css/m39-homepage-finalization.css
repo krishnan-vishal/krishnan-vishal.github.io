@@ -199,15 +199,17 @@
   gap: 0;
 }
 .header .mega-col-desc-list > li {
-  min-width: 0;
-}
-.header .mega-col-desc-list > li > a,
-.header .mega-col-desc-list > .mega-item-soon {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
   margin: 0;
   padding: 7px 4px 7px 44px;
+}
+.header .mega-col-desc-list > li > a {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
 }
 .header .mega-col-heading {
   min-width: 0;
