@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { processCandidate } from '../../supabase/functions/gpir-intelligence-publish/handler.mjs';
-import { normalizeRepositoryRows } from '../../supabase/functions/gpir-public-intelligence/handler.mjs';
+import { normalizeRepositoryRows, PUBLIC_REPOSITORY_WINDOW_DAYS } from '../../supabase/functions/gpir-public-intelligence/handler.mjs';
 
 const NOW = Date.parse('2026-10-31T12:00:00.000Z');
 const SOURCE = Object.freeze({
@@ -70,6 +70,21 @@ function repository({ duplicate = false } = {}) {
   };
 }
 
+function announcement(item, overrides = {}) {
+  return {
+    id: item.id,
+    source_id: item.source_id,
+    title: item.title,
+    summary_narration: 'Verified payment intelligence remains available as historical intelligence after the live alert period expires.',
+    canonical_url: item.canonical_url,
+    published_at: item.published_at,
+    ticker_eligible: true,
+    topic_headers: [item.category],
+    publication_status: 'approved',
+    ...overrides
+  };
+}
+
 test('valid source evidence produces one governed publication', async () => {
   const item = candidate();
   const store = repository();
@@ -130,4 +145,26 @@ test('publication older than 12 hours is retained by the repository but not live
   assert.equal(records.length, 1);
   assert.equal(records[0].lifecycleStatus, 'HISTORICAL');
   assert.equal(records[0].tickerEligible, false);
+});
+
+test('public repository includes the 15-day boundary and excludes older retained records', () => {
+  const boundary = candidate({
+    id: '66666666-6666-4666-8666-666666666666',
+    published_at: new Date(NOW - PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString()
+  });
+  const outside = candidate({
+    id: '77777777-7777-4777-8777-777777777777',
+    published_at: new Date(Date.parse(boundary.published_at) - 1).toISOString()
+  });
+  const inside = candidate({
+    id: '88888888-8888-4888-8888-888888888888',
+    published_at: new Date(NOW - 14 * 24 * 60 * 60 * 1000).toISOString()
+  });
+  const records = normalizeRepositoryRows({
+    now: NOW,
+    sources: [SOURCE],
+    announcements: [announcement(boundary), announcement(outside), announcement(inside)]
+  });
+  assert.deepEqual(records.map(record => record.id), [boundary.id, inside.id]);
+  assert.ok(records.every(record => record.lifecycleStatus === 'HISTORICAL'));
 });
