@@ -169,19 +169,60 @@
 /* M39 final menu polish: internal spacing and readable pending labels only.
    No navigation structure, column assignment, or trigger behavior changes. */
 @media (min-width: 768px) {
-  .header .mega-menu-inner--headed > .mega-col--headed {
-    justify-content: flex-start;
-    align-items: stretch;
+  .header .mega-menu-inner--headed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    column-gap: clamp(20px, 2.4vw, 30px);
+    row-gap: 8px;
+    padding-right: 12px;
   }
-  .header .mega-col--headed > .mega-col-header:not(:first-child) {
-    margin-top: 18px;
-  }
-  .header .mega-col--headed > .mega-col-desc-list {
-    margin-bottom: 0;
-  }
-  .header .mega-col--headed > .mega-col-desc-list + .mega-col-header {
-    margin-top: 18px;
-  }
+}
+
+.header .mega-menu-inner--headed > .mega-col--headed {
+  justify-content: flex-start;
+  align-items: stretch;
+  min-width: 0;
+}
+.header .mega-col--headed > .mega-col-header {
+  align-items: flex-start;
+  min-width: 0;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+.header .mega-col--headed > .mega-col-header:not(:first-child) {
+  margin-top: 16px;
+}
+.header .mega-col--headed > .mega-col-desc-list {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  gap: 0;
+}
+.header .mega-col-desc-list > li {
+  min-width: 0;
+}
+.header .mega-col-desc-list > li > a,
+.header .mega-col-desc-list > .mega-item-soon {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 7px 4px 7px 44px;
+}
+.header .mega-col-heading {
+  min-width: 0;
+}
+.header .mega-col-heading strong,
+.header .mega-col-heading small,
+.header .mega-col-desc-list strong,
+.header .mega-col-desc-list small {
+  overflow-wrap: break-word;
+}
+.header .mega-item-soon > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
 }
 .header .mega-item-soon strong { color: #64748b; }
 .header .mega-item-soon small { color: #718096; }

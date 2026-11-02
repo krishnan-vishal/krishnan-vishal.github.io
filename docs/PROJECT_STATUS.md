@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M39 final visual correction — dropdown subtitle alignment
+
+- **Owner / branch / PR:** Vishal Krishnan; `feature/m39-homepage-finalization`; PR #482. Owner review accepted the eight headers, dropdown structure and visual language, and identified inconsistent internal text alignment as the remaining defect.
+- **Correction:** The existing M39 navigation stylesheet now gives every headed three-column menu a shrink-safe `minmax(0, 1fr)` grid, aligns group-heading and topic text to one 44px axis, removes negative topic margins, standardizes heading/list/item spacing, preserves natural per-column flow and permits safe text wrapping. The existing `60vh` desktop scroll area and mobile accordion remain authoritative. The homepage stylesheet query was advanced only to ensure the corrected CSS reaches the PR preview.
+- **Preservation:** Homepage markup and menu data remain unchanged at **8 headers, 37 groups and 157 entries**. Links, desktop click/Escape/outside-click behavior, mobile tap behavior, navy/muted/cream presentation, separators, tickers, search, footer, Supabase, authentication and payments are unchanged.
+- **Validation:** Home GPIR, Money Movements – Markets, Money Movement Ecosystem and Cards all retain the shared headed three-column contract. Focused M39 navigation tests pass 15/15; 154-file link validation, JavaScript syntax and `git diff --check` pass. Automated rendered screenshots were unavailable in this environment, so final pixel-level confirmation remains the owner's preview check. State: **IMPLEMENTED / READY FOR FINAL OWNER VISUAL ACCEPTANCE; DO NOT MERGE WITHOUT OWNER APPROVAL.**
+
 ### M39/G1 acceptance recovery — source accepted; production data blocker retained
 
 - **M39 / PR #482:** `feature/m39-homepage-finalization` head `ee85dcf` was verified against its deployed Cloudflare preview on 2026-11-02. The preview returned HTTP 200 and contains the approved **8 navigation headers, 37 subheader groups and 157 topic entries**, plus the existing FX ticker, Global Alerts ticker and footer. Desktop click/Escape/outside-click behavior, mobile accordion behavior, route resolution and structural preservation pass the focused deterministic suite. A brittle test assertion was corrected to treat HTML class order as semantically irrelevant; no reader markup, CSS or behavior changed. Direct visual rendering remains **UNVERIFIED** because this recovery deliberately did not use Windows browser control. The source-level result supports moving PR #482 out of Draft for owner visual acceptance; merge remains owner-controlled.
