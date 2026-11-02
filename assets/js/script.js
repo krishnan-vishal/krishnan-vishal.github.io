@@ -3,6 +3,134 @@
   Version 1.1
 ======================================================*/
 
+const GPIR_M39_DOMAINS = Object.freeze([
+    {
+        id: "markets",
+        title: "Markets",
+        summary: "Global, regional and country payment-market intelligence.",
+        ask: "What published market and country intelligence is available across GPIR?",
+        landing: "/global-and-cross-border-payments-market-intelligence-report/",
+        topics: [
+            { label: "Global", href: "/global-and-cross-border-payments-market-intelligence-report/", authority: "Static publication" },
+            { label: "Americas", href: "/americas-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
+            { label: "Europe / SEPA", href: "/europe-sepa-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
+            { label: "Middle East / GCC", href: "/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
+            { label: "Africa", href: "/africa-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
+            { label: "APAC", href: "/apac-country-directory-gpir-regional-intelligence-fintechoisis/", authority: "Static publication" },
+            { label: "Country Intelligence", href: "/#global", authority: "Contentful / Supabase governed publication" }
+        ]
+    },
+    {
+        id: "money-movement",
+        title: "Money Movement",
+        summary: "Payment flows, corridors, use cases and settlement pathways.",
+        ask: "Show published GPIR intelligence about payment flows, remittances and corridors.",
+        landing: "/cross-border-payments/",
+        topics: [
+            { label: "Cross-Border Payments", href: "/cross-border-payments/", authority: "Static publication" },
+            { label: "Remittances", href: "/global-remittance-diaspora-payments-industry-c2c-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "P2P", status: "coming-soon" },
+            { label: "B2B", href: "/global-trade-payments-industry-b2b-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "B2C", status: "coming-soon" },
+            { label: "C2B", status: "coming-soon" },
+            { label: "Settlement", status: "coming-soon" }
+        ]
+    },
+    {
+        id: "ecosystem",
+        title: "Ecosystem",
+        summary: "Banks, providers, fintechs, wallets and acceptance participants.",
+        ask: "Which banks, fintechs, providers, wallets and payment participants are covered by GPIR?",
+        landing: "/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/",
+        topics: [
+            { label: "Banks", href: "/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "MTOs", href: "/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "PSPs", href: "/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "FinTechs", href: "/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Wallets", href: "/global-wallets-mobile-money-super-apps-financial-inclusion-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Cards", href: "/cards-intelligence-gpir-domain-fintechoisis/", authority: "Static publication" },
+            { label: "Aggregators", status: "coming-soon" },
+            { label: "Infrastructure", href: "/global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" }
+        ]
+    },
+    {
+        id: "rails-infrastructure",
+        title: "Rails & Infrastructure",
+        summary: "Payment rails, messaging, interoperability and digital assets.",
+        ask: "Explain the published GPIR payment rails and infrastructure references.",
+        landing: "/global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis/",
+        topics: [
+            { label: "SWIFT", href: "/global-payment-infrastructure-networks-interoperability-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "RTP", href: "/global-rtp-directory-instant-payments-factbook-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Local Rails", href: "/global-rtp-directory-instant-payments-factbook-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Wallet Interoperability", href: "/global-wallets-mobile-money-super-apps-financial-inclusion-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "IBAN / Virtual Accounts", status: "coming-soon" },
+            { label: "Cards", href: "/cards-intelligence-gpir-domain-fintechoisis/", authority: "Static publication" },
+            { label: "Digital Assets", href: "/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Stablecoins", href: "/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" }
+        ]
+    },
+    {
+        id: "intelligence",
+        title: "Intelligence",
+        summary: "Dashboards, corridors, pricing, competition and forecasts.",
+        ask: "Show the published GPIR dashboards, corridor intelligence, pricing and forecasts.",
+        landing: "/#dashboard-gallery",
+        topics: [
+            { label: "Dashboards", href: "/#dashboard-gallery", authority: "Static publication / Supabase metadata" },
+            { label: "Market Data", href: "/pages/fx/index.html", authority: "Static publication" },
+            { label: "Corridor Intelligence", href: "/global-cross-border-corridor-factbook-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Pricing & FX", href: "/pages/fx/index.html", authority: "Static publication" },
+            { label: "Volume Intelligence", status: "coming-soon" },
+            { label: "Competitive Intelligence", href: "/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" },
+            { label: "Forecasts", href: "/industry-future-state-2025-2040-gpir-research-fintechoisis/", authority: "Contentful / Supabase governed publication" }
+        ]
+    },
+    {
+        id: "regulation",
+        title: "Regulation",
+        summary: "Verified regulatory developments, licensing and risk frameworks.",
+        ask: "Show verified regulatory Global Alerts and historical GPIR intelligence.",
+        landing: "/#market-ribbon",
+        topics: [
+            { label: "Regulatory Landscape", status: "coming-soon" },
+            { label: "AML / KYC", status: "coming-soon" },
+            { label: "Licensing", status: "coming-soon" },
+            { label: "Central Banks", status: "coming-soon" },
+            { label: "FATF", status: "coming-soon" },
+            { label: "Regulatory Updates", href: "/#market-ribbon", authority: "Supabase Global Alerts / repository archive" }
+        ]
+    },
+    {
+        id: "resources",
+        title: "Resources",
+        summary: "Research, reports, glossary, timeline and references.",
+        ask: "What published GPIR research, reports and reference material is available?",
+        landing: "/pages/research/global-payments-landscape.html",
+        topics: [
+            { label: "Research", href: "/pages/research/global-payments-landscape.html", authority: "Static publication" },
+            { label: "Reports", href: "/global-and-cross-border-payments-market-intelligence-report/", authority: "Contentful / Supabase governed publication" },
+            { label: "Charts & Maps", status: "coming-soon" },
+            { label: "Glossary", href: "/pages/research/global-payments-landscape.html", authority: "Static publication" },
+            { label: "Timeline", href: "/pages/research/global-payments-landscape.html", authority: "Static publication" },
+            { label: "References", href: "/pages/research/global-payments-landscape.html", authority: "Static publication" }
+        ]
+    },
+    {
+        id: "search-gpir",
+        title: "Search GPIR",
+        summary: "One discovery interface for repository intelligence and Global Alerts.",
+        ask: "Help me search GPIR for published intelligence and verified Global Alerts.",
+        landing: "/#about",
+        topics: [
+            { label: "ABOUT FINTECHOISIS", href: "/#about", authority: "Static homepage" },
+            { label: "CONTACT", href: "mailto:krishnanvishal12@gmail.com", authority: "Existing contact channel" }
+        ]
+    }
+]);
+
+if(typeof window !== "undefined") window.GPIRM39Alignment = { domains: GPIR_M39_DOMAINS };
+
 document.addEventListener("DOMContentLoaded", () => {
 
     initializeWebsite();
@@ -389,6 +517,8 @@ function initializeMegaMenuHoverIntent(){
 
             if(!menu || !trigger) return;
 
+            const menuScrollRegion = menu.querySelector?.(".mega-menu-inner");
+
             // Wire aria-controls to a real id so assistive tech can
             // associate the trigger with the panel it expands, without
             // adding roles the interaction model doesn't actually support.
@@ -469,6 +599,10 @@ function initializeMegaMenuHoverIntent(){
                         other.closeInstant();
                     }
                 });
+                if(menuScrollRegion){
+                    menuScrollRegion.scrollTop = 0;
+                    menuScrollRegion.scrollLeft = 0;
+                }
                 applyEdgeGuard();
                 item.classList.add("is-open");
                 trigger.setAttribute("aria-expanded","true");
@@ -1457,6 +1591,13 @@ function initializeReaderAssistant(){
             <button type="button" data-gpir-assistant-example="Explain this page">Explain this page</button>
             <button type="button" data-gpir-assistant-example="Explore this topic">Explore this topic</button>
         </div>
+        <form class="gpir-assistant-question-form" role="search">
+            <label for="gpir-assistant-question">Your question</label>
+            <div class="gpir-assistant-question-row">
+                <input id="gpir-assistant-question" type="search" placeholder="Ask about a country, corridor, payment rail or regulation" autocomplete="off" required>
+                <button type="submit">Ask</button>
+            </div>
+        </form>
         <div class="gpir-assistant-answer" aria-live="polite"></div>
     `;
 
@@ -1484,6 +1625,7 @@ function initializeReaderAssistant(){
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
     const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?limit=100";
+    const globalAlertsUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-alerts";
     let contextPromise = null;
 
     // Each dataset settles independently (never rejects the shared
@@ -1508,14 +1650,17 @@ function initializeReaderAssistant(){
             settleDataset(dataPrefix + "trusted-sources.json", "trusted source registry"),
             settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository"),
             settleDataset(dataPrefix + "dashboard-metadata.json", "dashboard metadata"),
-            settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives")
-        ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
+            settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives"),
+            settleDataset(globalAlertsUrl, "verified Global Alerts")
+        ]).then(([registry, sources, announcements, dashboards, narratives, alerts]) => ({
             registry: registry.ok ? (registry.data.records || []) : [],
             sources: sources.ok ? (sources.data.registry || []) : [],
             announcements: announcements.ok ? (announcements.data.records || []) : [],
             announcementsAvailable: announcements.ok,
             dashboards: dashboards.ok ? (dashboards.data.records || []) : [],
-            narratives: narratives.ok ? (narratives.data.records || []) : []
+            narratives: narratives.ok ? (narratives.data.records || []) : [],
+            alerts: alerts.ok ? (alerts.data.alerts || []) : [],
+            alertsAvailable: alerts.ok
         }));
         return contextPromise;
     };
@@ -1594,11 +1739,34 @@ function initializeReaderAssistant(){
         // A genuine repository failure is reported honestly and must
         // never be presented the same as a query that simply matched zero
         // records (see loadContext()'s per-dataset settleDataset()).
-        if(!context.announcementsAvailable){
-            answer.innerHTML = "<p>Published announcement records are temporarily unavailable.</p>";
+        if(!context.announcementsAvailable && !context.alertsAvailable){
+            answer.innerHTML = "<p>Verified Global Alerts and historical intelligence records are temporarily unavailable.</p>";
             return true;
         }
-        const records = context.announcements.filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW");
+        const validSourceUrl = value => {
+            try{ return new URL(value).protocol === "https:"; }
+            catch(_error){ return false; }
+        };
+        const liveAlerts = context.alerts
+            .filter(record => record && record.title && record.summary && record.publishedAt && validSourceUrl(record.sourceUrl))
+            .map(record => ({
+                ...record,
+                headline: record.title,
+                publicationDate: record.publishedAt,
+                displayLifecycleStatus: "LIVE",
+                source: { name: record.sourceName || "Verified source", url: record.sourceUrl },
+                __askKind: "Global Alert"
+            }));
+        const historicalRecords = context.announcements
+            .filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW")
+            .map(record => ({ ...record, __askKind: "Repository intelligence" }));
+        const seenRecords = new Set();
+        const records = [...liveAlerts, ...historicalRecords].filter(record => {
+            const identity = record.id || record.canonicalUrl || record.source?.url || record.sourceUrl;
+            if(identity && seenRecords.has(identity)) return false;
+            if(identity) seenRecords.add(identity);
+            return true;
+        });
         const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
         const monthIndex = monthNames.findIndex(month => normalized.includes(month));
         const yearMatch = normalized.match(/\b(20\d{2})\b/);
@@ -1623,15 +1791,17 @@ function initializeReaderAssistant(){
         if(normalized.includes("recent") || normalized.includes("latest")) matches = matches.slice(0, 6);
         const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
         if(!matches.length){
-            answer.innerHTML = "<p>No validated GPIR announcement record is available for this query.</p>";
+            const liveStatus = context.alertsAvailable ? "No verified current Global Alert matched." : "Current Global Alerts are temporarily unavailable.";
+            answer.innerHTML = `<p>${liveStatus} No historical intelligence record matched this query.</p>`;
             return true;
         }
         const items = matches.map(record => {
             const source = record.source && record.source.url ? ` · <a href="${escape(record.source.url)}" target="_blank" rel="noopener noreferrer">Original source</a>` : "";
             const destination = record.pageUrl || record.canonicalUrl || (record.source && record.source.url) || (rootPrefix + "pages/intelligence/" + record.id + ".html");
-            return `<li><a href="${escape(destination)}"${/^https:\/\//i.test(destination) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
+            return `<li><span class="gpir-assistant-result-kind">${escape(record.__askKind || "Repository intelligence")}</span><a href="${escape(destination)}"${/^https:\/\//i.test(destination) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
         }).join("");
-        answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the authoritative read-only intelligence repository; no factual summary was generated in the browser.</p>`;
+        const degradedNote = context.alertsAvailable ? "" : '<p class="gpir-assistant-source-note">Current Global Alerts are temporarily unavailable; historical repository results remain available.</p>';
+        answer.innerHTML = `<h3>Global Alerts and historical intelligence</h3>${degradedNote}<ul>${items}</ul><p class="gpir-assistant-source-note">Results come from the existing read-only verified-alert and intelligence interfaces. No factual summary was generated in the browser.</p>`;
         return true;
     };
 
@@ -1639,6 +1809,16 @@ function initializeReaderAssistant(){
         const normalized = query.trim().toLowerCase();
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
+
+        const comingSoonTopic = GPIR_M39_DOMAINS
+            .flatMap(domain => domain.topics
+                .filter(topic => topic.status === "coming-soon")
+                .map(topic => ({ ...topic, domain: domain.title })))
+            .find(topic => normalized.includes(topic.label.toLowerCase()));
+        if(comingSoonTopic && !/\b(latest|recent|alert|announcement|update|history|historical)\b/.test(normalized)){
+            answer.innerHTML = `<h3>Coming Soon</h3><p><strong>${escape(comingSoonTopic.label)}</strong> is aligned under ${escape(comingSoonTopic.domain)}, but GPIR does not yet have a verified published destination for this topic.</p><p class="gpir-assistant-source-note">No result or source has been invented.</p>`;
+            return;
+        }
 
         const looksLikeAnnouncementQuery = /\b(announcements?|regulation|regulatory|licen[cs](?:e|ing)|stablecoin|aml|cft|sanction|payments?|remittance|cross-border|pix|cbdc|fintech)\b/.test(normalized) && /\b(latest|recent|update|change|expansion|launch|regulation|licen[cs](?:e|ing)|september|august|20\d{2}|india|singapore|australia|brazil|gcc|uae|qatar|rbi)\b/.test(normalized);
         if(/\bannouncements?\b/.test(normalized) || looksLikeAnnouncementQuery){
@@ -1752,14 +1932,37 @@ function initializeReaderAssistant(){
                 href: result.href,
                 meta: [result.type, result.category, result.country].filter(Boolean).join(" · ")
             }));
-            answer.innerHTML = `<h3>Published GPIR matches</h3><ul>${resultLinks(items)}</ul><p class="gpir-assistant-source-note">Results are retrieved from the static GPIR search index.</p>`;
+            answer.innerHTML = `<h3>Repository intelligence</h3><ul>${resultLinks(items)}</ul><p class="gpir-assistant-source-note">Results are retrieved from the published GPIR search index.</p>`;
         }).catch(() => { answer.innerHTML = "<p>Published content search is temporarily unavailable.</p>"; });
     };
+
+    // M39: route homepage contextual prompts into the existing ASK GPIR reader.
+    // No new API, entitlement bypass, or second assistant implementation.
+    document.addEventListener("click", event => {
+        const trigger = event.target.closest("[data-gpir-ask-context]");
+        if(!trigger) return;
+        event.preventDefault();
+        const query = trigger.getAttribute("data-gpir-ask-context")?.trim();
+        if(!query) return;
+        const searchToggle = document.getElementById("search-toggle");
+        if(!overlay.classList.contains("is-open")) searchToggle?.click();
+        if(assistant.hidden) askButton.click();
+        questionInput.value = query;
+        answerQuery(query);
+    });
+
+    const questionForm = assistant.querySelector(".gpir-assistant-question-form");
+    const questionInput = assistant.querySelector("#gpir-assistant-question");
+    questionForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const question = questionInput.value.trim();
+        if(question) answerQuery(question);
+    });
 
     askButton.addEventListener("click", () => {
         assistant.hidden = !assistant.hidden;
         askButton.setAttribute("aria-expanded", String(!assistant.hidden));
-        if(!assistant.hidden) assistant.querySelector("[data-gpir-assistant-example]")?.focus();
+        if(!assistant.hidden) questionInput.focus();
     });
 
     assistant.querySelector(".gpir-assistant-close").addEventListener("click", closeAssistant);
