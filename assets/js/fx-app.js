@@ -464,38 +464,78 @@
         return `${ageHours.toFixed(1)} hours old at snapshot generation`;
     }
 
+    function hasValidatedPreviousClose(record){
+        return Boolean(record && record.validationStatus === "VALIDATED" && record.previousBusinessDate &&
+            Number.isFinite(record.previousBusinessClose) && Number.isFinite(record.percentageChange));
+    }
+
+    function recentFxWindow(asOfTimestamp){
+        const asOf = Date.parse(asOfTimestamp || "");
+        if(!Number.isFinite(asOf)) return null;
+        const endDate = new Date(asOf).toISOString().slice(0, 10);
+        const start = new Date(`${endDate}T00:00:00Z`);
+        start.setUTCDate(start.getUTCDate() - 6);
+        return { startDate: start.toISOString().slice(0, 10), endDate };
+    }
+
+    function isWithinRecentFxWindow(date, asOfTimestamp){
+        if(typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+        const parsedDate = Date.parse(`${date}T00:00:00Z`);
+        if(!Number.isFinite(parsedDate) || new Date(parsedDate).toISOString().slice(0, 10) !== date) return false;
+        const window = recentFxWindow(asOfTimestamp);
+        return Boolean(window && date >= window.startDate && date <= window.endDate);
+    }
+
+    function filterRecentFxObservations(points, asOfTimestamp){
+        const byDate = new Map();
+        (Array.isArray(points) ? points : []).forEach(point => {
+            if(!point || !Number.isFinite(point.rate) || point.rate <= 0 || !isWithinRecentFxWindow(point.date, asOfTimestamp)) return;
+            byDate.set(point.date, { date: point.date, rate: point.rate });
+        });
+        return Array.from(byDate.values()).sort((left, right) => left.date.localeCompare(right.date)).slice(-7);
+    }
+
     function renderWeeklyEvidence(target, snapshot, pair, points){
         if(points.length < 2){
-            target.innerHTML = `<p class="fx-empty-note">${buildingHistoryMessage(snapshot, null)}</p>`;
+            target.innerHTML = `<p class="fx-availability-state">Insufficient validated observations in the trailing seven-day window. A trend requires at least two observed dates.</p>`;
             return;
         }
         const values = points.map(point => point.rate);
         const first = values[0];
         const last = values[values.length - 1];
         const change = ((last - first) / first) * 100;
+        const completeWindow = points.length >= 5;
         const rows = points.map((point, index) => {
             const dailyChange = index ? ((point.rate - points[index - 1].rate) / points[index - 1].rate) * 100 : null;
-            const sevenDayChange = points.length >= 7 && index === points.length - 1 ? change : null;
+            const sevenDayChange = completeWindow && index === points.length - 1 ? change : null;
             return `<tr><td>${escapeHtml(point.date)}</td><td>${formatRate(point.rate, pair)}</td><td>${formatPercent(dailyChange)}</td><td>${formatPercent(sevenDayChange)}</td></tr>`;
         }).join("");
-        target.innerHTML = `${buildSparkline(points)}<p>7-day movement: ${formatPercent(change)}. Weekly high ${formatRate(Math.max(...values), pair)} · low ${formatRate(Math.min(...values), pair)} across ${points.length} genuine GPIR observation(s).</p><div class="fx-history-table-wrap"><table class="fx-history-table"><thead><tr><th>Date</th><th>Rate</th><th>Daily Δ</th><th>7D Δ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        const movementLabel = completeWindow ? "7-day movement" : "Observed-period movement";
+        target.innerHTML = `${buildSparkline(points)}<p>${movementLabel}: ${formatPercent(change)}. High ${formatRate(Math.max(...values), pair)} · low ${formatRate(Math.min(...values), pair)} across ${points.length} validated observation(s) within the trailing seven-day window.</p><div class="fx-history-table-wrap"><table class="fx-history-table"><thead><tr><th>Date</th><th>Rate</th><th>Daily Δ</th><th>7D Δ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
     function loadUniverseHistory(snapshot, pair){
-        const dates = (snapshot.historyDates || []).slice(-7);
+        const asOfTimestamp = snapshot.generatedAt;
+        const dates = (snapshot.historyDates || []).filter(date => isWithinRecentFxWindow(date, asOfTimestamp)).slice(-7);
         return Promise.all(dates.map(date => {
             const [year, month] = date.split("-");
             return fetchJson(`${dataPrefix()}history/${year}/${month}/${date}.json`).catch(() => null);
         })).then(items => {
             const observationsByBusinessDay = new Map();
             items.filter(Boolean).forEach(item => {
-                const record = deriveUniverseRecord(item, pair);
+                const record = findOrDeriveRecord(item, pair);
                 const observationDate = record && record.timestamp ? record.timestamp.slice(0, 10) : null;
-                if(record && observationDate && Number.isFinite(record.mid)) observationsByBusinessDay.set(observationDate, { date: observationDate, rate: record.mid });
+                const rate = record && (Number.isFinite(record.mid) ? record.mid : record.last);
+                if(record && record.validationStatus === "VALIDATED" && Number.isFinite(rate) && rate > 0 && isWithinRecentFxWindow(observationDate, asOfTimestamp)){
+                    observationsByBusinessDay.set(observationDate, { date: observationDate, rate });
+                }
             });
-            const current = deriveUniverseRecord(snapshot, pair);
+            const current = findOrDeriveRecord(snapshot, pair);
             const currentDate = current && current.timestamp ? current.timestamp.slice(0, 10) : null;
-            if(current && currentDate && Number.isFinite(current.mid)) observationsByBusinessDay.set(currentDate, { date: currentDate, rate: current.mid });
+            const currentRate = current && (Number.isFinite(current.mid) ? current.mid : current.last);
+            if(current && current.validationStatus === "VALIDATED" && Number.isFinite(currentRate) && currentRate > 0 && isWithinRecentFxWindow(currentDate, asOfTimestamp)){
+                observationsByBusinessDay.set(currentDate, { date: currentDate, rate: currentRate });
+            }
             return Array.from(observationsByBusinessDay.values()).sort((left, right) => left.date.localeCompare(right.date)).slice(-7);
         });
     }
@@ -507,23 +547,12 @@
             return;
         }
         const rate = Number.isFinite(record.mid) ? record.mid : record.last;
-        const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? (record.ask - record.bid).toFixed(4) : "N/A";
-        const hasPendingVariance = !record.previousBusinessDate || !Number.isFinite(record.percentageChange);
-        const rows = [
-            ["CURRENT REFERENCE RATE", formatRate(rate, pair, record.isInverse), ""],
-            ["PREVIOUS BUSINESS DAY", record.previousBusinessDate ? `${formatRate(record.previousBusinessClose, pair, record.isInverse)} (${escapeHtml(record.previousBusinessDate)})` : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
-            ["PREV-DAY VARIANCE", Number.isFinite(record.percentageChange) ? formatPercent(record.percentageChange) : "Variance pending", hasPendingVariance ? "fx-detail-row--pending" : ""],
-            ["CLASSIFICATION", referenceClassification(record), ""],
-            ["PROVIDER / SOURCE", record.provider || "None configured", ""],
-            ["OBSERVATION (UTC)", record.timestamp ? new Date(record.timestamp).toISOString() : "N/A", ""],
-            ["SOURCE FRESHNESS", freshnessLabel(snapshot, record), ""],
-            ["BID", formatRate(record.bid, pair), Number.isFinite(record.bid) ? "" : "fx-detail-row--unavailable"],
-            ["ASK", formatRate(record.ask, pair), Number.isFinite(record.ask) ? "" : "fx-detail-row--unavailable"],
-            ["SPREAD", spread, spread === "N/A" ? "fx-detail-row--unavailable" : ""],
-            ["SPOT", formatRate(record.spot, pair), Number.isFinite(record.spot) ? "" : "fx-detail-row--unavailable"],
-            ["TOM", formatRate(record.tom, pair), Number.isFinite(record.tom) ? "" : "fx-detail-row--unavailable"],
-            ["CASH BUY / SELL", `${formatRate(record.cashBuy, pair)} / ${formatRate(record.cashSell, pair)}`, Number.isFinite(record.cashBuy) && Number.isFinite(record.cashSell) ? "" : "fx-detail-row--unavailable"]
-        ];
+        const isValidated = record.validationStatus === "VALIDATED" && Number.isFinite(rate) && rate > 0;
+        const hasVariance = hasValidatedPreviousClose(record);
+        const observationTime = record.timestamp && Number.isFinite(Date.parse(record.timestamp))
+            ? new Date(record.timestamp).toISOString() : "Unavailable";
+        const pricingValue = value => Number.isFinite(value) ? formatRate(value, pair, record.isInverse) : "Not supplied by source";
+        const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? record.ask - record.bid : null;
         const sourceLegsNote = record.rateType === "derived-inverse"
             ? `<p class="fx-source-legs">Calculated as 1 ÷ the validated ${escapeHtml(record.inverseOf)} reference rate. It is not a provider-native or executable quote.</p>`
             : record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
@@ -532,27 +561,56 @@
         const lastValidatedNote = snapshot.dataStatus === "PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD" || record.dataStatus === "STALE"
             ? `<p class="fx-data-note"><strong>Provider currently unavailable.</strong> Showing the last validated observation from ${record.timestamp ? escapeHtml(new Date(record.timestamp).toISOString()) : "the recorded snapshot"}.</p>`
             : "";
-        container.innerHTML = `<div class="fx-pair-detail-header"><h2>${escapeHtml(pair)}</h2>${statusBadge(record.dataStatus)}<span class="fx-reference-class">${referenceClassification(record)}</span></div>
-            <table class="fx-detail-table"><tbody>${rows.map(([label, value, rowClass]) => `<tr${rowClass ? ` class="${rowClass}"` : ""}><th scope="row">${escapeHtml(label)}</th><td>${value}</td></tr>`).join("")}</tbody></table>
+        const modules = ["Regional context", "Remittance", "Competition", "Treasury"].map(name =>
+            `<section class="fx-pair-module"><div><h3>${name}</h3><span class="fx-availability-label">Not published</span></div><p>No validated pair-specific evidence is available in the current dataset.</p></section>`
+        ).join("");
+        container.innerHTML = `<section class="fx-pair-overview" aria-label="${escapeHtml(pair)} reference summary">
+                <div class="fx-pair-detail-header">
+                    <div class="fx-pair-identity"><span class="fx-pair-eyebrow">Currency pair</span><h2>${escapeHtml(pair)}</h2></div>
+                    <div class="fx-pair-primary-rate"><span>Current validated reference rate</span><strong>${isValidated ? formatRate(rate, pair, record.isInverse) : "Unavailable"}</strong><span>${escapeHtml(record.quote || "Quote currency")} per ${escapeHtml(record.base || "base currency")}</span></div>
+                    <div class="fx-pair-status">${statusBadge(record.dataStatus)}<span class="fx-reference-class">${escapeHtml(referenceClassification(record))}</span></div>
+                </div>
+                <dl class="fx-pair-metadata">
+                    <div><dt>Provider / source</dt><dd>${escapeHtml(record.provider || "Unavailable")}</dd></div>
+                    <div><dt>Observation (UTC)</dt><dd>${escapeHtml(observationTime)}</dd></div>
+                    <div><dt>Source freshness</dt><dd>${escapeHtml(freshnessLabel(snapshot, record))}</dd></div>
+                </dl>
+            </section>
             ${lastValidatedNote}
-            <p class="fx-data-note">Bid/Ask, Spot/TOM and Cash pricing appear only when the authorised source genuinely supplies them. No executable price is inferred from reference or cross-rate data.</p>
-            ${hasPendingVariance ? `<p class="fx-variance-note">Variance pending until an earlier validated GPIR business-day observation exists.</p>` : ""}
+            <div class="fx-pair-panels">
+                <section class="fx-pair-panel" aria-labelledby="fx-previous-close-heading">
+                    <h3 id="fx-previous-close-heading">Previous business day</h3>
+                    ${hasVariance
+                        ? `<dl class="fx-pair-metrics"><div><dt>Validated close</dt><dd>${formatRate(record.previousBusinessClose, pair, record.isInverse)}</dd></div><div><dt>Observed date</dt><dd>${escapeHtml(record.previousBusinessDate)}</dd></div><div><dt>Variance</dt><dd>${formatPercent(record.percentageChange)}</dd></div></dl>`
+                        : `<p class="fx-availability-state">Unavailable until an earlier validated business-day close is recorded.</p>`}
+                </section>
+                <section class="fx-pair-panel" aria-labelledby="fx-pricing-heading">
+                    <h3 id="fx-pricing-heading">Source pricing fields</h3>
+                    <dl class="fx-pricing-grid">
+                        ${[["Bid", record.bid], ["Ask", record.ask], ["Spread", spread], ["Spot", record.spot], ["Tom", record.tom], ["Cash buy", record.cashBuy], ["Cash sell", record.cashSell]].map(([label, value]) => `<div><dt>${label}</dt><dd>${pricingValue(value)}</dd></div>`).join("")}
+                    </dl>
+                    <p class="fx-pair-footnote">Only fields supplied by the attributed source are shown; reference rates are not executable quotes.</p>
+                </section>
+            </div>
             ${sourceLegsNote}
-            <section class="fx-weekly-section"><h3>7-day trend</h3><div data-fx-weekly-evidence><p class="fx-loading">Loading validated observations…</p></div></section>
-            <section class="fx-future-modules" aria-label="Future FX intelligence modules">
-                ${["REGIONAL CONTEXT", "CONSUMER / REMITTANCE INTELLIGENCE", "COMPETITION INTELLIGENCE", "TREASURY INTELLIGENCE"].map(name => `<div data-fx-module="${escapeHtml(name.toLowerCase().replace(/[^a-z]+/g, "-"))}"><h3>${escapeHtml(name)}</h3><p>Data hook reserved. No intelligence is published in this module yet.</p></div>`).join("")}
+            <section class="fx-pair-panel fx-weekly-section" aria-labelledby="fx-weekly-heading"><h3 id="fx-weekly-heading">Seven-day evidence</h3><div data-fx-weekly-evidence><p class="fx-loading">Checking validated observations…</p></div></section>
+            <section class="fx-pair-modules" aria-label="Pair-specific intelligence availability">
+                <h3>Pair-specific intelligence</h3>
+                <div class="fx-pair-module-grid">${modules}</div>
             </section>
             <p class="fx-methodology-note"><strong>Methodology:</strong> Direct references reproduce a validated provider common-base rate. Derived references divide two validated rates sharing that base or invert one validated pair. Variance and trends use only earlier validated GPIR business-day observations; missing days are not interpolated.</p>
             <p class="fx-history-link"><a href="${pagePrefix()}pages/fx/historical.html">View immutable GPIR Historical observations →</a></p>`;
         const weeklyTarget = container.querySelector("[data-fx-weekly-evidence]");
-        const summaryPoints = summary && Array.isArray(summary.observations) ? summary.observations.filter(point => Number.isFinite(point.rate)) : [];
-        if(summaryPoints.length) renderWeeklyEvidence(weeklyTarget, snapshot, pair, summaryPoints);
-        else loadUniverseHistory(snapshot, pair).then(points => renderWeeklyEvidence(weeklyTarget, snapshot, pair, points));
+        const asOfTimestamp = snapshot.generatedAt || record.timestamp;
+        const summaryPoints = filterRecentFxObservations(summary && summary.observations, asOfTimestamp);
+        if(summaryPoints.length >= 2) renderWeeklyEvidence(weeklyTarget, snapshot, pair, summaryPoints);
+        else loadUniverseHistory(snapshot, pair).then(points => renderWeeklyEvidence(weeklyTarget, snapshot, pair, filterRecentFxObservations(points, asOfTimestamp)));
     }
 
     function renderPairDetail(){
         const container = document.querySelector('[data-fx-view="pair-detail"]');
         if(!container) return;
+        document.body.classList.add("fx-pair-detail-page");
         const pair = container.getAttribute("data-fx-pair");
         Promise.all([loadCurrentSnapshot(), fetchMutableFxJson("weekly-summary.json").catch(() => ({ summaries: [] }))]).then(([snapshot, weeklyData]) => {
             renderPairIntelligence(container, snapshot, pair, (weeklyData.summaries || []).find(item => item.pair === pair));
@@ -569,7 +627,7 @@
     }
 
     if(typeof document === "undefined"){
-        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate };
+        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations };
         return;
     }
     if(document.readyState === "loading"){

@@ -14,6 +14,7 @@ const {
 const { buildRecord, validateRecord, findDuplicateRecords } = require("./fx/normalize-validate.js");
 const { formatRate, formatPercentChange, formatTickerLine } = require("./fx/ticker-format.js");
 const { buildWeeklySummary } = require("./fx/weekly-summary.js");
+const { hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations } = require("../assets/js/fx-app.js");
 const referenceProvider = require("./fx/providers/reference.js");
 const xeProvider = require("./fx/providers/xe.js");
 
@@ -162,6 +163,25 @@ const countryRegistry = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "a
 const historicalPageSource = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
 const weeklyPageSource = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "weekly.html"), "utf8");
 const publicHistorySource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-public-history.js"), "utf8");
+const usdJpyRecord = currentSnapshot.pairs.find(record => record.pair === "USD/JPY");
+assert.ok(usdJpyRecord, "the USD/JPY reference record must exist for pair-detail regression coverage");
+assert.strictEqual(hasValidatedPreviousClose(usdJpyRecord), false, "USD/JPY must not display prior-day variance without a validated prior close");
+assert.strictEqual(hasValidatedPreviousClose({ validationStatus: "VALIDATED", previousBusinessDate: "2026-11-02", previousBusinessClose: 150, percentageChange: 0.2 }), true);
+assert.strictEqual(hasValidatedPreviousClose({ validationStatus: "UNVALIDATED", previousBusinessDate: "2026-11-02", previousBusinessClose: 150, percentageChange: 0.2 }), false, "unvalidated observations must not qualify for prior-day variance");
+const fxHistoryAsOf = "2026-11-03T04:32:27.163Z";
+assert.strictEqual(isWithinRecentFxWindow("2026-10-27", fxHistoryAsOf), false, "observations older than the seven-day window must be excluded");
+assert.strictEqual(isWithinRecentFxWindow("2026-11-04", fxHistoryAsOf), false, "future observations must be excluded");
+assert.deepStrictEqual(filterRecentFxObservations([
+    { date: "2026-10-27", rate: 149 }, { date: "2026-10-28", rate: 150 },
+    { date: "2026-11-03", rate: 151 }, { date: "2026-11-03", rate: 152 },
+    { date: "2026-11-02", rate: 0 }
+], fxHistoryAsOf), [
+    { date: "2026-10-28", rate: 150 }, { date: "2026-11-03", rate: 152 }
+], "only positive observations in the trailing seven UTC dates should contribute, with one value per date");
+assert.match(fxAppSource, /Current validated reference rate/, "pair detail must emphasize the validated current reference rate");
+assert.match(fxAppSource, /Unavailable until an earlier validated business-day close is recorded/, "missing variance must use an honest availability state");
+assert.match(fxAppSource, /Only fields supplied by the attributed source are shown/, "pricing fields must remain source-grounded");
+assert.match(fxAppSource, /No validated pair-specific evidence is available in the current dataset/, "unavailable intelligence modules must not imply unpublished analysis");
 assert.match(tickerReaderSource, /current\.json\?v=.*Date\.now\(\)/, "homepage current.json must use a per-request cache key");
 assert.match(tickerReaderSource, /fetch\(fxCurrentSnapshotUrl\(\), \{ cache: "no-store" \}\)/, "homepage current.json must bypass the browser cache");
 assert.match(fxAppSource, /fetchMutableFxJson\("current\.json"\)/, "FX reader current.json must use the mutable-data fetch path");
