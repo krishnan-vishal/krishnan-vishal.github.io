@@ -154,6 +154,8 @@ const tickerReaderSource = fs.readFileSync(path.join(__dirname, "..", "assets", 
 const fxAppSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "fx-app.js"), "utf8");
 const homepageSource = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const marketCssSource = fs.readFileSync(path.join(__dirname, "..", "assets", "css", "market.css"), "utf8");
+const headerCssSource = fs.readFileSync(path.join(__dirname, "..", "assets", "css", "header.css"), "utf8");
+const siteScriptSource = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "script.js"), "utf8");
 const fxConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "fx-config.json"), "utf8"));
 const currentSnapshot = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "current.json"), "utf8"));
 const countryRegistry = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "country-currency-registry.json"), "utf8"));
@@ -186,6 +188,14 @@ assert.match(marketCssSource, /@keyframes tickerMove\{[\s\S]*?translateX\(-50%\)
 assert.match(marketCssSource, /#fx-ribbon \.ticker-track:hover\{[\s\S]*?animation-play-state:paused/, "pointer hover must pause ticker motion");
 assert.match(marketCssSource, /#fx-ribbon \.ticker-track:focus-within\{[\s\S]*?animation-play-state:paused/, "keyboard focus must pause ticker motion");
 assert.match(marketCssSource, /@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?#fx-ribbon \.ticker-track\{[\s\S]*?animation:none/, "reduced-motion readers must receive a non-animated ticker");
+
+const megaMenuSource = siteScriptSource.slice(siteScriptSource.indexOf("function initializeMegaMenuHoverIntent"));
+assert.doesNotMatch(headerCssSource, /\.nav-item-mega:hover\s*>\s*\.mega-menu\s*\{/, "hovering the list item or its bridge must not open the mega-menu through CSS");
+assert.match(headerCssSource, /\.nav-item-mega\.is-open\s*>\s*\.mega-menu/, "the controller's explicit open state must reveal the mega-menu");
+assert.match(megaMenuSource, /if\(!trigger\.contains\(e\.target\)\) return;/, "only pointer movement over the navigation trigger may schedule hover-open");
+assert.match(megaMenuSource, /trigger\.matches\(":hover"\)/, "a delayed open must be discarded after the pointer leaves its trigger");
+assert.match(megaMenuSource, /document\.addEventListener\("pointermove"[\s\S]*?\{ capture:true, passive:true \}\)/, "ribbon hit testing must run in capture phase while a menu overlays the ribbon");
+assert.match(megaMenuSource, /c\.cancelPendingOpen\(\);[\s\S]*?if\(c\.item\.classList\.contains\("is-open"\)\) c\.closeInstant\(\);/, "entering a ribbon must cancel pending opens and dismiss any visible menu");
 
 assert.ok(fxConfig.treasurySendingBases.includes("GBP"), "GBP must also remain a Treasury sending currency");
 const providerCurrencies = new Set(currentSnapshot.currencyUniverse.currencies);
