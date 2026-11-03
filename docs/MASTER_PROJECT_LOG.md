@@ -2712,3 +2712,9 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - **Validation:** `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-fx.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js` (155 HTML files), changed-file `node --check`, `git diff --check`, and a scoped search confirming no spread calculation/display in `assets/js/` or `pages/fx/` pass. FX page generation completed for five hub pages and 26 pair pages. Browser/live-provider verification was not performed.
 - **Outcome:** Implementation ready for owner review; authorized price-source data, merge and deployment remain pending.
 - **Implementation commit:** `M39-FX-05 Public FX pricing boundary`; SHA and remote checkpoint to be recorded in a subsequent append-only handoff.
+
+## 2026-11-03 — M39-FX-05 local handoff checkpoint
+
+- **Implementation commit:** `9c6f780ef93952b3302ef7c5d513d97beaab9192` on `fix/m39-fx-dashboard-history-recovery`.
+- **Remote checkpoint:** `git push origin fix/m39-fx-dashboard-history-recovery` failed with `fatal: unable to get password from user`. Read-only `git ls-remote` verified the remote branch remains at `ceee3b1f47506978e9c9c09ff6fcc0a424bae0ca`; the implementation is local-only and the required durable push remains blocked on authentication.
+- **Next step:** Reauthenticate through the platform-supported Git flow, push the existing branch without rewriting history, verify the remote SHA, then request owner review. No PR, merge, CI result or deployment is claimed.

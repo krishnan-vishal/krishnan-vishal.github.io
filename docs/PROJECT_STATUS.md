@@ -9,7 +9,8 @@
 - **Implementation boundary:** extend the normalized FX pricing-field schema and public renderer only. No source prices are present in the committed reference feed; missing values remain unavailable. Existing entitlement architecture, public URLs and Production data remain unchanged; no provider integration was added.
 - **Implementation:** public pair pages display source-supplied directional rates only from validated provider-native records. Spread calculation and display were removed. The FX page shells use the updated script cache key.
 - **Validation:** `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-fx.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, changed-file `node --check` and `git diff --check` pass. FX link validation covered 155 HTML files. No browser-level check or live provider pricing is claimed.
-- **State:** implementation is ready for owner review. Authorized source pricing, merge and deployment remain pending; no Production data or entitlement behavior changed.
+- **Commit / remote:** implementation commit `9c6f780ef93952b3302ef7c5d513d97beaab9192` is local. Push failed with `fatal: unable to get password from user`. Read-only `git ls-remote` verified `origin/fix/m39-fx-dashboard-history-recovery` remains at `ceee3b1f47506978e9c9c09ff6fcc0a424bae0ca`; local work is not yet a durable remote handoff. Authentication and push remain pending.
+- **State:** implementation is ready for owner review once pushed. Authorized source pricing, merge and deployment remain pending; no Production data or entitlement behavior changed.
 
 ### M39/G1 — Final homepage repair and historical repository verification
 
