@@ -14,6 +14,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M39-FX-06 — FX pair context, display precision and archive repair
+
+- **Date / request:** 2026-11-03; implement from production `main`, preserve merged navigation and access boundaries, carry selected currency-pair context across Explorer/Weekly/Historical, tighten precision and spacing, and repair the existing Supabase archive workflow without fabricated historical data or new architecture.
+- **Starting state:** branch `feat/m39-fx-06` from `02e74c12ee6445008e51c7581721e6c9454388bc`, production `main` after PR #495. Worktree was clean before implementation.
+- **Result:** pair selectors and query state now carry `BASE-QUOTE` context across the three views, with links back to each relevant view. Archive output uses the existing 4/2/6 direct/JPY/inverse precision convention and more compact responsive controls/cards. The archive validates pair identity, observation timestamps, positive source rates and provider attribution before insertion, and does not round source precision. Existing Supabase secret names and private workflow scope remain unchanged.
+- **Historical evidence:** read-only public archive access returned 134 rows at one capture timestamp on 2026-11-03. Queried seven-day windows ending 2026-09-15, 2026-10-01 and 2026-10-27 returned no rows. The committed static hourly archive and weekly summary contain only 2026-11-03. Missing past observations cannot be recovered from available data and were not reconstructed or backfilled.
+- **Validation:** `node scripts/test-fx-archive.js`, `node scripts/test-fx.js`, `node scripts/validate-fx.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, changed-file `node --check`, and `git diff --check` pass. Generated FX pages were refreshed. No database write, workflow rerun, merge or deployment occurred. The user-referenced live screenshots were unavailable in this workspace/session, so screenshot-based acceptance is not claimed.
+- **Release state / limitation:** implementation commit `24aca5c` is local. GitHub CLI is not authenticated (`gh auth status`); remote push and the requested single PR are pending. Public run metadata previously showed one successful and one failed archive run, but detailed logs were inaccessible, so the failure cause is not asserted.
+
 ## SUPABASE-ANNOUNCEMENTS-04 — Broad HTML link fallback
 
 - **Date / user request:** 2026-09-14; a green `run-ticker.yml` reportedly leaves `global_announcements` empty. Search every HTML anchor by default, require a cleaned 10–250 character title and a finance keyword in title or URL, deduplicate, and retain approved/ticker-eligible writes.

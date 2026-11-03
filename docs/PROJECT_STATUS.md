@@ -2,15 +2,20 @@
 
 ## Current handoff
 
-### M39-FX-05 — Public FX pricing boundary
+### M39-FX-06 — Pair context, precision, spacing and archive integrity
 
-- **Branch / base:** `fix/m39-fx-dashboard-history-recovery`, starting at `ceee3b1` on `origin/fix/m39-fx-dashboard-history-recovery`, based on `bde6d6d`.
-- **Objective:** render only validated, source-supplied reference, cash, spot and forward buy/sell prices in public FX pages; remove spread analytics from public FX components; reserve pricing benchmarks, competition comparisons and global benchmark intelligence for subscriber-authorized modules.
-- **Implementation boundary:** extend the normalized FX pricing-field schema and public renderer only. No source prices are present in the committed reference feed; missing values remain unavailable. Existing entitlement architecture, public URLs and Production data remain unchanged; no provider integration was added.
-- **Implementation:** public pair pages display source-supplied directional rates only from validated provider-native records. Spread calculation and display were removed. The FX page shells use the updated script cache key.
-- **Validation:** `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-fx.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, changed-file `node --check` and `git diff --check` pass. FX link validation covered 155 HTML files. No browser-level check or live provider pricing is claimed.
-- **Commit / remote:** implementation commit `9c6f780ef93952b3302ef7c5d513d97beaab9192` is local. Push failed with `fatal: unable to get password from user`. Read-only `git ls-remote` verified `origin/fix/m39-fx-dashboard-history-recovery` remains at `ceee3b1f47506978e9c9c09ff6fcc0a424bae0ca`; local work is not yet a durable remote handoff. Authentication and push remain pending.
-- **State:** implementation is ready for owner review once pushed. Authorized source pricing, merge and deployment remain pending; no Production data or entitlement behavior changed.
+- **Branch / base:** `feat/m39-fx-06`, from production `main` at `02e74c12ee6445008e51c7581721e6c9454388bc` (includes merged PR #495 / M39-FX-05).
+- **Objective:** correct displayed FX precision and excessive spacing; preserve the selected pair across Currency Explorer, Weekly Trends and Historical; strengthen the existing Supabase archive path without adding services, tables or providers.
+- **Implementation:** direct, JPY and inverse archive rates use the established 4/2/6-decimal display convention; archive cards and controls are more compact and responsive. Pair selectors, query-string synchronization and contextual links carry normalized `BASE-QUOTE` pairs across all three views. The archive only accepts well-formed validated observations with matching pair identity, source and a non-future observation timestamp, and preserves their numeric precision. The workflow retains its existing `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` secrets; no private credential enters browser code.
+- **Historical limit:** a read-only public archive probe returned 134 rows for 2026-11-03 at a single capture time. Earlier queried windows ending 2026-09-15, 2026-10-01 and 2026-10-27 returned zero rows. The committed static hourly archive and weekly summary also contain only 2026-11-03. No historical observations were fabricated or backfilled; earlier history is unrecoverable from the accessible archive evidence.
+- **Validation:** the FX archive contract and regression suites, FX/content/link validators, changed-file JavaScript syntax checks and `git diff --check` pass. The public archive was read only; no Supabase write or workflow rerun was performed. No supplied screenshots were available in the workspace/session for visual comparison.
+- **Commit / release boundary:** implementation commit `24aca5c` is local on this branch. No merge or production deployment occurred. `gh auth status` reports no authenticated GitHub account, so the requested PR handoff is pending. The workflow's previous failure root cause remains unknown; public metadata showed both a successful and a failed archive run, while detailed logs were inaccessible.
+- **State:** implementation and local validation complete; remote push/PR status pending. Historical recovery and screenshot-based acceptance remain unavailable.
+
+### M39-FX-05 — Public FX pricing boundary (merged in PR #495)
+
+- **Production baseline:** M39-FX-05 was merged to `main` in PR #495, which is the base of this branch.
+- **Boundary:** public pages render only validated source-supplied directional prices; spread analytics remain excluded from public components. Subscriber entitlements and missing-data behavior are unchanged.
 
 ### M39/G1 — Final homepage repair and historical repository verification
 
