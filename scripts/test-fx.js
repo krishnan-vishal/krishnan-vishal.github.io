@@ -14,7 +14,10 @@ const {
 const { buildRecord, validateRecord, findDuplicateRecords } = require("./fx/normalize-validate.js");
 const { formatRate, formatPercentChange, formatTickerLine } = require("./fx/ticker-format.js");
 const { buildWeeklySummary } = require("./fx/weekly-summary.js");
-const { hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage } = require("../assets/js/fx-app.js");
+const {
+    hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations,
+    weeklyAvailabilityMessage, renderSourcePricingFields
+} = require("../assets/js/fx-app.js");
 const referenceProvider = require("./fx/providers/reference.js");
 const xeProvider = require("./fx/providers/xe.js");
 
@@ -84,6 +87,29 @@ const cleanRecord = buildRecord({
     previousBusinessClose: 88.0, dataStatus: "REFERENCE"
 });
 assert.deepStrictEqual(validateRecord(cleanRecord, { now }), [], "a well-formed record must pass with no anomalies");
+assert.deepStrictEqual(
+    ["referenceBuy", "referenceSell", "spotBuy", "spotSell", "forwardBuy", "forwardSell"].map(field => cleanRecord[field]),
+    [null, null, null, null, null, null],
+    "directional rates not supplied by a source must remain null"
+);
+const sourcePricingRecord = buildRecord({
+    pair: "USD/EUR", base: "USD", quote: "EUR", timestamp: "2026-09-08T11:55:00Z",
+    provider: "licensed-example", providerType: "live", mid: 0.9,
+    referenceBuy: 0.89, referenceSell: 0.91, cashBuy: 0.88, cashSell: 0.92,
+    spotBuy: 0.895, spotSell: 0.905, forwardBuy: 0.885, forwardSell: 0.915,
+    dataStatus: "LIVE"
+});
+assert.deepStrictEqual(validateRecord(sourcePricingRecord, { now }), [], "source-supplied directional rates must be validated as positive numeric rates");
+assert.ok(validateRecord(buildRecord({
+    pair: "USD/EUR", base: "USD", quote: "EUR", timestamp: "2026-09-08T11:55:00Z",
+    provider: "licensed-example", providerType: "live", mid: 0.9, forwardBuy: 0,
+    dataStatus: "LIVE"
+}), { now }).includes("NON_POSITIVE_FORWARDBUY"), "a non-positive source forward rate must be quarantined");
+assert.ok(validateRecord(buildRecord({
+    pair: "USD/EUR", base: "USD", quote: "EUR", timestamp: "2026-09-08T11:55:00Z",
+    provider: "licensed-example", providerType: "live", mid: 0.9, forwardSell: "invalid",
+    dataStatus: "LIVE"
+}), { now }).includes("NON_NUMERIC_FORWARDSELL"), "a non-numeric source forward rate must be rejected");
 
 const nonNumeric = buildRecord({ pair: "USD/INR", base: "USD", quote: "INR", timestamp: "2026-09-08T11:55:00Z", provider: "x", providerType: "reference", mid: "not-a-number", dataStatus: "REFERENCE" });
 assert.ok(validateRecord(nonNumeric, { now }).includes("NON_NUMERIC_MID"), "a non-numeric rate must be rejected");
@@ -184,6 +210,31 @@ assert.match(usdJpyHistoryMessage, /2026-09-12 to 2026-11-02 \(52 dates\)/, "the
 assert.match(fxAppSource, /Current validated reference rate/, "pair detail must emphasize the validated current reference rate");
 assert.match(fxAppSource, /Unavailable until an earlier validated business-day close is recorded/, "missing variance must use an honest availability state");
 assert.match(fxAppSource, /Only fields supplied by the attributed source are shown/, "pricing fields must remain source-grounded");
+const publicPricingHtml = renderSourcePricingFields({
+    validationStatus: "VALIDATED", rateType: "provider-native",
+    provider: "licensed-example", providerType: "live",
+    bid: 0.88, ask: 0.92,
+    referenceBuy: 0.89, referenceSell: 0.91, cashBuy: 0.88, cashSell: 0.92,
+    spot: null, spotBuy: 0.895, spotSell: 0.905,
+    forwardBuy: 0.885, forwardSell: 0.915, tom: null
+}, "USD/EUR");
+["Bid", "Ask", "Reference buy", "Reference sell", "Cash buy", "Cash sell", "Spot buy", "Spot sell", "Forward buy", "Forward sell"].forEach(label =>
+    assert.ok(publicPricingHtml.includes(`<dt>${label}</dt>`), `${label} should be available for validated native source records`)
+);
+assert.ok(publicPricingHtml.includes("<dd>0.8900</dd>"), "validated source-provided rates should be displayed");
+assert.ok(publicPricingHtml.includes("<dd>Not supplied by source</dd>"), "missing rates should remain explicitly unavailable");
+const unvalidatedPricingHtml = renderSourcePricingFields({
+    validationStatus: "QUARANTINED", rateType: "provider-native",
+    provider: "licensed-example", providerType: "live", referenceBuy: 0.89
+}, "USD/EUR");
+assert.ok(!unvalidatedPricingHtml.includes("0.8900"), "unvalidated pricing values must never be shown publicly");
+assert.ok(unvalidatedPricingHtml.includes("<dd>Unavailable</dd>"), "unvalidated pricing fields must report unavailable rather than missing");
+const derivedPricingHtml = renderSourcePricingFields({
+    validationStatus: "VALIDATED", rateType: "derived-cross",
+    provider: "reference-open-er-api", providerType: "reference", referenceBuy: 0.89
+}, "USD/EUR");
+assert.ok(!derivedPricingHtml.includes("0.8900"), "derived rates must not be presented as source-supplied directional quotes");
+assert.doesNotMatch(fxAppSource, /spread|ask\s*-\s*bid/i, "public FX rendering must not calculate, label, or expose spread analytics");
 assert.match(fxAppSource, /No validated pair-specific evidence is available in the current dataset/, "unavailable intelligence modules must not imply unpublished analysis");
 const fxMenuStart = homepageSource.indexOf("<strong>Treasury &amp; Liquidity Management</strong>");
 const fxMenuEnd = homepageSource.indexOf("</ul>", fxMenuStart);

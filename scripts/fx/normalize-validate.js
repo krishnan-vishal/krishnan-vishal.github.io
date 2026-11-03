@@ -19,7 +19,11 @@
  */
 
 const ISO_CURRENCY_PATTERN = /^[A-Z]{3}$/;
-const RATE_FIELDS = ["bid", "ask", "mid", "last", "spot", "tom", "cashBuy", "cashSell", "previousBusinessClose"];
+const RATE_FIELDS = [
+    "bid", "ask", "mid", "last", "referenceBuy", "referenceSell",
+    "spot", "spotBuy", "spotSell", "tom", "cashBuy", "cashSell",
+    "forwardBuy", "forwardSell", "previousBusinessClose"
+];
 const ALLOWED_PROVIDER_TYPES = new Set(["live", "reference", "fallback"]);
 const ALLOWED_RATE_TYPES = new Set(["provider-native", "derived-cross"]);
 const ALLOWED_DATA_STATUS = new Set(["LIVE", "DELAYED", "REFERENCE", "STALE", "HISTORICAL", "NO_PROVIDER_CONFIGURED"]);
@@ -37,7 +41,9 @@ function buildRecord(fields){
         pair, base, quote, timestamp, provider, providerType,
         rateType = "provider-native", sourceLegs = null,
         bid = null, ask = null, mid = null, last = null,
-        spot = null, tom = null, cashBuy = null, cashSell = null,
+        referenceBuy = null, referenceSell = null,
+        spot = null, spotBuy = null, spotSell = null, tom = null,
+        cashBuy = null, cashSell = null, forwardBuy = null, forwardSell = null,
         previousBusinessClose = null, previousBusinessDate = null,
         absoluteChange = null, percentageChange = null, direction = null,
         dataStatus, providerRetrievedAt = null, gpirRetrievedAt = null,
@@ -47,7 +53,8 @@ function buildRecord(fields){
     return {
         pair, base, quote, timestamp, provider, providerType, rateType,
         sourceLegs,
-        bid, ask, mid, last, spot, tom, cashBuy, cashSell,
+        bid, ask, mid, last, referenceBuy, referenceSell,
+        spot, spotBuy, spotSell, tom, cashBuy, cashSell, forwardBuy, forwardSell,
         previousBusinessClose, previousBusinessDate,
         absoluteChange, percentageChange, direction,
         dataStatus, providerRetrievedAt, gpirRetrievedAt, validationStatus
@@ -89,7 +96,8 @@ function validateRecord(record, options = {}){
         }
     });
 
-    ["mid", "last", "spot", "bid", "ask", "cashBuy", "cashSell", "previousBusinessClose"].forEach(field => {
+    ["mid", "last", "referenceBuy", "referenceSell", "spot", "spotBuy", "spotSell", "tom",
+        "cashBuy", "cashSell", "forwardBuy", "forwardSell", "bid", "ask", "previousBusinessClose"].forEach(field => {
         if(Number.isFinite(record[field]) && record[field] <= 0){
             reasons.push(`NON_POSITIVE_${field.toUpperCase()}`);
         }

@@ -44,14 +44,20 @@ All under `assets/data/fx/` (this repository's convention is
   `dataStatus` is the run-level outcome (`OK`,
   `PROVIDER_UNAVAILABLE_SERVED_LAST_KNOWN_GOOD`, or
   `NO_PROVIDER_CONFIGURED`). Each `pairs[]` record matches the schema
-  in `scripts/fx/normalize-validate.js` -- every field GPIR does not
-  have (no TOM/spot/cash from a reference-only source, no bid/ask
-  spread, etc.) is `null`, rendered "N/A" by the front end. A computed
-  cross-rate is always `rateType: "derived-cross"` with `sourceLegs`
-  recorded; it is never presented as a provider-native quote. When the
-  active adapter supplies a validated common-base table, `currencyUniverse`
-  retains those rates, currencies, provider/timestamp metadata and the
-  genuine previous-business-day table for on-demand Explorer calculations.
+  in `scripts/fx/normalize-validate.js`. Provider-native records can carry
+  `referenceBuy`, `referenceSell`, `cashBuy`, `cashSell`, `spot`,
+  `spotBuy`, `spotSell`, `forwardBuy` and `forwardSell`; public pair pages
+  show directional values only from validated provider-native records.
+  Derived cross-rates and inverses are not shown as source-supplied pricing.
+  Missing fields are labelled as not supplied; they are never estimated.
+  The reference adapter does not provide these pricing
+  fields, and the committed reference snapshot contains no such pricing
+  observations. A computed cross-rate is always
+  `rateType: "derived-cross"` with `sourceLegs` recorded; it is never
+  presented as a provider-native quote. When the active adapter supplies a
+  validated common-base table, `currencyUniverse` retains those rates,
+  currencies, provider/timestamp metadata and the genuine
+  previous-business-day table for on-demand Explorer calculations.
 - `history/YYYY/MM/YYYY-MM-DD.json` -- one immutable frozen daily
   snapshot (`status: "historical"`). `scripts/fx/generate-fx-snapshot.js`'s
   `freezeOutgoingSnapshotIfNewDay()` writes this the first time a run
@@ -76,7 +82,8 @@ All under `assets/data/fx/` (this repository's convention is
   browser in production before this milestone; it is not a new
   third-party relationship, only moved server-side so a future
   licensed provider's credentials never need to reach client
-  JavaScript. `providerType: "reference"`, never `"live"`.
+  JavaScript. It publishes only reference rates;
+  `providerType: "reference"`, never `"live"`.
 - `xe.js`, `ibrlive.js`, `lseg.js`, `bloomberg.js` -- licensed-provider
   stubs built on `licensed-provider-base.js`. GPIR has no licence,
   credential or verified API specification for any of these vendors
@@ -113,6 +120,19 @@ never committed and never sent to the browser:
 | `FX_IBRLIVE_API_KEY` | IBRLive API |
 
 No secret is required for the site to function -- see No-Credential Mode.
+
+## Public and subscriber-authorized FX surfaces
+
+Public FX components display validated, source-supplied reference, cash,
+spot and forward rates only. They do not calculate, display or otherwise
+expose spread analytics, pricing benchmarks, competition comparisons or
+global benchmark intelligence. Those analyses are reserved for
+subscriber-authorized modules and must use the existing entitlement
+architecture; this public FX change does not add or alter an access path.
+Individually supplied bid and ask rates may be shown, but no spread is
+derived or labelled.
+Missing or unvalidated pricing observations remain unavailable, never
+estimated.
 
 ## No-Credential Mode (mandatory)
 

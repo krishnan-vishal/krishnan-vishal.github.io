@@ -140,7 +140,9 @@
         const percentageChange = Number.isFinite(previousRate) && previousRate !== 0 ? (absoluteChange / previousRate) * 100 : null;
         return {
             pair, base, quote, mid: rate, last: rate,
-            bid: null, ask: null, spot: null, tom: null, cashBuy: null, cashSell: null,
+            bid: null, ask: null, referenceBuy: null, referenceSell: null,
+            spot: null, spotBuy: null, spotSell: null, tom: null,
+            cashBuy: null, cashSell: null, forwardBuy: null, forwardSell: null,
             timestamp: universe.timestamp,
             providerRetrievedAt: universe.providerRetrievedAt,
             gpirRetrievedAt: universe.gpirRetrievedAt,
@@ -174,7 +176,9 @@
                 ? -record.percentageChange / (1 + record.percentageChange / 100) : null;
         const [base, quote] = pair.split("/");
         return { ...record, pair, base, quote, mid: rate, last: rate,
-            bid: null, ask: null, spot: null, tom: null, cashBuy: null, cashSell: null,
+            bid: null, ask: null, referenceBuy: null, referenceSell: null,
+            spot: null, spotBuy: null, spotSell: null, tom: null,
+            cashBuy: null, cashSell: null, forwardBuy: null, forwardSell: null,
             rateType: "derived-inverse", inverseOf: record.pair, isInverse: true,
             sourceLegs: [{ pair: record.pair, provider: record.provider }],
             previousBusinessClose: previousRate,
@@ -469,6 +473,32 @@
             Number.isFinite(record.previousBusinessClose) && Number.isFinite(record.percentageChange));
     }
 
+    function renderSourcePricingFields(record, pair){
+        const sourceValidated = Boolean(record && record.validationStatus === "VALIDATED" &&
+            record.rateType === "provider-native" && typeof record.provider === "string" &&
+            record.provider.trim() && ["live", "reference", "fallback"].includes(record.providerType));
+        const fields = [
+            ["Bid", "bid"],
+            ["Ask", "ask"],
+            ["Reference buy", "referenceBuy"],
+            ["Reference sell", "referenceSell"],
+            ["Cash buy", "cashBuy"],
+            ["Cash sell", "cashSell"],
+            ["Spot reference", "spot"],
+            ["Spot buy", "spotBuy"],
+            ["Spot sell", "spotSell"],
+            ["Forward buy", "forwardBuy"],
+            ["Forward sell", "forwardSell"],
+            ["Tom", "tom"]
+        ];
+        return `<dl class="fx-pricing-grid">${fields.map(([label, field]) => {
+            const value = sourceValidated && Number.isFinite(record[field])
+                ? formatRate(record[field], pair, record.isInverse)
+                : sourceValidated ? "Not supplied by source" : "Unavailable";
+            return `<div><dt>${label}</dt><dd>${value}</dd></div>`;
+        }).join("")}</dl>`;
+    }
+
     function recentFxWindow(asOfTimestamp){
         const asOf = Date.parse(asOfTimestamp || "");
         if(!Number.isFinite(asOf)) return null;
@@ -569,8 +599,6 @@
         const hasVariance = hasValidatedPreviousClose(record);
         const observationTime = record.timestamp && Number.isFinite(Date.parse(record.timestamp))
             ? new Date(record.timestamp).toISOString() : "Unavailable";
-        const pricingValue = value => Number.isFinite(value) ? formatRate(value, pair, record.isInverse) : "Not supplied by source";
-        const spread = Number.isFinite(record.bid) && Number.isFinite(record.ask) ? record.ask - record.bid : null;
         const sourceLegsNote = record.rateType === "derived-inverse"
             ? `<p class="fx-source-legs">Calculated as 1 ÷ the validated ${escapeHtml(record.inverseOf)} reference rate. It is not a provider-native or executable quote.</p>`
             : record.rateType === "derived-cross" && Array.isArray(record.sourceLegs)
@@ -604,9 +632,7 @@
                 </section>
                 <section class="fx-pair-panel" aria-labelledby="fx-pricing-heading">
                     <h3 id="fx-pricing-heading">Source pricing fields</h3>
-                    <dl class="fx-pricing-grid">
-                        ${[["Bid", record.bid], ["Ask", record.ask], ["Spread", spread], ["Spot", record.spot], ["Tom", record.tom], ["Cash buy", record.cashBuy], ["Cash sell", record.cashSell]].map(([label, value]) => `<div><dt>${label}</dt><dd>${pricingValue(value)}</dd></div>`).join("")}
-                    </dl>
+                    ${renderSourcePricingFields(record, pair)}
                     <p class="fx-pair-footnote">Only fields supplied by the attributed source are shown; reference rates are not executable quotes.</p>
                 </section>
             </div>
@@ -645,7 +671,7 @@
     }
 
     if(typeof document === "undefined"){
-        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage };
+        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, renderSourcePricingFields, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage };
         return;
     }
     if(document.readyState === "loading"){
