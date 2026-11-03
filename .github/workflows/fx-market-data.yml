@@ -84,7 +84,7 @@ jobs:
           node scripts/validate-fx.js
           node scripts/validate-content.js
 
-      - name: Archive hourly rates and rebuild seven-day trends
+      - name: Archive validated FX observations and rebuild seven-day trends
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

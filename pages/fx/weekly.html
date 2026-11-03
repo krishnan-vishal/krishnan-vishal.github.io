@@ -80,7 +80,7 @@
 <link rel="stylesheet" href="../../assets/css/architecture.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/intelligence-library.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/payments-timeline.css?v=20260822c">
-<link rel="stylesheet" href="../../assets/css/market.css?v=20260911f">
+<link rel="stylesheet" href="../../assets/css/market.css?v=20261103a">
 <link rel="stylesheet" href="../../assets/css/command-centre.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/purpose.css?v=20260822c">
 <link rel="stylesheet" href="../../assets/css/knowledge.css?v=20260822c">
@@ -887,12 +887,15 @@
 <section class="chapter-body fx-page-body">
     <div class="container">
         <section data-fx-public-view="weekly" aria-label="Weekly FX trends">
-            <label for="fx-sending-base-select">Sending currency</label>
-            <select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select>
+            <div class="fx-archive-controls">
+                <label for="fx-pair-select">Currency pair<select id="fx-pair-select" class="fx-explorer-select"><option value="">All currency pairs</option></select></label>
+                <label for="fx-sending-base-select">Sending currency<select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select></label>
+            </div>
+            <nav id="fx-pair-context-links" class="fx-related-views" aria-label="Related currency pair views"></nav>
             <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
             <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
-        <script src="../../assets/js/fx-public-history.js" defer></script>
+        <script src="../../assets/js/fx-public-history.js?v=20261103a" defer></script>
         <p class="fx-disclaimer">FX rates are provided for market intelligence and informational purposes only. Rates may be delayed, indicative or reference rates depending on the underlying provider and are not executable quotes. GPIR does not provide investment, trading or treasury advice.</p>
     </div>
 </section>
@@ -1184,7 +1187,7 @@
 <script src="../../assets/js/script.js?v=20260822c"></script>
 
 <script src="../../assets/js/content-protection.js?v=20260822c"></script>
-<script src="../../assets/js/fx-app.js?v=20261103a"></script>
+<script src="../../assets/js/fx-app.js?v=20261103b"></script>
 
 </body>
 

@@ -653,9 +653,15 @@ ANIMATION
 .fx-treasury-controls label{ color:#68717c; font-size:11px; font-weight:700; }
 .fx-treasury-controls select{ min-height:34px; padding:5px 8px; border:1px solid #c9c2b2; border-radius:6px; background:#fff; color:#0b2742; }
 .fx-section-note{ margin:0 0 8px; color:#68717c; font-size:11px; }
-.fx-explorer-form{ display:grid; grid-template-columns:auto minmax(100px, 160px) auto minmax(100px, 160px) auto; align-items:end; gap:8px 10px; margin:4px 0 22px; }
+.fx-explorer-form{ display:grid; grid-template-columns:auto minmax(100px, 160px) auto minmax(100px, 160px) auto; align-items:end; gap:6px 8px; margin:4px 0 12px; }
 .fx-explorer-select{ min-height:38px; padding:7px 10px; border:1px solid #c9c2b2; border-radius:6px; background:#fff; color:#0b2742; }
 .fx-explorer-submit{ min-height:38px; padding:7px 14px; border:1px solid #0b2742; border-radius:6px; background:#0b2742; color:#fff; font-weight:700; cursor:pointer; }
+.fx-archive-controls{ display:flex; flex-wrap:wrap; align-items:end; gap:6px 10px; margin:6px 0 10px; }
+.fx-archive-controls label{ display:grid; gap:3px; color:#68717c; font-size:11px; font-weight:700; }
+.fx-archive-controls .fx-explorer-select{ min-width:150px; min-height:34px; padding:5px 8px; }
+.fx-archive-controls #fx-hourly-select{ min-width:220px; }
+.fx-archive-controls #fx-sending-base-select{ min-width:110px; }
+.fx-related-views{ display:flex; flex-wrap:wrap; gap:6px 14px; margin:8px 0 12px; font-size:12px; }
 .fx-reference-class{ padding:3px 8px; border:1px solid #b58d1d; border-radius:999px; background:#d4af37; color:#0b2742; font-size:10px; font-weight:800; letter-spacing:.04em; }
 .fx-future-modules{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin:20px 0; }
 .fx-future-modules > div{ padding:10px 12px; border:1px dashed #c9c2b2; background:#fbf8f0; }
@@ -1068,17 +1074,17 @@ carried by glyph + text, never colour alone.
 }
 
 #dynamic-ticker-grid{
-    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
-    gap:10px;
+    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+    gap:6px;
 }
 
 #dynamic-ticker-grid .fx-weekly-card{
     display:block;
-    padding:12px;
+    padding:8px;
 }
 
 #dynamic-ticker-grid .fx-weekly-card p{
-    margin:5px 0 0;
+    margin:3px 0 0;
     overflow-wrap:anywhere;
 }
 
@@ -1665,6 +1671,11 @@ body.fx-pair-detail-page.legal-page .chapter-body{
     .fx-pair-metadata{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .fx-pair-panels{ grid-template-columns:1fr; }
     .fx-pair-module-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .fx-archive-controls{ align-items:stretch; }
+    .fx-archive-controls > label{ flex:1 1 150px; }
+    .fx-archive-controls .fx-explorer-select,
+    .fx-archive-controls #fx-hourly-select,
+    .fx-archive-controls #fx-sending-base-select{ width:100%; min-width:0; }
 
 }
 

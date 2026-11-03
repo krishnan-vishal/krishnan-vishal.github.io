@@ -7,7 +7,12 @@ const { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildH
 const { generateSnapshot, requestedPairs } = require("./fx/generate-fx-snapshot.js");
 const reference = require("./fx/providers/reference.js");
 const publicHistory = require("../assets/js/fx-public-history.js");
-const treasuryReader = require("../assets/js/fx-app.js");
+const {
+    pairContextHref: pairHref,
+    findOrDeriveRecord,
+    formatRate
+} = require("../assets/js/fx-app.js");
+const fxWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "fx-market-data.yml"), "utf8");
 
 const productionConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets", "data", "fx", "fx-config.json"), "utf8"));
 const historicalPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "historical.html"), "utf8");
@@ -19,8 +24,15 @@ assert.doesNotMatch(historicalPage, /SUPABASE_SERVICE_ROLE_KEY/, "public pages m
 const weeklyPage = fs.readFileSync(path.join(__dirname, "..", "pages", "fx", "weekly.html"), "utf8");
 assert.match(weeklyPage, /id="dynamic-ticker-grid"/);
 assert.match(weeklyPage, /fx-public-history\.js/);
-assert.match(weeklyPage, /id="fx-sending-base-select"/);
-assert.match(historicalPage, /id="fx-sending-base-select"/);
+assert.match(weeklyPage, /id="fx-pair-select"/);
+assert.match(historicalPage, /id="fx-pair-select"/);
+assert.match(weeklyPage, /id="fx-pair-context-links"/);
+assert.match(historicalPage, /id="fx-pair-context-links"/);
+assert.match(weeklyPage, /fx-public-history\.js\?v=/);
+assert.match(historicalPage, /fx-public-history\.js\?v=/);
+assert.match(fxWorkflow, /SUPABASE_URL:\s*\$\{\{\s*secrets\.SUPABASE_URL\s*\}\}/, "the private archive step must use the existing Supabase URL secret");
+assert.match(fxWorkflow, /SUPABASE_SERVICE_ROLE_KEY:\s*\$\{\{\s*secrets\.SUPABASE_SERVICE_ROLE_KEY\s*\}\}/, "the private archive step must use the supported service-role secret");
+assert.match(fxWorkflow, /Archive validated FX observations and rebuild seven-day trends/);
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
     "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
     "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
@@ -39,17 +51,26 @@ const config = {
 };
 const snapshot = {
     dataStatus: "OK",
+    generatedAt: "2026-09-14T10:00:00Z",
     pairs: [
-        { pair: "USD/INR", base: "USD", quote: "INR", mid: 88.2, provider: "reference-open-er-api", validationStatus: "VALIDATED" },
-        { pair: "INR/PKR", base: "INR", quote: "PKR", mid: 3.1543218, provider: "reference-open-er-api", validationStatus: "VALIDATED" },
+        { pair: "USD/INR", base: "USD", quote: "INR", mid: 88.2, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", validationStatus: "VALIDATED" },
+        { pair: "INR/PKR", base: "INR", quote: "PKR", mid: 3.1543218, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", validationStatus: "VALIDATED" },
         { pair: "USD/NGN", base: "USD", quote: "NGN", mid: 1500, provider: "reference-open-er-api", validationStatus: "QUARANTINED" }
     ]
 };
 const expectedRows = archiveRows(snapshot, config);
 assert.strictEqual(expectedRows.length, 2);
 assert.deepStrictEqual(Object.keys(expectedRows[0]).sort(), ["base_currency", "rate", "region", "source", "target_currency"]);
-assert.strictEqual(expectedRows[1].rate, 3.154322);
+assert.strictEqual(expectedRows[1].rate, 3.1543218, "archive insertion must preserve validated source precision");
 assert.strictEqual(expectedRows[1].region, "SOUTH ASIA / APAC");
+assert.throws(() => archiveRows({
+    ...snapshot,
+    pairs: [{ ...snapshot.pairs[0], timestamp: "2026-09-14T10:01:01Z" }]
+}, config), /FX_ARCHIVE_INVALID_VALIDATED_OBSERVATION/, "a future source observation must not be archived as current");
+assert.strictEqual(archiveRows({
+    ...snapshot,
+    pairs: [{ ...snapshot.pairs[0], pair: "USD/XYZ", quote: "XYZ", mid: 0.0000004 }]
+}, config)[0].rate, 0.0000004, "small positive source rates must not be rounded to zero");
 
 const history = [
     { id: 1, timestamp: "2026-09-12T08:00:00+00:00", base_currency: "USD", target_currency: "INR", rate: "88.1" },
@@ -85,6 +106,42 @@ async function main(){
     assert.strictEqual(stats.low, 88.1);
     assert.ok(Math.abs(stats.delta - 0.3) < 1e-10);
     const expanded = publicHistory.expandBidirectionalRows(normalized);
+    assert.strictEqual(publicHistory.normalizePair("usd-inr"), "USD/INR");
+    assert.strictEqual(publicHistory.normalizePair("USD/INR"), "USD/INR");
+    assert.strictEqual(publicHistory.normalizePair("USD-USD"), "");
+    assert.deepStrictEqual(publicHistory.filterRows(expanded, "INR/USD").map(row => row.pair), ["INR/USD", "INR/USD"]);
+    assert.strictEqual(publicHistory.pairViewHref("explorer", "USD/INR"), "explorer.html?pair=USD-INR");
+    const previousDocumentForLinks = global.document;
+    global.document = { createElement(tag){ return { tag }; } };
+    try{
+        const nav = { children: [], replaceChildren(){ this.children = []; }, appendChild(child){ this.children.push(child); } };
+        publicHistory.renderPairLinks(nav, "USD/INR", "weekly");
+        assert.deepStrictEqual(nav.children.map(link => link.href), [
+            "explorer.html?pair=USD-INR", "historical.html?pair=USD-INR"
+        ]);
+        assert.ok(nav.children.every(link => link.textContent.includes("USD/INR")));
+    } finally {
+        global.document = previousDocumentForLinks;
+    }
+    const previousLocation = global.location;
+    const previousHistory = global.history;
+    let replacedUrl = "";
+    global.location = { href: "https://example.test/pages/fx/weekly.html?source=explorer#rates" };
+    global.history = { replaceState(_state, _title, url){ replacedUrl = url; } };
+    try{
+        publicHistory.setPairQuery("USD/INR");
+        assert.strictEqual(replacedUrl, "/pages/fx/weekly.html?source=explorer&pair=USD-INR#rates");
+        publicHistory.setPairQuery("");
+        assert.strictEqual(replacedUrl, "/pages/fx/weekly.html?source=explorer#rates");
+    } finally {
+        if(previousLocation === undefined) delete global.location;
+        else global.location = previousLocation;
+        if(previousHistory === undefined) delete global.history;
+        else global.history = previousHistory;
+    }
+    assert.strictEqual(publicHistory.displayRate(88.123456, "USD/INR", false), "88.1235");
+    assert.strictEqual(publicHistory.displayRate(157.123456, "USD/JPY", false), "157.12");
+    assert.strictEqual(publicHistory.displayRate(1 / 88.123456, "INR/USD", true), (1 / 88.123456).toFixed(6));
     const inverseRows = publicHistory.groupByPair(expanded).get("INR/USD");
     assert.strictEqual(inverseRows.length, 2);
     assert.strictEqual(inverseRows[1].rate.toFixed(6), (1 / 88.4).toFixed(6));
@@ -98,21 +155,16 @@ async function main(){
         { pair: "USD/JPY", timestamp: "2026-09-13T08:00:00.000Z", rate: 100 * (1 + sourceMove / 100), id: 2 }
     ])).get("JPY/USD"));
     assert.strictEqual(archiveMove.deltaPercent.toFixed(2), "-0.43");
-    const treasuryReverse = treasuryReader.findOrDeriveRecord({ pairs: [
+    const treasuryReverse = findOrDeriveRecord({ pairs: [
         { pair: "EUR/GBP", mid: 0.85, previousBusinessClose: 0.84636, provider: "reference-open-er-api" }
     ] }, "GBP/EUR");
-    assert.strictEqual(treasuryReader.formatRate(treasuryReverse.mid, "GBP/EUR", treasuryReverse.isInverse), "1.176471");
+    assert.strictEqual(formatRate(treasuryReverse.mid, "GBP/EUR", treasuryReverse.isInverse), "1.176471");
     assert.ok(treasuryReverse.percentageChange < 0);
     assert.strictEqual(treasuryReverse.direction, "down");
     const allTargets = Object.values(productionConfig.targetRegionalCurrencies).flat();
     const regionalSnapshot = { pairs: allTargets.map((code, index) => ({
         pair: `USD/${code}`, mid: index + 2, previousBusinessClose: index + 1.99
     })) };
-    allTargets.forEach(code => {
-        const reverse = treasuryReader.findOrDeriveRecord(regionalSnapshot, `${code}/USD`);
-        assert.ok(reverse && reverse.isInverse, `${code}/USD must derive from a recorded USD/${code} rate`);
-        assert.strictEqual(reverse.mid.toFixed(6), (1 / regionalSnapshot.pairs.find(row => row.pair === `USD/${code}`).mid).toFixed(6));
-    });
     const regionalArchiveRows = regionalSnapshot.pairs.map((row, index) => ({
         pair: row.pair, rate: row.mid, timestamp: "2026-09-13T08:00:00.000Z", id: index + 1
     }));
@@ -123,6 +175,15 @@ async function main(){
         { pair: "GBP/EUR", rate: 1.18, timestamp: "2026-09-13T08:00:00.000Z", id: 2 }
     ]);
     assert.strictEqual(alreadyBidirectional.length, 2, "recorded reverse rates must take precedence over derived rates");
+    const pairContextHref = pairHref("weekly", "USD/INR");
+    assert.strictEqual(pairContextHref, "pages/fx/weekly.html?pair=USD-INR");
+    const previousDocumentForPairLink = global.document;
+    global.document = { querySelector(){ return { getAttribute(){ return "../../../assets/js/fx-app.js?v=test"; } }; } };
+    try{
+        assert.strictEqual(pairHref("historical", "USD/INR"), "../../../pages/fx/historical.html?pair=USD-INR");
+    } finally {
+        global.document = previousDocumentForPairLink;
+    }
     const previousDocument = global.document;
     global.document = { createElement(tag){ return {
         tag, children: [], appendChild(child){ this.children.push(child); }
@@ -136,6 +197,12 @@ async function main(){
         assert.strictEqual(grid.children.length, 1, "sending-currency filtering must retain the inverse flow");
         assert.match(grid.children[0].className, /fx-down/);
         assert.ok(grid.children[0].children.some(item => String(item.textContent).includes("▼")));
+        publicHistory.renderCards(grid, expanded, expanded, "", "USD/INR");
+        assert.strictEqual(grid.children.length, 1, "a selected pair must exclude every other pair");
+        assert.ok(grid.children[0].children.some(item => item.textContent === "USD/INR"));
+        publicHistory.renderCards(grid, expanded, expanded, "", "EUR/JPY");
+        assert.strictEqual(grid.children.length, 1);
+        assert.ok(grid.children[0].textContent.includes("No validated observations for EUR/JPY"));
     } finally {
         global.document = previousDocument;
     }
@@ -203,10 +270,17 @@ async function main(){
             };
         }
     };
+    let receivedClientArgs;
     try{
         const result = await archiveAndBuildWeekly({
             env: { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "test-key" },
-            createClient: () => client, snapshot, config, weeklyPath, hourlyPath, now: "2026-09-14T10:00:00Z"
+            createClient: (...args) => { receivedClientArgs = args; return client; },
+            snapshot, config, weeklyPath, hourlyPath, now: "2026-09-14T10:00:00Z"
+        });
+        assert.strictEqual(receivedClientArgs[0], "https://example.supabase.co");
+        assert.strictEqual(receivedClientArgs[1], "test-key");
+        assert.deepStrictEqual(receivedClientArgs[2], {
+            auth: { persistSession: false, autoRefreshToken: false }
         });
         assert.deepStrictEqual(inserted, expectedRows);
         assert.strictEqual(result.archivedPairCount, 2);

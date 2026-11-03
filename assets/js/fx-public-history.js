@@ -106,6 +106,47 @@
         return [...new Set(rows.map(row => row.timestamp))].sort().reverse();
     }
 
+    function normalizePair(value){
+        if(typeof value !== "string") return "";
+        const match = value.trim().toUpperCase().match(/^([A-Z]{3})[-/]([A-Z]{3})$/);
+        return match && match[1] !== match[2] ? `${match[1]}/${match[2]}` : "";
+    }
+
+    function filterRows(rows, pair = "", sendingBase = ""){
+        if(pair) return rows.filter(row => row.pair === pair);
+        return rows.filter(row => !sendingBase || row.pair.startsWith(`${sendingBase}/`));
+    }
+
+    function setPairQuery(pair){
+        const url = new URL(root.location.href);
+        if(pair) url.searchParams.set("pair", pair.replace("/", "-"));
+        else url.searchParams.delete("pair");
+        root.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    function pairViewHref(view, pair){
+        const pages = { explorer: "explorer", weekly: "weekly", historical: "historical" };
+        if(!pages[view]) throw new Error(`Unknown FX view: ${view}`);
+        return `${pages[view]}.html?pair=${encodeURIComponent(pair.replace("/", "-"))}`;
+    }
+
+    function renderPairLinks(container, pair, currentView){
+        if(!container) return;
+        container.replaceChildren();
+        if(!pair) return;
+        const views = [
+            ["explorer", "Currency Explorer"],
+            ["weekly", "Weekly Trends"],
+            ["historical", "Historical"]
+        ];
+        views.filter(([view]) => view !== currentView).forEach(([view, label]) => {
+            const link = document.createElement("a");
+            link.href = pairViewHref(view, pair);
+            link.textContent = `${pair} · ${label}`;
+            container.appendChild(link);
+        });
+    }
+
     function appendText(parent, tag, className, value){
         const element = document.createElement(tag);
         if(className) element.className = className;
@@ -114,16 +155,26 @@
         return element;
     }
 
-    function displayRate(rate, inverse){
-        return inverse ? rate.toFixed(6) : rate.toLocaleString("en-GB", { maximumFractionDigits: 6 });
+    function displayRate(rate, pair, inverse){
+        if(!Number.isFinite(rate)) return "N/A";
+        if(inverse) return rate.toFixed(6);
+        const decimals = pair && (pair.startsWith("JPY/") || pair.endsWith("/JPY")) ? 2 : 4;
+        return rate.toFixed(decimals);
     }
 
-    function renderCards(grid, selectedRows, allRows, sendingBase = ""){
+    function displayDelta(rate, pair, inverse){
+        const sign = rate > 0 ? "+" : "";
+        return `${sign}${displayRate(rate, pair, inverse)}`;
+    }
+
+    function renderCards(grid, selectedRows, allRows, sendingBase = "", selectedPair = ""){
         grid.replaceChildren();
-        const allPairs = groupByPair(allRows.filter(row => !sendingBase || row.pair.startsWith(`${sendingBase}/`)));
+        const allPairs = groupByPair(filterRows(allRows, selectedPair, sendingBase));
         const selectedPairs = groupByPair(selectedRows);
         if(!allPairs.size){
-            appendText(grid, "p", "fx-empty-note", "No validated FX rows are available for this period.");
+            appendText(grid, "p", "fx-empty-note", selectedPair
+                ? `No validated observations for ${selectedPair} in the available seven-day archive.`
+                : "No validated FX rows are available for this period.");
             return;
         }
         [...allPairs.keys()].sort().forEach(pair => {
@@ -132,16 +183,17 @@
             const allPairRows = allPairs.get(pair);
             const latest = allPairRows[allPairRows.length - 1];
             const stats = pairStats(allPairRows);
+            const inverse = Boolean(latest.inverseOf);
             const card = document.createElement("article");
             card.className = `fx-weekly-card ${stats.delta > 0 ? "fx-up" : stats.delta < 0 ? "fx-down" : "fx-unchanged"}`;
             appendText(card, "h3", "fx-pair-card-pair", pair);
             appendText(card, "p", "fx-pair-card-rate", current
-                ? `Capture ${displayRate(current.rate, Boolean(current.inverseOf))}`
+                ? `Capture ${displayRate(current.rate, pair, Boolean(current.inverseOf))}`
                 : "No rate in selected capture");
             appendText(card, "p", "fx-weekly-completeness", stats.observations > 1
-                ? `7D ${stats.delta > 0 ? "▲" : stats.delta < 0 ? "▼" : "—"} ${stats.deltaPercent > 0 ? "+" : ""}${stats.deltaPercent.toFixed(2)}% (${stats.delta > 0 ? "+" : ""}${stats.delta.toFixed(6)})`
+                ? `7D ${stats.delta > 0 ? "▲" : stats.delta < 0 ? "▼" : "—"} ${stats.deltaPercent > 0 ? "+" : ""}${stats.deltaPercent.toFixed(2)}% (${displayDelta(stats.delta, pair, inverse)})`
                 : "7D variance unavailable · one capture");
-            appendText(card, "p", "fx-weekly-metrics", `High ${displayRate(stats.high, Boolean(latest.inverseOf))} · Low ${displayRate(stats.low, Boolean(latest.inverseOf))}`);
+            appendText(card, "p", "fx-weekly-metrics", `High ${displayRate(stats.high, pair, inverse)} · Low ${displayRate(stats.low, pair, inverse)}`);
             appendText(card, "p", "fx-data-note", `${latest.region} · ${latest.source} · ${latest.timestamp}${latest.inverseOf ? ` · Calculated inverse of ${latest.inverseOf}` : ""}`);
             grid.appendChild(card);
         });
@@ -167,6 +219,9 @@
         const status = document.getElementById("fx-public-status");
         const selector = document.getElementById("fx-hourly-select");
         const sendingSelect = document.getElementById("fx-sending-base-select");
+        const pairSelect = document.getElementById("fx-pair-select");
+        const pairLinks = document.getElementById("fx-pair-context-links");
+        if(!pairSelect) return;
         const now = new Date();
         let rows;
         try{
@@ -184,15 +239,39 @@
             }
         }
         rows = expandBidirectionalRows(rows);
+        const requestedPair = normalizePair(new URLSearchParams(root.location.search).get("pair"));
+        const availablePairs = [...new Set(rows.map(row => row.pair))].sort();
+        pairSelect.replaceChildren();
+        const allPairsOption = document.createElement("option");
+        allPairsOption.value = "";
+        allPairsOption.textContent = "All currency pairs";
+        pairSelect.appendChild(allPairsOption);
+        [...new Set([...availablePairs, ...(requestedPair ? [requestedPair] : [])])].sort().forEach(pair => {
+            const option = document.createElement("option");
+            option.value = pair;
+            option.textContent = pair;
+            pairSelect.appendChild(option);
+        });
+        pairSelect.value = requestedPair;
+        renderPairLinks(pairLinks, requestedPair, view);
         [...new Set(rows.map(row => row.pair.split("/")[0]))].sort().forEach(base => {
             const option = document.createElement("option");
             option.value = base;
             option.textContent = base;
             sendingSelect.appendChild(option);
         });
-        const renderCurrent = () => renderCards(grid,
-            view === "weekly" ? rows : rows.filter(row => row.timestamp === selector.value),
-            rows, sendingSelect.value);
+        const renderCurrent = () => {
+            const selectedPair = pairSelect.value;
+            sendingSelect.disabled = Boolean(selectedPair);
+            renderPairLinks(pairLinks, selectedPair, view);
+            renderCards(grid,
+                view === "weekly" ? rows : rows.filter(row => row.timestamp === selector.value),
+                rows, selectedPair ? "" : sendingSelect.value, selectedPair);
+        };
+        pairSelect.addEventListener("change", () => {
+            setPairQuery(pairSelect.value);
+            renderCurrent();
+        });
         sendingSelect.addEventListener("change", renderCurrent);
         if(view === "weekly"){
             renderCurrent();
@@ -211,7 +290,11 @@
     }
 
     if(typeof module !== "undefined" && module.exports){
-        module.exports = { normalizeRows, fetchSevenDays, groupByPair, expandBidirectionalRows, pairStats, distinctTimestamps, renderCards };
+        module.exports = {
+            normalizeRows, fetchSevenDays, groupByPair, expandBidirectionalRows,
+            pairStats, distinctTimestamps, normalizePair, filterRows, setPairQuery,
+            pairViewHref, renderPairLinks, displayRate, displayDelta, renderCards
+        };
     }
     if(typeof document !== "undefined"){
         if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

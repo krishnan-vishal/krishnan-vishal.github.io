@@ -23,7 +23,9 @@
     }
 
     function dataPrefix(){
-        const script = document.querySelector('script[src*="assets/js/fx-app.js"]');
+        const script = typeof document === "undefined"
+            ? null
+            : document.querySelector('script[src*="assets/js/fx-app.js"]');
         const src = script ? script.getAttribute("src") : "assets/js/fx-app.js";
         return src.replace(/assets\/js\/fx-app\.js.*$/, "assets/data/fx/");
     }
@@ -34,6 +36,10 @@
 
     function pairSlug(pair){
         return pair.toLowerCase().replace("/", "-");
+    }
+
+    function pairContextHref(view, pair){
+        return `${pagePrefix()}pages/fx/${view}.html?pair=${encodeURIComponent(pair.replace("/", "-"))}`;
     }
 
     function formatRate(value, pair, inverse = false){
@@ -638,6 +644,7 @@
             </div>
             ${sourceLegsNote}
             <section class="fx-pair-panel fx-weekly-section" aria-labelledby="fx-weekly-heading"><h3 id="fx-weekly-heading">Seven-day evidence</h3><div data-fx-weekly-evidence><p class="fx-loading">Checking validated observations…</p></div></section>
+            <p class="fx-related-views"><a href="${pairContextHref("weekly", pair)}">Weekly Trends for ${escapeHtml(pair)}</a><a href="${pairContextHref("historical", pair)}">Historical captures for ${escapeHtml(pair)}</a></p>
             <section class="fx-pair-modules" aria-label="Pair-specific intelligence availability">
                 <h3>Pair-specific intelligence</h3>
                 <div class="fx-pair-module-grid">${modules}</div>
@@ -671,7 +678,7 @@
     }
 
     if(typeof document === "undefined"){
-        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, renderSourcePricingFields, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage };
+        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, pairContextHref, renderSourcePricingFields, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage };
         return;
     }
     if(document.readyState === "loading"){

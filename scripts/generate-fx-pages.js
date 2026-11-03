@@ -145,7 +145,7 @@ function loadTemplate(){
         throw new Error("Template extraction markers not found in " + TEMPLATE_SOURCE_PATH);
     }
     const headerBlockTemplate = templateSource.slice(0, heroIdx)
-        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20260911f");
+        .replace("assets/css/market.css?v=20260908a", "assets/css/market.css?v=20261103a");
     const FX_APP_SCRIPT_ANCHOR = '<script src="../../assets/js/content-protection.js?v=20260822c"></script>';
     let footerBlock = templateSource.slice(footerIdx).replace(
         /href="(privacy-policy|disclaimer|terms-of-use|copyright-ip-policy|cookie-policy)\.html"/g,
@@ -155,7 +155,7 @@ function loadTemplate(){
         throw new Error("Expected script-tag anchor not found in template: " + FX_APP_SCRIPT_ANCHOR);
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
-        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20261103a"></script>`
+        `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20261103b"></script>`
     ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260911d");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
@@ -327,12 +327,15 @@ function main(){
         activeNav: "Weekly Trends",
         depth: 2,
         bodyHtml: `        <section data-fx-public-view="weekly" aria-label="Weekly FX trends">
-            <label for="fx-sending-base-select">Sending currency</label>
-            <select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select>
+            <div class="fx-archive-controls">
+                <label for="fx-pair-select">Currency pair<select id="fx-pair-select" class="fx-explorer-select"><option value="">All currency pairs</option></select></label>
+                <label for="fx-sending-base-select">Sending currency<select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select></label>
+            </div>
+            <nav id="fx-pair-context-links" class="fx-related-views" aria-label="Related currency pair views"></nav>
             <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
             <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
-        <script src="../../assets/js/fx-public-history.js" defer></script>`
+        <script src="../../assets/js/fx-public-history.js?v=20261103a" defer></script>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "weekly.html"), weeklyHtml, "utf8");
 
@@ -350,14 +353,16 @@ function main(){
         bodyHtml: `        <section class="fx-hourly-captures" data-fx-public-view="historical" aria-labelledby="fx-hourly-heading">
             <h2 id="fx-hourly-heading">Hourly database captures</h2>
             <p>Recorded capture times are shown in UTC. The free reference feed updates daily, so consecutive hourly captures may have the same rate.</p>
-            <label for="fx-hourly-select">Capture hour (UTC)</label>
-            <select id="fx-hourly-select" class="fx-explorer-select" disabled></select>
-            <label for="fx-sending-base-select">Sending currency</label>
-            <select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select>
+            <div class="fx-archive-controls">
+                <label for="fx-hourly-select">Capture hour (UTC)<select id="fx-hourly-select" class="fx-explorer-select" disabled></select></label>
+                <label for="fx-pair-select">Currency pair<select id="fx-pair-select" class="fx-explorer-select"><option value="">All currency pairs</option></select></label>
+                <label for="fx-sending-base-select">Sending currency<select id="fx-sending-base-select" class="fx-explorer-select"><option value="">All sending currencies</option></select></label>
+            </div>
+            <nav id="fx-pair-context-links" class="fx-related-views" aria-label="Related currency pair views"></nav>
             <p id="fx-public-status" role="status">Loading seven-day FX observations…</p>
             <div id="dynamic-ticker-grid" class="fx-weekly-list" aria-live="polite"></div>
         </section>
-        <script src="../../assets/js/fx-public-history.js" defer></script>`
+        <script src="../../assets/js/fx-public-history.js?v=20261103a" defer></script>`
     });
     fs.writeFileSync(path.join(OUTPUT_DIR, "historical.html"), historicalHtml, "utf8");
 
@@ -368,7 +373,7 @@ function main(){
         const pairHtml = assemblePage({
             template,
             title: `${pair} — FX Intelligence`,
-            description: `${pair} live pricing, previous-business-day variance, weekly trend and historical observations from GPIR.`,
+            description: `${pair} reference rate, previous-business-day variance, weekly trend and historical observations from GPIR.`,
             urlPath: `pages/fx/pairs/${slug}.html`,
             heroTitle: `${pair} FX Intelligence`,
             heroIntro: `Current reference rate, business-day variance and source attribution for ${pair}.`,
