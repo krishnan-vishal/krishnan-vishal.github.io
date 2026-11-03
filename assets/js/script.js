@@ -577,6 +577,11 @@ function initializeMegaMenuHoverIntent(){
 
                 if(mobileQuery.matches || e.pointerType === "touch") return;
 
+                // Only the actual navigation trigger may initiate hover-open.
+                // The menu panel and the 20px hover bridge must not reopen a
+                // dropdown while the pointer is heading to the FX ticker.
+                if(!trigger.contains(e.target)) return;
+
                 if(Date.now() - lastScrollAt < SCROLL_HOVER_GUARD) return;
 
                 scheduleOpen();
@@ -607,6 +612,16 @@ function initializeMegaMenuHoverIntent(){
             console.error("[GPIR] mega-menu item setup failed:", err);
         }
 
+    });
+
+    // FX and Global Alerts sit directly below the sticky navigation.
+    // Entering either ribbon must dismiss an open menu immediately so
+    // currency-pair and alert links remain reachable without obstruction.
+    document.querySelectorAll("#fx-ribbon, #market-ribbon").forEach(ribbon => {
+        ribbon.addEventListener("pointerenter", () => {
+            if(mobileQuery.matches) return;
+            controllers.forEach(c => c.closeInstant());
+        }, { passive:true });
     });
 
     document.addEventListener("click", (e) => {
