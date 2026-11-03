@@ -495,9 +495,27 @@
         return Array.from(byDate.values()).sort((left, right) => left.date.localeCompare(right.date)).slice(-7);
     }
 
+    function weeklyAvailabilityMessage(snapshot, points){
+        const count = points.length;
+        const observationLabel = count === 1 ? "observation is" : "observations are";
+        const message = `${count} validated ${observationLabel} available in the trailing seven-day window; a trend requires at least two observed dates.`;
+        const currentDate = snapshot.generatedAt && Number.isFinite(Date.parse(snapshot.generatedAt))
+            ? new Date(snapshot.generatedAt).toISOString().slice(0, 10) : "";
+        const archiveDates = [...new Set((snapshot.historyDates || []).filter(date =>
+            typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(`${date}T00:00:00Z`)) && date < currentDate
+        ))].sort();
+        const latestArchivedDate = archiveDates[archiveDates.length - 1];
+        if(!latestArchivedDate || !currentDate) return `Insufficient validated observations: ${message}`;
+        const gapDays = Math.round((Date.parse(`${currentDate}T00:00:00Z`) - Date.parse(`${latestArchivedDate}T00:00:00Z`)) / 86400000) - 1;
+        if(gapDays <= 0) return `Insufficient validated observations: ${message}`;
+        const gapStart = new Date(Date.parse(`${latestArchivedDate}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+        const gapEnd = new Date(Date.parse(`${currentDate}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+        return `${message} Published immutable daily snapshots span ${archiveDates[0]} to ${latestArchivedDate}; none are published for ${gapStart} to ${gapEnd} (${gapDays} dates). No trend is inferred across that gap.`;
+    }
+
     function renderWeeklyEvidence(target, snapshot, pair, points){
         if(points.length < 2){
-            target.innerHTML = `<p class="fx-availability-state">Insufficient validated observations in the trailing seven-day window. A trend requires at least two observed dates.</p>`;
+            target.innerHTML = `<p class="fx-availability-state">${escapeHtml(weeklyAvailabilityMessage(snapshot, points))}</p>`;
             return;
         }
         const values = points.map(point => point.rate);
@@ -627,7 +645,7 @@
     }
 
     if(typeof document === "undefined"){
-        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations };
+        if(typeof module !== "undefined" && module.exports) module.exports = { invertRecord, findOrDeriveRecord, formatRate, hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage };
         return;
     }
     if(document.readyState === "loading"){

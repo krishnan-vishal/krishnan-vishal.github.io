@@ -1165,7 +1165,7 @@ carried by glyph + text, never colour alone.
 
 }
 
-.fx-pair-detail-page .fx-page-hero{
+body.fx-pair-detail-page.legal-page .chapter-hero{
 
     padding:18px 0 8px;
 
@@ -1195,7 +1195,7 @@ carried by glyph + text, never colour alone.
 
 }
 
-.fx-pair-detail-page .fx-page-body{
+body.fx-pair-detail-page.legal-page .chapter-body{
 
     padding:8px 0 32px;
 
@@ -1209,7 +1209,7 @@ carried by glyph + text, never colour alone.
 
 .fx-pair-overview{
 
-    padding-bottom:12px;
+    padding:0 0 12px;
     border-bottom:1px solid #dfe3e8;
 
 }
@@ -1385,7 +1385,7 @@ carried by glyph + text, never colour alone.
 
 .fx-weekly-section{
 
-    margin-top:10px;
+    margin-top:8px;
 
 }
 
@@ -1400,7 +1400,8 @@ carried by glyph + text, never colour alone.
 
 .fx-pair-modules{
 
-    margin-top:14px;
+    margin-top:8px;
+    padding:0;
 
 }
 
@@ -1415,7 +1416,7 @@ carried by glyph + text, never colour alone.
 .fx-pair-module{
 
     min-width:0;
-    padding-top:7px;
+    padding:7px 0 0;
     border-top:1px solid #dfe3e8;
 
 }
