@@ -587,7 +587,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     const partitioned = announcementLifecycle.partition(byPublication, new Date());
     const liveRecords = partitioned.live;
     const archiveRecords = partitioned.archive;
-    const cards = records => records.length ? records.map(archiveCard).join("\n") : '<p class="ticker-empty">No newly validated announcements in the latest 24 hours.</p>';
+    const cards = records => records.length ? records.map(archiveCard).join("\n") : '<p class="ticker-empty">No newly validated announcements in the latest 12 hours.</p>';
     const periodCounts = byPublication.reduce((years, record) => {
         const period = periodFor(record);
         if(!years.has(period.year)) years.set(period.year, new Map());
@@ -627,7 +627,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
         <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
         <nav class="announcement-archive-nav" aria-label="Global Announcements sections">
           <span>Jump to</span>
-          <a href="#latest-24-hours">LIVE</a>
+          <a href="#latest-12-hours">LIVE</a>
           <!-- No separate "recent" data grouping exists (only live vs.
                archive), so RECENT and ARCHIVE both open the repository
                archive below, which already lists newest-first -- this
@@ -640,9 +640,9 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 <section class="chapter-body">
     <div class="container announcement-archive-wrap">
       <section class="announcement-dashboard" data-announcement-dashboard>
-        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 24 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
+        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 12 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
         <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
-        <section id="latest-24-hours" class="announcement-dashboard-live"><h2>Latest 24 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
+        <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
         <nav class="announcement-period-nav" data-period-nav aria-label="Archive Month and Year">
           <div class="announcement-period-years" data-year-options>${yearButtons}</div>
           <div class="announcement-period-months" data-month-options>${monthButtons}</div>
@@ -658,7 +658,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 </section>
 ${footerBlock}
 <script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
-<script src="../../assets/js/announcement-dashboard.js?v=20260909a"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261103a"></script>
 </body>
 </html>`;
     fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");

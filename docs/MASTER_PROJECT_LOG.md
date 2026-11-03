@@ -2694,6 +2694,9 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 
 ## 2026-11-03 — M39/G1 production correction implementation checkpoint
 
+- **Delivery checkpoint:** commit `d7a00aa` was pushed to `codex/m39-g1-production-correction` and opened as PR #486. Initial `G1 R07 targeted tests` and `GPIR Security and Integrity` checks passed. The same PR received the bounded tablet containment and archive contrast/compactness follow-up after local browser acceptance at desktop, 1024px and 390px; no second branch or PR was created.
+- **Acceptance boundary:** local browser evidence confirms the approved navigation and archive remain contained without horizontal overflow. Merge, static-site deployment, Edge Function deployment, governed 49-day queue processing and the one post-deployment performance trace remain gated on the current PR head and live verification.
+
 - One clean Production trace measured the actual initial-interaction defect: the obsolete `supabase-combined-engine.js` bare jsDelivr import timed out for 22.6 seconds and delayed `DOMContentLoaded`, navigation/search initialization and both ticker requests until about 23.8 seconds.
 - Implemented the smallest existing-layer correction: removed the duplicate engine from the homepage/archive, booted end-of-body controls immediately, restored the already committed approved M39 navigation, added bounded hover intent, and reused the existing canonical public intelligence API for archive rendering.
 - Production Supabase read-only evidence showed 1,002 raw rows, 729 candidates, 273 ingestion rejections, 20 publication audits and 40 approved announcement rows in the observed 49-day inventory. Only the two MAS records satisfy the canonical public contract; 38 legacy PYMNTS rows lack eligible summaries and remain excluded without deletion.

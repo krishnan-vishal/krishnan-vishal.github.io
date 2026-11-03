@@ -174,7 +174,7 @@ function initializeAdaptiveNav(){
 
     const moreList = moreItem.querySelector(".nav-more-list");
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     // "More" is a permanent static category (Resources / Directory /
     // FINTECHOISIS / Legal) now, not a hidden-until-needed overflow
@@ -298,7 +298,7 @@ function initializeAdaptiveNav(){
 
 function initializeMobileMegaAccordion(){
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     const items = document.querySelectorAll(".nav-item-mega");
 
@@ -384,7 +384,7 @@ function initializeMegaMenuHoverIntent(){
     // floating stale over unrelated content.
     const SCROLL_CLOSE_THRESHOLD = 80;
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     // Captured the moment any menu opens (not lazily on first scroll
     // event, which would already reflect the post-scroll position and
@@ -768,7 +768,7 @@ function initializeMobileNav(){
 
     });
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     nav.querySelectorAll("a").forEach(link=>{
 

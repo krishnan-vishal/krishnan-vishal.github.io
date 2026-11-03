@@ -254,6 +254,12 @@ test("desktop panel and caret visibility remain controller-class driven", () => 
     assert.doesNotMatch(headerCss, /\.nav-item-mega:(?:hover|focus-within) > \.mega-menu\s*\{[^}]*opacity:1/s);
 });
 
+test("tablet widths use the existing contained navigation accordion", () => {
+    assert.match(headerCss, /@media \(max-width:1100px\)\{[\s\S]*?\.mega-menu\s*\{[\s\S]*?position:static/);
+    assert.match(headerCss, /@media \(max-width:1100px\)\{[\s\S]*?\.nav-toggle\s*\{[\s\S]*?display:flex/);
+    assert.equal((navigationSource.match(/max-width:1100px/g) || []).length, 4);
+});
+
 test("homepage preserves the owner-approved M39 taxonomy", () => {
     const headerLabels = [...homeHtml.matchAll(/class="nav-mega-trigger"[^>]*>\s*<span>([^<]+)<\/span>/g)]
         .map(match => match[1].trim());

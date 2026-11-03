@@ -193,6 +193,17 @@ function installArchiveStyles() {
             --archive-success: #6ee7b7;
         }
 
+        .announcement-archive-page .announcement-archive-wrap {
+            padding-top: 0;
+            padding-bottom: 28px;
+        }
+
+        .announcement-archive-page .announcement-dashboard,
+        .announcement-archive-page .announcement-dashboard > section {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
         .supabase-archive .announcement-dashboard-heading {
             padding: 16px;
             border: 1px solid var(--archive-border);
@@ -201,12 +212,31 @@ function installArchiveStyles() {
             color: var(--archive-text);
         }
 
+        .supabase-archive .announcement-dashboard-heading p {
+            color: #dce7f3;
+            line-height: 1.55;
+        }
+
+        .supabase-archive .announcement-dashboard-heading a {
+            color: var(--archive-amber-bright);
+            font-weight: 750;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
+
+        .supabase-archive .announcement-dashboard-heading a:hover,
+        .supabase-archive .announcement-dashboard-heading a:focus-visible {
+            color: #ffffff;
+        }
+
         .supabase-archive .announcement-dashboard-heading h2 {
             color: var(--archive-amber-bright);
         }
 
         .supabase-archive [data-counts] {
             color: var(--archive-success);
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .supabase-archive .announcement-period-nav {
