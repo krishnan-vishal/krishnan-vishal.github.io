@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-FX-06 selected-pair context and archive repair
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-FX-06 | 2026-11-03 | Correct FX precision and spacing; preserve selected-pair context across Currency Explorer, Weekly Trends and Historical; repair the existing Supabase FX archive path using validated observations | READER EXPERIENCE, DATA, RELEASE | High | IN PROGRESS | GitHub authentication to push the working branch and create the requested PR; owner review before merge | Stage 1 | Existing FX page generator, browser readers, archive workflow and `fx_historical_archive` table | Preserve the existing architecture, public pricing access, entitlement boundaries and merged navigation fixes. Do not invent historical rates, spreads or executable quotations; do not add providers, services, tables or architecture layers. | Correct direct/JPY/inverse precision; compact responsive spacing; selected pair preselected and filtered across all three views; Supabase archive uses existing supported secrets and only validated source observations; focused checks pass; one PR; stop before merge/deployment. | Implementation commit `24aca5c` and focused checks pass on `feat/m39-fx-06`. Read-only public history has one 2026-11-03 capture; earlier probed windows have no rows and cannot be legitimately reconstructed. Screenshot evidence was unavailable. Push failed with `fatal: unable to get password from user`; no remote branch or PR exists. | BLOCKED: GitHub authentication | `24aca5c` / `527aba0` local; `02e74c1` base | M39-FX |
+
 ## G1 final Production closure
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

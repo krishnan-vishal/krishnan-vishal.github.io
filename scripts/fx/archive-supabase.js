@@ -21,16 +21,25 @@ function regionForPair(pair, config){
 }
 
 function archiveRows(snapshot, config){
-    return snapshot.pairs.filter(record => record.validationStatus === "VALIDATED" &&
-        Number.isFinite(Number.isFinite(record.mid) ? record.mid : record.last) &&
-        (Number.isFinite(record.mid) ? record.mid : record.last) > 0 && record.provider).map(record => {
+    const snapshotTime = Date.parse(snapshot.generatedAt || "");
+    if(!Array.isArray(snapshot.pairs) || !Number.isFinite(snapshotTime)){
+        throw new Error("FX_ARCHIVE_INVALID_SNAPSHOT");
+    }
+    const records = snapshot.pairs.filter(record => record && record.validationStatus === "VALIDATED");
+    return records.map(record => {
         const rate = Number.isFinite(record.mid) ? record.mid : record.last;
-        const rounded = Number(rate.toFixed(6));
-        if(rounded <= 0) throw new Error(`FX_ARCHIVE_PRECISION_LOSS: ${record.pair}`);
+        const observedAt = Date.parse(record.timestamp || "");
+        if(!/^[A-Z]{3}\/[A-Z]{3}$/.test(record.pair || "") ||
+            record.pair !== `${record.base}/${record.quote}` ||
+            !Number.isFinite(observedAt) || observedAt > snapshotTime + 60000 ||
+            !Number.isFinite(rate) || rate <= 0 ||
+            typeof record.provider !== "string" || !record.provider.trim()){
+            throw new Error(`FX_ARCHIVE_INVALID_VALIDATED_OBSERVATION: ${record.pair || "unknown pair"}`);
+        }
         return {
             base_currency: record.base,
             target_currency: record.quote,
-            rate: rounded,
+            rate,
             region: regionForPair(record.pair, config),
             source: record.provider
         };
