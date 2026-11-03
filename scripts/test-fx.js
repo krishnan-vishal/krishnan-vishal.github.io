@@ -14,7 +14,7 @@ const {
 const { buildRecord, validateRecord, findDuplicateRecords } = require("./fx/normalize-validate.js");
 const { formatRate, formatPercentChange, formatTickerLine } = require("./fx/ticker-format.js");
 const { buildWeeklySummary } = require("./fx/weekly-summary.js");
-const { hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations } = require("../assets/js/fx-app.js");
+const { hasValidatedPreviousClose, isWithinRecentFxWindow, filterRecentFxObservations, weeklyAvailabilityMessage } = require("../assets/js/fx-app.js");
 const referenceProvider = require("./fx/providers/reference.js");
 const xeProvider = require("./fx/providers/xe.js");
 
@@ -178,10 +178,27 @@ assert.deepStrictEqual(filterRecentFxObservations([
 ], fxHistoryAsOf), [
     { date: "2026-10-28", rate: 150 }, { date: "2026-11-03", rate: 152 }
 ], "only positive observations in the trailing seven UTC dates should contribute, with one value per date");
+const usdJpyHistoryMessage = weeklyAvailabilityMessage(currentSnapshot, [{ date: "2026-11-03", rate: usdJpyRecord.mid }]);
+assert.match(usdJpyHistoryMessage, /2026-09-08 to 2026-09-11/, "the detail page must expose the actual published immutable history span");
+assert.match(usdJpyHistoryMessage, /2026-09-12 to 2026-11-02 \(52 dates\)/, "the detail page must explain the published gap without interpolating a trend");
 assert.match(fxAppSource, /Current validated reference rate/, "pair detail must emphasize the validated current reference rate");
 assert.match(fxAppSource, /Unavailable until an earlier validated business-day close is recorded/, "missing variance must use an honest availability state");
 assert.match(fxAppSource, /Only fields supplied by the attributed source are shown/, "pricing fields must remain source-grounded");
 assert.match(fxAppSource, /No validated pair-specific evidence is available in the current dataset/, "unavailable intelligence modules must not imply unpublished analysis");
+const fxMenuStart = homepageSource.indexOf("<strong>Treasury &amp; Liquidity Management</strong>");
+const fxMenuEnd = homepageSource.indexOf("</ul>", fxMenuStart);
+const fxMenuSource = homepageSource.slice(fxMenuStart, fxMenuEnd);
+assert.match(fxMenuSource, /href="\/pages\/fx\/index\.html"><strong>FX Pricing &amp; Treasury<\/strong>/, "FX Pricing & Treasury must route to the existing hub");
+assert.match(fxMenuSource, /href="\/pages\/fx\/explorer\.html"><strong>Currency Explorer<\/strong>/, "Currency Explorer must route to its existing page");
+assert.match(fxMenuSource, /href="\/pages\/fx\/treasury\.html"><strong>Treasury Intelligence<\/strong>/, "Treasury Intelligence must route to its existing page");
+assert.match(fxMenuSource, /href="\/pages\/fx\/weekly\.html"><strong>Weekly FX Trends<\/strong>/, "Weekly FX Trends must route to its existing page");
+assert.match(fxMenuSource, /href="\/pages\/fx\/historical\.html"><strong>FX Historical Repository<\/strong>/, "FX Historical Repository must route to its existing archive");
+assert.doesNotMatch(fxMenuSource, /mega-item-soon[^\n]*<strong>(FX Pricing &amp; Treasury|Treasury Intelligence)<\/strong>/, "existing FX hub pages must not be marked pending");
+assert.match(marketCssSource, /body\.fx-pair-detail-page\.legal-page \.chapter-hero\s*\{/, "pair pages must override the higher-specificity legal-page hero padding");
+assert.match(marketCssSource, /body\.fx-pair-detail-page\.legal-page \.chapter-body\s*\{/, "pair pages must override the higher-specificity legal-page body padding");
+assert.match(marketCssSource, /\.fx-pair-overview\{\s*padding:0 0 12px;/, "pair overview must reset generic section padding");
+assert.match(marketCssSource, /\.fx-pair-modules\{\s*margin-top:8px;\s*padding:0;/, "intelligence modules must reset generic section padding");
+assert.match(marketCssSource, /\.fx-pair-module\{\s*min-width:0;\s*padding:7px 0 0;/, "module rows must not inherit generic section bottom padding");
 assert.match(tickerReaderSource, /current\.json\?v=.*Date\.now\(\)/, "homepage current.json must use a per-request cache key");
 assert.match(tickerReaderSource, /fetch\(fxCurrentSnapshotUrl\(\), \{ cache: "no-store" \}\)/, "homepage current.json must bypass the browser cache");
 assert.match(fxAppSource, /fetchMutableFxJson\("current\.json"\)/, "FX reader current.json must use the mutable-data fetch path");
