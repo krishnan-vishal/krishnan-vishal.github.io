@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { processCandidate } from '../../supabase/functions/gpir-intelligence-publish/handler.mjs';
+import { createRestPublicationRepository, processCandidate } from '../../supabase/functions/gpir-intelligence-publish/handler.mjs';
 import { normalizeRepositoryRows, PUBLIC_REPOSITORY_WINDOW_DAYS } from '../../supabase/functions/gpir-public-intelligence/handler.mjs';
 
 const NOW = Date.parse('2026-10-31T12:00:00.000Z');
@@ -116,6 +116,64 @@ test('headline-only or insufficient source evidence remains awaiting review', as
   assert.equal(outcome.decision, 'REVIEW');
   assert.equal(outcome.reasonCode, 'INSUFFICIENT_SOURCE_EVIDENCE');
   assert.equal(store.events.some(event => event[0] === 'publish'), false);
+});
+
+test('candidate below its governed threshold is held for review without a source request', async () => {
+  const item = candidate({
+    id: '99999999-9999-4999-8999-999999999999',
+    confidence_score: 60
+  });
+  const store = repository();
+  let sourceRequests = 0;
+  const outcome = await processCandidate({
+    candidate: item,
+    repository: store,
+    fetchImpl: async () => {
+      sourceRequests += 1;
+      throw new Error('source request should not run');
+    },
+    now: () => NOW
+  });
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+  assert.equal(outcome.validationPayload.source_verified, false);
+  assert.equal(sourceRequests, 0);
+});
+
+test('candidate selection pages audit lookups instead of building one oversized URL', async () => {
+  const candidates = Array.from({ length: 120 }, (_value, index) => ({
+    ...candidate(),
+    id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+    published_at: new Date(NOW - (120 - index) * 60000).toISOString()
+  }));
+  const requestedAuditUrls = [];
+  const fetchImpl = async url => {
+    const requestUrl = new URL(url);
+    if (requestUrl.pathname.endsWith('/intelligence_candidates')) {
+      const offset = Number(requestUrl.searchParams.get('offset') || 0);
+      const limit = Number(requestUrl.searchParams.get('limit') || 50);
+      return { ok: true, json: async () => candidates.slice(offset, offset + limit) };
+    }
+    if (requestUrl.pathname.endsWith('/intelligence_publication_audits')) {
+      requestedAuditUrls.push(requestUrl.href);
+      const ids = (requestUrl.searchParams.get('candidate_id') || '')
+        .replace(/^in\.\(|\)$/g, '').split(',').filter(Boolean);
+      return {
+        ok: true,
+        json: async () => ids.slice(0, Math.max(0, 100 - Number(ids[0].slice(-12)) + 1))
+          .map(candidateId => ({ candidate_id: candidateId, decision: 'REVIEW' }))
+      };
+    }
+    throw new Error(`Unexpected request: ${requestUrl.href}`);
+  };
+  const store = createRestPublicationRepository({
+    config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service-role-test' },
+    fetchImpl
+  });
+  const selected = await store.candidates({ limit: 5, from: null, to: null });
+  assert.deepEqual(selected.map(item => Number(item.id.slice(-12))), [101, 102, 103, 104, 105]);
+  assert.equal(requestedAuditUrls.length, 3);
+  assert.ok(requestedAuditUrls.every(url => url.length < 3000));
 });
 
 test('publication older than 12 hours is retained by the repository but not live', async () => {

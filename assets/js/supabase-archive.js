@@ -1,11 +1,10 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const PUBLIC_INTELLIGENCE_API =
+    "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence";
 
-const SUPABASE_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsbnZoZmFwY3RjcHpxeXVoaHRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTA1NjYsImV4cCI6MjEwNDg2NjU2Nn0.5V_Oe-J4FtPWsUS3R8n9R2u5T-mzUoaIN3O6PCPpHAI";
-
-const TABLE_NAME = "global_announcements";
-const PAGE_SIZE = 1000;
-const LIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const PAGE_SIZE = 100;
+const MAX_RECORDS = 5000;
+const REQUEST_TIMEOUT_MS = 8000;
+const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 const MONTH_NAMES = [
     "January",
@@ -37,6 +36,8 @@ function cleanText(value) {
 
 function approvedSourceUrl(record) {
     const candidates = [
+        record.canonicalUrl,
+        record.source && record.source.url,
         record.canonical_url,
         record.url,
         record.source_url
@@ -136,19 +137,23 @@ function normalizeRecord(record) {
 
     if (!title) return null;
 
-    const publishedAt = cleanText(record.published_at);
+    const publishedAt = cleanText(record.publishedAt || record.published_at);
     const period = parseArchivePeriod(
-        record.archive_month_year,
+        record.archive_month_year || (
+            record.publicationMonth && record.publicationYear
+                ? `${record.publicationMonth}/${record.publicationYear}`
+                : ""
+        ),
         publishedAt
     );
 
     return {
         title,
-        narration: cleanText(record.summary_narration) ||
+        narration: cleanText(record.summary || record.summary_narration) ||
             "No narration has been supplied for this approved record.",
         region: cleanText(record.region) || "Unspecified",
         country: cleanText(record.country) || "Unspecified",
-        category: cleanText(record.category) || "Uncategorized",
+        category: cleanText(record.category) || "Payments",
         subcategory: cleanText(record.subcategory) || "Unspecified",
         publishedAt,
         period,
@@ -189,7 +194,7 @@ function installArchiveStyles() {
         }
 
         .supabase-archive .announcement-dashboard-heading {
-            padding: 20px;
+            padding: 16px;
             border: 1px solid var(--archive-border);
             border-radius: 12px;
             background: var(--archive-bg);
@@ -206,9 +211,9 @@ function installArchiveStyles() {
 
         .supabase-archive .announcement-period-nav {
             display: grid;
-            gap: 10px;
-            margin: 24px 0 18px;
-            padding: 15px;
+            gap: 8px;
+            margin: 16px 0 14px;
+            padding: 12px;
             border: 1px solid var(--archive-border);
             border-radius: 12px;
             background: var(--archive-bg);
@@ -263,10 +268,10 @@ function installArchiveStyles() {
         .supabase-archive .announcement-dashboard-filters {
             display: grid;
             grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
-            gap: 12px;
+            gap: 10px;
             align-items: end;
-            margin-bottom: 24px;
-            padding: 16px;
+            margin-bottom: 16px;
+            padding: 12px;
             border: 1px solid var(--archive-border);
             border-radius: 12px;
             background: var(--archive-bg);
@@ -332,15 +337,15 @@ function installArchiveStyles() {
                 auto-fit,
                 minmax(min(100%, 310px), 1fr)
             );
-            gap: 16px;
+            gap: 12px;
         }
 
         .supabase-archive .supabase-announcement-card {
             position: relative;
             display: flex;
             flex-direction: column;
-            min-height: 280px;
-            padding: 20px;
+            min-height: 0;
+            padding: 16px;
             overflow: hidden;
             border: 1px solid var(--archive-border);
             border-radius: 12px;
@@ -378,7 +383,7 @@ function installArchiveStyles() {
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .supabase-archive-category {
@@ -404,7 +409,7 @@ function installArchiveStyles() {
         }
 
         .supabase-archive-title {
-            margin: 0 0 13px;
+            margin: 0 0 9px;
             color: var(--archive-amber-bright);
             font-size: 19px;
             line-height: 1.35;
@@ -412,11 +417,11 @@ function installArchiveStyles() {
 
         .supabase-archive-narration {
             display: -webkit-box;
-            margin: 0 0 18px;
+            margin: 0 0 12px;
             overflow: hidden;
             color: #e5edf6;
             font-size: 13px;
-            line-height: 1.65;
+            line-height: 1.55;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 5;
         }
@@ -426,7 +431,7 @@ function installArchiveStyles() {
             flex-wrap: wrap;
             gap: 7px 13px;
             margin-top: auto;
-            padding-top: 15px;
+            padding-top: 10px;
             border-top: 1px solid rgba(174, 190, 209, 0.18);
             color: var(--archive-muted);
             font-size: 11px;
@@ -442,7 +447,7 @@ function installArchiveStyles() {
             align-items: center;
             align-self: flex-start;
             min-height: 38px;
-            margin-top: 16px;
+            margin-top: 12px;
             padding: 7px 13px;
             border-radius: 7px;
             background: var(--archive-amber);
@@ -459,7 +464,7 @@ function installArchiveStyles() {
         }
 
         .supabase-archive-source-unavailable {
-            margin-top: 16px;
+            margin-top: 12px;
             color: var(--archive-muted);
             font-size: 11px;
             font-weight: 700;
@@ -702,43 +707,45 @@ function renderGrid(container, records, emptyMessage) {
     container.replaceChildren(fragment);
 }
 
-async function fetchAllApprovedAnnouncements(client) {
+async function fetchPublicIntelligence() {
     const records = [];
-    let start = 0;
+    let offset = 0;
 
-    while (true) {
-        const end = start + PAGE_SIZE - 1;
+    while (offset < MAX_RECORDS) {
+        const url = new URL(PUBLIC_INTELLIGENCE_API);
+        url.searchParams.set("scope", "history");
+        url.searchParams.set("limit", String(PAGE_SIZE));
+        url.searchParams.set("offset", String(offset));
+        const controller = new AbortController();
+        const timeout = setTimeout(
+            () => controller.abort(),
+            REQUEST_TIMEOUT_MS
+        );
+        let response;
 
-        const { data, error } = await client
-            .from(TABLE_NAME)
-            .select(`
-                title,
-                region,
-                country,
-                category,
-                subcategory,
-                summary_narration,
-                published_at,
-                archive_month_year,
-                canonical_url,
-                url
-            `)
-            .eq("publication_status", "approved")
-            .eq("ticker_eligible", true)
-            .order("published_at", {
-                ascending: false,
-                nullsFirst: false
-            })
-            .range(start, end);
+        try {
+            response = await fetch(url.href, {
+                headers: { Accept: "application/json" },
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeout);
+        }
 
-        if (error) throw error;
+        if (!response.ok) {
+            throw new Error(`Public intelligence API returned ${response.status}`);
+        }
 
-        const page = data || [];
+        const payload = await response.json();
+        const page = Array.isArray(payload.records) ? payload.records : [];
         records.push(...page);
 
-        if (page.length < PAGE_SIZE) break;
+        if (
+            page.length < PAGE_SIZE ||
+            records.length >= Number(payload.total || 0)
+        ) break;
 
-        start += PAGE_SIZE;
+        offset += PAGE_SIZE;
     }
 
     return records
@@ -919,7 +926,7 @@ function initializeArchiveInterface(root, records) {
     renderGrid(
         liveGrid,
         liveRecords,
-        "No approved announcements were published in the latest 24 hours."
+        "No approved announcements were published in the latest 12 hours."
     );
 
     if (archiveStatus) {
@@ -953,32 +960,11 @@ async function initializeSupabaseArchive() {
     }
 
     try {
-        if (
-            SUPABASE_URL.includes("YOUR_PROJECT") ||
-            SUPABASE_ANON_KEY.includes("YOUR_SUPABASE")
-        ) {
-            throw new Error(
-                "Replace the Supabase URL and anon-key placeholders"
-            );
-        }
-
-        const client = createClient(
-            SUPABASE_URL,
-            SUPABASE_ANON_KEY,
-            {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false,
-                    detectSessionInUrl: false
-                }
-            }
-        );
-
-        const records = await fetchAllApprovedAnnouncements(client);
+        const records = await fetchPublicIntelligence();
 
         if (!records.length) {
             throw new Error(
-                "Supabase returned no approved ticker-eligible announcements"
+                "The canonical intelligence API returned no approved records"
             );
         }
 
