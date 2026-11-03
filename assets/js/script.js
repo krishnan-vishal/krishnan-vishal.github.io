@@ -624,6 +624,25 @@ function initializeMegaMenuHoverIntent(){
         }, { passive:true });
     });
 
+    // A mega-menu overlays the ribbons, so their own pointerenter
+    // listeners cannot fire. Detect the pointer position at document
+    // capture phase (even while the menu is the hit target) and dismiss
+    // the obstruction before the next pointer/click reaches an FX link.
+    document.addEventListener("pointermove", (e) => {
+        if(mobileQuery.matches || e.pointerType === "touch") return;
+        if(!controllers.some(c => c.item.classList.contains("is-open"))) return;
+        const overRibbon = ["fx-ribbon", "market-ribbon"].some(id => {
+            const ribbon = document.getElementById(id);
+            if(!ribbon) return false;
+            const rect = ribbon.getBoundingClientRect();
+            return e.clientY >= rect.top && e.clientY < rect.bottom &&
+                e.clientX >= rect.left && e.clientX < rect.right;
+        });
+        if(overRibbon) controllers.forEach(c => {
+            if(c.item.classList.contains("is-open")) c.closeInstant();
+        });
+    }, { capture:true, passive:true });
+
     document.addEventListener("click", (e) => {
 
         if(mobileQuery.matches) return;
