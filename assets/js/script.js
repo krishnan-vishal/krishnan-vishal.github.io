@@ -455,10 +455,7 @@ function initializeMegaMenuHoverIntent(){
             // The graceful fade is preserved for a genuine "user moved
             // away" close via scheduleClose().
             const closeInstant = () => {
-                if(openTimer){
-                    clearTimeout(openTimer);
-                    openTimer = null;
-                }
+                cancelPendingOpen();
                 if(closeTimer){
                     clearTimeout(closeTimer);
                     closeTimer = null;
@@ -471,6 +468,13 @@ function initializeMegaMenuHoverIntent(){
                         item.classList.remove("is-instant-close");
                     });
                 });
+            };
+
+            const cancelPendingOpen = () => {
+                if(!openTimer) return false;
+                clearTimeout(openTimer);
+                openTimer = null;
+                return true;
             };
 
             // Hide the panel immediately while a selected link's navigation
@@ -530,10 +534,7 @@ function initializeMegaMenuHoverIntent(){
             };
 
             const scheduleClose = () => {
-                if(openTimer){
-                    clearTimeout(openTimer);
-                    openTimer = null;
-                }
+                cancelPendingOpen();
                 if(closeTimer) clearTimeout(closeTimer);
                 closeTimer = setTimeout(() => {
                     item.classList.remove("is-open");
@@ -546,11 +547,11 @@ function initializeMegaMenuHoverIntent(){
                 if(openTimer || item.classList.contains("is-open")) return;
                 openTimer = setTimeout(() => {
                     openTimer = null;
-                    if(Date.now() - lastScrollAt >= SCROLL_HOVER_GUARD) open();
+                    if(Date.now() - lastScrollAt >= SCROLL_HOVER_GUARD && trigger.matches(":hover")) open();
                 }, OPEN_DELAY);
             };
 
-            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose, scheduleOpen });
+            controllers.push({ item, trigger, menu, open, close, closeInstant, cancelPendingOpen, hasPendingOpen:() => Boolean(openTimer), scheduleClose, scheduleOpen });
 
             // Activating a real link inside the menu starts a full page
             // navigation, which the browser doesn't complete instantly --
@@ -623,6 +624,26 @@ function initializeMegaMenuHoverIntent(){
             controllers.forEach(c => c.closeInstant());
         }, { passive:true });
     });
+
+    // A mega-menu overlays the ribbons, so their own pointerenter
+    // listeners cannot fire. Detect the pointer position at document
+    // capture phase (even while the menu is the hit target) and dismiss
+    // the obstruction before the next pointer/click reaches an FX link.
+    document.addEventListener("pointermove", (e) => {
+        if(mobileQuery.matches || e.pointerType === "touch") return;
+        if(!controllers.some(c => c.item.classList.contains("is-open") || c.hasPendingOpen())) return;
+        const overRibbon = ["fx-ribbon", "market-ribbon"].some(id => {
+            const ribbon = document.getElementById(id);
+            if(!ribbon) return false;
+            const rect = ribbon.getBoundingClientRect();
+            return e.clientY >= rect.top && e.clientY < rect.bottom &&
+                e.clientX >= rect.left && e.clientX < rect.right;
+        });
+        if(overRibbon) controllers.forEach(c => {
+            c.cancelPendingOpen();
+            if(c.item.classList.contains("is-open")) c.closeInstant();
+        });
+    }, { capture:true, passive:true });
 
     document.addEventListener("click", (e) => {
 
