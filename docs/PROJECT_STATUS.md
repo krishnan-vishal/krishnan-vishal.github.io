@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### M39-FX-05 — Public FX pricing boundary
+
+- **Branch / base:** `fix/m39-fx-dashboard-history-recovery`, starting at `ceee3b1` on `origin/fix/m39-fx-dashboard-history-recovery`, based on `bde6d6d`.
+- **Objective:** render only validated, source-supplied reference, cash, spot and forward buy/sell prices in public FX pages; remove spread analytics from public FX components; reserve pricing benchmarks, competition comparisons and global benchmark intelligence for subscriber-authorized modules.
+- **Implementation boundary:** extend the normalized FX pricing-field schema and public renderer only. No source prices are present in the committed reference feed; missing values remain unavailable. Existing entitlement architecture, public URLs and Production data remain unchanged; no provider integration was added.
+- **Implementation:** public pair pages display source-supplied directional rates only from validated provider-native records. Spread calculation and display were removed. The FX page shells use the updated script cache key.
+- **Validation:** `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-fx.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, changed-file `node --check` and `git diff --check` pass. FX link validation covered 155 HTML files. No browser-level check or live provider pricing is claimed.
+- **State:** implementation is ready for owner review. Authorized source pricing, merge and deployment remain pending; no Production data or entitlement behavior changed.
+
 ### M39/G1 — Final homepage repair and historical repository verification
 
 - **Branch / base:** `codex/m39-g1-final-homepage-repair` from latest `origin/main` `8822ed2`. Scope is limited to homepage navigation, timeline presentation, the public repository date renderer, focused tests and governance records; authentication, payments, entitlements, FX, Global Alerts data flow and Supabase rows are unchanged.

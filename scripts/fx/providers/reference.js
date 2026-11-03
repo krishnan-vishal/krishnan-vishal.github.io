@@ -15,8 +15,9 @@
  *
  * It is a daily reference-rate service, not tick-by-tick streaming, so
  * every record it produces is providerType "reference" and dataStatus
- * "REFERENCE" -- never "live". It has no bid/ask/spot/TOM/cash data;
- * those fields stay null (rendered "N/A"), never estimated.
+ * "REFERENCE" -- never "live". It has no bid/ask, directional
+ * reference/cash/spot/forward, spot or TOM data; those fields stay null
+ * and are never estimated.
  *
  * One USD response contains all target currencies. Regional USD pairs
  * and local crosses are materialised from that common-base table:
@@ -105,10 +106,10 @@ async function fetchPairs(pairs, options = {}){
                 .filter(code => code !== ANCHOR)
                 .map(code => ({ pair: `${ANCHOR}/${code}`, provider: id })),
             mid, last: mid,
-            // A daily reference-rate feed does not publish a bid/ask
-            // spread, spot/TOM distinction or cash buy/sell -- these
-            // stay null so the reader sees "N/A", never an estimate.
-            bid: null, ask: null, spot: null, tom: null, cashBuy: null, cashSell: null,
+            // This feed publishes no executable or settlement pricing fields.
+            bid: null, ask: null, referenceBuy: null, referenceSell: null,
+            spot: null, spotBuy: null, spotSell: null, tom: null,
+            cashBuy: null, cashSell: null, forwardBuy: null, forwardSell: null,
             dataStatus: "REFERENCE",
             providerRetrievedAt: providerTimestamp, gpirRetrievedAt: retrievedAt
         };
