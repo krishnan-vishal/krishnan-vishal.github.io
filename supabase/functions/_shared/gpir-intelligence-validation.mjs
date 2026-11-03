@@ -174,6 +174,25 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   if (!candidate?.canonical_url || !isOfficialUrl(candidate.canonical_url, source.official_url))
     return reject('CANDIDATE_SOURCE_DOMAIN_MISMATCH');
 
+  // A candidate that cannot meet its approved source-tier threshold can
+  // never be auto-published. Record that governed outcome before spending
+  // up to 15 seconds on a source fetch; candidates that can qualify still
+  // pass through every evidence, timestamp and relevance check below.
+  const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
+  const confidence = Number(candidate.confidence_score);
+  if (!threshold || !Number.isFinite(confidence) || confidence < threshold) {
+    return review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
+      canonicalUrl: candidate.canonical_url,
+      sourcePublishedAt: candidate.published_at,
+      validationPayload: {
+        source_verified: false,
+        source_trust_tier: source.trust_tier,
+        confidence_score: confidence,
+        validator: 'GPIR-G1-PUBLICATION-1'
+      }
+    });
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   let response;
@@ -241,8 +260,6 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   if (!summary || summary.length < 120)
     return review('SUMMARY_GROUNDING_FAILED', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
-  const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
-  const confidence = Number(candidate.confidence_score);
   const evidence = {
     canonicalUrl: canonical,
     sourcePublishedAt: publishedAt,
@@ -263,8 +280,6 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
       validator: 'GPIR-G1-PUBLICATION-1'
     }
   };
-  if (!threshold || !Number.isFinite(confidence) || confidence < threshold)
-    return review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', evidence);
   return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...evidence };
 }
 

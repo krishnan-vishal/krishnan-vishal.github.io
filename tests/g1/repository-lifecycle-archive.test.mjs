@@ -7,6 +7,8 @@ import { createPublicIntelligenceHandler } from '../../supabase/functions/gpir-p
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const repositoryHtml=fs.readFileSync(path.join(root,'intelligence-repository/index.html'),'utf8');
+const archiveHtml=fs.readFileSync(path.join(root,'pages/intelligence/index.html'),'utf8');
+const archiveSource=fs.readFileSync(path.join(root,'assets/js/supabase-archive.js'),'utf8');
 
 const now=Date.parse('2026-11-02T12:00:00Z');
 const source={source_id:'S1',source_name:'Official Payments Authority',official_url:'https://payments.example',source_status:'GREEN'};
@@ -26,3 +28,19 @@ test('offset pagination returns a deterministic archive slice',async()=>{const a
 test('published intelligence transitions from LIVE to ARCHIVED without deletion',async()=>{const live=await get('scope=history&lifecycle=LIVE');assert.equal(live.body.total,1);const archived=await get('scope=history&lifecycle=ARCHIVED');assert.equal(archived.body.total,2);assert.equal(archived.body.records.some(record=>record.id==='old'),true);});
 test('source evidence stays linked to archived cards',async()=>{const {body}=await get('scope=history&lifecycle=ARCHIVED');for(const record of body.records){assert.equal(record.sources[0].url,record.canonicalUrl);assert.ok(record.sources.length>=1&&record.sources.length<=4);}});
 test('repository renders MAS timestamps in the original Singapore publication date',()=>{assert.match(repositoryHtml,/host==='mas\.gov\.sg'\|\|host\.endsWith\('\.mas\.gov\.sg'\)/);assert.match(repositoryHtml,/timeZone:publicationTimeZone\(record\)/);assert.match(repositoryHtml,/return'Asia\/Singapore'/);});
+test('announcement archive consumes the canonical historical API with a bounded request',()=>{
+  assert.match(archiveSource,/gpir-public-intelligence/);
+  assert.match(archiveSource,/scope", "history"/);
+  assert.match(archiveSource,/REQUEST_TIMEOUT_MS = 8000/);
+  assert.match(archiveSource,/LIVE_WINDOW_MS = 12 \* 60 \* 60 \* 1000/);
+  assert.doesNotMatch(archiveSource,/createClient|supabase-js@/);
+  assert.match(archiveHtml,/supabase-archive\.js\?v=20261103a/);
+  assert.doesNotMatch(archiveHtml,/supabase-combined-engine\.js/);
+});
+test('archive cards use compact high-contrast presentation tokens',()=>{
+  assert.match(archiveSource,/--archive-bg: #07111f/);
+  assert.match(archiveSource,/--archive-text: #f4f7fb/);
+  assert.match(archiveSource,/--archive-muted: #aebed1/);
+  assert.match(archiveSource,/\.supabase-announcement-card \{[\s\S]*?min-height: 0;[\s\S]*?padding: 16px;/);
+  assert.match(archiveSource,/@media \(max-width: 600px\)[\s\S]*?grid-template-columns: 1fr/);
+});

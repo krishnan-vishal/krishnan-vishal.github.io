@@ -3,11 +3,30 @@
   Version 1.1
 ======================================================*/
 
-document.addEventListener("DOMContentLoaded", () => {
+let websiteInitialized = false;
+
+function initializeWebsiteOnce(){
+
+    if(websiteInitialized) return;
+
+    websiteInitialized = true;
 
     initializeWebsite();
 
-});
+}
+
+// This bundle is loaded at the end of <body>, so the navigation and search
+// controls can become interactive immediately. Keep the DOMContentLoaded
+// fallback for pages that move the script into <head> in the future.
+if(document.body){
+
+    initializeWebsiteOnce();
+
+} else {
+
+    document.addEventListener("DOMContentLoaded", initializeWebsiteOnce, { once:true });
+
+}
 
 function initializeWebsite(){
 
@@ -155,7 +174,7 @@ function initializeAdaptiveNav(){
 
     const moreList = moreItem.querySelector(".nav-more-list");
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     // "More" is a permanent static category (Resources / Directory /
     // FINTECHOISIS / Legal) now, not a hidden-until-needed overflow
@@ -279,7 +298,7 @@ function initializeAdaptiveNav(){
 
 function initializeMobileMegaAccordion(){
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     const items = document.querySelectorAll(".nav-item-mega");
 
@@ -351,6 +370,8 @@ function initializeMobileMegaAccordion(){
 
 function initializeMegaMenuHoverIntent(){
 
+    const OPEN_DELAY = 180;
+
     const CLOSE_DELAY = 260;
 
     const EDGE_MARGIN = 16;
@@ -363,7 +384,7 @@ function initializeMegaMenuHoverIntent(){
     // floating stale over unrelated content.
     const SCROLL_CLOSE_THRESHOLD = 80;
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     // Captured the moment any menu opens (not lazily on first scroll
     // event, which would already reflect the post-scroll position and
@@ -385,6 +406,8 @@ function initializeMegaMenuHoverIntent(){
 
         try{
 
+            let openTimer = null;
+
             let closeTimer = null;
 
             const menu = item.querySelector(".mega-menu");
@@ -392,6 +415,8 @@ function initializeMegaMenuHoverIntent(){
             const trigger = item.querySelector(".nav-mega-trigger");
 
             if(!menu || !trigger) return;
+
+            const menuScrollRegion = menu.querySelector?.(".mega-menu-inner");
 
             // Wire aria-controls to a real id so assistive tech can
             // associate the trigger with the panel it expands, without
@@ -430,6 +455,10 @@ function initializeMegaMenuHoverIntent(){
             // The graceful fade is preserved for a genuine "user moved
             // away" close via scheduleClose().
             const closeInstant = () => {
+                if(openTimer){
+                    clearTimeout(openTimer);
+                    openTimer = null;
+                }
                 if(closeTimer){
                     clearTimeout(closeTimer);
                     closeTimer = null;
@@ -460,6 +489,10 @@ function initializeMegaMenuHoverIntent(){
             };
 
             const open = () => {
+                if(openTimer){
+                    clearTimeout(openTimer);
+                    openTimer = null;
+                }
                 if(closeTimer){
                     clearTimeout(closeTimer);
                     closeTimer = null;
@@ -473,6 +506,10 @@ function initializeMegaMenuHoverIntent(){
                         other.closeInstant();
                     }
                 });
+                if(menuScrollRegion){
+                    menuScrollRegion.scrollTop = 0;
+                    menuScrollRegion.scrollLeft = 0;
+                }
                 applyEdgeGuard();
                 item.classList.add("is-open");
                 trigger.setAttribute("aria-expanded","true");
@@ -480,6 +517,10 @@ function initializeMegaMenuHoverIntent(){
             };
 
             const close = () => {
+                if(openTimer){
+                    clearTimeout(openTimer);
+                    openTimer = null;
+                }
                 if(closeTimer){
                     clearTimeout(closeTimer);
                     closeTimer = null;
@@ -489,6 +530,10 @@ function initializeMegaMenuHoverIntent(){
             };
 
             const scheduleClose = () => {
+                if(openTimer){
+                    clearTimeout(openTimer);
+                    openTimer = null;
+                }
                 if(closeTimer) clearTimeout(closeTimer);
                 closeTimer = setTimeout(() => {
                     item.classList.remove("is-open");
@@ -497,7 +542,15 @@ function initializeMegaMenuHoverIntent(){
                 }, CLOSE_DELAY);
             };
 
-            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose });
+            const scheduleOpen = () => {
+                if(openTimer || item.classList.contains("is-open")) return;
+                openTimer = setTimeout(() => {
+                    openTimer = null;
+                    if(Date.now() - lastScrollAt >= SCROLL_HOVER_GUARD) open();
+                }, OPEN_DELAY);
+            };
+
+            controllers.push({ item, trigger, menu, open, close, closeInstant, scheduleClose, scheduleOpen });
 
             // Activating a real link inside the menu starts a full page
             // navigation, which the browser doesn't complete instantly --
@@ -526,7 +579,7 @@ function initializeMegaMenuHoverIntent(){
 
                 if(Date.now() - lastScrollAt < SCROLL_HOVER_GUARD) return;
 
-                if(!item.classList.contains("is-open")) open();
+                scheduleOpen();
 
             }, { passive:true });
 
@@ -715,7 +768,7 @@ function initializeMobileNav(){
 
     });
 
-    const mobileQuery = window.matchMedia("(max-width:767px)");
+    const mobileQuery = window.matchMedia("(max-width:1100px)");
 
     nav.querySelectorAll("a").forEach(link=>{
 

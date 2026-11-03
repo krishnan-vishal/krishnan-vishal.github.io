@@ -1021,3 +1021,13 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
   no candidate can publish country content without human review.
 - **Deferred:** 200-country population, generated country pages, navigation and
   search redesign remain separate controlled work.
+
+## 2026-11-03 — M39/G1 production correction
+
+- Started `codex/m39-g1-production-correction` from baseline merge `26c07d589b148471bee819aa6848e1b8d7ed38a6`. The single Production performance trace reproduced the reported delay: controls were visible at 517 ms but core initialization waited until 23,806 ms because `assets/js/supabase-combined-engine.js` imported `https://jsdelivr.net/`, which timed out after 22,613 ms.
+- Removed that obsolete duplicate browser engine and initialized core controls immediately from the end-of-body bundle. External FX, alerts and Supabase data remain asynchronous and retain their existing fallbacks.
+- Restored the committed owner-approved M39 taxonomy from `feature/m39-homepage-finalization`: eight headers, 37 intact groups and 157 topics. The existing controller now uses a 180 ms intentional hover delay, cancels pending opens on pointer exit, retains click/keyboard/touch/Escape/outside-click behavior, resets panel scroll on open and keeps viewport containment.
+- Reconciled the announcement archive with the existing `gpir-public-intelligence?scope=history` authority, retained the 12-hour LIVE rule and static last-known-good fallback, and tightened the existing high-contrast responsive card layout.
+- Confirmed the G1 scheduler was active but the publisher returned HTTP 503 because it built one audit URL containing the full 729-row queue. The repository now pages candidates and 50-ID audit lookups, retains atomic publication contracts and holds below-threshold candidates for governed review without unnecessary external fetches.
+- Final focused tests pass 35/35 after moving the existing accordion boundary to 1100px and preserving the generated 12-hour archive contract. Content validation passes and internal links pass across 155 HTML files. Local browser acceptance now confirms desktop navigation plus 1024px and 390px containment, and a compact, readable archive with no horizontal overflow at all three widths.
+- Implementation commit `d7a00aafcb685245bf5c3065769a835a65dbe29f` is pushed on `codex/m39-g1-production-correction`; PR #486 is open. Its initial `G1 R07 targeted tests` and `GPIR Security and Integrity` runs passed. A follow-up responsive/archive visual correction is being checkpointed on the same PR; current-head CI, merge, Production deployments, governed backfill execution and final live after-evidence remain pending.

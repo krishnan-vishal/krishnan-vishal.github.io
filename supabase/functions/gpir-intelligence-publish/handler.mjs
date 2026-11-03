@@ -3,6 +3,9 @@ import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
+const CANDIDATE_PAGE_SIZE = 50;
+const MAX_CANDIDATE_PAGES = 20;
+const PROCESSING_BUDGET_MS = 45000;
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -51,7 +54,7 @@ async function jsonFetch(fetchImpl, url, init = {}) {
 
 function boundedBatchSize(value) {
   const parsed = Number(value);
-  return Number.isInteger(parsed) ? Math.max(1, Math.min(10, parsed)) : 5;
+  return Number.isInteger(parsed) ? Math.max(1, Math.min(100, parsed)) : 5;
 }
 
 function isoBoundary(value) {
@@ -66,26 +69,40 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
 
   return {
     async candidates({ limit, from, to }) {
-      const query = new URLSearchParams({
-        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
-        candidate_status: 'in.(PENDING,REVIEW)',
-        order: 'published_at.asc,id.asc',
-        limit: '1000'
-      });
-      if (from) query.set('published_at', `gte.${from}`);
-      if (to) query.append('published_at', `lt.${to}`);
-      const candidates = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
-      if (!Array.isArray(candidates) || !candidates.length) return [];
-      const ids = candidates.map(item => item.id).filter(id => UUID.test(id));
-      const auditQuery = new URLSearchParams({
-        select: 'candidate_id,decision',
-        candidate_id: `in.(${ids.join(',')})`,
-        limit: '1000'
-      });
-      const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
-      const completed = new Set((Array.isArray(audits) ? audits : [])
-        .filter(item => FINAL_DECISIONS.has(item.decision)).map(item => item.candidate_id));
-      return candidates.filter(item => !completed.has(item.id)).slice(0, limit);
+      const selected = [];
+
+      for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
+        const query = new URLSearchParams({
+          select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+          candidate_status: 'in.(PENDING,REVIEW)',
+          order: 'published_at.asc,id.asc',
+          limit: String(CANDIDATE_PAGE_SIZE),
+          offset: String(page * CANDIDATE_PAGE_SIZE)
+        });
+        if (from) query.set('published_at', `gte.${from}`);
+        if (to) query.append('published_at', `lt.${to}`);
+        const candidates = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
+        if (!Array.isArray(candidates) || !candidates.length) break;
+
+        const ids = candidates.map(item => item.id).filter(id => UUID.test(id));
+        const completed = new Set();
+        if (ids.length) {
+          const auditQuery = new URLSearchParams({
+            select: 'candidate_id,decision',
+            candidate_id: `in.(${ids.join(',')})`,
+            limit: String(CANDIDATE_PAGE_SIZE)
+          });
+          const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
+          for (const audit of Array.isArray(audits) ? audits : []) {
+            if (FINAL_DECISIONS.has(audit.decision)) completed.add(audit.candidate_id);
+          }
+        }
+
+        selected.push(...candidates.filter(item => !completed.has(item.id)));
+        if (candidates.length < CANDIDATE_PAGE_SIZE) break;
+      }
+
+      return selected.slice(0, limit);
     },
 
     async source(sourceId) {
@@ -224,7 +241,9 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       return json(503, { status: 'ERROR', code: 'CANDIDATE_QUERY_FAILED' });
     }
     const outcomes = [];
+    const processingStartedAt = Date.now();
     for (const candidate of candidates) {
+      if (Date.now() - processingStartedAt >= PROCESSING_BUDGET_MS) break;
       try {
         outcomes.push({ candidateId: candidate.id,
           ...(await processCandidate({ candidate, repository: store, fetchImpl, now })) });
@@ -238,6 +257,7 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
     const count = decision => outcomes.filter(item => item.decision === decision).length;
     return json(200, {
       status: 'OK', processor: 'GPIR-G1-PUBLICATION-1', processed: outcomes.length,
+      deferred: Math.max(0, candidates.length - outcomes.length),
       published: count('PUBLISHED'), rejected: count('REJECTED'),
       duplicates: count('DUPLICATE'), awaitingReview: count('REVIEW'), outcomes
     });

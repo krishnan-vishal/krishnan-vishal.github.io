@@ -197,15 +197,26 @@ function validAlert(overrides = {}){
     };
 }
 
-test("desktop mega-menu opens on pointer movement and toggles on intentional click", () => {
+test("desktop mega-menu opens after intentional hover and toggles on click", async () => {
     const { item, trigger } = createNavigationHarness();
     item.fire("pointermove", { pointerType: "mouse" });
+    assert.equal(item.classList.contains("is-open"), false);
+    await new Promise(resolve => setTimeout(resolve, 220));
     assert.equal(item.classList.contains("is-open"), true);
     assert.equal(trigger.attributes.get("aria-expanded"), "true");
     trigger.fire("click");
     assert.equal(item.classList.contains("is-open"), false);
     trigger.fire("click");
     assert.equal(item.classList.contains("is-open"), true);
+});
+
+test("desktop mega-menu cancels a pending hover when the pointer leaves", async () => {
+    const { item, trigger } = createNavigationHarness();
+    item.fire("pointermove", { pointerType: "mouse" });
+    item.fire("pointerleave", { pointerType: "mouse" });
+    await new Promise(resolve => setTimeout(resolve, 220));
+    assert.equal(item.classList.contains("is-open"), false);
+    assert.notEqual(trigger.attributes.get("aria-expanded"), "true");
 });
 
 test("stationary pointer during scroll does not open a desktop mega-menu", () => {
@@ -241,6 +252,32 @@ test("desktop panel and caret visibility remain controller-class driven", () => 
     assert.match(headerCss, /\.nav-item-mega\.is-open > \.mega-menu\s*\{[^}]*opacity:1/s);
     assert.doesNotMatch(headerCss, /\.nav-item-mega:(?:hover|focus-within) > \.nav-mega-trigger \.mega-caret/);
     assert.doesNotMatch(headerCss, /\.nav-item-mega:(?:hover|focus-within) > \.mega-menu\s*\{[^}]*opacity:1/s);
+});
+
+test("tablet widths use the existing contained navigation accordion", () => {
+    assert.match(headerCss, /@media \(max-width:1100px\)\{[\s\S]*?\.mega-menu\s*\{[\s\S]*?position:static/);
+    assert.match(headerCss, /@media \(max-width:1100px\)\{[\s\S]*?\.nav-toggle\s*\{[\s\S]*?display:flex/);
+    assert.equal((navigationSource.match(/max-width:1100px/g) || []).length, 4);
+});
+
+test("homepage preserves the owner-approved M39 taxonomy", () => {
+    const headerLabels = [...homeHtml.matchAll(/class="nav-mega-trigger"[^>]*>\s*<span>([^<]+)<\/span>/g)]
+        .map(match => match[1].trim());
+    assert.deepEqual(headerLabels, [
+        "Home GPIR",
+        "Money Movements – Markets",
+        "Payment Infrastructure &amp; Library",
+        "Money Movement Ecosystem",
+        "Cards",
+        "Regulation, Risk &amp; Licensing",
+        "Payments Intelligence Library",
+        "Repository"
+    ]);
+    assert.equal((homeHtml.match(/<div class="mega-col-header">/g) || []).length, 37);
+    const groups = homeHtml.match(/<ul class="mega-col-desc-list">[\s\S]*?<\/ul>/g) || [];
+    const topicCount = groups.reduce((sum, group) => sum + (group.match(/<li(?:\s|>)/g) || []).length, 0);
+    assert.equal(topicCount, 157);
+    assert.doesNotMatch(homeHtml, /supabase-combined-engine\.js/);
 });
 
 test("timeline keeps three bounded desktop columns and contained SVG icons", () => {
