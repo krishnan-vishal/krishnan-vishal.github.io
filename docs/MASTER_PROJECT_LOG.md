@@ -2776,3 +2776,12 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - **Rollback:** set `GPIR_FX_LIVE_ACCEPTANCE_ENABLED=false`, remove `GPIR_FX_LIVE_ACCEPTANCE_USER_ID`, and verify the same registered non-subscriber receives `403 / SUBSCRIPTION_REQUIRED` without a Frankfurter request. No schema, payment or subscription rollback is required.
 - **State:** implementation ready for owner review; approved UUID, explicit enablement, controlled deployment and live acceptance remain pending. No merge, payment or Production mutation occurred.
 
+## 2026-11-04 — M39-FX-08 Production reader-summary deployment
+
+- **Approval / scope:** the owner explicitly authorized `supabase functions deploy gpir-reader-summary --project-ref qlnvhfapctcpzqyuhhth --use-api`. The local Supabase CLI was unavailable, so the connected Supabase Management API performed the equivalent isolated single-function deployment. No PayPal function, database object, schema, payment, checkout setting or other Edge Function was changed.
+- **Artifact:** deployed the exact `gpir-reader-summary/index.ts` and `gpir-reader-summary/handler.mjs` files from PR #499 commit `0869e63fe67b98a3b584905ce138aa93ccdd3920` (repository function-tree SHA `cc4e6ab78a29d9ec1f4cd0380d0d079489dd5ea6`). Production reports ACTIVE version 29, `verify_jwt=true`, and `ezbr_sha256` `8d397f2522f15d7bb4e01341dffd014c45757bfb409c733ff02d11a0e74ddb98`.
+- **Verification:** retrieved both deployed files and compared their content to the local commit; both match exactly. A live unauthenticated request for `fxPair=USD/JPY` returned `401 / UNAUTHORIZED_NO_AUTH_HEADER`, confirming the JWT gateway continues to reject guest access.
+- **Acceptance state:** the deployment did not set or change `GPIR_FX_LIVE_ACCEPTANCE_ENABLED` or `GPIR_FX_LIVE_ACCEPTANCE_USER_ID`. Registered-reader acceptance therefore remains a separate owner-controlled action requiring the approved Production `auth.users.id`; no test identity was supplied or stored.
+- **Rollback:** disable the validation path by setting `GPIR_FX_LIVE_ACCEPTANCE_ENABLED=false` and removing `GPIR_FX_LIVE_ACCEPTANCE_USER_ID`. If a code rollback is required, redeploy the prior version-28 bundle with hash `0f857bad4d52cf5eea65ada83eb67a4c37dbff4ea41dde25256e2c4e3270f8a6`; leave database and payment state unchanged.
+- **State:** Production function deployment complete and guest denial verified. Approved test identity, explicit validation enablement, authenticated live acceptance and PR merge remain pending.
+
