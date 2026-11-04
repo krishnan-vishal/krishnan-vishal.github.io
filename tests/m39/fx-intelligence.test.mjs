@@ -15,6 +15,7 @@ const origin = 'https://fintechoisis.com';
 const projectUrl = 'https://hoewtptllwkcqrgryazu.supabase.co';
 const productionUrl = 'https://qlnvhfapctcpzqyuhhth.supabase.co';
 const userId = '11111111-1111-4111-8111-111111111111';
+const otherUserId = '99999999-9999-4999-8999-999999999999';
 const subscriptionId = '22222222-2222-4222-8222-222222222222';
 const serviceKey = 'fixture-service-secret';
 const currentTime = Date.parse('2026-11-04T00:00:00.000Z');
@@ -100,8 +101,8 @@ function mockFetch({ subscription = activeSubscription, subscriptionFailure = fa
   return { calls, fetchImpl };
 }
 
-function handler(fetchImpl, logger = { error() {} }) {
-  return createReaderSummaryHandler({ env, fetchImpl,
+function handler(fetchImpl, logger = { error() {} }, handlerEnv = env) {
+  return createReaderSummaryHandler({ env: handlerEnv, fetchImpl,
     now: () => currentTime, logger });
 }
 
@@ -325,6 +326,56 @@ test('FX history is denied to a signed-in reader without an active subscription'
   assert.equal(response.status, 403);
   assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
   assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+});
+
+test('disabled or mismatched live-acceptance configuration grants no FX access', async () => {
+  for (const handlerEnv of [
+    { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'false',
+      GPIR_FX_LIVE_ACCEPTANCE_USER_ID: userId },
+    { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
+      GPIR_FX_LIVE_ACCEPTANCE_USER_ID: otherUserId },
+    { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'TRUE',
+      GPIR_FX_LIVE_ACCEPTANCE_USER_ID: userId },
+    { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
+      GPIR_FX_LIVE_ACCEPTANCE_USER_ID: 'not-a-uuid' }
+  ]) {
+    const fixture = mockFetch({ subscription: null });
+    const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
+      request('USD/JPY'));
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
+    assert.equal(fixture.calls.some(call =>
+      call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), true);
+    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+  }
+});
+
+test('enabled live acceptance permits only the authenticated configured reader', async () => {
+  const fixture = mockFetch({ subscription: null });
+  const handlerEnv = { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
+    GPIR_FX_LIVE_ACCEPTANCE_USER_ID: userId };
+  const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
+    request('USD/JPY'));
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.history.status, 'AVAILABLE');
+  assert.equal(body.history.pair, 'USD/JPY');
+  assert.equal(fixture.calls[0].url.pathname, '/auth/v1/user');
+  assert.equal(fixture.calls.some(call =>
+    call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), false);
+  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), true);
+});
+
+test('enabled live acceptance preserves confirmed-payment subscriber access', async () => {
+  const fixture = mockFetch({ subscription: activeSubscription });
+  const handlerEnv = { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
+    GPIR_FX_LIVE_ACCEPTANCE_USER_ID: otherUserId };
+  const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
+    request('USD/JPY'));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).history.status, 'AVAILABLE');
+  assert.equal(fixture.calls.some(call =>
+    call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), true);
 });
 
 test('approval-pending and payment-failed subscriptions cannot retrieve FX history', async () => {

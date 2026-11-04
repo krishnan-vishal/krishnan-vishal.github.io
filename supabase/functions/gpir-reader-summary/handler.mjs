@@ -21,8 +21,12 @@ function configuration(env) {
     (url.hostname === `${PROJECTS.sandbox}.supabase.co` ? 'sandbox' : null);
   if (!environment || !PROJECTS[environment] || url.protocol !== 'https:' ||
       url.hostname !== `${PROJECTS[environment]}.supabase.co`) return null;
+  const acceptanceUserId = env.GPIR_FX_LIVE_ACCEPTANCE_ENABLED === 'true' &&
+    UUID.test(env.GPIR_FX_LIVE_ACCEPTANCE_USER_ID?.trim() || '')
+    ? env.GPIR_FX_LIVE_ACCEPTANCE_USER_ID.trim() : null;
   return Object.freeze({ ...values, SUPABASE_URL: url.origin,
-    PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment });
+    PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment,
+    FX_LIVE_ACCEPTANCE_USER_ID: acceptanceUserId });
 }
 
 function allowedOrigins(env) {
@@ -298,33 +302,36 @@ async function latestGpirCapture(fetchImpl, config, pair, serviceHeaders) {
 
 async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
   pair, now, logger }) {
-  const query = new URLSearchParams({
-    select: 'id,status,effective_from,effective_until,payment_confirmed_at',
-    user_id: `eq.${userId}`,
-    environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
-  });
   const serviceHeaders = new Headers();
   serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
   serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
-  const subscriptions = await jsonFetch(fetchImpl,
-    `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${query}`,
-    { headers: serviceHeaders });
-  if (!validRows(subscriptions))
-    return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_CHECK_UNAVAILABLE' }, origin, env);
-
-  const subscription = subscriptions.data.length
-    ? subscriptionSummary(subscriptions.data[0]) : null;
+  const hasAcceptanceAccess = config.FX_LIVE_ACCEPTANCE_USER_ID === userId;
   const currentTime = now();
-  const hasActiveSubscription = subscription?.status === 'ACTIVE' &&
-    subscription.effectiveFrom && subscription.effectiveUntil &&
-    subscription.paymentConfirmedAt &&
-    Date.parse(subscription.effectiveFrom) <= currentTime &&
-    Date.parse(subscription.effectiveUntil) > currentTime;
-  if (!hasActiveSubscription) {
-    const expired = subscription?.status === 'EXPIRED' ||
-      (subscription?.effectiveUntil && Date.parse(subscription.effectiveUntil) <= currentTime);
-    return response(403, { status: 'DENY',
-      code: expired ? 'SUBSCRIPTION_EXPIRED' : 'SUBSCRIPTION_REQUIRED' }, origin, env);
+  if (!hasAcceptanceAccess) {
+    const query = new URLSearchParams({
+      select: 'id,status,effective_from,effective_until,payment_confirmed_at',
+      user_id: `eq.${userId}`,
+      environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
+    });
+    const subscriptions = await jsonFetch(fetchImpl,
+      `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${query}`,
+      { headers: serviceHeaders });
+    if (!validRows(subscriptions))
+      return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_CHECK_UNAVAILABLE' }, origin, env);
+
+    const subscription = subscriptions.data.length
+      ? subscriptionSummary(subscriptions.data[0]) : null;
+    const hasActiveSubscription = subscription?.status === 'ACTIVE' &&
+      subscription.effectiveFrom && subscription.effectiveUntil &&
+      subscription.paymentConfirmedAt &&
+      Date.parse(subscription.effectiveFrom) <= currentTime &&
+      Date.parse(subscription.effectiveUntil) > currentTime;
+    if (!hasActiveSubscription) {
+      const expired = subscription?.status === 'EXPIRED' ||
+        (subscription?.effectiveUntil && Date.parse(subscription.effectiveUntil) <= currentTime);
+      return response(403, { status: 'DENY',
+        code: expired ? 'SUBSCRIPTION_EXPIRED' : 'SUBSCRIPTION_REQUIRED' }, origin, env);
+    }
   }
 
   let history;
