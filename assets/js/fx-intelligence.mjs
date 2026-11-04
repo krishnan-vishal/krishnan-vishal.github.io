@@ -228,23 +228,40 @@ function formatMetric(value, pair) {
 }
 
 function rangeLadder(points, anchorDate, pair) {
-  return PERIODS.map(period => {
+  const allMetrics = calculateMetrics(points);
+  const fullLow = allMetrics.status === 'AVAILABLE' ? allMetrics.low.rate : 0;
+  const fullHigh = allMetrics.status === 'AVAILABLE' ? allMetrics.high.rate : 0;
+  const span = fullHigh - fullLow;
+  const position = rate => span > 0
+    ? Math.max(0, Math.min(100, (rate - fullLow) / span * 100)) : 50;
+  return PERIODS.map((period, index) => {
     const metrics = periodMetrics(points, period, anchorDate);
     const label = period.id === 'MAX' ? 'Maximum available' : period.label;
-    return `<article class="fxi-range-row"><strong>${escapeHtml(label)}</strong><span>${metrics.status === 'AVAILABLE' ? `${escapeHtml(rateText(metrics.low.rate, pair))} – ${escapeHtml(rateText(metrics.high.rate, pair))}` : 'Unavailable'}</span><span class="${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? 'fxi-up' : 'fxi-down' : ''}">${escapeHtml(formatMetric(metrics, pair))}</span><small>${metrics.status === 'AVAILABLE' ? `${escapeHtml(metrics.low.date)} → ${escapeHtml(metrics.high.date)} · ${metrics.observations} fixings` : 'Insufficient observations'}</small></article>`;
+    const low = metrics.status === 'AVAILABLE' ? position(metrics.low.rate) : 0;
+    const high = metrics.status === 'AVAILABLE' ? position(metrics.high.rate) : 0;
+    const marker = metrics.status === 'AVAILABLE' ? position(metrics.latest.rate) : 0;
+    const width = Math.max(high - low, metrics.status === 'AVAILABLE' ? 1 : 0);
+    return `<article class="fxi-range-row"${metrics.status === 'AVAILABLE' ? ` style="--range-start:${low}%;--range-width:${width}%;--range-marker:${marker}%"` : ''}>
+      <strong><span class="fxi-range-index">${String(index + 1).padStart(2, '0')}</span>${escapeHtml(label)}</strong>
+      <div class="fxi-range-track" role="img" aria-label="${escapeHtml(label)} low to high range${metrics.status === 'AVAILABLE' ? `, latest fixing ${rateText(metrics.latest.rate, pair)}` : ', unavailable'}"><span></span><i></i></div>
+      <span class="fxi-range-values">${metrics.status === 'AVAILABLE' ? `${escapeHtml(rateText(metrics.low.rate, pair))} – ${escapeHtml(rateText(metrics.high.rate, pair))}` : 'Unavailable'}</span>
+      <small>${metrics.status === 'AVAILABLE' ? `${escapeHtml(metrics.low.date)} → ${escapeHtml(metrics.high.date)} · ${metrics.observations} fixings` : 'Insufficient observations'}</small>
+    </article>`;
   }).join('');
 }
 
-function movementHeatmap(points) {
-  const recent = points.slice(-60);
+function movementHeatmap(points, pair) {
+  const recent = points.slice(-252);
   if (recent.length < 2) return '<p class="fxi-unavailable">Daily movement distribution is unavailable until at least two fixings exist.</p>';
-  return `<div class="fxi-heatmap" aria-label="Daily movement symbols: blue upward, orange downward, grey flat">${recent.map((point, index) => {
+  const cells = recent.map((point, index) => {
     if (index === 0) return `<span class="fxi-heat fxi-flat" title="${escapeHtml(point.date)} · reference fixing">•</span>`;
     const delta = point.rate - recent[index - 1].rate;
     const state = delta > 0 ? 'fxi-up' : delta < 0 ? 'fxi-down' : 'fxi-flat';
     const symbol = delta > 0 ? '↑' : delta < 0 ? '↓' : '•';
     return `<span class="fxi-heat ${state}" title="${escapeHtml(point.date)} · ${symbol} ${escapeHtml(percent((point.rate / recent[index - 1].rate - 1) * 100))}">${symbol}</span>`;
-  }).join('')}</div>`;
+  }).join('');
+  return `<div class="fxi-heatmap" role="img" aria-label="${recent.length} observed daily movements from ${escapeHtml(recent[0].date)} to ${escapeHtml(recent.at(-1).date)}; blue arrows indicate base strengthening, orange arrows indicate base weakening">${cells}</div>
+    <div class="fxi-heatmap-legend"><span>Each square = one observed fixing</span><span><i class="fxi-up">↑</i> ${escapeHtml(pair.base)} strengthened</span><span><i class="fxi-down">↓</i> ${escapeHtml(pair.base)} weakened</span><span>Weekends / missing dates omitted</span></div>`;
 }
 
 function previousLabel(current, previous) {
@@ -291,7 +308,8 @@ function buildCardMarkup(history, capture, captureStatus, selectedPeriod, amount
   const comparableText = closeObservation
     ? `${closeObservation.date} · ${rateText(closeObservation.rate, pair)} (within 1% of latest)`
     : 'No earlier fixing is within 1% of the latest rate.';
-  const periodButtons = PERIODS.map(period => `<button type="button" class="fxi-period${period.id === selectedPeriod ? ' is-selected' : ''}" data-period="${period.id}" aria-pressed="${period.id === selectedPeriod}">${escapeHtml(period.label)}</button>`).join('');
+  const periodCodes = { W: '1W', M: '1M', Q: '3M', Y: '1Y', '5Y': '5Y', MAX: 'MAX' };
+  const periodButtons = PERIODS.map(period => `<button type="button" class="fxi-period${period.id === selectedPeriod ? ' is-selected' : ''}" data-period="${period.id}" aria-pressed="${period.id === selectedPeriod}"><strong>${periodCodes[period.id]}</strong><span>${escapeHtml(period.label)}</span></button>`).join('');
   const activeChange = metrics.status === 'AVAILABLE' ? percent(metrics.changePercent) : 'Unavailable';
   const currentVolatility = metrics.annualizedVolatility == null
     ? 'Unavailable' : `${number(metrics.annualizedVolatility, 2)}%`;
@@ -305,30 +323,74 @@ function buildCardMarkup(history, capture, captureStatus, selectedPeriod, amount
   const sourceRateLabel = history.rateMethod === 'ECB_EUR_PIVOT_CROSS_RATE'
     ? 'ECB euro-pivot cross-rate via Frankfurter'
     : 'ECB euro reference rate via Frankfurter';
+  const recentPoints = allPoints.slice(-252);
+  const yearMetrics = calculateMetrics(recentPoints);
+  const rangePosition = yearMetrics.status === 'AVAILABLE' &&
+    yearMetrics.high.rate !== yearMetrics.low.rate
+    ? Math.max(0, Math.min(100, (currentRate - yearMetrics.low.rate) /
+      (yearMetrics.high.rate - yearMetrics.low.rate) * 100)) : 50;
+  const gaugeAngle = rangePosition * 1.3 - 65;
+  const todayMetrics = calculateMetrics(allPoints.slice(-2));
+  const monthMetrics = calculateMetrics(pointsForPeriod(allPoints, 'M', anchor));
+  const periodLabel = PERIODS.find(item => item.id === selectedPeriod)?.label || 'Monthly';
+  const observationWindow = selectedPoints.length > 1
+    ? `${selectedPoints.length} observed fixings · ${selectedPoints[0].date} – ${selectedPoints.at(-1).date}`
+    : 'Insufficient observed fixings';
+  const movementTakeaway = metrics.status === 'AVAILABLE'
+    ? `The pair ${metrics.changePercent >= 0 ? 'rose' : 'fell'} ${percent(metrics.changePercent)} across ${metrics.observations} observed fixings.`
+    : 'Movement summary unavailable for this period.';
+  const editorialTakeaway = 'No cited pair-specific research is attached to this period.';
+  const crossBorderTakeaway = metrics.status === 'AVAILABLE'
+    ? `A ${number(amount, 0)} ${pair.base} reference conversion differs by ${number(amount * metrics.change, 2)} ${pair.quote} across this period.`
+    : 'No conversion comparison is available for this period.';
+  const historicalTakeaway = metrics.status === 'AVAILABLE'
+    ? `Latest fixing ranks at the ${number(metrics.historicalPercentile, 0)}th percentile of this period.`
+    : 'Historical interpretation is unavailable for this period.';
+  const briefCards = [
+    { number: '01', type: 'COMPUTED', title: 'Movement & volatility',
+      body: movementBrief, takeaway: movementTakeaway },
+    { number: '02', type: 'EDITORIAL / CITED', title: 'Economic & policy drivers',
+      body: 'No validated, pair-specific editorial research is currently attached. No causal driver is inferred from rate movement.',
+      takeaway: editorialTakeaway },
+    { number: '03', type: 'COMPUTED', title: 'Cross-border implications',
+      body: crossBorderBrief, takeaway: crossBorderTakeaway },
+    { number: '04', type: 'COMPUTED', title: 'Historical interpretation',
+      body: `${historyBrief} Last earlier observation within 1% of the latest rate: ${comparableText}.`,
+      takeaway: historicalTakeaway }
+  ];
   return `<header class="fxi-header">
-    <div><p class="fxi-eyebrow">GPIR · SUBSCRIBER FX INTELLIGENCE</p><h1>${escapeHtml(pair.base)}/${escapeHtml(pair.quote)}</h1><p class="fxi-full-name">${escapeHtml(history.baseName)} to ${escapeHtml(history.quoteName)}</p></div>
-    <div class="fxi-header-meta"><span>${escapeHtml(sourceRateLabel)}</span><strong>Latest source fixing · ${escapeHtml(history.lastFixingDate)}</strong><small>Retrieved ${escapeHtml(history.retrievedAt)}</small></div>
-    <div class="fxi-pair-controls"><label>Base currency<select data-base>${sourceCurrencyOptions(history.currencies, pair.base)}</select></label><span aria-hidden="true">/</span><label>Quote currency<select data-quote>${sourceCurrencyOptions(history.currencies, pair.quote)}</select></label></div>
+    <div class="fxi-header-pair"><p class="fxi-eyebrow">GPIR · CURRENCY INTELLIGENCE</p><div class="fxi-pair-symbols" aria-hidden="true"><span>${escapeHtml(pair.base)}</span><span>${escapeHtml(pair.quote)}</span></div><h1>${escapeHtml(pair.base)} <i>/</i> ${escapeHtml(pair.quote)}</h1><p class="fxi-full-name">${escapeHtml(history.baseName)} → ${escapeHtml(history.quoteName)}</p>
+      <div class="fxi-pair-controls"><label>Base<select data-base>${sourceCurrencyOptions(history.currencies, pair.base)}</select></label><span aria-hidden="true">/</span><label>Quote<select data-quote>${sourceCurrencyOptions(history.currencies, pair.quote)}</select></label></div>
+    </div>
+    <div class="fxi-header-rate"><p class="fxi-eyebrow">${escapeHtml(sourceRateLabel)} · 1 ${escapeHtml(pair.base)} =</p><strong>${escapeHtml(rateText(currentRate, pair))} <small>${escapeHtml(pair.quote)}</small></strong>
+      <div class="fxi-rate-badges"><span class="${todayMetrics.status === 'AVAILABLE' && todayMetrics.changePercent >= 0 ? 'fxi-badge-up' : 'fxi-badge-down'}">${todayMetrics.status === 'AVAILABLE' ? `${todayMetrics.changePercent >= 0 ? '↑' : '↓'} ${percent(todayMetrics.changePercent)} today` : 'Today unavailable'}</span><span class="${monthMetrics.status === 'AVAILABLE' && monthMetrics.changePercent >= 0 ? 'fxi-badge-up' : 'fxi-badge-down'}">${monthMetrics.status === 'AVAILABLE' ? `${monthMetrics.changePercent >= 0 ? '↑' : '↓'} ${percent(monthMetrics.changePercent)} 1M` : '1M unavailable'}</span></div>
+      <p class="fxi-fixing"><span>✓ Official reference fixing</span><br>Fixing date ${escapeHtml(history.lastFixingDate)} · retrieved ${escapeHtml(history.retrievedAt)}</p>
+    </div>
+    <div class="fxi-header-range"><p class="fxi-eyebrow">52-WEEK OBSERVED RANGE</p><div class="fxi-range-gauge" style="--gauge-position:${rangePosition}%;--gauge-angle:${gaugeAngle}deg"><span></span><i></i></div><div class="fxi-gauge-labels"><span>Low ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.low.rate, pair) : 'Unavailable')}</span><span>High ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.high.rate, pair) : 'Unavailable')}</span></div><strong>${yearMetrics.status === 'AVAILABLE' ? `${number(rangePosition, 0)}%` : 'Unavailable'}</strong><small>of observed 52-week range</small></div>
   </header>
   <nav class="fxi-periods" aria-label="Historical analysis period">${periodButtons}</nav>
-  <section class="fxi-section fxi-chart-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVED REFERENCE FIXINGS</p><h2>Historical trend</h2></div><span class="${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? 'fxi-up' : 'fxi-down' : ''}">${escapeHtml(trend)} · ${escapeHtml(activeChange)}</span></div>
-    <div class="fxi-chart-key"><span class="key-rate">Observed daily fixing</span><span class="key-average">20 / 50 / 200-observation averages</span><span class="key-previous">Previous-period close</span></div>
-    ${chartSvg(plottedPoints, previousMetrics, pair, allPoints)}
-    <p class="fxi-note">Each plotted mark is an actual source observation; dense charts sample each bucket's first, last, high and low fixings. No missing dates are filled or interpolated; metrics use all observations. Moving averages appear only where their full observation windows exist.</p>
-    <p class="fxi-comparison">${escapeHtml(previousLabel(metrics, previousMetrics))}</p>
+  <section class="fxi-analytics-band" aria-label="Historical trend and quick reference">
+    <article class="fxi-section fxi-chart-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVED REFERENCE FIXINGS</p><h2>${escapeHtml(periodLabel)} trend</h2><small>${escapeHtml(observationWindow)} · moving average overlays when available</small></div><span class="${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? 'fxi-up' : 'fxi-down' : ''}">${escapeHtml(trend)} · ${escapeHtml(activeChange)}</span></div>
+      <div class="fxi-chart-key"><span class="key-rate">This period</span><span class="key-average">Moving averages</span><span class="key-previous">Previous-period close</span></div>
+      ${chartSvg(plottedPoints, previousMetrics, pair, allPoints)}
+      <p class="fxi-note">Each plotted mark is an actual source observation; dense charts sample bucket first, last, high and low fixings. No missing dates are filled or interpolated.</p>
+      <p class="fxi-comparison">${escapeHtml(previousLabel(metrics, previousMetrics))}</p>
+    </article>
+    <aside class="fxi-quick-grid" aria-label="Quick reference, volatility and trend">
+      <article class="fxi-section fxi-converter-card"><p class="fxi-kicker">QUICK CONVERT</p><h2>Reference conversion</h2><label class="fxi-converter">You send (${escapeHtml(pair.base)})<input type="number" min="0" step="any" value="${Number.isFinite(amount) ? escapeHtml(amount) : '1000'}" data-amount></label><strong class="fxi-conversion" data-conversion>${conversion == null ? 'Unavailable' : `${number(conversion, 2)} ${escapeHtml(pair.quote)}`}</strong><small>At reference mid (${escapeHtml(pair.quote)}) · not a transaction quote.</small><p class="fxi-converter-compare">Indicative remittance comparison unavailable — no validated provider quote.</p></article>
+      <article class="fxi-section fxi-volatility-card"><div class="fxi-side-heading"><p class="fxi-kicker">VOLATILITY</p><strong>${escapeHtml(currentVolatility)}</strong></div><div class="fxi-volatility-meter${metrics.annualizedVolatility == null ? ' is-unavailable' : ''}" aria-label="Annualised realised volatility ${escapeHtml(currentVolatility)}"><span></span><span></span><span></span><span></span><span></span></div><div class="fxi-volatility-labels"><span>Observed range</span><span>Annualised %</span></div><p class="fxi-note">Computed from ${metrics.status === 'AVAILABLE' ? metrics.returns.length : 0} observed daily log returns.</p></article>
+      <article class="fxi-section fxi-trend-card"><span class="fxi-trend-icon" aria-hidden="true">${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? '↗' : '↘' : '—'}</span><div><p class="fxi-kicker">TREND</p><strong>${metrics.status === 'AVAILABLE' ? `${escapeHtml(trend)} over ${escapeHtml(periodLabel.toLowerCase())}` : 'Trend unavailable'}</strong><small>${metrics.status === 'AVAILABLE' && metrics.movingAverages[50] != null ? `Latest fixing ${currentRate >= metrics.movingAverages[50] ? 'above' : 'below'} its 50-observation average.` : '50-observation average unavailable.'} Descriptive, not a forecast.</small></div></article>
+      <div class="fxi-mini-stats" aria-label="Period reference statistics"><span>High <strong>${metrics.status === 'AVAILABLE' ? escapeHtml(rateText(metrics.high.rate, pair)) : 'Unavailable'}</strong></span><span>Low <strong>${metrics.status === 'AVAILABLE' ? escapeHtml(rateText(metrics.low.rate, pair)) : 'Unavailable'}</strong></span><span>Period range <strong>${escapeHtml(activeChange)}</strong></span><span>5Y comparison <strong>${escapeHtml(lastComparable)}</strong></span><span>Daily distribution <strong>${escapeHtml(distribution)}</strong></span></div>
+    </aside>
   </section>
-  <section class="fxi-quick-grid" aria-label="Quick reference and movement summary">
-    <article class="fxi-section"><p class="fxi-kicker">REFERENCE CONVERTER</p><h2>Indicative conversion</h2><label class="fxi-converter">${escapeHtml(pair.base)} amount<input type="number" min="0" step="any" value="${Number.isFinite(amount) ? escapeHtml(amount) : '1000'}" data-amount></label><strong class="fxi-conversion" data-conversion>${conversion == null ? 'Unavailable' : `${number(conversion, 2)} ${escapeHtml(pair.quote)}`}</strong><small>At the latest historical reference fixing; not a transaction quote.</small><p class="fxi-note">Indicative remittance-rate comparison: unavailable — no validated provider quote supplied.</p></article>
-    <article class="fxi-section"><p class="fxi-kicker">MOVEMENT &amp; VOLATILITY</p><h2>Selected-period summary</h2><div class="fxi-stat-grid"><div><span>Change</span><strong>${escapeHtml(activeChange)}</strong></div><div><span>Annualised realised volatility</span><strong>${escapeHtml(currentVolatility)}</strong></div><div><span>High · date</span><strong>${metrics.status === 'AVAILABLE' ? `${escapeHtml(rateText(metrics.high.rate, pair))} · ${escapeHtml(metrics.high.date)}` : 'Unavailable'}</strong></div><div><span>Low · date</span><strong>${metrics.status === 'AVAILABLE' ? `${escapeHtml(rateText(metrics.low.rate, pair))} · ${escapeHtml(metrics.low.date)}` : 'Unavailable'}</strong></div><div><span>Historical percentile</span><strong>${metrics.status === 'AVAILABLE' ? `${number(metrics.historicalPercentile, 0)}th` : 'Unavailable'}</strong></div><div><span>Five-year comparison</span><strong>${escapeHtml(lastComparable)}</strong></div><div><span>Daily movement distribution</span><strong>${escapeHtml(distribution)}</strong></div></div><p class="fxi-note">Daily log returns: ${metrics.status === 'AVAILABLE' ? metrics.returns.length : 0} observed intervals. Volatility requires at least 20 returns.</p></article>
+  <section class="fxi-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">AVAILABLE HISTORY</p><h2>Where today sits — range ladder</h2></div><span>Gold dot = latest fixing · bars = observed period low to high</span></div><div class="fxi-range-list">${rangeLadder(allPoints, anchor, pair)}</div><p class="fxi-note">Each range uses observations actually returned for this pair; maximum history is pair-specific.</p></section>
+  <section class="fxi-context-band" aria-label="Daily movement and quote-currency peers">
+    <article class="fxi-section fxi-rhythm-card"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVATION-BY-OBSERVATION</p><h2>Rhythm of the year</h2></div><span>${escapeHtml(recentPoints.length)} daily fixings · ${recentPoints.length ? `${recentPoints[0].date} – ${recentPoints.at(-1).date}` : 'Unavailable'}</span></div>${movementHeatmap(allPoints, pair)}</article>
+    <article class="fxi-section fxi-peer-card"><div class="fxi-section-heading"><div><p class="fxi-kicker">${escapeHtml(pair.quote)} PEER PULSE · ${escapeHtml(periodLabel.toUpperCase())}</p><h2>Same-date peer rates</h2></div></div>${peerHtml}<p class="fxi-note">Deterministic cross-rates from same-date ECB fixings, not transaction prices.</p></article>
   </section>
-  <section class="fxi-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">AVAILABLE HISTORY</p><h2>Historical range ladder</h2></div><span>${escapeHtml(availableYears)}</span></div><div class="fxi-range-list">${rangeLadder(allPoints, anchor, pair)}</div><p class="fxi-note">Each range uses only observations actually returned for this pair; maximum history is pair-specific.</p></section>
-  <section class="fxi-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVATION-BY-OBSERVATION</p><h2>Daily movement</h2></div></div>${movementHeatmap(allPoints)}<p class="fxi-note">↑ Blue = base strengthened · ↓ Orange = base weakened · • Grey = flat. Calendar dates without a source fixing are omitted.</p></section>
-  <section class="fxi-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">SAME-DATE REFERENCE COMPARISON</p><h2>${escapeHtml(pair.quote)}-currency peers</h2></div></div>${peerHtml}<p class="fxi-note">Peer rates are deterministic cross-rates calculated from same-date ECB reference fixings, not provider-supplied transaction prices.</p></section>
   <section class="fxi-brief-grid" aria-label="Currency intelligence briefs">
-    <article class="fxi-section"><p class="fxi-kicker">COMPUTED</p><h2>Movement &amp; Volatility</h2><p>${escapeHtml(movementBrief)}</p></article>
-    <article class="fxi-section"><p class="fxi-kicker">EDITORIAL / CITED</p><h2>Economic &amp; Policy Drivers</h2><p>No validated, pair-specific editorial research is currently attached. No causal driver is inferred from rate movement.</p></article>
-    <article class="fxi-section"><p class="fxi-kicker">COMPUTED</p><h2>Cross-Border Implications</h2><p>${escapeHtml(crossBorderBrief)}</p></article>
-    <article class="fxi-section"><p class="fxi-kicker">COMPUTED</p><h2>Historical Interpretation</h2><p>${escapeHtml(historyBrief)} Last earlier observation within 1% of the latest rate: ${escapeHtml(comparableText)}.</p></article>
+    <div class="fxi-brief-heading"><h2>Intelligence brief</h2><p>${escapeHtml(periodLabel)} window · figures trace to the ECB series</p></div>
+    ${briefCards.map(brief => `<article class="fxi-section fxi-brief-card"><div class="fxi-brief-top"><span class="fxi-brief-number">${brief.number}</span><span class="fxi-brief-type">${escapeHtml(brief.type)}</span></div><h3>${escapeHtml(brief.title)}</h3><p>${escapeHtml(brief.body)}</p><div class="fxi-reader-takeaway"><strong>Reader takeaway</strong><p>${escapeHtml(brief.takeaway)}</p></div></article>`).join('')}
   </section>
   <footer class="fxi-provenance"><p class="fxi-kicker">DATA PROVENANCE &amp; RESEARCH LIMITS</p><p>Source: ${escapeHtml(history.source)}. <a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">ECB reference-rate methodology</a> · <a href="${escapeHtml(history.sourceTermsUrl)}" target="_blank" rel="noopener noreferrer">ECB source terms</a> · <a href="${escapeHtml(history.providerUrl)}" target="_blank" rel="noopener noreferrer">Frankfurter API</a>.</p><p>Non-EUR pairs are ECB euro-pivot cross-rates formed from same-date reference data; no missing observations are filled. Historical coverage for this pair: ${escapeHtml(availableYears)} · ${allPoints.length} source fixings · fixing dates shown separately from retrieval and GPIR capture timestamps.</p><p>${archiveText} GPIR captures are separate from source fixing dates and are not mixed into the historical reference series.</p><p class="fxi-disclaimer">${DISCLAIMER}</p></footer>`;
 }
