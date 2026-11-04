@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-FX-08 subscriber currency-pair intelligence
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-FX-08 | 2026-11-04 | Add an on-demand, subscriber-only historical currency-pair intelligence dashboard following the approved v2 design | READER EXPERIENCE, DATA, AUTHORIZATION, RELEASE | High | IN PROGRESS | Owner review/merge; deploy the existing `gpir-reader-summary` Edge Function update through the controlled process before production access | Stage 1 | Existing reader authentication, `gpir-reader-summary`, `fx_historical_archive`, FX navigation and homepage | Use ECB-provider Frankfurter history and validated existing GPIR capture metadata without new services, tables, public premium-data endpoints, or transaction quotations. Keep public ticker behavior unchanged. | Six observation-based periods; deterministic metrics and tests; multi-pair card contexts; server-side active-subscription gate; actual-source provenance and missing-data states; compact homepage card; existing menu behavior preserved; one PR; no merge/deployment. | Focused FX, authorization, auth-return, and navigation tests pass 37/37; FX, archive, content, link, syntax and CRLF-aware whitespace checks pass. USD/JPY live read-only source evidence covers 7,128 fixings from 1999-01-04 through 2026-11-03; no universal coverage claim. The referenced PDF and browser screenshot tooling were unavailable, so exact design comparison is unverified. | PENDING commit / PR | Pending | M39-FX |
+
 ## M39-FX-06 selected-pair context and archive repair
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

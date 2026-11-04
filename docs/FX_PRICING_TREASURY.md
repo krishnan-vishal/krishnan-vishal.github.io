@@ -238,3 +238,36 @@ human explicitly merges the review PR.
   `holidays` parameter are not populated -- weekend rollover is fully
   implemented; per-market holiday lists remain a future, explicitly
   sourced addition (never guessed).
+
+## M39-FX-08 subscriber currency-pair intelligence
+
+The subscriber dashboard at `pages/fx/intelligence.html` uses the existing
+`gpir-reader-summary` Edge Function as its protected data contract. Requests
+with `fxPair=BASE/QUOTE` require a verified bearer user and an `ACTIVE`
+subscription whose effective dates contain the current time. The response is
+private/no-store. No public historical-intelligence endpoint, authentication
+service, schema, payment integration, or CMS was added. The public FX ticker
+and its source contract are unchanged.
+
+The dashboard fetches Frankfurter v2's ECB-specific currency catalogue and
+provider history on demand. It records source fixing dates separately from the
+retrieval timestamp and optional `fx_historical_archive` GPIR capture time.
+Archive captures are never joined into the ECB fixing series. Non-EUR pairs
+are deterministic same-date EUR-pivot cross-rates; pair history is limited to
+the actual observations returned for that pair. The verified USD/JPY evidence
+for this milestone is 7,128 observations from 1999-01-04 through 2026-11-03;
+this is not a coverage claim for other pairs.
+
+`assets/js/fx-intelligence.mjs` calculates metrics from observed fixings,
+requires sufficient observations, and labels unavailable results. Charts
+connect only actual fixings; dense rendering samples observed bucket
+first/last/high/low points without filling missing dates. The client shares
+short-lived pair-and-reader keyed responses across cards, and the Edge
+Function uses a bounded pair-keyed cache. Neither forecasts nor transaction,
+remittance, or unsupported editorial claims are generated. The required
+research disclaimer appears on every card.
+
+The exact v2 PDF comparison remains unverified because
+`docs/design-references/v2-designomics.pdf` was not present in the checkout;
+responsive styling follows the written specification. Deploying the existing
+Edge Function update remains an owner-controlled release prerequisite.

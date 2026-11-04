@@ -2,6 +2,19 @@
 
 ## Current handoff
 
+### M39-FX-08 — Subscriber currency-pair intelligence
+
+- **Branch / base:** `feat/m39-fx-08`, created from `origin/main` at `99dbc7c` after M39-FX-07 / PR #498.
+- **Objective:** add on-demand historical currency-pair intelligence for entitled readers, retaining the existing reader-auth, subscription, FX archive, and navigation architecture. No schema, payment, authentication, or backend service was added.
+- **Implementation:** `<gpir-fx-card>` renders independent pair/period contexts, deterministic observation-based metrics, a responsive navy/ivory/gold dashboard, a compact homepage entry, and an FX Intelligence menu link. The existing `gpir-reader-summary` Edge Function serves pair history only after verifying the bearer session and current active subscription; the public ticker is unchanged.
+- **Historical source:** Frankfurter v2 is queried specifically for its ECB provider, with the source currency catalogue and actual per-pair fixing dates. The live read-only USD/JPY probe returned 7,128 observations from 1999-01-04 through 2026-11-03. This is pair-specific coverage; no all-pairs 1999 coverage is claimed. Non-EUR crosses use same-date ECB EUR reference data. Supabase capture timestamps are shown separately and are not mixed into source observations.
+- **Analytics / missing data:** percentage changes, high/low dates, daily log returns, annualised realised volatility, observation moving averages, historical percentile, movement distribution, previous-period and five-year comparisons, reference conversion, and the last earlier fixing within 1% are deterministic. No interpolation, forecast, causal claim, editorial driver, or remittance quote is fabricated; unavailable data is labelled.
+- **Design / evidence:** the written v2 design brief is implemented with responsive CSS, including 360px rules. `docs/design-references/v2-designomics.pdf` was not present in the checkout, and browser screenshot tooling was unavailable; exact PDF comparison and screenshot acceptance are therefore not claimed.
+- **Authorization / release boundary:** access is enforced by the existing Edge Function, not client-side hiding. Deployment of the updated function is required before the live contract is available; no function deployment, database write, merge, or publication occurred.
+- **Validation:** focused FX, reader-summary authorization, auth return-route, and navigation tests pass 37/37, including desktop hover/click/Escape, scroll guard, and mobile accordion behavior. `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, `node scripts/validate-fx.js`, changed-file syntax checks, and CRLF-aware `git diff --check` pass. The plain whitespace check flags carriage returns on changed lines in five pre-existing CRLF HTML files; those are line endings, not trailing spaces.
+- **Design / release limit:** browser screenshot tooling was unavailable, so mobile/desktop screenshot acceptance is unverified. The specified design PDF was absent; the written v2 brief is the visual basis. No production function deployment or database change occurred.
+- **State:** implementation is locally validated on the feature branch; commit, remote SHA, and PR state are pending. Do not merge or deploy without the existing owner-controlled approval.
+
 ### M39-FX-06 — Pair context, precision, spacing and archive integrity
 
 - **Branch / base:** `feat/m39-fx-06`, from production `main` at `02e74c12ee6445008e51c7581721e6c9454388bc` (includes merged PR #495 / M39-FX-05).
