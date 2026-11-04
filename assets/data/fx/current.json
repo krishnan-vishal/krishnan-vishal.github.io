@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "publicationDate": "2026-11-04",
-  "generatedAt": "2026-11-04T12:29:28.509Z",
+  "generatedAt": "2026-11-04T20:00:16.492Z",
   "status": "current",
   "dataStatus": "OK",
   "refreshIntervalMinutes": 30,
@@ -411,7 +411,7 @@
     "providerType": "reference",
     "timestamp": "2026-11-04T00:02:31.000Z",
     "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-    "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+    "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
     "validationStatus": "VALIDATED",
     "previousBusinessDate": "2026-11-03",
     "previousBusinessRates": {
@@ -614,7 +614,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -657,7 +657,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -700,7 +700,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -743,7 +743,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -786,7 +786,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -829,7 +829,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -872,7 +872,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -915,7 +915,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -958,7 +958,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -997,7 +997,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1036,7 +1036,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1070,7 +1070,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1104,7 +1104,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1138,7 +1138,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1172,7 +1172,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1206,7 +1206,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1240,7 +1240,7 @@
       "direction": "unchanged",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1274,7 +1274,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1308,7 +1308,7 @@
       "direction": "unchanged",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1342,7 +1342,7 @@
       "direction": "unchanged",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1376,7 +1376,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1410,7 +1410,7 @@
       "direction": "unchanged",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1444,7 +1444,7 @@
       "direction": "unchanged",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1487,7 +1487,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1526,7 +1526,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1565,7 +1565,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1599,7 +1599,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1633,7 +1633,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1667,7 +1667,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1701,7 +1701,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1735,7 +1735,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1769,7 +1769,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1803,7 +1803,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1837,7 +1837,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1871,7 +1871,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1905,7 +1905,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1939,7 +1939,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -1973,7 +1973,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2007,7 +2007,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2041,7 +2041,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2075,7 +2075,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2109,7 +2109,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2143,7 +2143,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2177,7 +2177,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2211,7 +2211,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2245,7 +2245,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2279,7 +2279,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2313,7 +2313,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2356,7 +2356,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2399,7 +2399,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2442,7 +2442,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2485,7 +2485,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2528,7 +2528,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2571,7 +2571,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2614,7 +2614,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2657,7 +2657,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2700,7 +2700,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2743,7 +2743,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2786,7 +2786,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2829,7 +2829,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2872,7 +2872,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2915,7 +2915,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -2958,7 +2958,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3001,7 +3001,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3044,7 +3044,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3087,7 +3087,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3130,7 +3130,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3173,7 +3173,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3216,7 +3216,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3259,7 +3259,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3302,7 +3302,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3345,7 +3345,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3388,7 +3388,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3431,7 +3431,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3474,7 +3474,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3517,7 +3517,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3560,7 +3560,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3603,7 +3603,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3646,7 +3646,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3689,7 +3689,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3732,7 +3732,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3775,7 +3775,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3818,7 +3818,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3861,7 +3861,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3904,7 +3904,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3947,7 +3947,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -3990,7 +3990,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4033,7 +4033,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4076,7 +4076,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4119,7 +4119,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4162,7 +4162,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4205,7 +4205,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4248,7 +4248,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4291,7 +4291,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4334,7 +4334,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4377,7 +4377,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4420,7 +4420,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4463,7 +4463,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4506,7 +4506,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4549,7 +4549,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4592,7 +4592,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4635,7 +4635,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4678,7 +4678,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4721,7 +4721,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4764,7 +4764,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4807,7 +4807,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4850,7 +4850,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4893,7 +4893,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4936,7 +4936,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -4979,7 +4979,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5022,7 +5022,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5065,7 +5065,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5108,7 +5108,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5151,7 +5151,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5194,7 +5194,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5237,7 +5237,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5280,7 +5280,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5323,7 +5323,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5366,7 +5366,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5409,7 +5409,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5452,7 +5452,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5495,7 +5495,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5538,7 +5538,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5581,7 +5581,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5624,7 +5624,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5667,7 +5667,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5710,7 +5710,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5753,7 +5753,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5796,7 +5796,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5839,7 +5839,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5882,7 +5882,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5925,7 +5925,7 @@
       "direction": "down",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -5968,7 +5968,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     },
@@ -6011,7 +6011,7 @@
       "direction": "up",
       "dataStatus": "REFERENCE",
       "providerRetrievedAt": "2026-11-04T00:02:31.000Z",
-      "gpirRetrievedAt": "2026-11-04T12:29:28.509Z",
+      "gpirRetrievedAt": "2026-11-04T20:00:16.492Z",
       "validationStatus": "VALIDATED",
       "anomalies": []
     }
