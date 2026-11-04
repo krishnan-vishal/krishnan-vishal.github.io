@@ -10,14 +10,9 @@ name: GPIR FX Market Data Refresh
 
 on:
   schedule:
-    # Hourly, matching assets/data/fx/fx-config.json's
-    # refreshFrequencyMinutes. A daily reference-rate feed does not
-    # benefit from more frequent polling; a future licensed live feed
-    # can lower this once configured.
-    # Minute 7 avoids top-of-hour scheduler concentration. The current
-    # reference source updates daily, so hourly is the fastest useful
-    # sustainable provider cadence; the browser re-checks every 15 min.
-    - cron: "7 * * * *"
+    # Capture on a stable 30-minute cadence without relying on the
+    # provider to publish a new reference observation each run.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 permissions:
