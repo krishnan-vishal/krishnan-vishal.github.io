@@ -13,7 +13,7 @@
 - **Authorization / release boundary:** access is enforced by the existing Edge Function, not client-side hiding. Deployment of the updated function is required before the live contract is available; no function deployment, database write, merge, or publication occurred.
 - **Validation:** focused FX, reader-summary authorization, auth return-route, and navigation tests pass 37/37, including desktop hover/click/Escape, scroll guard, and mobile accordion behavior. `node scripts/test-fx.js`, `node scripts/test-fx-archive.js`, `node scripts/validate-content.js`, `node scripts/validate-links.js`, `node scripts/validate-fx.js`, changed-file syntax checks, and CRLF-aware `git diff --check` pass. The plain whitespace check flags carriage returns on changed lines in five pre-existing CRLF HTML files; those are line endings, not trailing spaces.
 - **Design / release limit:** browser screenshot tooling was unavailable, so mobile/desktop screenshot acceptance is unverified. The specified design PDF was absent; the written v2 brief is the visual basis. No production function deployment or database change occurred.
-- **State:** implementation is locally validated on the feature branch; commit, remote SHA, and PR state are pending. Do not merge or deploy without the existing owner-controlled approval.
+- **Release state:** PR #499 targets `main`. Commit `7107ae1350ff4fd72c127a62cbf4bf92c42fa28b` is confirmed at `origin/feat/m39-fx-08`. CI/review, owner-controlled merge, and deployment of the existing Edge Function remain pending. Do not merge or deploy without owner approval.
 
 ### M39-FX-06 — Pair context, precision, spacing and archive integrity
 
