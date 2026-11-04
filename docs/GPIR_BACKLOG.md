@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-FX Stage 1 historical reference recovery
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-FX-STAGE1-HISTORY | 2026-11-04 | Recover verified January 2026 onward historical FX reference coverage for the configured GPIR pair universe | DATA, FX, SUPABASE, RELEASE | High | IN PROGRESS | Owner review/merge; Frankfurter/ECB availability; separate owner approval for migration and `apply-approved` workflow dispatch | Stage 1 | `fx_historical_archive`, FX provider contract, scheduled FX workflow | Reuse the existing architecture and approved ECB/Frankfurter source; retain observation dates and provenance; distinguish direct/cross/inverse; disclose gaps and unsupported pairs; never overwrite valid Production observations. | Reconcile all 134 pairs; verify USD/JPY, EUR/JPY, USD/INR and AED/INR; idempotent deduplicated apply path; pair-level coverage report; focused tests; no Production mutation before approval. | Read-only Production inventory found 536 capture rows across two dates. Official ECB evidence verifies 60 supported configured pairs, 74 unsupported pairs, 215 dates from 2 January through 3 November and 12,900 planned rows. EUR/JPY is source-supported but outside the configured 134. Implementation and report are ready; Production is unchanged. | PENDING owner approval and backfill | Current Stage 1 branch | M39-FX |
+
 ## M39-FX-08 subscriber currency-pair intelligence
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

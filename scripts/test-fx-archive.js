@@ -35,6 +35,9 @@ assert.match(fxWorkflow, /SUPABASE_SERVICE_ROLE_KEY:\s*\$\{\{\s*secrets\.SUPABAS
 assert.match(fxWorkflow, /Archive validated FX observations and rebuild seven-day trends/);
 assert.match(fxWorkflow, /cron: "7,37 \* \* \* \*"/);
 assert.match(fxWorkflow, /workflow_dispatch:/);
+assert.match(fxWorkflow, /historical_reference_action:/);
+assert.match(fxWorkflow, /apply-approved/);
+assert.match(fxWorkflow, /FX_HISTORY_BACKFILL_APPROVED:\s*"true"/);
 assert.match(historicalPage, /30-minute database captures/);
 assert.match(historicalPage, /capture time does not imply a new source observation/);
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
@@ -57,14 +60,16 @@ const snapshot = {
     dataStatus: "OK",
     generatedAt: "2026-09-14T10:00:00Z",
     pairs: [
-        { pair: "USD/INR", base: "USD", quote: "INR", mid: 88.2, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", validationStatus: "VALIDATED" },
-        { pair: "INR/PKR", base: "INR", quote: "PKR", mid: 3.1543218, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", validationStatus: "VALIDATED" },
+        { pair: "USD/INR", base: "USD", quote: "INR", mid: 88.2, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", rateType: "provider-native", validationStatus: "VALIDATED" },
+        { pair: "INR/PKR", base: "INR", quote: "PKR", mid: 3.1543218, timestamp: "2026-09-14T09:00:00Z", provider: "reference-open-er-api", rateType: "derived-cross", validationStatus: "VALIDATED" },
         { pair: "USD/NGN", base: "USD", quote: "NGN", mid: 1500, provider: "reference-open-er-api", validationStatus: "QUARANTINED" }
     ]
 };
 const expectedRows = archiveRows(snapshot, config);
 assert.strictEqual(expectedRows.length, 2);
-assert.deepStrictEqual(Object.keys(expectedRows[0]).sort(), ["base_currency", "rate", "region", "source", "target_currency"]);
+assert.deepStrictEqual(Object.keys(expectedRows[0]).sort(), ["base_currency", "observation_date", "rate", "rate_method", "region", "source", "target_currency"]);
+assert.strictEqual(expectedRows[0].observation_date, "2026-09-14");
+assert.strictEqual(expectedRows[0].rate_method, "provider-native");
 assert.strictEqual(expectedRows[1].rate, 3.1543218, "archive insertion must preserve validated source precision");
 assert.strictEqual(expectedRows[1].region, "SOUTH ASIA / APAC");
 assert.throws(() => archiveRows({
@@ -266,7 +271,14 @@ async function main(){
         from(table){
             assert.strictEqual(table, "fx_historical_archive");
             return {
-                async insert(rows){ inserted = rows; return { error: null }; },
+                async upsert(rows, options){
+                    inserted = rows;
+                    assert.deepStrictEqual(options, {
+                        onConflict: "base_currency,target_currency,observation_date,source,rate_method",
+                        ignoreDuplicates: true
+                    });
+                    return { error: null };
+                },
                 select(){ return this; },
                 gte(column, value){ assert.strictEqual(column, "timestamp"); assert.ok(value.startsWith("2026-09-07")); return this; },
                 lte(){ return this; },
@@ -278,7 +290,8 @@ async function main(){
     let receivedClientArgs;
     try{
         const result = await archiveAndBuildWeekly({
-            env: { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "test-key" },
+            env: { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "test-key",
+                FX_HISTORY_OBSERVATION_IDENTITY_ENABLED: "true" },
             createClient: (...args) => { receivedClientArgs = args; return client; },
             snapshot, config, weeklyPath, hourlyPath, now: "2026-09-14T10:00:00Z"
         });

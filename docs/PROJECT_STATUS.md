@@ -2,6 +2,16 @@
 
 ## Current handoff
 
+### M39-FX Stage 1 — Historical reference recovery
+
+- **Branch / base:** `codex/m39-fx-stage1-history` from `origin/main` `1e53d641453659d2d7ca59fc84389d975df06c6e`; the unrelated dirty primary checkout was not touched.
+- **Production baseline:** one read-only inventory found 536 legacy `fx_historical_archive` rows covering all 134 configured pairs, but only two capture dates (3–4 November 2026), four rows per pair, and no observation-date/deduplication identity. Existing rows remain unchanged.
+- **Source coverage:** the 134-pair universe is reproduced by the existing `requestedPairs()` contract. Official ECB evidence from 1 January through 4 November contains 215 genuine fixing dates (2 January–3 November). Sixty configured pairs have both ECB currencies; 74 pairs are unsupported because at least one of AED, ARS, BDT, BHD, EGP, KES, KWD, KZT, LKR, NGN, OMR, PKR, QAR, RUB, SAR, UZS or VND is unavailable. The pair-level report is `docs/M39_FX_STAGE1_HISTORICAL_COVERAGE.md`.
+- **Implementation:** the existing table receives additive `observation_date` and `rate_method` fields plus a unique observation identity. The scheduled archive keeps its ingestion `timestamp`, records the original provider date, labels provider-native/cross/inverse rates, and performs conflict-ignore upserts in bounded batches only when `FX_HISTORY_OBSERVATION_IDENTITY_ENABLED=true`; absent/false preserves the current writer until the migration is approved. A Frankfurter/ECB backfill is plan-only by default; the existing workflow isolates `plan` from ordinary captures and requires the explicit `apply-approved` dispatch choice for writes.
+- **Representative evidence:** USD/JPY and USD/INR each have 215 same-date EUR-pivot observations; EUR/JPY has 215 provider-native observations but is not one of the configured 134 archive pairs; AED/INR is unsupported because ECB does not publish AED. No missing source dates, buy/sell quotes or unsupported rates were fabricated.
+- **Validation / boundary:** historical recovery, archive, FX regression, FX validation and 24 subscriber authorization tests pass; syntax and `git diff --check` pass. Frankfurter returned HTTP 522 during live inspection, so the official underlying ECB CSV was used only for read-only evidence; the runtime ingestion contract remains Frankfurter/ECB. No Production migration, row write, workflow dispatch, auth, entitlement, PayPal, checkout, Edge Function, merge or deployment occurred.
+- **Approval checkpoint:** after PR review/merge and source availability verification, the owner must separately approve applying migration `20261104093000_m39_fx_historical_observation_identity.sql`, manually dispatching `GPIR FX Market Data Refresh` with `historical_reference_action=apply-approved`, verifying counts, and only then setting `FX_HISTORY_OBSERVATION_IDENTITY_ENABLED=true`. Until then Production backfill is **BLOCKED BY DESIGN**.
+
 ### M39-FX-08 — Subscriber currency-pair intelligence
 
 - **Branch / base:** `feat/m39-fx-08`, created from `origin/main` at `99dbc7c` after M39-FX-07 / PR #498.
