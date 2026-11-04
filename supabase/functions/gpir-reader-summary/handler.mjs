@@ -280,15 +280,13 @@ async function frankfurterHistory(fetchImpl, pair, currentTime, now, logger) {
   return value;
 }
 
-async function latestGpirCapture(fetchImpl, config, pair) {
+async function latestGpirCapture(fetchImpl, config, pair, serviceHeaders) {
   const query = new URLSearchParams({ select: 'timestamp,rate,source',
     base_currency: `eq.${pair.base}`, target_currency: `eq.${pair.quote}`,
     order: 'timestamp.desc', limit: '1' });
   const result = await jsonFetch(fetchImpl,
-    `${config.SUPABASE_URL}/rest/v1/fx_historical_archive?${query}`, {
-      headers: { apikey: config.GPIR_SUPABASE_SECRET_KEY,
-        authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}` }
-    });
+    `${config.SUPABASE_URL}/rest/v1/fx_historical_archive?${query}`,
+    { headers: serviceHeaders });
   const row = Array.isArray(result.data) ? result.data[0] : null;
   const timestamp = isoOrNull(row?.timestamp);
   const rate = Number(row?.rate);
@@ -303,8 +301,9 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
     select: 'id,status,effective_from,effective_until', user_id: `eq.${userId}`,
     environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
   });
-  const serviceHeaders = { apikey: config.GPIR_SUPABASE_SECRET_KEY,
-    authorization: `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}` };
+  const serviceHeaders = new Headers();
+  serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
+  serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
   const subscriptions = await jsonFetch(fetchImpl,
     `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${query}`,
     { headers: serviceHeaders });
@@ -340,7 +339,7 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
     return response(404, { status: 'UNAVAILABLE', code: history.status,
       pair: history.pair, source: history.source || null }, origin, env);
 
-  const gpirCapture = await latestGpirCapture(fetchImpl, config, pair);
+  const gpirCapture = await latestGpirCapture(fetchImpl, config, pair, serviceHeaders);
   return response(200, { status: 'OK', history, gpirCapture,
     gpirCaptureStatus: gpirCapture ? 'AVAILABLE' : 'UNAVAILABLE',
     archiveNotice: 'GPIR capture timestamps are separate from Frankfurter fixing dates and are not mixed into the historical reference series.' },

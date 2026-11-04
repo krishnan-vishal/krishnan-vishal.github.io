@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
   pointsForPeriod, previousPeriodPoints } from '../../assets/js/fx-intelligence.mjs';
 import { createReaderSummaryHandler }
@@ -11,6 +13,8 @@ const userId = '11111111-1111-4111-8111-111111111111';
 const subscriptionId = '22222222-2222-4222-8222-222222222222';
 const serviceKey = 'fixture-service-secret';
 const currentTime = Date.parse('2026-11-04T00:00:00.000Z');
+const readerAuthSource = await readFile(new URL('../../assets/js/gpir-reader-auth.js',
+  import.meta.url), 'utf8');
 const env = Object.freeze({ SUPABASE_URL: projectUrl,
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
   GPIR_SUPABASE_SECRET_KEY: serviceKey,
@@ -47,7 +51,7 @@ function mockFetch({ subscription = activeSubscription, sourceFailure = false,
     calls.push({ url, init });
     if (url.pathname === '/auth/v1/user') return json({ id: userId });
     if (url.pathname === '/rest/v1/gpir_paypal_subscriptions') {
-      assert.equal(init.headers.authorization, `Bearer ${serviceKey}`);
+      assert.equal(new Headers(init.headers).get('authorization'), `Bearer ${serviceKey}`);
       return json(subscription ? [subscription] : []);
     }
     if (url.pathname === '/v2/currencies') return json(currencies);
@@ -97,6 +101,21 @@ test('pair normalization rejects identical and malformed currencies', () => {
   assert.deepEqual(normalizeFxPair(' usd ', 'jpy'), { base: 'USD', quote: 'JPY' });
   assert.equal(normalizeFxPair('USD', 'USD'), null);
   assert.equal(normalizeFxPair('US', 'JPY'), null);
+});
+
+test('reader sign-in accepts the FX Intelligence dashboard as a safe return destination', () => {
+  const values = new Map();
+  const window = { location: new URL(origin),
+    localStorage: { getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) },
+    addEventListener() {} };
+  const document = { readyState: 'loading', head: { append() {} },
+    createElement: () => ({}), addEventListener() {}, querySelectorAll: () => [],
+    querySelector: () => null };
+  vm.runInNewContext(readerAuthSource,
+    { window, document, URL, URLSearchParams, FormData: class {} });
+  assert.equal(window.GPIRReaderAuth.safeReturnTo('/pages/fx/intelligence.html'),
+    '/pages/fx/intelligence.html');
 });
 
 test('six period windows use only source observations and actual fixing dates', () => {
