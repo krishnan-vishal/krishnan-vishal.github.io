@@ -271,3 +271,32 @@ The exact v2 PDF comparison remains unverified because
 `docs/design-references/v2-designomics.pdf` was not present in the checkout;
 responsive styling follows the written specification. Deploying the existing
 Edge Function update remains an owner-controlled release prerequisite.
+
+## M39-FX Stage 1 historical reference recovery
+
+Stage 1 retains the existing `fx_historical_archive` and Frankfurter/ECB
+architecture. Legacy `timestamp` continues to mean GPIR ingestion time. New
+rows additionally retain the source `observation_date` and a `rate_method` of
+`provider-native`, `derived-cross`, or `derived-inverse`. The composite
+observation identity makes scheduled and historical inserts idempotent without
+overwriting a valid existing row.
+
+The configured universe remains the 134 pairs produced by `requestedPairs()`;
+it is not silently expanded to every mathematical combination. ECB evidence
+for 1 January–4 November 2026 supports 60 of those pairs and 215 fixing dates
+from 2 January through 3 November. The other 74 pairs remain explicitly
+unsupported where either currency is absent. Derived rows use two genuine
+same-date EUR legs (or one inverse leg) and retain that method; no weekend,
+holiday, missing observation, executable quote, bid/ask value or forecast is
+created.
+
+`scripts/fx/backfill-historical-reference.js` is plan-only by default. The
+existing workflow exposes a separate `historical-reference-recovery` job; only
+the explicit `apply-approved` choice supplies the approval environment flag
+and Production credentials. Ordinary scheduled writes use the observation
+identity only when repository variable
+`FX_HISTORY_OBSERVATION_IDENTITY_ENABLED=true`; absent/false preserves the
+pre-migration writer, making merge safe before approval. The schema migration,
+backfill dispatch, count verification and subsequent variable enablement require
+a separate owner approval after merge. See
+`docs/M39_FX_STAGE1_HISTORICAL_COVERAGE.md` for pair-level evidence.
