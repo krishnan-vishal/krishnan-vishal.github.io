@@ -130,7 +130,8 @@ function subscriptionSummary(row) {
       !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
         'PAYMENT_FAILED'].includes(row.status)) return null;
   return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
-    effectiveUntil: isoOrNull(row.effective_until) });
+    effectiveUntil: isoOrNull(row.effective_until),
+    paymentConfirmedAt: isoOrNull(row.payment_confirmed_at) });
 }
 
 function validatedCurrencyCatalog(value) {
@@ -298,7 +299,8 @@ async function latestGpirCapture(fetchImpl, config, pair, serviceHeaders) {
 async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
   pair, now, logger }) {
   const query = new URLSearchParams({
-    select: 'id,status,effective_from,effective_until', user_id: `eq.${userId}`,
+    select: 'id,status,effective_from,effective_until,payment_confirmed_at',
+    user_id: `eq.${userId}`,
     environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
   });
   const serviceHeaders = new Headers();
@@ -315,6 +317,7 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
   const currentTime = now();
   const hasActiveSubscription = subscription?.status === 'ACTIVE' &&
     subscription.effectiveFrom && subscription.effectiveUntil &&
+    subscription.paymentConfirmedAt &&
     Date.parse(subscription.effectiveFrom) <= currentTime &&
     Date.parse(subscription.effectiveUntil) > currentTime;
   if (!hasActiveSubscription) {
@@ -371,12 +374,14 @@ function publicationCandidate(row) {
     publication_id: row.publication_id });
 }
 
-function subscriptionOffer(row) {
+function subscriptionOffer(row, requiredStatus) {
   const amount = Number(row?.unit_amount_minor);
   if (!UUID.test(row?.id || '') || typeof row?.display_name !== 'string' ||
       !row.display_name.trim() || row.currency !== 'USD' ||
       !Number.isSafeInteger(amount) || amount <= 0 ||
-      !['MONTH', 'YEAR'].includes(row.billing_interval)) return null;
+      !['MONTH', 'YEAR'].includes(row.billing_interval) ||
+      !['SANDBOX_ACTIVE', 'LIVE_ACTIVE'].includes(requiredStatus) ||
+      row.status !== requiredStatus) return null;
   return Object.freeze({ id: row.id, displayName: safeText(row.display_name),
     currency: row.currency, unitAmountMinor: amount, billingInterval: row.billing_interval });
 }
@@ -444,10 +449,12 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       select: 'id,status,effective_from,effective_until', user_id: `eq.${user.id}`,
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
     });
+    const activePlanStatus = config.environment === 'sandbox'
+      ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE';
     const planQuery = new URLSearchParams({
-      select: 'id,display_name,currency,unit_amount_minor,billing_interval',
+      select: 'id,display_name,currency,unit_amount_minor,billing_interval,status',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
-      status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
+      status: `eq.${activePlanStatus}`,
       order: 'created_at.asc', limit: '1'
     });
     const m37PaymentQuery = new URLSearchParams({
@@ -578,7 +585,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       if (rawM37Payments && m37Payments.length !== rawM37Payments.length)
         reportDependencyFailure(logger, 'gpir_m37_onetime_orders', m37PaymentsResult);
     }
-    let checkoutOffer = rawPlans?.length ? subscriptionOffer(rawPlans[0]) : null;
+    let checkoutOffer = rawPlans?.length
+      ? subscriptionOffer(rawPlans[0], activePlanStatus) : null;
     if (rawPlans?.length && !checkoutOffer) {
       reportDependencyFailure(logger, 'gpir_subscription_plans', plansResult);
       checkoutOffer = null;
@@ -595,8 +603,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
         payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         libraryPass: libraryPassAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
-        subscriptionCheckout: config.environment === 'sandbox' && checkoutOffer
-          ? 'AVAILABLE' : 'UNAVAILABLE' }),
+        subscriptionCheckout: checkoutOffer ? 'AVAILABLE' : 'UNAVAILABLE' }),
       summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
         paymentCount: paymentsAvailable ? payments.length : null,
         activePurchaseCount: purchases && libraryPassAvailable

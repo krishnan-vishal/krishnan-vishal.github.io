@@ -53,7 +53,8 @@ function summaryFixture({ userId = userA, email = 'reader-a@example.test',
   candidateFailure = false, decision = 'DENY', payments = [], purchases = [],
   subscriptions = [], candidates = [{ publication_id: publicationId,
     supabase_record_id: recordId }], plans = [{ id: planId, display_name: 'Sandbox reader plan',
-    currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH' }] } = {}) {
+    currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH',
+    status: 'SANDBOX_ACTIVE' }] } = {}) {
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
     const value = String(url); calls.push({ value, options });
@@ -266,7 +267,7 @@ test('verified subscription webhook reconciles only the stored sandbox subscript
     'gpir_finalize_paypal_subscription_v2', 'gpir_finish_paypal_webhook_event_v2']);
 });
 
-test('browser subscription adapter is sandbox-only and accepts only approved server output', async () => {
+test('browser subscription adapter preserves sandbox safeguards and approved server output', async () => {
   const summary = normalizeReaderSummary({ status: 'OK', environment: 'sandbox',
     profile: { email: 'reader-a@example.test', displayName: 'Reader A', memberSince: null,
       emailVerified: true }, library: [], payments: [],

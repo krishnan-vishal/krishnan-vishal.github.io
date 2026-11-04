@@ -5,13 +5,15 @@ import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
   pointsForPeriod, previousPeriodPoints, selectionFromSearch,
   fxIntelligenceReturnTo, accessMarkup } from '../../assets/js/fx-intelligence.mjs';
-import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, verifySubscription }
+import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, subscriptionConfig,
+  validSubscriptionConfig, verifySubscription }
   from '../../assets/js/gpir-paypal-subscription.mjs';
-import { createReaderSummaryHandler }
+import { createReaderSummaryHandler, subscriptionOffer }
   from '../../supabase/functions/gpir-reader-summary/handler.mjs';
 
 const origin = 'https://fintechoisis.com';
 const projectUrl = 'https://hoewtptllwkcqrgryazu.supabase.co';
+const productionUrl = 'https://qlnvhfapctcpzqyuhhth.supabase.co';
 const userId = '11111111-1111-4111-8111-111111111111';
 const subscriptionId = '22222222-2222-4222-8222-222222222222';
 const serviceKey = 'fixture-service-secret';
@@ -34,7 +36,8 @@ const fixes = Object.freeze([
 ]);
 const activeSubscription = Object.freeze({ id: subscriptionId, status: 'ACTIVE',
   effective_from: '2026-10-01T00:00:00.000Z',
-  effective_until: '2026-12-01T00:00:00.000Z' });
+  effective_until: '2026-12-01T00:00:00.000Z',
+  payment_confirmed_at: '2026-10-01T00:00:01.000Z' });
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status,
@@ -196,6 +199,35 @@ test('server-verified subscription completion returns to the selected FX pair', 
   assert.equal(values.size, 0);
 });
 
+test('checkout accepts only the environment-approved active plan and preserves safeguards', () => {
+  const plan = { id: '33333333-3333-4333-8333-333333333333',
+    display_name: 'GPIR Reader', currency: 'USD', unit_amount_minor: 999,
+    billing_interval: 'MONTH' };
+  assert.equal(subscriptionOffer({ ...plan, status: 'LIVE_ACTIVE' },
+    'LIVE_ACTIVE').id, plan.id);
+  assert.equal(subscriptionOffer({ ...plan, status: 'SANDBOX_ACTIVE' },
+    'SANDBOX_ACTIVE').id, plan.id);
+  assert.equal(subscriptionOffer({ ...plan, status: 'SANDBOX_ACTIVE' },
+    'LIVE_ACTIVE'), null);
+  assert.equal(subscriptionOffer({ ...plan, status: 'DISABLED' },
+    'LIVE_ACTIVE'), null);
+
+  const config = subscriptionConfig({
+    GPIR_SUPABASE_PUBLIC_CONFIG: { url: productionUrl },
+    location: { hostname: 'fintechoisis.com' }
+  }, { environment: 'production', subscriptionOffer: {
+    id: plan.id, displayName: plan.display_name, currency: plan.currency,
+    unitAmountMinor: plan.unit_amount_minor, billingInterval: plan.billing_interval
+  }, availability: { subscriptionCheckout: 'AVAILABLE' } });
+  assert.equal(validSubscriptionConfig(config), true);
+  assert.equal(config.productionEnabled, true);
+  assert.equal(subscriptionConfig({
+    GPIR_SUPABASE_PUBLIC_CONFIG: { url: productionUrl },
+    location: { hostname: 'preview.example.com' }
+  }, { environment: 'production', subscriptionOffer: { id: plan.id },
+    availability: { subscriptionCheckout: 'AVAILABLE' } }), null);
+});
+
 test('six period windows use only source observations and actual fixing dates', () => {
   const points = [
     { date: '2021-11-04', rate: 100 }, { date: '2025-11-04', rate: 108 },
@@ -293,6 +325,30 @@ test('FX history is denied to a signed-in reader without an active subscription'
   assert.equal(response.status, 403);
   assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
   assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+});
+
+test('approval-pending and payment-failed subscriptions cannot retrieve FX history', async () => {
+  for (const status of ['APPROVAL_PENDING', 'PAYMENT_FAILED']) {
+    const fixture = mockFetch({ subscription: { ...activeSubscription, status } });
+    const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
+    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+  }
+});
+
+test('provider-active subscription without confirmed payment cannot retrieve FX history', async () => {
+  for (const paymentConfirmedAt of [null, 'not-a-timestamp']) {
+    const fixture = mockFetch({ subscription: { ...activeSubscription,
+      payment_confirmed_at: paymentConfirmedAt } });
+    const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
+    const subscriptionCall = fixture.calls.find(call =>
+      call.url.pathname === '/rest/v1/gpir_paypal_subscriptions');
+    assert.match(subscriptionCall.url.searchParams.get('select'), /payment_confirmed_at/);
+    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+  }
 });
 
 test('entitlement verification failures fail closed without requesting source history', async () => {
