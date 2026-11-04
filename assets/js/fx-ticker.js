@@ -60,6 +60,15 @@ function fxPairSlug(pair){
     return pair.toLowerCase().replace("/", "-");
 }
 
+function fxPairDestination(pair, pagePrefix){
+    const match = /^([A-Z]{3})\/([A-Z]{3})$/.exec(String(pair || "").toUpperCase());
+    if(!match || match[1] === match[2]){
+        return pagePrefix + "pages/fx/pairs/" + fxPairSlug(pair) + ".html";
+    }
+    return pagePrefix + "pages/fx/intelligence.html?base=" +
+        encodeURIComponent(match[1]) + "&quote=" + encodeURIComponent(match[2]);
+}
+
 function fxEscapeHtml(str){
     const div = document.createElement("div");
     div.textContent = str == null ? "" : String(str);
@@ -199,7 +208,7 @@ function renderTicker(){
             ? `<span class="fx-ticker-change">${fxFormatChange(record.percentageChange)}</span>`
             : "";
 
-        return `<a class="fx-ticker-item ${fxDirectionClass(record.direction)}" href="${pagePrefix}pages/fx/pairs/${fxPairSlug(record.pair)}.html">` +
+        return `<a class="fx-ticker-item ${fxDirectionClass(record.direction)}" href="${fxEscapeHtml(fxPairDestination(record.pair, pagePrefix))}">` +
             `<span class="fx-ticker-pair">${fxEscapeHtml(record.pair)}</span>` +
             `<span class="fx-ticker-rate">${fxFormatRate(rate, record.pair)}</span>` +
             change +

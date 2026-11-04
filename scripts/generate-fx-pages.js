@@ -156,7 +156,7 @@ function loadTemplate(){
     }
     footerBlock = footerBlock.split(FX_APP_SCRIPT_ANCHOR).join(
         `${FX_APP_SCRIPT_ANCHOR}\n<script src="../../assets/js/fx-app.js?v=20261103b"></script>`
-    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20260911d");
+    ).replace("assets/js/fx-ticker.js?v=20260908a", "assets/js/fx-ticker.js?v=20261104a");
     const TEMPLATE_TITLE_TAG = "<title>Privacy Policy | FINTECHOISIS — GPIR</title>";
     const TEMPLATE_DESCRIPTION = "How FINTECHOISIS and the Global Payments Intelligence Repository (GPIR) collect, use, process, store, protect and disclose information.";
     const TEMPLATE_CANONICAL_URL = "https://krishnan-vishal.github.io/pages/legal/privacy-policy.html";

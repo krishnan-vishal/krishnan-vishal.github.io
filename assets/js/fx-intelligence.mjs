@@ -21,6 +21,26 @@ export function normalizeFxPair(base, quote) {
     ? Object.freeze({ base: first, quote: second }) : null;
 }
 
+export function selectionFromSearch(search) {
+  const params = new URLSearchParams(search || '');
+  const pair = normalizeFxPair(params.get('base'), params.get('quote'));
+  if (!pair) return null;
+  const requestedPeriod = params.get('period');
+  const period = PERIODS.some(item => item.id === requestedPeriod) ? requestedPeriod : 'M';
+  return Object.freeze({ ...pair, period });
+}
+
+export function fxIntelligenceReturnTo(pair, period = 'M') {
+  if (!normalizeFxPair(pair?.base, pair?.quote)) return '/pages/fx/intelligence.html';
+  const selectedPeriod = PERIODS.some(item => item.id === period) ? period : 'M';
+  const params = new URLSearchParams({
+    base: pair.base.toUpperCase(),
+    quote: pair.quote.toUpperCase(),
+    period: selectedPeriod
+  });
+  return `/pages/fx/intelligence.html?${params}`;
+}
+
 function sortedPoints(points) {
   if (!Array.isArray(points)) return [];
   return points.filter(point => /^\d{4}-\d{2}-\d{2}$/.test(point?.date || '') &&
@@ -458,17 +478,24 @@ async function loadHistory(global, pair) {
     captureStatus: payload.gpirCaptureStatus, session };
 }
 
-function accessMarkup(error) {
+export function accessMarkup(error, returnTo = '/pages/fx/intelligence.html') {
   const code = error?.message || '';
-  if (code === 'SESSION_REQUIRED' || code === 'SESSION_INVALID') return `<section class="fxi-access"><h2>Sign in to continue</h2><p>FX Intelligence is available to authenticated subscribers.</p><a href="/reader/sign-in/?returnTo=%2Fpages%2Ffx%2Fintelligence.html">Sign in</a><a href="/reader/create-account/?returnTo=%2Fpages%2Ffx%2Fintelligence.html">Create account</a></section>`;
-  if (code === 'SUBSCRIPTION_EXPIRED') return `<section class="fxi-access"><h2>Your subscription has expired</h2><p>Renew your subscription to continue using FX Intelligence.</p><a href="/reader/plan/">Renew subscription</a></section>`;
-  if (code === 'SUBSCRIPTION_REQUIRED' || code === 'NOT_ENTITLED') return `<section class="fxi-access"><h2>Subscriber access required</h2><p>Choose an active GPIR subscription to access pair intelligence.</p><a href="/reader/plan/">View Subscription Plans</a></section>`;
+  const encodedReturnTo = encodeURIComponent(returnTo);
+  if (code === 'SESSION_REQUIRED' || code === 'SESSION_INVALID') return `<section class="fxi-access"><h2>Sign in to continue</h2><p>FX Intelligence is available to authenticated subscribers.</p><a href="/reader/sign-in/?returnTo=${encodedReturnTo}">Sign in</a><a href="/reader/create-account/?returnTo=${encodedReturnTo}">Create account</a></section>`;
+  if (code === 'SUBSCRIPTION_EXPIRED') return `<section class="fxi-access"><h2>Your subscription has expired</h2><p>Renew your subscription to continue using FX Intelligence.</p><a href="/reader/plan/?returnTo=${encodedReturnTo}">Renew subscription</a></section>`;
+  if (code === 'SUBSCRIPTION_REQUIRED' || code === 'NOT_ENTITLED') return `<section class="fxi-access"><h2>Subscriber access required</h2><p>Choose an active GPIR subscription to access pair intelligence.</p><a href="/reader/plan/?returnTo=${encodedReturnTo}">View Subscription Plans</a></section>`;
   const text = code === 'UNSUPPORTED_CURRENCY'
     ? 'This currency is not currently supported by the historical reference source.'
     : code === 'NO_HISTORICAL_OBSERVATIONS'
       ? 'No historical observations are available for this pair. No values have been inferred.'
       : 'The protected reference-data service is temporarily unavailable. Please retry.';
   return `<section class="fxi-access"><h2>FX Intelligence unavailable</h2><p>${escapeHtml(text)}</p><button type="button" data-retry>Retry</button></section>`;
+}
+
+function updatePairUrl(global, card, pair, period) {
+  if (global.document?.querySelector('gpir-fx-card') !== card) return;
+  const returnTo = fxIntelligenceReturnTo(pair, period);
+  global.history?.replaceState?.(null, '', returnTo);
 }
 
 function updateConverter(root, pair) {
@@ -491,6 +518,16 @@ class GpirFxCard extends HTMLElementBase {
   }
 
   connectedCallback() {
+    if (globalThis.document?.querySelector('gpir-fx-card') === this) {
+      const selection = selectionFromSearch(globalThis.location?.search);
+      if (selection) {
+        this.editingPair = true;
+        this.setAttribute('base', selection.base);
+        this.setAttribute('quote', selection.quote);
+        this.setAttribute('period', selection.period);
+        this.editingPair = false;
+      }
+    }
     if (!this.hasAttribute('period')) this.setAttribute('period', 'M');
     void this.refresh();
   }
@@ -517,14 +554,18 @@ class GpirFxCard extends HTMLElementBase {
       this.bindControls(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css">${accessMarkup(error)}`;
+      const returnTo = fxIntelligenceReturnTo(pair, period);
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css">${accessMarkup(error, returnTo)}`;
       this.shadowRoot.querySelector('[data-retry]')?.addEventListener('click', () => void this.refresh());
     }
   }
 
   bindControls(pair) {
     this.shadowRoot.querySelectorAll('[data-period]').forEach(button => {
-      button.addEventListener('click', () => this.setAttribute('period', button.dataset.period));
+      button.addEventListener('click', () => {
+        this.setAttribute('period', button.dataset.period);
+        updatePairUrl(globalThis, this, pair, button.dataset.period);
+      });
     });
     for (const [attribute, select] of [
       ['base', this.shadowRoot.querySelector('[data-base]')],
@@ -543,6 +584,7 @@ class GpirFxCard extends HTMLElementBase {
       this.setAttribute('base', base);
       this.setAttribute('quote', quote);
       this.editingPair = false;
+      updatePairUrl(globalThis, this, { base, quote }, this.getAttribute('period'));
       void this.refresh();
     });
     this.shadowRoot.querySelector('[data-amount]')?.addEventListener('input', () =>

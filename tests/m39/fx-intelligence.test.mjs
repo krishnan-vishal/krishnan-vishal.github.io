@@ -3,7 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
-  pointsForPeriod, previousPeriodPoints } from '../../assets/js/fx-intelligence.mjs';
+  pointsForPeriod, previousPeriodPoints, selectionFromSearch,
+  fxIntelligenceReturnTo, accessMarkup } from '../../assets/js/fx-intelligence.mjs';
+import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, verifySubscription }
+  from '../../assets/js/gpir-paypal-subscription.mjs';
 import { createReaderSummaryHandler }
   from '../../supabase/functions/gpir-reader-summary/handler.mjs';
 
@@ -43,7 +46,8 @@ function request(pair, token = 'reader.fixture.token') {
     { headers: { origin, authorization: token ? `Bearer ${token}` : '' } });
 }
 
-function mockFetch({ subscription = activeSubscription, sourceFailure = false,
+function mockFetch({ subscription = activeSubscription, subscriptionFailure = false,
+  sourceFailure = false,
   archive = [], currencies = catalog } = {}) {
   const calls = [];
   const fetchImpl = async (input, init = {}) => {
@@ -51,6 +55,7 @@ function mockFetch({ subscription = activeSubscription, sourceFailure = false,
     calls.push({ url, init });
     if (url.pathname === '/auth/v1/user') return json({ id: userId });
     if (url.pathname === '/rest/v1/gpir_paypal_subscriptions') {
+      if (subscriptionFailure) return json({ message: 'unavailable' }, 503);
       assert.equal(new Headers(init.headers).get('authorization'), `Bearer ${serviceKey}`);
       return json(subscription ? [subscription] : []);
     }
@@ -116,6 +121,79 @@ test('reader sign-in accepts the FX Intelligence dashboard as a safe return dest
     { window, document, URL, URLSearchParams, FormData: class {} });
   assert.equal(window.GPIRReaderAuth.safeReturnTo('/pages/fx/intelligence.html'),
     '/pages/fx/intelligence.html');
+});
+
+test('ticker-selected pairs and periods survive dashboard and access routes', () => {
+  const selection = selectionFromSearch('?base=eur&quote=jpy&period=5Y');
+  assert.deepEqual({ ...selection }, { base: 'EUR', quote: 'JPY', period: '5Y' });
+  assert.equal(selectionFromSearch('?base=USD&quote=USD'), null);
+  const returnTo = fxIntelligenceReturnTo(selection, selection.period);
+  assert.equal(returnTo,
+    '/pages/fx/intelligence.html?base=EUR&quote=JPY&period=5Y');
+  const guest = accessMarkup(new Error('SESSION_REQUIRED'), returnTo);
+  assert.match(guest, /\/reader\/sign-in\/\?returnTo=%2Fpages%2Ffx%2Fintelligence\.html%3Fbase%3DEUR%26quote%3DJPY%26period%3D5Y/);
+  assert.match(guest, /\/reader\/create-account\/\?returnTo=/);
+  assert.match(accessMarkup(new Error('SUBSCRIPTION_REQUIRED'), returnTo),
+    /\/reader\/plan\/\?returnTo=/);
+  assert.match(accessMarkup(new Error('SUBSCRIPTION_EXPIRED'), returnTo),
+    /Renew subscription/);
+});
+
+test('subscription plan return is retained only for an allowed FX pair destination', () => {
+  const values = new Map();
+  const window = { location: new URL(origin),
+    sessionStorage: { getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    addEventListener() {} };
+  const document = { readyState: 'loading', head: { append() {} },
+    createElement: () => ({}), addEventListener() {}, querySelectorAll: () => [],
+    querySelector: () => null };
+  vm.runInNewContext(readerAuthSource,
+    { window, document, URL, URLSearchParams, FormData: class {} });
+  const destination = '/pages/fx/intelligence.html?base=EUR&quote=JPY&period=5Y';
+  assert.equal(rememberFxIntelligenceReturn(window, destination), true);
+  assert.equal(consumeFxIntelligenceReturn(window), destination);
+  assert.equal(values.size, 0);
+  assert.equal(rememberFxIntelligenceReturn(window, '/reader/plan/'), false);
+});
+
+test('server-verified subscription completion returns to the selected FX pair', async () => {
+  const values = new Map();
+  const window = { location: new URL(origin),
+    sessionStorage: { getItem: key => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    addEventListener() {} };
+  const document = { readyState: 'loading', head: { append() {} },
+    createElement: () => ({}), addEventListener() {}, querySelectorAll: () => [],
+    querySelector: () => null };
+  vm.runInNewContext(readerAuthSource,
+    { window, document, URL, URLSearchParams, FormData: class {} });
+  const destination = '/pages/fx/intelligence.html?base=EUR&quote=JPY&period=5Y';
+  assert.equal(rememberFxIntelligenceReturn(window, destination), true);
+
+  const assignments = [];
+  const target = { location: { origin, assign: value => assignments.push(value) },
+    sessionStorage: window.sessionStorage, GPIRReaderAuth: window.GPIRReaderAuth,
+    dispatchEvent() {} };
+  const config = { enabled: true, environment: 'sandbox',
+    planId: '33333333-3333-4333-8333-333333333333',
+    supabaseUrl: projectUrl,
+    createSubscriptionEndpoint: `${projectUrl}/functions/v1/gpir-paypal-create-subscription`,
+    verifySubscriptionEndpoint: `${projectUrl}/functions/v1/gpir-paypal-verify-subscription` };
+  const result = await verifySubscription({ config,
+    supabase: { auth: { getSession: async () => ({ data: { session: {
+      access_token: 'fixture-token'
+    } } }) } },
+    subscriptionId: 'I-TEST12345678', eventTarget: target,
+    fetchImpl: async () => json({ environment: 'sandbox', status: 'ACTIVE',
+      verification: 'SERVER_VERIFIED', publicationAccess: 'PUBLICATION_SCOPED',
+      paymentConfirmed: true })
+  });
+  assert.equal(result.status, 'ACTIVE');
+  assert.deepEqual(assignments, [destination]);
+  assert.equal(values.size, 0);
 });
 
 test('six period windows use only source observations and actual fixing dates', () => {
@@ -214,6 +292,14 @@ test('FX history is denied to a signed-in reader without an active subscription'
   const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
   assert.equal(response.status, 403);
   assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
+  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+});
+
+test('entitlement verification failures fail closed without requesting source history', async () => {
+  const fixture = mockFetch({ subscriptionFailure: true });
+  const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, 'SUBSCRIPTION_CHECK_UNAVAILABLE');
   assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
 });
 
