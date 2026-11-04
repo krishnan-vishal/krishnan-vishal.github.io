@@ -33,6 +33,10 @@ assert.match(historicalPage, /fx-public-history\.js\?v=/);
 assert.match(fxWorkflow, /SUPABASE_URL:\s*\$\{\{\s*secrets\.SUPABASE_URL\s*\}\}/, "the private archive step must use the existing Supabase URL secret");
 assert.match(fxWorkflow, /SUPABASE_SERVICE_ROLE_KEY:\s*\$\{\{\s*secrets\.SUPABASE_SERVICE_ROLE_KEY\s*\}\}/, "the private archive step must use the supported service-role secret");
 assert.match(fxWorkflow, /Archive validated FX observations and rebuild seven-day trends/);
+assert.match(fxWorkflow, /cron: "7,37 \* \* \* \*"/);
+assert.match(fxWorkflow, /workflow_dispatch:/);
+assert.match(historicalPage, /30-minute database captures/);
+assert.match(historicalPage, /capture time does not imply a new source observation/);
 assert.deepStrictEqual(productionConfig.targetRegionalCurrencies, {
     "SOUTH ASIA / APAC": ["INR", "PKR", "BDT", "LKR", "CNY", "JPY", "AUD", "SGD", "HKD"],
     "EURO / GBP / CIS": ["EUR", "GBP", "CHF", "RUB", "KZT", "UZS"],
@@ -92,8 +96,8 @@ assert.strictEqual(hourlyResult.captures[0].pairs[0].rate, 88.2, "a retried hour
 async function main(){
     const publicNow = new Date("2026-09-14T10:00:00Z");
     const publicRows = [
-        { id: 1, timestamp: "2026-09-12T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.100000", region: "APAC" },
-        { id: 2, timestamp: "2026-09-13T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.400000", region: "APAC" },
+        { id: 1, timestamp: "2026-09-12T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.100000", region: "APAC", source: "reference-open-er-api" },
+        { id: 2, timestamp: "2026-09-13T08:00:00Z", base_currency: "USD", target_currency: "INR", rate: "88.400000", region: "APAC", source: "reference-open-er-api" },
         { id: 3, timestamp: "2026-09-13T08:00:00Z", base_currency: "USD", target_currency: "BRL", rate: "5.200000", region: "LATAM" },
         { id: 4, timestamp: "2026-09-05T08:00:00Z", base_currency: "USD", target_currency: "EUR", rate: "0.9" }
     ];
@@ -200,6 +204,7 @@ async function main(){
         publicHistory.renderCards(grid, expanded, expanded, "", "USD/INR");
         assert.strictEqual(grid.children.length, 1, "a selected pair must exclude every other pair");
         assert.ok(grid.children[0].children.some(item => item.textContent === "USD/INR"));
+        assert.ok(grid.children[0].children.some(item => item.className === "fx-data-note" && item.textContent.includes("GPIR capture") && item.textContent.includes("reference source refreshes daily")), "archive cards must distinguish capture time from reference-source freshness");
         publicHistory.renderCards(grid, expanded, expanded, "", "EUR/JPY");
         assert.strictEqual(grid.children.length, 1);
         assert.ok(grid.children[0].textContent.includes("No validated observations for EUR/JPY"));

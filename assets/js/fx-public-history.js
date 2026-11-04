@@ -194,7 +194,9 @@
                 ? `7D ${stats.delta > 0 ? "▲" : stats.delta < 0 ? "▼" : "—"} ${stats.deltaPercent > 0 ? "+" : ""}${stats.deltaPercent.toFixed(2)}% (${displayDelta(stats.delta, pair, inverse)})`
                 : "7D variance unavailable · one capture");
             appendText(card, "p", "fx-weekly-metrics", `High ${displayRate(stats.high, pair, inverse)} · Low ${displayRate(stats.low, pair, inverse)}`);
-            appendText(card, "p", "fx-data-note", `${latest.region} · ${latest.source} · ${latest.timestamp}${latest.inverseOf ? ` · Calculated inverse of ${latest.inverseOf}` : ""}`);
+            const sourceRefreshNote = latest.source === "reference-open-er-api"
+                ? " · reference source refreshes daily" : "";
+            appendText(card, "p", "fx-data-note", `${latest.region} · ${latest.source} · GPIR capture ${latest.timestamp}${sourceRefreshNote}${latest.inverseOf ? ` · Calculated inverse of ${latest.inverseOf}` : ""}`);
             grid.appendChild(card);
         });
     }
