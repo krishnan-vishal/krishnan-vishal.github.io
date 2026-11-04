@@ -38,7 +38,8 @@ const subscription = Object.freeze({ id: subscriptionId, status: 'ACTIVE',
   effective_from: '2026-10-28T00:00:00Z', effective_until: '2026-11-28T00:00:00Z' });
 
 const plan = Object.freeze({ id: planId, display_name: 'Sandbox reader plan',
-  currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH' });
+  currency: 'USD', unit_amount_minor: 1200, billing_interval: 'MONTH',
+  status: 'SANDBOX_ACTIVE' });
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status,
@@ -103,6 +104,11 @@ test('primary candidate RPC success authorizes each candidate without fallback',
   assert.equal(result.body.summary.libraryCount, 1);
   assert.equal(result.body.payments.length, 1);
   assert.equal(result.body.plan.billingStatus, 'ACTIVE');
+  assert.equal(result.body.availability.subscriptionCheckout, 'AVAILABLE');
+  const planCall = result.calls.find(call => call.value.includes('/gpir_subscription_plans?'));
+  const planUrl = new URL(planCall.value);
+  assert.equal(planUrl.searchParams.get('status'), 'eq.SANDBOX_ACTIVE');
+  assert.match(planUrl.searchParams.get('select'), /status/);
   assert.equal(result.calls.some(call => call.value.includes(
     '/gpir_publication_access_policies?')), false);
   assert.equal(resolverCalls(result).length, candidates.length);

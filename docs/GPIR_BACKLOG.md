@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-FX-08 subscriber currency-pair intelligence
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-FX-08 | 2026-11-04 | Add an on-demand, subscriber-only historical currency-pair intelligence dashboard following the approved v2 design | READER EXPERIENCE, DATA, AUTHORIZATION, RELEASE | High | IN PROGRESS | Owner review/merge; owner-supplied approved test-user UUID and explicit live-acceptance enablement; separately controlled Production checkout activation | Stage 1 | Existing reader authentication, `gpir-reader-summary`, `fx_historical_archive`, FX navigation and homepage | Use ECB-provider Frankfurter history and validated existing GPIR capture metadata without new services, tables, public premium-data endpoints, or transaction quotations. Keep public FX ticker behavior unchanged. | Six observation-based periods; deterministic metrics and tests; multi-pair card contexts; normal ACTIVE/current/confirmed-payment gate; disabled-by-default FX-only registered-reader acceptance; exact environment-approved subscription plan; actual-source provenance and missing-data states; adjacent tickers; selected-pair journey; one PR; controlled deployment; no merge. | Dashboard, pair state and confirmed-payment authorization remain preserved. The final correction requires `payment_confirmed_at`; checkout accepts only the environment-approved plan. A server-only acceptance gate requires exact `true` plus one authenticated Supabase UUID, grants only the FX response, and otherwise fails closed. Focused FX authorization/card tests pass 27/27. Owner-authorized Production deployment completed as `gpir-reader-summary` version 29 with exact repository-file parity and guest denial verified; no acceptance variable, schema, payment or activation changed. | PR #499 implementation deployed to the controlled function; approved UUID, explicit enablement, registered-reader live acceptance and merge remain pending | Current PR #499 branch | M39-FX |
+
 ## M39-FX-06 selected-pair context and archive repair
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

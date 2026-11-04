@@ -54,6 +54,8 @@ function createNavigationHarness({ mobile = false } = {}){
     trigger.classList = new FakeClassList();
     trigger.attributes = new Map();
     trigger.setAttribute = (name, value) => trigger.attributes.set(name, String(value));
+    trigger.contains = target => target === trigger;
+    trigger.matches = selector => selector === ":hover";
     trigger.focused = false;
     trigger.focus = () => { trigger.focused = true; };
     menu.id = "";
@@ -199,7 +201,7 @@ function validAlert(overrides = {}){
 
 test("desktop mega-menu opens after intentional hover and toggles on click", async () => {
     const { item, trigger } = createNavigationHarness();
-    item.fire("pointermove", { pointerType: "mouse" });
+    item.fire("pointermove", { pointerType: "mouse", target: trigger });
     assert.equal(item.classList.contains("is-open"), false);
     await new Promise(resolve => setTimeout(resolve, 220));
     assert.equal(item.classList.contains("is-open"), true);
@@ -212,7 +214,7 @@ test("desktop mega-menu opens after intentional hover and toggles on click", asy
 
 test("desktop mega-menu cancels a pending hover when the pointer leaves", async () => {
     const { item, trigger } = createNavigationHarness();
-    item.fire("pointermove", { pointerType: "mouse" });
+    item.fire("pointermove", { pointerType: "mouse", target: trigger });
     item.fire("pointerleave", { pointerType: "mouse" });
     await new Promise(resolve => setTimeout(resolve, 220));
     assert.equal(item.classList.contains("is-open"), false);
@@ -223,7 +225,7 @@ test("stationary pointer during scroll does not open a desktop mega-menu", () =>
     const { item, trigger, windowTarget } = createNavigationHarness();
     assert.equal(item.listeners.has("mouseenter"), false);
     windowTarget.fire("scroll");
-    item.fire("pointermove", { pointerType: "mouse" });
+    item.fire("pointermove", { pointerType: "mouse", target: trigger });
     assert.equal(item.classList.contains("is-open"), false);
     assert.equal(trigger.attributes.get("aria-expanded"), undefined);
 });
