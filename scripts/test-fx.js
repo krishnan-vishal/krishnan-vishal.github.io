@@ -309,7 +309,9 @@ assert.doesNotMatch(treasurySource, /statusBadge|fx-status-badge/, "Treasury ove
 assert.doesNotMatch(historicalPageSource, /data-fx-history-date=/, "historical capture choices must come from archive timestamps");
 
 const fxWorkflowSource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "fx-market-data.yml"), "utf8");
-assert.match(fxWorkflowSource, /cron: "7 \* \* \* \*"/, "the sustainable hourly provider refresh must avoid exact top-of-hour concentration");
+assert.match(fxWorkflowSource, /cron: "7,37 \* \* \* \*"/, "FX archive captures must be scheduled every 30 minutes");
+assert.match(fxWorkflowSource, /workflow_dispatch:/, "manual FX capture dispatch must remain available");
+assert.strictEqual(fxConfig.refreshFrequencyMinutes, 30, "snapshot metadata must match the GPIR capture cadence");
 assert.doesNotMatch(fxWorkflowSource, /cron: "0 \* \* \* \*"/, "the FX schedule must not remain concentrated at minute zero");
 
 console.log("PASS reader freshness: current JSON revalidates, weekly and historical cards query the public archive, and stale ticker data is not labelled live.");

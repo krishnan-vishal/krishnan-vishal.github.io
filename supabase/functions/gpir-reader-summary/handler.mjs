@@ -2,6 +2,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
   production: 'qlnvhfapctcpzqyuhhth' });
 const ONETIME_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
+const FRANKFURTER_ORIGIN = 'https://api.frankfurter.dev';
+const FRANKFURTER_SOURCE = 'European Central Bank via Frankfurter';
+const FRANKFURTER_START_DATE = '1999-01-04';
+const FX_HISTORY_CACHE_MS = 15 * 60 * 1000;
+const FX_HISTORY_CACHE_MAX_ENTRIES = 12;
+const FX_PEER_BASES = Object.freeze(['USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'SGD']);
+const fxHistoryCache = new Map();
+let currencyCatalogCache = null;
 
 function configuration(env) {
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY', 'GPIR_SUPABASE_SECRET_KEY'];
@@ -13,8 +21,12 @@ function configuration(env) {
     (url.hostname === `${PROJECTS.sandbox}.supabase.co` ? 'sandbox' : null);
   if (!environment || !PROJECTS[environment] || url.protocol !== 'https:' ||
       url.hostname !== `${PROJECTS[environment]}.supabase.co`) return null;
+  const acceptanceUserId = env.GPIR_FX_LIVE_ACCEPTANCE_ENABLED === 'true' &&
+    UUID.test(env.GPIR_FX_LIVE_ACCEPTANCE_USER_ID?.trim() || '')
+    ? env.GPIR_FX_LIVE_ACCEPTANCE_USER_ID.trim() : null;
   return Object.freeze({ ...values, SUPABASE_URL: url.origin,
-    PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment });
+    PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment,
+    FX_LIVE_ACCEPTANCE_USER_ID: acceptanceUserId });
 }
 
 function allowedOrigins(env) {
@@ -36,6 +48,11 @@ function response(status, body, origin, env) {
 
 function bearerToken(request) {
   return /^Bearer\s+([^\s]+)$/i.exec(request.headers.get('authorization') || '')?.[1] || null;
+}
+
+function validFxPair(value) {
+  const match = typeof value === 'string' ? /^([A-Z]{3})\/([A-Z]{3})$/.exec(value) : null;
+  return match && match[1] !== match[2] ? Object.freeze({ base: match[1], quote: match[2] }) : null;
 }
 
 async function jsonFetch(fetchImpl, url, init) {
@@ -117,7 +134,226 @@ function subscriptionSummary(row) {
       !['APPROVAL_PENDING', 'ACTIVE', 'SUSPENDED', 'CANCELLED', 'EXPIRED',
         'PAYMENT_FAILED'].includes(row.status)) return null;
   return Object.freeze({ status: row.status, effectiveFrom: isoOrNull(row.effective_from),
-    effectiveUntil: isoOrNull(row.effective_until) });
+    effectiveUntil: isoOrNull(row.effective_until),
+    paymentConfirmedAt: isoOrNull(row.payment_confirmed_at) });
+}
+
+function validatedCurrencyCatalog(value) {
+  if (!Array.isArray(value) || !value.length) return null;
+  const entries = value.map(item => [item?.iso_code, item]);
+  if (entries.some(([code, item]) => !/^[A-Z]{3}$/.test(code || '') ||
+      typeof item?.name !== 'string' || !item.name.trim() ||
+      !validCalendarDate(item.start_date) ||
+      (item.end_date != null && (!validCalendarDate(item.end_date) ||
+        item.end_date < item.start_date))) ||
+      new Set(entries.map(([code]) => code)).size !== entries.length) return null;
+  return Object.freeze(Object.fromEntries(entries.map(([code, item]) => [code,
+    Object.freeze({ name: item.name.trim(), startDate: item.start_date,
+      endDate: item.end_date || null })])));
+}
+
+function validCalendarDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
+}
+
+function validatedRatePoints(payload, pair, throughDate, currencies) {
+  if (!Array.isArray(payload)) return null;
+  const baseCurrency = currencies[pair.base];
+  const quoteCurrency = currencies[pair.quote];
+  const fromDate = [baseCurrency.startDate, quoteCurrency.startDate]
+    .sort().at(-1);
+  const toDate = [throughDate, baseCurrency.endDate, quoteCurrency.endDate]
+    .filter(Boolean).sort()[0];
+  const points = [];
+  for (const observation of payload) {
+    const date = observation?.date;
+    const rate = Number(observation?.rate);
+    if (!validCalendarDate(date) || date < fromDate || date > toDate ||
+        observation.base !== pair.base || observation.quote !== pair.quote ||
+        !Number.isFinite(rate) || rate <= 0) continue;
+    points.push(Object.freeze({ date, rate }));
+  }
+  return points.sort((left, right) => left.date.localeCompare(right.date));
+}
+
+async function fetchFrankfurterJson(fetchImpl, path) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const result = await fetchImpl(`${FRANKFURTER_ORIGIN}/v2/${path}`, {
+      headers: { accept: 'application/json' },
+      signal: controller.signal
+    });
+    if (!result.ok) throw new Error(`FX_SOURCE_HTTP_${result.status}`);
+    const value = await result.json();
+    if (!value || typeof value !== 'object')
+      throw new Error('FX_SOURCE_INVALID_RESPONSE');
+    return value;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function frankfurterCurrencies(fetchImpl, currentTime) {
+  if (currencyCatalogCache && currencyCatalogCache.expiresAt > currentTime)
+    return currencyCatalogCache.currencies;
+  const currencies = validatedCurrencyCatalog(await fetchFrankfurterJson(fetchImpl,
+    'currencies?providers=ecb'));
+  if (!currencies) throw new Error('FX_SOURCE_INVALID_CURRENCY_CATALOG');
+  currencyCatalogCache = { currencies, expiresAt: currentTime + FX_HISTORY_CACHE_MS };
+  return currencies;
+}
+
+function frankfurterPeerComparisons(payload, pair, date, currencies) {
+  if (!Array.isArray(payload)) return [];
+  const euroRates = new Map(payload.filter(item => item?.base === 'EUR' &&
+    item.date === date && Number.isFinite(Number(item.rate)) && Number(item.rate) > 0)
+    .map(item => [item.quote, Number(item.rate)]));
+  const euroQuote = pair.quote === 'EUR' ? 1 : euroRates.get(pair.quote);
+  if (!Number.isFinite(euroQuote) || euroQuote <= 0) return [];
+  return FX_PEER_BASES.filter(base => base !== pair.quote && currencies[base] &&
+    (base === 'EUR' || euroRates.has(base))).map(base => {
+    const euroBase = base === 'EUR' ? 1 : euroRates.get(base);
+    return Object.freeze({ pair: `${base}/${pair.quote}`, date,
+      rate: euroQuote / euroBase, method: 'COMMON_EUR_REFERENCE',
+      source: FRANKFURTER_SOURCE });
+  }).filter(item => Number.isFinite(item.rate) && item.rate > 0);
+}
+
+async function frankfurterHistory(fetchImpl, pair, currentTime, now, logger) {
+  const key = `${pair.base}/${pair.quote}`;
+  const cached = fxHistoryCache.get(key);
+  if (cached?.expiresAt > currentTime) {
+    fxHistoryCache.delete(key);
+    fxHistoryCache.set(key, cached);
+    return cached.value;
+  }
+
+  const currencies = await frankfurterCurrencies(fetchImpl, currentTime);
+  if (!currencies[pair.base] || !currencies[pair.quote])
+    return Object.freeze({ status: 'UNSUPPORTED_CURRENCY', pair: key });
+
+  const throughDate = new Date(currentTime).toISOString().slice(0, 10);
+  const query = new URLSearchParams({ from: FRANKFURTER_START_DATE,
+    to: throughDate, base: pair.base, quotes: pair.quote });
+  const sourceData = await fetchFrankfurterJson(fetchImpl,
+    `providers/ecb/rates?${query}`);
+  const points = validatedRatePoints(sourceData, pair, throughDate, currencies);
+  if (!points) throw new Error('FX_SOURCE_INVALID_HISTORY');
+  if (!points.length) return Object.freeze({ status: 'NO_HISTORICAL_OBSERVATIONS',
+    pair: key, source: FRANKFURTER_SOURCE });
+
+  let peerComparisons = [];
+  let peerStatus = 'UNAVAILABLE';
+  try {
+    const peerCodes = [...new Set([...FX_PEER_BASES, pair.quote])]
+      .filter(code => code !== 'EUR' && currencies[code]);
+    const peerQuery = new URLSearchParams({ from: points[points.length - 1].date,
+      to: points[points.length - 1].date, base: 'EUR', quotes: peerCodes.join(',') });
+    const peerData = await fetchFrankfurterJson(fetchImpl,
+      `providers/ecb/rates?${peerQuery}`);
+    peerComparisons = frankfurterPeerComparisons(peerData, pair,
+      points[points.length - 1].date, currencies);
+    if (peerComparisons.length) peerStatus = 'AVAILABLE';
+  } catch (error) {
+    logger.error('gpir-reader-summary FX peer source failure', {
+      pair: key,
+      code: /^[A-Z0-9_]{1,48}$/.test(error?.message || '')
+        ? error.message : 'FX_PEER_SOURCE_UNAVAILABLE'
+    });
+    peerStatus = 'UNAVAILABLE';
+  }
+
+  const value = Object.freeze({ status: 'AVAILABLE', pair: key,
+    baseName: currencies[pair.base].name, quoteName: currencies[pair.quote].name,
+    source: FRANKFURTER_SOURCE,
+    sourceUrl: 'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html',
+    sourceTermsUrl: 'https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html',
+    providerUrl: 'https://www.frankfurter.dev/',
+    retrievedAt: new Date(now()).toISOString(),
+    rateMethod: pair.base === 'EUR' || pair.quote === 'EUR'
+      ? 'ECB_EUR_REFERENCE_RATE' : 'ECB_EUR_PIVOT_CROSS_RATE',
+    firstFixingDate: points[0].date, lastFixingDate: points[points.length - 1].date,
+    currencies,
+    points: Object.freeze(points), peerStatus, peerComparisons: Object.freeze(peerComparisons) });
+  fxHistoryCache.delete(key);
+  fxHistoryCache.set(key, { value, expiresAt: currentTime + FX_HISTORY_CACHE_MS });
+  while (fxHistoryCache.size > FX_HISTORY_CACHE_MAX_ENTRIES)
+    fxHistoryCache.delete(fxHistoryCache.keys().next().value);
+  return value;
+}
+
+async function latestGpirCapture(fetchImpl, config, pair, serviceHeaders) {
+  const query = new URLSearchParams({ select: 'timestamp,rate,source',
+    base_currency: `eq.${pair.base}`, target_currency: `eq.${pair.quote}`,
+    order: 'timestamp.desc', limit: '1' });
+  const result = await jsonFetch(fetchImpl,
+    `${config.SUPABASE_URL}/rest/v1/fx_historical_archive?${query}`,
+    { headers: serviceHeaders });
+  const row = Array.isArray(result.data) ? result.data[0] : null;
+  const timestamp = isoOrNull(row?.timestamp);
+  const rate = Number(row?.rate);
+  if (!result.ok || !timestamp || !Number.isFinite(rate) || rate <= 0 ||
+      typeof row?.source !== 'string' || !row.source.trim()) return null;
+  return Object.freeze({ capturedAt: timestamp, rate, source: safeText(row.source) });
+}
+
+async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
+  pair, now, logger }) {
+  const serviceHeaders = new Headers();
+  serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
+  serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
+  const hasAcceptanceAccess = config.FX_LIVE_ACCEPTANCE_USER_ID === userId;
+  const currentTime = now();
+  if (!hasAcceptanceAccess) {
+    const query = new URLSearchParams({
+      select: 'id,status,effective_from,effective_until,payment_confirmed_at',
+      user_id: `eq.${userId}`,
+      environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
+    });
+    const subscriptions = await jsonFetch(fetchImpl,
+      `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${query}`,
+      { headers: serviceHeaders });
+    if (!validRows(subscriptions))
+      return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_CHECK_UNAVAILABLE' }, origin, env);
+
+    const subscription = subscriptions.data.length
+      ? subscriptionSummary(subscriptions.data[0]) : null;
+    const hasActiveSubscription = subscription?.status === 'ACTIVE' &&
+      subscription.effectiveFrom && subscription.effectiveUntil &&
+      subscription.paymentConfirmedAt &&
+      Date.parse(subscription.effectiveFrom) <= currentTime &&
+      Date.parse(subscription.effectiveUntil) > currentTime;
+    if (!hasActiveSubscription) {
+      const expired = subscription?.status === 'EXPIRED' ||
+        (subscription?.effectiveUntil && Date.parse(subscription.effectiveUntil) <= currentTime);
+      return response(403, { status: 'DENY',
+        code: expired ? 'SUBSCRIPTION_EXPIRED' : 'SUBSCRIPTION_REQUIRED' }, origin, env);
+    }
+  }
+
+  let history;
+  try {
+    history = await frankfurterHistory(fetchImpl, pair, currentTime, now, logger);
+  } catch (error) {
+    logger.error('gpir-reader-summary FX source failure', {
+      pair: `${pair.base}/${pair.quote}`,
+      code: /^[A-Z0-9_]{1,48}$/.test(error?.message || '')
+        ? error.message : 'FX_SOURCE_UNAVAILABLE'
+    });
+    return response(503, { status: 'ERROR', code: 'FX_SOURCE_UNAVAILABLE' }, origin, env);
+  }
+  if (history.status !== 'AVAILABLE')
+    return response(404, { status: 'UNAVAILABLE', code: history.status,
+      pair: history.pair, source: history.source || null }, origin, env);
+
+  const gpirCapture = await latestGpirCapture(fetchImpl, config, pair, serviceHeaders);
+  return response(200, { status: 'OK', history, gpirCapture,
+    gpirCaptureStatus: gpirCapture ? 'AVAILABLE' : 'UNAVAILABLE',
+    archiveNotice: 'GPIR capture timestamps are separate from Frankfurter fixing dates and are not mixed into the historical reference series.' },
+  origin, env);
 }
 
 function m37LibraryPassSummary(row, currentTime) {
@@ -145,12 +381,14 @@ function publicationCandidate(row) {
     publication_id: row.publication_id });
 }
 
-function subscriptionOffer(row) {
+function subscriptionOffer(row, requiredStatus) {
   const amount = Number(row?.unit_amount_minor);
   if (!UUID.test(row?.id || '') || typeof row?.display_name !== 'string' ||
       !row.display_name.trim() || row.currency !== 'USD' ||
       !Number.isSafeInteger(amount) || amount <= 0 ||
-      !['MONTH', 'YEAR'].includes(row.billing_interval)) return null;
+      !['MONTH', 'YEAR'].includes(row.billing_interval) ||
+      !['SANDBOX_ACTIVE', 'LIVE_ACTIVE'].includes(requiredStatus) ||
+      row.status !== requiredStatus) return null;
   return Object.freeze({ id: row.id, displayName: safeText(row.display_name),
     currency: row.currency, unitAmountMinor: amount, billingInterval: row.billing_interval });
 }
@@ -175,6 +413,11 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const config = configuration(env);
     if (!config)
       return response(503, { status: 'ERROR', code: 'READER_SUMMARY_CONFIGURATION_REQUIRED' }, origin, env);
+    const requestUrl = new URL(request.url);
+    const hasFxPair = requestUrl.searchParams.has('fxPair');
+    const requestedPair = hasFxPair ? validFxPair(requestUrl.searchParams.get('fxPair')) : null;
+    if (hasFxPair && !requestedPair)
+      return response(400, { status: 'ERROR', code: 'INVALID_FX_PAIR' }, origin, env);
     const token = bearerToken(request);
     if (!token) return response(401, { status: 'ERROR', code: 'SESSION_REQUIRED' }, origin, env);
 
@@ -187,6 +430,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const user = userResult.data;
     if (!userResult.ok || !UUID.test(user?.id || ''))
       return response(401, { status: 'ERROR', code: 'SESSION_INVALID' }, origin, env);
+    if (requestedPair) return authorizedFxResponse({ fetchImpl, config, origin, env,
+      userId: user.id, pair: requestedPair, now, logger });
 
     const serviceHeaders = new Headers();
     serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
@@ -211,10 +456,12 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       select: 'id,status,effective_from,effective_until', user_id: `eq.${user.id}`,
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
     });
+    const activePlanStatus = config.environment === 'sandbox'
+      ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE';
     const planQuery = new URLSearchParams({
-      select: 'id,display_name,currency,unit_amount_minor,billing_interval',
+      select: 'id,display_name,currency,unit_amount_minor,billing_interval,status',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
-      status: `eq.${config.environment === 'sandbox' ? 'SANDBOX_ACTIVE' : 'LIVE_ACTIVE'}`,
+      status: `eq.${activePlanStatus}`,
       order: 'created_at.asc', limit: '1'
     });
     const m37PaymentQuery = new URLSearchParams({
@@ -345,7 +592,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       if (rawM37Payments && m37Payments.length !== rawM37Payments.length)
         reportDependencyFailure(logger, 'gpir_m37_onetime_orders', m37PaymentsResult);
     }
-    let checkoutOffer = rawPlans?.length ? subscriptionOffer(rawPlans[0]) : null;
+    let checkoutOffer = rawPlans?.length
+      ? subscriptionOffer(rawPlans[0], activePlanStatus) : null;
     if (rawPlans?.length && !checkoutOffer) {
       reportDependencyFailure(logger, 'gpir_subscription_plans', plansResult);
       checkoutOffer = null;
@@ -362,8 +610,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
         payments: paymentsAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         plan: planAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
         libraryPass: libraryPassAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
-        subscriptionCheckout: config.environment === 'sandbox' && checkoutOffer
-          ? 'AVAILABLE' : 'UNAVAILABLE' }),
+        subscriptionCheckout: checkoutOffer ? 'AVAILABLE' : 'UNAVAILABLE' }),
       summary: Object.freeze({ libraryCount: entitlementAvailable ? library.length : null,
         paymentCount: paymentsAvailable ? payments.length : null,
         activePurchaseCount: purchases && libraryPassAvailable

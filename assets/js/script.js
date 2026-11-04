@@ -60,6 +60,8 @@ function initializeWebsite(){
 
     safeInit(initializeAdaptiveNav);
 
+    safeInit(initializeFxIntelligenceNavigation);
+
     safeInit(initializeMegaMenuHoverIntent);
 
     safeInit(initializeMobileMegaAccordion);
@@ -143,6 +145,32 @@ function initializeReadingProgress(){
     document.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     update();
+
+}
+
+function initializeFxIntelligenceNavigation(){
+
+    const fxPricingLink = Array.from(document.querySelectorAll(
+        "#main-nav .mega-menu a[href]"
+    )).find(link => link.origin === window.location.origin &&
+        /\/pages\/fx\/[^?#]+\.html$/.test(link.pathname));
+
+    const list = fxPricingLink?.closest("ul.mega-col-desc-list");
+
+    if(!list || list.querySelector("[data-fx-intelligence-link]")) return;
+
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    const title = document.createElement("strong");
+    const detail = document.createElement("small");
+
+    link.href = "/pages/fx/intelligence.html";
+    link.dataset.fxIntelligenceLink = "true";
+    title.textContent = "FX Intelligence";
+    detail.textContent = "Subscriber-only currency pair research.";
+    link.append(title, detail);
+    item.appendChild(link);
+    fxPricingLink.closest("li").insertAdjacentElement("afterend", item);
 
 }
 

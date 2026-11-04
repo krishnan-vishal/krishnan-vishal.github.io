@@ -238,3 +238,65 @@ human explicitly merges the review PR.
   `holidays` parameter are not populated -- weekend rollover is fully
   implemented; per-market holiday lists remain a future, explicitly
   sourced addition (never guessed).
+
+## M39-FX-08 subscriber currency-pair intelligence
+
+The subscriber dashboard at `pages/fx/intelligence.html` uses the existing
+`gpir-reader-summary` Edge Function as its protected data contract. Requests
+with `fxPair=BASE/QUOTE` require a verified bearer user and an `ACTIVE`
+subscription whose effective dates contain the current time. The response is
+private/no-store. No public historical-intelligence endpoint, authentication
+service, schema, payment integration, or CMS was added. The public FX ticker
+and its source contract are unchanged.
+
+The dashboard fetches Frankfurter v2's ECB-specific currency catalogue and
+provider history on demand. It records source fixing dates separately from the
+retrieval timestamp and optional `fx_historical_archive` GPIR capture time.
+Archive captures are never joined into the ECB fixing series. Non-EUR pairs
+are deterministic same-date EUR-pivot cross-rates; pair history is limited to
+the actual observations returned for that pair. The verified USD/JPY evidence
+for this milestone is 7,128 observations from 1999-01-04 through 2026-11-03;
+this is not a coverage claim for other pairs.
+
+`assets/js/fx-intelligence.mjs` calculates metrics from observed fixings,
+requires sufficient observations, and labels unavailable results. Charts
+connect only actual fixings; dense rendering samples observed bucket
+first/last/high/low points without filling missing dates. The client shares
+short-lived pair-and-reader keyed responses across cards, and the Edge
+Function uses a bounded pair-keyed cache. Neither forecasts nor transaction,
+remittance, or unsupported editorial claims are generated. The required
+research disclaimer appears on every card.
+
+The exact v2 PDF comparison remains unverified because
+`docs/design-references/v2-designomics.pdf` was not present in the checkout;
+responsive styling follows the written specification. Deploying the existing
+Edge Function update remains an owner-controlled release prerequisite.
+
+## M39-FX Stage 1 historical reference recovery
+
+Stage 1 retains the existing `fx_historical_archive` and Frankfurter/ECB
+architecture. Legacy `timestamp` continues to mean GPIR ingestion time. New
+rows additionally retain the source `observation_date` and a `rate_method` of
+`provider-native`, `derived-cross`, or `derived-inverse`. The composite
+observation identity makes scheduled and historical inserts idempotent without
+overwriting a valid existing row.
+
+The configured universe remains the 134 pairs produced by `requestedPairs()`;
+it is not silently expanded to every mathematical combination. ECB evidence
+for 1 January–4 November 2026 supports 60 of those pairs and 215 fixing dates
+from 2 January through 3 November. The other 74 pairs remain explicitly
+unsupported where either currency is absent. Derived rows use two genuine
+same-date EUR legs (or one inverse leg) and retain that method; no weekend,
+holiday, missing observation, executable quote, bid/ask value or forecast is
+created.
+
+`scripts/fx/backfill-historical-reference.js` is plan-only by default. The
+existing workflow exposes a separate `historical-reference-recovery` job; only
+the explicit `apply-approved` choice supplies the approval environment flag
+and Production credentials. Ordinary scheduled writes use the observation
+identity only when repository variable
+`FX_HISTORY_OBSERVATION_IDENTITY_ENABLED=true`; absent/false preserves the
+pre-migration writer, making merge safe before approval. The schema migration,
+backfill dispatch, count verification and subsequent variable enablement require
+a separate owner approval after merge. See
+`docs/M39_FX_STAGE1_HISTORICAL_COVERAGE.md` for pair-level evidence.

@@ -1,7 +1,50 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const BILLING_ID = /^[A-Z0-9-]{8,64}$/i;
+const FX_RETURN_KEY = 'gpir.fx-intelligence.returnTo';
+const FX_RETURN_TTL_MS = 24 * 60 * 60 * 1000;
 const PROJECTS = Object.freeze({ sandbox: 'hoewtptllwkcqrgryazu',
   production: 'qlnvhfapctcpzqyuhhth' });
+
+function validFxReturnTo(global, value) {
+  const safe = global.GPIRReaderAuth?.safeReturnTo?.(value);
+  if (!safe || !global.location?.origin) return null;
+  let url;
+  try { url = new URL(safe, global.location.origin); } catch { return null; }
+  const base = url.searchParams.get('base') || '';
+  const quote = url.searchParams.get('quote') || '';
+  if (url.origin !== global.location.origin ||
+      url.pathname !== '/pages/fx/intelligence.html' ||
+      !/^[A-Z]{3}$/.test(base) || !/^[A-Z]{3}$/.test(quote) || base === quote) return null;
+  const period = url.searchParams.get('period');
+  if (period && !['W', 'M', 'Q', 'Y', '5Y', 'MAX'].includes(period)) return null;
+  return `${url.pathname}?${url.searchParams.toString()}${url.hash}`;
+}
+
+export function rememberFxIntelligenceReturn(global, value) {
+  const destination = validFxReturnTo(global, value);
+  if (!destination || typeof global.sessionStorage?.setItem !== 'function') return false;
+  try {
+    global.sessionStorage?.setItem(FX_RETURN_KEY, JSON.stringify({
+      destination, savedAt: Date.now()
+    }));
+    return true;
+  } catch { return false; }
+}
+
+export function consumeFxIntelligenceReturn(global, now = Date.now()) {
+  let saved;
+  try {
+    saved = global.sessionStorage?.getItem(FX_RETURN_KEY);
+    global.sessionStorage?.removeItem(FX_RETURN_KEY);
+  } catch { return null; }
+  if (!saved) return null;
+  try {
+    const record = JSON.parse(saved);
+    if (!Number.isFinite(record.savedAt) || now - record.savedAt > FX_RETURN_TTL_MS)
+      return null;
+    return validFxReturnTo(global, record.destination);
+  } catch { return null; }
+}
 
 function endpoint(value, pathname) {
   try {
@@ -81,6 +124,10 @@ export async function verifySubscription({ config, supabase, subscriptionId,
     eventTarget?.dispatchEvent?.(new CustomEvent('gpir:paypal-payment-verified', {
       detail: { type: 'SUBSCRIPTION' }
     }));
+  if (result.paymentConfirmed === true) {
+    const destination = consumeFxIntelligenceReturn(eventTarget);
+    if (destination) eventTarget.location?.assign?.(destination);
+  }
   return result;
 }
 
@@ -147,6 +194,11 @@ export async function initializePayPalSubscription({ global = globalThis,
       ? 'Your PayPal subscription payment is confirmed.'
       : 'Your PayPal subscription is active; Premium access awaits confirmed payment.',
     summary.plan.paymentConfirmed ? 'success' : 'pending');
+    if (returnState === 'return') {
+      const destination = consumeFxIntelligenceReturn(global);
+      cleanReturnLocation(global);
+      if (destination) global.location.assign(destination);
+    }
     return true;
   }
   if (returnState === 'cancelled') {

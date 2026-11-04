@@ -34,7 +34,7 @@
     "OCEANIA": ["AUD/USD", "NZD/USD"]
   },
   "treasurySendingBases": ["USD", "EUR", "GBP", "AED", "SAR", "SGD", "AUD", "CAD", "JPY", "CNY"],
-  "refreshFrequencyMinutes": 60,
+  "refreshFrequencyMinutes": 30,
   "staleAfterMinutesByProviderType": {
     "live": 60,
     "reference": 1440,

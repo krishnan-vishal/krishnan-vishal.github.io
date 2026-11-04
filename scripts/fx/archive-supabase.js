@@ -33,25 +33,35 @@ function archiveRows(snapshot, config){
             record.pair !== `${record.base}/${record.quote}` ||
             !Number.isFinite(observedAt) || observedAt > snapshotTime + 60000 ||
             !Number.isFinite(rate) || rate <= 0 ||
-            typeof record.provider !== "string" || !record.provider.trim()){
+            typeof record.provider !== "string" || !record.provider.trim() ||
+            !["provider-native", "derived-cross", "derived-inverse"].includes(record.rateType)){
             throw new Error(`FX_ARCHIVE_INVALID_VALIDATED_OBSERVATION: ${record.pair || "unknown pair"}`);
         }
         return {
+            observation_date: new Date(observedAt).toISOString().slice(0, 10),
             base_currency: record.base,
             target_currency: record.quote,
             rate,
             region: regionForPair(record.pair, config),
-            source: record.provider
+            source: record.provider,
+            rate_method: record.rateType
         };
     });
 }
 
-async function readSevenDays(client, now){
+function legacyArchiveRows(rows){
+    return rows.map(({ observation_date, rate_method, ...row }) => row);
+}
+
+async function readSevenDays(client, now, includeObservationIdentity = true){
     const cutoff = new Date(Date.parse(now) - 7 * 24 * 60 * 60 * 1000).toISOString();
     const rows = [];
     for(let offset = 0;; offset += PAGE_SIZE){
+        const fields = includeObservationIdentity
+            ? "id,timestamp,observation_date,base_currency,target_currency,rate,region,source,rate_method"
+            : "id,timestamp,base_currency,target_currency,rate,region,source";
         const { data, error } = await client.from(TABLE)
-            .select("id,timestamp,base_currency,target_currency,rate,region,source")
+            .select(fields)
             .gte("timestamp", cutoff)
             .lte("timestamp", now)
             .order("timestamp", { ascending: true })
@@ -72,7 +82,9 @@ function summarizeRows(rows, featuredPairs){
         const pair = `${row.base_currency}/${row.target_currency}`;
         const rate = Number(row.rate);
         const parsedTimestamp = Date.parse(row.timestamp);
-        const date = Number.isFinite(parsedTimestamp) ? new Date(parsedTimestamp).toISOString().slice(0, 10) : "";
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(row.observation_date || "")
+            ? row.observation_date
+            : Number.isFinite(parsedTimestamp) ? new Date(parsedTimestamp).toISOString().slice(0, 10) : "";
         if(!requested.has(pair) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(rate) || rate <= 0) return;
         if(!dailyByPair.has(pair)) dailyByPair.set(pair, new Map());
         // Rows are ordered by capture time and id: the final hourly
@@ -84,6 +96,27 @@ function summarizeRows(rows, featuredPairs){
             .slice(-7).map(([date, rate]) => ({ date, rate }));
         return buildWeeklySummary(pair, points);
     });
+}
+
+async function insertArchiveRows(client, rows){
+    const unique = new Map();
+    rows.forEach(row => {
+        const key = [row.base_currency, row.target_currency, row.observation_date,
+            row.source, row.rate_method].join("|");
+        if(unique.has(key)) throw new Error(`FX_ARCHIVE_DUPLICATE_INPUT: ${key}`);
+        unique.set(key, row);
+    });
+    const values = [...unique.values()];
+    if(values.length === 0) return { insertedOrMatched: 0 };
+    for(let offset = 0; offset < values.length; offset += 500){
+        const batch = values.slice(offset, offset + 500);
+        const { error } = await client.from(TABLE).upsert(batch, {
+            onConflict: "base_currency,target_currency,observation_date,source,rate_method",
+            ignoreDuplicates: true
+        });
+        if(error) throw new Error(`FX_ARCHIVE_INSERT_FAILED: ${error.message}`);
+    }
+    return { insertedOrMatched: values.length };
 }
 
 function buildHourlyArchive(rows, now){
@@ -126,10 +159,14 @@ async function archiveAndBuildWeekly(options = {}){
     const client = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false }
     });
-    const { error } = await client.from(TABLE).insert(rows);
-    if(error) throw new Error(`FX_ARCHIVE_INSERT_FAILED: ${error.message}`);
+    const observationIdentityEnabled = env.FX_HISTORY_OBSERVATION_IDENTITY_ENABLED === "true";
+    if(observationIdentityEnabled) await insertArchiveRows(client, rows);
+    else {
+        const { error } = await client.from(TABLE).insert(legacyArchiveRows(rows));
+        if(error) throw new Error(`FX_ARCHIVE_INSERT_FAILED: ${error.message}`);
+    }
     const now = options.now || new Date().toISOString();
-    const historicalRows = await readSevenDays(client, now);
+    const historicalRows = await readSevenDays(client, now, observationIdentityEnabled);
     const summaries = summarizeRows(historicalRows, rows.map(row => `${row.base_currency}/${row.target_currency}`));
     const weekly = { generatedAt: now, source: TABLE, summaries };
     fs.writeFileSync(options.weeklyPath || path.join(DATA_DIR, "weekly-summary.json"), JSON.stringify(weekly, null, 2) + "\n", "utf8");
@@ -143,4 +180,5 @@ if(require.main === module){
         .catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { archiveAndBuildWeekly, archiveRows, readSevenDays, summarizeRows, buildHourlyArchive };
+module.exports = { archiveAndBuildWeekly, archiveRows, insertArchiveRows, readSevenDays,
+    summarizeRows, buildHourlyArchive, legacyArchiveRows, regionForPair };

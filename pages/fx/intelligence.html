@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b203b">
+  <meta name="description" content="Subscriber-only historical currency pair intelligence from attributed ECB reference fixings.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>FX Intelligence | FINTECHOISIS — GPIR</title>
+  <link rel="canonical" href="https://fintechoisis.com/pages/fx/intelligence.html">
+  <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="../../assets/css/variables.css">
+  <link rel="stylesheet" href="../../assets/css/typography.css">
+  <link rel="stylesheet" href="../../assets/css/fx-intelligence.css?v=20261104b">
+  <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
+  <script src="../../assets/js/gpir-supabase-public-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+  <script src="../../scripts/m34/supabase-browser-client.js"></script>
+  <script src="../../scripts/m34/publication-authorization-provider.js"></script>
+  <script src="../../assets/js/gpir-reader-auth.js?v=20261104a" defer></script>
+</head>
+<body class="fxi-page">
+  <header class="fxi-page-nav">
+    <a class="fxi-page-brand" href="../../index.html" aria-label="FINTECHOISIS GPIR home">
+      <img src="../../assets/branding/logos/fo-mark.svg" alt="">
+      <span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span>
+    </a>
+    <nav aria-label="FX navigation">
+      <a href="../../index.html">Home</a>
+      <a href="./index.html">FX Pricing &amp; Treasury</a>
+      <a href="../intelligence/index.html">Intelligence Library</a>
+    </nav>
+  </header>
+  <main class="fxi-page-main" id="main-content">
+    <p class="fxi-page-intro">Evidence-based currency intelligence built on historical reference fixings. Select a supported pair and period; every observation keeps its source date and provenance.</p>
+    <gpir-fx-card base="USD" quote="JPY" period="M"></gpir-fx-card>
+  </main>
+  <footer class="fxi-page-footer"><a href="../../index.html">FINTECHOISIS · GPIR</a><span>Currency intelligence, not a live FX quotation service.</span></footer>
+  <script type="module" src="../../assets/js/fx-intelligence.mjs?v=20261104b"></script>
+</body>
+</html>

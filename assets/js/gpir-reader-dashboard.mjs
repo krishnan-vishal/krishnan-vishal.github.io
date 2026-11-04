@@ -1,4 +1,5 @@
-import { initializePayPalSubscription } from './gpir-paypal-subscription.mjs';
+import { initializePayPalSubscription, rememberFxIntelligenceReturn }
+  from './gpir-paypal-subscription.mjs';
 import { initializePayPalOnetimeCheckout } from './gpir-paypal-onetime.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -495,6 +496,8 @@ function dashboardEndpoint(global) {
 async function setupReaderDashboard({ global, document, fetchImpl, root }) {
   const client = global.GPIR_SUPABASE_CLIENT;
   const returnTo = `${global.location.pathname}${global.location.search}${global.location.hash}`;
+  rememberFxIntelligenceReturn(global,
+    new URL(global.location.href).searchParams.get('returnTo'));
   let session = null;
   try {
     session = global.GPIRReaderAuth?.sessionReady
