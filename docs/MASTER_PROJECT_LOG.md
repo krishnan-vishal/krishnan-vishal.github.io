@@ -14,6 +14,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M39-FX-08 — Final UI/UX and subscriber routing correction
+
+- **Date / request:** 2026-11-04; remove the homepage FX Intelligence promotion, restore the adjacent FX Snapshot and Global Alerts tickers, route selected ticker pairs through existing subscriber authentication and plan flows, and preserve the selected pair after access is granted.
+- **Starting state:** `feat/m39-fx-08` at `48405dbc66e0969a54f88479a4f5b00e6e037d97`, PR #499 open against `main`. The uploaded Designomics v2 PDF remains unmodified; no dashboard layout or styling changes were in scope.
+- **Result:** removed only the homepage promotion; ticker pairs route to `/pages/fx/intelligence.html` with normalized pair context. The dashboard reads and updates pair/period query state. Existing sign-in return handling is reused; the plan alias preserves the encoded return route, and the existing payment-verification path retains a validated pair route for the same browser session. The existing server-side `gpir-reader-summary` subscription gate remains authoritative and denies missing, expired or unverified entitlements before fetching historical data. All 86 static HTML ticker consumers and the FX page generator now use a refreshed shared script cache key; ticker styling, animation, public rate data, header navigation and dashboard design remain unchanged.
+- **Validation:** 41 focused FX, journey, reader-auth and navigation tests pass. `node scripts/validate-links.js` checked 156 HTML files; changed-script syntax and CRLF-aware whitespace checks pass. Mocked browser journeys for guest (1440px), non-subscriber (360px), and active subscriber (1440px/360px) preserve EUR/JPY 5Y, show the expected access state and have no horizontal overflow. No live subscription, production credential, database, or external data write was used.
+- **Release boundary:** implementation commit `a6ca71f791d5f4d20aa767ece07af88ea0514a3a` is pushed and verified at `origin/feat/m39-fx-08`; PR #499 remains open. Production availability is still blocked on controlled deployment of the existing Edge Function and activation of production subscription checkout. No merge or deployment was performed.
+
+
 ## M39-FX-08 — Subscriber currency-pair intelligence
 
 - **Date / request:** 2026-11-04; build the approved v2 subscriber-only historical currency intelligence dashboard from `origin/main` after M39-FX-07 / PR #498. Preserve existing authentication, subscription authorization, Supabase history, editorial authority, public ticker and navigation behavior; do not add a backend, schema or payment/CMS integration.
