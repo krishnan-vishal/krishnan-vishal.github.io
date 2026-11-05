@@ -37,7 +37,14 @@ async function fetchJson(fetchImpl, path){
             signal: controller.signal
         });
         if(!response.ok) throw new Error(`FX_HISTORY_SOURCE_HTTP_${response.status}`);
-        return await response.json();
+        try{
+            return await response.json();
+        } catch(error){
+            const code = path.startsWith("providers/ecb/rates?")
+                ? "FX_HISTORY_INVALID_RATE_RESPONSE"
+                : "FX_HISTORY_INVALID_CURRENCY_CATALOG";
+            throw new Error(code, { cause: error });
+        }
     } finally {
         clearTimeout(timeout);
     }
@@ -97,7 +104,11 @@ function buildRecovery({ config, catalog, observations, from, to, source = SOURC
     const rows = [];
     const coverage = pairs.map(pair => {
         const [base, quote] = pair.split("/");
-        const unsupportedCurrencies = [base, quote].filter(code => !catalog.has(code));
+        const unsupportedCurrencies = [base, quote].filter(code => {
+            const metadata = catalog.get(code);
+            return !metadata || metadata.startDate > to ||
+                (metadata.endDate && metadata.endDate < from);
+        });
         const method = rateMethod(pair);
         if(unsupportedCurrencies.length){
             return { pair, supported: false, unsupportedCurrencies, rateMethod: null,
@@ -134,7 +145,7 @@ function buildRecovery({ config, catalog, observations, from, to, source = SOURC
     return { rows, report: {
         generatedAt: new Date().toISOString(), requestedFrom: from, requestedTo: to,
         source, sourceName,
-        sourceUrl: "https://frankfurter.dev/providers/ecb/",
+        sourceUrl,
         pairUniverse: pairs.length,
         supportedPairs: coverage.filter(item => item.supported).length,
         unsupportedPairs: coverage.filter(item => !item.supported).length,
@@ -159,10 +170,14 @@ async function recoverHistoricalReferenceFrankfurter({ config, from, to, fetchIm
         if(!Array.isArray(payload)) throw new Error("FX_HISTORY_INVALID_RATE_RESPONSE");
         payload.forEach(item => {
             const rate = Number(item?.rate);
-            if(!validDate(item?.date) || item.date < window.from || item.date > window.to ||
-                item.base !== "EUR" || !quotes.includes(item.quote) || !Number.isFinite(rate) || rate <= 0){
+            if(!validDate(item?.date) || item.date > window.to || item.base !== "EUR" ||
+                !quotes.includes(item.quote) || !Number.isFinite(rate) || rate <= 0){
                 throw new Error("FX_HISTORY_INVALID_RATE_RESPONSE");
             }
+            // Frankfurter may include the last rate in force immediately before
+            // a requested window. It is valid provider context, not an observation
+            // inside the requested recovery period.
+            if(item.date < window.from) return;
             if(!observations.has(item.date)) observations.set(item.date, new Map());
             const existing = observations.get(item.date).get(item.quote);
             if(existing != null && existing !== rate) throw new Error("FX_HISTORY_CONFLICTING_SOURCE_RATE");
@@ -177,6 +192,8 @@ function isTransientSourceFailure(error){
       const message = String(error?.message || "");
       return /^FX_HISTORY_SOURCE_HTTP_5\d\d$/.test(message) ||
         /^FX_HISTORY_SOURCE_HTTP_429$/.test(message) ||
+        ["FX_HISTORY_INVALID_CURRENCY_CATALOG", "FX_HISTORY_INVALID_RATE_RESPONSE",
+          "FX_HISTORY_CONFLICTING_SOURCE_RATE", "FX_HISTORY_NO_SOURCE_OBSERVATIONS"].includes(message) ||
         error?.name === "AbortError" ||
         error?.name === "TimeoutError" ||
         /fetch failed|network error|timed out/i.test(message);
@@ -190,7 +207,8 @@ function isTransientSourceFailure(error){
         return recoverFromEcbCsv({
           ...options,
           fetchImpl: options.fetchImpl || globalThis.fetch,
-          buildRecovery
+          buildRecovery,
+          windows: monthWindows(options.from, options.to)
         });
       }
     }
