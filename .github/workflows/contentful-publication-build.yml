@@ -21,8 +21,8 @@ permissions:
 
 jobs:
   generate-publication-input:
+    environment: contentful-production
     runs-on: ubuntu-latest
-    environment: ${{ inputs.mode == 'preview' && 'contentful-preview' || 'contentful-production' }}
     env:
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
@@ -51,6 +51,16 @@ jobs:
           --output=.generated/m35/site
           --expected=${{ inputs.expected_count }}
           --controlled-validation
+      - name: Build governed public FX editorial index (delivery only)
+        if: ${{ inputs.mode == 'delivery' }}
+        run: >-
+          node scripts/m39/build-fx-editorial-bridge.js
+          .generated/m35/contentful-publications.json
+          .generated/m39/fx-editorial-public.json
+      - name: Validate governed FX editorial index (delivery only)
+        if: ${{ inputs.mode == 'delivery' }}
+        run: >-
+          node --test tests/m39/fx-contentful-editorial-bridge.test.cjs
       - name: Upload controlled build input
         uses: actions/upload-artifact@v4
         with:
@@ -58,5 +68,6 @@ jobs:
           path: |
             .generated/m35/contentful-publications.json
             .generated/m35/site
+            .generated/m39/fx-editorial-public.json
           if-no-files-found: error
           retention-days: 1
