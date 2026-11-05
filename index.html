@@ -3799,6 +3799,18 @@ content="#0B1120">
 <script src="assets/js/dashboard-lightbox.js?v=20260816"></script>
 
 
+<script>
+(function(){
+  function openLinkedSearch(){
+    if (location.hash !== '#gpir-search') return;
+    const trigger = document.getElementById('search-toggle');
+    if (trigger) trigger.click();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openLinkedSearch, {once:true});
+  else openLinkedSearch();
+  window.addEventListener('hashchange', openLinkedSearch);
+})();
+</script>
 </body>
 
 </html>
