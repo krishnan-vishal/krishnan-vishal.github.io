@@ -89,7 +89,7 @@
 
     // FX discovery uses only configured pairs. Historical coverage and subscriber
     // entitlement remain verified by the existing intelligence card service.
-    const FX_CONFIG_URL = INDEX_URL.replace(/assets\\/data\\/search-index\\.json$/, "assets/data/fx/fx-config.json");
+    const FX_CONFIG_URL = INDEX_URL.replace("assets/data/search-index.json", "assets/data/fx/fx-config.json");
     function fxPairEntries(config){
         const pairs = Array.isArray(config.featuredPairs) ? config.featuredPairs : [];
         return [...new Set(pairs)].filter(pair => /^[A-Z]{3}\\/[A-Z]{3}$/.test(pair)).map(pair => {
