@@ -87,6 +87,28 @@
             }));
     }
 
+    // FX discovery uses only configured pairs. Historical coverage and subscriber
+    // entitlement remain verified by the existing intelligence card service.
+    const FX_CONFIG_URL = INDEX_URL.replace(/assets\\/data\\/search-index\\.json$/, "assets/data/fx/fx-config.json");
+    function fxPairEntries(config){
+        const pairs = Array.isArray(config.featuredPairs) ? config.featuredPairs : [];
+        return [...new Set(pairs)].filter(pair => /^[A-Z]{3}\\/[A-Z]{3}$/.test(pair)).map(pair => {
+            const [base, quote] = pair.split("/");
+            return {
+                id: "fx-pair-" + base + "-" + quote,
+                pageTitle: pair + " — Smart FX Intelligence",
+                sectionTitle: "Currency Pair",
+                url: "pages/fx/intelligence.html?" + new URLSearchParams({base, quote, period:"M"}),
+                type: "FX Intelligence",
+                category: "Currency Pair",
+                header: "FX Pairs & Pricing",
+                text: [pair, base + "-" + quote, base + quote, base + " " + quote,
+                    "Currency pair directory", "Historical reference intelligence",
+                    "Coverage verified on opening"].join(" · ")
+            };
+        });
+    }
+
     // Legal/policy text is real and searchable, but shouldn't drown out
     // research content for common words that appear in both.
     const CATEGORY_WEIGHT = {
@@ -115,10 +137,14 @@
             fetch(ANNOUNCEMENTS_URL)
                 .then(r => { if(!r.ok) throw new Error("announcement data unavailable"); return r.json(); })
                 .then(announcementEntries)
+                .catch(() => []),
+            fetch(FX_CONFIG_URL)
+                .then(r => { if(!r.ok) throw new Error("FX config unavailable"); return r.json(); })
+                .then(fxPairEntries)
                 .catch(() => [])
         ])
-            .then(([indexEntries, dashboardIndexEntries, announcementIndexEntries]) => {
-                entries = indexEntries.concat(dashboardIndexEntries, announcementIndexEntries);
+            .then(([indexEntries, dashboardIndexEntries, announcementIndexEntries, fxEntries]) => {
+                entries = indexEntries.concat(dashboardIndexEntries, announcementIndexEntries, fxEntries);
                 loaded = true;
             })
             .catch(() => {
