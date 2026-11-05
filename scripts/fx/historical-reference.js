@@ -6,6 +6,7 @@ const { regionForPair } = require("./archive-supabase.js");
 
 const ORIGIN = "https://api.frankfurter.dev";
 const SOURCE = "frankfurter-ecb";
+const { recoverFromEcbCsv } = require("./ecb-csv-fallback.js");
 
 function validDate(value){
     if(typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -90,7 +91,7 @@ function compactMissingPeriods(missing, expected){
     return periods;
 }
 
-function buildRecovery({ config, catalog, observations, from, to }){
+function buildRecovery({ config, catalog, observations, from, to, source = SOURCE, sourceName = "European Central Bank via Frankfurter", sourceUrl = "https://frankfurter.dev/providers/ecb/" }){
     const pairs = requestedPairs(config).pairs;
     const expectedDates = [...observations.keys()].sort();
     const rows = [];
@@ -100,7 +101,7 @@ function buildRecovery({ config, catalog, observations, from, to }){
         const method = rateMethod(pair);
         if(unsupportedCurrencies.length){
             return { pair, supported: false, unsupportedCurrencies, rateMethod: null,
-                source: SOURCE, earliestDate: null, latestDate: null,
+                source, earliestDate: null, latestDate: null,
                 distinctObservationDates: 0, missingPeriods: [] };
         }
         const eligibleDates = expectedDates.filter(date => date >= from && date <= to &&
@@ -120,11 +121,11 @@ function buildRecovery({ config, catalog, observations, from, to }){
             if(!Number.isFinite(rate) || rate <= 0) throw new Error(`FX_HISTORY_INVALID_DERIVED_RATE: ${pair} ${date}`);
             pairRows.push({ observation_date: date, base_currency: base,
                 target_currency: quote, rate, region: regionForPair(pair, config),
-                source: SOURCE, rate_method: method });
+                source, rate_method: method });
         });
         rows.push(...pairRows);
         return { pair, supported: true, unsupportedCurrencies: [], rateMethod: method,
-            source: SOURCE, earliestDate: pairRows[0]?.observation_date || null,
+            source, earliestDate: pairRows[0]?.observation_date || null,
             latestDate: pairRows.at(-1)?.observation_date || null,
             distinctObservationDates: pairRows.length,
             missingPeriods: compactMissingPeriods(missing, eligibleDates) };
@@ -132,7 +133,7 @@ function buildRecovery({ config, catalog, observations, from, to }){
     const unsupportedCurrencies = [...new Set(coverage.flatMap(item => item.unsupportedCurrencies))].sort();
     return { rows, report: {
         generatedAt: new Date().toISOString(), requestedFrom: from, requestedTo: to,
-        source: SOURCE, sourceName: "European Central Bank via Frankfurter",
+        source, sourceName,
         sourceUrl: "https://frankfurter.dev/providers/ecb/",
         pairUniverse: pairs.length,
         supportedPairs: coverage.filter(item => item.supported).length,
@@ -146,7 +147,7 @@ function buildRecovery({ config, catalog, observations, from, to }){
     } };
 }
 
-async function recoverHistoricalReference({ config, from, to, fetchImpl = globalThis.fetch }){
+async function recoverHistoricalReferenceFrankfurter({ config, from, to, fetchImpl = globalThis.fetch }){
     const catalog = normalizeCatalog(await fetchJson(fetchImpl, "currencies?providers=ecb"));
     const configuredCurrencies = [...new Set(requestedPairs(config).pairs.flatMap(pair => pair.split("/")))];
     const quotes = configuredCurrencies.filter(code => code !== "EUR" && catalog.has(code)).sort();
@@ -172,7 +173,29 @@ async function recoverHistoricalReference({ config, from, to, fetchImpl = global
     return buildRecovery({ config, catalog, observations, from, to });
 }
 
-function renderCoverageMarkdown(report){
+function isTransientSourceFailure(error){
+      const message = String(error?.message || "");
+      return /^FX_HISTORY_SOURCE_HTTP_5\d\d$/.test(message) ||
+        /^FX_HISTORY_SOURCE_HTTP_429$/.test(message) ||
+        error?.name === "AbortError" ||
+        error?.name === "TimeoutError" ||
+        /fetch failed|network error|timed out/i.test(message);
+    }
+
+    async function recoverHistoricalReference(options){
+      try {
+        return await recoverHistoricalReferenceFrankfurter(options);
+      } catch(error){
+        if(!isTransientSourceFailure(error)) throw error;
+        return recoverFromEcbCsv({
+          ...options,
+          fetchImpl: options.fetchImpl || globalThis.fetch,
+          buildRecovery
+        });
+      }
+    }
+
+    function renderCoverageMarkdown(report){
     const lines = [
         "# M39-FX Stage 1 Historical Coverage",
         "",
