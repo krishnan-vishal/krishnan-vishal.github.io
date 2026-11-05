@@ -2638,3 +2638,26 @@ gpir-fx-card {
     min-height: 0;
   }
 }
+
+/* M39-FX targeted visual acceptance: readable provenance and compact hero. */
+.fxi-card-content .fxi-provenance .fxi-disclaimer {
+  color: #24364c;
+  font-weight: 500;
+}
+
+.fxi-card-content .fxi-header {
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.fxi-card-content .fxi-header-rate,
+.fxi-card-content .fxi-header-range {
+  min-width: 0;
+}
+
+@media (max-width: 800px) {
+  .fxi-card-content .fxi-header {
+    gap: 0.6rem;
+    padding: 0.7rem;
+  }
+}
