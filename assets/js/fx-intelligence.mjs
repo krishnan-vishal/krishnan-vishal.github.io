@@ -10,6 +10,23 @@ const PERIODS = Object.freeze([
 ]);
 const CACHE_TTL_MS = 60 * 1000;
 const AUTO_REFRESH_MS = 30 * 60 * 1000;
+const FX_EDITORIAL_URL = '/assets/data/fx/editorial-public.json';
+let editorialIndexRequest = null;
+async function loadPublishedFxEditorial() {
+  if (!editorialIndexRequest) editorialIndexRequest = fetch(FX_EDITORIAL_URL, {cache:'no-store'})
+    .then(response => response.ok ? response.json() : null)
+    .then(data => data?.source === 'contentful-published-public' && Array.isArray(data.records)
+      ? data.records : [])
+    .catch(() => []);
+  return editorialIndexRequest;
+}
+export function publishedPairEditorial(records, pair) {
+  const code = pair?.base + '/' + pair?.quote;
+  return Array.isArray(records) ? records.filter(item =>
+    item?.pair === code && typeof item.title === 'string' &&
+    typeof item.summary === 'string' && typeof item.url === 'string' && item.url.startsWith('/') && !item.url.startsWith('//') && !item.url.includes('..'))
+    .slice(0, 3) : [];
+}
 const RESPONSE_CACHE_MAX_ENTRIES = 24;
 const responseCache = new Map();
 const pendingRequests = new Map();
@@ -306,7 +323,7 @@ function previousLabel(current, previous) {
   return `Current ${percent(current.changePercent)} vs previous ${percent(previous.changePercent)} (${percent(delta)} percentage-point difference).`;
 }
 
-export function buildCardMarkup(history, capture, captureStatus, selectedPeriod, amount) {
+export function buildCardMarkup(history, capture, captureStatus, selectedPeriod, amount, editorialRecords = []) {
   const pair = normalizeFxPair(...history.pair.split('/'));
   const allPoints = sortedPoints(history.points);
   const anchor = history.lastFixingDate;
@@ -373,7 +390,9 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
   const movementTakeaway = metrics.status === 'AVAILABLE'
     ? `The pair ${metrics.changePercent >= 0 ? 'rose' : 'fell'} ${percent(metrics.changePercent)} across ${metrics.observations} observed fixings.`
     : 'Movement summary unavailable for this period.';
-  const editorialTakeaway = 'No cited pair-specific research is attached to this period.';
+  const approvedEditorial = publishedPairEditorial(editorialRecords, pair);
+  const editorialTakeaway = approvedEditorial.length
+    ? approvedEditorial[0].summary : 'No cited pair-specific research is attached to this period.';
   const crossBorderTakeaway = metrics.status === 'AVAILABLE'
     ? `A ${number(amount, 0)} ${pair.base} reference conversion differs by ${number(amount * metrics.change, 2)} ${pair.quote} across this period.`
     : 'No conversion comparison is available for this period.';
@@ -389,10 +408,10 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
       evidence: `${metrics.status === 'AVAILABLE' ? `${metrics.observations} fixings; high ${rateText(metrics.high.rate, pair)} on ${metrics.high.date}; low ${rateText(metrics.low.rate, pair)} on ${metrics.low.date}.` : 'Insufficient observations for computed evidence.'}`,
       source: `${sourceLink} · observed window ${escapeHtml(evidenceWindow)}.` },
     { number: '02', type: 'EDITORIAL / CITED', title: 'Economic & policy drivers',
-      body: 'No validated, pair-specific editorial research is currently attached. No causal driver is inferred from rate movement.',
+      body: approvedEditorial.length ? approvedEditorial.map(item => item.title).join(' · ') : 'No validated, pair-specific editorial research is currently attached. No causal driver is inferred from rate movement.',
       takeaway: editorialTakeaway,
-      evidence: 'GPIR editorial evidence is unavailable for this pair and selected period; rate movement alone is not treated as evidence of a policy or economic cause.',
-      source: 'Research source unavailable — no event, statement, forecast or causal claim has been added.' },
+      evidence: approvedEditorial.length ? 'Published Contentful editorial references explicitly name this pair; verify publication dates against the selected historical period. No causal driver is inferred from rate movement alone.' : 'GPIR editorial evidence is unavailable for this pair and selected period; rate movement alone is not treated as evidence of a policy or economic cause.',
+      source: approvedEditorial.length ? approvedEditorial.map(item => '<a href="' + escapeHtml(item.url) + '">' + escapeHtml(item.title) + '</a>').join(' · ') : 'Research source unavailable — no event, statement, forecast or causal claim has been added.' },
     { number: '03', type: 'COMPUTED', title: 'Cross-border implications',
       body: crossBorderBrief, takeaway: crossBorderTakeaway,
       evidence: `Reference-only comparison uses the first and latest observed fixings in ${escapeHtml(evidenceWindow)} and the entered amount; it excludes fees, spreads and provider quotes.`,
@@ -594,8 +613,9 @@ class GpirFxCard extends HTMLElementBase {
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
     try {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
+      const editorialRecords = await loadPublishedFxEditorial();
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount)}</main>`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
