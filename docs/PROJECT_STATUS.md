@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39-FX — Contentful editorial activation review
+
+- **Branch / baseline:** `codex/m39-fx-production-closure`, fast-forwarded to `origin/main` `20b420ce9395a2f5b4f2b252738299c1b853555b` after PRs #510–#512 merged. Unrelated untracked recovery/design artifacts remain untouched.
+- **Estate decision:** authenticated M35 delivery build #5 artifact digest matches GitHub and contains 35 delivered publications, but no explicit USD/JPY or USD/SGD pair publication. The closest Singapore country entry (`79IwPy4ChfJ04brzBF2BNS`) is general, `WARN`, status-null, public-classification-null material and is not eligible. Decision: `NO_APPROVED_PAIR_SPECIFIC_PUBLICATION`; exported and Production FX editorial record count remains zero.
+- **Prepared draft:** a review-only USD/JPY `gpirPublication` field mapping uses verified BIS, Bank of Japan, Federal Reserve and ECB sources. It records the reference window and provenance without presenting Supabase/ECB calculations as independent research, and explicitly rejects causal inference, executable pricing and forecasts. Governed IDs, Supabase UUID, lifecycle, publication date and public classification remain null/pending.
+- **Release boundary:** no Contentful write, approval, publish action, workflow dispatch, index promotion, production deployment, Supabase mutation or application-code change occurred. The existing bridge has an unresolved `PUBLISHED` filter versus the authoritative `CURRENT`/`HISTORICAL` lifecycle contract; it was documented but not changed under the no-filter-change gate.
+- **Next dependency:** owner/editorial approval of the draft and sources; identity/lineage/Supabase allocation; CURRENT/public/canonical-route approval; controlled Contentful Draft creation and publication; owner-approved contract-aligned bridge correction; delivery rebuild, reviewed index promotion and live USD/JPY card verification.
+
 ### M39-FX — Final UI/UX refinement and intelligence evidence closure
 
 - **Branch / base:** `codex/m39-fx-ui-refinement`, created from `origin/main` at `aef4bed9c7f0734c404c176f8ff796d3acb55f68` after PR #502 merged. User-owned untracked recovery/design artifacts remain untouched.

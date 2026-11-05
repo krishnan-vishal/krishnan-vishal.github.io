@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39-FX Contentful editorial activation
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-FX-CONTENTFUL-ACTIVATION | 2026-11-05 | Establish the first governed, source-backed pair-specific Contentful publication for Smart FX Intelligence without weakening publication controls | EDITORIAL, CONTENTFUL, FX, GOVERNANCE | High | BLOCKED | Owner/editorial source approval; governed publication/lineage/Supabase identity allocation; lifecycle/public classification/canonical-route approval; contract-aligned bridge release gate | Stage 1 | Existing `gpirPublication` model, M35 delivery workflow, M39 FX editorial bridge | Inspect the 35 delivered records once; identify a legitimate USD/JPY or USD/SGD publication or document absence; prepare a source-backed review Draft; stop before unapproved publication or deployment. | Explicit eligibility decision and entry IDs; verified primary sources/dates/URLs; review-ready field mapping; no unpublished/premium leak; exported count recorded; exact approval and deployment steps documented; dashboard and data systems unchanged. | `NO_APPROVED_PAIR_SPECIFIC_PUBLICATION`. No delivered entry explicitly names USD/JPY or USD/SGD. Singapore entry `79IwPy4ChfJ04brzBF2BNS` is general, WARN, status-null and public-classification-null. Review-only USD/JPY draft prepared from BIS/BOJ/Federal Reserve/ECB evidence with IDs, lifecycle, publication date and public access left unresolved. Exported/Production count remains zero; no write, dispatch or deployment occurred. | PENDING owner/editorial approvals | Current review branch | M39-FX |
+
 ## M39-FX final UI/UX refinement
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
