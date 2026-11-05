@@ -5,7 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const { insertArchiveRows, legacyArchiveRows } = require("./fx/archive-supabase.js");
 const { argumentsFrom, main: backfillMain } = require("./fx/backfill-historical-reference.js");
-const { monthWindows, recoverHistoricalReference, renderCoverageMarkdown } = require("./fx/historical-reference.js");
+const { buildRecovery, monthWindows, recoverHistoricalReference,
+    renderCoverageMarkdown } = require("./fx/historical-reference.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const config = JSON.parse(fs.readFileSync(path.join(ROOT, "assets", "data", "fx", "fx-config.json"), "utf8"));
@@ -31,7 +32,7 @@ async function mockFetch(url){
     assert.strictEqual(request.searchParams.get("from"), "2026-01-01");
     assert.strictEqual(request.searchParams.get("to"), "2026-01-05");
     const quotes = request.searchParams.get("quotes").split(",");
-    return { ok: true, json: async () => ["2026-01-02", "2026-01-05"].flatMap(date =>
+    return { ok: true, json: async () => ["2025-12-31", "2026-01-02", "2026-01-05"].flatMap(date =>
         quotes.map(quote => ({ date, base: "EUR", quote, rate: sourceRates[quote] }))) };
 }
 
@@ -55,8 +56,14 @@ async function main(){
     assert.match(workflow, /FX_HISTORY_OBSERVATION_IDENTITY_ENABLED:\s*\$\{\{\s*vars\.FX_HISTORY_OBSERVATION_IDENTITY_ENABLED\s*\}\}/);
     assert.match(migration, /unique index if not exists uq_fx_historical_archive_observation/i);
     assert.match(migration, /observation_date, source, rate_method/);
-    assert.strictEqual(committedReport.split("\n")
-        .filter(line => /^\| [A-Z]{3}\/[A-Z]{3} \| (SUPPORTED|UNSUPPORTED)/.test(line)).length, 134);
+    const committedPairLines = committedReport.split("\n")
+        .filter(line => /^\| [A-Z]{3}\/[A-Z]{3} \| (SUPPORTED|UNSUPPORTED)/.test(line));
+    assert.strictEqual(committedPairLines.length, 134);
+    assert.strictEqual(committedPairLines.filter(line => line.includes("| SUPPORTED |")).length, 60);
+    assert.strictEqual(committedPairLines.filter(line => line.includes("| UNSUPPORTED ")).length, 74);
+    assert.ok(committedPairLines.filter(line => line.includes("| SUPPORTED |")).every(line =>
+        line.includes("| 2026-01-02 | 2026-11-04 | 216 | None |")));
+    assert.match(committedReport, /Planned idempotent rows: \*\*12,960\*\*/);
     assert.match(committedReport, /\| EUR\/JPY \| Supported source; not in configured 134 \|/);
 
     const recovery = await recoverHistoricalReference({ config, from: "2026-01-01",
@@ -88,6 +95,15 @@ async function main(){
     const markdown = renderCoverageMarkdown(recovery.report);
     assert.match(markdown, /USD\/JPY \| SUPPORTED \| derived-cross/);
     assert.match(markdown, /AED\/INR \| UNSUPPORTED \(AED\)/);
+    const inactiveRecovery = buildRecovery({ config: { featuredPairs: ["EUR/RUB"],
+        targetRegionalCurrencies: {}, marketRegions: {} }, catalog: new Map([
+        ["EUR", { code: "EUR", name: "Euro", startDate: "1999-01-04", endDate: null }],
+        ["RUB", { code: "RUB", name: "Russian Rouble", startDate: "2005-04-01",
+            endDate: "2022-03-01" }]
+    ]), observations: new Map([["2026-01-02", new Map()]]), from: "2026-01-01",
+    to: "2026-01-05" });
+    assert.strictEqual(inactiveRecovery.report.supportedPairs, 0);
+    assert.deepStrictEqual(inactiveRecovery.report.unsupportedCurrencies, ["RUB"]);
 
     const calls = [];
     const client = { from(table){
