@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Currency Pair Directory | FINTECHOISIS GPIR</title>
+<meta name="description" content="Browse configured GPIR currency pairs and open attributed historical FX intelligence.">
+<link rel="stylesheet" href="../../assets/css/variables.css">
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;font:16px Arial,sans-serif;color:#102847;background:#faf9f6}a{color:#124b84}header{background:white;border-top:4px solid #d2a537;padding:18px clamp(16px,4vw,60px);display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap}header strong{letter-spacing:2px;font-size:22px}nav{display:flex;gap:18px;flex-wrap:wrap}main{max-width:1240px;margin:auto;padding:24px 20px 55px}h1{font-size:30px;margin:12px 0}p{line-height:1.55}.controls{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}input,select{font:inherit;border:1px solid #9aabc0;border-radius:8px;padding:13px;background:white;color:#102847}input{flex:1;min-width:220px}.legend{background:#f2eee5;border-radius:9px;padding:14px;margin-bottom:20px}.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:14px}.card{border:1px solid #ddd7ca;background:white;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px}.card h2{font-size:21px;margin:0}.card p{margin:0;font-size:14px}.card a{display:inline-block;margin-top:auto;background:#102847;color:white;text-decoration:none;padding:11px 14px;border-radius:7px;text-align:center}.state{font-size:12px;font-weight:bold;color:#71521b}.note{font-size:13px;color:#40546e}footer{border-top:1px solid #ddd;padding:24px;text-align:center;font-size:13px;color:#102847}@media(max-width:520px){header{align-items:flex-start}nav{gap:12px}}
+</style>
+</head>
+<body>
+<header><strong>FINTECHOISIS <small>· GPIR</small></strong><nav aria-label="Currency navigation"><a href="../../index.html">Home</a><a href="./index.html">FX Pairs &amp; Pricing</a><a href="../../reader/my-gpir/">My GPIR</a><a href="../../index.html#gpir-search">Search GPIR</a></nav></header>
+<main><p>GPIR · FX INTELLIGENCE</p><h1>Currency pair directory</h1>
+<p>Choose a pair to open its intelligence card. The directory uses GPIR's configured pair list. Historical intelligence is shown only when the source and subscriber access are verified by the existing card service.</p>
+<div class="controls"><input id="search" type="search" placeholder="Search USD, JPY, INR, AED or a pair" aria-label="Search currency pairs"><select id="region" aria-label="Filter by region"><option value="">All regions</option></select></div>
+<div class="legend"><strong>Coverage legend:</strong> Configured for GPIR FX does not mean verified historical coverage. <strong>Check historical coverage</strong> opens the existing subscriber card, which reports available history or a specific unavailable reason. No rates or coverage dates are inferred here.</div>
+<p id="count" role="status"></p><div class="cards" id="cards"></div>
+<p class="note">The reference source may not support some currencies (including some GCC pairs). FX pricing and historical intelligence are separate datasets.</p>
+</main><footer>GPIR currency intelligence is informational. Reference rates are not executable transaction quotes.</footer>
+<script type="module">
+const search=document.querySelector('#search'),region=document.querySelector('#region'),cards=document.querySelector('#cards'),count=document.querySelector('#count');
+try{
+const response=await fetch('../../assets/data/fx/fx-config.json',{cache:'no-store'});
+if(!response.ok)throw Error('Directory configuration unavailable');
+const config=await response.json();
+const pairs=[...new Set(config.featuredPairs||[])].filter(pair=>/^[A-Z]{3}\/[A-Z]{3}$/.test(pair));
+const groups=config.marketRegions||{};
+for(const name of Object.keys(groups)){const option=document.createElement('option');option.value=name;option.textContent=name;region.append(option)}
+function render(){
+const query=search.value.trim().toUpperCase(),area=region.value;
+const shown=pairs.filter(pair=>(!query||pair.includes(query)||pair.replace('/','').includes(query))&&(!area||(groups[area]||[]).includes(pair)));
+cards.replaceChildren();
+for(const pair of shown){
+const [base,quote]=pair.split('/');
+const card=document.createElement('article');card.className='card';
+const title=document.createElement('h2');title.textContent=pair;
+const state=document.createElement('span');state.className='state';state.textContent='Historical coverage: verify on opening';
+const description=document.createElement('p');description.textContent='Configured FX pair · source history and entitlement checked by intelligence service';
+const link=document.createElement('a');link.href='./intelligence.html?'+new URLSearchParams({base,quote,period:'M'});link.textContent='Check historical coverage';
+card.append(title,state,description,link);cards.append(card)
+}
+count.textContent=shown.length+' configured pair'+(shown.length===1?'':'s')+' shown';
+}
+search.addEventListener('input',render);region.addEventListener('change',render);render();
+}catch(error){count.textContent='Currency directory is temporarily unavailable. Please return to FX Pairs & Pricing.'}
+</script>
+</body></html>
