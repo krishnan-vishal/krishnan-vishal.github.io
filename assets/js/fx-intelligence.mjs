@@ -589,12 +589,12 @@ class GpirFxCard extends HTMLElementBase {
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><section class="fxi-access"><h2>Select a valid currency pair</h2><p>Choose two different three-letter currency codes.</p></section>`;
       return;
     }
+    const enteredAmount = Number(this.shadowRoot.querySelector('[data-amount]')?.value);
+    const amount = Number.isFinite(enteredAmount) && enteredAmount >= 0 ? enteredAmount : 1000;
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
     try {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      const enteredAmount = Number(this.shadowRoot.querySelector('[data-amount]')?.value);
-      const amount = Number.isFinite(enteredAmount) && enteredAmount >= 0 ? enteredAmount : 1000;
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount)}</main>`;
       this.bindControls(pair);
     } catch (error) {
