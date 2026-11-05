@@ -222,3 +222,4 @@ function isTransientSourceFailure(error){
 
 module.exports = { SOURCE, activeOn, buildRecovery, compactMissingPeriods, monthWindows,
     normalizeCatalog, rateMethod, recoverHistoricalReference, renderCoverageMarkdown, validDate };
+
