@@ -6,6 +6,7 @@ const { regionForPair } = require("./archive-supabase.js");
 
 const ORIGIN = "https://api.frankfurter.dev";
 const SOURCE = "frankfurter-ecb";
+const { recoverFromEcbCsv } = require("./ecb-csv-fallback.js");
 
 function validDate(value){
     if(typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -36,7 +37,14 @@ async function fetchJson(fetchImpl, path){
             signal: controller.signal
         });
         if(!response.ok) throw new Error(`FX_HISTORY_SOURCE_HTTP_${response.status}`);
-        return await response.json();
+        try{
+            return await response.json();
+        } catch(error){
+            const code = path.startsWith("providers/ecb/rates?")
+                ? "FX_HISTORY_INVALID_RATE_RESPONSE"
+                : "FX_HISTORY_INVALID_CURRENCY_CATALOG";
+            throw new Error(code, { cause: error });
+        }
     } finally {
         clearTimeout(timeout);
     }
@@ -90,17 +98,21 @@ function compactMissingPeriods(missing, expected){
     return periods;
 }
 
-function buildRecovery({ config, catalog, observations, from, to }){
+function buildRecovery({ config, catalog, observations, from, to, source = SOURCE, sourceName = "European Central Bank via Frankfurter", sourceUrl = "https://frankfurter.dev/providers/ecb/" }){
     const pairs = requestedPairs(config).pairs;
     const expectedDates = [...observations.keys()].sort();
     const rows = [];
     const coverage = pairs.map(pair => {
         const [base, quote] = pair.split("/");
-        const unsupportedCurrencies = [base, quote].filter(code => !catalog.has(code));
+        const unsupportedCurrencies = [base, quote].filter(code => {
+            const metadata = catalog.get(code);
+            return !metadata || metadata.startDate > to ||
+                (metadata.endDate && metadata.endDate < from);
+        });
         const method = rateMethod(pair);
         if(unsupportedCurrencies.length){
             return { pair, supported: false, unsupportedCurrencies, rateMethod: null,
-                source: SOURCE, earliestDate: null, latestDate: null,
+                source, earliestDate: null, latestDate: null,
                 distinctObservationDates: 0, missingPeriods: [] };
         }
         const eligibleDates = expectedDates.filter(date => date >= from && date <= to &&
@@ -120,11 +132,11 @@ function buildRecovery({ config, catalog, observations, from, to }){
             if(!Number.isFinite(rate) || rate <= 0) throw new Error(`FX_HISTORY_INVALID_DERIVED_RATE: ${pair} ${date}`);
             pairRows.push({ observation_date: date, base_currency: base,
                 target_currency: quote, rate, region: regionForPair(pair, config),
-                source: SOURCE, rate_method: method });
+                source, rate_method: method });
         });
         rows.push(...pairRows);
         return { pair, supported: true, unsupportedCurrencies: [], rateMethod: method,
-            source: SOURCE, earliestDate: pairRows[0]?.observation_date || null,
+            source, earliestDate: pairRows[0]?.observation_date || null,
             latestDate: pairRows.at(-1)?.observation_date || null,
             distinctObservationDates: pairRows.length,
             missingPeriods: compactMissingPeriods(missing, eligibleDates) };
@@ -132,8 +144,8 @@ function buildRecovery({ config, catalog, observations, from, to }){
     const unsupportedCurrencies = [...new Set(coverage.flatMap(item => item.unsupportedCurrencies))].sort();
     return { rows, report: {
         generatedAt: new Date().toISOString(), requestedFrom: from, requestedTo: to,
-        source: SOURCE, sourceName: "European Central Bank via Frankfurter",
-        sourceUrl: "https://frankfurter.dev/providers/ecb/",
+        source, sourceName,
+        sourceUrl,
         pairUniverse: pairs.length,
         supportedPairs: coverage.filter(item => item.supported).length,
         unsupportedPairs: coverage.filter(item => !item.supported).length,
@@ -146,7 +158,7 @@ function buildRecovery({ config, catalog, observations, from, to }){
     } };
 }
 
-async function recoverHistoricalReference({ config, from, to, fetchImpl = globalThis.fetch }){
+async function recoverHistoricalReferenceFrankfurter({ config, from, to, fetchImpl = globalThis.fetch }){
     const catalog = normalizeCatalog(await fetchJson(fetchImpl, "currencies?providers=ecb"));
     const configuredCurrencies = [...new Set(requestedPairs(config).pairs.flatMap(pair => pair.split("/")))];
     const quotes = configuredCurrencies.filter(code => code !== "EUR" && catalog.has(code)).sort();
@@ -158,10 +170,14 @@ async function recoverHistoricalReference({ config, from, to, fetchImpl = global
         if(!Array.isArray(payload)) throw new Error("FX_HISTORY_INVALID_RATE_RESPONSE");
         payload.forEach(item => {
             const rate = Number(item?.rate);
-            if(!validDate(item?.date) || item.date < window.from || item.date > window.to ||
-                item.base !== "EUR" || !quotes.includes(item.quote) || !Number.isFinite(rate) || rate <= 0){
+            if(!validDate(item?.date) || item.date > window.to || item.base !== "EUR" ||
+                !quotes.includes(item.quote) || !Number.isFinite(rate) || rate <= 0){
                 throw new Error("FX_HISTORY_INVALID_RATE_RESPONSE");
             }
+            // Frankfurter may include the last rate in force immediately before
+            // a requested window. It is valid provider context, not an observation
+            // inside the requested recovery period.
+            if(item.date < window.from) return;
             if(!observations.has(item.date)) observations.set(item.date, new Map());
             const existing = observations.get(item.date).get(item.quote);
             if(existing != null && existing !== rate) throw new Error("FX_HISTORY_CONFLICTING_SOURCE_RATE");
@@ -172,7 +188,32 @@ async function recoverHistoricalReference({ config, from, to, fetchImpl = global
     return buildRecovery({ config, catalog, observations, from, to });
 }
 
-function renderCoverageMarkdown(report){
+function isTransientSourceFailure(error){
+      const message = String(error?.message || "");
+      return /^FX_HISTORY_SOURCE_HTTP_5\d\d$/.test(message) ||
+        /^FX_HISTORY_SOURCE_HTTP_429$/.test(message) ||
+        ["FX_HISTORY_INVALID_CURRENCY_CATALOG", "FX_HISTORY_INVALID_RATE_RESPONSE",
+          "FX_HISTORY_CONFLICTING_SOURCE_RATE", "FX_HISTORY_NO_SOURCE_OBSERVATIONS"].includes(message) ||
+        error?.name === "AbortError" ||
+        error?.name === "TimeoutError" ||
+        /fetch failed|network error|timed out/i.test(message);
+    }
+
+    async function recoverHistoricalReference(options){
+      try {
+        return await recoverHistoricalReferenceFrankfurter(options);
+      } catch(error){
+        if(!isTransientSourceFailure(error)) throw error;
+        return recoverFromEcbCsv({
+          ...options,
+          fetchImpl: options.fetchImpl || globalThis.fetch,
+          buildRecovery,
+          windows: monthWindows(options.from, options.to)
+        });
+      }
+    }
+
+    function renderCoverageMarkdown(report){
     const lines = [
         "# M39-FX Stage 1 Historical Coverage",
         "",
@@ -199,3 +240,4 @@ function renderCoverageMarkdown(report){
 
 module.exports = { SOURCE, activeOn, buildRecovery, compactMissingPeriods, monthWindows,
     normalizeCatalog, rateMethod, recoverHistoricalReference, renderCoverageMarkdown, validDate };
+

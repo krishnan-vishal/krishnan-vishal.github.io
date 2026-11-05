@@ -4,7 +4,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
   pointsForPeriod, previousPeriodPoints, selectionFromSearch,
-  fxIntelligenceReturnTo, accessMarkup } from '../../assets/js/fx-intelligence.mjs';
+  fxIntelligenceReturnTo, accessMarkup, buildCardMarkup, referenceConversion }
+  from '../../assets/js/fx-intelligence.mjs';
 import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, subscriptionConfig,
   validSubscriptionConfig, verifySubscription }
   from '../../assets/js/gpir-paypal-subscription.mjs';
@@ -295,6 +296,59 @@ test('last comparable rate uses the last earlier observed fixing within disclose
   assert.deepEqual(comparableRateObservation(points, 100.5),
     { date: '2026-01-01', rate: 100 });
   assert.equal(comparableRateObservation(points, 120), null);
+});
+
+test('reference converter rejects invalid inputs and computes the selected pair amount', () => {
+  assert.equal(referenceConversion(1000, 156.4), 156400);
+  assert.equal(referenceConversion(-1, 156.4), null);
+  assert.equal(referenceConversion(1000, 0), null);
+  assert.equal(referenceConversion(Number.NaN, 156.4), null);
+});
+
+test('subscriber dashboard renders synchronized periods and expandable sourced briefs', () => {
+  const history = {
+    pair: 'USD/JPY', baseName: 'US Dollar', quoteName: 'Japanese Yen',
+    currencies: Object.fromEntries(catalog.map(currency =>
+      [currency.iso_code, currency.name])),
+    points: Array.from({ length: 30 }, (_, index) => ({
+      date: new Date(Date.UTC(2026, 9, 1 + index)).toISOString().slice(0, 10),
+      rate: 150 + index / 10
+    })),
+    firstFixingDate: '2026-10-01', lastFixingDate: '2026-10-30',
+    retrievedAt: '2026-11-04T00:00:00.000Z',
+    source: 'European Central Bank via Frankfurter',
+    sourceUrl: 'https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/',
+    sourceTermsUrl: 'https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html',
+    providerUrl: 'https://frankfurter.dev/', rateMethod: 'ECB_DIRECT_REFERENCE_RATE',
+    peerStatus: 'AVAILABLE', peerComparisons: [
+      { pair: 'EUR/JPY', rate: 178.3, date: '2026-10-30' }
+    ]
+  };
+  const markup = buildCardMarkup(history, null, 'UNAVAILABLE', 'Q', 1000);
+  assert.equal((markup.match(/data-period=/g) || []).length, 6);
+  assert.match(markup, /data-period="Q"[^>]+aria-pressed="true"/);
+  assert.match(markup, /152,900\.00 JPY/);
+  assert.match(markup, /latest fixing/);
+  assert.match(markup, /<details class="fxi-heatmap-details">/);
+  assert.equal((markup.match(/class="fxi-section fxi-brief-card"/g) || []).length, 4);
+  assert.equal((markup.match(/Evidence, detail &amp; sources/g) || []).length, 4);
+  assert.match(markup, /No validated, pair-specific editorial research is currently attached/);
+  assert.match(markup, /Research source unavailable/);
+  assert.match(markup, /100th percentile/);
+  assert.match(markup, /rel="noopener noreferrer">ECB reference-rate source/);
+  assert.match(markup, /2026-10-01 to 2026-10-30/);
+  assert.match(markup, /Methodology &amp; archive separation/);
+});
+
+test('FX Intelligence page exposes homepage-aligned desktop and mobile navigation', async () => {
+  const page = await readFile(new URL('../../pages/fx/intelligence.html',
+    import.meta.url), 'utf8');
+  assert.match(page, /class="fxi-page-brand"/);
+  assert.match(page, /class="fxi-desktop-nav"/);
+  assert.match(page, /<details class="fxi-mobile-nav">/);
+  assert.match(page, /class="fxi-footer-brand"/);
+  assert.match(page, /fo-logo-horizontal\.svg/);
+  assert.match(page, /href="#main-content">Skip to FX Intelligence/);
 });
 
 test('FX history requires a server-verified authenticated session', async () => {
