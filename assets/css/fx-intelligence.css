@@ -2641,8 +2641,9 @@ gpir-fx-card {
 
 /* M39-FX targeted visual acceptance: readable provenance and compact hero. */
 .fxi-card-content .fxi-provenance .fxi-disclaimer {
-  color: #24364c;
+  color: #24364c !important;
   font-weight: 500;
+  border-top-color: #d5cbbc;
 }
 
 .fxi-card-content .fxi-header {
