@@ -9,6 +9,7 @@ const PERIODS = Object.freeze([
   Object.freeze({ id: 'MAX', label: 'Maximum Available History', months: null })
 ]);
 const CACHE_TTL_MS = 60 * 1000;
+const AUTO_REFRESH_MS = 30 * 60 * 1000;
 const RESPONSE_CACHE_MAX_ENTRIES = 24;
 const responseCache = new Map();
 const pendingRequests = new Map();
@@ -540,6 +541,11 @@ class GpirFxCard extends HTMLElementBase {
     super();
     this.attachShadow({ mode: 'open' });
     this.requestNumber = 0;
+    this.lastRefreshAt = 0;
+    this.onVisibilityChange = () => {
+      if (globalThis.document?.visibilityState === 'visible' &&
+          Date.now() - this.lastRefreshAt >= AUTO_REFRESH_MS) void this.refresh();
+    };
   }
 
   connectedCallback() {
@@ -554,7 +560,18 @@ class GpirFxCard extends HTMLElementBase {
       }
     }
     if (!this.hasAttribute('period')) this.setAttribute('period', 'M');
+    this.refreshTimer = globalThis.setInterval?.(() => {
+      if (globalThis.document?.visibilityState !== 'hidden') void this.refresh();
+    }, AUTO_REFRESH_MS);
+    globalThis.document?.addEventListener?.('visibilitychange', this.onVisibilityChange);
     void this.refresh();
+  }
+
+  disconnectedCallback() {
+    if (this.refreshTimer != null) globalThis.clearInterval?.(this.refreshTimer);
+    this.refreshTimer = null;
+    globalThis.document?.removeEventListener?.('visibilitychange', this.onVisibilityChange);
+    this.requestNumber++;
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -564,6 +581,7 @@ class GpirFxCard extends HTMLElementBase {
 
   async refresh() {
     const sequence = ++this.requestNumber;
+    this.lastRefreshAt = Date.now();
     const pair = normalizeFxPair(this.getAttribute('base'), this.getAttribute('quote'));
     const period = PERIODS.some(item => item.id === this.getAttribute('period'))
       ? this.getAttribute('period') : 'M';
@@ -575,7 +593,9 @@ class GpirFxCard extends HTMLElementBase {
     try {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, 1000)}</main>`;
+      const enteredAmount = Number(this.shadowRoot.querySelector('[data-amount]')?.value);
+      const amount = Number.isFinite(enteredAmount) && enteredAmount >= 0 ? enteredAmount : 1000;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount)}</main>`;
       this.bindControls(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
