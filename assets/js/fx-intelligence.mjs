@@ -24,7 +24,7 @@ export function publishedPairEditorial(records, pair) {
   const code = pair?.base + '/' + pair?.quote;
   return Array.isArray(records) ? records.filter(item =>
     item?.pair === code && typeof item.title === 'string' &&
-    typeof item.summary === 'string' && /^\\/(?!\\/)[a-z0-9/_-]+\\/?$/i.test(item.url || ''))
+    typeof item.summary === 'string' && typeof item.url === 'string' && item.url.startsWith('/') && !item.url.startsWith('//') && !item.url.includes('..'))
     .slice(0, 3) : [];
 }
 const RESPONSE_CACHE_MAX_ENTRIES = 24;
