@@ -92,7 +92,7 @@
     const FX_CONFIG_URL = INDEX_URL.replace("assets/data/search-index.json", "assets/data/fx/fx-config.json");
     function fxPairEntries(config){
         const pairs = Array.isArray(config.featuredPairs) ? config.featuredPairs : [];
-        return [...new Set(pairs)].filter(pair => /^[A-Z]{3}\\/[A-Z]{3}$/.test(pair)).map(pair => {
+        return [...new Set(pairs)].filter(pair => /^[A-Z]{3}\/[A-Z]{3}$/.test(pair)).map(pair => {
             const [base, quote] = pair.split("/");
             return {
                 id: "fx-pair-" + base + "-" + quote,
