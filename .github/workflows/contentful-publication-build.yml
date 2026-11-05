@@ -21,8 +21,8 @@ permissions:
 
 jobs:
   generate-publication-input:
+    environment: contentful-production
     runs-on: ubuntu-latest
-    environment: ${{ inputs.mode == 'preview' && 'contentful-preview' || 'contentful-production' }}
     env:
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
