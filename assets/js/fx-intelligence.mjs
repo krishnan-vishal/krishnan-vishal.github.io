@@ -568,19 +568,19 @@ class GpirFxCard extends HTMLElementBase {
     const period = PERIODS.some(item => item.id === this.getAttribute('period'))
       ? this.getAttribute('period') : 'M';
     if (!pair) {
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css"><section class="fxi-access"><h2>Select a valid currency pair</h2><p>Choose two different three-letter currency codes.</p></section>`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><section class="fxi-access"><h2>Select a valid currency pair</h2><p>Choose two different three-letter currency codes.</p></section>`;
       return;
     }
-    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
+    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
     try {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, 1000)}</main>`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, 1000)}</main>`;
       this.bindControls(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
       const returnTo = fxIntelligenceReturnTo(pair, period);
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css">${accessMarkup(error, returnTo)}`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c">${accessMarkup(error, returnTo)}`;
       this.shadowRoot.querySelector('[data-retry]')?.addEventListener('click', () => void this.refresh());
     }
   }
@@ -618,7 +618,7 @@ class GpirFxCard extends HTMLElementBase {
 
   showSignedOut() {
     this.requestNumber++;
-    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
+    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
   }
 }
 
