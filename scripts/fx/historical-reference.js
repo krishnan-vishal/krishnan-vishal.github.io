@@ -177,6 +177,7 @@ function isTransientSourceFailure(error){
       const message = String(error?.message || "");
       return /^FX_HISTORY_SOURCE_HTTP_5\d\d$/.test(message) ||
         /^FX_HISTORY_SOURCE_HTTP_429$/.test(message) ||
+        message === "FX_HISTORY_INVALID_RATE_RESPONSE" ||
         error?.name === "AbortError" ||
         error?.name === "TimeoutError" ||
         /fetch failed|network error|timed out/i.test(message);
