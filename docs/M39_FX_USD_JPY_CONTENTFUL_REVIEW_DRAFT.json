@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "1.0.0",
+  "packageType": "GPIR_CONTENTFUL_EDITORIAL_REVIEW_DRAFT",
+  "decision": "NO_APPROVED_PAIR_SPECIFIC_PUBLICATION",
+  "preparedAt": "2026-11-05",
+  "contentfulDraft": {
+    "schemaVersion": "1.0.0",
+    "contentType": "GPIR Publication",
+    "technicalState": "Draft",
+    "fields": {
+      "gpirPublicationId": null,
+      "publicationTitle": "USD/JPY — Exchange Rate Dynamics and Monetary Policy Context",
+      "slug": "usd-jpy-exchange-rate-dynamics-monetary-policy-context",
+      "publicationType": "Research Publication",
+      "publicationStatus": null,
+      "region": "Global / APAC",
+      "countryMarket": "United States / Japan",
+      "directionScope": "USD/JPY",
+      "useCasePaymentCategory": "Cross-Border Payments; Treasury and Liquidity",
+      "publicationDate": null,
+      "dataCutOffDate": "2026-11-04",
+      "executiveSummary": "USD/JPY is a material global FX pair: the BIS reported a 14.3% share of global OTC FX turnover in April 2025. GPIR's 2 January–4 November 2026 reference history uses same-date ECB USD and JPY observations to derive the cross. October 2026 policy statements from the Bank of Japan and Federal Reserve provide verified monetary-policy context, but they do not by themselves prove why the pair moved. Payment and treasury readers should treat the GPIR series as reference evidence, not an executable quote or forecast.",
+      "editorialBody": {
+        "nodeType": "document",
+        "data": {},
+        "content": [
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "01 — Scope and reference period",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "This publication concerns USD/JPY for the reference period 2 January through 4 November 2026. GPIR's FX data authority records 216 same-date fixing observations for the period. The pair is derived as a cross from official ECB EUR reference-rate observations for USD and JPY; it is not an executable market quote, remittance rate or provider price.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "02 — Structural market context",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "The BIS Triennial Central Bank Survey reports that USD/JPY represented 14.3% of global OTC foreign-exchange turnover in April 2025 on a net-net basis, compared with 13.5% in 2022. This is a structural market-activity measure for April 2025, not evidence of the pair's direction in 2026.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "03 — Verified monetary-policy context",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "On 30 October 2026, the Bank of Japan stated that it would encourage the uncollateralized overnight call rate to remain at around 1.25% for the intermeeting period. On 28 October 2026, the Federal Open Market Committee maintained the federal funds target range at 3.75%–4.00%. These official settings establish contemporaneous policy context for the two currencies.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "04 — Correlation and causality boundary",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "Interest-rate settings and expectations are relevant to currency valuation, but this draft does not attribute any observed USD/JPY move to either central bank. Establishing causality would require a defined event study, intraday market data, controls for simultaneous information and evidence about market expectations. The daily reference series alone cannot provide that proof.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "05 — Cross-border payment and treasury implications",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "Variation in USD/JPY changes the reference conversion between dollar- and yen-denominated obligations. The BIS identifies outright forwards as instruments used to lock future exchange rates and FX swaps as instruments used to manage FX funding liquidity and hedge currency risk. This publication does not recommend a product or strategy. Actual payment and treasury outcomes depend on execution time, spreads, fees, liquidity, settlement arrangements and provider terms that are not represented by the ECB reference series.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "heading-2",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "06 — Sources, methodology and limitations",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "Sources: Bank for International Settlements, Triennial Central Bank Survey — OTC foreign exchange turnover in April 2025 (September 2025), https://www.bis.org/statistics/rpfx25_fx.pdf; Bank of Japan, Statement on Monetary Policy (30 October 2026), https://www.boj.or.jp/en/mopo/mpmdeci/mpr_2026/k261030a.pdf; Federal Reserve, FOMC statement (28 October 2026), https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm; European Central Bank, daily euro foreign-exchange reference series, retrieved 5 November 2026, https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          },
+          {
+            "nodeType": "paragraph",
+            "data": {},
+            "content": [
+              {
+                "nodeType": "text",
+                "value": "Methodology: GPIR preserves source fixing dates and derives non-EUR crosses only from same-date ECB observations. Editorial claims are limited to facts supported by the cited primary sources. Limitations: daily reference rates do not capture intraday reactions, market expectations, executable prices, transaction costs or causal effects. No forecast is provided.",
+                "marks": [],
+                "data": {}
+              }
+            ]
+          }
+        ]
+      },
+      "dashboardAsset": null,
+      "sourceValidationSummary": "Review draft only; not approved or published. Verified primary sources: BIS Triennial Central Bank Survey (September 2025); Bank of Japan Statement on Monetary Policy (2026-10-30); Federal Reserve FOMC statement (2026-10-28); ECB daily euro FX reference series retrieved 2026-11-05 through observation date 2026-11-04. GPIR historical coverage: 216 same-date USD/JPY derived-cross observations from 2026-01-02 through 2026-11-04. Causality, forecasts and executable pricing are expressly excluded.",
+      "legacySourceUrl": null,
+      "canonicalUrlCandidate": "/usd-jpy-exchange-rate-dynamics-monetary-policy-context/",
+      "editionLineageId": null,
+      "editionLabel": null,
+      "supabaseRecordId": null,
+      "migrationStatus": "Dry Run Prepared",
+      "validationStatus": "WARN"
+    },
+    "mediaAssociations": [],
+    "migrationWarnings": [],
+    "mappingGaps": [
+      {
+        "field": "gpirPublicationId",
+        "reason": "A governed publication identity has not been allocated.",
+        "authority": "Migration identity owner"
+      },
+      {
+        "field": "publicationStatus",
+        "reason": "The proposed CURRENT lifecycle value requires editorial approval.",
+        "authority": "Editorial mapper"
+      },
+      {
+        "field": "publicationDate",
+        "reason": "No publication action has been approved or performed.",
+        "authority": "Editorial owner"
+      },
+      {
+        "field": "editionLineageId",
+        "reason": "A governed lineage identity has not been allocated.",
+        "authority": "Lineage owner"
+      },
+      {
+        "field": "supabaseRecordId",
+        "reason": "No authoritative Supabase publication identity row has been created or supplied.",
+        "authority": "Supabase data steward"
+      },
+      {
+        "field": "presentation.accessClass",
+        "reason": "PUBLIC classification requires explicit authorization and manifest mapping.",
+        "authority": "Editorial owner"
+      }
+    ],
+    "reviewRequired": true,
+    "publishEligible": false,
+    "sourceRecordIdentity": {
+      "sourcePath": "docs/M39_FX_USD_JPY_CONTENTFUL_REVIEW_DRAFT.json",
+      "sourceHash": null,
+      "identityStatus": "provisional",
+      "provisionalId": null,
+      "referencedPublicationIds": [],
+      "dataPeriod": "2026-11-04",
+      "version": "review-1"
+    }
+  },
+  "proposedPresentation": {
+    "accessClass": "PUBLIC",
+    "authorizationState": "PENDING_OWNER_APPROVAL",
+    "publicDescription": "USD/JPY exchange-rate dynamics, verified monetary-policy context, payment implications and research limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/JPY",
+      "Monetary Policy",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "supportingSources": [
+    {
+      "authority": "Bank for International Settlements",
+      "title": "Triennial Central Bank Survey — OTC foreign exchange turnover in April 2025",
+      "publicationDate": "2025-09",
+      "url": "https://www.bis.org/statistics/rpfx25_fx.pdf",
+      "supportedClaims": [
+        "USD/JPY represented 14.3% of global OTC FX turnover in April 2025 on a net-net basis.",
+        "Outright forwards and FX swaps have documented exchange-rate and funding-risk management uses."
+      ]
+    },
+    {
+      "authority": "Bank of Japan",
+      "title": "Statement on Monetary Policy",
+      "publicationDate": "2026-10-30",
+      "url": "https://www.boj.or.jp/en/mopo/mpmdeci/mpr_2026/k261030a.pdf",
+      "supportedClaims": [
+        "The Bank of Japan set its intermeeting guideline around a 1.25% uncollateralized overnight call rate."
+      ]
+    },
+    {
+      "authority": "Board of Governors of the Federal Reserve System",
+      "title": "Federal Reserve issues FOMC statement",
+      "publicationDate": "2026-10-28",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+      "supportedClaims": [
+        "The FOMC maintained the federal funds target range at 3.75%–4.00%."
+      ]
+    },
+    {
+      "authority": "European Central Bank",
+      "title": "Daily euro foreign-exchange reference series",
+      "publicationDate": null,
+      "retrievedAt": "2026-11-05",
+      "observedThrough": "2026-11-04",
+      "url": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+      "supportedClaims": [
+        "GPIR can derive USD/JPY from same-date official EUR reference observations for USD and JPY.",
+        "The values are daily reference rates, not executable transaction prices."
+      ]
+    }
+  ],
+  "approvalGates": [
+    "Editorial claim and source review",
+    "Governed publication and lineage identity allocation",
+    "Authoritative Supabase publication-row UUID allocation",
+    "CURRENT lifecycle approval",
+    "Publication date approval",
+    "PUBLIC presentation authorization",
+    "Canonical route generation and accessibility verification",
+    "Contentful Draft readback and human publication approval",
+    "Contract-aligned FX bridge eligibility validation",
+    "Delivery build, index promotion, reviewed deployment and live-card verification"
+  ]
+}
