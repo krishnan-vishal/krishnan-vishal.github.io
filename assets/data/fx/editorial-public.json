@@ -1,5 +1,14 @@
 {
   "schemaVersion": "1.0",
   "source": "contentful-published-public",
-  "records": []
+  "records": [
+    {
+      "pair": "USD/JPY",
+      "title": "USD/JPY — Exchange Rate Dynamics and Monetary Policy Context",
+      "summary": "USD/JPY is a material global FX pair: the BIS reported a 14.3% share of global OTC FX turnover in April 2025. GPIR's 2 January–4 November 2026 reference history uses same-date ECB USD and JPY observations to derive the cross. October 2026 policy statements from the Bank of Japan and Federal Reserve provide verified monetary-policy context, but they do not by themselves prove why the pair moved. Payment and treasury readers should treat the GPIR series as reference evidence, not an executable quote or forecast.",
+      "url": "/usd-jpy-exchange-rate-dynamics-monetary-policy-context/",
+      "publicationId": "VK-GPIR-P-000000000036-4",
+      "publishedAt": "2026-11-06T00:00+05:30"
+    }
+  ]
 }

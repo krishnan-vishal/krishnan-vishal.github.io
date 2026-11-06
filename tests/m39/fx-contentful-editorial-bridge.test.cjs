@@ -4,13 +4,14 @@ const assert = require('node:assert/strict');
 const {buildFxEditorialIndex} = require('../../scripts/m39/build-fx-editorial-bridge');
 const record = (overrides = {}) => ({
   fields: {publicationTitle:'USD/JPY — Monetary policy',executiveSummary:'Cited research.',
-    canonicalUrlCandidate:'/pages/intelligence/usd-jpy/',publicationStatus:'PUBLISHED',
+    canonicalUrlCandidate:'/pages/intelligence/usd-jpy/',publicationStatus:'CURRENT',
     gpirPublicationId:'fx-1',...overrides.fields},
   presentation:{accessClass:'PUBLIC',...overrides.presentation}
 });
-test('exports only explicitly public published pair research', () => {
+test('exports only explicitly public current pair research from delivery', () => {
   const index=buildFxEditorialIndex({source:{mode:'delivery'},records:[
-    record(),record({fields:{publicationStatus:'DRAFT'}}),
+    record(),record({fields:{publicationStatus:'HISTORICAL'}}),
+    record({fields:{publicationStatus:'PUBLISHED'}}),
     record({presentation:{accessClass:'PREMIUM'}}),
     record({fields:{publicationTitle:'Japan policy overview'}})
   ]});

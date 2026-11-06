@@ -15,8 +15,11 @@ function buildFxEditorialIndex(artifact) {
     const summary = fields.executiveSummary;
     const route = fields.canonicalUrlCandidate;
     const status = String(fields.publicationStatus || '').toUpperCase();
-    // Fail closed: only explicitly public, published publications can be exported.
-    if (status !== 'PUBLISHED' || entry?.presentation?.accessClass !== 'PUBLIC') continue;
+    // Delivery API visibility is the technical publication signal. The M35
+    // business lifecycle contract separately permits CURRENT or HISTORICAL;
+    // only CURRENT, explicitly PUBLIC pair research belongs in the live FX
+    // editorial index.
+    if (status !== 'CURRENT' || entry?.presentation?.accessClass !== 'PUBLIC') continue;
     if (typeof title !== 'string' || typeof summary !== 'string' ||
         typeof route !== 'string' || !/^\/(?!\/)(?!.*\.\.)(?:[a-z0-9/_-]+)\/?$/i.test(route)) continue;
     // Pair attribution must be explicit in the editorial title. A market name,
