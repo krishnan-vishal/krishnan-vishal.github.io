@@ -118,3 +118,18 @@ branch/PR deployment path, and verify the USD/JPY card's **Economic & Policy
 Drivers** section. No workflow dispatch, Contentful write, approval,
 publication, index promotion, merge, or production deployment occurred in this
 review.
+
+## Controlled continuation — 6 November 2026
+
+Owner-approved Supabase identity and access now exist for the published
+Contentful entry: `VK-GPIR-P-000000000036-4`,
+`399ce347-30ea-408a-8bf5-2fc42fe6f9fa`, CURRENT and PUBLIC. The bridge's stale
+`PUBLISHED` comparison is corrected on the working branch to require CURRENT
+plus explicit PUBLIC presentation from a Delivery artifact. HISTORICAL,
+unsupported and non-public records remain excluded.
+
+The correction does not itself claim Delivery readback or deployment. The last
+successful delivery artifact predates this publication, the production FX
+editorial index remains empty and the canonical route returns 404. A fresh
+delivery build, exact artifact review, reviewed route/index promotion and
+owner-controlled merge/Pages deployment remain required.
