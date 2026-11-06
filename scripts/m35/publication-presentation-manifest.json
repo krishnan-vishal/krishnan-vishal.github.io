@@ -9,5 +9,16 @@
       "Cross-Border Money Movement",
       "C2C"
     ]
+  },
+  "VK-GPIR-P-000000000036-4": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/JPY exchange-rate dynamics, monetary-policy context, cross-border payment implications and research limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/JPY",
+      "Monetary Policy",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
   }
 }
