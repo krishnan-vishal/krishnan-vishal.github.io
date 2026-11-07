@@ -1,336 +1,4082 @@
 {
-  "schemaVersion": "1.0",
-  "purpose": "M39 FX governed Contentful editorial batch; no speculative identities or source evidence",
+  "schemaVersion": "2.0",
+  "milestone": "M39-FX-CONTENTFUL-25-PAIR",
+  "purpose": "Owner-authorized, idempotent Contentful publication package for the 25 featured FX pairs remaining after USD/JPY",
+  "contentful": {
+    "spaceId": "zym0dk277ju5",
+    "environment": "master",
+    "contentType": "gpirPublication",
+    "locale": "en-US"
+  },
+  "dataAuthority": {
+    "system": "Supabase public.fx_historical_archive",
+    "verifiedAt": "2026-11-07",
+    "dataCutOffDate": "2026-11-06",
+    "estateAtVerification": {
+      "pairCount": 134,
+      "totalRows": 14166,
+      "datedRows": 13228
+    },
+    "note": "Publication evidence is pinned to the verified cut-off. Seven included pairs have exactly two dated observations."
+  },
+  "governance": {
+    "publicationStatus": "CURRENT",
+    "accessClass": "PUBLIC",
+    "policyStatus": "ACTIVE",
+    "policyReviewState": "EVIDENCED",
+    "classificationSource": "M39_FX_OWNER_APPROVED_CONTENTFUL_2026_11_07",
+    "prohibited": [
+      "Manufactured observations",
+      "Unsupported causal explanations",
+      "Invented source references",
+      "Duplicate Contentful entries"
+    ]
+  },
   "entries": [
     {
       "pair": "USD/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "4EAD0B6090F782AC8C7BAF6B66CEDB08DF9279D47EEBB6C1C768B741784D47CE",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 89.852362,
+      "maxRate": 96.825,
+      "firstRate": 90.196229,
+      "lastRate": 94.537031,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000037-2",
+      "editionLineageId": "VK-GPIR-L-000000000037-2",
+      "supabaseRecordId": "07c1bc34-b551-4926-b6aa-667c34eeb77c",
+      "contentfulEntryId": "m39FxUsdInr20261107",
+      "canonicalRoute": "/usd-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "BA4AE0BE2BFB9CEBB38B5A94128117E806333F7C92D0B989716DBD74296F41C6",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000037-2",
+        "editionLineageId": "VK-GPIR-L-000000000037-2",
+        "supabaseRecordId": "07c1bc34-b551-4926-b6aa-667c34eeb77c",
+        "publicationTitle": "USD/INR — Reference Rate History and Source Methodology",
+        "slug": "usd-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/INR",
+        "directionScope": "USD/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 89.852362 to 96.825 INR per USD; the first observation was 90.196229 and the latest was 94.537031. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 89.852362 to 96.825 INR per USD; the first observation was 90.196229 and the latest was 94.537031.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "EUR/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:eur-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "BF64DF2E475C82E08885CE80925D6491C9E20E9C078A095CF40C6F8F513E9ACB",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 104.9647,
+      "maxRate": 112.317,
+      "firstRate": 105.719,
+      "lastRate": 106.164126,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000038-0",
+      "editionLineageId": "VK-GPIR-L-000000000038-0",
+      "supabaseRecordId": "b66f2d1e-39cd-4ec7-97c6-4b284f5231c6",
+      "contentfulEntryId": "m39FxEurInr20261107",
+      "canonicalRoute": "/eur-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "E7393AB494C0991964F9FCD7621136FEB12BA3657FC15C1E5434DD977010F936",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000038-0",
+        "editionLineageId": "VK-GPIR-L-000000000038-0",
+        "supabaseRecordId": "b66f2d1e-39cd-4ec7-97c6-4b284f5231c6",
+        "publicationTitle": "EUR/INR — Reference Rate History and Source Methodology",
+        "slug": "eur-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "EUR/INR",
+        "directionScope": "EUR/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated EUR/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 104.9647 to 112.317 INR per EUR; the first observation was 105.719 and the latest was 106.164126. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated EUR/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 104.9647 to 112.317 INR per EUR; the first observation was 105.719 and the latest was 106.164126.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/eur-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "GBP/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:gbp-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "C0C78D922C5B6F8F6F668D344C2C68BE2684E812AF013CF0937474E714279A94",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 120.856452,
+      "maxRate": 130.686938,
+      "firstRate": 121.25129,
+      "lastRate": 127.251477,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000039-8",
+      "editionLineageId": "VK-GPIR-L-000000000039-8",
+      "supabaseRecordId": "498f5fb1-b9bd-43f0-9fa9-c377a70a096c",
+      "contentfulEntryId": "m39FxGbpInr20261107",
+      "canonicalRoute": "/gbp-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "131008E5F31A6822137EF6CF0A491EBB361874C2C709BFE84879BD0A390F06E8",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000039-8",
+        "editionLineageId": "VK-GPIR-L-000000000039-8",
+        "supabaseRecordId": "498f5fb1-b9bd-43f0-9fa9-c377a70a096c",
+        "publicationTitle": "GBP/INR — Reference Rate History and Source Methodology",
+        "slug": "gbp-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "GBP/INR",
+        "directionScope": "GBP/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated GBP/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 120.856452 to 130.686938 INR per GBP; the first observation was 121.25129 and the latest was 127.251477. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated GBP/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 120.856452 to 130.686938 INR per GBP; the first observation was 121.25129 and the latest was 127.251477.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/gbp-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "AED/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:aed-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "FF5841011E64A761D7FFD69085AC1DAEDC10C13CBD990D883ED41C3093D8F576",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 25.741874,
+      "maxRate": 25.764512,
+      "firstRate": 25.764512,
+      "lastRate": 25.741874,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000040-6",
+      "editionLineageId": "VK-GPIR-L-000000000040-6",
+      "supabaseRecordId": "52d2354e-3929-48e6-b555-9169d29921c7",
+      "contentfulEntryId": "m39FxAedInr20261107",
+      "canonicalRoute": "/aed-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "B4A45DD46EC79C32764DE1461275C1CDCC5BD32B661D86B59D476D22BD448FF8",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000040-6",
+        "editionLineageId": "VK-GPIR-L-000000000040-6",
+        "supabaseRecordId": "52d2354e-3929-48e6-b555-9169d29921c7",
+        "publicationTitle": "AED/INR — Reference Rate History and Source Methodology",
+        "slug": "aed-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "AED/INR",
+        "directionScope": "AED/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated AED/INR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 25.764512 and the latest was 25.741874 INR per AED. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is derived-cross. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated AED/INR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 25.764512 and the latest was 25.741874 INR per AED. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is derived-cross. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/aed-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "SGD/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:sgd-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "A4043D63F6A7C0482DAE4F0D8739A1FF98DC11D5EC9E799BFBEDC37254A676AC",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 70.015338,
+      "maxRate": 75.624158,
+      "firstRate": 70.119387,
+      "lastRate": 73.996782,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000041-4",
+      "editionLineageId": "VK-GPIR-L-000000000041-4",
+      "supabaseRecordId": "0b53978d-6323-4498-990c-0674fbc32983",
+      "contentfulEntryId": "m39FxSgdInr20261107",
+      "canonicalRoute": "/sgd-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "36B5A170D415270171A8F345BE66F31317D928D94B646D0B1AF48C846CEC9432",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000041-4",
+        "editionLineageId": "VK-GPIR-L-000000000041-4",
+        "supabaseRecordId": "0b53978d-6323-4498-990c-0674fbc32983",
+        "publicationTitle": "SGD/INR — Reference Rate History and Source Methodology",
+        "slug": "sgd-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "SGD/INR",
+        "directionScope": "SGD/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated SGD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 70.015338 to 75.624158 INR per SGD; the first observation was 70.119387 and the latest was 73.996782. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated SGD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 70.015338 to 75.624158 INR per SGD; the first observation was 70.119387 and the latest was 73.996782.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/sgd-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "AUD/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:aud-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "0E47C905C9721F97B9EAAFBE04097C08DB951BC333C56449BA0C01F4944A0BEE",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 60.208095,
+      "maxRate": 69.364587,
+      "firstRate": 60.383253,
+      "lastRate": 65.760408,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000042-2",
+      "editionLineageId": "VK-GPIR-L-000000000042-2",
+      "supabaseRecordId": "2c537d01-cb58-4cbc-8cde-5366cac16824",
+      "contentfulEntryId": "m39FxAudInr20261107",
+      "canonicalRoute": "/aud-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "F61ECF64A2BBCF2E5A64A14AEF6D56E3C5D2915A7C990D29B44C66B30E1D68D9",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000042-2",
+        "editionLineageId": "VK-GPIR-L-000000000042-2",
+        "supabaseRecordId": "2c537d01-cb58-4cbc-8cde-5366cac16824",
+        "publicationTitle": "AUD/INR — Reference Rate History and Source Methodology",
+        "slug": "aud-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "AUD/INR",
+        "directionScope": "AUD/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated AUD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 60.208095 to 69.364587 INR per AUD; the first observation was 60.383253 and the latest was 65.760408. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated AUD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 60.208095 to 69.364587 INR per AUD; the first observation was 60.383253 and the latest was 65.760408.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/aud-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "CAD/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:cad-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "84A35F5359C3FC558222B56CD52092AE97D6D39B102B08DB911813CDE55E61F6",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 64.875487,
+      "maxRate": 70.37847,
+      "firstRate": 65.676213,
+      "lastRate": 67.569212,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000043-0",
+      "editionLineageId": "VK-GPIR-L-000000000043-0",
+      "supabaseRecordId": "c83c9895-da24-4a80-a406-082266e0ed9b",
+      "contentfulEntryId": "m39FxCadInr20261107",
+      "canonicalRoute": "/cad-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "60F7512B2D2C8C49BC5B70742E18F710F857BE6CF1ECAD5451D9150741C3AAFA",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000043-0",
+        "editionLineageId": "VK-GPIR-L-000000000043-0",
+        "supabaseRecordId": "c83c9895-da24-4a80-a406-082266e0ed9b",
+        "publicationTitle": "CAD/INR — Reference Rate History and Source Methodology",
+        "slug": "cad-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "CAD/INR",
+        "directionScope": "CAD/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated CAD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 64.875487 to 70.37847 INR per CAD; the first observation was 65.676213 and the latest was 67.569212. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated CAD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 64.875487 to 70.37847 INR per CAD; the first observation was 65.676213 and the latest was 67.569212.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/cad-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "JPY/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:jpy-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "2FBBF4EF91152F08857DEC5C297C6A444632CA9C134E909CA42FB60F95142670",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.567998,
+      "maxRate": 0.620541,
+      "firstRate": 0.574747,
+      "lastRate": 0.598959,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000044-8",
+      "editionLineageId": "VK-GPIR-L-000000000044-8",
+      "supabaseRecordId": "c6116356-d5d2-4af7-a7c4-d94487b1f80a",
+      "contentfulEntryId": "m39FxJpyInr20261107",
+      "canonicalRoute": "/jpy-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "33BD0E0597FC97DBF4E4E744FA011C4631F873CFC9C9A098F175F38D9F571F09",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000044-8",
+        "editionLineageId": "VK-GPIR-L-000000000044-8",
+        "supabaseRecordId": "c6116356-d5d2-4af7-a7c4-d94487b1f80a",
+        "publicationTitle": "JPY/INR — Reference Rate History and Source Methodology",
+        "slug": "jpy-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "JPY/INR",
+        "directionScope": "JPY/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated JPY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.567998 to 0.620541 INR per JPY; the first observation was 0.574747 and the latest was 0.598959. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated JPY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.567998 to 0.620541 INR per JPY; the first observation was 0.574747 and the latest was 0.598959.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/jpy-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "CNY/INR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:cny-inr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "7A71AA3C06A11C854737A42B6B90E0B965A62B5CC50CCD40E9547E4775CB81EC",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 12.852237,
+      "maxRate": 14.454408,
+      "firstRate": 12.896807,
+      "lastRate": 14.146903,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000045-5",
+      "editionLineageId": "VK-GPIR-L-000000000045-5",
+      "supabaseRecordId": "a458d24e-2d01-4f2e-9232-27159cfa6b15",
+      "contentfulEntryId": "m39FxCnyInr20261107",
+      "canonicalRoute": "/cny-inr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "566775AFF470F03E55E173F1A9E993CBA3DD1B00AB193D1E1928CA41F98CFFD2",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000045-5",
+        "editionLineageId": "VK-GPIR-L-000000000045-5",
+        "supabaseRecordId": "a458d24e-2d01-4f2e-9232-27159cfa6b15",
+        "publicationTitle": "CNY/INR — Reference Rate History and Source Methodology",
+        "slug": "cny-inr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "CNY/INR",
+        "directionScope": "CNY/INR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated CNY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 12.852237 to 14.454408 INR per CNY; the first observation was 12.896807 and the latest was 14.146903. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated CNY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 12.852237 to 14.454408 INR per CNY; the first observation was 12.896807 and the latest was 14.146903.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/cny-inr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "EUR/USD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:eur-usd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "A78DBF5AE2A2814E5264C4C1C622AE6AE3C4D4EA32D774FC16B4F38E063E5645",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 1.113,
+      "maxRate": 1.1974,
+      "firstRate": 1.1721,
+      "lastRate": 1.12299,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000046-3",
+      "editionLineageId": "VK-GPIR-L-000000000046-3",
+      "supabaseRecordId": "28d6e044-302e-47de-b29b-d58fd74f354e",
+      "contentfulEntryId": "m39FxEurUsd20261107",
+      "canonicalRoute": "/eur-usd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "9A530C5B1FD1EC5A5C4473107DAF15D752E0692E39C801433F7232985239A495",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000046-3",
+        "editionLineageId": "VK-GPIR-L-000000000046-3",
+        "supabaseRecordId": "28d6e044-302e-47de-b29b-d58fd74f354e",
+        "publicationTitle": "EUR/USD — Reference Rate History and Source Methodology",
+        "slug": "eur-usd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "EUR/USD",
+        "directionScope": "EUR/USD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated EUR/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.113 to 1.1974 USD per EUR; the first observation was 1.1721 and the latest was 1.12299. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated EUR/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.113 to 1.1974 USD per EUR; the first observation was 1.1721 and the latest was 1.12299.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/eur-usd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "GBP/USD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:gbp-usd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "E9DF0E8A65E4175997163BAE833C7A69BCD1C7BB51D5E0ABE694AB25D6124787",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 1.316037,
+      "maxRate": 1.381667,
+      "firstRate": 1.344306,
+      "lastRate": 1.346049,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000047-1",
+      "editionLineageId": "VK-GPIR-L-000000000047-1",
+      "supabaseRecordId": "0e93ab01-bff3-4330-9857-3cfc6a2ec6db",
+      "contentfulEntryId": "m39FxGbpUsd20261107",
+      "canonicalRoute": "/gbp-usd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "E4A00931CB8C4584D60BF43D705DB23B0FCE1D168C964F104FA5192BDED78E55",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000047-1",
+        "editionLineageId": "VK-GPIR-L-000000000047-1",
+        "supabaseRecordId": "0e93ab01-bff3-4330-9857-3cfc6a2ec6db",
+        "publicationTitle": "GBP/USD — Reference Rate History and Source Methodology",
+        "slug": "gbp-usd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "GBP/USD",
+        "directionScope": "GBP/USD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated GBP/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.316037 to 1.381667 USD per GBP; the first observation was 1.344306 and the latest was 1.346049. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated GBP/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.316037 to 1.381667 USD per GBP; the first observation was 1.344306 and the latest was 1.346049.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/gbp-usd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/CNY",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-cny-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "93E429743E16AC50153F858C512A73FC09128C934A0882017DFC58191E522F1D",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 6.64827,
+      "maxRate": 6.993687,
+      "firstRate": 6.993687,
+      "lastRate": 6.682525,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000048-9",
+      "editionLineageId": "VK-GPIR-L-000000000048-9",
+      "supabaseRecordId": "57da0968-cc2f-47ef-b7b9-8dac5ace5993",
+      "contentfulEntryId": "m39FxUsdCny20261107",
+      "canonicalRoute": "/usd-cny-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "D2F919CEAF48BCF0F33D8B57B4DDD852117D5326CEA775EA4C66D0BF0BFF52FE",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000048-9",
+        "editionLineageId": "VK-GPIR-L-000000000048-9",
+        "supabaseRecordId": "57da0968-cc2f-47ef-b7b9-8dac5ace5993",
+        "publicationTitle": "USD/CNY — Reference Rate History and Source Methodology",
+        "slug": "usd-cny-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/CNY",
+        "directionScope": "USD/CNY",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/CNY reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 6.64827 to 6.993687 CNY per USD; the first observation was 6.993687 and the latest was 6.682525. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/CNY reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 6.64827 to 6.993687 CNY per USD; the first observation was 6.993687 and the latest was 6.682525.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-cny-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/CHF",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-chf-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "293DFDDDE7B751932541BA2563C643CFCF14CAD17BD6E1B0FC517881DC37945D",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.767025,
+      "maxRate": 0.835281,
+      "firstRate": 0.793106,
+      "lastRate": 0.816184,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000049-7",
+      "editionLineageId": "VK-GPIR-L-000000000049-7",
+      "supabaseRecordId": "95cb6c9c-d620-493a-93c7-c5cb506f9eb9",
+      "contentfulEntryId": "m39FxUsdChf20261107",
+      "canonicalRoute": "/usd-chf-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "FE29C5C9AF5007E84624CB4903ABDCAD5DF7747AE119544653CE066764129351",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000049-7",
+        "editionLineageId": "VK-GPIR-L-000000000049-7",
+        "supabaseRecordId": "95cb6c9c-d620-493a-93c7-c5cb506f9eb9",
+        "publicationTitle": "USD/CHF — Reference Rate History and Source Methodology",
+        "slug": "usd-chf-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/CHF",
+        "directionScope": "USD/CHF",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/CHF reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.767025 to 0.835281 CHF per USD; the first observation was 0.793106 and the latest was 0.816184. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/CHF reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.767025 to 0.835281 CHF per USD; the first observation was 0.793106 and the latest was 0.816184.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-chf-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/CAD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-cad-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "AF110D6F54BFEFD3207810E9740A38B3FA2A6489FFE60E0149EFEC65A5660729",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 1.35244,
+      "maxRate": 1.426169,
+      "firstRate": 1.373347,
+      "lastRate": 1.399114,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000050-5",
+      "editionLineageId": "VK-GPIR-L-000000000050-5",
+      "supabaseRecordId": "32171f6c-4887-4340-8ae9-13f3df1fb78a",
+      "contentfulEntryId": "m39FxUsdCad20261107",
+      "canonicalRoute": "/usd-cad-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "4BCD5934396633D8E68B7F0501C88DAD5EA6F1841F7C3FF087B59766D1472584",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000050-5",
+        "editionLineageId": "VK-GPIR-L-000000000050-5",
+        "supabaseRecordId": "32171f6c-4887-4340-8ae9-13f3df1fb78a",
+        "publicationTitle": "USD/CAD — Reference Rate History and Source Methodology",
+        "slug": "usd-cad-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/CAD",
+        "directionScope": "USD/CAD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/CAD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.35244 to 1.426169 CAD per USD; the first observation was 1.373347 and the latest was 1.399114. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/CAD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.35244 to 1.426169 CAD per USD; the first observation was 1.373347 and the latest was 1.399114.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-cad-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/HKD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-hkd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "CB808163031DF5B33AD52281B7BFE8FBE650EE48E351E5F8928A8E00EDD2933E",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 7.786375,
+      "maxRate": 7.848685,
+      "firstRate": 7.791912,
+      "lastRate": 7.842769,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000051-3",
+      "editionLineageId": "VK-GPIR-L-000000000051-3",
+      "supabaseRecordId": "6b89caca-faaf-4161-b8a1-4f056d275381",
+      "contentfulEntryId": "m39FxUsdHkd20261107",
+      "canonicalRoute": "/usd-hkd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "869F442FF9F4B642EA80D420B6F784940D88A3CCD5B55E8BFAD752EAC28B45A8",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000051-3",
+        "editionLineageId": "VK-GPIR-L-000000000051-3",
+        "supabaseRecordId": "6b89caca-faaf-4161-b8a1-4f056d275381",
+        "publicationTitle": "USD/HKD — Reference Rate History and Source Methodology",
+        "slug": "usd-hkd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/HKD",
+        "directionScope": "USD/HKD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/HKD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 7.786375 to 7.848685 HKD per USD; the first observation was 7.791912 and the latest was 7.842769. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/HKD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 7.786375 to 7.848685 HKD per USD; the first observation was 7.791912 and the latest was 7.842769.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-hkd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/AED",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-aed-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "8FEC5FF25C97EFE97EA4F07AE97ABA027A0555EDB0E325E565758B8149DD9B87",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 3.6725,
+      "maxRate": 3.6725,
+      "firstRate": 3.6725,
+      "lastRate": 3.6725,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000052-1",
+      "editionLineageId": "VK-GPIR-L-000000000052-1",
+      "supabaseRecordId": "eda05528-f9b7-4a46-8d05-21bdb2786f02",
+      "contentfulEntryId": "m39FxUsdAed20261107",
+      "canonicalRoute": "/usd-aed-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "192179A91BFA44D8B426F0E5795BAC6BD48FC07BD550B3FDC298770D66643A5E",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000052-1",
+        "editionLineageId": "VK-GPIR-L-000000000052-1",
+        "supabaseRecordId": "eda05528-f9b7-4a46-8d05-21bdb2786f02",
+        "publicationTitle": "USD/AED — Reference Rate History and Source Methodology",
+        "slug": "usd-aed-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/AED",
+        "directionScope": "USD/AED",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/AED reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.6725 and the latest was 3.6725 AED per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/AED reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.6725 and the latest was 3.6725 AED per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-aed-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/SGD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-sgd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "31B4D17AC5DFFCD9CC7DC40B8FBFF5A02EA176E2E91AECA48C07DB386A9E771E",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 1.261734,
+      "maxRate": 1.298236,
+      "firstRate": 1.286324,
+      "lastRate": 1.277583,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000053-9",
+      "editionLineageId": "VK-GPIR-L-000000000053-9",
+      "supabaseRecordId": "0a788e20-d97a-40dd-bad9-cc2fe75c78f9",
+      "contentfulEntryId": "m39FxUsdSgd20261107",
+      "canonicalRoute": "/usd-sgd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "25DD4CF616F22BFDB2DA81EA39ED99ADF66AF61D0B9D1F868B0761089CCD797C",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000053-9",
+        "editionLineageId": "VK-GPIR-L-000000000053-9",
+        "supabaseRecordId": "0a788e20-d97a-40dd-bad9-cc2fe75c78f9",
+        "publicationTitle": "USD/SGD — Reference Rate History and Source Methodology",
+        "slug": "usd-sgd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/SGD",
+        "directionScope": "USD/SGD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated USD/SGD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.261734 to 1.298236 SGD per USD; the first observation was 1.286324 and the latest was 1.277583. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated USD/SGD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.261734 to 1.298236 SGD per USD; the first observation was 1.286324 and the latest was 1.277583.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/usd-sgd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/SAR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-sar-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "114E9BAB04AD16804710E2C89ECDEBC0A5FDA9D660E0121E20865C9B24955CAA",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 3.75,
+      "maxRate": 3.75,
+      "firstRate": 3.75,
+      "lastRate": 3.75,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000054-7",
+      "editionLineageId": "VK-GPIR-L-000000000054-7",
+      "supabaseRecordId": "d205f569-8440-448e-83c0-27c5dd1ab4a1",
+      "contentfulEntryId": "m39FxUsdSar20261107",
+      "canonicalRoute": "/usd-sar-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "6B94CAF20BF266F4D3D185DFC7413D49948653FF76C42C701A5F1C23ACB01ABB",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000054-7",
+        "editionLineageId": "VK-GPIR-L-000000000054-7",
+        "supabaseRecordId": "d205f569-8440-448e-83c0-27c5dd1ab4a1",
+        "publicationTitle": "USD/SAR — Reference Rate History and Source Methodology",
+        "slug": "usd-sar-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/SAR",
+        "directionScope": "USD/SAR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/SAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.75 and the latest was 3.75 SAR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/SAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.75 and the latest was 3.75 SAR per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-sar-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/QAR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-qar-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "397324121881F64AD9655B9BBD4F3D688EC6461D7121FF02585BFF7758E0B488",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 3.64,
+      "maxRate": 3.64,
+      "firstRate": 3.64,
+      "lastRate": 3.64,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000055-4",
+      "editionLineageId": "VK-GPIR-L-000000000055-4",
+      "supabaseRecordId": "8a264967-3adc-451e-8bdf-db1b364a4789",
+      "contentfulEntryId": "m39FxUsdQar20261107",
+      "canonicalRoute": "/usd-qar-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "CAD65E74F6FEA73DC8D3F5D9531C52C002A514A442FB4D41061B2ABED9D6FBA2",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000055-4",
+        "editionLineageId": "VK-GPIR-L-000000000055-4",
+        "supabaseRecordId": "8a264967-3adc-451e-8bdf-db1b364a4789",
+        "publicationTitle": "USD/QAR — Reference Rate History and Source Methodology",
+        "slug": "usd-qar-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/QAR",
+        "directionScope": "USD/QAR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/QAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.64 and the latest was 3.64 QAR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/QAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.64 and the latest was 3.64 QAR per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-qar-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/KWD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-kwd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "013DCFB34093198F31CC111E89C38D567FAF724AA858FAAD53F408AB5992C794",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.310148,
+      "maxRate": 0.310274,
+      "firstRate": 0.310148,
+      "lastRate": 0.310274,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000056-2",
+      "editionLineageId": "VK-GPIR-L-000000000056-2",
+      "supabaseRecordId": "b980ebf7-5bf5-4cf9-a095-a12c97c9b518",
+      "contentfulEntryId": "m39FxUsdKwd20261107",
+      "canonicalRoute": "/usd-kwd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "0F473C1875012D34F2D64C34D079B4FB957485C44B3F5A29AEFA94AB0C95DF60",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000056-2",
+        "editionLineageId": "VK-GPIR-L-000000000056-2",
+        "supabaseRecordId": "b980ebf7-5bf5-4cf9-a095-a12c97c9b518",
+        "publicationTitle": "USD/KWD — Reference Rate History and Source Methodology",
+        "slug": "usd-kwd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/KWD",
+        "directionScope": "USD/KWD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/KWD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.310148 and the latest was 0.310274 KWD per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/KWD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.310148 and the latest was 0.310274 KWD per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-kwd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/BHD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-bhd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "802BBA99AC0B16E02A8BD62501B62B45810F6A5B9D2C9F65F40F469F314EC3C7",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.376,
+      "maxRate": 0.376,
+      "firstRate": 0.376,
+      "lastRate": 0.376,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000057-0",
+      "editionLineageId": "VK-GPIR-L-000000000057-0",
+      "supabaseRecordId": "71c31f32-19a3-48d9-ba77-f148bb0ba007",
+      "contentfulEntryId": "m39FxUsdBhd20261107",
+      "canonicalRoute": "/usd-bhd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "704C302C51F804F705E7A71299B5A81CFB7BC347A99D25CEE55F377D09D8B1FD",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000057-0",
+        "editionLineageId": "VK-GPIR-L-000000000057-0",
+        "supabaseRecordId": "71c31f32-19a3-48d9-ba77-f148bb0ba007",
+        "publicationTitle": "USD/BHD — Reference Rate History and Source Methodology",
+        "slug": "usd-bhd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/BHD",
+        "directionScope": "USD/BHD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/BHD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.376 and the latest was 0.376 BHD per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/BHD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.376 and the latest was 0.376 BHD per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-bhd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "USD/OMR",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:usd-omr-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "9163787B2ABC9811B37BBFAE4FE59B03BDE633D063A510AE0B993763156CE67E",
       "historicalRowCount": 9,
       "datedObservationCount": 2,
       "firstObservationDate": "2026-11-05",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.384497,
+      "maxRate": 0.384497,
+      "firstRate": 0.384497,
+      "lastRate": 0.384497,
+      "rateMethods": [
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000058-8",
+      "editionLineageId": "VK-GPIR-L-000000000058-8",
+      "supabaseRecordId": "a24ecebb-2c72-4474-8b58-c4e1641923f4",
+      "contentfulEntryId": "m39FxUsdOmr20261107",
+      "canonicalRoute": "/usd-omr-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "95F22E55A1701C8B45828CFEE7CBA6B3CE35436311B692340BB624653B1945DD",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000058-8",
+        "editionLineageId": "VK-GPIR-L-000000000058-8",
+        "supabaseRecordId": "a24ecebb-2c72-4474-8b58-c4e1641923f4",
+        "publicationTitle": "USD/OMR — Reference Rate History and Source Methodology",
+        "slug": "usd-omr-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "USD/OMR",
+        "directionScope": "USD/OMR",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves only two dated USD/OMR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.384497 and the latest was 0.384497 OMR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves only two dated USD/OMR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.384497 and the latest was 0.384497 OMR per USD. Two observations cannot support a historical trend inference.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 9 total pair rows, 2 dated observations, 2026-11-05 through 2026-11-06; source lineage reference-open-er-api; methods provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://open.er-api.com/v6/latest/USD",
+        "canonicalUrlCandidate": "/usd-omr-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "EUR/GBP",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:eur-gbp-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "5716893762947491ECC27027C498283EE12D4149C17D92A87CEE9E9C4964BB3D",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.83358,
+      "maxRate": 0.8763,
+      "firstRate": 0.8719,
+      "lastRate": 0.834286,
+      "rateMethods": [
+        "derived-cross",
+        "provider-native"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000059-6",
+      "editionLineageId": "VK-GPIR-L-000000000059-6",
+      "supabaseRecordId": "5bc4d7bd-baa3-4870-8d34-b42208262b9c",
+      "contentfulEntryId": "m39FxEurGbp20261107",
+      "canonicalRoute": "/eur-gbp-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "A3939396F15D3D9278EFBC919D501039A79F8804B50C61B6E126812A137B1C78",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000059-6",
+        "editionLineageId": "VK-GPIR-L-000000000059-6",
+        "supabaseRecordId": "5bc4d7bd-baa3-4870-8d34-b42208262b9c",
+        "publicationTitle": "EUR/GBP — Reference Rate History and Source Methodology",
+        "slug": "eur-gbp-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "EUR/GBP",
+        "directionScope": "EUR/GBP",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated EUR/GBP reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.83358 to 0.8763 GBP per EUR; the first observation was 0.8719 and the latest was 0.834286. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated EUR/GBP reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.83358 to 0.8763 GBP per EUR; the first observation was 0.8719 and the latest was 0.834286.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross, provider-native. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/eur-gbp-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "AUD/USD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:aud-usd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "F8B621620339F627E38B1F80FEAA84A5CD20AC550A97558F49D1172FBEBA6C98",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.666819,
+      "maxRate": 0.725692,
+      "firstRate": 0.669465,
+      "lastRate": 0.695605,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000060-4",
+      "editionLineageId": "VK-GPIR-L-000000000060-4",
+      "supabaseRecordId": "3f09201d-88ae-4d18-aa45-9fc73744d1da",
+      "contentfulEntryId": "m39FxAudUsd20261107",
+      "canonicalRoute": "/aud-usd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "E44D62A73D7D031E8CCC13D7BDC2DF9DBE216A712B81133C9D3E0DEF79026631",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000060-4",
+        "editionLineageId": "VK-GPIR-L-000000000060-4",
+        "supabaseRecordId": "3f09201d-88ae-4d18-aa45-9fc73744d1da",
+        "publicationTitle": "AUD/USD — Reference Rate History and Source Methodology",
+        "slug": "aud-usd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "AUD/USD",
+        "directionScope": "AUD/USD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated AUD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.666819 to 0.725692 USD per AUD; the first observation was 0.669465 and the latest was 0.695605. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated AUD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.666819 to 0.725692 USD per AUD; the first observation was 0.669465 and the latest was 0.695605.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/aud-usd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     },
     {
       "pair": "NZD/USD",
-      "state": "SOURCE_DATA_VERIFIED_CMS_IDENTITY_PENDING",
+      "state": "APPROVED_FOR_PUBLICATION",
       "sourceTable": "public.fx_historical_archive",
+      "sourceUnitKey": "gpir:intake:publication:research:nzd-usd-reference-rate-history-source-methodology:m39-contentful",
+      "sourcePath": "artifacts/m39/fx-contentful-batch.json",
+      "sourceHash": "7700976CAF2D3EB5E9941360396A1135F682F55618030CFF48B514513481CD9D",
       "historicalRowCount": 225,
       "datedObservationCount": 218,
       "firstObservationDate": "2026-01-02",
       "lastObservationDate": "2026-11-06",
-      "publicationIdentity": null,
-      "contentfulEntryId": null,
-      "editorialApproval": "PENDING"
+      "minRate": 0.558909,
+      "maxRate": 0.607852,
+      "firstRate": 0.576906,
+      "lastRate": 0.560693,
+      "rateMethods": [
+        "derived-cross"
+      ],
+      "sourceLineage": [
+        "frankfurter-ecb",
+        "reference-open-er-api"
+      ],
+      "sourceEvidenceUrls": [
+        "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "https://open.er-api.com/v6/latest/USD"
+      ],
+      "publicationIdentity": "VK-GPIR-P-000000000061-2",
+      "editionLineageId": "VK-GPIR-L-000000000061-2",
+      "supabaseRecordId": "316b7ace-ec5b-4310-9b05-6284a3ea0e98",
+      "contentfulEntryId": "m39FxNzdUsd20261107",
+      "canonicalRoute": "/nzd-usd-reference-rate-history-source-methodology/",
+      "publicationStatus": "CURRENT",
+      "accessClass": "PUBLIC",
+      "evidenceApproved": true,
+      "ownerApproved": true,
+      "editorialApproval": "OWNER_APPROVED_2026-11-07",
+      "editorialBodySha256": "D5404768D01E1CBF711E242CBD28670060A018B4FDA7D4ED638D78906DD24E80",
+      "fields": {
+        "gpirPublicationId": "VK-GPIR-P-000000000061-2",
+        "editionLineageId": "VK-GPIR-L-000000000061-2",
+        "supabaseRecordId": "316b7ace-ec5b-4310-9b05-6284a3ea0e98",
+        "publicationTitle": "NZD/USD — Reference Rate History and Source Methodology",
+        "slug": "nzd-usd-reference-rate-history-source-methodology",
+        "publicationType": "Research Publication",
+        "publicationStatus": "CURRENT",
+        "region": "Global",
+        "countryMarket": "NZD/USD",
+        "directionScope": "NZD/USD",
+        "useCasePaymentCategory": "FX Intelligence; Cross-Border Payments; Treasury and Liquidity",
+        "publicationDate": "2026-11-07",
+        "dataCutOffDate": "2026-11-06",
+        "executiveSummary": "GPIR preserves 218 dated NZD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.558909 to 0.607852 USD per NZD; the first observation was 0.576906 and the latest was 0.560693. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+        "editorialBody": {
+          "nodeType": "document",
+          "data": {},
+          "content": [
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "01 — Verified coverage",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR preserves 218 dated NZD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.558909 to 0.607852 USD per NZD; the first observation was 0.576906 and the latest was 0.560693.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "02 — Source lineage and rate method",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "03 — Interpretation boundary",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "These values are reference observations, not executable quotes, remittance prices or recommendations. The evidence does not establish a market cause, policy effect or forecast; execution time, spreads, fees, liquidity and settlement terms are outside this publication.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "heading-2",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "04 — Evidence links",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            },
+            {
+              "nodeType": "paragraph",
+              "data": {},
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "GPIR archive authority: public.fx_historical_archive. Source endpoints: https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A; https://open.er-api.com/v6/latest/USD. Data cut-off: 2026-11-06. Historical rows without a source observation date are retained in the archive total but are excluded from dated-rate statements.",
+                  "marks": [],
+                  "data": {}
+                }
+              ]
+            }
+          ]
+        },
+        "sourceValidationSummary": "PASS — GPIR public.fx_historical_archive verified at the 2026-11-06 publication cut-off: 225 total pair rows, 218 dated observations, 2026-01-02 through 2026-11-06; source lineage frankfurter-ecb, reference-open-er-api; methods derived-cross. No observation, causal explanation or source reference was manufactured.",
+        "legacySourceUrl": "https://data-api.ecb.europa.eu/service/data/EXR/D..EUR.SP00.A",
+        "canonicalUrlCandidate": "/nzd-usd-reference-rate-history-source-methodology/",
+        "editionLabel": "FX reference edition 2026-11-07",
+        "migrationStatus": "Native",
+        "validationStatus": "PASS"
+      }
     }
-  ],
-  "evidenceMethodology": {
-    "status": "OWNER_APPROVED_FRAMEWORK",
-    "scope": "Existing GPIR authoritative-source standards for FX pair editorial research",
-    "authoritativeSources": [
-      "GPIR existing validated FX historical observations and source lineage",
-      "Official central-bank reference series and policy statements",
-      "BIS official publications",
-      "Other verifiable primary regulatory or financial authorities where relevant"
-    ],
-    "requiredPerEntry": [
-      "Explicit pair-specific source attribution",
-      "Dated observations and source URLs",
-      "Clear distinction between observed rates, derived crosses, policy context and causal claims",
-      "Existing governed Supabase publication and lineage identities",
-      "Editorial review and publication approval"
-    ],
-    "prohibited": [
-      "Invented historical observations or market drivers",
-      "Reusing USD/JPY publication identifiers",
-      "Publishing without source evidence or authorization",
-      "Changing FX Smart Card logic or reader entitlements"
-    ],
-    "approvalInterpretation": "Methodology approved; individual publication identities, content and publish approvals remain required"
-  },
-  "sourceAuthority": {
-    "system": "Supabase public.fx_historical_archive",
-    "verificationDate": "2026-11-07",
-    "readOnlyVerified": true,
-    "notes": "Historical observations are verified independently of CMS editorial approval; never infer that rates establish policy causation."
-  }
+  ]
 }

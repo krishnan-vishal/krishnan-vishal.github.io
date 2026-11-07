@@ -20,5 +20,305 @@
       "Cross-Border Payments",
       "Treasury and Liquidity"
     ]
+  },
+  "VK-GPIR-P-000000000037-2": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000038-0": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "EUR/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "EUR/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000039-8": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "GBP/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "GBP/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000040-6": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "AED/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "AED/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000041-4": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "SGD/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "SGD/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000042-2": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "AUD/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "AUD/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000043-0": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "CAD/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "CAD/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000044-8": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "JPY/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "JPY/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000045-5": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "CNY/INR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "CNY/INR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000046-3": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "EUR/USD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "EUR/USD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000047-1": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "GBP/USD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "GBP/USD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000048-9": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/CNY reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/CNY",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000049-7": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/CHF reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/CHF",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000050-5": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/CAD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/CAD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000051-3": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/HKD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/HKD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000052-1": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/AED reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/AED",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000053-9": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/SGD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/SGD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000054-7": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/SAR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/SAR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000055-4": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/QAR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/QAR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000056-2": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/KWD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/KWD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000057-0": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/BHD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/BHD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000058-8": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "USD/OMR reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "USD/OMR",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000059-6": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "EUR/GBP reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "EUR/GBP",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000060-4": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "AUD/USD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "AUD/USD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
+  },
+  "VK-GPIR-P-000000000061-2": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "NZD/USD reference-rate history, source methodology, verified coverage and limitations.",
+    "topicContext": [
+      "FX Intelligence",
+      "NZD/USD",
+      "Reference Rate History",
+      "Source Methodology",
+      "Cross-Border Payments",
+      "Treasury and Liquidity"
+    ]
   }
 }

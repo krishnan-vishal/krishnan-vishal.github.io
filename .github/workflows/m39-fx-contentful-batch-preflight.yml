@@ -1,29 +1,71 @@
-name: M39 FX Contentful governed batch preflight
+name: M39 FX Contentful governed 25-pair publication
 on:
   workflow_dispatch:
     inputs:
-      release_mode:
-        description: 'Read-only governed CMS verification (publication writes are not enabled)'
+      operation:
+        description: 'Run read-only verification or the owner-authorized idempotent publication'
         required: true
-        default: 'verify'
+        default: verify
         type: choice
         options:
           - verify
+          - publish
+      confirmation:
+        description: 'Type M39-FX-VERIFY or M39-FX-PUBLISH-25 for the selected operation'
+        required: true
+        type: string
 permissions:
   contents: read
+concurrency:
+  group: m39-fx-contentful-25-pair-publication
+  cancel-in-progress: false
 jobs:
-  preflight:
+  governed-publication:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     environment: contentful-production
     env:
       CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
     steps:
+      - name: Verify exact owner confirmation
+        shell: bash
+        env:
+          OPERATION: ${{ inputs.operation }}
+          OWNER_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          expected="M39-FX-VERIFY"
+          if [[ "${OPERATION}" == "publish" ]]; then
+            expected="M39-FX-PUBLISH-25"
+          fi
+          if [[ "${OWNER_CONFIRMATION}" != "${expected}" ]]; then
+            echo "::error::Confirmation must exactly match ${expected}."
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Read-only governed CMS batch preflight
+      - name: Validate governed batch and idempotency contract
+        run: |
+          node --check scripts/m39/build-fx-contentful-batch.cjs
+          node --check scripts/m39/fx-contentful-batch-preflight.cjs
+          node scripts/m39/build-fx-contentful-batch.cjs
+          node scripts/m39/fx-contentful-batch-preflight.cjs --local-check
+          node --test tests/m39/fx-contentful-batch-publication.test.cjs
+      - name: Read-only Contentful and Supabase preflight
+        if: ${{ inputs.operation == 'verify' }}
         run: node scripts/m39/fx-contentful-batch-preflight.cjs
+      - name: Create, reconcile and publish the approved 25-entry batch
+        if: ${{ inputs.operation == 'publish' }}
+        run: node scripts/m39/fx-contentful-batch-preflight.cjs --publish-approved
+      - name: Upload credential-free publication report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m39-fx-contentful-publication-report-${{ github.run_id }}
+          path: artifacts/m39/fx-contentful-publication-report.json
+          if-no-files-found: ignore
+          retention-days: 14
