@@ -308,11 +308,18 @@ function renderHeatmap(root, records, now) {
   target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${new Intl.DateTimeFormat('en',{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(week))}</span>`).join('')}${heatmap.rows.map(row => `<span class="smi-row-label">${escapeHtml(row.topic.label)}</span>${row.counts.map((count, index) => `<span class="smi-heat-cell" data-level="${level(count)}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(heatmap.weeks[index])} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</span>`).join('')}`).join('')}`;
 }
 
-function renderLive(root, liveRecords, state) {
+export function eligibleLiveRecords(records, now = Date.now()) {
+  return records.filter(record => {
+    const published = Date.parse(record.publishedAt);
+    return Number.isFinite(published) && published <= now && now - published < 12 * 60 * 60 * 1000;
+  });
+}
+
+function renderLive(root, liveRecords, state, now) {
   const ribbon = document.querySelector('[data-smart-live]');
   const target = document.querySelector('[data-smart-live-content]');
   if (!ribbon || !target) return;
-  const matches = liveRecords.filter(record =>
+  const matches = eligibleLiveRecords(liveRecords, now).filter(record =>
     (state.geography === 'all' || record.regionKey === state.geography) &&
     (!state.topics.size || record.topicIds.some(topic => state.topics.has(topic))));
   if (!matches.length) {
@@ -410,7 +417,7 @@ export async function initializeSmartIntelligence({ global = window,
       button.setAttribute('aria-pressed', String(button.dataset.smartPeriod === state.period)));
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
-    renderLive(root, liveRecords, state);
+    renderLive(root, liveRecords, state, requestNow);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
     renderTopicCards(root, baseCurrent, basePrevious);
