@@ -3,6 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { stripTypeScriptTypes } from "node:module";
 const source = readFileSync(new URL("../supabase/functions/gpir-intelligence-fetch/index.ts", import.meta.url), "utf8");
 function sliceFunction(name, nextName) {
   const start = source.indexOf("function " + name + "(");
@@ -14,7 +15,7 @@ const cleanText = (s) => s.replace(/<[^>]*>/g, " ").replace(/&amp;/gi,"&").repla
 const absoluteUrl = (s,b) => { try { const u = new URL(s,b); if (!["https:","http:"].includes(u.protocol)) return null; u.hash="";return u.href; } catch { return null; } };
 const MAX_DISCOVERED_LINKS = 40;
 const impl = sliceFunction("extractRbaArticleBody","discoverRbaMediaLinks") + sliceFunction("discoverRbaMediaLinks","isOfficialRbiUrl");
-const { extractRbaArticleBody, discoverRbaMediaLinks } = new Function("cleanText","absoluteUrl","MAX_DISCOVERED_LINKS",impl+";return {extractRbaArticleBody,discoverRbaMediaLinks};")(cleanText,absoluteUrl,MAX_DISCOVERED_LINKS);
+const { extractRbaArticleBody, discoverRbaMediaLinks } = new Function("cleanText","absoluteUrl","MAX_DISCOVERED_LINKS",stripTypeScriptTypes(impl,{mode:"strip"})+";return {extractRbaArticleBody,discoverRbaMediaLinks};")(cleanText,absoluteUrl,MAX_DISCOVERED_LINKS);
 const rss = (url,date="Sat, 07 Nov 2026 00:00:00 GMT",title="Payments systems statement") => '<item><title>'+title+'</title><link>'+url+'</link><pubDate>'+date+'</pubDate></item>';
 test("discovers official dated media release",()=>assert.equal(discoverRbaMediaLinks("<rss>"+rss("https://www.rba.gov.au/media-releases/2026/mr-26-01.html")+"</rss>").length,1));
 test("rejects third-party links",()=>assert.equal(discoverRbaMediaLinks(rss("https://example.org/media-releases/2026/a.html")).length,0));
