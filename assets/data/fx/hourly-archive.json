@@ -1,8 +1,817 @@
 {
-  "generatedAt": "2026-11-06T23:03:09.414Z",
+  "generatedAt": "2026-11-07T02:45:15.634Z",
   "source": "fx_historical_archive",
   "windowDays": 7,
   "captures": [
+    {
+      "hour": "2026-11-07T02:00:00Z",
+      "pairs": [
+        {
+          "pair": "CHF/KZT",
+          "rate": 547.84009,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CHF/RUB",
+          "rate": 99.636925,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CHF/UZS",
+          "rate": 14595.807931,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/CHF",
+          "rate": 0.914951,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/GBP",
+          "rate": 0.834398,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/KZT",
+          "rate": 501.246801,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/RUB",
+          "rate": 91.162897,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/UZS",
+          "rate": 13354.448082,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/CHF",
+          "rate": 1.09654,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/KZT",
+          "rate": 600.728724,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/RUB",
+          "rate": 109.255901,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/UZS",
+          "rate": 16004.891284,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "KZT/UZS",
+          "rate": 26.64246,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "RUB/KZT",
+          "rate": 5.498364,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "RUB/UZS",
+          "rate": 146.489948,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/CHF",
+          "rate": 0.819904,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/EUR",
+          "rate": 0.896118,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/GBP",
+          "rate": 0.747719,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/KZT",
+          "rate": 449.176281,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/RUB",
+          "rate": 81.692713,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/UZS",
+          "rate": 11967.161306,
+          "region": "EURO / GBP / CIS",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "IDR/NZD",
+          "rate": 0.0001,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "IDR/PHP",
+          "rate": 0.003485,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "IDR/VND",
+          "rate": 1.413635,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MYR/IDR",
+          "rate": 4460.888664,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MYR/NZD",
+          "rate": 0.444701,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MYR/PHP",
+          "rate": 15.548426,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MYR/VND",
+          "rate": 6306.06776,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PHP/NZD",
+          "rate": 0.028601,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PHP/VND",
+          "rate": 405.575953,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "THB/IDR",
+          "rate": 539.429565,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "THB/MYR",
+          "rate": 0.120924,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "THB/NZD",
+          "rate": 0.053775,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "THB/PHP",
+          "rate": 1.880182,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "THB/VND",
+          "rate": 762.556442,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/IDR",
+          "rate": 18098.980679,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/MYR",
+          "rate": 4.057259,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/NZD",
+          "rate": 1.804267,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/PHP",
+          "rate": 63.083992,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/THB",
+          "rate": 33.552074,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/VND",
+          "rate": 25585.350173,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "VND/NZD",
+          "rate": 0.000071,
+          "region": "FAR EAST / ASEAN / OCEANIC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/AED",
+          "rate": 3.6725,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/BHD",
+          "rate": 0.376,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/KWD",
+          "rate": 0.31062,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/OMR",
+          "rate": 0.384497,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/QAR",
+          "rate": 3.64,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/SAR",
+          "rate": 3.75,
+          "region": "GCC / MIDDLE EAST",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/USD",
+          "rate": 1.115924,
+          "region": "GLOBAL",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/USD",
+          "rate": 1.337401,
+          "region": "GLOBAL",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ARS/EGP",
+          "rate": 0.034878,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ARS/KES",
+          "rate": 0.084083,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ARS/NGN",
+          "rate": 0.872336,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ARS/ZAR",
+          "rate": 0.010686,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/ARS",
+          "rate": 280.818828,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/EGP",
+          "rate": 9.794529,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/KES",
+          "rate": 23.611974,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/MXN",
+          "rate": 3.390134,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/NGN",
+          "rate": 244.968471,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BRL/ZAR",
+          "rate": 3.000954,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "KES/EGP",
+          "rate": 0.414812,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MXN/ARS",
+          "rate": 82.834146,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MXN/EGP",
+          "rate": 2.889128,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MXN/KES",
+          "rate": 6.964909,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MXN/NGN",
+          "rate": 72.259237,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "MXN/ZAR",
+          "rate": 0.885202,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "NGN/EGP",
+          "rate": 0.039983,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "NGN/KES",
+          "rate": 0.096388,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/ARS",
+          "rate": 1545.3974,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/BRL",
+          "rate": 5.503183,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/EGP",
+          "rate": 53.901088,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/KES",
+          "rate": 129.941015,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/MXN",
+          "rate": 18.656526,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/NGN",
+          "rate": 1348.106327,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/ZAR",
+          "rate": 16.5148,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ZAR/EGP",
+          "rate": 3.263805,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ZAR/KES",
+          "rate": 7.868156,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "ZAR/NGN",
+          "rate": 81.630194,
+          "region": "LATAM / AFRICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/CAD",
+          "rate": 1.409999,
+          "region": "NORTH AMERICA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "AUD/USD",
+          "rate": 0.687306,
+          "region": "OCEANIA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "NZD/USD",
+          "rate": 0.554242,
+          "region": "OCEANIA",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "AED/INR",
+          "rate": 25.63354,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "AUD/HKD",
+          "rate": 5.388234,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "AUD/INR",
+          "rate": 64.702422,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "AUD/SGD",
+          "rate": 0.881001,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/AUD",
+          "rate": 0.011681,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/CNY",
+          "rate": 0.053678,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/HKD",
+          "rate": 0.062938,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/JPY",
+          "rate": 1.271422,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/LKR",
+          "rate": 2.668987,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "BDT/SGD",
+          "rate": 0.010291,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CAD/INR",
+          "rate": 66.765421,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CNY/AUD",
+          "rate": 0.217609,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CNY/HKD",
+          "rate": 1.172527,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CNY/INR",
+          "rate": 14.079819,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CNY/JPY",
+          "rate": 23.686277,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "CNY/SGD",
+          "rate": 0.191714,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "EUR/INR",
+          "rate": 105.052211,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "GBP/INR",
+          "rate": 125.901812,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/AUD",
+          "rate": 0.015455,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/BDT",
+          "rate": 1.323153,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/CNY",
+          "rate": 0.071024,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/HKD",
+          "rate": 0.083277,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/JPY",
+          "rate": 1.682286,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/LKR",
+          "rate": 3.531478,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/PKR",
+          "rate": 2.93668,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "INR/SGD",
+          "rate": 0.013616,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "JPY/AUD",
+          "rate": 0.009187,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "JPY/HKD",
+          "rate": 0.049502,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "JPY/INR",
+          "rate": 0.594429,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "JPY/SGD",
+          "rate": 0.008094,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "LKR/AUD",
+          "rate": 0.004376,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "LKR/CNY",
+          "rate": 0.020112,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "LKR/HKD",
+          "rate": 0.023581,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "LKR/JPY",
+          "rate": 0.476369,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "LKR/SGD",
+          "rate": 0.003856,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/AUD",
+          "rate": 0.005263,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/BDT",
+          "rate": 0.450561,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/CNY",
+          "rate": 0.024185,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/HKD",
+          "rate": 0.028358,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/JPY",
+          "rate": 0.572853,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/LKR",
+          "rate": 1.202541,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "PKR/SGD",
+          "rate": 0.004637,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "SGD/HKD",
+          "rate": 6.116035,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "SGD/INR",
+          "rate": 73.441922,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/AUD",
+          "rate": 1.454956,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/BDT",
+          "rate": 124.560527,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/CNY",
+          "rate": 6.686107,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/HKD",
+          "rate": 7.839644,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/INR",
+          "rate": 94.139177,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/JPY",
+          "rate": 158.368984,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/LKR",
+          "rate": 332.450403,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/PKR",
+          "rate": 276.456593,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        },
+        {
+          "pair": "USD/SGD",
+          "rate": 1.281818,
+          "region": "SOUTH ASIA / APAC",
+          "source": "reference-open-er-api"
+        }
+      ]
+    },
     {
       "hour": "2026-11-06T02:00:00Z",
       "pairs": [
