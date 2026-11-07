@@ -5,7 +5,7 @@ const test = require('node:test');
 const manifest = require('../../artifacts/m39/fx-contentful-batch.json');
 const presentation = require('../../scripts/m35/publication-presentation-manifest.json');
 const { buildManifest } = require('../../scripts/m39/build-fx-contentful-batch.cjs');
-const { desiredFieldsMatch, isCurrentlyPublished, localizeFields, validateManifest } =
+const { desiredFieldsMatch, isCurrentlyPublished, localizeFields, validateFieldValue, validateManifest } =
   require('../../scripts/m39/fx-contentful-batch-preflight.cjs');
 
 test('build output is the exact approved 25-pair governed manifest', () => {
@@ -45,4 +45,18 @@ test('Contentful localization and current publication detection are deterministi
   assert.equal(desiredFieldsMatch({ ...fields, title: { 'en-US': 'Different' } }, fields), false);
   assert.equal(isCurrentlyPublished({ sys: { version: 4, publishedVersion: 3 } }), true);
   assert.equal(isCurrentlyPublished({ sys: { version: 5, publishedVersion: 3 } }), false);
+});
+
+test('Contentful core paragraph is allowed without being listed in enabledNodeTypes', () => {
+  const field = { id: 'editorialBody', type: 'RichText', validations: [
+    { enabledNodeTypes: ['heading-2'] }
+  ] };
+  const body = { nodeType: 'document', content: [
+    { nodeType: 'heading-2', content: [{ nodeType: 'text', value: 'Verified coverage' }] },
+    { nodeType: 'paragraph', content: [{ nodeType: 'text', value: 'Evidence' }] }
+  ] };
+  assert.doesNotThrow(() => validateFieldValue(field, body, 'USD/INR'));
+  assert.throws(() => validateFieldValue(field,
+    { nodeType: 'document', content: [{ nodeType: 'heading-1', content: [] }] }, 'USD/INR'),
+    /unsupported RichText nodes: heading-1/);
 });
