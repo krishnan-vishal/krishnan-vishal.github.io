@@ -148,12 +148,19 @@ async function supabaseRequest(method, pathname, body = null) {
 
 async function verifySupabaseAuthority(entries) {
   const ids = entries.map(entry => entry.supabaseRecordId);
-  const identities = await supabaseRequest('POST', '/rest/v1/rpc/gpir_cl03c_identity_readback', { p_ids: ids });
+  // CL-03C RPC is intentionally restricted to its five legacy records.
+  // FX identities are governed in the existing registry; read them directly without writes.
+  const identityParams = new URLSearchParams({
+    select: 'id,source_unit_key,gpir_publication_id,identity_status,collision_state',
+    id: `in.(${ids.join(',')})`
+  });
+  const identities = await supabaseRequest('GET', `/rest/v1/gpir_identity_publications?${identityParams}`);
   exactSet(identities.map(row => row.id), ids, 'Supabase identity readback');
   for (const entry of entries) {
     const identity = identities.find(row => row.id === entry.supabaseRecordId);
     if (identity?.gpir_publication_id !== entry.publicationIdentity ||
-        identity?.identity_status !== 'GOVERNED_ASSIGNED' || identity?.collision_state !== 'none')
+        identity?.identity_status !== 'GOVERNED_ASSIGNED' || identity?.collision_state !== 'none' ||
+        identity?.source_unit_key !== entry.sourceUnitKey)
       throw new Error(`${entry.pair}: governed Supabase identity is not active and collision-free.`);
   }
   const params = new URLSearchParams({
