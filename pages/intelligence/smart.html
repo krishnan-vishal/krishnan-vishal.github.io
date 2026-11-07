@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b203b">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Authenticated GPIR contextual intelligence from governed alerts, archived announcements and published research.">
+  <title>Smart Intelligence | FINTECHOISIS — GPIR</title>
+  <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
+  <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261107a">
+  <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
+  <script src="../../assets/js/gpir-supabase-public-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+  <script src="../../scripts/m34/supabase-browser-client.js"></script>
+  <script src="../../scripts/m34/publication-authorization-provider.js"></script>
+  <script src="../../assets/js/gpir-reader-auth.js?v=20261104a" defer></script>
+</head>
+<body class="smi-page">
+  <a class="smi-skip" href="#smart-main">Skip to Smart Intelligence</a>
+  <header class="smi-nav">
+    <a class="smi-brand" href="../../index.html"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="44" height="44"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
+    <nav aria-label="Smart Intelligence navigation"><a href="../../reader/my-gpir/">My GPIR</a><a href="../fx/directory.html">FX directory</a><a href="./index.html">Intelligence archive</a><a href="../../index.html#gpir-search">ASK GPIR</a></nav>
+  </header>
+  <main id="smart-main" class="smi-main" data-smart-root data-state="loading">
+    <header class="smi-hero">
+      <p class="smi-kicker">AUTHENTICATED READER TOOL · NO PAID SUBSCRIPTION REQUIRED</p>
+      <h1>Smart Intelligence</h1>
+      <p>Contextual retrieval from governed Global Alerts, validated announcements, the 15-day intelligence archive and published Contentful research. This is separate from quantitative FX Intelligence.</p>
+    </header>
+    <form class="smi-controls" data-smart-form>
+      <label>Subject type<select data-smart-kind><option value="all">All subjects</option><option value="country">Country</option><option value="region">Region</option><option value="pair">Currency pair</option><option value="topic">Payments topic</option></select></label>
+      <label>Country, region, pair or topic<input data-smart-subject type="search" maxlength="80" placeholder="e.g. India, APAC, AED/INR, remittances"></label>
+      <button type="submit">Apply context</button>
+    </form>
+    <nav class="smi-periods" aria-label="Context period">
+      <button type="button" data-smart-period="7D">7 days</button><button type="button" data-smart-period="15D">15 days</button><button type="button" data-smart-period="30D">30 days</button><button type="button" data-smart-period="1Y">1 year</button><button type="button" data-smart-period="MAX">Maximum</button>
+    </nav>
+    <p class="smi-status" data-smart-status aria-live="polite">Loading governed intelligence…</p>
+    <section class="smi-context" data-smart-context hidden></section>
+    <section class="smi-editorial" data-smart-editorial hidden></section>
+    <section aria-labelledby="smi-evidence-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">FACTUAL SOURCE EVIDENCE</p><h2 id="smi-evidence-title">Validated developments and archive</h2></div><a data-smart-ask href="../../index.html#gpir-search">Open ASK GPIR</a></div>
+      <div class="smi-results" data-smart-results></div>
+    </section>
+    <aside class="smi-boundary"><strong>Interpretation boundary</strong><p>Source evidence is shown as published. Computed context is limited to counts, date coverage and category grouping. GPIR does not infer market impact, causality or a currency effect from a mention alone.</p></aside>
+  </main>
+  <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial advice.</span></footer>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261107a"></script>
+</body>
+</html>

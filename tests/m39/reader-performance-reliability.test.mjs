@@ -53,8 +53,8 @@ test('initial HTML provides styled signed-out controls without identity or Supab
     assert.doesNotMatch(html, /data-reader-auth-state="fallback"[^>]*>[\s\S]{0,500}(?:reader@example|access_token|user[_-]?id)/i);
   }
   assert.match(home, /reader-auth\.css\?v=3/);
-  assert.match(home, /gpir-reader-auth\.js\?v=20261029c/);
-  assert.match(dashboard, /gpir-reader-dashboard\.mjs\?v=20261029c/);
+  assert.match(home, /gpir-reader-auth\.js\?v=20261104a/);
+  assert.match(dashboard, /gpir-reader-dashboard\.mjs\?v=20261107-smart-intelligence/);
 });
 
 test('auth resolution is shared and replaces fallback controls without duplication', async () => {

@@ -81,5 +81,5 @@ test('subscription plan redirect preserves the encoded FX return destination', (
   assert.equal(destination,
     '/reader/my-gpir/?returnTo=%2Fpages%2Ffx%2Fintelligence.html%3Fbase%3DEUR%26quote%3DJPY#plan');
   assert.match(dashboardSource,
-    /rememberFxIntelligenceReturn\(global,\s*new URL\(global\.location\.href\)\.searchParams\.get\('returnTo'\)\)/);
+    /rememberFxIntelligenceReturn\(global,\s*new URL\(global\.location\.href \|\| returnTo, 'https:\/\/fintechoisis\.com'\)\s*\.searchParams\.get\('returnTo'\)\)/);
 });
