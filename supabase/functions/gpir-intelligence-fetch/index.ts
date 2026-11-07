@@ -23,8 +23,9 @@ const PYMNTS_SOURCE_ID = "PYMNTS-GLOBAL-004";
 const MAS_SOURCE_ID = "CB-APAC-002";
 const ECB_SOURCE_ID = "CB-EUR-001";
 const RBA_SOURCE_ID = "TEST-RBA-01";
-// Source-specific parsers must be verified before these IDs are enabled.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID] as const;
+// RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID] as const;
+const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
@@ -264,6 +265,32 @@ function discoverNewsLinks(
     }
   }
 
+  return results;
+}
+
+
+// RBA: parse official RSS items only; never treat index containers as articles.
+function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  const items = xml.match(/<item\\b[\\s\\S]*?<\\/item>/gi) || [];
+  for (const item of items) {
+    const field = (name: string) => {
+      const match = item.match(new RegExp("<" + name + "(?:\\\\s[^>]*)?>([\\\\s\\\\S]*?)<\\\\/" + name + ">", "i"));
+      return match?.[1]?.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").trim() || "";
+    };
+    const title = cleanText(field("title"));
+    const url = absoluteUrl(field("link"), "https://www.rba.gov.au/");
+    const rawDate = field("pubDate");
+    const date = rawDate ? new Date(rawDate) : null;
+    if (!url || !title || !date || Number.isNaN(date.getTime())) continue;
+    const parsed = new URL(url);
+    if (parsed.hostname !== "www.rba.gov.au" || !parsed.pathname.startsWith("/media-releases/")) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    results.push({ title, url, indexPublishedAt: date.toISOString() });
+    if (results.length >= MAX_DISCOVERED_LINKS) break;
+  }
   return results;
 }
 
@@ -692,6 +719,9 @@ const source = sourceRows[0] as SourceRecord;
             `SOURCE_NOT_GREEN: ${source.source_status}`,
           );
         }
+        if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
+          throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
+        }
         if (requestedSource === RBI_SOURCE_ID && source.parser_profile !== "rbi-rss-profile") {
           throw new Error(`RBI_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
@@ -752,6 +782,8 @@ const source = sourceRows[0] as SourceRecord;
           const discoveryUrl =
           requestedSource === TEST_SOURCE_ID
           ? SFA_NEWS_INDEX
+          : requestedSource === RBA_SOURCE_ID
+          ? RBA_MEDIA_RSS
           : indexUrl;
 
         if (!indexUrl) {
@@ -784,7 +816,9 @@ const source = sourceRows[0] as SourceRecord;
         // 5. Discover likely intelligence links
         // ----------------------------------------------------
 
-        const discovered = requestedSource === TEST_SOURCE_ID
+        const discovered = requestedSource === RBA_SOURCE_ID
+          ? discoverRbaMediaLinks(indexHtml)
+          : requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
           : requestedSource === RBI_SOURCE_ID
           ? discoverRbiLinks(indexHtml, indexResponse.url)
