@@ -1924,6 +1924,26 @@ function initializeReaderAssistant(){
         }
     });
 
+    // Smart Intelligence passes only the reader-selected dashboard context.
+    // Reuse the existing deterministic ASK GPIR retrieval layer: no new
+    // assistant, data store or generated market-impact conclusion is added.
+    const askMatch = String(window.location.search || "").match(/[?&]ask=([^&]*)/);
+    let incomingContext = "";
+    try { incomingContext = askMatch ? decodeURIComponent(askMatch[1].replace(/\+/g, " ")) : ""; }
+    catch { incomingContext = ""; }
+    if(incomingContext){
+        const safeContext = incomingContext.replace(/[\u0000-\u001f\u007f]/g, " ")
+            .replace(/\s+/g, " ").trim().slice(0, 300);
+        if(safeContext){
+            const searchToggle = document.getElementById("search-toggle");
+            if(!overlay.classList.contains("is-open")) searchToggle?.click();
+            assistant.hidden = false;
+            askButton.setAttribute("aria-expanded", "true");
+            input.value = safeContext;
+            answerQuery(safeContext);
+        }
+    }
+
 }
 
 /*=====================================================

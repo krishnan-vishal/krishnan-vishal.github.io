@@ -91,9 +91,12 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
         : summary,
       developments: verifiedDevelopments,
       category,
+      topics: Array.isArray(row.topic_headers) ? row.topic_headers.filter(value =>
+        typeof value === 'string' && value.trim()).slice(0, 12) : [],
       subcategory: null,
-      country: null,
-      region: null,
+      country: typeof source.country === 'string' ? source.country : null,
+      region: Array.isArray(source.region_tags) && source.region_tags[0]
+        ? source.region_tags[0] : null,
       publicationDate: published.toISOString().slice(0, 10),
       publishedDate: published.toISOString().slice(0, 10),
       publishedAt: published.toISOString(),
@@ -110,7 +113,9 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       source: {
         name: source.source_name,
         publicationTitle: source.source_name,
-        url: row.canonical_url
+        url: row.canonical_url,
+        trustTier: source.trust_tier || null,
+        category: source.category || null
       }
     }];
   });
@@ -157,7 +162,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           order: 'published_at.desc,id.asc', limit: '1000'
         });
         const sourceQuery = new URLSearchParams({
-          select: 'source_id,source_name,official_url,source_status', limit: '500'
+          select: 'source_id,source_name,official_url,source_status,country,region_tags,category,trust_tier',
+          limit: '500'
         });
         const topicQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
         const developmentsQuery = new URLSearchParams({select:'id,topic_id,event_type,effective_date,summary,outcome_status',limit:'5000'});

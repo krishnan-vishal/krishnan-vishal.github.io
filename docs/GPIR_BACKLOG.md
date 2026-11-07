@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 Smart Intelligence dashboard final completion
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-SMART-DASHBOARD-FINAL | 2026-11-07 | Complete the approved signed-in My Intelligence Dashboard and governed historical connectivity | INTELLIGENCE, READER EXPERIENCE, SUPABASE, RELEASE | Critical | IN PROGRESS | PR checks, merge, source-registry repair, Edge/Pages deployment and live authenticated screenshots | Stage 1 | Smart Intelligence, public intelligence API, source registry, Global Alerts, ASK GPIR | Replace the basic browser with the approved compact dashboard while preserving the 12-hour ticker, long-term history, governance and payment separation. | Six periods; geography; 12 topic filters; top signal; six real-data KPIs; topic comparisons; 12-week heatmap; shared live dataset; ASK context; desktop/mobile verification. | Implementation and focused validation complete. Two fully eligible MAS historical records populate the governed dataset; weaker/null-date legacy rows are excluded. Three official endpoint corrections are prepared with exact guards and rollback. | PENDING release | Current branch | M39 |
+
 ## M39 coordinated production closure
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
