@@ -16,8 +16,13 @@ test('build output is the exact approved 25-pair governed manifest', () => {
   assert.equal(new Set(manifest.entries.map(entry => entry.supabaseRecordId)).size, 25);
   assert.equal(new Set(manifest.entries.map(entry => entry.contentfulEntryId)).size, 25);
   assert.equal(new Set(manifest.entries.map(entry => entry.canonicalRoute)).size, 25);
-  for (const entry of manifest.entries)
+  for (const entry of manifest.entries) {
     assert.equal(presentation[entry.publicationIdentity]?.accessClass, 'PUBLIC');
+    assert.equal(entry.fields.countryMarket, entry.pair);
+    assert.equal(entry.fields.directionScope, undefined);
+    assert.equal(entry.fields.useCasePaymentCategory, undefined);
+    assert.equal(entry.fields.region, undefined);
+  }
 });
 
 test('all seven limited-coverage pairs disclose exactly two dated observations', () => {
