@@ -9,6 +9,9 @@ const SOURCE = Object.freeze({
   source_name: 'Example Central Bank',
   official_url: 'https://centralbank.example',
   trust_tier: 'T1',
+  country: 'Exampleland',
+  region_tags: ['APAC'],
+  category: 'Central Bank',
   source_status: 'GREEN'
 });
 
@@ -203,6 +206,9 @@ test('publication older than 12 hours is retained by the repository but not live
   assert.equal(records.length, 1);
   assert.equal(records[0].lifecycleStatus, 'HISTORICAL');
   assert.equal(records[0].tickerEligible, false);
+  assert.equal(records[0].country, 'Exampleland');
+  assert.equal(records[0].region, 'APAC');
+  assert.equal(records[0].source.trustTier, 'T1');
 });
 
 test('public repository includes the 15-day boundary and excludes older retained records', () => {

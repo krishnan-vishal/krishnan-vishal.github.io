@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b203b">
+  <meta name="theme-color" content="#071a31">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="description" content="Authenticated GPIR contextual intelligence from governed alerts, archived announcements and published research.">
-  <title>Smart Intelligence | FINTECHOISIS — GPIR</title>
+  <meta name="description" content="Authenticated GPIR Smart Intelligence dashboard for governed payments alerts, historical signals and published research.">
+  <title>My Intelligence Dashboard | FINTECHOISIS — GPIR</title>
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261107a">
+  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261107b">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -18,35 +18,67 @@
   <script src="../../assets/js/gpir-reader-auth.js?v=20261104a" defer></script>
 </head>
 <body class="smi-page">
-  <a class="smi-skip" href="#smart-main">Skip to Smart Intelligence</a>
+  <a class="smi-skip" href="#smart-main">Skip to My Intelligence Dashboard</a>
   <header class="smi-nav">
-    <a class="smi-brand" href="../../index.html"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="44" height="44"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
-    <nav aria-label="Smart Intelligence navigation"><a href="../../reader/my-gpir/">My GPIR</a><a href="../fx/directory.html">FX directory</a><a href="./index.html">Intelligence archive</a><a href="../../index.html#gpir-search">ASK GPIR</a></nav>
+    <a class="smi-brand" href="../../index.html"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="42" height="42"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
+    <nav aria-label="Intelligence dashboard navigation">
+      <a href="../../index.html">Homepage</a><a href="../../reader/my-gpir/">My GPIR</a><a href="../fx/intelligence.html">FX Intelligence</a><a href="./index.html">Repository</a><a data-smart-ask href="../../index.html#gpir-search">ASK GPIR</a>
+    </nav>
   </header>
+
+  <section class="smi-alert-ribbon" aria-label="Live Global Alerts" data-smart-live data-state="loading">
+    <strong><span aria-hidden="true"></span> LIVE GLOBAL ALERTS</strong>
+    <div data-smart-live-content aria-live="polite">Checking the governed 12-hour publication window…</div>
+  </section>
+
   <main id="smart-main" class="smi-main" data-smart-root data-state="loading">
     <header class="smi-hero">
-      <p class="smi-kicker">AUTHENTICATED READER TOOL · NO PAID SUBSCRIPTION REQUIRED</p>
-      <h1>Smart Intelligence</h1>
-      <p>Contextual retrieval from governed Global Alerts, validated announcements, the 15-day intelligence archive and published Contentful research. This is separate from quantitative FX Intelligence.</p>
+      <div><p class="smi-kicker">AUTHENTICATED READER INTELLIGENCE · NO PAID PLAN REQUIRED</p><h1>My Intelligence Dashboard</h1><p>Verified global payments developments, historical signals and source-backed context from the GPIR governed repository.</p></div>
+      <div class="smi-hero-meta"><span data-smart-asof>As of —</span><span>Live window · 12 hours</span><span>Archive · 15 days + history</span></div>
     </header>
-    <form class="smi-controls" data-smart-form>
-      <label>Subject type<select data-smart-kind><option value="all">All subjects</option><option value="country">Country</option><option value="region">Region</option><option value="pair">Currency pair</option><option value="topic">Payments topic</option></select></label>
-      <label>Country, region, pair or topic<input data-smart-subject type="search" maxlength="80" placeholder="e.g. India, APAC, AED/INR, remittances"></label>
-      <button type="submit">Apply context</button>
+
+    <form class="smi-command" data-smart-form>
+      <fieldset class="smi-periods"><legend>Period</legend><div>
+        <button type="button" data-smart-period="24H">24H</button><button type="button" data-smart-period="7D">7D</button><button type="button" data-smart-period="30D">30D</button><button type="button" data-smart-period="QTD">QTD</button><button type="button" data-smart-period="YTD">YTD</button><button type="button" data-smart-period="CUSTOM">Custom</button>
+      </div></fieldset>
+      <label class="smi-geography">Geography<select data-smart-geography><option value="all">All geographies</option><option value="global">Global</option><option value="apac">Asia Pacific</option><option value="europe">Europe</option><option value="americas">Americas</option><option value="mea">Middle East &amp; Africa</option></select></label>
+      <div class="smi-custom-dates" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2026-01-01"></label><label>To<input type="date" data-smart-end min="2026-01-01"></label></div>
+      <fieldset class="smi-topic-filter"><legend>Topics <span>select one or more</span></legend><div data-smart-topic-controls></div></fieldset>
+      <div class="smi-command-actions"><button type="submit">Apply intelligence context</button><button type="button" class="smi-clear" data-smart-clear>All topics</button></div>
     </form>
-    <nav class="smi-periods" aria-label="Context period">
-      <button type="button" data-smart-period="7D">7 days</button><button type="button" data-smart-period="15D">15 days</button><button type="button" data-smart-period="30D">30 days</button><button type="button" data-smart-period="1Y">1 year</button><button type="button" data-smart-period="MAX">Maximum</button>
-    </nav>
+
     <p class="smi-status" data-smart-status aria-live="polite">Loading governed intelligence…</p>
-    <section class="smi-context" data-smart-context hidden></section>
-    <section class="smi-editorial" data-smart-editorial hidden></section>
-    <section aria-labelledby="smi-evidence-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">FACTUAL SOURCE EVIDENCE</p><h2 id="smi-evidence-title">Validated developments and archive</h2></div><a data-smart-ask href="../../index.html#gpir-search">Open ASK GPIR</a></div>
+
+    <section class="smi-signal-grid" aria-labelledby="smi-top-signal-title">
+      <article class="smi-top-signal" data-smart-top-signal><p class="smi-kicker">TOP SIGNAL NOW</p><h2 id="smi-top-signal-title">Waiting for governed evidence</h2></article>
+      <aside class="smi-supporting" data-smart-supporting><p class="smi-kicker">SUPPORTING DEVELOPMENTS</p></aside>
+    </section>
+
+    <section aria-label="Intelligence indicators"><div class="smi-kpis" data-smart-kpis></div></section>
+
+    <section aria-labelledby="smi-topic-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period.</p></div>
+      <div class="smi-topic-cards" data-smart-topic-cards></div>
+    </section>
+
+    <section class="smi-heatmap-panel" aria-labelledby="smi-heatmap-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">HISTORICAL SIGNAL DENSITY</p><h2 id="smi-heatmap-title">Preceding 12 weeks</h2></div><div class="smi-heat-legend"><span>None</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Higher</span></div></div>
+      <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap></div></div>
+    </section>
+
+    <section class="smi-evidence" aria-labelledby="smi-evidence-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">SOURCE-LINKED EVIDENCE</p><h2 id="smi-evidence-title">Matching validated developments</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
       <div class="smi-results" data-smart-results></div>
     </section>
-    <aside class="smi-boundary"><strong>Interpretation boundary</strong><p>Source evidence is shown as published. Computed context is limited to counts, date coverage and category grouping. GPIR does not infer market impact, causality or a currency effect from a mention alone.</p></aside>
+
+    <section class="smi-editorial" data-smart-editorial hidden></section>
+
+    <section class="smi-methodology" aria-labelledby="smi-methodology-title">
+      <div><p class="smi-kicker">SOURCE TRANSPARENCY</p><h2 id="smi-methodology-title">Methodology and interpretation boundary</h2><p>Dashboard values use only dated, approved announcements from GREEN registry sources that pass the existing official-URL and content validation rules. The live ribbon uses the same governed 12-hour dataset as the homepage ticker. Historical records remain available after ticker expiry.</p></div>
+      <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per topic and UTC week; blank cells mean zero qualifying observations.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
+    </section>
   </main>
-  <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial advice.</span></footer>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261107a"></script>
+  <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261107b"></script>
 </body>
 </html>

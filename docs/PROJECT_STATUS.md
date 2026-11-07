@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39 Smart Intelligence dashboard final completion
+
+- **Baseline:** branch codex/m39-smart-dashboard-final from merged PR #517 (4f14d5e). The lightweight record browser is replaced by the approved compact navy/gold reader dashboard without changing the existing Supabase, Contentful, authentication, payment or publication architecture.
+- **Dashboard:** authenticated readers receive the governed 12-hour live ribbon, 24H/7D/30D/QTD/YTD/custom periods, geographic context, 12 multi-select topics, Top Signal Now, six KPIs, equivalent-period comparisons, 12 topic cards, a source-backed 12-week heatmap, evidence records, methodology, Contentful compatibility and ASK GPIR context handoff.
+- **Data boundary:** calculations use only dated approved announcements from GREEN sources that pass the existing official-URL/content checks. Production currently exposes two fully eligible MAS records. Thirty-eight dated T3 media records lack governed topic evidence and 39 legacy records lack publication dates; none are promoted or counted. The 12-hour alert state is truthfully empty.
+- **Source repair:** guarded release SQL corrects only three verified registry endpoint defects: FinTech Australia .org.in to official .org.au news, generic europa.eu to the ECB press RSS, and the RBA null authority/root page to official RBA media-release RSS. Trust tiers, confidence thresholds, parser profiles and publication status are unchanged; an exact rollback is included.
+- **Validation:** dashboard tests, public intelligence governance tests, reader/payment tests, ASK GPIR intent, Contentful production release, content/link/announcement validation, syntax, secret scan and diff checks pass. Production application of the source repair, Edge deployment, PR checks/merge, Pages publication and live authenticated desktop/mobile screenshots remain release actions.
+
 ### M39 production closure — FX, Smart Intelligence, alerts and My GPIR
 
 - **Baseline:** `codex/m39-production-closure` from merged `origin/main` `928bcbe`, which already contains PRs #514–#516 and the governed 26-record Contentful FX index. No CMS entry, publication identity, route or access-policy row was recreated or changed.
