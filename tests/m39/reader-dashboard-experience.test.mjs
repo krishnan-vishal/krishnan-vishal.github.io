@@ -20,7 +20,7 @@ function response(overrides = {}) {
 }
 
 function navigationDocument() {
-  const links = ['overview', 'profile', 'library', 'payments', 'plan'].map(section => ({
+  const links = ['overview', 'profile', 'public-research', 'library', 'payments', 'plan'].map(section => ({
     dataset: { gpirSection: section },
     setAttribute(name, value) { this[name] = value; },
     removeAttribute(name) { delete this[name]; }
@@ -36,8 +36,8 @@ function navigationDocument() {
   return { document, links, grid, main };
 }
 
-test('all five account sections resolve and active navigation state stays synchronized', () => {
-  for (const section of ['overview', 'profile', 'library', 'payments', 'plan']) {
+test('all account sections resolve and active navigation state stays synchronized', () => {
+  for (const section of ['overview', 'profile', 'public-research', 'library', 'payments', 'plan']) {
     const fixture = navigationDocument();
     assert.equal(activeSection(`#${section}`), section);
     assert.equal(syncMyGpirNavigation(fixture.document, `#${section}`), true);
@@ -50,13 +50,13 @@ test('all five account sections resolve and active navigation state stays synchr
 });
 
 test('arrow, Home and End keys provide bounded navigation without replacing native links', () => {
-  assert.equal(navigationKeyIndex('ArrowRight', 4, 5), 0);
-  assert.equal(navigationKeyIndex('ArrowLeft', 0, 5), 4);
-  assert.equal(navigationKeyIndex('ArrowDown', 1, 5), 2);
-  assert.equal(navigationKeyIndex('ArrowUp', 1, 5), 0);
-  assert.equal(navigationKeyIndex('Home', 3, 5), 0);
-  assert.equal(navigationKeyIndex('End', 1, 5), 4);
-  assert.equal(navigationKeyIndex('Enter', 1, 5), null);
+  assert.equal(navigationKeyIndex('ArrowRight', 5, 6), 0);
+  assert.equal(navigationKeyIndex('ArrowLeft', 0, 6), 5);
+  assert.equal(navigationKeyIndex('ArrowDown', 1, 6), 2);
+  assert.equal(navigationKeyIndex('ArrowUp', 1, 6), 0);
+  assert.equal(navigationKeyIndex('Home', 3, 6), 0);
+  assert.equal(navigationKeyIndex('End', 1, 6), 5);
+  assert.equal(navigationKeyIndex('Enter', 1, 6), null);
 });
 
 test('profile presentation includes only allowlisted server fields and omits missing data', () => {
@@ -111,7 +111,7 @@ test('markup and styles cover target desktop, tablet and mobile presentation con
     readFile(new URL('../../assets/css/my-gpir.css', import.meta.url), 'utf8'),
     readFile(new URL('../../reader/my-gpir/index.html', import.meta.url), 'utf8')
   ]);
-  assert.match(html, /data-gpir-section="overview"[\s\S]*data-gpir-section="profile"[\s\S]*data-gpir-section="library"[\s\S]*data-gpir-section="payments"[\s\S]*data-gpir-section="plan"/);
+  assert.match(html, /data-gpir-section="overview"[\s\S]*data-gpir-section="profile"[\s\S]*data-gpir-section="public-research"[\s\S]*data-gpir-section="library"[\s\S]*data-gpir-section="payments"[\s\S]*data-gpir-section="plan"/);
   assert.match(html, /href="\/reader\/my-gpir\/#profile"/);
   assert.match(html, /data-reader-metric="account">&mdash;</);
   assert.doesNotMatch(html, /data-reader-metric="(?:library|payments|purchases)">0</);

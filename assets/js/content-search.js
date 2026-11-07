@@ -96,7 +96,7 @@
             const [base, quote] = pair.split("/");
             return {
                 id: "fx-pair-" + base + "-" + quote,
-                pageTitle: pair + " — Smart FX Intelligence",
+                pageTitle: pair + " — FX Intelligence",
                 sectionTitle: "Currency Pair",
                 url: "pages/fx/intelligence.html?" + new URLSearchParams({base, quote, period:"M"}),
                 type: "FX Intelligence",

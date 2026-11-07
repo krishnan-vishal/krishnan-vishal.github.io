@@ -5,6 +5,15 @@ const ONETIME_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD']);
 const FRANKFURTER_ORIGIN = 'https://api.frankfurter.dev';
 const FRANKFURTER_SOURCE = 'European Central Bank via Frankfurter';
 const FRANKFURTER_START_DATE = '1999-01-04';
+const SUPPLEMENTARY_SOURCE = 'ExchangeRate-API open access reference via GPIR archive';
+const SUPPLEMENTARY_SOURCE_ID = 'reference-open-er-api';
+const SUPPLEMENTARY_CURRENCY_NAMES = Object.freeze({
+  AED: 'UAE Dirham', AUD: 'Australian Dollar', BHD: 'Bahraini Dinar', CAD: 'Canadian Dollar',
+  CHF: 'Swiss Franc', CNY: 'Chinese Yuan', EUR: 'Euro', GBP: 'British Pound', HKD: 'Hong Kong Dollar',
+  INR: 'Indian Rupee', JPY: 'Japanese Yen', KWD: 'Kuwaiti Dinar', NZD: 'New Zealand Dollar',
+  OMR: 'Omani Rial', QAR: 'Qatari Riyal', SAR: 'Saudi Riyal', SGD: 'Singapore Dollar',
+  USD: 'US Dollar'
+});
 const FX_HISTORY_CACHE_MS = 15 * 60 * 1000;
 const FX_HISTORY_CACHE_MAX_ENTRIES = 12;
 const FX_PEER_BASES = Object.freeze(['USD', 'EUR', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'SGD']);
@@ -300,41 +309,65 @@ async function latestGpirCapture(fetchImpl, config, pair, serviceHeaders) {
   return Object.freeze({ capturedAt: timestamp, rate, source: safeText(row.source) });
 }
 
-async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
+function validatedSupplementaryPoints(rows, pair) {
+  if (!Array.isArray(rows)) return null;
+  const seen = new Set();
+  return rows.flatMap(row => {
+    const date = row?.observation_date;
+    const rate = Number(row?.rate);
+    if (!validCalendarDate(date) || !Number.isFinite(rate) || rate <= 0 ||
+        row?.source !== SUPPLEMENTARY_SOURCE_ID ||
+        !['provider-native', 'derived-cross', 'derived-inverse'].includes(row?.rate_method) ||
+        seen.has(date)) return [];
+    seen.add(date);
+    return [Object.freeze({ date, rate })];
+  }).sort((left, right) => left.date.localeCompare(right.date));
+}
+
+async function supplementaryArchiveHistory(fetchImpl, config, pair, serviceHeaders, now) {
+  const query = new URLSearchParams({
+    select: 'observation_date,rate,rate_method,source,timestamp',
+    base_currency: `eq.${pair.base}`, target_currency: `eq.${pair.quote}`,
+    observation_date: 'not.is.null', source: `eq.${SUPPLEMENTARY_SOURCE_ID}`,
+    order: 'observation_date.asc,timestamp.asc', limit: '5000'
+  });
+  const result = await jsonFetch(fetchImpl,
+    `${config.SUPABASE_URL}/rest/v1/fx_historical_archive?${query}`,
+    { headers: serviceHeaders });
+  const points = validatedSupplementaryPoints(validRows(result), pair);
+  if (!points?.length) return null;
+  const currencies = Object.freeze(Object.fromEntries(Object.entries(SUPPLEMENTARY_CURRENCY_NAMES)
+    .map(([code, name]) => [code, Object.freeze({ name })])));
+  return Object.freeze({
+    status: 'AVAILABLE', pair: `${pair.base}/${pair.quote}`,
+    baseName: currencies[pair.base]?.name || pair.base,
+    quoteName: currencies[pair.quote]?.name || pair.quote,
+    source: SUPPLEMENTARY_SOURCE,
+    sourceKind: 'SUPPLEMENTARY_REFERENCE',
+    sourceUrl: 'https://www.exchangerate-api.com/docs/free',
+    sourceTermsUrl: 'https://www.exchangerate-api.com/terms',
+    providerUrl: 'https://www.exchangerate-api.com/',
+    retrievedAt: new Date(now()).toISOString(),
+    rateMethod: points.length && result.data.some(row => row.rate_method === 'derived-cross')
+      ? 'SUPPLEMENTARY_USD_PIVOT_CROSS_RATE' : 'SUPPLEMENTARY_PROVIDER_REFERENCE_RATE',
+    firstFixingDate: points[0].date, lastFixingDate: points[points.length - 1].date,
+    coverageStatus: points.length < 20 ? 'LIMITED' : 'AVAILABLE',
+    coverageNotice: points.length < 20
+      ? `${points.length} dated daily reference observations are available. This is insufficient for long-term historical analysis; no missing dates are interpolated.`
+      : null,
+    currencies, points: Object.freeze(points), peerStatus: 'UNAVAILABLE',
+    peerComparisons: Object.freeze([])
+  });
+}
+
+async function authorizedFxResponse({ fetchImpl, config, origin, env,
   pair, now, logger }) {
   const serviceHeaders = new Headers();
   serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
   serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
-  const hasAcceptanceAccess = config.FX_LIVE_ACCEPTANCE_USER_ID === userId;
   const currentTime = now();
-  if (!hasAcceptanceAccess) {
-    const query = new URLSearchParams({
-      select: 'id,status,effective_from,effective_until,payment_confirmed_at',
-      user_id: `eq.${userId}`,
-      environment: `eq.${config.PAYMENT_ENVIRONMENT}`, order: 'updated_at.desc', limit: '1'
-    });
-    const subscriptions = await jsonFetch(fetchImpl,
-      `${config.SUPABASE_URL}/rest/v1/gpir_paypal_subscriptions?${query}`,
-      { headers: serviceHeaders });
-    if (!validRows(subscriptions))
-      return response(503, { status: 'ERROR', code: 'SUBSCRIPTION_CHECK_UNAVAILABLE' }, origin, env);
-
-    const subscription = subscriptions.data.length
-      ? subscriptionSummary(subscriptions.data[0]) : null;
-    const hasActiveSubscription = subscription?.status === 'ACTIVE' &&
-      subscription.effectiveFrom && subscription.effectiveUntil &&
-      subscription.paymentConfirmedAt &&
-      Date.parse(subscription.effectiveFrom) <= currentTime &&
-      Date.parse(subscription.effectiveUntil) > currentTime;
-    if (!hasActiveSubscription) {
-      const expired = subscription?.status === 'EXPIRED' ||
-        (subscription?.effectiveUntil && Date.parse(subscription.effectiveUntil) <= currentTime);
-      return response(403, { status: 'DENY',
-        code: expired ? 'SUBSCRIPTION_EXPIRED' : 'SUBSCRIPTION_REQUIRED' }, origin, env);
-    }
-  }
-
   let history;
+  let primarySourceFailed = false;
   try {
     history = await frankfurterHistory(fetchImpl, pair, currentTime, now, logger);
   } catch (error) {
@@ -343,16 +376,26 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env, userId,
       code: /^[A-Z0-9_]{1,48}$/.test(error?.message || '')
         ? error.message : 'FX_SOURCE_UNAVAILABLE'
     });
-    return response(503, { status: 'ERROR', code: 'FX_SOURCE_UNAVAILABLE' }, origin, env);
+    primarySourceFailed = true;
+    history = null;
   }
-  if (history.status !== 'AVAILABLE')
-    return response(404, { status: 'UNAVAILABLE', code: history.status,
-      pair: history.pair, source: history.source || null }, origin, env);
+  if (!history || history.status !== 'AVAILABLE') {
+    const supplementary = await supplementaryArchiveHistory(fetchImpl, config, pair,
+      serviceHeaders, now);
+    if (supplementary) history = supplementary;
+  }
+  if ((!history || history.status !== 'AVAILABLE') && primarySourceFailed)
+    return response(503, { status: 'ERROR', code: 'FX_SOURCE_UNAVAILABLE' }, origin, env);
+  if (!history || history.status !== 'AVAILABLE')
+    return response(404, { status: 'UNAVAILABLE', code: history?.status || 'NO_HISTORICAL_OBSERVATIONS',
+      pair: history?.pair || `${pair.base}/${pair.quote}`, source: history?.source || null }, origin, env);
 
   const gpirCapture = await latestGpirCapture(fetchImpl, config, pair, serviceHeaders);
   return response(200, { status: 'OK', history, gpirCapture,
     gpirCaptureStatus: gpirCapture ? 'AVAILABLE' : 'UNAVAILABLE',
-    archiveNotice: 'GPIR capture timestamps are separate from Frankfurter fixing dates and are not mixed into the historical reference series.' },
+    archiveNotice: history.sourceKind === 'SUPPLEMENTARY_REFERENCE'
+      ? 'Dated supplementary observations are read from the existing GPIR archive. Legacy capture timestamps without observation dates are excluded from historical analytics.'
+      : 'GPIR capture timestamps are separate from Frankfurter fixing dates and are not mixed into the historical reference series.' },
   origin, env);
 }
 
@@ -431,7 +474,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     if (!userResult.ok || !UUID.test(user?.id || ''))
       return response(401, { status: 'ERROR', code: 'SESSION_INVALID' }, origin, env);
     if (requestedPair) return authorizedFxResponse({ fetchImpl, config, origin, env,
-      userId: user.id, pair: requestedPair, now, logger });
+      pair: requestedPair, now, logger });
 
     const serviceHeaders = new Headers();
     serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);

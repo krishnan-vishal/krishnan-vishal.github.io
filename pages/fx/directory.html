@@ -14,7 +14,7 @@
 <body>
 <header><a class="brand" href="../../index.html" aria-label="FINTECHOISIS GPIR home"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="44" height="44"><span><strong>FINTECHOISIS</strong><small><b>GPIR</b> Global Payments Intelligence Repository</small></span></a><nav aria-label="Currency navigation"><a href="../../index.html">Home</a><a href="./index.html">FX Pairs &amp; Pricing</a><a href="../../reader/my-gpir/">My GPIR Dashboard</a><a href="../../index.html#gpir-search">Search GPIR</a><a href="../intelligence/index.html">Intelligence Library</a></nav></header>
 <main><p class="eyebrow">GPIR · FX INTELLIGENCE</p><h1>Currency pair directory</h1>
-<p class="intro">Find a currency pair and open its existing Smart Intelligence card. Historical coverage and subscriber access are verified by the card service.</p><div class="directory-links"><a href="./index.html">← FX pairs &amp; pricing</a><a href="../../reader/my-gpir/">My GPIR dashboard</a><a href="../../index.html#gpir-search">Search GPIR</a></div>
+<p class="intro">Find a currency pair and open its FX Intelligence card for historical rates and quantitative analysis. Authenticated-reader access and pair-specific coverage are verified by the card service.</p><div class="directory-links"><a href="./index.html">← FX pairs &amp; pricing</a><a href="../../reader/my-gpir/">My GPIR dashboard</a><a href="../../index.html#gpir-search">Search GPIR</a></div>
 <div class="controls"><input id="search" type="search" placeholder="Search USD, JPY, INR, AED or a pair" aria-label="Search currency pairs"><select id="region" aria-label="Filter by region"><option value="">All regions</option></select></div>
 <div class="legend"><strong>Coverage legend:</strong> Configured for GPIR FX does not mean verified historical coverage. <strong>Check historical coverage</strong> opens the existing subscriber card, which reports available history or a specific unavailable reason. No rates or coverage dates are inferred here.</div>
 <p id="count" role="status"></p><div class="cards" id="cards"></div>
@@ -39,7 +39,7 @@ const card=document.createElement('article');card.className='card';
 const title=document.createElement('h2');title.textContent=pair;
 const state=document.createElement('span');state.className='state';state.textContent='Historical coverage: verify on opening';
 const description=document.createElement('p');description.textContent='Configured FX pair · source history and entitlement checked by intelligence service';
-const link=document.createElement('a');link.href='./intelligence.html?'+new URLSearchParams({base,quote,period:'M'});link.textContent='Open Smart Intelligence';link.setAttribute('aria-label','Open Smart Intelligence for '+pair);
+const link=document.createElement('a');link.href='./intelligence.html?'+new URLSearchParams({base,quote,period:'M'});link.textContent='Open FX Intelligence';link.setAttribute('aria-label','Open FX Intelligence for '+pair);
 card.append(title,state,description,link);cards.append(card)
 }
 count.textContent=shown.length+' configured pair'+(shown.length===1?'':'s')+' shown';

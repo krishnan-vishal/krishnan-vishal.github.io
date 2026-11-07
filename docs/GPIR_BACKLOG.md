@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 coordinated production closure
+
+| ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| M39-PRODUCTION-CLOSURE | 2026-11-07 | Complete Global Alerts, distinct FX and Smart Intelligence tools, governed Contentful linkage and the My GPIR three-action journey | FX, INTELLIGENCE, CONTENTFUL, READER EXPERIENCE, RELEASE | Critical | IN PROGRESS | PR checks, owner-authorized merge, Edge/Pages deployment and live authenticated acceptance | Stage 1 | Existing FX archive, reader summary, public intelligence APIs, My GPIR and Contentful index | Reuse the approved architecture; make both tools available to authenticated readers without payment; recover AED/INR from dated supplementary observations; preserve truthful alerts and paid entitlements. | AED/INR renders sparse dated history with limitations; Smart Intelligence is independent; three reader actions are exact and filterable; alerts publish only when eligible; 26 CMS records and RLS/payment controls remain unchanged; live URLs verified. | Implementation and local release gate complete. Production inventory confirms three current AED/INR dated observations, 72/72 healthy ingestion runs and zero threshold-eligible current candidates. No database/CMS mutation or threshold change. | PENDING deployment and live verification | Current branch | M39 |
+
 ## M39-FX Contentful editorial activation
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

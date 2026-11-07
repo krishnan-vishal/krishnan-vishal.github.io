@@ -138,10 +138,8 @@ test('ticker-selected pairs and periods survive dashboard and access routes', ()
   const guest = accessMarkup(new Error('SESSION_REQUIRED'), returnTo);
   assert.match(guest, /\/reader\/sign-in\/\?returnTo=%2Fpages%2Ffx%2Fintelligence\.html%3Fbase%3DEUR%26quote%3DJPY%26period%3D5Y/);
   assert.match(guest, /\/reader\/create-account\/\?returnTo=/);
-  assert.match(accessMarkup(new Error('SUBSCRIPTION_REQUIRED'), returnTo),
-    /\/reader\/plan\/\?returnTo=/);
-  assert.match(accessMarkup(new Error('SUBSCRIPTION_EXPIRED'), returnTo),
-    /Renew subscription/);
+  assert.match(guest, /every authenticated GPIR reader/);
+  assert.doesNotMatch(guest, /subscription|plan/i);
 });
 
 test('subscription plan return is retained only for an allowed FX pair destination', () => {
@@ -374,15 +372,17 @@ test('malformed currency requests are rejected and supported currencies are sour
     call.url.searchParams.get('from') === '1999-01-04'), false);
 });
 
-test('FX history is denied to a signed-in reader without an active subscription', async () => {
+test('FX history is available to a signed-in reader without a paid subscription', async () => {
   const fixture = mockFetch({ subscription: null });
   const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
-  assert.equal(response.status, 403);
-  assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
-  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).history.pair, 'USD/JPY');
+  assert.equal(fixture.calls.some(call =>
+    call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), false);
+  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), true);
 });
 
-test('disabled or mismatched live-acceptance configuration grants no FX access', async () => {
+test('subscription and live-acceptance configuration do not gate authenticated FX access', async () => {
   for (const handlerEnv of [
     { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'false',
       GPIR_FX_LIVE_ACCEPTANCE_USER_ID: userId },
@@ -396,81 +396,34 @@ test('disabled or mismatched live-acceptance configuration grants no FX access',
     const fixture = mockFetch({ subscription: null });
     const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
       request('USD/JPY'));
-    assert.equal(response.status, 403);
-    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).history.status, 'AVAILABLE');
     assert.equal(fixture.calls.some(call =>
-      call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), true);
-    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
+      call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), false);
   }
 });
 
-test('enabled live acceptance permits only the authenticated configured reader', async () => {
-  const fixture = mockFetch({ subscription: null });
-  const handlerEnv = { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
-    GPIR_FX_LIVE_ACCEPTANCE_USER_ID: userId };
-  const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
-    request('USD/JPY'));
+test('AED/INR uses only dated supplementary archive observations and discloses limited coverage', async () => {
+  const fixture = mockFetch({ subscription: null, archive: [
+    { timestamp: '2026-11-03T04:32:28.000Z', observation_date: null,
+      rate: 25.848475, rate_method: null, source: 'reference-open-er-api' },
+    { timestamp: '2026-11-05T07:52:31.000Z', observation_date: '2026-11-05',
+      rate: 25.764512, rate_method: 'derived-cross', source: 'reference-open-er-api' },
+    { timestamp: '2026-11-06T02:48:44.000Z', observation_date: '2026-11-06',
+      rate: 25.741874, rate_method: 'derived-cross', source: 'reference-open-er-api' }
+  ] });
+  const response = await handler(fixture.fetchImpl)(request('AED/INR'));
   const body = await response.json();
   assert.equal(response.status, 200);
-  assert.equal(body.history.status, 'AVAILABLE');
-  assert.equal(body.history.pair, 'USD/JPY');
-  assert.equal(fixture.calls[0].url.pathname, '/auth/v1/user');
+  assert.equal(body.history.sourceKind, 'SUPPLEMENTARY_REFERENCE');
+  assert.equal(body.history.coverageStatus, 'LIMITED');
+  assert.match(body.history.coverageNotice, /2 dated daily reference observations/);
+  assert.match(body.history.coverageNotice, /insufficient for long-term historical analysis/);
+  assert.deepEqual(body.history.points.map(point => point.date), ['2026-11-05', '2026-11-06']);
+  assert.equal(body.history.rateMethod, 'SUPPLEMENTARY_USD_PIVOT_CROSS_RATE');
+  assert.match(body.history.sourceTermsUrl, /exchangerate-api\.com\/terms/);
   assert.equal(fixture.calls.some(call =>
     call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), false);
-  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), true);
-});
-
-test('enabled live acceptance preserves confirmed-payment subscriber access', async () => {
-  const fixture = mockFetch({ subscription: activeSubscription });
-  const handlerEnv = { ...env, GPIR_FX_LIVE_ACCEPTANCE_ENABLED: 'true',
-    GPIR_FX_LIVE_ACCEPTANCE_USER_ID: otherUserId };
-  const response = await handler(fixture.fetchImpl, { error() {} }, handlerEnv)(
-    request('USD/JPY'));
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).history.status, 'AVAILABLE');
-  assert.equal(fixture.calls.some(call =>
-    call.url.pathname === '/rest/v1/gpir_paypal_subscriptions'), true);
-});
-
-test('approval-pending and payment-failed subscriptions cannot retrieve FX history', async () => {
-  for (const status of ['APPROVAL_PENDING', 'PAYMENT_FAILED']) {
-    const fixture = mockFetch({ subscription: { ...activeSubscription, status } });
-    const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
-    assert.equal(response.status, 403);
-    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
-    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
-  }
-});
-
-test('provider-active subscription without confirmed payment cannot retrieve FX history', async () => {
-  for (const paymentConfirmedAt of [null, 'not-a-timestamp']) {
-    const fixture = mockFetch({ subscription: { ...activeSubscription,
-      payment_confirmed_at: paymentConfirmedAt } });
-    const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
-    assert.equal(response.status, 403);
-    assert.equal((await response.json()).code, 'SUBSCRIPTION_REQUIRED');
-    const subscriptionCall = fixture.calls.find(call =>
-      call.url.pathname === '/rest/v1/gpir_paypal_subscriptions');
-    assert.match(subscriptionCall.url.searchParams.get('select'), /payment_confirmed_at/);
-    assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
-  }
-});
-
-test('entitlement verification failures fail closed without requesting source history', async () => {
-  const fixture = mockFetch({ subscriptionFailure: true });
-  const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
-  assert.equal(response.status, 503);
-  assert.equal((await response.json()).code, 'SUBSCRIPTION_CHECK_UNAVAILABLE');
-  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
-});
-
-test('expired subscriptions receive renewal state and no historical data', async () => {
-  const fixture = mockFetch({ subscription: { ...activeSubscription, status: 'EXPIRED',
-    effective_until: '2026-11-03T00:00:00.000Z' } });
-  const response = await handler(fixture.fetchImpl)(request('USD/JPY'));
-  assert.equal(response.status, 403);
-  assert.equal((await response.json()).code, 'SUBSCRIPTION_EXPIRED');
-  assert.equal(fixture.calls.some(call => call.url.hostname === 'api.frankfurter.dev'), false);
 });
 
 test('active subscriber receives attributed source fixing dates separately from GPIR capture time', async () => {

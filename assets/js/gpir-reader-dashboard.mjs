@@ -364,39 +364,56 @@ export function publicFxResearchRecords(value) {
     return [{ pair: item.pair, title: safeText(item.title, 180),
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
-      smartCardUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M` }];
+      fxIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M`,
+      smartIntelligenceUrl: `/pages/intelligence/smart.html?kind=pair&subject=${encodeURIComponent(item.pair)}&period=1Y` }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 
 async function renderPublicFxResearch(document, fetchImpl) {
-  const library = document.querySelector('[data-reader-library]');
-  if (!library || typeof fetchImpl !== 'function') return;
+  const target = document.querySelector('[data-reader-public-research]');
+  if (!target || typeof fetchImpl !== 'function') return;
   const section = textElement(document, 'section', '', 'my-gpir-public-research');
-  section.append(textElement(document, 'h3', 'Public GPIR FX intelligence'),
-    textElement(document, 'p', 'Published currency research and live Smart Cards are available to signed-in readers without a payment or subscription.'));
+  section.append(textElement(document, 'p', 'FX analysis, contextual Smart Intelligence and published Contentful research are three distinct reader journeys. All are available here without payment or subscription.'));
   try {
     const response = await fetchImpl('/assets/data/fx/editorial-public.json', { cache: 'no-store' });
     if (!response?.ok) throw new Error('PUBLIC_INDEX_UNAVAILABLE');
     const records = publicFxResearchRecords(await response.json());
     if (!records.length) throw new Error('NO_PUBLISHED_FX_RECORDS');
-    const list = textElement(document, 'ul', '', 'my-gpir-list');
+    const filter = textElement(document, 'input', '', 'my-gpir-public-filter');
+    filter.type = 'search'; filter.placeholder = 'Filter 26 pairs or research titles';
+    filter.setAttribute('aria-label', 'Filter public FX research');
+    const count = textElement(document, 'p', `${records.length} published currency pairs`,
+      'my-gpir-public-count');
+    const list = textElement(document, 'ul', '', 'my-gpir-public-grid');
     for (const item of records) {
-      const row = textElement(document, 'li', '', 'my-gpir-publication');
+      const row = textElement(document, 'li', '', 'my-gpir-public-pair');
+      row.dataset.searchText = `${item.pair} ${item.title}`.toLowerCase();
       row.append(textElement(document, 'h4', item.pair),
         textElement(document, 'p', item.title));
-      const smart = textElement(document, 'a', 'Open Smart Card', 'my-gpir-publication__action');
-      smart.href = item.smartCardUrl;
-      const editorial = textElement(document, 'a', 'Read published research', 'my-gpir-publication__action');
+      const actions = textElement(document, 'div', '', 'my-gpir-public-actions');
+      const fx = textElement(document, 'a', 'Open FX Intelligence', 'my-gpir-publication__action');
+      fx.href = item.fxIntelligenceUrl;
+      const smart = textElement(document, 'a', 'Open Smart Intelligence', 'my-gpir-publication__action');
+      smart.href = item.smartIntelligenceUrl;
+      const editorial = textElement(document, 'a', 'Read Published Research', 'my-gpir-publication__action');
       editorial.href = item.editorialUrl;
-      row.append(smart, textElement(document, 'span', ' · '), editorial);
+      actions.append(fx, smart, editorial); row.append(actions);
       list.append(row);
     }
-    section.append(textElement(document, 'p', `${records.length} published currency pairs · Smart Card data refreshes through the existing FX pipeline.`), list);
+    filter.addEventListener('input', () => {
+      const query = filter.value.trim().toLowerCase(); let visible = 0;
+      for (const row of list.children) {
+        row.hidden = Boolean(query) && !row.dataset.searchText.includes(query);
+        if (!row.hidden) visible++;
+      }
+      count.textContent = `${visible} of ${records.length} published currency pairs`;
+    });
+    section.append(filter, count, list);
   } catch {
     section.append(emptyState(document, 'Public FX research is temporarily unavailable.',
       'The account library remains unchanged. Please access the public FX directory from the main repository.'));
   }
-  library.append(section);
+  target.replaceChildren(section);
 }
 
 function statusBadge(document, label, tone) {
@@ -523,7 +540,7 @@ export function readerDashboardStatus(summary) {
 
 export function clearReaderDashboard(document) {
   for (const selector of ['[data-reader-profile]', '[data-reader-library]',
-    '[data-reader-payments]', '[data-reader-plan]']) {
+    '[data-reader-payments]', '[data-reader-plan]', '[data-reader-public-research]']) {
     document.querySelector(selector)?.replaceChildren();
   }
   for (const name of ['library', 'payments', 'purchases', 'account']) {
@@ -547,7 +564,8 @@ async function setupReaderDashboard({ global, document, fetchImpl, root }) {
   const client = global.GPIR_SUPABASE_CLIENT;
   const returnTo = `${global.location.pathname}${global.location.search}${global.location.hash}`;
   rememberFxIntelligenceReturn(global,
-    new URL(global.location.href).searchParams.get('returnTo'));
+    new URL(global.location.href || returnTo, 'https://fintechoisis.com')
+      .searchParams.get('returnTo'));
   let session = null;
   try {
     session = global.GPIRReaderAuth?.sessionReady
