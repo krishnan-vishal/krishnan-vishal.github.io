@@ -270,6 +270,22 @@ function discoverNewsLinks(
 
 
 // RBA: parse official RSS items only; never treat index containers as articles.
+
+// Conservative official RBA media-release body extraction. Missing body stays
+// missing: a summary or page chrome must not become publication evidence.
+function extractRbaArticleBody(html: string): string | null {
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+  if (!main) return null;
+  const article = main.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ||
+    main.match(/<div\b[^>]*class=["'][^"']*(?:media-release|article-body|content-body)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  if (!article) return null;
+  const withoutNoise = article
+    .replace(/<(script|style|nav|aside|footer)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  const body = cleanText(withoutNoise);
+  return body.length >= 200 ? body.slice(0, 12000) : null;
+}
+
 function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
   const results: DiscoveredItem[] = [];
   const seen = new Set<string>();
@@ -913,7 +929,9 @@ const source = sourceRows[0] as SourceRecord;
 
               // Keep phase-one content intentionally bounded.
               raw_content:
-                meta.description || null,
+                requestedSource === RBA_SOURCE_ID
+                  ? extractRbaArticleBody(pageHtml)
+                  : meta.description || null,
 
               source_published_at:
                 resolvedPublishedAt,
