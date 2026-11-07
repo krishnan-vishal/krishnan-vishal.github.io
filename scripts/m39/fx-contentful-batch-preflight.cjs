@@ -190,7 +190,9 @@ function isCurrentlyPublished(entry) {
 
 function richTextNodeTypes(value, result = new Set()) {
   if (!value || typeof value !== 'object') return result;
-  if (typeof value.nodeType === 'string' && !['document', 'text'].includes(value.nodeType))
+  // Contentful Rich Text always permits document, paragraph and text; enabledNodeTypes
+  // constrains optional block types (such as headings), not the base paragraph node.
+  if (typeof value.nodeType === 'string' && !['document', 'paragraph', 'text'].includes(value.nodeType))
     result.add(value.nodeType);
   for (const child of value.content || []) richTextNodeTypes(child, result);
   return result;
