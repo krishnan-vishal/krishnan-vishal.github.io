@@ -1,4 +1,4 @@
-const SECTIONS = new Set(['profile', 'library', 'payments', 'plan']);
+const SECTIONS = new Set(['profile', 'public-research', 'library', 'payments', 'plan']);
 const navigationGlobals = new WeakSet();
 
 export function activeSection(hash = '') {

@@ -105,6 +105,23 @@
   color: #17243a;
 }
 
+.fxi-coverage-limit {
+  padding: 0.85rem 1rem;
+  color: #5b4309;
+  background: #fff8e2;
+  border: 1px solid #d6b75f;
+  border-radius: 0.65rem;
+}
+
+.fxi-coverage-limit strong,
+.fxi-coverage-limit p {
+  margin: 0;
+}
+
+.fxi-coverage-limit p {
+  margin-top: 0.25rem;
+}
+
 .fxi-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(16rem, auto);

@@ -92,6 +92,7 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"],
 .my-gpir-grid[data-reader-view="profile"] > [data-view-panel="profile"],
 .my-gpir-grid[data-reader-view="library"] > [data-view-panel="library"],
+.my-gpir-grid[data-reader-view="public-research"] > [data-view-panel="public-research"],
 .my-gpir-grid[data-reader-view="payments"] > [data-view-panel="payments"],
 .my-gpir-grid[data-reader-view="plan"] > [data-view-panel="plan"]{display:block}
 .my-gpir-grid[data-reader-view="overview"] > [data-view-panel="overview"]{grid-column:span 4}
@@ -106,6 +107,15 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 .my-gpir-card__header a{display:inline-flex;align-items:center;min-height:2.5rem}
 .my-gpir-library-item{min-width:0}
 .my-gpir-library-item strong,.my-gpir-library-item code{overflow-wrap:anywhere}
+
+.my-gpir-public-research>p{margin-top:0;color:var(--gpir-muted)}
+.my-gpir-public-filter{width:min(100%,28rem);min-height:2.65rem;padding:.55rem .7rem;border:1px solid var(--gpir-line);border-radius:.4rem;font:inherit}
+.my-gpir-public-count{margin:.55rem 0;color:var(--gpir-muted);font-size:.82rem}
+.my-gpir-public-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin:0;padding:0;list-style:none}
+.my-gpir-public-pair{min-width:0;padding:.75rem;border:1px solid var(--gpir-line);border-left:3px solid var(--gpir-gold);border-radius:.45rem}
+.my-gpir-public-pair h4,.my-gpir-public-pair p{margin:0}.my-gpir-public-pair p{margin:.2rem 0 .55rem;color:var(--gpir-muted);font-size:.82rem}
+.my-gpir-public-actions{display:flex;flex-wrap:wrap;gap:.35rem}.my-gpir-public-actions a{padding:.35rem .5rem;border:1px solid var(--gpir-line);border-radius:.3rem;font-size:.75rem;text-decoration:none}
+@media(max-width:720px){.my-gpir-public-grid{grid-template-columns:1fr}}
 .my-gpir-nav a:focus-visible,.my-gpir-refresh:focus-visible,
 .my-gpir-card__header a:focus-visible,.my-gpir-header .gpir-reader-action:focus-visible{
   outline:3px solid var(--gpir-gold);outline-offset:3px

@@ -371,9 +371,12 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
     : 'Unavailable';
   const availableYears = allPoints.length > 1
     ? `${allPoints[0].date} – ${allPoints.at(-1).date}` : 'Unavailable';
-  const sourceRateLabel = history.rateMethod === 'ECB_EUR_PIVOT_CROSS_RATE'
-    ? 'ECB euro-pivot cross-rate via Frankfurter'
-    : 'ECB euro reference rate via Frankfurter';
+  const supplementarySource = history.sourceKind === 'SUPPLEMENTARY_REFERENCE';
+  const sourceRateLabel = supplementarySource
+    ? 'Supplementary daily reference rate'
+    : history.rateMethod === 'ECB_EUR_PIVOT_CROSS_RATE'
+      ? 'ECB euro-pivot cross-rate via Frankfurter'
+      : 'ECB euro reference rate via Frankfurter';
   const recentPoints = allPoints.slice(-252);
   const yearMetrics = calculateMetrics(recentPoints);
   const rangePosition = yearMetrics.status === 'AVAILABLE' &&
@@ -401,7 +404,9 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
     : 'Historical interpretation is unavailable for this period.';
   const evidenceWindow = selectedPoints.length > 1
     ? `${selectedPoints[0].date} to ${selectedPoints.at(-1).date}` : 'Unavailable';
-  const sourceLink = `<a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">ECB reference-rate source</a>`;
+  const sourceLink = `<a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">${supplementarySource ? 'Supplementary reference-rate source' : 'ECB reference-rate source'}</a>`;
+  const coverageNotice = history.coverageStatus === 'LIMITED' && history.coverageNotice
+    ? `<section class="fxi-coverage-limit" role="status"><strong>Limited historical coverage</strong><p>${escapeHtml(history.coverageNotice)}</p></section>` : '';
   const briefCards = [
     { number: '01', type: 'COMPUTED', title: 'Movement & volatility',
       body: movementBrief, takeaway: movementTakeaway,
@@ -428,10 +433,11 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
     </div>
     <div class="fxi-header-rate"><p class="fxi-eyebrow">${escapeHtml(sourceRateLabel)} · 1 ${escapeHtml(pair.base)} =</p><strong>${escapeHtml(rateText(currentRate, pair))} <small>${escapeHtml(pair.quote)}</small></strong>
       <div class="fxi-rate-badges"><span class="${latestMoveMetrics.status === 'AVAILABLE' && latestMoveMetrics.changePercent >= 0 ? 'fxi-badge-up' : 'fxi-badge-down'}">${latestMoveMetrics.status === 'AVAILABLE' ? `${latestMoveMetrics.changePercent >= 0 ? '↑' : '↓'} ${percent(latestMoveMetrics.changePercent)} latest fixing` : 'Latest move unavailable'}</span><span class="${monthMetrics.status === 'AVAILABLE' && monthMetrics.changePercent >= 0 ? 'fxi-badge-up' : 'fxi-badge-down'}">${monthMetrics.status === 'AVAILABLE' ? `${monthMetrics.changePercent >= 0 ? '↑' : '↓'} ${percent(monthMetrics.changePercent)} 1M` : '1M unavailable'}</span></div>
-      <p class="fxi-fixing"><span>✓ Official reference fixing</span><br>Fixing date ${escapeHtml(history.lastFixingDate)} · retrieved ${escapeHtml(history.retrievedAt)}</p>
+      <p class="fxi-fixing"><span>✓ ${supplementarySource ? 'Validated supplementary reference observation' : 'Official reference fixing'}</span><br>Observation date ${escapeHtml(history.lastFixingDate)} · retrieved ${escapeHtml(history.retrievedAt)}</p>
     </div>
     <div class="fxi-header-range"><p class="fxi-eyebrow">52-WEEK OBSERVED RANGE</p><div class="fxi-range-gauge" style="--gauge-position:${rangePosition}%;--gauge-angle:${gaugeAngle}deg"><span></span><i></i></div><div class="fxi-gauge-labels"><span>Low ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.low.rate, pair) : 'Unavailable')}</span><span>High ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.high.rate, pair) : 'Unavailable')}</span></div><strong>${yearMetrics.status === 'AVAILABLE' ? `${number(rangePosition, 0)}%` : 'Unavailable'}</strong><small>of observed 52-week range</small></div>
   </header>
+  ${coverageNotice}
   <nav class="fxi-periods" aria-label="Historical analysis period">${periodButtons}</nav>
   <section class="fxi-analytics-band" aria-label="Historical trend and quick reference">
     <article class="fxi-section fxi-chart-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVED REFERENCE FIXINGS</p><h2>${escapeHtml(periodLabel)} trend</h2><small>${escapeHtml(observationWindow)} · moving average overlays when available</small></div><span class="${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? 'fxi-up' : 'fxi-down' : ''}">${escapeHtml(trend)} · ${escapeHtml(activeChange)}</span></div>
@@ -450,13 +456,13 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
   <section class="fxi-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">AVAILABLE HISTORY</p><h2>Where the latest fixing sits — range ladder</h2></div><span>Gold dot = latest fixing · bars = observed period low to high</span></div><div class="fxi-range-list">${rangeLadder(allPoints, anchor, pair)}</div><p class="fxi-note">Each range uses observations actually returned for this pair; maximum history is pair-specific.</p></section>
   <section class="fxi-context-band" aria-label="Daily movement and quote-currency peers">
     <article class="fxi-section fxi-rhythm-card"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVATION-BY-OBSERVATION</p><h2>Rhythm of the year</h2></div></div><details class="fxi-heatmap-details"><summary><span>Movement summary</span><strong>${yearMetrics.status === 'AVAILABLE' ? escapeHtml(`${yearMetrics.distribution.positive} up · ${yearMetrics.distribution.negative} down · ${yearMetrics.distribution.flat} flat`) : 'Unavailable'}</strong><small>${escapeHtml(recentPoints.length)} fixings · ${recentPoints.length ? `${recentPoints[0].date} – ${recentPoints.at(-1).date}` : 'Unavailable'}</small></summary><div class="fxi-expandable-body">${movementHeatmap(allPoints, pair)}</div></details></article>
-    <article class="fxi-section fxi-peer-card"><div class="fxi-section-heading"><div><p class="fxi-kicker">${escapeHtml(pair.quote)} PEER PULSE · ${escapeHtml(periodLabel.toUpperCase())}</p><h2>Same-date peer rates</h2></div></div>${peerHtml}<p class="fxi-note">Deterministic cross-rates from same-date ECB fixings, not transaction prices.</p></article>
+    <article class="fxi-section fxi-peer-card"><div class="fxi-section-heading"><div><p class="fxi-kicker">${escapeHtml(pair.quote)} PEER PULSE · ${escapeHtml(periodLabel.toUpperCase())}</p><h2>Same-date peer rates</h2></div></div>${peerHtml}<p class="fxi-note">${supplementarySource ? 'Peer comparison is withheld when the limited supplementary archive does not contain equivalent same-date source legs.' : 'Deterministic cross-rates from same-date ECB fixings, not transaction prices.'}</p></article>
   </section>
   <section class="fxi-brief-grid" aria-label="Currency intelligence briefs">
-    <div class="fxi-brief-heading"><h2>Intelligence brief</h2><p>${escapeHtml(periodLabel)} window · figures trace to the ECB series</p></div>
+    <div class="fxi-brief-heading"><h2>Intelligence brief</h2><p>${escapeHtml(periodLabel)} window · figures trace to the displayed source series</p></div>
     ${briefCards.map(brief => `<article class="fxi-section fxi-brief-card"><div class="fxi-brief-top"><span class="fxi-brief-number">${brief.number}</span><span class="fxi-brief-type">${escapeHtml(brief.type)}</span></div><h3>${escapeHtml(brief.title)}</h3><div class="fxi-reader-takeaway"><strong>Executive takeaway</strong><p>${escapeHtml(brief.takeaway)}</p></div><details class="fxi-brief-details"><summary>Evidence, detail &amp; sources</summary><div class="fxi-expandable-body"><p>${escapeHtml(brief.body)}</p><p><strong>Evidence</strong>${brief.evidence}</p><p><strong>Source</strong>${brief.source}</p></div></details></article>`).join('')}
   </section>
-  <footer class="fxi-provenance"><div><p class="fxi-kicker">DATA PROVENANCE &amp; RESEARCH LIMITS</p><p>Source: ${escapeHtml(history.source)} · ${escapeHtml(availableYears)} · ${allPoints.length} source fixings. <a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">ECB methodology</a> · <a href="${escapeHtml(history.sourceTermsUrl)}" target="_blank" rel="noopener noreferrer">source terms</a> · <a href="${escapeHtml(history.providerUrl)}" target="_blank" rel="noopener noreferrer">Frankfurter API</a>.</p></div><details class="fxi-methodology"><summary>Methodology &amp; archive separation</summary><div class="fxi-expandable-body"><p>Non-EUR pairs are ECB euro-pivot cross-rates formed from same-date reference data; no missing observations are filled. Fixing dates remain separate from retrieval and GPIR capture timestamps.</p><p>${archiveText} GPIR captures are separate from source fixing dates and are not mixed into the historical reference series.</p></div></details><p class="fxi-disclaimer">${DISCLAIMER}</p></footer>`;
+  <footer class="fxi-provenance"><div><p class="fxi-kicker">DATA PROVENANCE &amp; RESEARCH LIMITS</p><p>Source: ${escapeHtml(history.source)} · ${escapeHtml(availableYears)} · ${allPoints.length} source observations. <a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">source methodology</a> · <a href="${escapeHtml(history.sourceTermsUrl)}" target="_blank" rel="noopener noreferrer">source terms</a> · <a href="${escapeHtml(history.providerUrl)}" target="_blank" rel="noopener noreferrer">source provider</a>.</p></div><details class="fxi-methodology"><summary>Methodology &amp; archive separation</summary><div class="fxi-expandable-body"><p>${supplementarySource ? 'Supplementary cross-rates are preserved from the existing approved daily reference pipeline and dated GPIR archive. Sparse histories are not extended or described as central-bank history.' : 'Non-EUR pairs are ECB euro-pivot cross-rates formed from same-date reference data.'} No missing observations are filled. Observation dates remain separate from retrieval and GPIR capture timestamps.</p><p>${archiveText}</p></div></details><p class="fxi-disclaimer">${DISCLAIMER}</p></footer>`;
 }
 
 function endpoint(global) {
@@ -525,9 +531,7 @@ async function loadHistory(global, pair) {
 export function accessMarkup(error, returnTo = '/pages/fx/intelligence.html') {
   const code = error?.message || '';
   const encodedReturnTo = encodeURIComponent(returnTo);
-  if (code === 'SESSION_REQUIRED' || code === 'SESSION_INVALID') return `<section class="fxi-access"><h2>Sign in to continue</h2><p>FX Intelligence is available to authenticated subscribers.</p><a href="/reader/sign-in/?returnTo=${encodedReturnTo}">Sign in</a><a href="/reader/create-account/?returnTo=${encodedReturnTo}">Create account</a></section>`;
-  if (code === 'SUBSCRIPTION_EXPIRED') return `<section class="fxi-access"><h2>Your subscription has expired</h2><p>Renew your subscription to continue using FX Intelligence.</p><a href="/reader/plan/?returnTo=${encodedReturnTo}">Renew subscription</a></section>`;
-  if (code === 'SUBSCRIPTION_REQUIRED' || code === 'NOT_ENTITLED') return `<section class="fxi-access"><h2>Subscriber access required</h2><p>Choose an active GPIR subscription to access pair intelligence.</p><a href="/reader/plan/?returnTo=${encodedReturnTo}">View Subscription Plans</a></section>`;
+  if (code === 'SESSION_REQUIRED' || code === 'SESSION_INVALID') return `<section class="fxi-access"><h2>Sign in to continue</h2><p>FX Intelligence is available to every authenticated GPIR reader.</p><a href="/reader/sign-in/?returnTo=${encodedReturnTo}">Sign in</a><a href="/reader/create-account/?returnTo=${encodedReturnTo}">Create account</a></section>`;
   const text = code === 'UNSUPPORTED_CURRENCY'
     ? 'This currency is not currently supported by the historical reference source.'
     : code === 'NO_HISTORICAL_OBSERVATIONS'
