@@ -108,28 +108,59 @@ function apiRoot() {
     `/environments/${encodeURIComponent(expectedEnvironment)}`;
 }
 
+// Serialize all Contentful Management API requests, including collision lookups.
+// Honor the space's reset header and bounded retries on transient throttling.
+const contentfulDelayMs = 450;
+const contentfulMaxAttempts = 8;
+let contentfulQueue = Promise.resolve();
+let contentfulNextRequestAt = 0;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+function retryDelay(response, attempt) {
+  const reset = Number(response.headers.get('x-contentful-ratelimit-reset'));
+  const retryAfter = response.headers.get('retry-after');
+  const seconds = retryAfter && /^\\d+(?:\\.\\d+)?$/.test(retryAfter) ? Number(retryAfter) : null;
+  const explicitMs = Math.max(Number.isFinite(reset) ? reset * 1000 : 0,
+    seconds === null ? 0 : seconds * 1000);
+  return Math.min(60000, Math.max(1000, explicitMs || 1000 * (2 ** (attempt - 1))));
+}
 async function contentfulRequest(method, pathname, body = null, headers = {}, allow404 = false) {
-  const response = await fetch(`${apiRoot()}${pathname}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${process.env.CONTENTFUL_MANAGEMENT_TOKEN}`,
-      Accept: 'application/vnd.contentful.management.v1+json',
-      ...(body ? { 'Content-Type': 'application/vnd.contentful.management.v1+json' } : {}),
-      ...headers
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  if (allow404 && response.status === 404) return null;
-  const text = await response.text();
-  let parsed = null;
-  try { parsed = text ? JSON.parse(text) : null; } catch { parsed = { message: text }; }
-  if (!response.ok) {
-    const details = parsed?.details?.errors?.map(error =>
-      `${error.name || 'validation'}:${error.path?.join('.') || 'unknown'}:${error.value ?? ''}`).join('; ');
-    throw new Error(`Contentful ${method} ${pathname} failed (${response.status}): ` +
-      `${parsed?.message || text}${details ? ` — ${details}` : ''}`);
-  }
-  return parsed;
+  const run = async () => {
+    for (let attempt = 1; attempt <= contentfulMaxAttempts; attempt++) {
+      const pause = Math.max(0, contentfulNextRequestAt - Date.now());
+      if (pause) await wait(pause);
+      contentfulNextRequestAt = Date.now() + contentfulDelayMs;
+      const response = await fetch(`${apiRoot()}${pathname}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${process.env.CONTENTFUL_MANAGEMENT_TOKEN}`,
+          Accept: 'application/vnd.contentful.management.v1+json',
+          ...(body ? { 'Content-Type': 'application/vnd.contentful.management.v1+json' } : {}),
+          ...headers
+        },
+        body: body ? JSON.stringify(body) : undefined
+      });
+      if (allow404 && response.status === 404) return null;
+      const text = await response.text();
+      let parsed = null;
+      try { parsed = text ? JSON.parse(text) : null; } catch { parsed = { message: text }; }
+      if (response.status === 429 && attempt < contentfulMaxAttempts) {
+        const delay = retryDelay(response, attempt);
+        process.stderr.write(`Contentful throttled (${response.status}); waiting ${delay}ms before retry ${attempt + 1}/${contentfulMaxAttempts}\\n`);
+        contentfulNextRequestAt = Date.now() + delay;
+        continue;
+      }
+      if (!response.ok) {
+        const details = parsed?.details?.errors?.map(error =>
+          `${error.name || 'validation'}:${error.path?.join('.') || 'unknown'}:${error.value ?? ''}`).join('; ');
+        throw new Error(`Contentful ${method} ${pathname} failed (${response.status}): ` +
+          `${parsed?.message || text}${details ? ` — ${details}` : ''}`);
+      }
+      return parsed;
+    }
+  };
+  const queued = contentfulQueue.then(run, run);
+  contentfulQueue = queued.catch(() => {});
+  return queued;
 }
 
 async function supabaseRequest(method, pathname, body = null) {
