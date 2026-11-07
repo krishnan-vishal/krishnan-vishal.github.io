@@ -349,6 +349,56 @@ function renderLibrary(document, target, library, available = true) {
   target.replaceChildren(list);
 }
 
+// Public FX research is intentionally independent of paid publication entitlements.
+// Only already-published CMS editorial records are exposed; account library access is unchanged.
+export function publicFxResearchRecords(value) {
+  if (value?.source !== 'contentful-published-public' || !Array.isArray(value.records)) return [];
+  const seen = new Set();
+  return value.records.flatMap(item => {
+    if (!/^[A-Z]{3}\\/[A-Z]{3}$/.test(item?.pair || '') ||
+        !safePublicationDestination(item?.url) ||
+        typeof item?.title !== 'string' || typeof item?.summary !== 'string' ||
+        seen.has(item.pair)) return [];
+    seen.add(item.pair);
+    const [base, quote] = item.pair.split('/');
+    return [{ pair: item.pair, title: safeText(item.title, 180),
+      summary: safeText(item.summary, 280),
+      editorialUrl: safePublicationDestination(item.url),
+      smartCardUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M` }];
+  }).sort((a, b) => a.pair.localeCompare(b.pair));
+}
+
+async function renderPublicFxResearch(document, fetchImpl) {
+  const library = document.querySelector('[data-reader-library]');
+  if (!library || typeof fetchImpl !== 'function') return;
+  const section = textElement(document, 'section', '', 'my-gpir-public-research');
+  section.append(textElement(document, 'h3', 'Public GPIR FX intelligence'),
+    textElement(document, 'p', 'Published currency research and live Smart Cards are available to signed-in readers without a payment or subscription.'));
+  try {
+    const response = await fetchImpl('/assets/data/fx/editorial-public.json', { cache: 'no-store' });
+    if (!response?.ok) throw new Error('PUBLIC_INDEX_UNAVAILABLE');
+    const records = publicFxResearchRecords(await response.json());
+    if (!records.length) throw new Error('NO_PUBLISHED_FX_RECORDS');
+    const list = textElement(document, 'ul', '', 'my-gpir-list');
+    for (const item of records) {
+      const row = textElement(document, 'li', '', 'my-gpir-publication');
+      row.append(textElement(document, 'h4', item.pair),
+        textElement(document, 'p', item.title));
+      const smart = textElement(document, 'a', 'Open Smart Card', 'my-gpir-publication__action');
+      smart.href = item.smartCardUrl;
+      const editorial = textElement(document, 'a', 'Read published research', 'my-gpir-publication__action');
+      editorial.href = item.editorialUrl;
+      row.append(smart, textElement(document, 'span', ' · '), editorial);
+      list.append(row);
+    }
+    section.append(textElement(document, 'p', `${records.length} published currency pairs · Smart Card data refreshes through the existing FX pipeline.`), list);
+  } catch {
+    section.append(emptyState(document, 'Public FX research is temporarily unavailable.',
+      'The account library remains unchanged. Please access the public FX directory from the main repository.'));
+  }
+  library.append(section);
+}
+
 function statusBadge(document, label, tone) {
   const badge = textElement(document, 'span', label,
     `my-gpir-status-badge my-gpir-status-badge--${tone}`);
@@ -537,6 +587,7 @@ async function setupReaderDashboard({ global, document, fetchImpl, root }) {
       return false;
     }
     renderReaderDashboard(document, result.summary);
+    await renderPublicFxResearch(document, fetchImpl);
     await Promise.allSettled([
       initializePayPalOnetimeCheckout({ global, document, fetchImpl }),
       initializePayPalSubscription({ global, document, summary: result.summary, fetchImpl })
