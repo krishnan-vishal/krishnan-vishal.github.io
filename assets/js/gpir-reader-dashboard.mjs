@@ -355,7 +355,7 @@ export function publicFxResearchRecords(value) {
   if (value?.source !== 'contentful-published-public' || !Array.isArray(value.records)) return [];
   const seen = new Set();
   return value.records.flatMap(item => {
-    if (!/^[A-Z]{3}\\/[A-Z]{3}$/.test(item?.pair || '') ||
+    if (!/^[A-Z]{3}\/[A-Z]{3}$/.test(item?.pair || '') ||
         !safePublicationDestination(item?.url) ||
         typeof item?.title !== 'string' || typeof item?.summary !== 'string' ||
         seen.has(item.pair)) return [];
