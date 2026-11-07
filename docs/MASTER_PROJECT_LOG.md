@@ -2847,3 +2847,11 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - **Validation:** 46/46 focused release tests and 24/24 reader/payment/reliability tests pass; repository content/link/announcement/intent, FX, archive, secret, syntax and diff gates pass. The full historical M39 directory still contains one pre-existing exact-manifest failure because the stored already-published batch artifact has fields the corrected builder omits; neither the CMS estate nor the publication artifact was rewritten in this release.
 - **Release boundary:** implementation is complete. Commit, PR, merge, Edge Function deployment, Pages deployment and live acceptance are pending and must be recorded after execution.
 
+## 2026-11-07 — M39 Smart Intelligence dashboard final completion
+
+- Replaced the PR #517 Smart Intelligence record browser with the approved signed-in dashboard hierarchy: GPIR navigation, shared live-alert ribbon, compact period/geography/topic command bar, Top Signal Now, six KPIs, 12 topic cards, 12-week heatmap, evidence, methodology and disclaimer.
+- All analytics are deterministic over eligible dated repository records. Production currently yields two source-validated MAS historical records. Thirty-eight dated T3 records without governed topic evidence and 39 null-date legacy records remain excluded; zero current records qualify for the 12-hour ticker.
+- Expanded the existing public-intelligence response with registry country, region, source category and trust tier for governed geographic filtering. Added ASK GPIR context transfer through the existing deterministic assistant and retained Contentful pair-research compatibility.
+- Official source review identified three bounded registry defects and prepared idempotent update/rollback SQL for FinTech Australia, ECB and RBA endpoints. No source tier, parser, threshold or publication state is changed.
+- Focused dashboard, public API, reader/payment, ASK GPIR, Contentful, content/link/announcement, syntax, secret and diff gates pass. PR/merge, production SQL, Edge/Pages deployment and live responsive acceptance follow after checks.
+
