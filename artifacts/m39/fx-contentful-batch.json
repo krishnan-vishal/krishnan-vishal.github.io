@@ -1,5 +1,29 @@
 {
   "schemaVersion": "1.0",
   "purpose": "M39 FX governed Contentful editorial batch; no speculative identities or source evidence",
-  "entries": []
+  "entries": [],
+  "evidenceMethodology": {
+    "status": "OWNER_APPROVED_FRAMEWORK",
+    "scope": "Existing GPIR authoritative-source standards for FX pair editorial research",
+    "authoritativeSources": [
+      "GPIR existing validated FX historical observations and source lineage",
+      "Official central-bank reference series and policy statements",
+      "BIS official publications",
+      "Other verifiable primary regulatory or financial authorities where relevant"
+    ],
+    "requiredPerEntry": [
+      "Explicit pair-specific source attribution",
+      "Dated observations and source URLs",
+      "Clear distinction between observed rates, derived crosses, policy context and causal claims",
+      "Existing governed Supabase publication and lineage identities",
+      "Editorial review and publication approval"
+    ],
+    "prohibited": [
+      "Invented historical observations or market drivers",
+      "Reusing USD/JPY publication identifiers",
+      "Publishing without source evidence or authorization",
+      "Changing FX Smart Card logic or reader entitlements"
+    ],
+    "approvalInterpretation": "Methodology approved; individual publication identities, content and publish approvals remain required"
+  }
 }
