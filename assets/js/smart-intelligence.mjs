@@ -393,8 +393,8 @@ export async function initializeSmartIntelligence({ global = window,
     status.textContent = 'Governed historical intelligence is temporarily unavailable. No analytical values have been inferred.';
     return false;
   }
-  const records = historyResult.value;
-  const liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
+  let records = historyResult.value;
+  let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
 
   const render = () => {
@@ -445,6 +445,23 @@ export async function initializeSmartIntelligence({ global = window,
     state.topics.clear(); render();
   });
   render();
+  // Periodically refresh the same governed sources. No parallel publication pipeline.
+  let refreshing = false;
+  const refresh = async () => {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      const [historical, live] = await Promise.allSettled([
+        fetchHistory(fetchImpl, origin),
+        fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
+          .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); })
+      ]);
+      if (historical.status === 'fulfilled') records = historical.value;
+      if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
+      render();
+    } finally { refreshing = false; }
+  };
+  if (typeof global.setInterval === 'function') global.setInterval(() => { void refresh(); }, 10 * 60 * 1000);
   return true;
 }
 
