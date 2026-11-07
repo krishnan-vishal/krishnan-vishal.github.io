@@ -133,10 +133,9 @@ function buildEntry(snapshot) {
     slug: `${pairSlug}-reference-rate-history-source-methodology`,
     publicationType: 'Research Publication',
     publicationStatus: 'CURRENT',
-    region: 'Global',
     countryMarket: pair,
-    directionScope: pair,
-    useCasePaymentCategory: 'FX Intelligence; Cross-Border Payments; Treasury and Liquidity',
+    // directionScope describes inbound/outbound remittance flows, not FX pairs.
+    // Leave unrelated optional Contentful vocabularies unset for FX research.
     publicationDate,
     dataCutOffDate,
     executiveSummary,
