@@ -3,12 +3,212 @@
   "source": "contentful-published-public",
   "records": [
     {
+      "pair": "AED/INR",
+      "title": "AED/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated AED/INR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 25.764512 and the latest was 25.741874 INR per AED. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is derived-cross. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendat",
+      "url": "/aed-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000040-6",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "AUD/INR",
+      "title": "AUD/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated AUD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 60.208095 to 69.364587 INR per AUD; the first observation was 60.383253 and the latest was 65.760408. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evi",
+      "url": "/aud-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000042-2",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "AUD/USD",
+      "title": "AUD/USD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated AUD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.666819 to 0.725692 USD per AUD; the first observation was 0.669465 and the latest was 0.695605. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidenc",
+      "url": "/aud-usd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000060-4",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "CAD/INR",
+      "title": "CAD/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated CAD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 64.875487 to 70.37847 INR per CAD; the first observation was 65.676213 and the latest was 67.569212. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evid",
+      "url": "/cad-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000043-0",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "CNY/INR",
+      "title": "CNY/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated CNY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 12.852237 to 14.454408 INR per CNY; the first observation was 12.896807 and the latest was 14.146903. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evi",
+      "url": "/cny-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000045-5",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "EUR/GBP",
+      "title": "EUR/GBP — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated EUR/GBP reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.83358 to 0.8763 GBP per EUR; the first observation was 0.8719 and the latest was 0.834286. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendatio",
+      "url": "/eur-gbp-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000059-6",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "EUR/INR",
+      "title": "EUR/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated EUR/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 104.9647 to 112.317 INR per EUR; the first observation was 105.719 and the latest was 106.164126. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommen",
+      "url": "/eur-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000038-0",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "EUR/USD",
+      "title": "EUR/USD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated EUR/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.113 to 1.1974 USD per EUR; the first observation was 1.1721 and the latest was 1.12299. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations.",
+      "url": "/eur-usd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000046-3",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "GBP/INR",
+      "title": "GBP/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated GBP/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 120.856452 to 130.686938 INR per GBP; the first observation was 121.25129 and the latest was 127.251477. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The ",
+      "url": "/gbp-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000039-8",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "GBP/USD",
+      "title": "GBP/USD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated GBP/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.316037 to 1.381667 USD per GBP; the first observation was 1.344306 and the latest was 1.346049. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidenc",
+      "url": "/gbp-usd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000047-1",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "JPY/INR",
+      "title": "JPY/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated JPY/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.567998 to 0.620541 INR per JPY; the first observation was 0.574747 and the latest was 0.598959. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidenc",
+      "url": "/jpy-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000044-8",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "NZD/USD",
+      "title": "NZD/USD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated NZD/USD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.558909 to 0.607852 USD per NZD; the first observation was 0.576906 and the latest was 0.560693. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evidenc",
+      "url": "/nzd-usd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000061-2",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "SGD/INR",
+      "title": "SGD/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated SGD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 70.015338 to 75.624158 INR per SGD; the first observation was 70.119387 and the latest was 73.996782. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommendations. The evi",
+      "url": "/sgd-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000041-4",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/AED",
+      "title": "USD/AED — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/AED reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.6725 and the latest was 3.6725 AED per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations",
+      "url": "/usd-aed-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000052-1",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/BHD",
+      "title": "USD/BHD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/BHD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.376 and the latest was 0.376 BHD per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. ",
+      "url": "/usd-bhd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000057-0",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/CAD",
+      "title": "USD/CAD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/CAD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.35244 to 1.426169 CAD per USD; the first observation was 1.373347 and the latest was 1.399114. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommend",
+      "url": "/usd-cad-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000050-5",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/CHF",
+      "title": "USD/CHF — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/CHF reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 0.767025 to 0.835281 CHF per USD; the first observation was 0.793106 and the latest was 0.816184. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommen",
+      "url": "/usd-chf-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000049-7",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/CNY",
+      "title": "USD/CNY — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/CNY reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 6.64827 to 6.993687 CNY per USD; the first observation was 6.993687 and the latest was 6.682525. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommend",
+      "url": "/usd-cny-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000048-9",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/HKD",
+      "title": "USD/HKD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/HKD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 7.786375 to 7.848685 HKD per USD; the first observation was 7.791912 and the latest was 7.842769. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommen",
+      "url": "/usd-hkd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000051-3",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/INR",
+      "title": "USD/INR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/INR reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 89.852362 to 96.825 INR per USD; the first observation was 90.196229 and the latest was 94.537031. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recomme",
+      "url": "/usd-inr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000037-2",
+      "publishedAt": "2026-11-07"
+    },
+    {
       "pair": "USD/JPY",
       "title": "USD/JPY — Exchange Rate Dynamics and Monetary Policy Context",
       "summary": "USD/JPY is a material global FX pair: the BIS reported a 14.3% share of global OTC FX turnover in April 2025. GPIR's 2 January–4 November 2026 reference history uses same-date ECB USD and JPY observations to derive the cross. October 2026 policy statements from the Bank of Japan and Federal Reserve provide verified monetary-policy context, but they do not by themselves prove why the pair moved. Payment and treasury readers should treat the GPIR series as reference evidence, not an executable quote or forecast.",
       "url": "/usd-jpy-exchange-rate-dynamics-monetary-policy-context/",
       "publicationId": "VK-GPIR-P-000000000036-4",
       "publishedAt": "2026-11-06T00:00+05:30"
+    },
+    {
+      "pair": "USD/KWD",
+      "title": "USD/KWD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/KWD reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.310148 and the latest was 0.310274 KWD per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendat",
+      "url": "/usd-kwd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000056-2",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/OMR",
+      "title": "USD/OMR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/OMR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 0.384497 and the latest was 0.384497 OMR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendat",
+      "url": "/usd-omr-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000058-8",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/QAR",
+      "title": "USD/QAR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/QAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.64 and the latest was 3.64 QAR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. Th",
+      "url": "/usd-qar-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000055-4",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/SAR",
+      "title": "USD/SAR — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves only two dated USD/SAR reference observations for this edition, 5 November 2026 and 6 November 2026. The first stored rate was 3.75 and the latest was 3.75 SAR per USD. Two observations cannot support a historical trend inference. The two dated records originate from the existing reference-open-er-api capture path. The stored method is provider-native. This limited provider series is preserved as captured and is not extended, interpolated or described as central-bank history. These values are reference observations, not executable quotes, remittance prices or recommendations. Th",
+      "url": "/usd-sar-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000054-7",
+      "publishedAt": "2026-11-07"
+    },
+    {
+      "pair": "USD/SGD",
+      "title": "USD/SGD — Reference Rate History and Source Methodology",
+      "summary": "GPIR preserves 218 dated USD/SGD reference observations from 2 January 2026 through 6 November 2026. Within that verified window, stored rates ranged from 1.261734 to 1.298236 SGD per USD; the first observation was 1.286324 and the latest was 1.277583. The archive lineage combines Frankfurter's ECB-backed dated series with the existing reference-open-er-api capture path. Stored methods for this pair are derived-cross and provider-native. Cross rates are derived only from same-date source observations. These values are reference observations, not executable quotes, remittance prices or recommen",
+      "url": "/usd-sgd-reference-rate-history-source-methodology/",
+      "publicationId": "VK-GPIR-P-000000000053-9",
+      "publishedAt": "2026-11-07"
     }
   ]
 }
