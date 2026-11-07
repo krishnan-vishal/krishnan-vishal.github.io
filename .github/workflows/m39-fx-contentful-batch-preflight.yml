@@ -1,6 +1,14 @@
 name: M39 FX Contentful governed batch preflight
 on:
   workflow_dispatch:
+    inputs:
+      release_mode:
+        description: 'Read-only governed CMS verification (publication writes are not enabled)'
+        required: true
+        default: 'verify'
+        type: choice
+        options:
+          - verify
 permissions:
   contents: read
 jobs:
