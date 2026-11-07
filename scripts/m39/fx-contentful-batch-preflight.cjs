@@ -79,7 +79,8 @@ function validateManifest() {
         entry.fields.supabaseRecordId !== entry.supabaseRecordId ||
         entry.fields.publicationStatus !== 'CURRENT' ||
         entry.fields.canonicalUrlCandidate !== entry.canonicalRoute ||
-        entry.fields.directionScope !== entry.pair ||
+        entry.fields.countryMarket !== entry.pair ||
+        entry.fields.directionScope !== undefined ||
         !entry.fields.publicationTitle.toUpperCase().includes(entry.pair))
       throw new Error(`${entry.pair}: Contentful field authority mismatch.`);
     if (entry.datedObservationCount === 2 &&
