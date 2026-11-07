@@ -12,3 +12,25 @@
 .smi-footer{display:flex;justify-content:space-between;gap:1rem;padding:1rem max(1rem,calc((100vw - 1360px)/2));color:#cbd7e2;background:var(--smi-navy);font-size:.72rem}
 @media(max-width:1100px){.smi-command{grid-template-columns:1fr 14rem}.smi-command-actions{grid-column:1/-1}.smi-kpis{grid-template-columns:repeat(3,1fr)}.smi-topic-cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.smi-nav,.smi-hero,.smi-section-heading,.smi-footer{align-items:flex-start;flex-direction:column}.smi-nav nav{justify-content:flex-start}.smi-alert-ribbon{grid-template-columns:1fr;gap:.15rem}.smi-alert-ribbon div{white-space:normal}.smi-main{width:min(100% - 1rem,1360px);margin-top:.5rem}.smi-hero{gap:.7rem}.smi-hero-meta{text-align:left}.smi-command,.smi-signal-grid,.smi-methodology{grid-template-columns:1fr}.smi-custom-dates,.smi-topic-filter,.smi-command-actions{grid-column:1}.smi-kpis{grid-template-columns:repeat(2,1fr)}.smi-topic-cards,.smi-results{grid-template-columns:1fr}.smi-section-heading>p{text-align:left}.smi-methodology dl div{grid-template-columns:1fr}.smi-footer{display:flex}}@media(max-width:410px){.smi-kpis{grid-template-columns:1fr 1fr}.smi-nav nav a{padding:.3rem}.smi-periods button{flex:1 0 28%}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* M39 final: compact, FX-aligned reader intelligence. No data/eligibility changes. */
+.smi-brand img{filter:brightness(0) invert(1);width:2.35rem;height:2.35rem;object-fit:contain;flex:none}
+.smi-main{gap:.65rem;margin:.65rem auto 1.2rem}
+.smi-hero{padding:.75rem 1rem;gap:1rem;align-items:center}
+.smi-hero h1{font-size:clamp(1.45rem,2.3vw,2rem);margin:.08rem 0}
+.smi-hero p{font-size:.8rem;line-height:1.35}
+.smi-hero-meta{gap:.08rem}
+.smi-command{padding:.55rem .7rem;gap:.4rem}
+.smi-topic-filter>div{gap:.22rem;margin-top:.18rem}
+.smi-topic-filter label{padding:.17rem .38rem;font-size:.66rem}
+.smi-periods button,.smi-command-actions button{min-height:1.9rem;padding:.24rem .55rem}
+.smi-geography select,.smi-custom-dates input{min-height:1.9rem}
+.smi-top-signal,.smi-supporting{padding:.65rem .8rem}
+.smi-top-signal h2{font-size:clamp(1.1rem,1.7vw,1.4rem)}
+.smi-kpis{gap:.35rem}.smi-kpi{padding:.48rem .6rem}.smi-kpi strong{font-size:1.3rem}
+.smi-kpi span{margin-top:.12rem}.smi-kpi em{margin-top:.08rem}
+.smi-topic-cards{align-items:start}
+.smi-topic-card{min-height:0!important;padding:.6rem .7rem!important}
+.smi-topic-card p{margin:.22rem 0}
+.smi-heatmap-panel,.smi-evidence,.smi-methodology,.smi-editorial{padding:.7rem .85rem}
+@media(max-width:760px){.smi-hero{align-items:flex-start}.smi-brand img{width:2rem;height:2rem}}
