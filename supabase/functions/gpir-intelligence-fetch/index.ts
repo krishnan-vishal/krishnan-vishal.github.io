@@ -276,7 +276,7 @@ function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
   const items = xml.match(/<item\\b[\\s\\S]*?<\\/item>/gi) || [];
   for (const item of items) {
     const field = (name: string) => {
-      const match = item.match(new RegExp("<" + name + "(?:\\\\s[^>]*)?>([\\\\s\\\\S]*?)<\\\\/" + name + ">", "i"));
+      const match = item.match(new RegExp("<" + name + "(?:\s[^>]*)?>([\s\S]*?)<\/" + name + ">", "i"));
       return match?.[1]?.replace(/<!\\[CDATA\\[|\\]\\]>/g, "").trim() || "";
     };
     const title = cleanText(field("title"));
