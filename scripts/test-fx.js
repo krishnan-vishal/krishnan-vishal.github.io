@@ -277,6 +277,21 @@ assert.match(marketCssSource, /#fx-ribbon \.ticker-track:hover\{[\s\S]*?animatio
 assert.match(marketCssSource, /#fx-ribbon \.ticker-track:focus-within\{[\s\S]*?animation-play-state:paused/, "keyboard focus must pause ticker motion");
 assert.match(marketCssSource, /@media \(prefers-reduced-motion: reduce\)\{[\s\S]*?#fx-ribbon \.ticker-track\{[\s\S]*?animation:none/, "reduced-motion readers must receive a non-animated ticker");
 
+assert.ok(tickerReaderSource.includes('href="${pagePrefix}pages/fx/pairs/${fxPairSlug(record.pair)}.html"'), "ticker pairs must link to their generated detail-page path");
+const renderedFxPairs = Array.isArray(currentSnapshot.featuredPairs)
+    ? currentSnapshot.pairs.filter(record => currentSnapshot.featuredPairs.includes(record.pair))
+    : currentSnapshot.pairs;
+assert.ok(renderedFxPairs.length > 0, "the current snapshot must provide ticker-rendered pairs for the destination regression");
+renderedFxPairs.forEach(record => {
+    const slug = record.pair.toLowerCase().replace("/", "-");
+    const href = `pages/fx/pairs/${slug}.html`;
+    const destinationPath = path.join(__dirname, "..", href);
+    assert.ok(fxConfig.featuredPairs.includes(record.pair), `${record.pair} must be included in the generated featured-pair set`);
+    assert.ok(fs.existsSync(destinationPath), `${record.pair} ticker destination ${href} must exist`);
+    const destinationHtml = fs.readFileSync(destinationPath, "utf8");
+    assert.ok(destinationHtml.includes(`data-fx-pair="${record.pair}"`), `${record.pair} destination must render analysis for the same pair`);
+});
+
 const megaMenuSource = siteScriptSource.slice(siteScriptSource.indexOf("function initializeMegaMenuHoverIntent"));
 assert.doesNotMatch(headerCssSource, /\.nav-item-mega:hover\s*>\s*\.mega-menu\s*\{/, "hovering the list item or its bridge must not open the mega-menu through CSS");
 assert.match(headerCssSource, /\.nav-item-mega\.is-open\s*>\s*\.mega-menu/, "the controller's explicit open state must reveal the mega-menu");
