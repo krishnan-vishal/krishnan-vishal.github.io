@@ -275,11 +275,12 @@ function discoverNewsLinks(
 // missing: a summary or page chrome must not become publication evidence.
 function extractRbaArticleBody(html: string): string | null {
   const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
-  if (!main) return null;
-  const article = main.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ||
-    main.match(/<div\b[^>]*class=["'][^"']*(?:media-release|article-body|content-body)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
-  if (!article) return null;
-  const withoutNoise = article
+  const article = main?.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] ||
+    main?.match(/<div\b[^>]*class=["'][^"']*(?:media-release|article-body|content-body)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  const rbaContent = html.match(/<div\b[^>]*class=["'][^"']*\brss-mr-content\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  const bodyContent = article || rbaContent;
+  if (!bodyContent) return null;
+  const withoutNoise = bodyContent
     .replace(/<(script|style|nav|aside|footer)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
     .replace(/<[^>]+>/g, " ");
   const body = cleanText(withoutNoise);
@@ -297,11 +298,12 @@ function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
     };
     const title = cleanText(field("title"));
     const url = absoluteUrl(field("link"), "https://www.rba.gov.au/");
-    const rawDate = field("pubDate");
+    const rawDate = field("pubDate") || field("dc:date");
     const date = rawDate ? new Date(rawDate) : null;
     if (!url || !title || !date || Number.isNaN(date.getTime())) continue;
     const parsed = new URL(url);
-    if (parsed.hostname !== "www.rba.gov.au" || !parsed.pathname.startsWith("/media-releases/")) continue;
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password ||
+      parsed.hostname !== "www.rba.gov.au" || !parsed.pathname.startsWith("/media-releases/")) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     results.push({ title, url, indexPublishedAt: date.toISOString() });
@@ -555,7 +557,7 @@ function extractMeta(
   const canonicalUrl =
     canonicalMatch?.[1]
       ? absoluteUrl(canonicalMatch[1], pageUrl)
-      : pageUrl;
+      : absoluteUrl(getMeta("og:url") || pageUrl, pageUrl);
 
     // --------------------------------------------------------
   // M33-F5
@@ -903,6 +905,42 @@ const source = sourceRows[0] as SourceRecord;
               pageResponse.url,
               requestedSource === RBI_SOURCE_ID,
             );
+            if (requestedSource === RBA_SOURCE_ID) {
+              const canonicalUrl = absoluteUrl(meta.canonicalUrl || pageResponse.url, pageResponse.url);
+              const discoveredUrl = absoluteUrl(item.url, pageResponse.url);
+              const responseUrl = absoluteUrl(pageResponse.url, item.url);
+              const parsedCanonical = canonicalUrl ? new URL(canonicalUrl) : null;
+              if (!parsedCanonical || !discoveredUrl || !responseUrl ||
+                responseUrl !== discoveredUrl ||
+                parsedCanonical.protocol !== "https:" ||
+                parsedCanonical.hostname !== "www.rba.gov.au" ||
+                parsedCanonical.username || parsedCanonical.password ||
+                canonicalUrl !== discoveredUrl) {
+                fetchErrors++;
+                preview.push({
+                  discovered_title: item.title,
+                  url: item.url,
+                  status: pageResponse.status,
+                  type: "RBA_CANONICAL_URL_REJECTED",
+                });
+                continue;
+              }
+            }
+
+            const rbaArticleBody = requestedSource === RBA_SOURCE_ID
+              ? extractRbaArticleBody(pageHtml)
+              : null;
+            if (requestedSource === RBA_SOURCE_ID && !rbaArticleBody) {
+              fetchErrors++;
+              preview.push({
+                discovered_title: item.title,
+                url: item.url,
+                status: pageResponse.status,
+                type: "RBA_ARTICLE_BODY_REJECTED",
+                evidence_extracted: false,
+              });
+              continue;
+            }
     // M33-F5
     // Prefer article-page publication metadata.
     // Fall back to publication date discovered from the source index.
@@ -930,7 +968,7 @@ const source = sourceRows[0] as SourceRecord;
               // Keep phase-one content intentionally bounded.
               raw_content:
                 requestedSource === RBA_SOURCE_ID
-                  ? extractRbaArticleBody(pageHtml)
+                  ? rbaArticleBody
                   : meta.description || null,
 
               source_published_at:
