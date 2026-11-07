@@ -17,7 +17,31 @@ export const SMART_TOPICS = Object.freeze([
   { id: 'fraud', label: 'Fraud & Cybersecurity', aliases: ['fraud','cyber','breach','scam','identity theft'] },
   { id: 'cbdc', label: 'CBDCs & Digital Money', aliases: ['cbdc','digital money','digital currency','tokenised deposit','tokenized deposit'] },
   { id: 'stablecoins', label: 'Stablecoins & Digital Assets', aliases: ['stablecoin','digital asset','crypto','blockchain','tokenization','tokenisation'] },
-  { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] }
+  { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] },
+  { id: 'payments', label: 'Payments', aliases: ["payment services","payments industry","payment system"] },
+  { id: 'fintech', label: 'Fintech', aliases: ["fintech","financial technology"] },
+  { id: 'global-regional-fintech', label: 'Global & Regional Fintech', aliases: ["global fintech","regional fintech","fintech ecosystem"] },
+  { id: 'pass', label: 'PASS', aliases: ["pass platform","pass service"] },
+  { id: 'taas', label: 'TaaS', aliases: ["treasury as a service","taas"] },
+  { id: 'saas', label: 'SaaS', aliases: ["software as a service","saas"] },
+  { id: 'caas', label: 'CaaS', aliases: ["compliance as a service","caas"] },
+  { id: 'baas', label: 'BaaS', aliases: ["banking as a service","baas"] },
+  { id: 'pobo', label: 'POBO', aliases: ["payment on behalf of","payments on behalf of","pobo"] },
+  { id: 'cobo', label: 'COBO', aliases: ["collection on behalf of","collections on behalf of","cobo"] },
+  { id: 'global-aggregators', label: 'Global Aggregators', aliases: ["global aggregator","global payment aggregator"] },
+  { id: 'regional-aggregators', label: 'Regional Aggregators', aliases: ["regional aggregator","regional payment aggregator"] },
+  { id: 'payments-licensing', label: 'Payments Licensing', aliases: ["payment institution licence","payment institution license","payments licensing","payment services licence","payment services license"] },
+  { id: 'fintech-licensing', label: 'Fintech Licensing', aliases: ["fintech licence","fintech license","fintech licensing"] },
+  { id: 'corporate-payments', label: 'Corporate Payments', aliases: ["corporate payment","business payment","b2b payment"] },
+  { id: 'diaspora-payments', label: 'Diaspora Payments', aliases: ["diaspora payment","diaspora remittance"] },
+  { id: 'immigrant-payments', label: 'Immigrant Payments', aliases: ["immigrant payment","immigrant remittance"] },
+  { id: 'migrant-movements', label: 'Migrant International Movements', aliases: ["international migration","migrant movement","migration corridor"] },
+  { id: 'money-movements', label: 'Money Movements', aliases: ["money movement","funds movement"] },
+  { id: 'super-apps', label: 'Super Apps', aliases: ["super app","super-app"] },
+  { id: 'bnpl', label: 'BNPL', aliases: ["buy now pay later","bnpl"] },
+  { id: 'apm', label: 'Alternative Payment Methods (APM)', aliases: ["alternative payment method","apm"] },
+  { id: 'cards-money-movements', label: 'Cards – Money Movements', aliases: ["card-based transfer","card to card","card payout","card payment"] },
+  { id: 'payment-gateways', label: 'Payment Gateways', aliases: ["payment gateway","payment gateways"] }
 ]);
 
 function clean(value, max = 800) {
