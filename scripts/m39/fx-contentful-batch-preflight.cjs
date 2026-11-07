@@ -165,9 +165,11 @@ async function contentfulRequest(method, pathname, body = null, headers = {}, al
 
 async function supabaseRequest(method, pathname, body = null) {
   const secret = process.env.GPIR_SUPABASE_SECRET_KEY;
+  const requestHeaders = new Headers({ Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' });
+  requestHeaders.set('apikey', secret);
   const response = await fetch(`${supabaseRoot}${pathname}`, {
     method,
-    headers: { apikey: secret, Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
+    headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined
   });
   const text = await response.text();
