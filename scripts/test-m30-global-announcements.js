@@ -38,7 +38,7 @@ check(!/Last validated publication cycle:|backend timestamp|hard-coded current d
 // 6-8: Month/Year counts and filtering operate on the local canonical snapshot.
 const periods = archive.periodCounts(data.records, lifecycle);
 const year2026 = periods.find(period => period.year === "2026");
-check(year2026 && year2026.count === published.length, "Year count must equal the canonical published corpus");
+check(periods.reduce((total, period) => total + period.count, 0) === published.length && year2026, "Year counts across all publication years must equal the canonical published corpus");
 check(year2026.months.some(month => month.month === "09" && month.count === 1), "September count must be generated from canonical records");
 check(archive.filterRecords(data.records, { year: "2026", month: "09", region: "", country: "", category: "", subcategory: "" }, lifecycle).length === 1, "Month/Year selection must filter canonical records immediately");
 check(archivePage.includes("data-canonical-announcements") && !archiveRuntime.includes("fetch("), "archive filtering must use its generated canonical snapshot without a runtime fetch");
