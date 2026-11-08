@@ -1,0 +1,24 @@
+name: GPIR BIS GDELT Adapter Tests
+on:
+  pull_request:
+    paths:
+      - 'scripts/intelligence/bis-sdmx-csv.cjs'
+      - 'scripts/intelligence/public-source-adapters.cjs'
+      - 'tests/m39-bis-sdmx.test.cjs'
+      - 'tests/m39-public-source-adapters.test.cjs'
+      - '.github/workflows/gpir-bis-gdelt-adapters.yml'
+  workflow_dispatch:
+jobs:
+  adapter-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: BIS SDMX CSV fixture tests
+        run: node tests/m39-bis-sdmx.test.cjs
+      - name: GDELT discovery safety tests
+        run: node tests/m39-public-source-adapters.test.cjs
