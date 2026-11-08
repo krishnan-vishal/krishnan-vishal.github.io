@@ -1172,3 +1172,22 @@ body.gpir-publication-page {
         text-transform:uppercase;
     }
 }
+
+/* M39 publication readability: retain governed metadata without clipped values. */
+.gpir-publication-hero h1 {
+    max-width: 45ch;
+    font-size: clamp(1.55rem, 2.5vw, 2.4rem);
+    line-height: 1.2;
+}
+.gpir-publication-meta {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    background: transparent;
+}
+.gpir-publication-meta dd {
+    white-space: normal;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+    .gpir-publication-meta { grid-template-columns: minmax(0, 1fr); }
+}

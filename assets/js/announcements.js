@@ -172,7 +172,7 @@
                 : liveFeedState === "loading"
                     ? "Checking for current verified alerts…"
                     : "No verified alerts published in the last 12 hours";
-            track.innerHTML = `<a class="ticker-empty" href="pages/intelligence/index.html">${escapeHtml(message)} · View intelligence archive →</a>`;
+            track.innerHTML = `<a class="ticker-empty" href="pages/intelligence/smart.html?period=30D">${escapeHtml(message)} · Open payments intelligence →</a>`;
             return;
         }
         track.classList.remove("ticker-track--status");

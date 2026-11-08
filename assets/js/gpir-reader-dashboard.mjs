@@ -365,7 +365,7 @@ export function publicFxResearchRecords(value) {
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
       fxIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M`,
-      smartIntelligenceUrl: `/pages/intelligence/smart.html?kind=pair&subject=${encodeURIComponent(item.pair)}&period=YTD` }];
+      smartIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html` }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 

@@ -23,6 +23,12 @@
 .smi-command{padding:.55rem .7rem;gap:.4rem}
 .smi-topic-filter>div{gap:.22rem;margin-top:.18rem}
 .smi-topic-filter label{padding:.17rem .38rem;font-size:.66rem}
+.smi-intelligence-lanes{display:flex;gap:.75rem;flex-wrap:wrap;margin:1rem 0}
+.smi-intelligence-lanes a{padding:.7rem 1rem;border:1px solid #b7c4d4;border-radius:.5rem;background:#fff;color:#123653;font-weight:700;text-decoration:none}
+.smi-intelligence-lanes a:hover,.smi-intelligence-lanes a:focus-visible{border-color:var(--smi-gold);box-shadow:0 0 0 2px rgb(200 163 65 / 18%)}
+.smi-intelligence-lanes span{padding:.7rem 0;color:#4d6175}
+.smi-topic-filter details>summary{cursor:pointer;font-weight:700;padding:.5rem 0}
+@media(max-width:760px){.smi-intelligence-lanes{align-items:stretch;flex-direction:column}.smi-intelligence-lanes a{width:100%;box-sizing:border-box}.smi-intelligence-lanes span{padding:.2rem 0}}
 .smi-periods button,.smi-command-actions button{min-height:1.9rem;padding:.24rem .55rem}
 .smi-geography select,.smi-custom-dates input{min-height:1.9rem}
 .smi-top-signal,.smi-supporting{padding:.65rem .8rem}
