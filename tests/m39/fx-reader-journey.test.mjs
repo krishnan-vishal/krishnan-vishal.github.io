@@ -63,9 +63,9 @@ test('FX ticker links select the exact currency pair on the protected dashboard'
   const links = [...fxTrack.innerHTML.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
   assert.equal(links.length, 4);
   assert.ok([links[0], links[2]].every(href =>
-    href.startsWith('pages/fx/intelligence.html?base=USD&amp;quote=JPY')));
+    href === 'pages/fx/pairs/usd-jpy.html'));
   assert.ok([links[1], links[3]].every(href =>
-    href.startsWith('pages/fx/intelligence.html?base=EUR&amp;quote=GBP')));
+    href === 'pages/fx/pairs/eur-gbp.html'));
   assert.match(fxTrack.innerHTML, /USD\/JPY/);
   assert.match(fxTrack.innerHTML, /EUR\/GBP/);
 });

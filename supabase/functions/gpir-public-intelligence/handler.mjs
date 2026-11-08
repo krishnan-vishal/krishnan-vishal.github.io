@@ -2,6 +2,11 @@ import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
 export const BIS_SOURCE_ID = 'BIS-GLOBAL-001';
+export const MOJALOOP_SOURCE_ID = 'MOJALOOP-OSS-001';
+export const HYPERSWITCH_SOURCE_ID = 'HYPERSWITCH-OSS-001';
+export const REFERENCE_SOURCE_IDS = Object.freeze([
+  BIS_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
+]);
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
 const DEFAULT_ORIGINS = Object.freeze([
@@ -102,6 +107,76 @@ export function normalizeBisReferenceRows({ rows = [], sources = [] }) {
   });
 }
 
+const TECHNICAL_SOURCES = Object.freeze({
+  [MOJALOOP_SOURCE_ID]: Object.freeze({
+    provider: 'MOJALOOP', product: 'Mojaloop', repository: 'mojaloop/helm',
+    officialUrl: 'https://github.com/mojaloop/helm', topic: 'Payment infrastructure',
+    path: /^\/mojaloop\/helm\/releases\/tag\/[^/]+$/
+  }),
+  [HYPERSWITCH_SOURCE_ID]: Object.freeze({
+    provider: 'HYPERSWITCH', product: 'Hyperswitch', repository: 'juspay/hyperswitch',
+    officialUrl: 'https://github.com/juspay/hyperswitch', topic: 'Payment orchestration',
+    path: /^\/juspay\/hyperswitch\/(?:releases\/tag\/[^/]+|commit\/[0-9a-f]{40})$/
+  })
+});
+
+export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
+  const sourceMap = new Map(sources.flatMap(source => {
+    const config = TECHNICAL_SOURCES[source?.source_id];
+    return config && source.source_status === 'GREEN' && source.official_url === config.officialUrl
+      ? [[source.source_id, source]] : [];
+  }));
+  return rows.flatMap(row => {
+    const config = TECHNICAL_SOURCES[row?.source_id];
+    const source = sourceMap.get(row?.source_id);
+    const metadata = row?.metadata;
+    let canonical;
+    try { canonical = new URL(row?.canonical_url || metadata?.source_url); } catch { return []; }
+    const recordType = metadata?.record_type;
+    const dateValue = recordType === 'TECHNICAL_CHANGE'
+      ? metadata?.commit_timestamp : row?.source_published_at;
+    const publishedTime = Date.parse(dateValue || '');
+    if (!config || !source || row?.ingestion_status !== 'PROCESSED' ||
+        metadata?.provider !== config.provider || metadata?.data_class !== 'TECHNICAL_REFERENCE' ||
+        !['SOFTWARE_RELEASE', 'TECHNICAL_CHANGE'].includes(recordType) ||
+        metadata?.publication_eligible !== false || metadata?.alert_eligible !== false ||
+        metadata?.settlement_telemetry !== false || metadata?.repository !== config.repository ||
+        canonical.protocol !== 'https:' || canonical.hostname !== 'github.com' ||
+        !config.path.test(canonical.pathname) || !Number.isFinite(publishedTime)) return [];
+    const published = new Date(publishedTime);
+    const day = published.toISOString().slice(0, 10);
+    const title = typeof row.raw_title === 'string' && row.raw_title.trim().length >= 8
+      ? row.raw_title.trim().slice(0, 400)
+      : `${config.product} verified technical change — ${day}`;
+    const referenceLabel = recordType === 'SOFTWARE_RELEASE' ? 'software release' : 'repository change';
+    return [{
+      id: row.id,
+      status: 'GPIR_CLASSIFIED', contentStatus: 'TECHNICAL_REFERENCE_VERIFIED',
+      dataClass: 'TECHNICAL_REFERENCE', recordType,
+      lifecycleStatus: 'HISTORICAL', displayLifecycleStatus: 'ARCHIVED',
+      headline: title, title,
+      summary: `Official ${config.product} ${referenceLabel} dated ${day}. This is verified technical history, not live settlement telemetry, a regulatory event or an operational alert.`,
+      developments: [], category: metadata.topic || config.topic,
+      topics: [metadata.topic || config.topic, 'Technical reference'],
+      subcategory: recordType, country: 'Global', countryCode: null, region: 'Global',
+      referenceDate: day, publicationDate: day, publishedDate: day,
+      publishedAt: published.toISOString(), publicationMonth: day.slice(5, 7),
+      publicationYear: day.slice(0, 4), tickerEligible: false,
+      canonicalUrl: canonical.toString(), pageUrl: canonical.toString(),
+      keywords: [config.product.toLowerCase(), 'technical reference',
+        recordType === 'SOFTWARE_RELEASE' ? 'release history' : 'connector specification'],
+      outcomeStatus: 'REFERENCE', geography: 'Global', eventId: null,
+      sources: [{ name: source.source_name, url: canonical.toString(),
+        publishedAt: published.toISOString() }],
+      source: { name: source.source_name, publicationTitle: source.source_name,
+        url: canonical.toString(), trustTier: source.trust_tier || null,
+        category: source.category || null },
+      product: config.product, repository: config.repository,
+      settlementTelemetry: false, alertEligible: false
+    }];
+  });
+}
+
 export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
   topicSources = [], statisticalObservations = [], now = Date.now(),
   windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
@@ -178,7 +253,10 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       }
     }];
   });
-  const references = normalizeBisReferenceRows({ rows: statisticalObservations, sources });
+  const references = [
+    ...normalizeBisReferenceRows({ rows: statisticalObservations, sources }),
+    ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources })
+  ];
   if (!references.length) return announcementsNormalized;
   return [...announcementsNormalized, ...references]
     .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
@@ -262,8 +340,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           allRows('gpir_intelligence_developments', developmentsQuery),
           allRows('gpir_intelligence_topic_sources', linksQuery),
           history ? allRows('intelligence_raw_ingestion', new URLSearchParams({
-            select: 'id,source_id,raw_title,ingestion_status,metadata',
-            source_id: `eq.${BIS_SOURCE_ID}`, ingestion_status: 'eq.PROCESSED',
+            select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
+            source_id: `in.(${REFERENCE_SOURCE_IDS.join(',')})`, ingestion_status: 'eq.PROCESSED',
             order: 'discovered_at.desc,id.asc'
           })) : Promise.resolve([])
         ]);
@@ -281,7 +359,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', source: history ? 'global_announcements+bis_statistical_reference' : 'global_announcements', total, limit, offset,
+        status: 'OK', source: history ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

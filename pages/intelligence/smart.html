@@ -9,7 +9,7 @@
   <title>My Intelligence Dashboard | FINTECHOISIS — GPIR</title>
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261107d">
+  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261108a">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -37,13 +37,18 @@
       <div class="smi-hero-meta"><span data-smart-asof>As of —</span><span>Live window · 12 hours</span><span>Archive · 15 days + history</span></div>
     </header>
 
+    <nav class="smi-intelligence-lanes" aria-label="Separate intelligence experiences">
+      <a href="../fx/index.html">FX Smart Intelligence · choose a 7-day pair card</a>
+      <a href="../../reader/my-gpir/">My GPIR · Reader Dashboard</a>
+      <span>This page: Global Payments Intelligence and governed alerts, not currency-pair pricing.</span>
+    </nav>
     <form class="smi-command" data-smart-form>
       <fieldset class="smi-periods"><legend>Period</legend><div>
         <button type="button" data-smart-period="24H">24H</button><button type="button" data-smart-period="7D">7D</button><button type="button" data-smart-period="30D">30D</button><button type="button" data-smart-period="QTD">QTD</button><button type="button" data-smart-period="YTD">YTD</button><button type="button" data-smart-period="CUSTOM">Custom</button>
       </div></fieldset>
       <label class="smi-geography">Geography<select data-smart-geography><option value="all">All geographies</option><option value="global">Global</option><option value="apac">Asia Pacific</option><option value="europe">Europe</option><option value="americas">Americas</option><option value="mea">Middle East &amp; Africa</option></select></label>
-      <div class="smi-custom-dates" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2026-01-01"></label><label>To<input type="date" data-smart-end min="2026-01-01"></label></div>
-      <fieldset class="smi-topic-filter"><legend>Topics <span>select one or more</span></legend><div data-smart-topic-controls></div></fieldset>
+      <div class="smi-custom-dates" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2024-11-08"></label><label>To<input type="date" data-smart-end min="2024-11-08"></label></div>
+      <fieldset class="smi-topic-filter"><legend>Topics <span>select one or more</span></legend><details><summary>Choose payments intelligence topics</summary><div data-smart-topic-controls></div></details></fieldset>
       <div class="smi-command-actions"><button type="submit">Apply intelligence context</button><button type="button" class="smi-clear" data-smart-clear>All topics</button></div>
     </form>
 
@@ -79,6 +84,6 @@
     </section>
   </main>
   <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261107d"></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261108b"></script>
 </body>
 </html>

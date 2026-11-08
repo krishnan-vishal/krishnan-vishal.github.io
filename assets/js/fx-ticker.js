@@ -65,8 +65,7 @@ function fxPairDestination(pair, pagePrefix){
     if(!match || match[1] === match[2]){
         return pagePrefix + "pages/fx/pairs/" + fxPairSlug(pair) + ".html";
     }
-    return pagePrefix + "pages/fx/intelligence.html?base=" +
-        encodeURIComponent(match[1]) + "&quote=" + encodeURIComponent(match[2]);
+    return pagePrefix + "pages/fx/pairs/" + fxPairSlug(`${match[1]}/${match[2]}`) + ".html";
 }
 
 function fxEscapeHtml(str){
