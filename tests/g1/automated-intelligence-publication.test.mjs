@@ -232,3 +232,131 @@ test('public repository includes the 15-day boundary and excludes older retained
   assert.deepEqual(records.map(record => record.id), [boundary.id, inside.id]);
   assert.ok(records.every(record => record.lifecycleStatus === 'HISTORICAL'));
 });
+
+function retryStore(rows, audits) {
+  return createRestPublicationRepository({
+    config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service-role-test' },
+    fetchImpl: async url => {
+      const requestUrl = new URL(url);
+      if (requestUrl.pathname.endsWith('/intelligence_candidates')) {
+        const offset = Number(requestUrl.searchParams.get('offset') || 0);
+        return { ok: true, json: async () => rows.slice(offset, offset + 50) };
+      }
+      if (requestUrl.pathname.endsWith('/intelligence_publication_audits'))
+        return { ok: true, json: async () => audits };
+      throw new Error(`Unexpected request: ${requestUrl.href}`);
+    }
+  });
+}
+
+test('transient source failures are retried inside the live window after backoff, behind unprocessed candidates', async () => {
+  const recent = new Date(NOW - 2 * 60 * 60 * 1000).toISOString();
+  const rows = ['1', '2', '3', '4', '5', '6'].map(digit => candidate({
+    id: `${digit.repeat(8)}-${digit.repeat(4)}-4${digit.repeat(3)}-8${digit.repeat(3)}-${digit.repeat(12)}`,
+    published_at: new Date(Date.parse(recent) + Number(digit) * 60000).toISOString()
+  }));
+  const old = new Date(NOW - 40 * 60 * 1000).toISOString();
+  const recentAttempt = new Date(NOW - 5 * 60 * 1000).toISOString();
+  const audits = [
+    { candidate_id: rows[0].id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503', completed_at: old },
+    { candidate_id: rows[1].id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503', completed_at: recentAttempt },
+    { candidate_id: rows[2].id, decision: 'REVIEW', reason_code: 'AUTO_PUBLICATION_THRESHOLD_NOT_MET', completed_at: old },
+    { candidate_id: rows[3].id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_403', completed_at: old },
+    { candidate_id: rows[4].id, decision: 'PROCESSING', reason_code: 'SOURCE_VALIDATION_STARTED' }
+  ];
+  const selected = await retryStore(rows, audits).candidates({ limit: 5, from: null, to: null, now: NOW });
+  assert.deepEqual(selected.map(item => item.id), [rows[4].id, rows[5].id, rows[0].id]);
+});
+
+test('transient failures are final once the candidate can no longer be live', async () => {
+  const stale = candidate({ published_at: new Date(NOW - 13 * 60 * 60 * 1000).toISOString() });
+  const audits = [{ candidate_id: stale.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
+    completed_at: new Date(NOW - 60 * 60 * 1000).toISOString() }];
+  assert.deepEqual(await retryStore([stale], audits).candidates({ limit: 5, now: NOW }), []);
+});
+
+test('a retried transient failure still requires full validation and cannot bypass the threshold', async () => {
+  const item = candidate({ confidence_score: 40 });
+  const store = repository();
+  const outcome = await processCandidate({ candidate: item, repository: store,
+    fetchImpl: sourceFetch(item), now: () => NOW });
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+});
+
+test('topic geography and corroborating-source region and segment are retained', async () => {
+  const { eventIdentity } = await import('../../supabase/functions/_shared/gpir-event-identity.mjs');
+  const identity = await eventIdentity(candidate(), { sourcePublishedAt: new Date(NOW).toISOString() }, SOURCE);
+  assert.equal(identity.p_geography, 'Exampleland');
+  const other = { ...SOURCE, source_id: 'CB-TEST-002', source_name: 'Second Authority',
+    official_url: 'https://second.example', country: 'Otherland', region_tags: ['EMEA'], category: 'Regulator' };
+  const item = candidate();
+  const [record] = normalizeRepositoryRows({
+    now: NOW,
+    sources: [SOURCE, other],
+    announcements: [{ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', source_id: SOURCE.source_id, title: item.title,
+      summary_narration: 'The central bank states that instant payment settlement controls apply to regulated participants and fintech providers.',
+      canonical_url: item.canonical_url, published_at: item.published_at, ticker_eligible: true,
+      topic_headers: [item.category], publication_status: 'approved' }],
+    topics: [{ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', announcement_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      keywords: [], outcome_status: 'PENDING', geography: 'Exampleland' }],
+    topicSources: [{ topic_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', development_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      source_id: other.source_id, canonical_url: 'https://second.example/news/instant-payments',
+      source_published_at: new Date(NOW - 30 * 60 * 1000).toISOString() }]
+  });
+  const second = record.sources.find(entry => entry.name === 'Second Authority');
+  assert.equal(second.url, 'https://second.example/news/instant-payments');
+  assert.equal(second.region, 'EMEA');
+  assert.equal(second.segment, 'Regulator');
+  assert.equal(record.sources[0].region, 'APAC');
+  assert.equal(record.geography, 'Exampleland');
+});
+
+test('terminal decisions take precedence over any older or newer transient audit for the same candidate', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const transient = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503',
+    attempted_at: new Date(NOW - 90 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 80 * 60 * 1000).toISOString() };
+  for (const decision of ['PUBLISHED', 'REJECTED', 'DUPLICATE']) {
+    const terminal = { candidate_id: item.id, decision, reason_code: 'FINAL',
+      attempted_at: new Date(NOW - 100 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 95 * 60 * 1000).toISOString() };
+    for (const audits of [[terminal, transient], [transient, terminal]])
+      assert.deepEqual(await retryStore([item], audits).candidates({ limit: 5, now: NOW }), [], decision);
+  }
+});
+
+test('the latest non-terminal audit decides retry eligibility regardless of row order', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const failed = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503',
+    attempted_at: new Date(NOW - 50 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 45 * 60 * 1000).toISOString() };
+  const laterFinalReview = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'INSUFFICIENT_SOURCE_EVIDENCE',
+    attempted_at: new Date(NOW - 20 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 15 * 60 * 1000).toISOString() };
+  for (const audits of [[failed, laterFinalReview], [laterFinalReview, failed]])
+    assert.deepEqual(await retryStore([item], audits).candidates({ limit: 5, now: NOW }), []);
+  const olderFinalReview = { ...laterFinalReview, attempted_at: new Date(NOW - 70 * 60 * 1000).toISOString(),
+    completed_at: new Date(NOW - 65 * 60 * 1000).toISOString() };
+  for (const audits of [[failed, olderFinalReview], [olderFinalReview, failed]])
+    assert.deepEqual((await retryStore([item], audits).candidates({ limit: 5, now: NOW })).map(row => row.id), [item.id]);
+});
+
+test('the 30-minute retry backoff applies to the latest transient audit and the audit query is deterministic', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const requested = [];
+  const store = createRestPublicationRepository({
+    config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service-role-test' },
+    fetchImpl: async url => {
+      const requestUrl = new URL(url);
+      if (requestUrl.pathname.endsWith('/intelligence_candidates')) return { ok: true, json: async () => [item] };
+      requested.push(requestUrl);
+      return { ok: true, json: async () => [
+        { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
+          attempted_at: new Date(NOW - 50 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 45 * 60 * 1000).toISOString() },
+        { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
+          attempted_at: new Date(NOW - 10 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 5 * 60 * 1000).toISOString() }
+      ] };
+    }
+  });
+  assert.deepEqual(await store.candidates({ limit: 5, now: NOW }), []);
+  assert.match(requested[0].searchParams.get('order'), /^attempted_at\.desc/);
+  assert.match(requested[0].searchParams.get('select'), /attempted_at/);
+  assert.equal(await store.candidates({ limit: 5, now: NOW + 40 * 60 * 1000 }).then(rows => rows.length), 1);
+});

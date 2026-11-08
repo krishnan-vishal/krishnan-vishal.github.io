@@ -2,7 +2,7 @@
 // Structured canonical topic identifiers can group differently worded headlines only
 // after upstream independent verification; otherwise exact normalized subjects only.
 const normalize = v => String(v || '').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
-export async function eventIdentity(candidate, validation) {
+export async function eventIdentity(candidate, validation, source = null) {
  const subject=normalize(candidate.title);
  const type=normalize(candidate.event_type || 'announcement');
  const date=String(validation.sourcePublishedAt || '').slice(0,10);
@@ -16,9 +16,10 @@ export async function eventIdentity(candidate, validation) {
    ? normalize(verifiedTopic.subject) : subject;
  // Deliberately omit source, event type and date: a topic persists across publishers
  // and milestones. Distinct subjects never merge by keyword similarity.
+ const geography=String(source?.country || (Array.isArray(source?.region_tags) && source.region_tags[0]) || 'UNSPECIFIED');
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(topic));
  const key=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
  return {p_event_key:key,p_issuer:String(candidate.source_id),p_event_type:type,
-   p_subject:topic,p_event_date:date,p_geography:'UNSPECIFIED',
+   p_subject:topic,p_event_date:date,p_geography:geography,
    p_keywords:validation.relevanceTerms || [],p_outcome_status:'PENDING'};
 }
