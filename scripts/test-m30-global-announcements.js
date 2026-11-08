@@ -39,8 +39,8 @@ check(!/Last validated publication cycle:|backend timestamp|hard-coded current d
 const periods = archive.periodCounts(data.records, lifecycle);
 const year2026 = periods.find(period => period.year === "2026");
 check(periods.reduce((total, period) => total + period.count, 0) === published.length && year2026, "Year counts across all publication years must equal the canonical published corpus");
-check(year2026.months.some(month => month.month === "09" && month.count === 1), "September count must be generated from canonical records");
-check(archive.filterRecords(data.records, { year: "2026", month: "09", region: "", country: "", category: "", subcategory: "" }, lifecycle).length === 1, "Month/Year selection must filter canonical records immediately");
+const september2026 = published.filter(record => (record.publicationDate || record.publishedDate || "").startsWith("2026-09"));\ncheck(year2026.months.some(month => month.month === "09" && month.count === september2026.length), "September count must be generated from canonical records");
+check(archive.filterRecords(data.records, { year: "2026", month: "09", region: "", country: "", category: "", subcategory: "" }, lifecycle).length === september2026.length, "Month/Year selection must filter canonical records immediately");
 check(archivePage.includes("data-canonical-announcements") && !archiveRuntime.includes("fetch("), "archive filtering must use its generated canonical snapshot without a runtime fetch");
 
 // 9-16: last-known-good, zero, isolation, deduplication, T1 and exception gates.
