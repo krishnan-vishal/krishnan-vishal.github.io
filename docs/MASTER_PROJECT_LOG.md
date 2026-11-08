@@ -14,6 +14,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M39 Gate 2 recovery — 2026-11-08
+
+- **Classification / objective:** INTELLIGENCE, DATA and AUTOMATION. Integrate recovered technical exports, verify the World Bank workbook, acquire Mojaloop and Hyperswitch history through the existing governed staging path, test, and submit one branch PR without production writes or deployments.
+- **Starting state:** `codex/m39-gate2-recovery` at `b9fe03d`, with three uploaded untracked recovery files. Existing BIS/GDELT functionality is preserved; the original recovery additions remain untracked and untouched.
+- **Implementation:** official GitHub release and specification/connector change records are source-validated, deduplicated and marked technical, processed and ineligible for alerts/publication. Dense change windows subdivide with bounded work and explicit unresolved truncation. Source registration is prepared but not applied. Commit timestamps are not claimed as publication dates.
+- **Workbook evidence:** the World Bank published workbook's historical and recent datasets span 2011-Q1 to 2025-Q3, but contain genuine gaps. Both worksheets were scanned: 253,960 rows, 252,422 accepted $200 CC1 quotes, zero duplicate period/ID pairs, 1,538 rejected and 17,191 derived corridor-quarter aggregates. Five IDs recur in different quarters and must not be deduplicated globally. Rejections comprise 1,435 negative costs, 85 non-$200 denominations and 18 blank costs. Values are unweighted service-quote means, with quarter-end markers, not official aggregate series or survey dates. RPW production ingestion remains unimplemented and unauthorized.
+- **Validation:** 13 focused recovery/BIS/GDELT tests, changed-module syntax checks, secret scan and whitespace checks pass. Read-only 2024-01-01 to 2026-11-08 probes returned Mojaloop 6 releases / 1 change and Hyperswitch 26 releases / 576 changes, with no truncation reported. No live Supabase Edge runtime test, database write, registration, deployment, merge or publication was performed; CI and owner release review remain pending.
+- **Handoff:** implementation commit `a696e54826dd42ecb6ffb72db6abc26c4f8b21ae` was confirmed on `origin/codex/m39-gate2-recovery`; PR #523 targets `main`. This log entry records the PR in a subsequent documentation checkpoint.
+
 ## M39-G1 — Global Alerts production completion verification
 
 - **Date / authorization:** 2026-11-06; targeted production completion using the merged M39-G1 architecture only. No Reader Dashboard, payment, subscription, secret, new service or schema work was authorized.

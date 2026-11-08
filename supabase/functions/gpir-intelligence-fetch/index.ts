@@ -15,6 +15,18 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "jsr:@supabase/server@^1";
+import {
+  BIS_DATAFLOWS,
+  BIS_TERMS_URL,
+  GITHUB_TECHNICAL_SOURCES,
+  buildBisDataUrl,
+  buildBisReleaseCalendarUrl,
+  buildGdeltQueryUrl,
+  parseBisReleaseCalendarCsv,
+  parseBisSdmxCsv,
+  parseGdeltDiscovery,
+} from "../_shared/gpir-public-source-adapters.mjs";
+import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
@@ -23,8 +35,11 @@ const PYMNTS_SOURCE_ID = "PYMNTS-GLOBAL-004";
 const MAS_SOURCE_ID = "CB-APAC-002";
 const ECB_SOURCE_ID = "CB-EUR-001";
 const RBA_SOURCE_ID = "TEST-RBA-01";
+const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
+const BIS_SOURCE_ID = "BIS-GLOBAL-001";
+const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
 // RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID] as const;
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
@@ -50,6 +65,7 @@ type DiscoveredItem = {
 
   // Optional source publication date discovered from an index/listing page.
   indexPublishedAt?: string | null;
+  discovery?: Record<string, unknown> | null;
 };
 
 function cleanText(value: string): string {
@@ -667,6 +683,17 @@ export default {
         let payload: {
           source_id?: string;
           dry_run?: boolean;
+          gdelt_topic?: string;
+          start_datetime?: string;
+          end_datetime?: string;
+          max_records?: number;
+          bis_dataflow?: string;
+          start_period?: string;
+          end_period?: string;
+          country_codes?: string[];
+          component_filters?: Record<string, string>;
+          last_n_observations?: number;
+          max_observations?: number;
         } = {};
 
         try {
@@ -732,10 +759,20 @@ if (sourceRows.length > 1) {
 }
 
 const source = sourceRows[0] as SourceRecord;
-        if (source.source_status !== "GREEN") {
+        const gdeltDiscoveryStatus = requestedSource === GDELT_SOURCE_ID &&
+          ["AMBER", "GREEN"].includes(source.source_status || "");
+        if (source.source_status !== "GREEN" && !gdeltDiscoveryStatus) {
           throw new Error(
             `SOURCE_NOT_GREEN: ${source.source_status}`,
           );
+        }
+        if (requestedSource === GDELT_SOURCE_ID && source.parser_profile !== "gdelt-doc-discovery") throw new Error("GDELT_PARSER_PROFILE_MISMATCH");
+        if (requestedSource === BIS_SOURCE_ID && source.parser_profile !== "bis-sdmx-csv-v2") throw new Error("BIS_PARSER_PROFILE_MISMATCH");
+        const technicalSource = TECHNICAL_SOURCE_IDS.includes(requestedSource as typeof TECHNICAL_SOURCE_IDS[number]);
+        if (technicalSource && (source.parser_profile !== "github-technical-history-v1" || source.acquisition_method !== "A")) throw new Error("TECHNICAL_SOURCE_PROFILE_MISMATCH");
+        if (technicalSource) {
+          const config = GITHUB_TECHNICAL_SOURCES[requestedSource as keyof typeof GITHUB_TECHNICAL_SOURCES];
+          if (source.official_url !== `https://github.com/${config.repository}` || source.feed_or_index_url !== `https://api.github.com/repos/${config.repository}/releases`) throw new Error("TECHNICAL_SOURCE_REGISTRY_MISMATCH");
         }
         if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
           throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
@@ -794,11 +831,203 @@ const source = sourceRows[0] as SourceRecord;
           runSourceId = source.source_id;
         }
 
+        if (technicalSource) {
+          const result = await fetchTechnicalHistory({ sourceId: requestedSource, since: payload.start_date, until: payload.end_date, maxPages: payload.max_pages ?? 3 });
+          if (!dryRun) {
+            for (let offset = 0; offset < result.records.length; offset += 100) {
+              const batch = result.records.slice(offset, offset + 100);
+              const { data: existingRows, error: existingError } = await ctx.supabaseAdmin
+                .from("intelligence_raw_ingestion").select("content_hash").in("content_hash", batch.map(record => record.content_hash));
+              if (existingError) throw new Error(`TECHNICAL_DEDUP_READ_ERROR: ${existingError.message}`);
+              const existingHashes = new Set((existingRows || []).map((row: { content_hash: string }) => row.content_hash));
+              const pending = batch.filter(record => !existingHashes.has(record.content_hash)).map(record => ({ ...record, ingestion_run_id: runId }));
+              skippedExisting += batch.length - pending.length;
+              if (!pending.length) continue;
+              const { error: insertError } = await ctx.supabaseAdmin.from("intelligence_raw_ingestion").insert(pending);
+              if (insertError) throw new Error(`TECHNICAL_RAW_INSERT_ERROR: ${insertError.message}`);
+              inserted += pending.length;
+            }
+            const { error: completionError } = await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
+              completed_at: new Date().toISOString(), run_status: "SUCCESS", records_discovered: result.records.length,
+              records_candidate: 0, records_rejected: 0, records_published: 0, error_message: null,
+              metadata: { milestone: "M39-GATE2-GITHUB-V1", source_id: source.source_id, statistics: result.statistics,
+                raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, publication_attempted: false },
+            }).eq("id", runId);
+            if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
+          }
+          return Response.json({ ok: true, milestone: "M39-GATE2-GITHUB-V1",
+            mode: dryRun ? "DRY_RUN_NO_DATABASE_WRITES" : "TECHNICAL_REFERENCE_BACKFILL",
+            source: { source_id: source.source_id }, statistics: { ...result.statistics, raw_records_inserted: inserted, duplicates_skipped: skippedExisting },
+            preview: result.records.slice(0, 10).map(record => ({ title: record.raw_title, url: record.canonical_url, type: record.metadata.record_type, published_at: record.source_published_at })),
+            safety: { technical_reference: true, global_announcements_modified: false, publication_attempted: false, alert_eligible: false },
+            started_at: startedAt, completed_at: new Date().toISOString() });
+        }
+
+        if (requestedSource === BIS_SOURCE_ID) {
+          const dataflow = String(payload.bis_dataflow || "").toUpperCase();
+          if (!Object.hasOwn(BIS_DATAFLOWS, dataflow)) throw new Error("BIS_APPROVED_DATAFLOW_REQUIRED");
+          const flowConfig = BIS_DATAFLOWS[dataflow as keyof typeof BIS_DATAFLOWS];
+          const sourceUrl = buildBisDataUrl({
+            dataflow,
+            startPeriod: payload.start_period,
+            endPeriod: payload.end_period,
+            countryCodes: payload.country_codes,
+            componentFilters: payload.component_filters || {},
+            lastNObservations: payload.last_n_observations || 4,
+          });
+          const response = await fetch(sourceUrl, {
+            headers: {
+              "User-Agent": "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)",
+              Accept: "application/vnd.sdmx.data+csv;version=1.0.0",
+            },
+          });
+          if (!response.ok) throw new Error(`BIS_FETCH_FAILED_HTTP_${response.status}`);
+          const csv = await response.text();
+          let releaseDates: Record<string, string> = {};
+          if (flowConfig.releaseType) {
+            const releaseUrl = buildBisReleaseCalendarUrl({
+              category: flowConfig.releaseCategory,
+              releaseType: flowConfig.releaseType,
+              startPeriod: payload.start_period,
+              endPeriod: payload.end_period,
+            });
+            const releaseResponse = await fetch(releaseUrl, {
+              headers: {
+                "User-Agent": "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)",
+                Accept: "application/vnd.sdmx.data+csv;version=1.0.0",
+              },
+            });
+            if (!releaseResponse.ok) throw new Error(`BIS_RELEASE_CALENDAR_FETCH_FAILED_HTTP_${releaseResponse.status}`);
+            releaseDates = parseBisReleaseCalendarCsv(await releaseResponse.text(), {
+              category: flowConfig.releaseCategory,
+              releaseType: flowConfig.releaseType,
+            });
+          }
+          const observations = parseBisSdmxCsv(csv, {
+            dataflow,
+            sourceUrl,
+            maxObservations: Math.max(1, Math.min(2000, Number(payload.max_observations) || 1000)),
+            releaseDates,
+          });
+          const rawRecords = await Promise.all(observations.map(async (observation: Record<string, unknown>) => {
+            const dimensions = observation.dimensions as Record<string, string>;
+            const title = String(dimensions.TITLE || `${flowConfig.title} — ${observation.period}`).slice(0, 400);
+            const identity = JSON.stringify([dataflow, observation.period, Object.entries(dimensions)]);
+            const providerReleaseDate = observation.providerReleaseDate as string | null;
+            return {
+              source_id: source.source_id,
+              discovered_url: sourceUrl,
+              canonical_url: sourceUrl,
+              raw_title: title,
+              raw_content: JSON.stringify({
+                dataflow, period: observation.period, value: observation.value, dimensions,
+                observation_date: observation.observationDate,
+                provider_release_date: providerReleaseDate,
+              }),
+              discovered_at: startedAt,
+              source_published_at: providerReleaseDate ? `${providerReleaseDate}T00:00:00Z` : null,
+              http_status: response.status,
+              content_hash: await sha256(identity),
+              ingestion_status: "PROCESSED",
+              rejection_reason: null,
+              metadata: {
+                engine: "M39-BIS-SDMX-V2",
+                parser_profile: source.parser_profile,
+                acquisition_method: source.acquisition_method,
+                provider: "BIS",
+                data_class: "STATISTICAL_REFERENCE",
+                dataflow,
+                dataflow_version: "1.0",
+                topic: flowConfig.topic,
+                observation_period: observation.period,
+                observation_date: observation.observationDate,
+                provider_release_date: providerReleaseDate,
+                release_date_status: providerReleaseDate
+                  ? "VERIFIED_RELEASE_CALENDAR"
+                  : flowConfig.releaseType ? "UNAVAILABLE_OR_NOT_YET_RELEASED" : "AMBIGUOUS_BY_RELEASE_TYPE",
+                country_dimension: flowConfig.countryDimension,
+                country_code: dimensions[flowConfig.countryDimension] || null,
+                frequency: dimensions.FREQ || null,
+                unit_measure: dimensions.UNIT_MEASURE || null,
+                unit_multiplier: dimensions.UNIT_MULT || null,
+                dimensions,
+                value: observation.value,
+                source_url: sourceUrl,
+                terms_url: BIS_TERMS_URL,
+                publication_eligible: false,
+                alert_eligible: false,
+                dry_run: dryRun,
+              },
+            };
+          }));
+
+          if (!dryRun) {
+            for (let offset = 0; offset < rawRecords.length; offset += 100) {
+              const batch = rawRecords.slice(offset, offset + 100);
+              const hashes = batch.map(record => record.content_hash);
+              const { data: existingRows, error: existingError } = await ctx.supabaseAdmin
+                .from("intelligence_raw_ingestion").select("content_hash").in("content_hash", hashes);
+              if (existingError) throw new Error(`BIS_DEDUP_READ_ERROR: ${existingError.message}`);
+              const existingHashes = new Set((existingRows || []).map((row: { content_hash: string }) => row.content_hash));
+              const pending = batch.filter(record => !existingHashes.has(record.content_hash))
+                .map(record => ({ ...record, ingestion_run_id: runId }));
+              skippedExisting += batch.length - pending.length;
+              if (!pending.length) continue;
+              const { error: insertError } = await ctx.supabaseAdmin.from("intelligence_raw_ingestion").insert(pending);
+              if (insertError) throw new Error(`BIS_RAW_INSERT_ERROR: ${insertError.message}`);
+              inserted += pending.length;
+            }
+            const { error: completionError } = await ctx.supabaseAdmin
+              .from("intelligence_ingestion_runs")
+              .update({
+                completed_at: new Date().toISOString(), run_status: "SUCCESS",
+                records_discovered: observations.length, records_candidate: 0,
+                records_rejected: 0, records_published: 0, error_message: null,
+                metadata: {
+                  milestone: "M39-BIS-SDMX-V2", source_id: source.source_id,
+                  dataflow, start_period: payload.start_period, end_period: payload.end_period,
+                  country_codes: payload.country_codes, raw_inserted_count: inserted,
+                  duplicate_skipped_count: skippedExisting, statistical_reference: true,
+                  publication_attempted: false,
+                },
+              }).eq("id", runId);
+            if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
+          }
+          return Response.json({
+            ok: true,
+            milestone: "M39-BIS-SDMX-V2",
+            mode: dryRun ? "DRY_RUN_NO_DATABASE_WRITES" : "STATISTICAL_REFERENCE_BACKFILL",
+            source: { source_id: source.source_id, dataflow, source_url: sourceUrl },
+            statistics: { observations_parsed: observations.length, raw_records_inserted: inserted,
+              duplicates_skipped: skippedExisting },
+            preview: rawRecords.slice(0, 10).map(record => ({
+              title: record.raw_title,
+              observation_period: record.metadata.observation_period,
+              observation_date: record.metadata.observation_date,
+              provider_release_date: record.metadata.provider_release_date,
+              country_code: record.metadata.country_code,
+              value: record.metadata.value,
+              unit_measure: record.metadata.unit_measure,
+            })),
+            safety: { statistical_reference: true, global_announcements_modified: false,
+              publication_attempted: false, alert_eligible: false },
+            started_at: startedAt, completed_at: new Date().toISOString(),
+          });
+        }
+
         const indexUrl =
           source.feed_or_index_url || source.official_url;
 
+        const gdeltTopic = String(payload.gdelt_topic || "cross-border-payments");
+
           const discoveryUrl =
-          requestedSource === TEST_SOURCE_ID
+          requestedSource === GDELT_SOURCE_ID
+          ? buildGdeltQueryUrl(gdeltTopic, {
+            start: payload.start_datetime,
+            end: payload.end_datetime,
+            maxRecords: Math.max(1, Math.min(50, Number(payload.max_records) || 20)),
+          })
+          : requestedSource === TEST_SOURCE_ID
           ? SFA_NEWS_INDEX
           : requestedSource === RBA_SOURCE_ID
           ? RBA_MEDIA_RSS
@@ -817,7 +1046,9 @@ const source = sourceRows[0] as SourceRecord;
             "User-Agent":
               "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)",
             Accept:
-              "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              requestedSource === GDELT_SOURCE_ID
+                ? "application/json"
+                : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           },
           redirect: "follow",
         });
@@ -834,7 +1065,9 @@ const source = sourceRows[0] as SourceRecord;
         // 5. Discover likely intelligence links
         // ----------------------------------------------------
 
-        const discovered = requestedSource === RBA_SOURCE_ID
+        const discovered = requestedSource === GDELT_SOURCE_ID
+          ? parseGdeltDiscovery(JSON.parse(indexHtml), gdeltTopic, { maxRecords: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
+          : requestedSource === RBA_SOURCE_ID
           ? discoverRbaMediaLinks(indexHtml)
           : requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
@@ -993,6 +1226,12 @@ const source = sourceRows[0] as SourceRecord;
                   contentType,
                 dry_run:
                   dryRun,
+                discovery:
+                  item.discovery || null,
+                publication_eligible:
+                  requestedSource === GDELT_SOURCE_ID ? false : null,
+                source_verification_required:
+                  requestedSource === GDELT_SOURCE_ID,
               },
             };
 

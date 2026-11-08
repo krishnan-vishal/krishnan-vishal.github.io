@@ -17,7 +17,31 @@ export const SMART_TOPICS = Object.freeze([
   { id: 'fraud', label: 'Fraud & Cybersecurity', aliases: ['fraud','cyber','breach','scam','identity theft'] },
   { id: 'cbdc', label: 'CBDCs & Digital Money', aliases: ['cbdc','digital money','digital currency','tokenised deposit','tokenized deposit'] },
   { id: 'stablecoins', label: 'Stablecoins & Digital Assets', aliases: ['stablecoin','digital asset','crypto','blockchain','tokenization','tokenisation'] },
-  { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] }
+  { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] },
+  { id: 'payments', label: 'Payments', aliases: ["payment services","payments industry","payment system","cashless payments","credit transfer"] },
+  { id: 'fintech', label: 'Fintech', aliases: ["fintech","financial technology"] },
+  { id: 'global-regional-fintech', label: 'Global & Regional Fintech', aliases: ["global fintech","regional fintech","fintech ecosystem"] },
+  { id: 'pass', label: 'PASS', aliases: ["pass platform","pass service"] },
+  { id: 'taas', label: 'TaaS', aliases: ["treasury as a service","taas"] },
+  { id: 'saas', label: 'SaaS', aliases: ["software as a service","saas"] },
+  { id: 'caas', label: 'CaaS', aliases: ["compliance as a service","caas"] },
+  { id: 'baas', label: 'BaaS', aliases: ["banking as a service","baas"] },
+  { id: 'pobo', label: 'POBO', aliases: ["payment on behalf of","payments on behalf of","pobo"] },
+  { id: 'cobo', label: 'COBO', aliases: ["collection on behalf of","collections on behalf of","cobo"] },
+  { id: 'global-aggregators', label: 'Global Aggregators', aliases: ["global aggregator","global payment aggregator"] },
+  { id: 'regional-aggregators', label: 'Regional Aggregators', aliases: ["regional aggregator","regional payment aggregator"] },
+  { id: 'payments-licensing', label: 'Payments Licensing', aliases: ["payment institution licence","payment institution license","payments licensing","payment services licence","payment services license"] },
+  { id: 'fintech-licensing', label: 'Fintech Licensing', aliases: ["fintech licence","fintech license","fintech licensing"] },
+  { id: 'corporate-payments', label: 'Corporate Payments', aliases: ["corporate payment","business payment","b2b payment"] },
+  { id: 'diaspora-payments', label: 'Diaspora Payments', aliases: ["diaspora payment","diaspora remittance"] },
+  { id: 'immigrant-payments', label: 'Immigrant Payments', aliases: ["immigrant payment","immigrant remittance"] },
+  { id: 'migrant-movements', label: 'Migrant International Movements', aliases: ["international migration","migrant movement","migration corridor"] },
+  { id: 'money-movements', label: 'Money Movements', aliases: ["money movement","funds movement"] },
+  { id: 'super-apps', label: 'Super Apps', aliases: ["super app","super-app"] },
+  { id: 'bnpl', label: 'BNPL', aliases: ["buy now pay later","bnpl"] },
+  { id: 'apm', label: 'Alternative Payment Methods (APM)', aliases: ["alternative payment method","apm"] },
+  { id: 'cards-money-movements', label: 'Cards – Money Movements', aliases: ["card-based transfer","card to card","card payout","card payment"] },
+  { id: 'payment-gateways', label: 'Payment Gateways', aliases: ["payment gateway","payment gateways"] }
 ]);
 
 function clean(value, max = 800) {
@@ -114,7 +138,10 @@ export function normalizeSmartRecords(value) {
       sourceName: clean(item?.source?.name, 140) || 'Authoritative source',
       sourceTrustTier: clean(item?.source?.trustTier || item?.sourceTrustTier, 20),
       lifecycle: clean(item.displayLifecycleStatus || item.lifecycleStatus, 40) || 'ARCHIVED',
-      outcomeStatus: clean(item.outcomeStatus, 40)
+      outcomeStatus: clean(item.outcomeStatus, 40),
+      dataClass: clean(item.dataClass, 60),
+      observationPeriod: clean(item.observationPeriod, 24),
+      providerReleaseDate: clean(item.providerReleaseDate, 10)
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
@@ -241,7 +268,9 @@ async function fetchHistory(fetchImpl, origin) {
 
 function recordMarkup(record) {
   const geography = [record.country, record.region, record.geography].filter(Boolean).join(' · ') || 'Geography not classified';
-  return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(record.lifecycle)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(isoDay(record.publishedAt))}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
+  const recordClass = record.dataClass === 'STATISTICAL_REFERENCE' ? 'STATISTICAL REFERENCE' : record.lifecycle;
+  const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` : isoDay(record.publishedAt);
+  return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
 }
 
 function renderTopSignal(root, records) {
@@ -284,11 +313,18 @@ function renderHeatmap(root, records, now) {
   target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${new Intl.DateTimeFormat('en',{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(week))}</span>`).join('')}${heatmap.rows.map(row => `<span class="smi-row-label">${escapeHtml(row.topic.label)}</span>${row.counts.map((count, index) => `<span class="smi-heat-cell" data-level="${level(count)}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(heatmap.weeks[index])} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</span>`).join('')}`).join('')}`;
 }
 
-function renderLive(root, liveRecords, state) {
+export function eligibleLiveRecords(records, now = Date.now()) {
+  return records.filter(record => {
+    const published = Date.parse(record.publishedAt);
+    return Number.isFinite(published) && published <= now && now - published < 12 * 60 * 60 * 1000;
+  });
+}
+
+function renderLive(root, liveRecords, state, now) {
   const ribbon = document.querySelector('[data-smart-live]');
   const target = document.querySelector('[data-smart-live-content]');
   if (!ribbon || !target) return;
-  const matches = liveRecords.filter(record =>
+  const matches = eligibleLiveRecords(liveRecords, now).filter(record =>
     (state.geography === 'all' || record.regionKey === state.geography) &&
     (!state.topics.size || record.topicIds.some(topic => state.topics.has(topic))));
   if (!matches.length) {
@@ -369,8 +405,8 @@ export async function initializeSmartIntelligence({ global = window,
     status.textContent = 'Governed historical intelligence is temporarily unavailable. No analytical values have been inferred.';
     return false;
   }
-  const records = historyResult.value;
-  const liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
+  let records = historyResult.value;
+  let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
 
   const render = () => {
@@ -386,7 +422,7 @@ export async function initializeSmartIntelligence({ global = window,
       button.setAttribute('aria-pressed', String(button.dataset.smartPeriod === state.period)));
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
-    renderLive(root, liveRecords, state);
+    renderLive(root, liveRecords, state, requestNow);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
     renderTopicCards(root, baseCurrent, basePrevious);
@@ -421,6 +457,23 @@ export async function initializeSmartIntelligence({ global = window,
     state.topics.clear(); render();
   });
   render();
+  // Periodically refresh the same governed sources. No parallel publication pipeline.
+  let refreshing = false;
+  const refresh = async () => {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      const [historical, live] = await Promise.allSettled([
+        fetchHistory(fetchImpl, origin),
+        fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
+          .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); })
+      ]);
+      if (historical.status === 'fulfilled') records = historical.value;
+      if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
+      render();
+    } finally { refreshing = false; }
+  };
+  if (typeof global.setInterval === 'function') global.setInterval(() => { void refresh(); }, 10 * 60 * 1000);
   return true;
 }
 

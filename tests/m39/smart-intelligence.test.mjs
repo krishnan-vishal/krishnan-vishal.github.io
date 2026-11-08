@@ -53,8 +53,9 @@ test('governed Smart Intelligence records retain citations and filter by subject
     Date.parse('2026-10-23T12:00:00.000Z'));
 });
 
-test('dashboard calculations use 12 governed topics, equivalent periods and dated records', () => {
-  assert.equal(SMART_TOPICS.length, 12);
+test('dashboard calculations use all 36 governed topics, equivalent periods and dated records', () => {
+  assert.equal(SMART_TOPICS.length, 36);
+  assert.equal(new Set(SMART_TOPICS.map(topic => topic.id)).size, 36);
   const now = Date.parse('2026-11-07T12:00:00.000Z');
   const bounds = periodBounds('30D', now);
   assert.equal(bounds.end - bounds.start, 30 * 86400000 + 1);
@@ -80,7 +81,7 @@ test('dashboard calculations use 12 governed topics, equivalent periods and date
   assert.equal(metrics[0].value, 1);
   const heatmap = buildHeatmap(records, now);
   assert.equal(heatmap.weeks.length, 12);
-  assert.equal(heatmap.rows.length, 12);
+  assert.equal(heatmap.rows.length, SMART_TOPICS.length);
   assert.ok(heatmap.rows.some(row => row.counts.some(Boolean)));
 });
 
