@@ -112,6 +112,10 @@ function inferRegion(record) {
 }
 
 export function classifyRecordTopics(record) {
+  // Technical specifications are historical implementation evidence. Keep them
+  // in the existing infrastructure lane and do not let boundary language such
+  // as "not a regulatory event" classify them as regulatory actions.
+  if (record.dataClass === 'TECHNICAL_REFERENCE') return ['infrastructure'];
   const haystack = [
     record.category, ...(record.topics || []), ...(record.keywords || []),
     record.title, record.summary
@@ -287,7 +291,8 @@ function renderTopSignal(root, records) {
     return;
   }
   const record = records[0];
-  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.category)}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a>`;
+  const kicker = record.dataClass?.endsWith('_REFERENCE') ? 'TOP VERIFIED REFERENCE' : 'TOP SIGNAL NOW';
+  top.innerHTML = `<p class="smi-kicker">${kicker}</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.category)}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a>`;
   const extras = records.slice(1, 4);
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
@@ -440,7 +445,7 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !related.length;
     editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${current.length} governed signal${current.length === 1 ? '' : 's'} shown from ${records.length} eligible historical record${records.length === 1 ? '' : 's'}. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${current.length} governed signal${current.length === 1 ? '' : 's'} shown from ${records.length} verified historical record${records.length === 1 ? '' : 's'}. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';

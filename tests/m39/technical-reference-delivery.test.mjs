@@ -52,6 +52,8 @@ test('verified technical records enter historical reference views but never Glob
   const cards = normalizeSmartRecords({ status: 'OK', records });
   assert.equal(cards.length, 2);
   assert.ok(cards.some(card => card.topicIds.includes('infrastructure')));
+  assert.ok(cards.every(card => !card.topicIds.includes('regulatory')));
+  assert.ok(cards.every(card => card.topicIds.length === 1));
   assert.ok(cards.every(card => card.dataClass === 'TECHNICAL_REFERENCE'));
 });
 
