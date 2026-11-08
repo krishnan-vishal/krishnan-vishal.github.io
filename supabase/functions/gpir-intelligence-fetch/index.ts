@@ -23,9 +23,25 @@ const PYMNTS_SOURCE_ID = "PYMNTS-GLOBAL-004";
 const MAS_SOURCE_ID = "CB-APAC-002";
 const ECB_SOURCE_ID = "CB-EUR-001";
 const RBA_SOURCE_ID = "TEST-RBA-01";
+const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 // RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID] as const;
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
+const GDELT_URL = "https://api.gdeltproject.org/api/v2/doc/doc?query=%22cross-border%20payments%22&mode=artlist&format=json&timespan=24h&maxrecords=20";
+function parseGdeltDiscovery(raw: string): DiscoveredItem[] {
+  const response = JSON.parse(raw);
+  if (!Array.isArray(response?.articles)) throw new Error("GDELT_INVALID_RESPONSE");
+  const seen = new Set<string>();
+  return response.articles.flatMap((a: Record<string, unknown>) => {
+    if (typeof a.url !== "string" || typeof a.title !== "string") return [];
+    try {
+      const u = new URL(a.url);
+      if (u.protocol !== "https:" || u.username || u.password || seen.has(u.href)) return [];
+      seen.add(u.href);
+      return [{ title: a.title.slice(0, 400), url: u.href }];
+    } catch { return []; }
+  }).slice(0, MAX_DISCOVERED_LINKS);
+}
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
@@ -737,6 +753,8 @@ const source = sourceRows[0] as SourceRecord;
             `SOURCE_NOT_GREEN: ${source.source_status}`,
           );
         }
+        if (requestedSource === GDELT_SOURCE_ID && source.parser_profile !== "gdelt-doc-discovery") throw new Error("GDELT_PARSER_PROFILE_MISMATCH");
+        if (requestedSource === GDELT_SOURCE_ID && !dryRun) return Response.json({ok:false,error:"GDELT_DISCOVERY_WRITE_NOT_AUTHORIZED"},{status:403});
         if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
           throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
@@ -798,7 +816,9 @@ const source = sourceRows[0] as SourceRecord;
           source.feed_or_index_url || source.official_url;
 
           const discoveryUrl =
-          requestedSource === TEST_SOURCE_ID
+          requestedSource === GDELT_SOURCE_ID
+          ? GDELT_URL
+          : requestedSource === TEST_SOURCE_ID
           ? SFA_NEWS_INDEX
           : requestedSource === RBA_SOURCE_ID
           ? RBA_MEDIA_RSS
@@ -834,7 +854,9 @@ const source = sourceRows[0] as SourceRecord;
         // 5. Discover likely intelligence links
         // ----------------------------------------------------
 
-        const discovered = requestedSource === RBA_SOURCE_ID
+        const discovered = requestedSource === GDELT_SOURCE_ID
+          ? parseGdeltDiscovery(indexHtml)
+          : requestedSource === RBA_SOURCE_ID
           ? discoverRbaMediaLinks(indexHtml)
           : requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
@@ -846,6 +868,11 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverPymntsLinks(indexHtml, indexResponse.url)
           : discoverLinks(indexHtml, indexResponse.url);
 
+        if (requestedSource === GDELT_SOURCE_ID) return Response.json({
+          ok:true,source_id:source.source_id,dry_run:true,discovery_only:true,
+          source_verification_required:true,publication_attempted:false,
+          raw_records_inserted:0,discovered
+        });
         const selected =
           discovered.slice(0, MAX_PAGE_FETCHES);
 
