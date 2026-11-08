@@ -516,6 +516,16 @@
             };
         }).filter(Boolean);
     }
+    // Keep the public ribbon synchronized while a reader leaves the homepage open.
+    // This is a read-only refresh of the existing governed 12-hour API, not a
+    // publisher or a replacement for the server-side ingestion schedule.
+    const LIVE_FEED_REFRESH_MS = 10 * 60 * 1000;
+    let liveFeedInFlight = false;
+    function refreshLiveFeed(){
+        if(liveFeedInFlight || document.visibilityState === "hidden") return;
+        liveFeedInFlight = true;
+        return loadLiveFeed().finally(() => { liveFeedInFlight = false; });
+    }
     function loadLiveFeed(){
         return fetch(LIVE_FEED_URL, {cache:"no-store"})
             .then(response => { if(!response.ok) throw new Error("public alerts unavailable"); return response.json(); })
@@ -565,7 +575,11 @@
             try{
                 renderTicker();
                 initializeDetailPanel();
-                loadLiveFeed();
+                refreshLiveFeed();
+                window.setInterval(refreshLiveFeed, LIVE_FEED_REFRESH_MS);
+                document.addEventListener('visibilitychange', () => {
+                    if(document.visibilityState === 'visible') refreshLiveFeed();
+                });
             } catch(err){
                 // One malformed record must not blank the whole ticker
                 // silently forever -- surface it and leave whatever
