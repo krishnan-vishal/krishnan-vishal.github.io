@@ -34,3 +34,10 @@
 .smi-topic-card p{margin:.22rem 0}
 .smi-heatmap-panel,.smi-evidence,.smi-methodology,.smi-editorial{padding:.7rem .85rem}
 @media(max-width:760px){.smi-hero{align-items:flex-start}.smi-brand img{width:2rem;height:2rem}}
+
+/* Extended topic taxonomy: retain compact cards as coverage expands. */
+.smi-topic-cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr));gap:.4rem}
+.smi-topic-card{min-height:0;padding:.55rem .65rem}
+.smi-topic-card header h3{font-size:.82rem;line-height:1.25}
+.smi-topic-card p{font-size:.71rem;line-height:1.35}
+.smi-heatmap-scroll{max-height:30rem;overflow:auto}
