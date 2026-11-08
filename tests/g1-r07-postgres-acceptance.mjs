@@ -8,6 +8,7 @@ file('tests/fixtures/g1-r07-postgres-schema.sql');
 const base=readFileSync('supabase/migrations/20261031134116_g1_automated_intelligence_publication.sql','utf8').split('-- The existing Vault key')[0];
 run(base);
 file('supabase/migrations/20261101000000_g1_r07_event_consolidation.sql');
+file('supabase/migrations/20261108140000_m39_t3_editorial_publication.sql');
 const ids=['00000000-0000-4000-8000-000000000101','00000000-0000-4000-8000-000000000102','00000000-0000-4000-8000-000000000103','00000000-0000-4000-8000-000000000104'];
 run(`insert into source_registry(source_id,source_name,official_url,trust_tier,source_status) values
 ('A','Source A','https://a.example','T1','GREEN'),
@@ -41,4 +42,24 @@ await mustFail(call(ids[3],'4'.repeat(64),'different payments network announces 
 await mustFail(call(ids[0],'1'.repeat(64)),'same candidate cannot republish');
 assert.equal(Number(run('select count(*) from gpir_intelligence_developments')),2,'failed calls must roll back');
 assert.equal(Number(run('select count(*) from global_announcements')),1,'failed calls must not publish');
-console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback');
+// M39 T3 editorial route: only a T3 candidate bound to a verified Contentful approval can publish.
+const editorialPayload=(id,url,extra={})=>JSON.stringify({source_verified:true,canonical_verified:true,timestamp_verified:true,content_verified:true,relevance_verified:true,summary_grounded:true,evidence_excerpt:'Verified public source evidence.',editorial_verified:true,editorial_entry_id:'entry-1',editorial_publication_id:'VK-GPIR-MEDIA-000001',editorial_supabase_record_id:id,editorial_source_url:url,...extra});
+const editorialCall=(id,fingerprint,payloadJson,subject='regional payments network launches interoperability')=>`select public.gpir_publish_t3_editorial_candidate('${id}','${summary}',now()-interval '1 hour','${fingerprint}','${payloadJson}'::jsonb,'${key}','C','UPDATE','${subject}',current_date,'Global',array['payments'],'PENDING');`;
+await mustFail(call(ids[2],'5'.repeat(64)),'T3 still cannot use the automated route');
+await mustFail(editorialCall(ids[2],'5'.repeat(64),editorialPayload(ids[2],'https://c.example/3',{editorial_verified:false})),'editorial flag required');
+await mustFail(editorialCall(ids[2],'5'.repeat(64),editorialPayload(ids[2],'https://c.example/other')),'editorial URL must match candidate');
+await mustFail(editorialCall(ids[2],'5'.repeat(64),editorialPayload(ids[0],'https://c.example/3')),'editorial record id must match candidate');
+await mustFail(editorialCall(ids[0],'5'.repeat(64),editorialPayload(ids[0],'https://a.example/1')),'T1 cannot use the editorial route');
+assert.equal(Number(run('select count(*) from gpir_intelligence_developments')),2,'rejected editorial calls must roll back');
+const attached=await concurrent(editorialCall(ids[2],'5'.repeat(64),editorialPayload(ids[2],'https://c.example/3')));
+assert.equal(attached.code,0,attached.stderr);
+assert.equal(Number(run('select count(*) from global_announcements')),1,'identical subject attaches, no second card');
+assert.equal(Number(run("select count(*) from gpir_intelligence_topic_sources where source_id='C'")),1);
+assert.equal(run("select decision||':'||reason_code from intelligence_publication_audits where candidate_id='"+ids[2]+"'").trim(),'DUPLICATE:G1_T3_EDITORIAL_VALIDATED_SOURCE_ATTACHED');
+run(`insert into intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status)
+values('00000000-0000-4000-8000-000000000105','C','https://c.example/5','Unique media payments initiative announced for regional settlement',now()-interval '2 hours','Payments','UPDATE',40,'REVIEW');`);
+const newCard=await concurrent(editorialCall('00000000-0000-4000-8000-000000000105','6'.repeat(64),editorialPayload('00000000-0000-4000-8000-000000000105','https://c.example/5'),'unique media payments initiative announced for regional settlement').replace(`'${key}'`,`'${'b'.repeat(64)}'`));
+assert.equal(newCard.code,0,newCard.stderr);
+assert.equal(run("select ticker_eligible||':'||publication_status||':'||(published_at<=now()) from global_announcements where canonical_url='https://c.example/5'").trim(),'true:approved:true');
+await mustFail(editorialCall('00000000-0000-4000-8000-000000000105','6'.repeat(64),editorialPayload('00000000-0000-4000-8000-000000000105','https://c.example/5'),'unique media payments initiative announced for regional settlement').replace(`'${key}'`,`'${'b'.repeat(64)}'`),'editorial publication cannot repeat');
+console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route');
