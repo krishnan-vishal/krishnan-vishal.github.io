@@ -1,6 +1,7 @@
 import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
+export const BIS_SOURCE_ID = 'BIS-GLOBAL-001';
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
 const DEFAULT_ORIGINS = Object.freeze([
@@ -45,7 +46,65 @@ async function jsonFetch(fetchImpl, url, headers) {
   return data;
 }
 
-export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [], topicSources = [], now = Date.now(), windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
+export function normalizeBisReferenceRows({ rows = [], sources = [] }) {
+  const source = sources.find(item => item.source_id === BIS_SOURCE_ID &&
+    item.source_status === 'GREEN' && item.official_url === 'https://data.bis.org/');
+  if (!source) return [];
+  return rows.flatMap(row => {
+    const metadata = row?.metadata;
+    const observationDate = metadata?.observation_date;
+    const period = metadata?.observation_period;
+    const value = Number(metadata?.value);
+    const sourceUrl = metadata?.source_url;
+    let sourceHost = null;
+    try { sourceHost = new URL(sourceUrl).hostname; } catch {}
+    if (row?.source_id !== BIS_SOURCE_ID || row?.ingestion_status !== 'PROCESSED' ||
+        metadata?.provider !== 'BIS' || metadata?.data_class !== 'STATISTICAL_REFERENCE' ||
+        metadata?.publication_eligible !== false || metadata?.alert_eligible !== false ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(observationDate || '') ||
+        !/^\d{4}(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12]\d|3[01]))?|-(?:Q[1-4]|S[12]))?$/.test(period || '') ||
+        !Number.isFinite(value) || sourceHost !== 'stats.bis.org') return [];
+    const unit = typeof metadata.unit_measure === 'string' && metadata.unit_measure
+      ? metadata.unit_measure : 'not stated';
+    const multiplier = typeof metadata.unit_multiplier === 'string' && metadata.unit_multiplier
+      ? metadata.unit_multiplier : 'not stated';
+    const title = typeof row.raw_title === 'string' && row.raw_title.trim().length >= 8
+      ? row.raw_title.trim().slice(0, 400)
+      : `${metadata.dataflow} statistical observation — ${period}`;
+    const topic = typeof metadata.topic === 'string' && metadata.topic.trim()
+      ? metadata.topic.trim().slice(0, 100) : 'Payments';
+    const providerReleaseDate = /^\d{4}-\d{2}-\d{2}$/.test(metadata.provider_release_date || '')
+      ? metadata.provider_release_date : null;
+    return [{
+      id: row.id,
+      status: 'GPIR_CLASSIFIED', contentStatus: 'STATISTICAL_REFERENCE_VERIFIED',
+      dataClass: 'STATISTICAL_REFERENCE', recordType: 'BIS_OBSERVATION',
+      lifecycleStatus: 'HISTORICAL', displayLifecycleStatus: 'ARCHIVED',
+      headline: title, title,
+      summary: `BIS statistical observation for ${period}: value ${value}; unit code ${unit}; multiplier ${multiplier}.`,
+      developments: [], category: topic, topics: [topic, 'Statistical reference'], subcategory: metadata.dataflow,
+      country: metadata.country_code || null, countryCode: metadata.country_code || null, region: null,
+      observationPeriod: period, observationDate, providerReleaseDate,
+      publicationDate: observationDate, publishedDate: observationDate,
+      publishedAt: `${observationDate}T00:00:00.000Z`,
+      publicationMonth: observationDate.slice(5, 7), publicationYear: observationDate.slice(0, 4),
+      tickerEligible: false, canonicalUrl: sourceUrl, pageUrl: sourceUrl,
+      keywords: [topic.toLowerCase(), 'bis', 'statistics'], outcomeStatus: 'REFERENCE',
+      geography: metadata.country_code || null, eventId: null,
+      sources: [{ name: source.source_name, url: sourceUrl,
+        publishedAt: providerReleaseDate ? `${providerReleaseDate}T00:00:00.000Z` : null }],
+      source: { name: source.source_name, publicationTitle: source.source_name, url: sourceUrl,
+        trustTier: source.trust_tier || null, category: source.category || null },
+      statisticalValue: value, unitMeasure: unit, unitMultiplier: multiplier,
+      dimensions: metadata.dimensions && typeof metadata.dimensions === 'object'
+        ? metadata.dimensions : {}
+    }];
+  });
+}
+
+export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
+  topicSources = [], statisticalObservations = [], now = Date.now(),
+  windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
   const byTopicSources = new Map();
   const byTopicDevelopments = new Map();
@@ -54,7 +113,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
   const bySource = new Map((sources || [])
     .filter(source => source.source_status === 'GREEN')
     .map(source => [source.source_id, source]));
-  return (announcements || []).flatMap(row => {
+  const announcementsNormalized = (announcements || []).flatMap(row => {
     const source = bySource.get(row.source_id);
     const title = typeof row.title === 'string' ? row.title.trim() : '';
     const summary = typeof row.summary_narration === 'string' ? row.summary_narration.trim() : '';
@@ -119,6 +178,11 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       }
     }];
   });
+  const references = normalizeBisReferenceRows({ rows: statisticalObservations, sources });
+  if (!references.length) return announcementsNormalized;
+  return [...announcementsNormalized, ...references]
+    .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
+      String(left.id).localeCompare(String(right.id)));
 }
 
 export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
@@ -192,13 +256,18 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
             if (page >= 99) throw new Error('EVIDENCE_PAGE_LIMIT');
           }
         }
-        const [sources, topics, developments, topicSources] = await Promise.all([
+        const [sources, topics, developments, topicSources, statisticalObservations] = await Promise.all([
           allRows('source_registry', sourceQuery),
           allRows('gpir_intelligence_topics', topicQuery),
           allRows('gpir_intelligence_developments', developmentsQuery),
-          allRows('gpir_intelligence_topic_sources', linksQuery)
+          allRows('gpir_intelligence_topic_sources', linksQuery),
+          history ? allRows('intelligence_raw_ingestion', new URLSearchParams({
+            select: 'id,source_id,raw_title,ingestion_status,metadata',
+            source_id: `eq.${BIS_SOURCE_ID}`, ingestion_status: 'eq.PROCESSED',
+            order: 'discovered_at.desc,id.asc'
+          })) : Promise.resolve([])
         ]);
-        rows = { announcements, sources, topics, developments, topicSources };
+        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
       if (date) records = records.filter(record=>record.publicationDate===date);
@@ -212,7 +281,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', source: 'global_announcements', total, limit, offset,
+        status: 'OK', source: history ? 'global_announcements+bis_statistical_reference' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

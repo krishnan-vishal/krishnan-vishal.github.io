@@ -18,7 +18,7 @@ export const SMART_TOPICS = Object.freeze([
   { id: 'cbdc', label: 'CBDCs & Digital Money', aliases: ['cbdc','digital money','digital currency','tokenised deposit','tokenized deposit'] },
   { id: 'stablecoins', label: 'Stablecoins & Digital Assets', aliases: ['stablecoin','digital asset','crypto','blockchain','tokenization','tokenisation'] },
   { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] },
-  { id: 'payments', label: 'Payments', aliases: ["payment services","payments industry","payment system"] },
+  { id: 'payments', label: 'Payments', aliases: ["payment services","payments industry","payment system","cashless payments","credit transfer"] },
   { id: 'fintech', label: 'Fintech', aliases: ["fintech","financial technology"] },
   { id: 'global-regional-fintech', label: 'Global & Regional Fintech', aliases: ["global fintech","regional fintech","fintech ecosystem"] },
   { id: 'pass', label: 'PASS', aliases: ["pass platform","pass service"] },
@@ -138,7 +138,10 @@ export function normalizeSmartRecords(value) {
       sourceName: clean(item?.source?.name, 140) || 'Authoritative source',
       sourceTrustTier: clean(item?.source?.trustTier || item?.sourceTrustTier, 20),
       lifecycle: clean(item.displayLifecycleStatus || item.lifecycleStatus, 40) || 'ARCHIVED',
-      outcomeStatus: clean(item.outcomeStatus, 40)
+      outcomeStatus: clean(item.outcomeStatus, 40),
+      dataClass: clean(item.dataClass, 60),
+      observationPeriod: clean(item.observationPeriod, 24),
+      providerReleaseDate: clean(item.providerReleaseDate, 10)
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
@@ -265,7 +268,9 @@ async function fetchHistory(fetchImpl, origin) {
 
 function recordMarkup(record) {
   const geography = [record.country, record.region, record.geography].filter(Boolean).join(' · ') || 'Geography not classified';
-  return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(record.lifecycle)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(isoDay(record.publishedAt))}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
+  const recordClass = record.dataClass === 'STATISTICAL_REFERENCE' ? 'STATISTICAL REFERENCE' : record.lifecycle;
+  const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` : isoDay(record.publishedAt);
+  return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
 }
 
 function renderTopSignal(root, records) {
