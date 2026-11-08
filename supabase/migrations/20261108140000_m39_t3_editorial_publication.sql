@@ -3,6 +3,12 @@
 -- T1/T1.5/T2 automation continues to use gpir_publish_consolidated_candidate unchanged, which
 -- still rejects T3. This function publishes a T3 candidate only when the service-role publisher
 -- supplies fully verified Contentful editorial approval bound to this exact candidate and URL.
+-- Trust boundary: the database cannot query Contentful. Authorization is established only by
+-- the Edge publisher, which reads the published Contentful entry immediately before release and
+-- creates an unforgeable in-process approval; request bodies and caller objects are never trusted.
+-- EXECUTE is granted to service_role alone, the same principal that can already write
+-- global_announcements directly, so this function adds no new authority. The checks below bind the
+-- evidence to the exact candidate id, source URL and T3 source as defence in depth.
 -- Requires explicit release approval before application.
 create function public.gpir_publish_t3_editorial_candidate(
  p_candidate_id uuid, p_summary text, p_source_published_at timestamptz,

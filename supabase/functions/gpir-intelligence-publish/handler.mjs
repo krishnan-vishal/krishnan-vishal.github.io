@@ -1,7 +1,7 @@
 import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
-import { ambiguousEditorialKeys, contentfulEditorialConfig, evaluateEditorialEntry,
-  fetchPublishedEditorialEntries } from '../_shared/gpir-contentful-editorial.mjs';
+import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
+  fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -156,6 +156,10 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       return contentful ? fetchPublishedEditorialEntries({ config: contentful, fetchImpl }) : [];
     },
 
+    async editorialEntriesFor(candidate) {
+      return contentful ? fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate }) : [];
+    },
+
     async candidate(candidateId) {
       if (!UUID.test(candidateId)) return null;
       const query = new URLSearchParams({
@@ -284,7 +288,7 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   await repository.start(candidate);
   const source = await repository.source(candidate.source_id);
   const editorialApproval = editorial
-    ? evaluateEditorialEntry({ entry: editorial.entry, candidate, source, ambiguous: editorial.ambiguous })
+    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source, ambiguous: editorial.ambiguous })
     : null;
   if (editorialApproval && !editorialApproval.approved) {
     const denied = { decision: 'REVIEW', reasonCode: editorialApproval.reasonCode };
@@ -336,7 +340,9 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
       const source = candidate ? await repository.source(candidate.source_id) : null;
       if (!candidate || source?.trust_tier !== 'T3') { summary.skipped += 1; continue; }
       if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
-      const outcome = await processCandidate({ candidate, repository, fetchImpl, now, editorial: { entry, ambiguous } });
+      const entriesForCandidate = await repository.editorialEntriesFor(candidate);
+      const outcome = await processCandidate({ candidate, repository, fetchImpl, now,
+        editorial: { entries: entriesForCandidate, ambiguous } });
       summary.outcomes.push({ candidateId: candidate.id, entryId: entry.entryId, decision: outcome.decision,
         reasonCode: outcome.reasonCode, announcementId: outcome.announcementId });
       if (outcome.decision === 'PUBLISHED') summary.published += 1;

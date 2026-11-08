@@ -1,3 +1,5 @@
+import { isVerifiedEditorialApproval } from './gpir-contentful-editorial.mjs';
+
 const PAYMENT_TERMS = Object.freeze([
   'payment', 'payments', 'settlement', 'clearing', 'cross-border', 'remittance',
   'banking', 'fintech', 'wallet', 'card', 'instant payment', 'real-time payment',
@@ -193,7 +195,7 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   // pass through every evidence, timestamp and relevance check below.
   // Only a T3 source with a verified Contentful editorial approval replaces the
   // automatic threshold; every evidence check below still applies to it.
-  const editorialRoute = source.trust_tier === 'T3' && editorialApproval?.approved === true;
+  const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
   if (!editorialRoute && (!threshold || !Number.isFinite(confidence) || confidence < threshold)) {

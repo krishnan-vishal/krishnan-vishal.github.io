@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, evaluateEditorialEntry,
-  fetchPublishedEditorialEntries } from '../supabase/functions/_shared/gpir-contentful-editorial.mjs';
+  fetchEditorialEntriesForCandidate, fetchPublishedEditorialEntries } from '../supabase/functions/_shared/gpir-contentful-editorial.mjs';
 import { validateCandidateSource } from '../supabase/functions/_shared/gpir-intelligence-validation.mjs';
 import { createRestPublicationRepository, createPublicationHandler, processCandidate,
   processEditorialApprovals } from '../supabase/functions/gpir-intelligence-publish/handler.mjs';
@@ -44,10 +44,12 @@ function page(item) {
 const fetchPage = item => async () => ({ ok: true, status: 200, url: item.canonical_url,
   headers: new Headers({ 'content-type': 'text/html' }), text: async () => page(item) });
 
-function store({ audit = null, entries = [], published = [] } = {}) {
+function store({ audit = null, entries = [], published = [], targeted = null } = {}) {
   const events = [];
   return { events, published,
     async editorialEntries() { return entries; },
+    async editorialEntriesFor(item) {
+      return (targeted || entries).filter(row => row.fields.supabaseRecordId === item.id); },
     async candidate(id) { return id === CANDIDATE_ID ? candidate() : null; },
     async audit() { return audit; },
     async start() { events.push('start'); },
@@ -104,9 +106,9 @@ test('T3 without editorial approval stays awaiting review; automated tier behavi
 test('approved T3 is revalidated against the live source before release and keeps the source timestamp', async () => {
   const item = candidate();
   const approval = evaluateEditorialEntry({ entry: entry(), candidate: item, source: T3 });
-  const events = store();
+  const events = store({ entries: [entry()] });
   const outcome = await processCandidate({ candidate: item, repository: events, fetchImpl: fetchPage(item), now: () => NOW,
-    editorial: { entry: entry(), ambiguous: new Set() } });
+    editorial: { entries: [entry()], ambiguous: new Set() } });
   assert.equal(approval.approved, true);
   assert.equal(outcome.decision, 'PUBLISHED');
   assert.equal(outcome.sourcePublishedAt, item.published_at);
@@ -168,7 +170,7 @@ test('only the published Delivery API is used and a management token is refused'
   let request;
   const entries = await fetchPublishedEditorialEntries({ config, fetchImpl: async (url, init) => {
     request = { url: new URL(url), init };
-    return { ok: true, json: async () => ({ items: [{ sys: { id: 'e1', updatedAt: '2026-11-08T11:00:00Z' }, fields: { supabaseRecordId: CANDIDATE_ID } }] }) };
+    return { ok: true, json: async () => ({ total: 1, items: [{ sys: { id: 'e1', updatedAt: '2026-11-08T11:00:00Z' }, fields: { supabaseRecordId: CANDIDATE_ID } }] }) };
   } });
   assert.equal(request.url.hostname, 'cdn.contentful.com');
   assert.equal(request.url.searchParams.get('content_type'), 'gpirPublication');
@@ -215,7 +217,7 @@ test('the editorial queue is read-only, lists only T3 candidates and flags exist
     SUPABASE_SERVICE_ROLE_KEY: 'k', CONTENTFUL_SPACE_ID: 's', CONTENTFUL_ENVIRONMENT: 'master', CONTENTFUL_DELIVERY_TOKEN: 'd' },
   fetchImpl: async (url, init = {}) => {
     const parsed = new URL(url); requests.push(init.method || 'GET');
-    if (parsed.hostname === 'cdn.contentful.com') return { ok: true, json: async () => ({ items: [{ sys: { id: 'entry-1' }, fields: entry().fields }] }) };
+    if (parsed.hostname === 'cdn.contentful.com') return { ok: true, json: async () => ({ total: 1, items: [{ sys: { id: 'entry-1' }, fields: entry().fields }] }) };
     if (parsed.pathname.endsWith('/source_registry')) return { ok: true, json: async () => [T3] };
     return { ok: true, json: async () => [linked, open] };
   } });
@@ -223,4 +225,91 @@ test('the editorial queue is read-only, lists only T3 candidates and flags exist
   assert.equal(queue.approved[0].contentfulEntryId, 'entry-1');
   assert.equal(queue.awaiting.length, 1);
   assert.equal(queue.awaiting[0].contentfulDraftFields.supabaseRecordId, open.id);
+});
+
+test('a forged, copied or caller-supplied approval can never bypass the verified Contentful path', async () => {
+  const item = candidate();
+  const real = evaluateEditorialEntry({ entry: entry(), candidate: item, source: T3 });
+  const forgeries = [
+    { approved: true, entryId: 'entry-1', publicationId: 'VK-GPIR-MEDIA-000001', sourceUrl: URL_A.replace('www.', '').replace(/\/$/, '') },
+    { ...real },
+    Object.create(real),
+    JSON.parse(JSON.stringify(real)),
+    true, 'approved', null
+  ];
+  for (const forged of forgeries) {
+    const outcome = await validateCandidateSource({ candidate: item, source: T3, fetchImpl: fetchPage(item), now: () => NOW,
+      editorialApproval: forged });
+    assert.equal(outcome.decision, 'REVIEW');
+    assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+  }
+  const genuine = await validateCandidateSource({ candidate: item, source: T3, fetchImpl: fetchPage(item), now: () => NOW,
+    editorialApproval: real });
+  assert.equal(genuine.decision, 'PUBLISHED');
+});
+
+test('request-body approval claims are ignored by the publication handler', async () => {
+  const item = candidate();
+  const published = [];
+  const recorded = [];
+  const handler = createPublicationHandler({
+    env: { SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'k' },
+    fetchImpl: fetchPage(item), now: () => NOW, logger: { error() {} },
+    repository: { async candidates() { return [item]; }, async start() {}, async source() { return T3; },
+      async duplicate() { return false; }, async record(_c, v) { recorded.push(v.reasonCode); },
+      async publish(_c, v) { published.push(v); return 'id'; } } });
+  const body = await (await handler(new Request('https://x.test', { method: 'POST', body: JSON.stringify({
+    batchSize: 5, editorial: true, editorialApproval: { approved: true, entryId: 'x', publicationId: 'VK-GPIR-A-1', sourceUrl: URL_A },
+    validationPayload: { editorial_verified: true } }) }))).json();
+  assert.equal(published.length, 0);
+  assert.deepEqual(recorded, ['AUTO_PUBLICATION_THRESHOLD_NOT_MET']);
+  assert.equal(body.published, 0);
+});
+
+test('authorization is re-read from Contentful at publication time; a withdrawn or changed entry cannot publish', async () => {
+  const withdrawn = store({ entries: [entry()], targeted: [] });
+  const result = await processEditorialApprovals({ repository: withdrawn, fetchImpl: fetchPage(candidate()), now: () => NOW });
+  assert.equal(result.published, 0);
+  assert.deepEqual(withdrawn.events.filter(event => event.startsWith('record')), ['record:EDITORIAL_ENTRY_NOT_FOUND']);
+  const duplicated = store({ entries: [entry()], targeted: [entry(), entry({ entryId: 'entry-2' })] });
+  await processEditorialApprovals({ repository: duplicated, fetchImpl: fetchPage(candidate()), now: () => NOW });
+  assert.equal(duplicated.published.length, 0);
+  const changed = store({ entries: [entry()], targeted: [entry({}, { validationStatus: 'QUARANTINED' })] });
+  await processEditorialApprovals({ repository: changed, fetchImpl: fetchPage(candidate()), now: () => NOW });
+  assert.equal(changed.published.length, 0);
+});
+
+test('every published editorial entry is read across pages and an incomplete read fails closed', async () => {
+  const config = { spaceId: 's', environment: 'master', token: 't' };
+  const total = 250;
+  const requests = [];
+  const make = index => ({ sys: { id: `e${String(index).padStart(4, '0')}`, updatedAt: `2026-11-08T${String(index % 24).padStart(2, '0')}:00:00Z` },
+    fields: { supabaseRecordId: `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`, legacySourceUrl: `https://www.pymnts.com/news/a/${index}/` } });
+  const fetchImpl = async url => {
+    const parsed = new URL(url); requests.push(parsed);
+    const skip = Number(parsed.searchParams.get('skip')); const limit = Number(parsed.searchParams.get('limit'));
+    return { ok: true, json: async () => ({ total, items: Array.from({ length: Math.max(0, Math.min(limit, total - skip)) }, (_, offset) => make(skip + offset)) }) };
+  };
+  const entries = await fetchPublishedEditorialEntries({ config, fetchImpl });
+  assert.equal(entries.length, total);
+  assert.equal(new Set(entries.map(item => item.entryId)).size, total);
+  assert.equal(requests.length, 3);
+  assert.ok(entries.some(item => item.entryId === 'e0249'));
+  await assert.rejects(() => fetchPublishedEditorialEntries({ config,
+    fetchImpl: async () => ({ ok: true, json: async () => ({ total: 999999, items: [make(1)] }) }) }), /CONTENTFUL_ENTRY_LIMIT_EXCEEDED/);
+  await assert.rejects(() => fetchPublishedEditorialEntries({ config, fetchImpl: async () => ({ ok: false, status: 429 }) }), /CONTENTFUL_HTTP_429/);
+});
+
+test('targeted authorization lookup queries the candidate id and source URL and rejects ambiguous result sets', async () => {
+  const config = { spaceId: 's', environment: 'master', token: 't' };
+  const queries = [];
+  const entries = await fetchEditorialEntriesForCandidate({ config, candidate: candidate(), fetchImpl: async url => {
+    const parsed = new URL(url); queries.push(parsed.searchParams);
+    return { ok: true, json: async () => ({ total: 1, items: [{ sys: { id: 'entry-1' }, fields: entry().fields }] }) };
+  } });
+  assert.equal(entries.length, 1);
+  assert.equal(queries[0].get('fields.supabaseRecordId'), CANDIDATE_ID);
+  assert.equal(queries[1].get('fields.legacySourceUrl'), URL_A);
+  await assert.rejects(() => fetchEditorialEntriesForCandidate({ config, candidate: candidate(),
+    fetchImpl: async () => ({ ok: true, json: async () => ({ total: 11, items: [] }) }) }), /CONTENTFUL_ENTRY_AMBIGUOUS_RESULT/);
 });

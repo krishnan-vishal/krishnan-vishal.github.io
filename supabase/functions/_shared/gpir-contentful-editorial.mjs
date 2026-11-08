@@ -12,8 +12,21 @@ import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.m
 const PUBLICATION_ID = /^VK-GPIR?-[A-Z0-9]+(?:-[A-Z0-9]+)+$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONTENT_TYPE = 'gpirPublication';
-const MAX_ENTRIES = 100;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 50;
 const MIN_EVIDENCE_LENGTH = 40;
+const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
+  'fields.legacySourceUrl', 'fields.publicationStatus', 'fields.validationStatus',
+  'fields.sourceValidationSummary'].join(',');
+
+// Approvals are unforgeable: only evaluateEditorialEntry can create one, and the
+// validator accepts nothing that is not registered here. Request bodies, plain
+// objects and copies of a real approval are never trusted.
+const VERIFIED_APPROVALS = new WeakSet();
+
+export function isVerifiedEditorialApproval(approval) {
+  return approval !== null && typeof approval === 'object' && VERIFIED_APPROVALS.has(approval);
+}
 
 export function contentfulEditorialConfig(env) {
   const read = name => (typeof env[name] === 'string' ? env[name].trim() : '');
@@ -30,30 +43,54 @@ function text(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch, limit = MAX_ENTRIES }) {
-  const query = new URLSearchParams({
-    content_type: CONTENT_TYPE,
-    'fields.supabaseRecordId[exists]': 'true',
-    'fields.legacySourceUrl[exists]': 'true',
-    select: ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
-      'fields.legacySourceUrl', 'fields.publicationStatus', 'fields.validationStatus',
-      'fields.sourceValidationSummary'].join(','),
-    order: '-sys.updatedAt',
-    limit: String(Math.max(1, Math.min(MAX_ENTRIES, limit)))
-  });
-  const url = `https://cdn.contentful.com/spaces/${encodeURIComponent(config.spaceId)}` +
-    `/environments/${encodeURIComponent(config.environment)}/entries?${query}`;
+function entriesUrl(config, params) {
+  return `https://cdn.contentful.com/spaces/${encodeURIComponent(config.spaceId)}` +
+    `/environments/${encodeURIComponent(config.environment)}/entries?${new URLSearchParams({
+      content_type: CONTENT_TYPE, select: SELECTED_FIELDS, ...params })}`;
+}
+
+async function readEntries(config, fetchImpl, params) {
   let response;
-  try { response = await fetchImpl(url, { headers: { Authorization: `Bearer ${config.token}` } }); }
+  try { response = await fetchImpl(entriesUrl(config, params), { headers: { Authorization: `Bearer ${config.token}` } }); }
   catch { throw new Error('CONTENTFUL_REQUEST_FAILED'); }
   if (!response.ok) throw new Error(`CONTENTFUL_HTTP_${response.status}`);
   const page = await response.json();
-  if (!Array.isArray(page?.items)) throw new Error('CONTENTFUL_INVALID_RESPONSE');
-  return page.items.map(item => ({
-    entryId: text(item?.sys?.id),
-    updatedAt: text(item?.sys?.updatedAt),
-    fields: item?.fields && typeof item.fields === 'object' ? item.fields : {}
-  })).filter(item => item.entryId);
+  if (!Array.isArray(page?.items) || !Number.isInteger(page.total)) throw new Error('CONTENTFUL_INVALID_RESPONSE');
+  return {
+    total: page.total,
+    items: page.items.map(item => ({
+      entryId: text(item?.sys?.id),
+      updatedAt: text(item?.sys?.updatedAt),
+      fields: item?.fields && typeof item.fields === 'object' ? item.fields : {}
+    })).filter(item => item.entryId)
+  };
+}
+
+// Complete, paginated read of every published candidate-linked entry. A result that
+// cannot be read completely fails closed instead of silently dropping approvals.
+export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch }) {
+  const entries = [];
+  for (let page = 0; ; page += 1) {
+    if (page >= MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
+    const { items, total } = await readEntries(config, fetchImpl, {
+      'fields.supabaseRecordId[exists]': 'true', 'fields.legacySourceUrl[exists]': 'true',
+      order: 'sys.id', limit: String(PAGE_SIZE), skip: String(page * PAGE_SIZE) });
+    entries.push(...items);
+    if ((page + 1) * PAGE_SIZE >= total || !items.length) break;
+  }
+  return entries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.entryId.localeCompare(b.entryId));
+}
+
+// Fresh, targeted authorization read made immediately before publication.
+export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fetch, candidate }) {
+  const found = new Map();
+  for (const params of [{ 'fields.supabaseRecordId': String(candidate.id) },
+    { 'fields.legacySourceUrl': String(candidate.canonical_url) }]) {
+    const { items, total } = await readEntries(config, fetchImpl, { ...params, limit: '10', order: 'sys.id' });
+    if (total > items.length) throw new Error('CONTENTFUL_ENTRY_AMBIGUOUS_RESULT');
+    for (const item of items) found.set(item.entryId, item);
+  }
+  return [...found.values()];
 }
 
 // Entries that share a candidate identifier or source URL are ambiguous: none is trusted.
@@ -90,10 +127,21 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
   if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
   if (text(fields.sourceValidationSummary).length < MIN_EVIDENCE_LENGTH)
     return denied('EDITORIAL_EVIDENCE_MISSING');
-  return {
+  const approval = Object.freeze({
     approved: true,
     entryId: entry.entryId,
     publicationId: text(fields.gpirPublicationId),
     sourceUrl: urlKey
-  };
+  });
+  VERIFIED_APPROVALS.add(approval);
+  return approval;
+}
+
+// Authorization comes only from the freshly read set of published entries for this
+// candidate id and URL; exactly one distinct entry must exist.
+export function verifyEditorialApproval({ entries, candidate, source, ambiguous = new Set() }) {
+  const distinct = new Map((entries || []).map(item => [item.entryId, item]));
+  if (distinct.size === 0) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_NOT_FOUND' };
+  if (distinct.size > 1) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_AMBIGUOUS' };
+  return evaluateEditorialEntry({ entry: [...distinct.values()][0], candidate, source, ambiguous });
 }
