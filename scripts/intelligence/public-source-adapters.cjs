@@ -18,7 +18,7 @@ function gdeltQueryUrl(topic, { start, end, maxRecords = 50 } = {}) {
   u.searchParams.set("sort", "datedesc");
   u.searchParams.set("maxrecords", String(maxRecords));
   if (start || end) {
-    if (!start || !end || !/^\\d{14}$/.test(start) || !/^\\d{14}$/.test(end) || start >= end)
+    if (!start || !end || !/^\d{14}$/.test(start) || !/^\d{14}$/.test(end) || start >= end)
       throw new Error("INVALID_DATE_WINDOW");
     u.searchParams.set("startdatetime", start);
     u.searchParams.set("enddatetime", end);
@@ -35,7 +35,7 @@ function gdeltDiscoveryCandidates(payload, topic) {
       if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return [];
     } catch { return []; }
     const canonical = url.toString();
-    if (seen.has(canonical) || !item.title || !/^\\d{14}$/.test(String(item.seendate || ""))) return [];
+    if (seen.has(canonical) || !item.title || !/^\d{14}$/.test(String(item.seendate || ""))) return [];
     seen.add(canonical);
     const stamp = String(item.seendate);
     const discoveredAt = stamp.slice(0,4)+"-"+stamp.slice(4,6)+"-"+stamp.slice(6,8)+"T"+stamp.slice(8,10)+":"+stamp.slice(10,12)+":"+stamp.slice(12,14)+"Z";
