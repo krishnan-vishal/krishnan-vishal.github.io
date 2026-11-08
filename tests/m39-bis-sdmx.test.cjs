@@ -1,0 +1,15 @@
+const assert=require("node:assert/strict");
+const {parseBisSdmxCsv,csvRows}=require("../scripts/intelligence/bis-sdmx-csv.cjs");
+const url="https://stats.bis.org/api/v2/data/BIS,WS_CBP,1.0/all";
+const sample='STRUCTURE,STRUCTURE_ID,ACTION,FREQ,REF_AREA,TIME_PERIOD,OBS_VALUE\nDataflow,WS_CBP,I,A,US,2025,12.5\nDataflow,WS_CBP,I,A,US,2025,12.5\nDataflow,WS_CBP,I,A,GB,2025,10.25\n';
+const result=parseBisSdmxCsv(sample,{dataflow:"WS_CBP",sourceUrl:url});
+assert.equal(result.length,2);
+assert.equal(result[0].value,12.5);
+assert.equal(result[0].dimensions.REF_AREA,"US");
+assert.equal(result[0].publicationStatus,"NOT_PUBLISHED");
+assert.equal(csvRows('a,b\n"x,y",z\n')[1][0],"x,y");
+assert.throws(()=>parseBisSdmxCsv(sample,{dataflow:"",sourceUrl:url}),/DATAFLOW_REQUIRED/);
+assert.throws(()=>parseBisSdmxCsv(sample,{dataflow:"WS_CBP",sourceUrl:"https://example.org/api/"}),/NOT_OFFICIAL/);
+assert.throws(()=>parseBisSdmxCsv('TIME_PERIOD,OBS_VALUE\n2025,bad',{dataflow:"WS_CBP",sourceUrl:url}),/OBSERVATION_INVALID/);
+assert.throws(()=>parseBisSdmxCsv(sample,{dataflow:"WS_CBP",sourceUrl:url,maxObservations:1}),/OBSERVATION_LIMIT/);
+console.log("BIS SDMX parser checks PASS");
