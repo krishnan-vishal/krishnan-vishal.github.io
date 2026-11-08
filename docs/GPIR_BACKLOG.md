@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 Gate 2 recovery
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M39-GATE2-RECOVERY | 2026-11-08 | Recover RPW and official technical-source acquisition | INTELLIGENCE, DATA, AUTOMATION | High | IN PROGRESS | Owner review, CI, merge, source registration, controlled deployment and runtime verification | Local parser, technical staging and focused validation complete; RPW production acquisition/staging is not enabled. Missing workbook quarters and any API truncation must remain explicit. |
+
 ## M39 Smart Intelligence dashboard final completion
 
 | ID | Date Raised | Prompt / Requirement | Category | Priority | Status | Dependency | Target Stage | Related Module | Description | Acceptance Criteria | Outcome | Completion Date | Commit | Milestone |

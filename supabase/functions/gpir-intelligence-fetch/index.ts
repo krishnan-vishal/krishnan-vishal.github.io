@@ -18,6 +18,7 @@ import { withSupabase } from "jsr:@supabase/server@^1";
 import {
   BIS_DATAFLOWS,
   BIS_TERMS_URL,
+  GITHUB_TECHNICAL_SOURCES,
   buildBisDataUrl,
   buildBisReleaseCalendarUrl,
   buildGdeltQueryUrl,
@@ -25,6 +26,7 @@ import {
   parseBisSdmxCsv,
   parseGdeltDiscovery,
 } from "../_shared/gpir-public-source-adapters.mjs";
+import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
@@ -35,8 +37,9 @@ const ECB_SOURCE_ID = "CB-EUR-001";
 const RBA_SOURCE_ID = "TEST-RBA-01";
 const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 const BIS_SOURCE_ID = "BIS-GLOBAL-001";
+const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
 // RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID] as const;
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
@@ -765,6 +768,12 @@ const source = sourceRows[0] as SourceRecord;
         }
         if (requestedSource === GDELT_SOURCE_ID && source.parser_profile !== "gdelt-doc-discovery") throw new Error("GDELT_PARSER_PROFILE_MISMATCH");
         if (requestedSource === BIS_SOURCE_ID && source.parser_profile !== "bis-sdmx-csv-v2") throw new Error("BIS_PARSER_PROFILE_MISMATCH");
+        const technicalSource = TECHNICAL_SOURCE_IDS.includes(requestedSource as typeof TECHNICAL_SOURCE_IDS[number]);
+        if (technicalSource && (source.parser_profile !== "github-technical-history-v1" || source.acquisition_method !== "A")) throw new Error("TECHNICAL_SOURCE_PROFILE_MISMATCH");
+        if (technicalSource) {
+          const config = GITHUB_TECHNICAL_SOURCES[requestedSource as keyof typeof GITHUB_TECHNICAL_SOURCES];
+          if (source.official_url !== `https://github.com/${config.repository}` || source.feed_or_index_url !== `https://api.github.com/repos/${config.repository}/releases`) throw new Error("TECHNICAL_SOURCE_REGISTRY_MISMATCH");
+        }
         if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
           throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
@@ -820,6 +829,38 @@ const source = sourceRows[0] as SourceRecord;
           if (runError || !run) throw new Error(`RUN_CREATE_ERROR: ${runError?.message || "no run returned"}`);
           runId = run.id;
           runSourceId = source.source_id;
+        }
+
+        if (technicalSource) {
+          const result = await fetchTechnicalHistory({ sourceId: requestedSource, since: payload.start_date, until: payload.end_date, maxPages: payload.max_pages ?? 3 });
+          if (!dryRun) {
+            for (let offset = 0; offset < result.records.length; offset += 100) {
+              const batch = result.records.slice(offset, offset + 100);
+              const { data: existingRows, error: existingError } = await ctx.supabaseAdmin
+                .from("intelligence_raw_ingestion").select("content_hash").in("content_hash", batch.map(record => record.content_hash));
+              if (existingError) throw new Error(`TECHNICAL_DEDUP_READ_ERROR: ${existingError.message}`);
+              const existingHashes = new Set((existingRows || []).map((row: { content_hash: string }) => row.content_hash));
+              const pending = batch.filter(record => !existingHashes.has(record.content_hash)).map(record => ({ ...record, ingestion_run_id: runId }));
+              skippedExisting += batch.length - pending.length;
+              if (!pending.length) continue;
+              const { error: insertError } = await ctx.supabaseAdmin.from("intelligence_raw_ingestion").insert(pending);
+              if (insertError) throw new Error(`TECHNICAL_RAW_INSERT_ERROR: ${insertError.message}`);
+              inserted += pending.length;
+            }
+            const { error: completionError } = await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
+              completed_at: new Date().toISOString(), run_status: "SUCCESS", records_discovered: result.records.length,
+              records_candidate: 0, records_rejected: 0, records_published: 0, error_message: null,
+              metadata: { milestone: "M39-GATE2-GITHUB-V1", source_id: source.source_id, statistics: result.statistics,
+                raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, publication_attempted: false },
+            }).eq("id", runId);
+            if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
+          }
+          return Response.json({ ok: true, milestone: "M39-GATE2-GITHUB-V1",
+            mode: dryRun ? "DRY_RUN_NO_DATABASE_WRITES" : "TECHNICAL_REFERENCE_BACKFILL",
+            source: { source_id: source.source_id }, statistics: { ...result.statistics, raw_records_inserted: inserted, duplicates_skipped: skippedExisting },
+            preview: result.records.slice(0, 10).map(record => ({ title: record.raw_title, url: record.canonical_url, type: record.metadata.record_type, published_at: record.source_published_at })),
+            safety: { technical_reference: true, global_announcements_modified: false, publication_attempted: false, alert_eligible: false },
+            started_at: startedAt, completed_at: new Date().toISOString() });
         }
 
         if (requestedSource === BIS_SOURCE_ID) {

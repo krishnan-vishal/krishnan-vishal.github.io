@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39 Gate 2 recovery
+
+- **Branch / baseline:** `codex/m39-gate2-recovery` from `b9fe03d` (merged BIS/GDELT PR #522). Recovered source files were untracked; the original `recovery/` additions are retained locally and not used at runtime.
+- **Technical sources:** Mojaloop Helm releases / specification commits and Hyperswitch releases / connector commits use bounded official GitHub API queries, source/URL validation, deduplication and explicitly non-publishable raw reference classification. The existing ingestion source status, registry identity, claim, run ledger and raw-staging controls are reused. The proposed source registration SQL is not applied. Date windows subdivide dense change histories; unresolved truncation is surfaced.
+- **RPW:** the actual published World Bank workbook contains two dataset sheets. The parser reads both, checks headers, accepts numeric nonnegative $200 CC1 cost observations, and emits unweighted service-quote corridor-quarter aggregates, not official corridor averages. A complete read-only scan found 253,960 source rows, 252,422 selected quotes, zero duplicate period/ID pairs, 1,538 rejected rows and 17,191 aggregates from 2011-Q1 through 2025-Q3; missing quarters, including 2025-Q2, remain missing. Five quote IDs recur in different periods and are not incorrectly collapsed. Quarter-end markers are not survey or publication dates. The extracted workbook is not retained in the repository.
+- **Evidence:** public API probes for 2024-01-01 through 2026-11-08 found Mojaloop 6 releases / 1 specification commit and Hyperswitch 26 releases / 576 connector commits, without reported truncation. Focused recovery and BIS/GDELT tests pass 13/13; syntax and secret scan pass. Edge execution against a Supabase environment, SQL application, GitHub CI and live deployment remain unverified.
+- **Release boundary:** owner review, CI, merge, approved source registration and controlled `gpir-intelligence-fetch` deployment remain pending; no deployment, production database write or publication was performed. RPW output is an offline plan, not an enabled production ingestion path; source registration, authorized acquisition/staging and runtime validation remain separate prerequisites.
+
 ### M39 Smart Intelligence dashboard final completion
 
 - **Baseline:** branch codex/m39-smart-dashboard-final from merged PR #517 (4f14d5e). The lightweight record browser is replaced by the approved compact navy/gold reader dashboard without changing the existing Supabase, Contentful, authentication, payment or publication architecture.
