@@ -278,7 +278,7 @@ test("homepage preserves the owner-approved M39 taxonomy", () => {
     assert.equal((homeHtml.match(/<div class="mega-col-header">/g) || []).length, 37);
     const groups = homeHtml.match(/<ul class="mega-col-desc-list">[\s\S]*?<\/ul>/g) || [];
     const topicCount = groups.reduce((sum, group) => sum + (group.match(/<li(?:\s|>)/g) || []).length, 0);
-    assert.equal(topicCount, 157);
+    assert.equal(topicCount, 158);
     assert.doesNotMatch(homeHtml, /supabase-combined-engine\.js/);
 });
 

@@ -1,5 +1,5 @@
 const DAY = 86400000;
-const HISTORY_FLOOR = Date.parse('2026-01-01T00:00:00Z');
+const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
 const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=100';
 const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
@@ -141,7 +141,10 @@ export function normalizeSmartRecords(value) {
       outcomeStatus: clean(item.outcomeStatus, 40),
       dataClass: clean(item.dataClass, 60),
       observationPeriod: clean(item.observationPeriod, 24),
-      providerReleaseDate: clean(item.providerReleaseDate, 10)
+      providerReleaseDate: clean(item.providerReleaseDate, 10),
+      referenceDate: clean(item.referenceDate, 10),
+      recordType: clean(item.recordType, 60),
+      product: clean(item.product, 100)
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
@@ -268,8 +271,10 @@ async function fetchHistory(fetchImpl, origin) {
 
 function recordMarkup(record) {
   const geography = [record.country, record.region, record.geography].filter(Boolean).join(' · ') || 'Geography not classified';
-  const recordClass = record.dataClass === 'STATISTICAL_REFERENCE' ? 'STATISTICAL REFERENCE' : record.lifecycle;
-  const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` : isoDay(record.publishedAt);
+  const recordClass = record.dataClass?.endsWith('_REFERENCE')
+    ? record.dataClass.replaceAll('_', ' ') : record.lifecycle;
+  const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
+    record.referenceDate ? `Verified change ${record.referenceDate}` : isoDay(record.publishedAt);
   return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
 }
 
@@ -381,7 +386,7 @@ export async function initializeSmartIntelligence({ global = window,
   const state = {
     period: ['24H','7D','30D','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '30D',
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
-    topics: new Set(initialTopics), customStart: params.get('from') || '2026-01-01',
+    topics: new Set(initialTopics), customStart: params.get('from') || '2024-11-08',
     customEnd: params.get('to') || isoDay(now())
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
@@ -447,7 +452,7 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-form]')?.addEventListener('submit', event => {
     event.preventDefault();
     state.geography = geo.value;
-    state.customStart = root.querySelector('[data-smart-start]').value || '2026-01-01';
+    state.customStart = root.querySelector('[data-smart-start]').value || '2024-11-08';
     state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
     state.topics = new Set([...topicControls.querySelectorAll('input:checked')].map(input => input.value));
     render();

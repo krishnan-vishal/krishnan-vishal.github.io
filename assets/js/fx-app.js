@@ -644,7 +644,7 @@
             </div>
             ${sourceLegsNote}
             <section class="fx-pair-panel fx-weekly-section" aria-labelledby="fx-weekly-heading"><h3 id="fx-weekly-heading">Seven-day evidence</h3><div data-fx-weekly-evidence><p class="fx-loading">Checking validated observations…</p></div></section>
-            <p class="fx-related-views"><a href="${pairContextHref("weekly", pair)}">Weekly Trends for ${escapeHtml(pair)}</a><a href="${pairContextHref("historical", pair)}">Historical captures for ${escapeHtml(pair)}</a></p>
+            <p class="fx-related-views"><a href="${pairContextHref("weekly", pair)}">Weekly Trends for ${escapeHtml(pair)}</a><a href="${pairContextHref("historical", pair)}">Historical captures for ${escapeHtml(pair)}</a><a href="${pagePrefix()}pages/fx/intelligence.html?base=${encodeURIComponent(record.base)}&amp;quote=${encodeURIComponent(record.quote)}&amp;period=M">Open full ${escapeHtml(pair)} analytics</a></p>
             <section class="fx-pair-modules" aria-label="Pair-specific intelligence availability">
                 <h3>Pair-specific intelligence</h3>
                 <div class="fx-pair-module-grid">${modules}</div>
