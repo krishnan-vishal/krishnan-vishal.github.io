@@ -1,0 +1,32 @@
+name: GPIR BIS GDELT Adapter Tests
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/_shared/gpir-public-source-adapters.mjs'
+      - 'scripts/intelligence/bis-sdmx-csv.mjs'
+      - 'scripts/intelligence/public-source-adapters.mjs'
+      - 'tests/m39-bis-sdmx.test.mjs'
+      - 'tests/m39-public-source-adapters.test.mjs'
+      - 'tests/m39-bis-reader-integration.test.mjs'
+      - 'tests/m39-bis-gdelt-acquisition-contract.test.mjs'
+      - 'supabase/functions/gpir-intelligence-fetch/index.ts'
+      - 'supabase/functions/gpir-public-intelligence/handler.mjs'
+      - 'supabase/release/m39-bis-gdelt-source-registration.sql'
+      - '.github/workflows/gpir-bis-gdelt-adapters.yml'
+  workflow_dispatch:
+jobs:
+  adapter-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: BIS SDMX CSV fixture tests
+        run: node tests/m39-bis-sdmx.test.mjs
+      - name: GDELT discovery safety tests
+        run: node tests/m39-public-source-adapters.test.mjs
+      - name: Acquisition and Reader integration tests
+        run: node --test tests/m39-bis-gdelt-acquisition-contract.test.mjs tests/m39-bis-reader-integration.test.mjs
