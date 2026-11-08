@@ -311,3 +311,52 @@ test('topic geography and corroborating-source region and segment are retained',
   assert.equal(record.sources[0].region, 'APAC');
   assert.equal(record.geography, 'Exampleland');
 });
+
+test('terminal decisions take precedence over any older or newer transient audit for the same candidate', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const transient = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503',
+    attempted_at: new Date(NOW - 90 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 80 * 60 * 1000).toISOString() };
+  for (const decision of ['PUBLISHED', 'REJECTED', 'DUPLICATE']) {
+    const terminal = { candidate_id: item.id, decision, reason_code: 'FINAL',
+      attempted_at: new Date(NOW - 100 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 95 * 60 * 1000).toISOString() };
+    for (const audits of [[terminal, transient], [transient, terminal]])
+      assert.deepEqual(await retryStore([item], audits).candidates({ limit: 5, now: NOW }), [], decision);
+  }
+});
+
+test('the latest non-terminal audit decides retry eligibility regardless of row order', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const failed = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_HTTP_503',
+    attempted_at: new Date(NOW - 50 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 45 * 60 * 1000).toISOString() };
+  const laterFinalReview = { candidate_id: item.id, decision: 'REVIEW', reason_code: 'INSUFFICIENT_SOURCE_EVIDENCE',
+    attempted_at: new Date(NOW - 20 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 15 * 60 * 1000).toISOString() };
+  for (const audits of [[failed, laterFinalReview], [laterFinalReview, failed]])
+    assert.deepEqual(await retryStore([item], audits).candidates({ limit: 5, now: NOW }), []);
+  const olderFinalReview = { ...laterFinalReview, attempted_at: new Date(NOW - 70 * 60 * 1000).toISOString(),
+    completed_at: new Date(NOW - 65 * 60 * 1000).toISOString() };
+  for (const audits of [[failed, olderFinalReview], [olderFinalReview, failed]])
+    assert.deepEqual((await retryStore([item], audits).candidates({ limit: 5, now: NOW })).map(row => row.id), [item.id]);
+});
+
+test('the 30-minute retry backoff applies to the latest transient audit and the audit query is deterministic', async () => {
+  const item = candidate({ published_at: new Date(NOW - 2 * 60 * 60 * 1000).toISOString() });
+  const requested = [];
+  const store = createRestPublicationRepository({
+    config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service-role-test' },
+    fetchImpl: async url => {
+      const requestUrl = new URL(url);
+      if (requestUrl.pathname.endsWith('/intelligence_candidates')) return { ok: true, json: async () => [item] };
+      requested.push(requestUrl);
+      return { ok: true, json: async () => [
+        { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
+          attempted_at: new Date(NOW - 50 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 45 * 60 * 1000).toISOString() },
+        { candidate_id: item.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
+          attempted_at: new Date(NOW - 10 * 60 * 1000).toISOString(), completed_at: new Date(NOW - 5 * 60 * 1000).toISOString() }
+      ] };
+    }
+  });
+  assert.deepEqual(await store.candidates({ limit: 5, now: NOW }), []);
+  assert.match(requested[0].searchParams.get('order'), /^attempted_at\.desc/);
+  assert.match(requested[0].searchParams.get('select'), /attempted_at/);
+  assert.equal(await store.candidates({ limit: 5, now: NOW + 40 * 60 * 1000 }).then(rows => rows.length), 1);
+});

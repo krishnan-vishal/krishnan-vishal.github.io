@@ -13,6 +13,27 @@ const RETRYABLE_REASONS = /^(SOURCE_FETCH_FAILED|SOURCE_HTTP_(429|500|502|503|50
 const RETRY_BACKOFF_MS = 30 * 60 * 1000;
 const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 
+const TERMINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE']);
+
+function auditTime(audit) {
+  const time = Date.parse(audit.completed_at || audit.attempted_at || '');
+  return Number.isFinite(time) ? time : 0;
+}
+
+// A terminal decision always wins; otherwise the most recent attempt decides, so
+// an older transient failure can never override a later outcome.
+export function effectiveAudit(rows) {
+  let selected = null;
+  for (const audit of rows) {
+    if (!selected) { selected = audit; continue; }
+    const terminal = TERMINAL_DECISIONS.has(audit.decision);
+    const selectedTerminal = TERMINAL_DECISIONS.has(selected.decision);
+    if (terminal !== selectedTerminal) { if (terminal) selected = audit; continue; }
+    if (auditTime(audit) > auditTime(selected)) selected = audit;
+  }
+  return selected;
+}
+
 function auditIsFinal(audit, candidate, now) {
   if (audit.decision !== 'REVIEW' || !RETRYABLE_REASONS.test(audit.reason_code || '')) return true;
   const published = Date.parse(candidate.published_at || '');
@@ -103,12 +124,18 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
         const audited = new Map();
         if (ids.length) {
           const auditQuery = new URLSearchParams({
-            select: 'candidate_id,decision,reason_code,completed_at',
+            select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
             candidate_id: `in.(${ids.join(',')})`,
-            limit: String(CANDIDATE_PAGE_SIZE)
+            order: 'attempted_at.desc,candidate_id.asc',
+            limit: '1000'
           });
           const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
-          for (const audit of Array.isArray(audits) ? audits : []) audited.set(audit.candidate_id, audit);
+          const grouped = new Map();
+          for (const audit of Array.isArray(audits) ? audits : []) {
+            if (!grouped.has(audit.candidate_id)) grouped.set(audit.candidate_id, []);
+            grouped.get(audit.candidate_id).push(audit);
+          }
+          for (const [candidateId, rows] of grouped) audited.set(candidateId, effectiveAudit(rows));
         }
 
         for (const item of candidates) {
