@@ -2,6 +2,72 @@ const BIS_API_ORIGIN = 'https://stats.bis.org';
 export const BIS_TERMS_URL = 'https://data.bis.org/help/legal';
 export const GDELT_ENDPOINT = 'https://api.gdeltproject.org/api/v2/doc/doc';
 
+export const GITHUB_TECHNICAL_SOURCES = Object.freeze({
+  'MOJALOOP-OSS-001': Object.freeze({ provider: 'MOJALOOP', repository: 'mojaloop/helm', organization: 'mojaloop', topic: 'Payment infrastructure', product: 'Mojaloop', changeRepository: 'mojaloop/mojaloop-specification', changePath: '', specificationUrl: 'https://github.com/mojaloop/mojaloop-specification', documentationUrl: 'https://docs.mojaloop.io/' }),
+  'HYPERSWITCH-OSS-001': Object.freeze({ provider: 'HYPERSWITCH', repository: 'juspay/hyperswitch', organization: 'juspay', topic: 'Payment orchestration', product: 'Hyperswitch', changeRepository: 'juspay/hyperswitch', changePath: 'crates/router/src/connector', specificationUrl: 'https://github.com/juspay/hyperswitch/tree/main/crates/router/src/connector', documentationUrl: 'https://github.com/juspay/hyperswitch-docs/tree/main/integration-guide/workflows/intelligent-routing' })
+});
+
+function technicalSource(id) {
+  if (!Object.hasOwn(GITHUB_TECHNICAL_SOURCES, id)) throw new Error('UNAPPROVED_GITHUB_TECHNICAL_SOURCE');
+  return GITHUB_TECHNICAL_SOURCES[id];
+}
+
+function validGithubDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || '') && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
+}
+
+function githubRecordUrl(value, path) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.host === 'github.com' && !url.username && !url.password && !url.search && !url.hash && decodeURIComponent(url.pathname) === path;
+  } catch { return false; }
+}
+
+export function buildGithubReleasesUrl(id, { page = 1, perPage = 100 } = {}) {
+  const config = technicalSource(id);
+  if (!Number.isInteger(page) || page < 1 || page > 3 || !Number.isInteger(perPage) || perPage < 1 || perPage > 100) throw new Error('GITHUB_RELEASE_WINDOW_INVALID');
+  const url = new URL(`https://api.github.com/repos/${config.repository}/releases`);
+  url.searchParams.set('page', page);
+  url.searchParams.set('per_page', perPage);
+  return url.toString();
+}
+
+export function parseGithubReleaseHistory(payload, id, { since, until, maxRecords = 100 } = {}) {
+  const config = technicalSource(id);
+  if (!Array.isArray(payload) || !validGithubDate(since) || !validGithubDate(until) || since > until || !Number.isInteger(maxRecords) || maxRecords < 1 || maxRecords > 300) throw new Error('GITHUB_RELEASE_HISTORY_INPUT_INVALID');
+  const seen = new Set();
+  return payload.flatMap(item => {
+    const tag = String(item?.tag_name || '').trim(), publishedAt = String(item?.published_at || '');
+    if (item?.draft || item?.prerelease || /snapshot|alpha|beta|(?:^|[-.])rc\d*(?:$|[-.])/i.test(tag) || !tag || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(publishedAt) || !validGithubDate(publishedAt.slice(0, 10)) || Number.isNaN(Date.parse(publishedAt)) || publishedAt.slice(0, 10) < since || publishedAt.slice(0, 10) > until || !githubRecordUrl(item?.html_url, `/${config.repository}/releases/tag/${tag}`) || seen.has(tag)) return [];
+    seen.add(tag);
+    return [{ sourceId: id, provider: config.provider, product: config.product, repository: config.repository, topic: config.topic, tag, name: String(item.name || tag).slice(0, 400), publishedAt, url: item.html_url, body: String(item.body || '').slice(0, 20000), specificationUrl: config.specificationUrl, documentationUrl: config.documentationUrl }];
+  }).sort((left, right) => left.publishedAt.localeCompare(right.publishedAt)).slice(0, maxRecords);
+}
+
+export function buildGithubChangesUrl(id, { since, until, page = 1, perPage = 100 } = {}) {
+  const config = technicalSource(id);
+  if (!validGithubDate(since) || !validGithubDate(until) || since > until || !Number.isInteger(page) || page < 1 || page > 3 || !Number.isInteger(perPage) || perPage < 1 || perPage > 100) throw new Error('GITHUB_CHANGE_WINDOW_INVALID');
+  const url = new URL(`https://api.github.com/repos/${config.changeRepository}/commits`);
+  url.searchParams.set('since', `${since}T00:00:00Z`);
+  url.searchParams.set('until', `${until}T23:59:59Z`);
+  if (config.changePath) url.searchParams.set('path', config.changePath);
+  url.searchParams.set('page', page);
+  url.searchParams.set('per_page', perPage);
+  return url.toString();
+}
+
+export function parseGithubChangeHistory(payload, id, { since, until, maxRecords = 100 } = {}) {
+  const config = technicalSource(id);
+  if (!Array.isArray(payload) || !validGithubDate(since) || !validGithubDate(until) || since > until || !Number.isInteger(maxRecords) || maxRecords < 1 || maxRecords > 300) throw new Error('GITHUB_CHANGE_HISTORY_INPUT_INVALID');
+  const seen = new Set();
+  return payload.flatMap(item => {
+    const sha = String(item?.sha || ''), publishedAt = String(item?.commit?.committer?.date || item?.commit?.author?.date || ''), message = String(item?.commit?.message || '').trim();
+    if (!/^[0-9a-f]{40}$/.test(sha) || seen.has(sha) || !message || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(publishedAt) || !validGithubDate(publishedAt.slice(0, 10)) || Number.isNaN(Date.parse(publishedAt)) || publishedAt.slice(0, 10) < since || publishedAt.slice(0, 10) > until || !githubRecordUrl(item?.html_url, `/${config.changeRepository}/commit/${sha}`)) return [];
+    seen.add(sha);
+    return [{ sourceId: id, provider: config.provider, product: config.product, repository: config.changeRepository, path: config.changePath || null, topic: config.topic, sha, message: message.slice(0, 1000), publishedAt, url: item.html_url, dataClass: 'TECHNICAL_REFERENCE', recordType: 'SPECIFICATION_CHANGE', publicationEligible: false, alertEligible: false, settlementTelemetry: false }];
+  }).slice(0, maxRecords);
+}
+
 export const BIS_DATAFLOWS = Object.freeze({
   WS_CPMI_CASHLESS: Object.freeze({
     title: 'CPMI cashless payments', topic: 'Payments', countryDimension: 'REP_CTY',

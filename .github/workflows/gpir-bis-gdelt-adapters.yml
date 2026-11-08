@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'supabase/functions/_shared/gpir-public-source-adapters.mjs'
+      - 'supabase/functions/_shared/gpir-github-technical.mjs'
+      - 'scripts/intelligence/fetch-github-technical-backfill.mjs'
+      - 'scripts/intelligence/rpw-xlsx-quarterly.mjs'
+      - 'tests/m39-gate2-recovery.test.mjs'
+      - 'supabase/release/m39-gate2-technical-source-registration.sql'
       - 'scripts/intelligence/bis-sdmx-csv.mjs'
       - 'scripts/intelligence/public-source-adapters.mjs'
       - 'tests/m39-bis-sdmx.test.mjs'
@@ -30,3 +35,5 @@ jobs:
         run: node tests/m39-public-source-adapters.test.mjs
       - name: Acquisition and Reader integration tests
         run: node --test tests/m39-bis-gdelt-acquisition-contract.test.mjs tests/m39-bis-reader-integration.test.mjs
+      - name: Gate 2 recovery tests
+        run: node --test tests/m39-gate2-recovery.test.mjs
