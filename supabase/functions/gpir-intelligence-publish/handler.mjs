@@ -6,6 +6,41 @@ const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']
 const CANDIDATE_PAGE_SIZE = 50;
 const MAX_CANDIDATE_PAGES = 20;
 const PROCESSING_BUDGET_MS = 45000;
+// Transient source or processing failures stay REVIEW but remain retryable while
+// the candidate can still qualify for the 12-hour live window. Every retry runs
+// the complete source, timestamp, evidence and threshold validation again.
+const RETRYABLE_REASONS = /^(SOURCE_FETCH_FAILED|SOURCE_HTTP_(429|500|502|503|504)|PROCESSING_ERROR)$/;
+const RETRY_BACKOFF_MS = 30 * 60 * 1000;
+const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+const TERMINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE']);
+
+function auditTime(audit) {
+  const time = Date.parse(audit.completed_at || audit.attempted_at || '');
+  return Number.isFinite(time) ? time : 0;
+}
+
+// A terminal decision always wins; otherwise the most recent attempt decides, so
+// an older transient failure can never override a later outcome.
+export function effectiveAudit(rows) {
+  let selected = null;
+  for (const audit of rows) {
+    if (!selected) { selected = audit; continue; }
+    const terminal = TERMINAL_DECISIONS.has(audit.decision);
+    const selectedTerminal = TERMINAL_DECISIONS.has(selected.decision);
+    if (terminal !== selectedTerminal) { if (terminal) selected = audit; continue; }
+    if (auditTime(audit) > auditTime(selected)) selected = audit;
+  }
+  return selected;
+}
+
+function auditIsFinal(audit, candidate, now) {
+  if (audit.decision !== 'REVIEW' || !RETRYABLE_REASONS.test(audit.reason_code || '')) return true;
+  const published = Date.parse(candidate.published_at || '');
+  const completed = Date.parse(audit.completed_at || '');
+  return !Number.isFinite(published) || !Number.isFinite(completed) ||
+    now - published > RETRY_WINDOW_MS || now - completed < RETRY_BACKOFF_MS;
+}
 
 function json(status, body) {
   return new Response(JSON.stringify(body), {
@@ -68,8 +103,9 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
   const headers = serviceHeaders(config);
 
   return {
-    async candidates({ limit, from, to }) {
+    async candidates({ limit, from, to, now = Date.now() }) {
       const selected = [];
+      const retries = [];
 
       for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
         const query = new URLSearchParams({
@@ -85,29 +121,38 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
         if (!Array.isArray(candidates) || !candidates.length) break;
 
         const ids = candidates.map(item => item.id).filter(id => UUID.test(id));
-        const completed = new Set();
+        const audited = new Map();
         if (ids.length) {
           const auditQuery = new URLSearchParams({
-            select: 'candidate_id,decision',
+            select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
             candidate_id: `in.(${ids.join(',')})`,
-            limit: String(CANDIDATE_PAGE_SIZE)
+            order: 'attempted_at.desc,candidate_id.asc',
+            limit: '1000'
           });
           const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
+          const grouped = new Map();
           for (const audit of Array.isArray(audits) ? audits : []) {
-            if (FINAL_DECISIONS.has(audit.decision)) completed.add(audit.candidate_id);
+            if (!grouped.has(audit.candidate_id)) grouped.set(audit.candidate_id, []);
+            grouped.get(audit.candidate_id).push(audit);
           }
+          for (const [candidateId, rows] of grouped) audited.set(candidateId, effectiveAudit(rows));
         }
 
-        selected.push(...candidates.filter(item => !completed.has(item.id)));
+        for (const item of candidates) {
+          const audit = audited.get(item.id);
+          if (!audit || !FINAL_DECISIONS.has(audit.decision)) selected.push(item);
+          else if (!auditIsFinal(audit, item, now)) retries.push(item);
+        }
         if (candidates.length < CANDIDATE_PAGE_SIZE) break;
       }
 
-      return selected.slice(0, limit);
+      // Never-processed candidates take priority over scheduled retries.
+      return [...selected, ...retries].slice(0, limit);
     },
 
     async source(sourceId) {
       const query = new URLSearchParams({
-        select: 'source_id,source_name,official_url,trust_tier,source_status',
+        select: 'source_id,source_name,official_url,trust_tier,source_status,country,region_tags,category',
         source_id: `eq.${sourceId}`,
         limit: '2'
       });
@@ -181,12 +226,12 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
       ]);
     },
 
-    async publish(candidate, validation) {
+    async publish(candidate, validation, source = null) {
       const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_consolidated_candidate`, {
         method: 'POST', headers,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
-          ...await eventIdentity(candidate, validation),
+          ...await eventIdentity(candidate, validation, source),
           p_summary: validation.summary,
           p_source_published_at: validation.sourcePublishedAt,
           p_content_fingerprint: validation.contentFingerprint,
@@ -216,7 +261,7 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
     await repository.record(candidate, duplicate);
     return duplicate;
   }
-  const announcementId = await repository.publish(candidate, validation);
+  const announcementId = await repository.publish(candidate, validation, source);
   return { ...validation, announcementId };
 }
 
@@ -235,7 +280,7 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       return json(400, { status: 'ERROR', code: 'INVALID_DATE_RANGE' });
     const store = repository || createRestPublicationRepository({ config, fetchImpl });
     let candidates;
-    try { candidates = await store.candidates({ limit, from, to }); }
+    try { candidates = await store.candidates({ limit, from, to, now: now() }); }
     catch (error) {
       logger.error('gpir publication candidate query failed', error);
       return json(503, { status: 'ERROR', code: 'CANDIDATE_QUERY_FAILED' });

@@ -201,7 +201,13 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
     const topic = byAnnouncement.get(row.id);
     const verifiedSources = (byTopicSources.get(topic?.id) || []).filter(link =>
       bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
-      .map(link => ({name:bySource.get(link.source_id).source_name,url:link.canonical_url,publishedAt:link.source_published_at}));
+      .map(link => {
+        const linked = bySource.get(link.source_id);
+        return {name:linked.source_name,url:link.canonical_url,publishedAt:link.source_published_at,
+          country:typeof linked.country==='string'?linked.country:null,
+          region:Array.isArray(linked.region_tags)&&linked.region_tags[0]?linked.region_tags[0]:null,
+          segment:linked.category||null};
+      });
     const verifiedDevelopmentIds = new Set((byTopicSources.get(topic?.id) || []).filter(link =>
       bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
       .map(link => link.development_id));
@@ -243,7 +249,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       outcomeStatus: topic?.outcome_status || 'PENDING',
       geography: topic?.geography || null,
       eventId: topic?.id || null,
-      sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString()}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
+      sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString(),country:typeof source.country==='string'?source.country:null,region:Array.isArray(source.region_tags)&&source.region_tags[0]?source.region_tags[0]:null,segment:source.category||null}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
       source: {
         name: source.source_name,
         publicationTitle: source.source_name,
