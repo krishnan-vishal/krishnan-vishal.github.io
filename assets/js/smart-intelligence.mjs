@@ -688,7 +688,8 @@ export async function initializeSmartIntelligence({ global = window,
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
     topics: new Set(initialTopics), themes: new Set(initialThemes), customStart: dateParam('from', '2024-11-08'),
     customEnd: dateParam('to', isoDay(now())),
-    alertId: clean(params.get('alert'), 100), heat: null, visible: 8, geoMode: 'regions', contextKey: ''
+    alertId: clean(params.get('alert'), 100), heat: null,
+    visible: global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4, geoMode: 'regions', contextKey: ''
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
@@ -752,7 +753,10 @@ export async function initializeSmartIntelligence({ global = window,
     const referenceRecords = filterSmartRecords(records.filter(record => !isExecutiveEligible(record)), { bounds, geography: state.geography });
     const historicalContext = industry.filter(record => state.geography === 'all' || record.regionKey === state.geography);
     const contextKey = [state.period, state.geography, state.customStart, state.customEnd, [...state.topics], [...state.themes]].join('|');
-    if (contextKey !== state.contextKey) { state.contextKey = contextKey; state.visible = 8; }
+    if (contextKey !== state.contextKey) {
+      state.contextKey = contextKey;
+      state.visible = global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4;
+    }
     root.querySelectorAll('[data-smart-period]').forEach(button =>
       button.setAttribute('aria-pressed', String(button.dataset.smartPeriod === state.period)));
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
@@ -785,6 +789,24 @@ export async function initializeSmartIntelligence({ global = window,
     updateUrl(global, state);
     root.dataset.state = 'ready';
   };
+
+  const progressiveSections = [...root.querySelectorAll('[data-smart-progressive]')];
+  let compactLayout = global.matchMedia?.('(max-width: 640px)').matches || false;
+  progressiveSections.forEach(section => { section.open = !compactLayout; });
+  const syncResponsiveLayout = () => {
+    const compact = global.matchMedia?.('(max-width: 640px)').matches || false;
+    if (compact === compactLayout) return;
+    compactLayout = compact;
+    progressiveSections.forEach(section => { section.open = !compact; });
+    state.visible = compact ? 3 : 4;
+    render();
+  };
+  const layoutQuery = global.matchMedia?.('(max-width: 640px)');
+  if (layoutQuery?.addEventListener) layoutQuery.addEventListener('change', syncResponsiveLayout);
+  else layoutQuery?.addListener?.(syncResponsiveLayout);
+  progressiveSections.forEach(section => section.addEventListener('toggle', () => {
+    global.requestAnimationFrame?.(() => charts?.resize());
+  }));
 
   // Selecting an alert scopes the existing dashboard to that alert's topics.
   const selectAlert = id => {

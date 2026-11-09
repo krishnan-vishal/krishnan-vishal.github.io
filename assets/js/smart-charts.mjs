@@ -7,6 +7,7 @@ const CHARTS = ['weekly', 'momentum', 'distribution', 'geography'];
 export function createChartController(global, root, handlers = {}) {
   const echarts = global.echarts;
   const instances = new Map();
+  const pending = new Map();
   let resizeObserver = null;
 
   const host = name => root.querySelector(`[data-smart-chart="${name}"]`);
@@ -16,7 +17,14 @@ export function createChartController(global, root, handlers = {}) {
     const element = host(name);
     if (!element) return;
     if (!echarts) { element.dataset.chartState = 'fallback'; return; }
-    if (!option) { dispose(name); element.dataset.chartState = 'empty'; return; }
+    if (!option) { pending.delete(name); dispose(name); element.dataset.chartState = 'empty'; return; }
+    if (!element.clientWidth || !element.clientHeight) {
+      pending.set(name, { option, onClick });
+      dispose(name);
+      element.dataset.chartState = 'deferred';
+      return;
+    }
+    pending.delete(name);
     element.dataset.chartState = 'ready';
     let chart = instances.get(name);
     if (!chart || chart.isDisposed?.()) {
@@ -32,7 +40,12 @@ export function createChartController(global, root, handlers = {}) {
 
   if (!echarts) root.querySelectorAll('.smp-data').forEach(details => { details.open = true; });
   if (echarts && global.ResizeObserver) {
-    resizeObserver = new global.ResizeObserver(() => instances.forEach(chart => chart.resize()));
+    resizeObserver = new global.ResizeObserver(entries => entries.forEach(entry => {
+      const name = entry.target.dataset.smartChart;
+      const delayed = pending.get(name);
+      if (delayed && entry.contentRect.width && entry.contentRect.height) mount(name, delayed.option, delayed.onClick);
+      else instances.get(name)?.resize();
+    }));
     CHARTS.forEach(name => { const element = host(name); if (element) resizeObserver.observe(element); });
   }
 
@@ -57,7 +70,10 @@ export function createChartController(global, root, handlers = {}) {
         if (place && geographyMode === 'regions') handlers.onRegion?.(place.key);
       });
     },
-    resize() { instances.forEach(chart => chart.resize()); },
-    destroy() { resizeObserver?.disconnect(); [...instances.keys()].forEach(dispose); }
+    resize() {
+      pending.forEach((delayed, name) => mount(name, delayed.option, delayed.onClick));
+      instances.forEach(chart => chart.resize());
+    },
+    destroy() { resizeObserver?.disconnect(); [...instances.keys()].forEach(dispose); pending.clear(); }
   };
 }

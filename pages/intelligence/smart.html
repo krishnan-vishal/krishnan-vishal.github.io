@@ -11,7 +11,7 @@
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
   <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
   <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109e">
-  <link rel="stylesheet" href="../../assets/css/smart-premium.css?v=20261109e">
+  <link rel="stylesheet" href="../../assets/css/smart-premium.css?v=20261109f">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -69,6 +69,9 @@
       <aside class="smi-supporting" data-smart-supporting><p class="smi-kicker">SUPPORTING DEVELOPMENTS</p></aside>
     </section>
 
+    <details class="smp-progressive" data-smart-progressive open>
+      <summary>Detailed analytics, themes &amp; historical signals</summary>
+      <div class="smp-progressive-content">
     <section class="smp-section" aria-labelledby="smi-analytics-title">
       <div class="smi-section-heading"><div><p class="smi-kicker">INTELLIGENCE MOMENTUM</p><h2 id="smi-analytics-title">Weekly activity and topic momentum</h2></div><p>Observed historical evidence · descriptive counts, not forecasts. Select a bar to drill down.</p></div>
       <div class="smp-grid">
@@ -118,6 +121,8 @@
       <p class="gpir-sc-visually-hidden" role="status" data-smart-heat-status></p>
       <div class="smi-heat-detail" data-smart-heat-detail data-state="idle"></div>
     </section>
+      </div>
+    </details>
 
     <section class="smi-evidence smp-timeline-panel" data-smart-timeline aria-labelledby="smi-evidence-title">
       <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
@@ -128,10 +133,13 @@
 
     <section class="smi-editorial" data-smart-editorial hidden></section>
 
+    <details class="smp-progressive smp-methodology-disclosure">
+      <summary>Source &amp; methodology</summary>
     <section class="smi-methodology" aria-labelledby="smi-methodology-title">
       <div><p class="smi-kicker">SOURCE TRANSPARENCY</p><h2 id="smi-methodology-title">Methodology and interpretation boundary</h2><p>Dashboard values use only dated, approved announcements from GREEN registry sources that pass the existing official-URL and content validation rules. The live ribbon uses the same governed 12-hour dataset as the homepage ticker. Historical records remain available after ticker expiry.</p></div>
       <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per theme and UTC week; blank cells mean zero qualifying observations.</dd></div><div><dt>Themes</dt><dd>Existing GPIR taxonomy categories grouped into twelve payments themes; AI, Agentic and Web3 require explicit payments context. One development can belong to several themes, so theme counts overlap while the distribution counts each development once.</dd></div><div><dt>Geography</dt><dd>Only records carrying governed geographic metadata are plotted; the rest are reported, never guessed.</dd></div><div><dt>Reference data</dt><dd>BIS statistics are historical reference data, not news. Software repository history is kept for audit and excluded from industry analytics.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
     </section>
+    </details>
   </main>
   <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
   <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109e" defer></script>
