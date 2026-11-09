@@ -70,6 +70,16 @@
 - **Source repair:** guarded release SQL corrects only three verified registry endpoint defects: FinTech Australia .org.in to official .org.au news, generic europa.eu to the ECB press RSS, and the RBA null authority/root page to official RBA media-release RSS. Trust tiers, confidence thresholds, parser profiles and publication status are unchanged; an exact rollback is included.
 - **Validation:** dashboard tests, public intelligence governance tests, reader/payment tests, ASK GPIR intent, Contentful production release, content/link/announcement validation, syntax, secret scan and diff checks pass. Production application of the source repair, Edge deployment, PR checks/merge, Pages publication and live authenticated desktop/mobile screenshots remain release actions.
 
+### M39 real-time payments source activation (2026-11-09)
+
+- **Baseline:** `codex/m39-realtime-payments-sources-20261109` from `origin/main` `9c9e7a1` (PR #535 merged and `gpir-intelligence-fetch` v59 deployed).
+- **Strategy:** ECB is retained (`m33-g1-ecb-ingestion` unchanged) as specialist intelligence only. Real-time acquisition now relies on payments-specific publishers through the existing `gpir-intelligence-fetch` -> `gpir-intelligence-publish` pipeline; no table, API or frontend relay was added.
+- **Verified from Supabase egress (2026-11-09):** Payments Dive RSS 200 (~5 items/weekday), Finextra Payments RSS 200 (~1.5/day, date-only feed stamps), EPC news listing 200 (HTML, no feed). Blocked or unusable: Fintech Futures 403 (registered T2, left unscheduled), MAS (`mas.gov.sg/rss/news-and-publications` DNS failure; no verifiable RSS exists on www), NPCI/SWIFT/FRB Services 403, Payments Europe and Payments Association registry URLs 404/DNS. None was activated or re-tiered.
+- **Registered (release SQL, applied after deployment):** `PAYMENTSDIVE-US-005` and `FINEXTRA-PAY-006` as T3 (independent trade journalism, same profile as PYMNTS); `EPC-EUR-007` as T1.5 (SEPA scheme manager, same class as the existing payments associations). `TEST-RBA-01` (working, official) gains a schedule. Thresholds (T1 70, T1.5 80, T2 90, T3 95), source verification, timestamps, archive and the 12-hour window are untouched.
+- **Adapter defect corrected:** the per-run page cap (3) was applied before duplicate detection, so the same newest three URLs were refetched every hour and a burst of new articles was lost. Known URLs are now filtered first and the cap is 5.
+- **Article-level evidence:** discovery only supplies links; each article page is fetched individually at ingestion (title, canonical URL, publication metadata, description) and again by the publisher, which verifies the canonical URL, timestamp, >=600 characters (>=1000 for T3 automatic) of article text, sentences and payments relevance. Headlines or generic descriptions alone never publish.
+- **Rollback:** `supabase/rollback/m39-realtime-payments-source-registration.rollback.sql` disables the sources and unschedules only the new jobs.
+
 ### M39 Gate 3 production closure — reconciliation handoff (2026-11-09)
 
 - **Baseline:** `codex/m39-g3-production-closure-20261109` from `origin/main` `5a03686`.
