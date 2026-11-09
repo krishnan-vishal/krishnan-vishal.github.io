@@ -1,3 +1,5 @@
+import { isVerifiedEditorialApproval } from './gpir-contentful-editorial.mjs';
+
 const PAYMENT_TERMS = Object.freeze([
   'payment', 'payments', 'settlement', 'clearing', 'cross-border', 'remittance',
   'banking', 'fintech', 'wallet', 'card', 'instant payment', 'real-time payment',
@@ -159,6 +161,19 @@ function evidenceSummary(sourceName, sentences) {
   return `${sourceName} reports: ${selected.join(' ')}`;
 }
 
+export function editorialUrlKey(value) {
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null;
+    parsed.hash = '';
+    parsed.hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
 function review(reasonCode, evidence = {}) {
   return { decision: 'REVIEW', reasonCode, ...evidence };
 }
@@ -168,7 +183,7 @@ function reject(reasonCode, evidence = {}) {
 }
 
 export async function validateCandidateSource({ candidate, source, fetchImpl = fetch,
-  now = () => Date.now(), timeoutMs = 15000 }) {
+  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null }) {
   if (!source || source.source_status !== 'GREEN' || !source.official_url)
     return review('SOURCE_NOT_APPROVED');
   if (!candidate?.canonical_url || !isOfficialUrl(candidate.canonical_url, source.official_url))
@@ -178,9 +193,12 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   // never be auto-published. Record that governed outcome before spending
   // up to 15 seconds on a source fetch; candidates that can qualify still
   // pass through every evidence, timestamp and relevance check below.
+  // Only a T3 source with a verified Contentful editorial approval replaces the
+  // automatic threshold; every evidence check below still applies to it.
+  const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
-  if (!threshold || !Number.isFinite(confidence) || confidence < threshold) {
+  if (!editorialRoute && (!threshold || !Number.isFinite(confidence) || confidence < threshold)) {
     return review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
       canonicalUrl: candidate.canonical_url,
       sourcePublishedAt: candidate.published_at,
@@ -260,7 +278,11 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   if (!summary || summary.length < 120)
     return review('SUMMARY_GROUNDING_FAILED', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
+  if (editorialRoute && editorialApproval.sourceUrl !== editorialUrlKey(canonical))
+    return review('EDITORIAL_CANONICAL_URL_MISMATCH', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
+
   const evidence = {
+    editorial: editorialRoute,
     canonicalUrl: canonical,
     sourcePublishedAt: publishedAt,
     sourceHttpStatus: response.status,
@@ -277,7 +299,14 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
       summary_grounded: true,
       source_trust_tier: source.trust_tier,
       confidence_score: confidence,
-      validator: 'GPIR-G1-PUBLICATION-1'
+      validator: 'GPIR-G1-PUBLICATION-1',
+      ...(editorialRoute ? {
+        editorial_verified: true,
+        editorial_entry_id: editorialApproval.entryId,
+        editorial_publication_id: editorialApproval.publicationId,
+        editorial_supabase_record_id: candidate.id,
+        editorial_source_url: candidate.canonical_url
+      } : {})
     }
   };
   return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...evidence };

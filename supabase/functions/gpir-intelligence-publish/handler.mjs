@@ -1,5 +1,7 @@
 import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
+import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
+  fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -98,7 +100,7 @@ function isoBoundary(value) {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 }
 
-export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
+export function createRestPublicationRepository({ config, fetchImpl = fetch, contentful = null }) {
   const base = `${config.url}/rest/v1`;
   const headers = serviceHeaders(config);
 
@@ -148,6 +150,37 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
 
       // Never-processed candidates take priority over scheduled retries.
       return [...selected, ...retries].slice(0, limit);
+    },
+
+    async editorialEntries() {
+      return contentful ? fetchPublishedEditorialEntries({ config: contentful, fetchImpl }) : [];
+    },
+
+    async editorialEntriesFor(candidate) {
+      return contentful ? fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate }) : [];
+    },
+
+    async candidate(candidateId) {
+      if (!UUID.test(candidateId)) return null;
+      const query = new URLSearchParams({
+        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+        id: `eq.${candidateId}`,
+        candidate_status: 'in.(PENDING,REVIEW,VALIDATING)',
+        limit: '1'
+      });
+      const rows = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
+      return Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+    },
+
+    async audit(candidateId) {
+      const query = new URLSearchParams({
+        select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
+        candidate_id: `eq.${candidateId}`,
+        order: 'attempted_at.desc',
+        limit: '20'
+      });
+      const rows = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${query}`, { headers });
+      return Array.isArray(rows) && rows.length ? effectiveAudit(rows) : null;
     },
 
     async source(sourceId) {
@@ -227,7 +260,9 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
     },
 
     async publish(candidate, validation, source = null) {
-      const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_consolidated_candidate`, {
+      const procedure = validation.editorial === true
+        ? 'gpir_publish_t3_editorial_candidate' : 'gpir_publish_consolidated_candidate';
+      const data = await jsonFetch(fetchImpl, `${base}/rpc/${procedure}`, {
         method: 'POST', headers,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
@@ -248,10 +283,19 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch }) {
   };
 }
 
-export async function processCandidate({ candidate, repository, fetchImpl = fetch, now = () => Date.now() }) {
+export async function processCandidate({ candidate, repository, fetchImpl = fetch, now = () => Date.now(),
+  editorial = null }) {
   await repository.start(candidate);
   const source = await repository.source(candidate.source_id);
-  const validation = await validateCandidateSource({ candidate, source, fetchImpl, now });
+  const editorialApproval = editorial
+    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source, ambiguous: editorial.ambiguous })
+    : null;
+  if (editorialApproval && !editorialApproval.approved) {
+    const denied = { decision: 'REVIEW', reasonCode: editorialApproval.reasonCode };
+    await repository.record(candidate, denied);
+    return denied;
+  }
+  const validation = await validateCandidateSource({ candidate, source, fetchImpl, now, editorialApproval });
   if (validation.decision !== 'PUBLISHED') {
     await repository.record(candidate, validation);
     return validation;
@@ -263,6 +307,52 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   }
   const announcementId = await repository.publish(candidate, validation, source);
   return { ...validation, announcementId };
+}
+
+const THRESHOLD_REASON = 'AUTO_PUBLICATION_THRESHOLD_NOT_MET';
+
+// An editor's change after the last decision, or a due transient retry, re-opens a
+// T3 candidate. Terminal decisions are never re-opened.
+function editorialDue(audit, candidate, entry, now) {
+  if (!audit || !FINAL_DECISIONS.has(audit.decision)) return true;
+  if (TERMINAL_DECISIONS.has(audit.decision)) return false;
+  if (audit.reason_code === THRESHOLD_REASON) return true;
+  if (!auditIsFinal(audit, candidate, now)) return true;
+  const updated = Date.parse(entry.updatedAt || '');
+  const completed = Date.parse(audit.completed_at || '');
+  return Number.isFinite(updated) && Number.isFinite(completed) && updated > completed;
+}
+
+// Publishes T3 candidates only through a Contentful entry that is published and
+// explicitly approved. No entry, no publication; nothing here approves anything.
+export async function processEditorialApprovals({ repository, fetchImpl = fetch, now = () => Date.now(),
+  limit = 5, logger = console }) {
+  const summary = { entries: 0, published: 0, awaitingReview: 0, skipped: 0, outcomes: [] };
+  const entries = await repository.editorialEntries();
+  summary.entries = entries.length;
+  const ambiguous = ambiguousEditorialKeys(entries);
+  const started = Date.now();
+  for (const entry of entries) {
+    if (summary.outcomes.length >= limit || Date.now() - started >= PROCESSING_BUDGET_MS) break;
+    const candidateId = String(entry.fields.supabaseRecordId || '').trim();
+    try {
+      const candidate = await repository.candidate(candidateId);
+      const source = candidate ? await repository.source(candidate.source_id) : null;
+      if (!candidate || source?.trust_tier !== 'T3') { summary.skipped += 1; continue; }
+      if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
+      const entriesForCandidate = await repository.editorialEntriesFor(candidate);
+      const outcome = await processCandidate({ candidate, repository, fetchImpl, now,
+        editorial: { entries: entriesForCandidate, ambiguous } });
+      summary.outcomes.push({ candidateId: candidate.id, entryId: entry.entryId, decision: outcome.decision,
+        reasonCode: outcome.reasonCode, announcementId: outcome.announcementId });
+      if (outcome.decision === 'PUBLISHED') summary.published += 1;
+      else summary.awaitingReview += 1;
+    } catch (error) {
+      logger.error('gpir editorial publication failed', { candidateId, error });
+      summary.skipped += 1;
+    }
+  }
+  return summary;
 }
 
 export function createPublicationHandler({ env, fetchImpl = fetch, repository = null,
@@ -278,7 +368,8 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
     const to = isoBoundary(body.to);
     if ((body.from && !from) || (body.to && !to) || (from && to && Date.parse(from) >= Date.parse(to)))
       return json(400, { status: 'ERROR', code: 'INVALID_DATE_RANGE' });
-    const store = repository || createRestPublicationRepository({ config, fetchImpl });
+    const store = repository || createRestPublicationRepository({ config, fetchImpl,
+      contentful: contentfulEditorialConfig(env) });
     let candidates;
     try { candidates = await store.candidates({ limit, from, to, now: now() }); }
     catch (error) {
@@ -299,8 +390,18 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
         outcomes.push({ candidateId: candidate.id, ...failure });
       }
     }
+    let editorial = { status: 'NOT_CONFIGURED' };
+    if (typeof store.editorialEntries === 'function') {
+      try {
+        editorial = { status: 'OK', ...(await processEditorialApprovals({ repository: store, fetchImpl, now, limit, logger })) };
+      } catch (error) {
+        logger.error('gpir editorial approval query failed', error);
+        editorial = { status: 'UNAVAILABLE' };
+      }
+    }
     const count = decision => outcomes.filter(item => item.decision === decision).length;
     return json(200, {
+      editorial,
       status: 'OK', processor: 'GPIR-G1-PUBLICATION-1', processed: outcomes.length,
       deferred: Math.max(0, candidates.length - outcomes.length),
       published: count('PUBLISHED'), rejected: count('REJECTED'),
