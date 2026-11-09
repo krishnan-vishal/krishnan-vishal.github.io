@@ -4,16 +4,20 @@ import test from 'node:test';
 import { TOPIC_TAXONOMY } from '../../assets/js/gpir-topic-intelligence.mjs';
 import { eligibleLiveRecords, filterSmartRecords, normalizeSmartRecords, periodBounds } from '../../assets/js/smart-intelligence.mjs';
 import {
-  OTHER_THEME, PREMIUM_THEMES, THEME_COLORS, buildAskQuery, buildExecutiveSummary, buildGeographyCoverage, buildItemShare, buildShareUrl,
-  buildThemeDistribution, buildThemeMomentum, buildWeeklyActivity, classifyThemeIds, compareCounts, distributionChartOption, geographyChartOption,
-  isExecutiveEligible, kpiMarkup, momentumChartOption, primaryThemeId, referenceClass, ringSvg, weeklyChartOption, weeklyTable
+  EXECUTIVE_THEME_IDS, OTHER_THEME, PREMIUM_THEMES, THEME_COLORS, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
+  buildRegionThemeMatrix, buildRegionalActivity, buildShareUrl, buildSummaryPoints, buildThemeDistribution, buildThemeMomentum, buildTimelineEvents,
+  buildTrendByTheme, classifyDisplayRegion, classifyThemeIds, compareCounts, deltaBadge, heatColor, isExecutiveEligible, matchesGeography, primaryThemeId,
+  referenceClass, trendTable
 } from '../../assets/js/smart-presentation.mjs';
+import {
+  donutChartOption, kpiStripMarkup, mapChartOption, momentumChartOption, regionHeatmapMarkup, timelineMarkup, trendChartOption
+} from '../../assets/js/smart-executive.mjs';
 
 const root = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
-const [page, css, charts, presentation] = await Promise.all([
-  read('pages/intelligence/smart.html'), read('assets/css/smart-premium.css'),
-  read('assets/js/smart-charts.mjs'), read('assets/js/smart-presentation.mjs')]);
+const [page, css, charts, presentation, executive] = await Promise.all([
+  read('pages/intelligence/smart.html'), read('assets/css/smart-executive.css'),
+  read('assets/js/smart-charts.mjs'), read('assets/js/smart-presentation.mjs'), read('assets/js/smart-executive.mjs')]);
 
 const NOW = Date.parse('2026-11-11T12:00:00Z');
 const DAY = 86400000;
@@ -46,6 +50,9 @@ test('the twelve premium themes use one palette, reuse existing taxonomy ids and
   const colours = Object.fromEntries(PREMIUM_THEMES.map(theme => [theme.id, theme.color]));
   assert.notEqual(colours.fraud, colours.regulatory);
   assert.notEqual(colours.ai, colours.agentic);
+  assert.deepEqual(EXECUTIVE_THEME_IDS, ['ai', 'agentic', 'web3', 'aml']);
+  assert.deepEqual(EXECUTIVE_THEME_IDS.map(id => PREMIUM_THEMES.find(theme => theme.id === id).label),
+    ['AI in Payments', 'Agentic Commerce', 'Web3 Payments', 'AML & Financial Crime']);
 });
 
 test('AI, Agentic and Web3 themes require explicit payments context and are not generic technology news', () => {
@@ -100,18 +107,23 @@ test('genuine validated payments-industry content, including Hyperswitch company
   assert.ok(rails.themeIds.includes('infrastructure'));
 });
 
-test('weekly activity, momentum and summary figures equal the governed records', () => {
+test('trend, momentum, KPI and summary figures equal the governed records', () => {
   const dates = ['2026-11-10', '2026-11-09', '2026-11-05', '2026-10-28', '2026-10-27', '2026-10-01', '2026-01-02'];
   const records = normalize(dates.map((date, index) => raw(`w${index}`, `Instant payment update ${index}`, `${date}T09:00:00Z`, { topics: ['real-time'] })));
-  const weekly = buildWeeklyActivity(records, NOW);
-  assert.equal(weekly.weeks.length, 8);
-  const manual = weekly.weeks.map(week => records.filter(record => Date.parse(record.publishedAt) >= week.start && Date.parse(record.publishedAt) < week.start + 7 * DAY).length);
-  assert.deepEqual(weekly.weeks.map(week => week.count), manual);
-  assert.equal(weekly.total, manual.reduce((sum, value) => sum + value, 0));
-  assert.equal(weekly.weeks.at(-1).inProgress, true);
-  assert.equal(weekly.weeks[0].inProgress, false);
-  const option = weeklyChartOption(weekly);
-  assert.deepEqual(option.series[0].data.map(point => point.value), manual);
+  const ai = normalize([raw('ai1', 'AI model scores card payments', '2026-11-10T09:00:00Z'), raw('ai2', 'AI model for payments fraud', '2026-11-04T09:00:00Z')]);
+  const trend = buildTrendByTheme([...records, ...ai], NOW);
+  assert.equal(trend.weeks.length, 8);
+  assert.deepEqual(trend.weeks.map(week => week.short), ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8']);
+  assert.match(trend.weeks[0].date, /^[A-Z][a-z]{2} \d{1,2}$/);
+  assert.equal(trend.weeks.at(-1).inProgress, true);
+  assert.equal(trend.weeks[0].inProgress, false);
+  assert.deepEqual(trend.series.map(series => series.id), EXECUTIVE_THEME_IDS);
+  const aiSeries = trend.series.find(series => series.id === 'ai');
+  assert.equal(aiSeries.data.reduce((sum, value) => sum + value, 0), 2);
+  assert.equal(aiSeries.data.at(-1), 1);
+  const option = trendChartOption(trend);
+  assert.deepEqual(option.series.map(series => series.data), trend.series.map(series => series.data));
+  assert.match(trendTable(trend), /data-drill-week="/);
   const bounds = periodBounds('7D', NOW);
   const current = filterSmartRecords(records, { bounds });
   const previous = filterSmartRecords(records, { bounds: { start: bounds.previousStart, end: bounds.previousEnd } });
@@ -120,45 +132,97 @@ test('weekly activity, momentum and summary figures equal the governed records',
   assert.equal(realTime.current, current.length);
   assert.equal(realTime.previous, previous.length);
   assert.deepEqual(realTime.change, compareCounts(current.length, previous.length));
-  assert.deepEqual(momentumChartOption(momentum).series[1].data.map(point => point.value), [realTime.current]);
+  const featured = EXECUTIVE_THEME_IDS.map(id => momentum.find(row => row.id === id));
+  assert.deepEqual(momentumChartOption(featured).series[0].data, featured.map(row => row.current));
+  const eight = periodBounds('8W', NOW);
+  const scoped = filterSmartRecords(ai, { bounds: eight });
+  const kpis = buildExecutiveKpis({ scoped, previous: [], current: scoped, previousCurrent: [] });
+  assert.equal(kpis.themes.find(item => item.id === 'ai').value, 2);
+  assert.equal(kpis.themes.find(item => item.id === 'ai').change.isNew, true);
+  assert.equal(kpis.total.value, 2);
+  assert.match(kpiStripMarkup(kpis, { period: '8W', selected: new Set() }), /vs\. prior 8 weeks/);
 });
 
-test('a zero preceding count is labelled New and a zero current count yields truthful empty states', () => {
+test('the 8-week period aligns with the trend weeks and a zero prior count never yields a percentage', () => {
+  const bounds = periodBounds('8W', NOW);
+  const trend = buildTrendByTheme([], NOW);
+  assert.equal(bounds.start, trend.weeks[0].start);
+  assert.equal(bounds.previousEnd, bounds.start);
+  assert.deepEqual(deltaBadge(compareCounts(3, 0)), { text: 'New', direction: 'up' });
+  assert.deepEqual(deltaBadge(compareCounts(18, 12)), { text: '+50%', direction: 'up' });
+  assert.deepEqual(deltaBadge(compareCounts(8, 10)), { text: '−20%', direction: 'down' });
+});
+
+test('a zero current count yields truthful empty states and no invented figures', () => {
   assert.equal(compareCounts(2, 0).label, 'New');
   assert.doesNotMatch(compareCounts(2, 0).label, /%|Infinity|NaN/);
   const empty = buildThemeDistribution([]);
   assert.equal(empty.unique, 0);
   assert.deepEqual(empty.slices, []);
-  const weekly = buildWeeklyActivity([], NOW);
-  assert.equal(weekly.total, 0);
-  assert.equal(weekly.max, 0);
-  assert.deepEqual(weekly.weeks.map(week => week.count), Array(8).fill(0));
-  const geography = buildGeographyCoverage([]);
-  assert.equal(geography.attributed, 0);
-  assert.equal(geographyChartOption(geography).series[0].data.length, 0);
-  assert.equal(distributionChartOption(empty).series[0].data.length, 0);
-  const summary = buildExecutiveSummary({ current: [], previous: [], scope: [], geography, liveCount: 0, now: NOW });
-  for (const item of summary) assert.doesNotMatch(kpiMarkup(item), /NaN|Infinity|undefined/);
-  assert.match(ringSvg(0, 0, '#0e7c86'), /0%/);
-  assert.equal(summary.find(item => item.id === 'live').value, 0);
-  assert.match(summary.find(item => item.id === 'live').note, /None qualifying/);
+  const trend = buildTrendByTheme([], NOW);
+  assert.equal(trend.total, 0);
+  assert.equal(trend.max, 0);
+  const regional = buildRegionalActivity([]);
+  assert.equal(regional.mapped, 0);
+  assert.ok(regional.regions.every(region => region.count === 0 && region.percent === 0));
+  const donut = buildExecutiveDonut(empty);
+  assert.equal(donut.unique, 0);
+  assert.equal(donutChartOption(donut).series[0].data.length, 0);
+  const matrix = buildRegionThemeMatrix([]);
+  assert.equal(matrix.max, 0);
+  const kpis = buildExecutiveKpis({ scoped: [], previous: [], current: [], previousCurrent: [] });
+  for (const markup of [kpiStripMarkup(kpis, { period: '8W', selected: new Set() }), regionHeatmapMarkup(matrix, { themes: new Set(), geography: 'all' }), timelineMarkup(buildTimelineEvents([]))])
+    assert.doesNotMatch(markup, /NaN|Infinity|undefined/);
+  const points = buildSummaryPoints({ kpis, regional, current: [], scoped: [], period: '8W' });
+  assert.equal(points.length, 4);
+  assert.match(points[0], /No verified development/);
+  assert.match(points[2], /Too few developments/);
+  assert.match(timelineMarkup([]), /No verified developments in this selection/);
+  assert.equal(heatColor(0), '#edf0e8');
 });
 
-test('geographic coverage uses verified metadata only and reports what is not attributed', () => {
+test('regions come only from verified metadata; aggregate scopes are reported, never guessed', () => {
   const records = normalize([
     raw('sg', 'Instant payments in Singapore', '2026-11-10T09:00:00Z'),
     raw('in', 'Instant payments in India', '2026-11-09T09:00:00Z', { country: 'India', region: 'Asia Pacific' }),
     raw('eu', 'Instant payments in Europe', '2026-11-08T09:00:00Z', { country: '', region: 'Europe', geography: 'European Union' }),
+    raw('us', 'Instant payments in the US', '2026-11-08T09:00:00Z', { country: 'United States', region: 'Americas' }),
+    raw('uae', 'Instant payments in the UAE', '2026-11-08T09:00:00Z', { country: 'United Arab Emirates', region: 'Middle East & Africa' }),
+    raw('agg', 'Instant payments across the Americas', '2026-11-07T09:00:00Z', { country: '', region: 'Americas', geography: 'Americas' }),
     raw('none', 'Instant payments without geography', '2026-11-07T09:00:00Z', { country: '', region: '' })
   ]);
   const coverage = buildGeographyCoverage(records);
-  assert.equal(coverage.total, 4);
-  assert.equal(coverage.attributed, 3);
-  assert.equal(coverage.unattributed, 1);
-  assert.deepEqual(coverage.regions.map(region => [region.key, region.count]), [['apac', 2], ['europe', 1]]);
-  assert.deepEqual(coverage.countries.map(country => country.label).sort(), ['India', 'Singapore']);
-  const option = geographyChartOption(coverage, 'regions');
-  assert.equal(option.series[0].data.reduce((sum, point) => sum + point.value, 0), coverage.attributed);
+  assert.equal(coverage.total, 7);
+  assert.equal(coverage.attributed, 6);
+  assert.deepEqual(coverage.countries.map(country => country.label).sort(), ['India', 'Singapore', 'United Arab Emirates', 'United States']);
+  const regional = buildRegionalActivity(records);
+  assert.deepEqual(regional.regions.filter(region => region.count).map(region => [region.key, region.count]), [['na', 1], ['europe', 1], ['apac', 2], ['gcc', 1]]);
+  assert.equal(regional.mapped, 5);
+  assert.equal(regional.unmapped, 2);
+  assert.equal(regional.regions.find(region => region.key === 'apac').percent, 40);
+  assert.equal(classifyDisplayRegion(records.find(record => record.id === 'agg')), null);
+  assert.equal(matchesGeography(records.find(record => record.id === 'us'), 'na'), true);
+  assert.equal(matchesGeography(records.find(record => record.id === 'us'), 'americas'), true);
+  assert.equal(matchesGeography(records.find(record => record.id === 'us'), 'latam'), false);
+  const option = mapChartOption(regional)({ width: 400, height: 144 });
+  assert.equal(option.series[0].data.reduce((sum, point) => sum + point.count, 0), regional.mapped);
+  assert.ok(option.geo.layoutSize <= 400);
+  const matrix = buildRegionThemeMatrix(records, ['real-time']);
+  assert.equal(matrix.cells[0].reduce((sum, cell) => sum + cell.count, 0), regional.mapped);
+});
+
+test('the timeline lists the newest development of each distinct theme, oldest to newest, with source links', () => {
+  const records = normalize([
+    raw('a', 'Instant payments scheme goes live', '2026-11-10T09:00:00Z', { topics: ['real-time'] }),
+    raw('b', 'Instant payments scheme expands', '2026-11-09T09:00:00Z', { topics: ['real-time'] }),
+    raw('c', 'Regulator issues licensing framework', '2026-11-05T09:00:00Z', { topics: ['regulation', 'licence'] }),
+    raw('d', 'AML and KYC obligations updated for payments', '2026-11-02T09:00:00Z', { topics: ['aml'] })
+  ]);
+  const events = buildTimelineEvents(records, 3);
+  assert.deepEqual(events.map(event => event.id), ['d', 'c', 'a']);
+  const markup = timelineMarkup(events);
+  assert.match(markup, /href="https:\/\/example\.gov\/d" target="_blank" rel="noopener noreferrer"/);
+  assert.match(markup, /datetime="2026-11-10"/);
 });
 
 test('theme filters compose with period, geography and taxonomy topics without altering existing filters', () => {
@@ -206,38 +270,48 @@ test('live announcements keep the governed 12-hour window independent of the exe
   assert.deepEqual(eligibleLiveRecords(records, NOW).map(record => record.id), ['fresh']);
 });
 
-test('charts expose accessible equivalents: summaries, data tables and drill-down buttons', () => {
-  const weekly = buildWeeklyActivity(normalize([raw('t', 'Instant payments update', '2026-11-10T09:00:00Z')]), NOW);
-  const table = weeklyTable(weekly);
+test('charts expose accessible equivalents: summaries, data tables, keyboard navigation and drill-down buttons', () => {
+  const trend = buildTrendByTheme(normalize([raw('t', 'Instant payments update', '2026-11-10T09:00:00Z')]), NOW);
+  const table = trendTable(trend);
   assert.match(table, /<caption>/);
   assert.match(table, /<th scope="col">/);
   assert.equal((table.match(/data-drill-week="/g) || []).length, 8);
   for (const name of ['weekly', 'momentum', 'distribution', 'geography']) {
-    assert.match(page, new RegExp(`data-smart-chart="${name}"`));
+    assert.match(page, new RegExp(`data-smart-chart="${name}" tabindex="0"`));
     assert.match(page, new RegExp(`data-smart-chart-summary="${name}"`));
     assert.match(page, new RegExp(`data-smart-table="${name}"`));
   }
+  assert.match(page, /data-smart-table="heatmap"/);
   assert.match(page, /role="img" aria-labelledby="smp-weekly-summary"/);
   assert.match(charts, /ResizeObserver/);
   assert.match(charts, /details\.open = true/);
-  assert.match(presentation, /aria: \{ enabled: true \}/);
-  assert.match(css, /\.smp-chart\[data-chart-state=empty\]/);
+  assert.match(charts, /ArrowRight/);
+  assert.match(charts, /showTip/);
+  assert.match(executive, /aria: \{ enabled: true \}/);
+  assert.match(css, /\.smx-chart\[data-chart-state=empty\]/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /focus-visible/);
+  const heat = regionHeatmapMarkup(buildRegionThemeMatrix([]), { themes: new Set(), geography: 'all' });
+  assert.match(heat, /role="grid"/);
+  assert.equal((heat.match(/<button type="button" class="smx-heat-cell"/g) || []).length, 24);
+  assert.match(heat, /aria-label="AI in Payments in North America: 0 verified developments, no activity\. Select to filter\."/);
 });
 
 test('the premium page keeps its static, governed architecture and pins the open-source chart engine', () => {
   assert.match(page, /echarts@5\.6\.0\/dist\/echarts\.min\.js" integrity="sha384-[A-Za-z0-9+/=]+" crossorigin="anonymous"/);
-  assert.match(page, /smart-premium\.css/);
+  assert.match(page, /smart-executive\.css/);
   assert.match(page, /data-smart-theme-controls/);
+  assert.match(page, /data-smart-topic-controls/);
   assert.match(page, /data-smart-theme-tiles/);
   assert.match(page, /data-smart-reference/);
   assert.match(page, /data-smart-share/);
-  assert.match(page, /EXECUTIVE INTELLIGENCE SUMMARY/);
+  assert.match(page, /<h1>Executive Intelligence Dashboard<\/h1>/);
   assert.match(page, /LATEST VERIFIED DEVELOPMENTS/);
-  assert.match(page, /GEOGRAPHIC INTELLIGENCE/);
+  assert.match(page, /Regional Activity/);
+  assert.doesNotMatch(page, /<img[^>]+Executive Payments Intelligence Dashboard/i);
+  assert.doesNotMatch(page, /\.png/);
   assert.doesNotMatch(page, /Subscribe|PayPal/);
-  const executableSources = [presentation, charts].join('\n');
+  const executableSources = [presentation, charts, executive].join('\n');
   assert.doesNotMatch(executableSources, /\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|supabase|\.innerHTML\s*=/i);
   assert.doesNotMatch(executableSources, /Math\.random|\b(predict|forecast|projected|expected to)\b/i);
   const selectors = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@media[^{]*\{/g, '').split('}')

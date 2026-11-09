@@ -9,7 +9,7 @@ const [page, css, script, navCss] = await Promise.all([
   read('assets/js/gpir-smart-card-sections.js'), read('assets/css/my-gpir.css')]);
 
 test('smart page loads the presentation assets with versioned references and the .gpir-sc root', () => {
-  assert.match(page, /<body class="smi-page gpir-sc">/);
+  assert.match(page, /<body class="smi-page gpir-sc smx-page">/);
   assert.match(page, /gpir-smart-card-sections\.css\?v=\d+[a-z]?"/);
   assert.match(page, /gpir-smart-card-sections\.js\?v=\d+[a-z]?" defer/);
   assert.match(page, /smart-intelligence\.mjs\?v=\d+[a-z]?"/);

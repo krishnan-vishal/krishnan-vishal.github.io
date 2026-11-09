@@ -1,10 +1,14 @@
 import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
 import {
-  PREMIUM_THEMES, REGION_FILTER_KEYS, buildAskQuery, buildExecutiveSummary, buildGeographyCoverage, buildItemShare, buildShareUrl,
-  buildThemeDistribution, buildThemeMomentum, buildThemeWeekly, buildWeeklyActivity, classifyThemeIds, compareCounts,
-  distributionChartOption, distributionTable, geographyChartOption, geographyTable, isExecutiveEligible, kpiMarkup, momentumChartOption,
-  momentumTable, primaryThemeId, referenceClass, sparklineSvg, themeById, themeChipMarkup, weeklyChartOption, weeklyTable
+  EXECUTIVE_THEME_IDS, GEOGRAPHY_FILTER_KEYS, PREMIUM_THEMES, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
+  buildRegionThemeMatrix, buildRegionalActivity, buildShareUrl, buildSummaryPoints, buildThemeDistribution, buildThemeMomentum, buildThemeWeekly,
+  buildTimelineEvents, buildTrendByTheme, classifyThemeIds, compareCounts, distributionTable, geographyTable, heatmapTable, isExecutiveEligible,
+  matchesGeography, momentumTable, periodLabel, primaryThemeId, referenceClass, sparklineSvg, themeById, themeChipMarkup, trendTable
 } from './smart-presentation.mjs';
+import {
+  donutChartOption, donutLegendMarkup, donutPoints, kpiStripMarkup, mapChartOption, mapPoints, momentumChartOption, momentumDeltasMarkup,
+  momentumLabelsMarkup, momentumPoints, regionHeatmapMarkup, summaryMarkup, timelineMarkup, trendChartOption, trendPoints
+} from './smart-executive.mjs';
 import { createChartController } from './smart-charts.mjs';
 
 export { compareCounts, isExecutiveEligible, referenceClass };
@@ -55,6 +59,7 @@ export function periodBounds(period, now = Date.now(), customStart = '', customE
   if (period === '24H') start = now - DAY;
   else if (period === '7D') start = now - 7 * DAY;
   else if (period === '30D') start = now - 30 * DAY;
+  else if (period === '8W') start = utcWeekStart(now) - 49 * DAY;
   else if (period === 'QTD') {
     const date = new Date(now);
     start = Date.UTC(date.getUTCFullYear(), Math.floor(date.getUTCMonth() / 3) * 3, 1);
@@ -213,7 +218,7 @@ export function filterSmartRecords(records, options = {}) {
   return records.filter(record => {
     const time = Date.parse(record.publishedAt);
     if (time < bounds.start || time >= bounds.end) return false;
-    if (options.geography && options.geography !== 'all' && record.regionKey !== options.geography) return false;
+    if (!matchesGeography(record, options.geography)) return false;
     if (topicSet.size && !record.topicIds.some(topic => topicSet.has(topic))) return false;
     if (themeSet.size && !(record.themeIds || []).some(theme => themeSet.has(theme))) return false;
     return true;
@@ -439,8 +444,23 @@ function renderTopSignal(root, records) {
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li style="--theme-color:${themeById(primaryThemeId(item)).color}"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
 
-function renderSummary(root, model) {
-  root.querySelector('[data-smart-kpis]').innerHTML = buildExecutiveSummary(model).map(kpiMarkup).join('');
+// The executive composition: KPI strip, summary, momentum, heatmap and the compact timeline.
+function renderExecutive(root, models, state) {
+  const { kpis, summary, donut, momentum, matrix, events, period } = models;
+  const set = (name, html) => { const target = root.querySelector(`[data-smart-${name}]`); if (target) target.innerHTML = html; };
+  const text = (name, value) => { const target = root.querySelector(`[data-smart-${name}]`); if (target) target.textContent = value; };
+  set('kpis', kpiStripMarkup(kpis, { period, selected: state.themes }));
+  set('summary', summaryMarkup(summary));
+  set('donut-legend', donutLegendMarkup(donut));
+  text('donut-total', donut.unique);
+  set('momentum-labels', momentumLabelsMarkup(momentum, state.themes));
+  set('momentum-deltas', momentumDeltasMarkup(momentum));
+  set('region-heatmap', regionHeatmapMarkup(matrix, { themes: state.themes, geography: state.geography }));
+  set('timeline-track', timelineMarkup(events));
+  const current = period === '8W';
+  text('momentum-current', current ? 'Current (W1 – W8)' : 'Current period');
+  text('momentum-prior', current ? 'Prior (W-8 – W0)' : 'Prior period');
+  text('heat-period', `Relative activity intensity (${periodLabel(period).toLowerCase()})`);
 }
 
 function themeTileMarkup(row, series, selected) {
@@ -459,29 +479,26 @@ function setSummary(root, name, text) {
 }
 
 function renderAnalytics(root, models) {
-  const { weekly, momentum, distribution, geography, geographyMode } = models;
-  const peak = weekly.weeks.find(week => week.count === weekly.max && week.count > 0);
-  setSummary(root, 'weekly', weekly.total
-    ? `${plural(weekly.total, 'verified development')} over the last eight UTC weeks; busiest week starting ${isoDay(peak.start)} with ${peak.count}. The current week is in progress.`
-    : 'No verified industry developments were published in the last eight UTC weeks for this selection.');
+  const { trend, momentum, distribution, donut, regional, coverage, matrix } = models;
+  const busiest = trend.series.map(series => ({ series, peak: Math.max(0, ...series.data) })).sort((left, right) => right.peak - left.peak)[0];
+  setSummary(root, 'weekly', trend.total
+    ? `Weekly verified developments for the four featured themes over the last eight UTC weeks (${plural(trend.total, 'theme classification')}; themes overlap). Highest single week: ${busiest.series.label} with ${busiest.peak}. The latest week is in progress. Select a point to open that week.`
+    : 'No verified developments for the featured themes in the last eight UTC weeks for this selection.');
   const leader = [...momentum].sort((left, right) => right.current - left.current || left.label.localeCompare(right.label))[0];
-  setSummary(root, 'momentum', leader && leader.current
-    ? `Largest current theme: ${leader.label} with ${leader.current} (preceding period ${leader.previous}). Counts overlap because one development can carry several themes.`
-    : 'No themed developments in the current or preceding period.');
+  setSummary(root, 'momentum', leader && (leader.current || leader.previous)
+    ? `Featured themes, current versus prior period. Largest current theme: ${leader.label} with ${leader.current} (prior ${leader.previous}). Counts overlap because one development can carry several themes.`
+    : 'No featured-theme developments in the current or prior period.');
   setSummary(root, 'distribution', distribution.unique
-    ? `${plural(distribution.unique, 'unique development')} counted once under a primary theme. ${plural(distribution.classifications, 'topic classification')} in total because one development can belong to several themes.`
+    ? `${plural(distribution.unique, 'unique development')} counted once under a primary theme: ${donut.slices.map(slice => `${slice.label} ${slice.count}`).join(', ')}.`
     : 'No verified developments in this selection, so no theme distribution is shown.');
-  setSummary(root, 'geography', geography.attributed
-    ? `${geography.attributed} of ${geography.total} developments carry verified geography; ${geography.unattributed} without geographic metadata are not plotted.`
-    : 'No developments in this selection carry verified geographic metadata.');
-  root.querySelector('[data-smart-table="weekly"]').innerHTML = weeklyTable(weekly);
+  setSummary(root, 'geography', regional.mapped
+    ? `${regional.mapped} of ${regional.total} developments map to a verified region: ${regional.regions.map(region => `${region.label} ${region.percent}%`).join(', ')}. ${regional.unmapped} without a specific verified region are not plotted.`
+    : 'Too few developments in this selection carry a specific verified region, so no regional shares are shown.');
+  root.querySelector('[data-smart-table="weekly"]').innerHTML = trend.total ? trendTable(trend) : '';
   root.querySelector('[data-smart-table="momentum"]').innerHTML = momentumTable(momentum);
   root.querySelector('[data-smart-table="distribution"]').innerHTML = distribution.unique ? distributionTable(distribution) : '';
-  root.querySelector('[data-smart-table="geography"]').innerHTML = geography.attributed ? geographyTable(geography) : '';
-  root.querySelectorAll('[data-geo-mode]').forEach(button => {
-    button.setAttribute('aria-pressed', String(button.dataset.geoMode === geographyMode));
-    button.disabled = button.dataset.geoMode === 'countries' && !geography.countries.length;
-  });
+  root.querySelector('[data-smart-table="geography"]').innerHTML = regional.mapped ? geographyTable(regional, coverage) : '';
+  root.querySelector('[data-smart-table="heatmap"]').innerHTML = matrix.mapped ? heatmapTable(matrix) : '';
 }
 
 function renderTimeline(root, records, state) {
@@ -622,7 +639,7 @@ function renderLive(root, liveRecords, state, now) {
   const target = document.querySelector('[data-smart-live-content]');
   if (!ribbon || !target) return;
   const matches = eligibleLiveRecords(liveRecords, now).filter(record =>
-    (state.geography === 'all' || record.regionKey === state.geography) &&
+    matchesGeography(record, state.geography) &&
     (!state.topics.size || record.topicIds.some(topic => state.topics.has(topic))) &&
     (!state.themes.size || (record.themeIds || []).some(theme => state.themes.has(theme))));
   if (!matches.length) {
@@ -684,20 +701,28 @@ export async function initializeSmartIntelligence({ global = window,
   const initialThemes = clean(params.get('themes'), 300).split(',').filter(id => PREMIUM_THEMES.some(theme => theme.id === id));
   const dateParam = (name, fallback) => /^\d{4}-\d{2}-\d{2}$/.test(params.get(name) || '') ? params.get(name) : fallback;
   const state = {
-    period: ['24H','7D','30D','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '30D',
-    geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
+    period: ['24H','7D','30D','8W','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '8W',
+    geography: GEOGRAPHY_FILTER_KEYS.includes(params.get('geo')) ? params.get('geo') : 'all',
     topics: new Set(initialTopics), themes: new Set(initialThemes), customStart: dateParam('from', '2024-11-08'),
     customEnd: dateParam('to', isoDay(now())),
     alertId: clean(params.get('alert'), 100), heat: null,
-    visible: global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4, geoMode: 'regions', contextKey: ''
+    visible: global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4, contextKey: ''
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
   const themeControls = root.querySelector('[data-smart-theme-controls]');
   if (themeControls) themeControls.innerHTML = PREMIUM_THEMES.map(theme => themeChipMarkup(theme, state.themes.has(theme.id))).join('');
-  const syncThemeControls = () => themeControls?.querySelectorAll('input').forEach(input => { input.checked = state.themes.has(input.value); });
+  const themeSelect = root.querySelector('[data-smart-theme-select]');
+  themeSelect.insertAdjacentHTML('beforeend', PREMIUM_THEMES.map(theme => `<option value="${theme.id}">${escapeHtml(theme.short)}</option>`).join(''));
+  const periodSelect = root.querySelector('[data-smart-period-select]');
+  const syncThemeControls = () => {
+    themeControls?.querySelectorAll('input').forEach(input => { input.checked = state.themes.has(input.value); });
+    themeSelect.value = state.themes.size === 1 ? [...state.themes][0] : state.themes.size ? 'multiple' : 'all';
+  };
   const geo = root.querySelector('[data-smart-geography]');
   geo.value = state.geography;
+  periodSelect.value = state.period;
+  syncThemeControls();
   root.querySelector('[data-smart-start]').value = state.customStart;
   root.querySelector('[data-smart-end]').value = state.customEnd;
   root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
@@ -743,38 +768,47 @@ export async function initializeSmartIntelligence({ global = window,
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
     const industry = executiveRecords();
     const filters = { geography: state.geography, topics: [...state.topics], themes: [...state.themes] };
+    const scopeFilters = { geography: state.geography, topics: [...state.topics] };
     const current = filterSmartRecords(industry, { bounds, ...filters });
     const previousBounds = { start: bounds.previousStart, end: bounds.previousEnd };
     const previous = filterSmartRecords(industry, { bounds: previousBounds, ...filters });
-    const baseCurrent = filterSmartRecords(industry, { bounds, geography: state.geography });
-    const basePrevious = filterSmartRecords(industry, { bounds: previousBounds, geography: state.geography });
-    const geographyScope = filterSmartRecords(industry, { bounds, ...filters, geography: 'all' });
-    const weeklyScope = filterSmartRecords(industry, { bounds: { start: HISTORY_FLOOR, end: requestNow + 1 }, ...filters });
+    const scoped = filterSmartRecords(industry, { bounds, ...scopeFilters });
+    const scopedPrevious = filterSmartRecords(industry, { bounds: previousBounds, ...scopeFilters });
+    const regionScope = filterSmartRecords(industry, { bounds, ...filters, geography: 'all' });
+    const matrixScope = filterSmartRecords(industry, { bounds, topics: filters.topics, geography: 'all' });
+    const trendScope = filterSmartRecords(industry, { bounds: { start: HISTORY_FLOOR, end: requestNow + 1 }, ...scopeFilters });
     const referenceRecords = filterSmartRecords(records.filter(record => !isExecutiveEligible(record)), { bounds, geography: state.geography });
-    const historicalContext = industry.filter(record => state.geography === 'all' || record.regionKey === state.geography);
+    const historicalContext = industry.filter(record => matchesGeography(record, state.geography));
     const contextKey = [state.period, state.geography, state.customStart, state.customEnd, [...state.topics], [...state.themes]].join('|');
     if (contextKey !== state.contextKey) {
       state.contextKey = contextKey;
       state.visible = global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4;
     }
-    root.querySelectorAll('[data-smart-period]').forEach(button =>
-      button.setAttribute('aria-pressed', String(button.dataset.smartPeriod === state.period)));
+    periodSelect.value = state.period;
+    geo.value = state.geography;
+    syncThemeControls();
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
     const liveCount = renderLive(root, liveRecords, state, requestNow);
+    document.querySelectorAll('[data-smart-alerts-dot]').forEach(dot => { dot.hidden = !liveCount; });
     renderAlertFocus(root, liveRecords, records, state, requestNow, topicIntel.get(state.alertId));
     loadTopicIntelligence(state.alertId);
     renderTopSignal(root, current);
-    const weekly = buildWeeklyActivity(weeklyScope, requestNow);
-    const momentum = buildThemeMomentum(baseCurrent, basePrevious);
-    const distribution = buildThemeDistribution(current);
-    const geography = buildGeographyCoverage(geographyScope);
-    renderSummary(root, { current, previous, scope: weeklyScope, geography: buildGeographyCoverage(current), liveCount, now: requestNow });
-    renderThemeTiles(root, momentum, industry.filter(record => state.geography === 'all' || record.regionKey === state.geography), state, requestNow);
-    renderAnalytics(root, { weekly, momentum, distribution, geography, geographyMode: state.geoMode });
-    charts.render({ weekly, momentum, distribution, geography, geographyMode: state.geoMode, options: {
-      weekly: weeklyChartOption(weekly), momentum: momentumChartOption(momentum), distribution: distributionChartOption(distribution),
-      geography: geographyChartOption(geography, state.geoMode) } });
+    const trend = buildTrendByTheme(trendScope, requestNow);
+    const momentum = buildThemeMomentum(scoped, scopedPrevious);
+    const featured = EXECUTIVE_THEME_IDS.map(id => momentum.find(row => row.id === id));
+    const distribution = buildThemeDistribution(scoped);
+    const donut = buildExecutiveDonut(distribution);
+    const regional = buildRegionalActivity(regionScope);
+    const matrix = buildRegionThemeMatrix(matrixScope);
+    const kpis = buildExecutiveKpis({ scoped, previous: scopedPrevious, current, previousCurrent: previous });
+    renderExecutive(root, { kpis, donut, matrix, period: state.period, momentum: featured, events: buildTimelineEvents(current),
+      summary: buildSummaryPoints({ kpis, regional, current, scoped, period: state.period }) }, state);
+    renderThemeTiles(root, momentum, historicalContext, state, requestNow);
+    renderAnalytics(root, { trend, momentum: featured, distribution, donut, regional, coverage: buildGeographyCoverage(regionScope), matrix });
+    charts.render({ trend, momentum: featured, donut, regional, options: {
+      weekly: trendChartOption(trend), momentum: momentumChartOption(featured), distribution: donutChartOption(donut), geography: mapChartOption(regional) },
+    points: { weekly: trendPoints(trend), momentum: momentumPoints(featured), distribution: donutPoints(donut), geography: mapPoints(regional) } });
     renderCompareWindow(root, bounds);
     renderHeatmap(root, historicalContext, requestNow, state.heat);
     renderTimeline(root, current, state);
@@ -837,13 +871,15 @@ export async function initializeSmartIntelligence({ global = window,
     }
   }
 
-  // Theme drill-down: tiles, chart elements, table buttons and chips all use one selection path.
-  const scrollToResults = () => root.querySelector('[data-smart-timeline]')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  // Theme drill-down: KPI cards, chart elements, table buttons and chips all use one selection path.
+  // Cards are re-rendered with the selection, so keyboard focus returns to the control that was used.
+  const restoreFocus = (container, attribute, value) => {
+    root.querySelector(`${container} [${attribute}="${value}"]`)?.focus({ preventScroll: true });
+  };
   const selectTheme = themeId => {
     state.themes = state.themes.size === 1 && state.themes.has(themeId) ? new Set() : new Set([themeId]);
     syncThemeControls();
     render();
-    if (state.themes.size) scrollToResults();
   };
   const selectWeek = week => {
     state.period = 'CUSTOM';
@@ -852,12 +888,16 @@ export async function initializeSmartIntelligence({ global = window,
     root.querySelector('[data-smart-start]').value = state.customStart;
     root.querySelector('[data-smart-end]').value = state.customEnd;
     render();
-    scrollToResults();
   };
   const selectRegion = key => {
-    if (!REGION_FILTER_KEYS.includes(key)) return;
+    if (!GEOGRAPHY_FILTER_KEYS.includes(key)) return;
     state.geography = state.geography === key ? 'all' : key;
-    geo.value = state.geography;
+    render();
+  };
+  const selectCell = (themeId, regionKey) => {
+    const same = state.themes.size === 1 && state.themes.has(themeId) && state.geography === regionKey;
+    state.themes = same ? new Set() : new Set([themeId]);
+    state.geography = same ? 'all' : regionKey;
     render();
   };
   charts = createChartController(global, root, { onWeek: selectWeek, onTheme: selectTheme, onRegion: selectRegion });
@@ -870,13 +910,24 @@ export async function initializeSmartIntelligence({ global = window,
       return;
     }
     const theme = target.closest?.('[data-drill-theme]');
-    if (theme) { selectTheme(theme.dataset.drillTheme); return; }
+    if (theme) {
+      const container = theme.closest('[data-smart-kpis],[data-smart-momentum-labels],[data-smart-donut-legend]');
+      const hostAttribute = ['data-smart-kpis', 'data-smart-momentum-labels', 'data-smart-donut-legend'].find(name => container?.hasAttribute(name));
+      selectTheme(theme.dataset.drillTheme);
+      if (hostAttribute) restoreFocus(`[${hostAttribute}]`, 'data-drill-theme', theme.dataset.drillTheme);
+      return;
+    }
+    const cell = target.closest?.('[data-heat-cell]');
+    if (cell) {
+      const [themeId, regionKey] = cell.dataset.heatCell.split('|');
+      selectCell(themeId, regionKey);
+      restoreFocus('[data-smart-region-heatmap]', 'data-heat-cell', cell.dataset.heatCell);
+      return;
+    }
     const week = target.closest?.('[data-drill-week]');
     if (week) { const start = Number(week.dataset.drillWeek); selectWeek({ start, end: start + 6 * DAY }); return; }
     const region = target.closest?.('[data-drill-region]');
     if (region) { selectRegion(region.dataset.drillRegion); return; }
-    const mode = target.closest?.('[data-geo-mode]');
-    if (mode && !mode.disabled) { state.geoMode = mode.dataset.geoMode; render(); return; }
     if (target.closest?.('[data-smart-more]')) {
       const firstNew = state.visible;
       state.visible += 8;
@@ -894,6 +945,22 @@ export async function initializeSmartIntelligence({ global = window,
   themeControls?.addEventListener('change', () => {
     state.themes = new Set([...themeControls.querySelectorAll('input:checked')].map(input => input.value));
     render();
+  });
+  themeSelect.addEventListener('change', () => {
+    state.themes = ['all', 'multiple'].includes(themeSelect.value) ? new Set() : new Set([themeSelect.value]);
+    render();
+  });
+  geo.addEventListener('change', () => { state.geography = geo.value; render(); });
+  periodSelect.addEventListener('change', () => { state.period = periodSelect.value; render(); });
+  ['[data-smart-start]', '[data-smart-end]'].forEach(selector => root.querySelector(selector).addEventListener('change', () => {
+    state.customStart = root.querySelector('[data-smart-start]').value || '2024-11-08';
+    state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
+    render();
+  }));
+  root.querySelector('[data-smart-search]')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const query = clean(new FormData(event.currentTarget).get('ask') || '', 300);
+    if (query) global.location.assign(askHref(query));
   });
   const shareStatus = root.querySelector('[data-smart-share-status]');
   // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
@@ -921,7 +988,7 @@ export async function initializeSmartIntelligence({ global = window,
     state.heat = topicId ? { topicId, weekStart } : null;
     heatCells().forEach(cell => cell.setAttribute('aria-pressed',
       String(Boolean(state.heat) && cell.dataset.heatTopic === topicId && Number(cell.dataset.heatWeek) === weekStart)));
-    renderHeatDetail(root, executiveRecords().filter(record => state.geography === 'all' || record.regionKey === state.geography), state.heat, now());
+    renderHeatDetail(root, executiveRecords().filter(record => matchesGeography(record, state.geography)), state.heat, now());
     if (state.heat) heatDetail?.scrollIntoView?.({ block: 'nearest' });
   };
   heatmapEl?.addEventListener('click', event => {
@@ -968,20 +1035,32 @@ export async function initializeSmartIntelligence({ global = window,
     cell?.focus();
   });
 
-  root.querySelectorAll('[data-smart-period]').forEach(button => button.addEventListener('click', () => {
-    state.period = button.dataset.smartPeriod; render();
-  }));
+  // The region heatmap is a grid of buttons with a roving tab stop and arrow-key navigation.
+  const regionHeat = root.querySelector('[data-smart-region-heatmap]');
+  regionHeat?.addEventListener('focusin', event => {
+    const cell = event.target.closest?.('.smx-heat-cell');
+    if (!cell) return;
+    regionHeat.querySelectorAll('.smx-heat-cell').forEach(item => { item.tabIndex = -1; });
+    cell.tabIndex = 0;
+  });
+  regionHeat?.addEventListener('keydown', event => {
+    const cell = event.target.closest?.('.smx-heat-cell');
+    const moves = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
+    if (!cell || !moves[event.key]) return;
+    event.preventDefault();
+    const row = Number(cell.dataset.row) + moves[event.key][0];
+    const col = Number(cell.dataset.col) + moves[event.key][1];
+    regionHeat.querySelector(`.smx-heat-cell[data-row="${row}"][data-col="${col}"]`)?.focus();
+  });
+
   root.querySelector('[data-smart-form]')?.addEventListener('submit', event => {
     event.preventDefault();
-    state.geography = geo.value;
-    state.customStart = root.querySelector('[data-smart-start]').value || '2024-11-08';
-    state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
     state.topics = new Set([...topicControls.querySelectorAll('input:checked')].map(input => input.value));
     render();
   });
   root.querySelector('[data-smart-clear]')?.addEventListener('click', () => {
     topicControls.querySelectorAll('input').forEach(input => { input.checked = false; });
-    state.topics.clear(); state.themes.clear(); syncThemeControls(); render();
+    state.topics.clear(); state.themes.clear(); state.geography = 'all'; syncThemeControls(); render();
   });
   render();
   // Periodically refresh the same governed sources. No parallel publication pipeline.

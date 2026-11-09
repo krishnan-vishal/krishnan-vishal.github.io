@@ -23,24 +23,27 @@ function inkFor(color) {
 }
 
 const THEME_DEFINITIONS = Object.freeze([
-  { id: 'cross-border', label: 'Cross-Border Payments & Remittances', short: 'Cross-Border', color: '#0e7c86', taxonomy: ['cross-border', 'remittances'] },
-  { id: 'real-time', label: 'Real-Time & Instant Payments', short: 'Real-Time', color: '#2563c9', taxonomy: ['real-time'] },
-  { id: 'infrastructure', label: 'Payment Infrastructure & Interoperability', short: 'Infrastructure', color: '#4a6fa5', taxonomy: ['infrastructure', 'payment-gateways'],
+  { id: 'cross-border', label: 'Cross-Border Payments & Remittances', short: 'Cross-Border Payments', color: '#2f7fb5', taxonomy: ['cross-border', 'remittances'] },
+  { id: 'real-time', label: 'Real-Time & Instant Payments', short: 'Real-Time Payments', color: '#0c8db3', taxonomy: ['real-time'] },
+  { id: 'infrastructure', label: 'Payment Infrastructure & Interoperability', short: 'Payments Infrastructure', color: '#2f9e6b', taxonomy: ['infrastructure', 'payment-gateways'],
     pattern: /\binteroperab\w*|\biso 20022\b|\bpayment rails?\b|\bopen banking\b/ },
-  { id: 'ai', label: 'AI in Payments', short: 'AI', color: '#7c3aed', requiresPayments: true,
+  { id: 'ai', label: 'AI in Payments', short: 'AI in Payments', color: '#0f9d8a', requiresPayments: true,
     pattern: /\bartificial intelligence\b|\bmachine learning\b|\bgenerative ai\b|\blarge language models?\b|\bllms?\b|\bai[- ](?:powered|driven|based|enabled|model|models|assistant|assistants)\b|\bai\b/ },
-  { id: 'agentic', label: 'Agentic Payments', short: 'Agentic', color: '#4338ca', requiresPayments: true,
+  { id: 'agentic', label: 'Agentic Commerce', short: 'Agentic Commerce', color: '#f0613f', requiresPayments: true,
     pattern: /\bagentic\b|\bai agents?\b|\bautonomous agents?\b|\bagent-to-agent\b|\bmachine payments?\b/ },
-  { id: 'web3', label: 'Web3 & Blockchain in Payments', short: 'Web3', color: '#a21caf', requiresPayments: true,
+  { id: 'web3', label: 'Web3 Payments', short: 'Web3 Payments', color: '#8b5cf6', requiresPayments: true,
     pattern: /\bweb3\b|\bblockchain\b|\bcrypto\w*|\bdigital assets?\b|\btokeni[sz]\w*|\bdistributed ledger\b|\bdlt\b|\bsmart contracts?\b|\bon-chain\b/ },
-  { id: 'aml', label: 'AML, KYC & Financial Crime Compliance', short: 'AML / KYC', color: '#d98e04', taxonomy: ['aml'] },
-  { id: 'fraud', label: 'Fraud Prevention & Cybersecurity', short: 'Fraud / Cyber', color: '#c0392b', taxonomy: ['fraud'] },
-  { id: 'regulatory', label: 'Regulatory Actions & Licensing', short: 'Regulatory', color: '#b8913a', taxonomy: ['regulatory', 'licences', 'payments-licensing', 'fintech-licensing'] },
-  { id: 'cbdc', label: 'CBDCs, Digital Money & Stablecoins', short: 'CBDC / Digital Money', color: '#2bb5ab', taxonomy: ['cbdc'],
+  { id: 'aml', label: 'AML & Financial Crime', short: 'AML & Financial Crime', color: '#2f6fe0', taxonomy: ['aml'] },
+  { id: 'fraud', label: 'Fraud Prevention & Cybersecurity', short: 'Fraud & Cyber', color: '#c0392b', taxonomy: ['fraud'] },
+  { id: 'regulatory', label: 'Regulatory Actions & Licensing', short: 'Regulatory', color: '#a77d1f', taxonomy: ['regulatory', 'licences', 'payments-licensing', 'fintech-licensing'] },
+  { id: 'cbdc', label: 'CBDCs, Digital Money & Stablecoins', short: 'CBDC & Digital Money', color: '#7a8a22', taxonomy: ['cbdc'],
     pattern: /\bstablecoins?\b|\bdigital money\b|\btokeni[sz]ed deposits?\b/ },
   { id: 'wallets', label: 'Wallets & Digital Payments', short: 'Wallets', color: '#b0537f', taxonomy: ['wallets', 'super-apps'] },
-  { id: 'partnerships', label: 'Strategic Partnerships & Payment Networks', short: 'Partnerships', color: '#2f9e5b', taxonomy: ['deals'] }
+  { id: 'partnerships', label: 'Strategic Partnerships & Payment Networks', short: 'Partnerships', color: '#5d6b8a', taxonomy: ['deals'] }
 ]);
+
+// The four governed themes featured in the executive KPI strip, trend, momentum and heatmap.
+export const EXECUTIVE_THEME_IDS = Object.freeze(['ai', 'agentic', 'web3', 'aml']);
 
 export const PREMIUM_THEMES = Object.freeze(THEME_DEFINITIONS.map(theme => Object.freeze({ ...theme, ink: inkFor(theme.color) })));
 
@@ -110,6 +113,7 @@ export function utcWeekStart(timestamp) {
 }
 
 const SHORT_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const AXIS_DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const isoDay = timestamp => new Date(timestamp).toISOString().slice(0, 10);
 
 function inWeek(record, week) {
@@ -165,7 +169,6 @@ export const REGION_LABELS = Object.freeze({
   global: 'Global', apac: 'Asia Pacific', europe: 'Europe', americas: 'Americas', mea: 'Middle East & Africa', unclassified: 'Other regions'
 });
 const GLOBAL_SCOPE = new Set(['', 'global', 'worldwide', 'international', 'multiple']);
-export const REGION_FILTER_KEYS = Object.freeze(['global', 'apac', 'europe', 'americas', 'mea']);
 
 export function hasGeographyMetadata(record) {
   return Boolean(record.country || record.region || record.geography);
@@ -189,49 +192,7 @@ export function buildGeographyCoverage(records) {
   };
 }
 
-export function buildExecutiveSummary({ current, previous, scope, geography, liveCount, now }) {
-  const share = (ids, list) => list.filter(record => ids.some(id => record.themeIds.includes(id))).length;
-  const sources = new Set(current.map(record => record.sourceName).filter(Boolean));
-  const sourceCounts = new Map();
-  for (const record of current) sourceCounts.set(record.sourceName, (sourceCounts.get(record.sourceName) || 0) + 1);
-  const topSource = Math.max(0, ...sourceCounts.values());
-  const spark = ids => {
-    const last = utcWeekStart(now);
-    return Array.from({ length: 8 }, (_, index) => {
-      const start = last - (7 - index) * 7 * DAY;
-      return scope.filter(record => inWeek(record, start) && (!ids || ids.some(id => record.themeIds.includes(id)))).length;
-    });
-  };
-  const themed = (id, label, themeId) => {
-    const value = share([themeId], current);
-    return { id, label, value, change: compareCounts(value, share([themeId], previous)), ring: { numerator: value, denominator: current.length },
-      spark: spark([themeId]), color: THEME_COLORS[themeId], note: `${value} of ${current.length} developments` };
-  };
-  return [
-    { id: 'developments', label: 'Verified industry developments', value: current.length, change: compareCounts(current.length, previous.length),
-      ring: null, spark: spark(null), color: '#102c4b', note: 'Selected period' },
-    themed('regulatory', 'Regulatory developments', 'regulatory'),
-    themed('cross-border', 'Cross-border payments', 'cross-border'),
-    themed('infrastructure', 'Payments infrastructure', 'infrastructure'),
-    { id: 'geography', label: 'Geographic coverage', value: geography.countries.length + (geography.countries.length ? 0 : geography.regions.length),
-      unit: geography.countries.length ? (geography.countries.length === 1 ? 'country' : 'countries') : (geography.regions.length === 1 ? 'region' : 'regions'),
-      change: null, ring: { numerator: geography.attributed, denominator: geography.total }, spark: null, color: '#0e7c86',
-      note: `${geography.attributed} of ${geography.total} developments carry verified geography` },
-    { id: 'sources', label: 'Source diversity', value: sources.size, unit: sources.size === 1 ? 'source' : 'sources', change: null, ring: null, spark: null, color: '#b8913a',
-      note: current.length ? `Largest source: ${Math.round(topSource / current.length * 100)}% of developments` : 'No developments in selection' },
-    { id: 'live', label: 'Live announcements', value: liveCount, change: null, ring: null, spark: null, color: '#c0392b', live: true,
-      note: liveCount ? 'Qualifying in the governed 12-hour window' : 'None qualifying in the 12-hour window' }
-  ];
-}
-
-const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-
-export function ringSvg(numerator, denominator, color) {
-  const radius = 15.9155;
-  const fraction = denominator > 0 ? Math.min(1, Math.max(0, numerator / denominator)) : 0;
-  const percent = Math.round(fraction * 100);
-  return `<svg class="smp-ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="${radius}" fill="none" stroke="#e6e1d3" stroke-width="3.4"/>${fraction > 0 ? `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="${esc(color)}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${(fraction * 100).toFixed(2)} 100" transform="rotate(-90 18 18)"/>` : ''}<text x="18" y="21" text-anchor="middle" font-size="8.5" font-weight="700" fill="#102c4b">${percent}%</text></svg>`;
-}
+export const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 
 export function sparklineSvg(values, color) {
   if (!values?.length) return '';
@@ -243,22 +204,15 @@ export function sparklineSvg(values, color) {
   return `<svg class="smp-spark" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points="${points.join(' ')}" fill="none" stroke="${esc(color)}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${((values.length - 1) * step).toFixed(1)}" cy="${points.at(-1).split(',')[1]}" r="2.2" fill="${esc(color)}"/></svg>`;
 }
 
-export function kpiMarkup(item) {
-  const change = item.change ? `<span class="smp-delta" data-direction="${item.change.direction}">${esc(item.change.isNew ? `New (${item.change.deltaLabel})` : item.change.label)}</span>` : '';
-  const visual = item.ring ? ringSvg(item.ring.numerator, item.ring.denominator, item.color) : item.spark ? sparklineSvg(item.spark, item.color) : '';
-  const spoken = `${item.label}: ${item.value}${item.unit ? ` ${item.unit}` : ''}. ${item.note}.${item.change ? ` ${item.change.label}.` : ''}`;
-  return `<article class="smp-kpi"${item.live ? ' data-live="true"' : ''} style="--kpi-color:${esc(item.color)}" role="group" aria-label="${esc(spoken)}"><div class="smp-kpi-head"><span class="smp-kpi-label">${esc(item.label)}</span>${visual}</div><strong>${esc(item.value)}${item.unit ? `<small>${esc(item.unit)}</small>` : ''}</strong>${change}<p>${esc(item.note)}</p></article>`;
-}
-
 export function dataTableMarkup({ caption, columns, rows, drill }) {
   const head = columns.map(column => `<th scope="col">${esc(column)}</th>`).join('') + (drill ? '<th scope="col"><span class="smp-sr">Action</span></th>' : '');
   const body = rows.map(row => `<tr>${row.cells.map((cell, index) => index === 0 ? `<th scope="row">${esc(cell)}</th>` : `<td>${esc(cell)}</td>`).join('')}${drill ? `<td>${row.drill ? `<button type="button" ${row.drill}>${esc(drill)}</button>` : ''}</td>` : ''}</tr>`).join('');
   return `<table class="smp-table"><caption>${esc(caption)}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-export function weeklyTable(weekly) {
-  return dataTableMarkup({ caption: 'Verified industry developments by publication week (UTC)', columns: ['Week starting', 'Developments'], drill: 'Show week',
-    rows: weekly.weeks.map(week => ({ cells: [`${isoDay(week.start)}${week.inProgress ? ' (in progress)' : ''}`, week.count], drill: `data-drill-week="${week.start}"` })) });
+export function trendTable(trend) {
+  return dataTableMarkup({ caption: 'Verified developments per week for the featured themes (UTC weeks; themes overlap)', columns: ['Week starting', ...trend.series.map(series => series.label)], drill: 'Show week',
+    rows: trend.weeks.map((week, index) => ({ cells: [`${isoDay(week.start)}${week.inProgress ? ' (in progress)' : ''}`, ...trend.series.map(series => series.data[index])], drill: `data-drill-week="${week.start}"` })) });
 }
 
 export function momentumTable(rows) {
@@ -272,82 +226,193 @@ export function distributionTable(distribution) {
     rows: distribution.slices.map(slice => ({ cells: [slice.label, slice.count], drill: slice.id === OTHER_THEME.id ? '' : `data-drill-theme="${esc(slice.id)}"` })) });
 }
 
-export function geographyTable(geography) {
-  return dataTableMarkup({ caption: `Developments with verified geography (${geography.attributed} of ${geography.total})`, columns: ['Region or country', 'Developments'], drill: 'Filter region',
-    rows: [...geography.regions.map(region => ({ cells: [`Region · ${region.label}`, region.count], drill: REGION_FILTER_KEYS.includes(region.key) ? `data-drill-region="${esc(region.key)}"` : '' })),
-      ...geography.countries.map(country => ({ cells: [`Country · ${country.label}`, country.count], drill: '' }))] });
+export function geographyTable(regional, coverage) {
+  return dataTableMarkup({ caption: `Developments with verified geography (${regional.mapped} of ${regional.total} map to a region)`, columns: ['Region or country', 'Developments'], drill: 'Filter region',
+    rows: [...regional.regions.map(region => ({ cells: [`Region · ${region.label}`, region.count], drill: `data-drill-region="${esc(region.key)}"` })),
+      ...coverage.countries.map(country => ({ cells: [`Country · ${country.label}`, country.count], drill: '' }))] });
 }
 
-// ECharts option builders. They contain only counts supplied by the builders above.
-const AXIS_TEXT = '#4d5d6e';
-const GRID_LINE = '#e6e1d3';
-const baseOption = { animationDuration: 350, textStyle: { fontFamily: 'Inter, "Segoe UI", Arial, sans-serif' }, aria: { enabled: true } };
-
-export function weeklyChartOption(weekly) {
-  return {
-    ...baseOption,
-    grid: { left: 8, right: 12, top: 28, bottom: 8, containLabel: true },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true,
-      formatter: params => `Week of ${esc(isoDay(weekly.weeks[params[0].dataIndex].start))}${weekly.weeks[params[0].dataIndex].inProgress ? ' (in progress)' : ''}<br/><b>${params[0].value}</b> verified developments` },
-    xAxis: { type: 'category', data: weekly.weeks.map(week => week.label), axisLabel: { color: AXIS_TEXT, fontSize: 11 }, axisLine: { lineStyle: { color: GRID_LINE } }, axisTick: { show: false } },
-    yAxis: { type: 'value', minInterval: 1, max: value => Math.max(value.max, 1), splitLine: { lineStyle: { color: GRID_LINE } }, axisLabel: { color: AXIS_TEXT, fontSize: 11 } },
-    series: [{ type: 'bar', name: 'Verified developments', barMaxWidth: 34, cursor: 'pointer',
-      data: weekly.weeks.map(week => ({ value: week.count, itemStyle: { color: week.inProgress ? '#c8a457' : '#102c4b', borderRadius: [4, 4, 0, 0] } })),
-      label: { show: true, position: 'top', color: '#102c4b', fontSize: 11, formatter: ({ value }) => value || '' },
-      emphasis: { itemStyle: { color: '#b8913a' } } },
-    { type: 'line', name: 'Trend', data: weekly.weeks.map(week => week.count), symbolSize: 5, lineStyle: { color: '#0e7c86', width: 2 }, itemStyle: { color: '#0e7c86' }, silent: true, tooltip: { show: false } }]
-  };
+export function heatmapTable(matrix) {
+  return dataTableMarkup({ caption: 'Relative activity: verified developments by featured theme and region', columns: ['Theme', ...matrix.regions.map(region => region.label)], drill: '',
+    rows: matrix.themes.map((theme, row) => ({ cells: [theme.label, ...matrix.cells[row].map(cell => cell.count)] })) });
 }
 
-// Rows shown in the momentum chart, bottom-to-top so the largest current count renders first.
-export function orderMomentum(rows) {
-  return rows.filter(row => row.current || row.previous)
-    .sort((left, right) => right.current - left.current || right.previous - left.previous || left.label.localeCompare(right.label)).reverse();
+// Executive regions. The display region comes only from governed country, region and geography
+// metadata; aggregate scopes such as "Americas" or "Middle East & Africa" are never split by guesswork.
+export const DISPLAY_REGIONS = Object.freeze([
+  { key: 'na', label: 'North America', short: 'NA', color: '#2563c9', anchor: [-100, 43], offset: [-54, -14] },
+  { key: 'europe', label: 'Europe', short: 'EU', color: '#7c4dcc', anchor: [14, 52], offset: [8, -27] },
+  { key: 'apac', label: 'APAC', short: 'APAC', color: '#0f9d8a', anchor: [112, 32], offset: [52, -4] },
+  { key: 'gcc', label: 'GCC / ME', short: 'GCC', color: '#d98e04', anchor: [48, 25], offset: [46, 29] },
+  { key: 'latam', label: 'Latin America', short: 'LATAM', color: '#d9433f', anchor: [-62, -14], offset: [-54, 4] },
+  { key: 'afr', label: 'Africa', short: 'AFR', color: '#2f9e6b', anchor: [22, 2], offset: [-10, 30] }
+]);
+export const SUBREGION_KEYS = Object.freeze(DISPLAY_REGIONS.map(region => region.key));
+export const GEOGRAPHY_FILTER_KEYS = Object.freeze(['all', 'global', 'apac', 'europe', 'americas', 'mea', 'na', 'latam', 'gcc', 'afr']);
+
+const AGGREGATE_SCOPE = /\b(emea|middle east\s*(?:&|and)\s*africa|the americas|americas|global|worldwide|international)\b/;
+const REGION_PATTERNS = Object.freeze([
+  ['na', /\b(united states|usa|u\.s\.a?\.?|canada|north america)\b|\bus\b/],
+  ['latam', /\b(latin america|latam|caribbean|south america|central america|brazil|mexico|argentina|chile|colombia|peru|uruguay)\b/],
+  ['gcc', /\b(gcc|gulf|middle east|mena|uae|emirates|saudi|qatar|bahrain|oman|kuwait)\b/],
+  ['afr', /\b(africa|nigeria|kenya|ghana|egypt|morocco|tanzania|uganda|ethiopia|rwanda|senegal|south africa)\b/],
+  ['europe', /\b(europe|european|united kingdom|uk|germany|france|sepa|eu|italy|spain|netherlands|switzerland|ireland|sweden|poland)\b/],
+  ['apac', /\b(apac|asia|pacific|singapore|india|japan|china|australia|new zealand|malaysia|thailand|indonesia|philippines|hong kong|korea|vietnam|pakistan|bangladesh|sri lanka|maldives)\b/]
+]);
+
+function matchRegion(text) {
+  const lower = String(text || '').toLowerCase();
+  return lower ? REGION_PATTERNS.find(([, pattern]) => pattern.test(lower))?.[0] || null : null;
 }
 
-export function geographyList(geography, mode = 'regions') {
-  return (mode === 'countries' ? geography.countries : geography.regions).slice(0, 8).reverse();
+export function classifyDisplayRegion(record) {
+  const byCountry = matchRegion(record.country);
+  if (byCountry) return byCountry;
+  const scope = [record.geography, record.region].filter(Boolean).join(' ').toLowerCase();
+  return AGGREGATE_SCOPE.test(scope) ? null : matchRegion(scope);
 }
 
-export function momentumChartOption(rows) {
-  const ordered = orderMomentum(rows);
-  return {
-    ...baseOption,
-    legend: { top: 0, right: 0, itemWidth: 12, itemHeight: 8, textStyle: { color: AXIS_TEXT, fontSize: 11 }, data: ['Current period', 'Preceding period'] },
-    grid: { left: 8, right: 24, top: 28, bottom: 4, containLabel: true },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true,
-      formatter: params => { const row = ordered[params[0].dataIndex]; return `<b>${esc(row.label)}</b><br/>Current: ${row.current}<br/>Preceding: ${row.previous}<br/>Change: ${esc(row.change.isNew ? `New (${row.change.deltaLabel})` : row.change.deltaLabel)}`; } },
-    xAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: GRID_LINE } }, axisLabel: { color: AXIS_TEXT, fontSize: 11 } },
-    yAxis: { type: 'category', data: ordered.map(row => row.short), axisLabel: { color: '#102c4b', fontSize: 11, width: 112, overflow: 'truncate' }, axisTick: { show: false }, axisLine: { show: false } },
-    series: [
-      { type: 'bar', name: 'Preceding period', barMaxWidth: 9, itemStyle: { color: '#c5ccd6', borderRadius: [0, 3, 3, 0] }, cursor: 'pointer', data: ordered.map(row => row.previous), label: { show: true, position: 'right', color: '#6b7788', fontSize: 10 } },
-      { type: 'bar', name: 'Current period', barMaxWidth: 11, cursor: 'pointer', data: ordered.map(row => ({ value: row.current, itemStyle: { color: row.color, borderRadius: [0, 3, 3, 0] } })), label: { show: true, position: 'right', color: '#102c4b', fontSize: 11, fontWeight: 700 } }
-    ]
-  };
+export function matchesGeography(record, key) {
+  if (!key || key === 'all') return true;
+  return SUBREGION_KEYS.includes(key) ? classifyDisplayRegion(record) === key : record.regionKey === key;
 }
 
-export function distributionChartOption(distribution) {
-  return {
-    ...baseOption,
-    tooltip: { trigger: 'item', confine: true, formatter: ({ data }) => `<b>${esc(data.name)}</b><br/>${data.value} unique development${data.value === 1 ? '' : 's'} (primary theme)` },
-    legend: { type: 'plain', bottom: 0, itemWidth: 10, itemHeight: 10, itemGap: 10, textStyle: { color: AXIS_TEXT, fontSize: 11 } },
-    title: { text: String(distribution.unique), subtext: 'unique developments', left: 'center', top: '30%', textStyle: { color: '#102c4b', fontSize: 26, fontFamily: 'Georgia, serif', fontWeight: 600 }, subtextStyle: { color: AXIS_TEXT, fontSize: 11 }, itemGap: 2 },
-    series: [{ type: 'pie', radius: ['44%', '66%'], center: ['50%', '40%'], cursor: 'pointer', avoidLabelOverlap: true, minAngle: 4,
-      itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 4 }, label: { show: false },
-      data: distribution.slices.map(slice => ({ name: slice.short, value: slice.count, id: slice.id, itemStyle: { color: slice.color } })) }]
-  };
+// Share of the developments that map to a verified display region. Unmapped records are reported, not guessed.
+export function buildRegionalActivity(records) {
+  const counts = new Map();
+  let mapped = 0;
+  for (const record of records) {
+    const key = classifyDisplayRegion(record);
+    if (!key) continue;
+    mapped += 1;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  const regions = DISPLAY_REGIONS.map(region => {
+    const count = counts.get(region.key) || 0;
+    return { ...region, count, share: mapped ? count / mapped : 0, percent: mapped ? Math.round(count / mapped * 100) : 0 };
+  });
+  return { total: records.length, mapped, unmapped: records.length - mapped, regions };
 }
 
-export function geographyChartOption(geography, mode = 'regions') {
-  const list = geographyList(geography, mode);
-  return {
-    ...baseOption,
-    grid: { left: 8, right: 28, top: 8, bottom: 4, containLabel: true },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true, formatter: params => `<b>${esc(list[params[0].dataIndex].label)}</b><br/>${params[0].value} verified development${params[0].value === 1 ? '' : 's'}` },
-    xAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: GRID_LINE } }, axisLabel: { color: AXIS_TEXT, fontSize: 11 } },
-    yAxis: { type: 'category', data: list.map(item => item.label), axisLabel: { color: '#102c4b', fontSize: 11, width: 120, overflow: 'truncate' }, axisTick: { show: false }, axisLine: { show: false } },
-    series: [{ type: 'bar', name: 'Verified developments', barMaxWidth: 16, cursor: 'pointer', data: list.map(item => ({ value: item.count, itemStyle: { color: '#0e7c86', borderRadius: [0, 4, 4, 0] } })), label: { show: true, position: 'right', color: '#102c4b', fontSize: 11, fontWeight: 700 } }]
-  };
+export function buildRegionThemeMatrix(records, themeIds = EXECUTIVE_THEME_IDS) {
+  const themes = themeIds.map(id => themeById(id));
+  const regionOf = new Map(records.map(record => [record, classifyDisplayRegion(record)]));
+  const cells = themes.map(theme => DISPLAY_REGIONS.map(region => ({
+    themeId: theme.id, regionKey: region.key,
+    count: records.filter(record => regionOf.get(record) === region.key && record.themeIds.includes(theme.id)).length
+  })));
+  const max = Math.max(0, ...cells.flat().map(cell => cell.count));
+  return { themes, regions: DISPLAY_REGIONS, cells, max, mapped: [...regionOf.values()].filter(Boolean).length };
+}
+
+export function buildTrendByTheme(records, now, themeIds = EXECUTIVE_THEME_IDS, weeks = 8) {
+  const last = utcWeekStart(now);
+  const axis = Array.from({ length: weeks }, (_, index) => {
+    const start = last - (weeks - 1 - index) * 7 * DAY;
+    return { start, short: `W${index + 1}`, date: AXIS_DATE.format(new Date(start)), inProgress: start + 7 * DAY > now };
+  });
+  const series = themeIds.map(id => {
+    const theme = themeById(id);
+    return { id, label: theme.short, color: theme.color, data: buildThemeWeekly(records, id, now, weeks) };
+  });
+  return { weeks: axis, series, max: Math.max(0, ...series.flatMap(item => item.data)), total: series.reduce((sum, item) => sum + item.data.reduce((a, b) => a + b, 0), 0) };
+}
+
+// Featured themes are listed individually; every other primary theme is grouped so the ring stays readable.
+export function buildExecutiveDonut(distribution, themeIds = EXECUTIVE_THEME_IDS) {
+  const byId = new Map(distribution.slices.map(slice => [slice.id, slice]));
+  const featured = themeIds.map(id => {
+    const theme = themeById(id);
+    return { id, label: theme.short, color: theme.color, count: byId.get(id)?.count || 0 };
+  });
+  const other = distribution.unique - featured.reduce((sum, slice) => sum + slice.count, 0);
+  const slices = [...featured, ...(other > 0 ? [{ id: 'other-themes', label: 'Other themes', color: '#9aa7b6', count: other }] : [])]
+    .map(slice => ({ ...slice, percent: distribution.unique ? Math.round(slice.count / distribution.unique * 100) : 0 }));
+  return { unique: distribution.unique, slices };
+}
+
+export function priorPeriodLabel(period) {
+  return ({ '24H': 'vs. prior 24 hours', '7D': 'vs. prior 7 days', '30D': 'vs. prior 30 days', '8W': 'vs. prior 8 weeks' })[period] || 'vs. preceding period';
+}
+
+export function periodLabel(period) {
+  return ({ '24H': 'Last 24 hours', '7D': 'Last 7 days', '30D': 'Last 30 days', '8W': 'Last 8 weeks', QTD: 'Quarter to date', YTD: 'Year to date', CUSTOM: 'Custom range' })[period] || period;
+}
+
+// A percentage is shown only when the preceding count is non-zero.
+export function deltaBadge(change) {
+  if (!change) return null;
+  if (change.isNew) return { text: 'New', direction: 'up' };
+  if (change.direction === 'flat') return { text: change.label === 'No activity' ? '—' : '0%', direction: 'flat' };
+  const parts = /^([+−])(<1%|\d+%)/.exec(change.label);
+  return { text: parts ? `${parts[1]}${parts[2]}` : change.deltaLabel, direction: change.direction };
+}
+
+export function buildExecutiveKpis({ scoped, previous, current, previousCurrent, themeIds = EXECUTIVE_THEME_IDS }) {
+  const count = (list, id) => list.filter(record => record.themeIds.includes(id)).length;
+  const themes = themeIds.map(id => {
+    const theme = themeById(id);
+    const value = count(scoped, id);
+    return { id, label: theme.label, color: theme.color, icon: id, value, previous: count(previous, id), change: compareCounts(value, count(previous, id)) };
+  });
+  const total = { id: 'total', label: 'Verified Developments', color: '#b8913a', icon: 'pulse', value: current.length, previous: previousCurrent.length,
+    change: compareCounts(current.length, previousCurrent.length) };
+  return { themes, total };
+}
+
+// Executive Summary sentences are assembled from computed figures only; they never assert more than the counts show.
+export function buildSummaryPoints({ kpis, regional, current, scoped, period }) {
+  const points = [];
+  const featured = kpis.themes;
+  const prior = priorPeriodLabel(period).replace('vs. ', '');
+  const leader = [...featured].sort((left, right) => right.value - left.value)[0];
+  if (leader?.value) {
+    const badge = deltaBadge(leader.change);
+    points.push(`${leader.label} leads with ${leader.value} of ${scoped.length} verified developments${badge && badge.direction !== 'flat' ? ` (${badge.text} vs. ${prior})` : ''}.`);
+  } else points.push('No verified development in this selection matches the four featured themes.');
+  const growers = featured.filter(item => item.previous > 0 && item.value > item.previous)
+    .sort((left, right) => (right.value / right.previous) - (left.value / left.previous));
+  const fresh = featured.filter(item => item.previous === 0 && item.value > 0);
+  if (growers.length) points.push(`${growers[0].label} grows fastest: ${growers[0].value} vs. ${growers[0].previous} in the ${prior} (${deltaBadge(growers[0].change).text}).`);
+  else if (fresh.length) points.push(`${fresh[0].label} is new: ${fresh[0].value} verified development${fresh[0].value === 1 ? '' : 's'}, none in the ${prior}.`);
+  else points.push(`No featured theme grew compared with the ${prior}.`);
+  const top = [...regional.regions].sort((left, right) => right.count - left.count)[0];
+  if (top?.count) points.push(`${top.label} has the largest regional share: ${top.percent}% of ${regional.mapped} geo-verified developments.`);
+  else points.push('Too few developments carry verified geography to compare regions.');
+  const latest = current[0];
+  points.push(latest ? `Latest: ${latest.title.length > 38 ? `${latest.title.slice(0, 35)}…` : latest.title} (${latest.sourceName}, ${isoDay(Date.parse(latest.publishedAt))}).`
+    : 'No verified development is available for the selected period.');
+  return points;
+}
+
+// Key developments: the newest record of each distinct primary theme first, then the next newest, shown oldest to newest.
+export function buildTimelineEvents(records, limit = 5) {
+  const seen = new Set();
+  const key = [];
+  for (const record of records) {
+    const theme = primaryThemeId(record);
+    if (key.length < limit && !seen.has(theme)) { seen.add(theme); key.push(record); }
+  }
+  for (const record of records) if (key.length < limit && !key.includes(record)) key.push(record);
+  return key.sort((left, right) => left.publishedAt.localeCompare(right.publishedAt)).map(record => {
+    const theme = themeById(primaryThemeId(record));
+    const date = new Date(record.publishedAt);
+    return { id: record.id, title: record.title, url: record.url, sourceName: record.sourceName, publishedAt: record.publishedAt,
+      month: new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(date).toUpperCase(), day: String(date.getUTCDate()).padStart(2, '0'),
+      themeId: theme.id, themeLabel: theme.short, color: theme.color };
+  });
+}
+
+// Green (lower activity) through yellow to red (higher activity). Zero is a distinct neutral tone.
+export function heatColor(ratio) {
+  if (!(ratio > 0)) return '#edf0e8';
+  const stops = [[0, [143, 209, 140]], [0.5, [247, 226, 122]], [0.78, [247, 164, 96]], [1, [236, 82, 78]]];
+  const clamped = Math.min(1, ratio);
+  const upper = stops.findIndex(([at]) => at >= clamped);
+  const [fromAt, from] = stops[Math.max(0, upper - 1)];
+  const [toAt, to] = stops[Math.max(1, upper)];
+  const t = toAt === fromAt ? 0 : (clamped - fromAt) / (toAt - fromAt);
+  return `#${from.map((value, index) => Math.round(value + (to[index] - value) * Math.min(1, Math.max(0, t))).toString(16).padStart(2, '0')).join('')}`;
 }
 
 // Smart Share: only whitelisted dashboard parameters ever leave the page; no tokens, user
