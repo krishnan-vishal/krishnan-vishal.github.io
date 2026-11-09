@@ -410,6 +410,34 @@ function renderTopSignal(root, records) {
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}${evidenceTag(item)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
 
+
+function renderExecutiveAnalytics(root, current, previous, now) {
+  const technical = record => Boolean(evidenceKind(record));
+  const governed = current.filter(record => !technical(record));
+  const prior = previous.filter(record => !technical(record));
+  const safeBar = (label, value, max, secondary = '') =>
+    `<div class="smi-analytics-bar"><div class="smi-analytics-bar-label"><span>${escapeHtml(label)}</span><strong>${value}${secondary ? ` <small>${escapeHtml(secondary)}</small>` : ''}</strong></div><div class="smi-analytics-track"><i style="width:${max ? (value / max * 100).toFixed(2) : 0}%"></i></div></div>`;
+  const weekly = Array.from({ length: 8 }, (_, index) => utcWeekStart(now) - (7 - index) * 7 * DAY);
+  const weekCounts = weekly.map(week => governed.filter(record => {
+    const date = Date.parse(record.publishedAt);
+    return date >= week && date < week + 7 * DAY;
+  }).length);
+  const maxWeek = Math.max(1, ...weekCounts);
+  root.querySelector('[data-smart-weekly-chart]').innerHTML = `<div class="smi-week-bars" role="img" aria-label="${escapeHtml(weekly.map((week, i) => `${isoDay(week)}: ${weekCounts[i]} records`).join('; '))}">${weekly.map((week, index) => `<div class="smi-week-bar"><b>${weekCounts[index] || ''}</b><i style="height:${Math.max(3, weekCounts[index] / maxWeek * 100)}%"></i><span>${new Date(week).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span></div>`).join('')}</div>`;
+  const topics = SMART_TOPICS.map(topic => ({ label: topic.label, count: governed.filter(record => record.topicIds.includes(topic.id)).length, prior: prior.filter(record => record.topicIds.includes(topic.id)).length })).filter(topic => topic.count || topic.prior).sort((a,b) => b.count - a.count || a.label.localeCompare(b.label)).slice(0, 6);
+  const maxTopic = Math.max(1, ...topics.map(topic => topic.count));
+  root.querySelector('[data-smart-topic-chart]').innerHTML = topics.length ? topics.map(topic => safeBar(topic.label, topic.count, maxTopic, `prior ${topic.prior}`)).join('') : '<p class="smi-analytics-empty">No qualifying topic observations in this selection.</p>';
+  const geoCounts = new Map();
+  for (const record of governed) {
+    const label = clean(record.region || record.country || record.countryCode || '', 60);
+    if (label) geoCounts.set(label, (geoCounts.get(label) || 0) + 1);
+  }
+  const geos = [...geoCounts].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 6);
+  const maxGeo = Math.max(1, ...geos.map(([,count]) => count));
+  root.querySelector('[data-smart-geo-chart]').innerHTML = geos.length ? geos.map(([label,count]) => safeBar(label,count,maxGeo)).join('') : '<p class="smi-analytics-empty">No governed geographic attribution for this selection.</p>';
+  root.querySelector('[data-smart-analytics-note]').textContent = `${governed.length} industry developments · ${current.length - governed.length} technical/statistical references kept in source evidence · ${prior.length} industry developments in the preceding equivalent period. Topic counts can overlap.`;
+}
+
 function renderKpis(root, current, previous) {
   root.querySelector('[data-smart-kpis]').innerHTML = buildDashboardMetrics(current, previous)
     .map(item => `<article class="smi-kpi" data-tone="${item.tone || 'blue'}"><strong>${item.value}</strong><span>${escapeHtml(item.label)}</span><em>${escapeHtml(item.comparison.label)}</em></article>`).join('');
@@ -670,6 +698,7 @@ export async function initializeSmartIntelligence({ global = window,
     loadTopicIntelligence(state.alertId);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
+    renderExecutiveAnalytics(root, current, previous, requestNow);
     renderTopicCards(root, baseCurrent, basePrevious);
     renderCompareWindow(root, bounds);
     renderHeatmap(root, historicalContext, requestNow, state.heat);
