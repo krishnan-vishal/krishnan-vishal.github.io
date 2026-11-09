@@ -10,7 +10,7 @@
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
   <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
-  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109b">
+  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109premium">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -64,6 +64,16 @@
 
     <section aria-label="Intelligence indicators"><div class="smi-kpis" data-smart-kpis></div></section>
 
+    <section class="smi-analytics" aria-labelledby="smi-analytics-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">EXECUTIVE ANALYTICS</p><h2 id="smi-analytics-title">Payments intelligence at a glance</h2></div><p>Observed historical evidence · descriptive counts, not forecasts</p></div>
+      <div class="smi-analytics-grid">
+        <article class="smi-analytics-panel"><h3>Weekly development activity</h3><p>Unique verified records by publication week</p><div data-smart-weekly-chart></div></article>
+        <article class="smi-analytics-panel"><h3>Topic momentum</h3><p>Current selection versus preceding equivalent period</p><div data-smart-topic-chart></div></article>
+        <article class="smi-analytics-panel"><h3>Geographic coverage</h3><p>Distribution of records with a governed geography</p><div data-smart-geo-chart></div></article>
+      </div>
+      <p class="smi-analytics-note" data-smart-analytics-note></p>
+    </section>
+
     <section aria-labelledby="smi-topic-title">
       <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period. Counts are descriptive and imply no forecast.</p></div>
       <p class="smi-compare-window" data-smart-compare-window></p>
@@ -92,6 +102,6 @@
   </main>
   <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
   <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109b" defer></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109d"></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109premium"></script>
 </body>
 </html>

@@ -294,3 +294,24 @@
 .gpir-sc .smi-reader-methodology .smi-record-facts div{border-radius:.5rem;border-left:2px solid var(--sc-gold)}
 .gpir-sc .smi-reader-methodology a{display:inline-block;margin-top:.6rem;font-size:.75rem}
 @media(max-width:680px){.gpir-sc .smi-reader-facts div{border-radius:.5rem}.gpir-sc .smi-record[data-evidence]{grid-column:1/-1}}
+
+/* Premium executive analytics: compact light-theme Power BI-inspired visual hierarchy. */
+.gpir-sc .smi-analytics{margin:1rem 0;padding:1rem;background:#fff;border:1px solid #dce4ec;border-top:3px solid var(--sc-gold);border-radius:.8rem}
+.gpir-sc .smi-analytics-grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:.8rem}
+.gpir-sc .smi-analytics-panel{min-width:0;padding:1rem;border:1px solid #dfe6ed;border-radius:.7rem;background:linear-gradient(155deg,#fff,#f7f9fc)}
+.gpir-sc .smi-analytics-panel h3{margin:0;font-size:.95rem;color:#102e4d}
+.gpir-sc .smi-analytics-panel>p{font-size:.73rem;color:#536a7f;margin:.25rem 0 .8rem}
+.gpir-sc .smi-week-bars{display:flex;gap:.35rem;height:11rem;align-items:stretch;padding:.4rem .1rem .2rem}
+.gpir-sc .smi-week-bar{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:.22rem}
+.gpir-sc .smi-week-bar i{display:block;width:70%;min-height:2px;background:linear-gradient(#2f86a4,#143d5d);border-radius:.35rem .35rem 0 0}
+.gpir-sc .smi-week-bar b{font-size:.7rem;color:#153c5b;min-height:1rem}
+.gpir-sc .smi-week-bar span{font-size:.63rem;color:#51677d;white-space:nowrap}
+.gpir-sc .smi-analytics-bar{margin:.55rem 0}
+.gpir-sc .smi-analytics-bar-label{display:flex;justify-content:space-between;gap:.5rem;font-size:.73rem;color:#193955}
+.gpir-sc .smi-analytics-bar-label strong{white-space:nowrap}
+.gpir-sc .smi-analytics-bar-label small{font-weight:400;color:#64788a}
+.gpir-sc .smi-analytics-track{height:.55rem;background:#e6edf2;border-radius:999px;overflow:hidden;margin-top:.25rem}
+.gpir-sc .smi-analytics-track i{display:block;height:100%;background:linear-gradient(90deg,#c9a347,#3687a3);border-radius:999px}
+.gpir-sc .smi-analytics-note,.gpir-sc .smi-analytics-empty{font-size:.75rem;color:#566c7d;margin:.65rem 0 0}
+@media(max-width:1020px){.gpir-sc .smi-analytics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.gpir-sc .smi-analytics-grid{grid-template-columns:1fr}.gpir-sc .smi-week-bar span{font-size:.57rem}}
