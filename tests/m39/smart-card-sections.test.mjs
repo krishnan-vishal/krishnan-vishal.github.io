@@ -12,7 +12,7 @@ test('smart page loads the presentation assets with versioned references and the
   assert.match(page, /<body class="smi-page gpir-sc">/);
   assert.match(page, /gpir-smart-card-sections\.css\?v=\d+[a-z]?"/);
   assert.match(page, /gpir-smart-card-sections\.js\?v=\d+[a-z]?" defer/);
-  assert.match(page, /smart-intelligence\.mjs\?v=20261109c/);
+  assert.match(page, /smart-intelligence\.mjs\?v=20261109d/);
 });
 
 test('presentation stylesheet is scoped to .gpir-sc and never hides original text', () => {

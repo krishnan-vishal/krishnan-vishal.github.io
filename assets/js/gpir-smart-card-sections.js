@@ -145,6 +145,8 @@
             cells.forEach(function (cell) { cell.hidden = !visible; });
             if (visible) shown += 1;
         });
+        var visibleCells = qa('.smi-heat-cell', host).filter(function (cell) { return !cell.hidden; });
+        if (visibleCells.length && !visibleCells.some(function (cell) { return cell.tabIndex === 0; })) visibleCells[0].tabIndex = 0;
         setToggle(heatTools, showAllHeat, 'Show all ' + labels.length + ' topics', 'Show active topics only',
             'Showing ' + shown + ' of ' + labels.length + ' topics · active topics have a signal in the 12 weeks or the selected period');
     }
