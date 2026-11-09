@@ -351,6 +351,9 @@ function renderLibrary(document, target, library, available = true) {
 
 // Public FX research is intentionally independent of paid publication entitlements.
 // Only already-published CMS editorial records are exposed; account library access is unchanged.
+// Topic-based payments Smart Intelligence dashboard; independent of the currency pair.
+export const SMART_INTELLIGENCE_URL = '/pages/intelligence/smart.html';
+
 export function publicFxResearchRecords(value) {
   if (value?.source !== 'contentful-published-public' || !Array.isArray(value.records)) return [];
   const seen = new Set();
@@ -365,11 +368,11 @@ export function publicFxResearchRecords(value) {
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
       fxIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html`,
-      smartIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M` }];
+      smartIntelligenceUrl: SMART_INTELLIGENCE_URL }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 
-async function renderPublicFxResearch(document, fetchImpl) {
+export async function renderPublicFxResearch(document, fetchImpl) {
   const target = document.querySelector('[data-reader-public-research]');
   if (!target || typeof fetchImpl !== 'function') return;
   const section = textElement(document, 'section', '', 'my-gpir-public-research');

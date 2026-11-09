@@ -90,10 +90,8 @@ test('My GPIR separates public research from paid library and exposes three exac
   const records = publicFxResearchRecords(editorialValue);
   assert.equal(records.length, 26);
   const aed = records.find(record => record.pair === 'AED/INR');
-  assert.equal(aed.fxIntelligenceUrl,
-    '/pages/fx/intelligence.html?base=AED&quote=INR&period=M');
-  assert.equal(aed.smartIntelligenceUrl,
-    '/pages/fx/pairs/aed-inr.html');
+  assert.equal(aed.fxIntelligenceUrl, '/pages/fx/pairs/aed-inr.html');
+  assert.equal(aed.smartIntelligenceUrl, '/pages/intelligence/smart.html');
   assert.match(aed.editorialUrl, /^\//);
   assert.match(dashboard, /id="public-research"/);
   assert.match(dashboard, /data-reader-public-research/);
