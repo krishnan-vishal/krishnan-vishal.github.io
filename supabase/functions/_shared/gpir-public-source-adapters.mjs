@@ -329,3 +329,28 @@ export function parseGdeltDiscovery(payload, topic, { maxRecords = 50 } = {}) {
     })];
   }).slice(0, maxRecords);
 }
+
+export function matchGdeltPublisherSource(articleUrl, sources) {
+  let article;
+  try {
+    article = new URL(articleUrl);
+    if (article.protocol !== 'https:' || article.username || article.password) return null;
+  } catch { return null; }
+  const matches = [];
+  for (const source of Array.isArray(sources) ? sources : []) {
+    if (source?.source_id === 'GDELT-GLOBAL-001' || source?.source_status !== 'GREEN') continue;
+    try {
+      const official = new URL(source.official_url);
+      if (official.protocol !== 'https:' || official.username || official.password) continue;
+      const host = article.hostname.toLowerCase().replace(/^www\./, '');
+      const officialHost = official.hostname.toLowerCase().replace(/^www\./, '');
+      if (host === officialHost || host.endsWith(`.${officialHost}`))
+        matches.push({ source, hostLength: officialHost.length });
+    } catch {}
+  }
+  if (!matches.length) return null;
+  const longest = Math.max(...matches.map(match => match.hostLength));
+  const specific = matches.filter(match => match.hostLength === longest);
+  const sourceIds = new Set(specific.map(match => match.source.source_id));
+  return sourceIds.size === 1 ? specific[0].source : null;
+}

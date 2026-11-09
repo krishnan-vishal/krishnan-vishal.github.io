@@ -22,6 +22,7 @@ import {
   buildBisDataUrl,
   buildBisReleaseCalendarUrl,
   buildGdeltQueryUrl,
+  matchGdeltPublisherSource,
   parseBisReleaseCalendarCsv,
   parseBisSdmxCsv,
   parseGdeltDiscovery,
@@ -66,6 +67,7 @@ type DiscoveredItem = {
   // Optional source publication date discovered from an index/listing page.
   indexPublishedAt?: string | null;
   discovery?: Record<string, unknown> | null;
+  publisherSource?: SourceRecord;
 };
 
 function cleanText(value: string): string {
@@ -1079,8 +1081,27 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverPymntsLinks(indexHtml, indexResponse.url)
           : discoverLinks(indexHtml, indexResponse.url);
 
-        const selected =
-          discovered.slice(0, MAX_PAGE_FETCHES);
+        let unmatchedPublisherSources = 0;
+        let routedDiscoveries = discovered;
+        if (requestedSource === GDELT_SOURCE_ID) {
+          const { data: approvedSources, error: approvedSourceError } = await ctx.supabaseAdmin
+            .from("source_registry")
+            .select("source_id,source_name,official_url,feed_or_index_url,acquisition_method,parser_profile,source_status")
+            .eq("source_status", "GREEN")
+            .limit(1000);
+          if (approvedSourceError) throw new Error(`GDELT_PUBLISHER_REGISTRY_ERROR: ${approvedSourceError.message}`);
+          routedDiscoveries = [];
+          for (const item of discovered) {
+            const publisherSource = matchGdeltPublisherSource(item.url, approvedSources || []) as SourceRecord | null;
+            if (!publisherSource) {
+              unmatchedPublisherSources++;
+              continue;
+            }
+            routedDiscoveries.push({ ...item, publisherSource });
+          }
+        }
+
+        const selected = routedDiscoveries.slice(0, MAX_PAGE_FETCHES);
 
         const preview: unknown[] = [];
         // ----------------------------------------------------
@@ -1088,6 +1109,7 @@ const source = sourceRows[0] as SourceRecord;
         // ----------------------------------------------------
 
         for (const item of selected) {
+          const articleSource = item.publisherSource || source;
           try {
             const pageResponse = await fetch(item.url, {
               headers: {
@@ -1130,6 +1152,14 @@ const source = sourceRows[0] as SourceRecord;
               continue;
             }
 
+            if (requestedSource === GDELT_SOURCE_ID &&
+              !matchGdeltPublisherSource(pageResponse.url || item.url, [articleSource])) {
+              fetchErrors++;
+              preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
+                type: "GDELT_PUBLISHER_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
+              continue;
+            }
+
             const pageHtml = await pageResponse.text();
 
             const meta = extractMeta(
@@ -1138,6 +1168,13 @@ const source = sourceRows[0] as SourceRecord;
               pageResponse.url,
               requestedSource === RBI_SOURCE_ID,
             );
+            if (requestedSource === GDELT_SOURCE_ID &&
+              !matchGdeltPublisherSource(meta.canonicalUrl || pageResponse.url || item.url, [articleSource])) {
+              fetchErrors++;
+              preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
+                type: "GDELT_CANONICAL_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
+              continue;
+            }
             if (requestedSource === RBA_SOURCE_ID) {
               const canonicalUrl = absoluteUrl(meta.canonicalUrl || pageResponse.url, pageResponse.url);
               const discoveredUrl = absoluteUrl(item.url, pageResponse.url);
@@ -1184,14 +1221,14 @@ const source = sourceRows[0] as SourceRecord;
             const fingerprint =
               await sha256(
                 [
-                  source.source_id,
+                  articleSource.source_id,
                   meta.title,
                   meta.canonicalUrl || pageResponse.url,
                 ].join("|").toLowerCase(),
               );
 
             const rawRecord = {
-              source_id: source.source_id,
+              source_id: articleSource.source_id,
               discovered_url: item.url,
               canonical_url:
                 meta.canonicalUrl || pageResponse.url,
@@ -1217,9 +1254,9 @@ const source = sourceRows[0] as SourceRecord;
 
               metadata: {
                 engine: "M33-F5",
-                parser_profile: source.parser_profile,
+                parser_profile: articleSource.parser_profile,
                 acquisition_method:
-                  source.acquisition_method,
+                  articleSource.acquisition_method,
                 discovered_title:
                   item.title,
                 content_type:
@@ -1228,10 +1265,10 @@ const source = sourceRows[0] as SourceRecord;
                   dryRun,
                 discovery:
                   item.discovery || null,
-                publication_eligible:
-                  requestedSource === GDELT_SOURCE_ID ? false : null,
                 source_verification_required:
                   requestedSource === GDELT_SOURCE_ID,
+                discovery_source_id: requestedSource === GDELT_SOURCE_ID ? GDELT_SOURCE_ID : null,
+                publisher_source_id: articleSource.source_id,
               },
             };
 
@@ -1456,6 +1493,8 @@ if (gate1Decision === "PASS") {
           statistics: {
             links_discovered:
               discovered.length,
+              unmatched_publisher_sources:
+                unmatchedPublisherSources,
             pages_selected:
               selected.length,
             raw_records_inserted:
