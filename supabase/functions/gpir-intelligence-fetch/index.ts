@@ -665,6 +665,7 @@ export default {
     async (req, ctx) => {
       const startedAt = new Date().toISOString();
       let runId: string | null = null;
+      let gdeltRetryAfterAt: string | null = null;
       let runSourceId: string | null = null;
       let sourceClaimToken: string | null = null;
       let sourceClaimHeld = false;
@@ -787,6 +788,30 @@ const source = sourceRows[0] as SourceRecord;
         }
         if (requestedSource === PYMNTS_SOURCE_ID && source.parser_profile !== "universal-finance") {
           throw new Error(`PYMNTS_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
+        }
+
+        if (requestedSource === GDELT_SOURCE_ID) {
+          // Persist cooldown in existing ingestion history, including across deployments.
+          const { data: priorRuns, error: historyError } = await ctx.supabaseAdmin
+            .from("intelligence_ingestion_runs")
+            .select("metadata")
+            .eq("source_id", GDELT_SOURCE_ID)
+            .order("started_at", { ascending: false })
+            .limit(5);
+          if (historyError) throw new Error("GDELT_COOLDOWN_READ_FAILED: " + historyError.message);
+          const activeCooldown = (priorRuns || [])
+            .map((run: { metadata?: { gdelt_retry_after_at?: string } }) =>
+              Date.parse(run.metadata?.gdelt_retry_after_at || ""))
+            .filter((until: number) => Number.isFinite(until) && until > Date.now())
+            .sort((a: number, b: number) => b - a)[0];
+          if (activeCooldown) {
+            return Response.json({
+              ok: false, source_id: GDELT_SOURCE_ID,
+              outcome: "GDELT_RATE_LIMIT_COOLDOWN",
+              retry_after_at: new Date(activeCooldown).toISOString(),
+              external_fetch_attempted: false,
+            }, { status: 429 });
+          }
         }
 
         if (!dryRun) {
@@ -1056,9 +1081,19 @@ const source = sourceRows[0] as SourceRecord;
         });
 
         if (!indexResponse.ok) {
-          throw new Error(
-            `INDEX_FETCH_FAILED_HTTP_${indexResponse.status}`,
-          );
+          if (requestedSource === GDELT_SOURCE_ID && indexResponse.status === 429) {
+            const retryAfter = indexResponse.headers.get("Retry-After");
+            const seconds = retryAfter && /^[0-9]+$/.test(retryAfter.trim())
+              ? Number(retryAfter.trim()) : NaN;
+            const headerDate = retryAfter && !Number.isFinite(seconds)
+              ? Date.parse(retryAfter) : NaN;
+            const delayMs = Number.isFinite(seconds) ? seconds * 1000
+              : Number.isFinite(headerDate) ? headerDate - Date.now()
+              : 60 * 60 * 1000;
+            gdeltRetryAfterAt = new Date(Date.now() +
+              Math.max(15 * 60 * 1000, Math.min(6 * 60 * 60 * 1000, delayMs))).toISOString();
+          }
+          throw new Error(`INDEX_FETCH_FAILED_HTTP_${indexResponse.status}`);
         }
 
         const indexHtml = await indexResponse.text();
@@ -1529,7 +1564,7 @@ if (gate1Decision === "PASS") {
           await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
             completed_at: new Date().toISOString(), run_status: "FAILED",
             records_published: 0, error_message: errorMessage,
-            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors },
+            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors, ...(gdeltRetryAfterAt ? { gdelt_retry_after_at: gdeltRetryAfterAt } : {}) },
           }).eq("id", runId);
         }
         console.error("GPIR M33-F5 failure:", error);
