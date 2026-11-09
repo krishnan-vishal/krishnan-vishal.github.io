@@ -80,6 +80,15 @@ export function classifyRecordTopics(record) {
   return classifyTopicIds(record);
 }
 
+function normalizeDimensions(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
+  return Object.entries(value).flatMap(([key, entry]) => {
+    const label = clean(key, 40);
+    const text = typeof entry === 'string' || typeof entry === 'number' ? clean(String(entry), 80) : '';
+    return label && text ? [{ key: label, value: text }] : [];
+  }).slice(0, 12);
+}
+
 export function normalizeSmartRecords(value) {
   if (value?.status !== 'OK' || !Array.isArray(value.records)) return [];
   return value.records.flatMap(item => {
@@ -105,7 +114,15 @@ export function normalizeSmartRecords(value) {
       providerReleaseDate: clean(item.providerReleaseDate, 10),
       referenceDate: clean(item.referenceDate, 10),
       recordType: clean(item.recordType, 60),
-      product: clean(item.product, 100)
+      product: clean(item.product, 100),
+      repository: clean(item.repository, 100),
+      observationDate: clean(item.observationDate, 10),
+      countryCode: clean(item.countryCode, 10),
+      statisticalValue: typeof item.statisticalValue === 'number' && Number.isFinite(item.statisticalValue)
+        ? item.statisticalValue : null,
+      unitMeasure: clean(item.unitMeasure, 60),
+      unitMultiplier: clean(item.unitMultiplier, 60),
+      dimensions: normalizeDimensions(item.dimensions)
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
@@ -203,11 +220,21 @@ function isCritical(record) {
     [record.title, record.summary, record.outcomeStatus].filter(Boolean).join(' '));
 }
 
+// Descriptive count comparison. A zero preceding count never produces a percentage.
+export function compareCounts(current, previous) {
+  const delta = current - previous;
+  const deltaLabel = delta > 0 ? `+${delta}` : delta < 0 ? `−${Math.abs(delta)}` : '0';
+  if (!current && !previous) return { label: 'No activity', direction: 'flat', delta, deltaLabel, isNew: false };
+  if (!previous) return { label: 'New', direction: 'up', delta, deltaLabel, isNew: true };
+  if (!delta) return { label: 'No change', direction: 'flat', delta, deltaLabel, isNew: false };
+  const percent = Math.round((delta / previous) * 100);
+  const magnitude = percent === 0 ? '<1%' : `${Math.abs(percent)}%`;
+  return { label: `${delta > 0 ? '+' : '−'}${magnitude} vs prior`, direction: delta > 0 ? 'up' : 'down', delta, deltaLabel, isNew: false };
+}
+
 function comparison(current, previous) {
-  if (current === previous) return { label: 'No change', direction: 'flat' };
-  if (!previous) return { label: current ? `New · +${current}` : 'No activity', direction: current ? 'up' : 'flat' };
-  const percent = Math.round(((current - previous) / previous) * 100);
-  return { label: `${percent > 0 ? '+' : ''}${percent}% vs prior`, direction: percent > 0 ? 'up' : 'down' };
+  const { label, direction } = compareCounts(current, previous);
+  return { label, direction };
 }
 
 export function buildDashboardMetrics(current, previous) {
@@ -237,6 +264,61 @@ export function buildHeatmap(records, now = Date.now()) {
   return { weeks, rows, max };
 }
 
+// Records behind one heatmap cell plus a like-for-like comparison with the preceding week.
+// A week still in progress is compared with the same elapsed days of the preceding week.
+export function buildHeatmapSelection(records, topicId, weekStart, now = Date.now()) {
+  const inProgress = weekStart + 7 * DAY > now;
+  const elapsedDays = inProgress ? Math.min(7, Math.max(1, Math.floor((now - weekStart) / DAY) + 1)) : 7;
+  const previousStart = weekStart - 7 * DAY;
+  const inWindow = (record, start, days) => {
+    const time = Date.parse(record.publishedAt);
+    return time >= start && time < start + days * DAY && record.topicIds.includes(topicId);
+  };
+  const current = records.filter(record => inWindow(record, weekStart, elapsedDays));
+  const previous = records.filter(record => inWindow(record, previousStart, elapsedDays));
+  const previousAvailable = previousStart >= HISTORY_FLOOR;
+  return {
+    topicId, weekStart, weekEnd: weekStart + 6 * DAY, inProgress, elapsedDays,
+    current, previous, previousStart, previousAvailable,
+    comparison: previousAvailable ? compareCounts(current.length, previous.length) : null,
+    sourceCount: new Set(current.map(record => record.sourceName).filter(Boolean)).size
+  };
+}
+
+// Distinguishes machine-readable statistics and GitHub repository history from announcements.
+export function evidenceKind(record) {
+  if (record?.dataClass === 'STATISTICAL_REFERENCE') {
+    return { id: 'statistical', label: 'BIS statistical reference',
+      tag: 'BIS statistical data (SDMX XML)',
+      note: 'Authoritative BIS statistical observation. The linked raw XML is machine-readable source data, not an article or announcement.',
+      linkLabel: 'Open machine-readable source data (SDMX XML)' };
+  }
+  if (record?.dataClass === 'TECHNICAL_REFERENCE') {
+    return { id: 'technical', label: 'Technical repository evidence',
+      tag: 'GitHub repository evidence',
+      note: 'GitHub repository history for product development. It is technical evidence, not a payments-industry announcement.',
+      linkLabel: 'Open repository evidence on GitHub' };
+  }
+  return null;
+}
+
+// Reads only the validated GitHub URL path (release tag or commit hash) and record metadata.
+export function describeTechnicalChange(record) {
+  let pathName = '';
+  try { pathName = new URL(record.url).pathname; } catch {}
+  const release = /\/releases\/tag\/([^/]+)$/.exec(pathName);
+  const commit = /\/commit\/([0-9a-f]{40})$/.exec(pathName);
+  let tag = '';
+  if (release) { try { tag = decodeURIComponent(release[1]); } catch { tag = release[1]; } }
+  if (release || record.recordType === 'SOFTWARE_RELEASE') {
+    return { type: 'Software release', referenceLabel: 'Release tag', reference: tag,
+      description: `Software release${tag ? ` ${tag}` : ''} published in the ${record.repository || 'official'} repository.` };
+  }
+  const sha = commit ? commit[1].slice(0, 12) : '';
+  return { type: 'Repository commit', referenceLabel: 'Commit', reference: sha,
+    description: `Repository commit${sha ? ` ${sha}` : ''} recorded in ${record.repository || 'the official repository'}. The validated metadata does not include a commit message; open the commit for the full change.` };
+}
+
 function endpointOrigin(global) {
   try {
     const url = new URL(global.GPIR_SUPABASE_PUBLIC_CONFIG?.url);
@@ -257,13 +339,59 @@ async function fetchHistory(fetchImpl, origin) {
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
 
+function evidenceMarkup(record, kind) {
+  if (!kind) return '';
+  // Reader-facing highlights use validated normalized metadata only. Raw source fields
+  // remain available on demand, never as a wall of technical database columns.
+  const facts = [];
+  const add = (label, value) => { if (value !== '' && value != null) facts.push([label, String(value)]); };
+  let headline = '';
+  let context = '';
+  if (kind.id === 'statistical') {
+    const value = record.statisticalValue;
+    const title = record.dimensions.find(d => d.key === 'TITLE')?.value || record.title;
+    const policyRate = /policy rate/i.test(title);
+    headline = value == null ? 'Recorded observation' : String(value) + (policyRate ? '%' : '');
+    context = 'Historical observation · ' + (record.country || record.countryCode || 'Reference area not specified');
+    add('Observation date', record.observationDate || record.observationPeriod);
+    add('Reference area', record.country || record.countryCode);
+    add('Series', title);
+  } else {
+    const change = describeTechnicalChange(record);
+    headline = change.type;
+    context = (record.product || record.repository || 'Official software repository') + ' · technical history, not an industry announcement';
+    add('Verified date', record.referenceDate);
+    add('Repository', record.repository);
+    add(change.referenceLabel, change.reference);
+  }
+  const technical = kind.id === 'statistical'
+    ? [['Unit code', record.unitMeasure], ['Multiplier code', record.unitMultiplier], ['Provider release', record.providerReleaseDate],
+      ...record.dimensions.map(d => ['Dimension ' + d.key, d.value])]
+    : [['Product', record.product], ['Repository', record.repository], ['Record type', describeTechnicalChange(record).type]];
+  const rows = values => values.filter(([, value]) => value !== '' && value != null)
+    .map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join('');
+  return `<div class="smi-record-evidence smi-reader-evidence" data-evidence="${kind.id}">
+    <div class="smi-reader-evidence-head"><strong>${escapeHtml(headline)}</strong><span>${escapeHtml(context)}</span></div>
+    <dl class="smi-reader-facts">${rows(facts)}</dl>
+    <details class="smi-reader-methodology"><summary>Source &amp; methodology · technical details</summary>
+      <p>${escapeHtml(kind.note)}</p><dl class="smi-record-facts">${rows(technical)}</dl>
+      <a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(kind.linkLabel)}</a>
+    </details>
+  </div>`;
+}
+
 function recordMarkup(record) {
-  const geography = [record.country, record.region, record.geography].filter(Boolean).join(' · ') || 'Geography not classified';
-  const recordClass = record.dataClass?.endsWith('_REFERENCE')
-    ? record.dataClass.replaceAll('_', ' ') : record.lifecycle;
+  const geography = [...new Set([record.country, record.region, record.geography].filter(Boolean))].join(' · ') || 'Geography not classified';
+  const kind = evidenceKind(record);
+  const recordClass = kind ? kind.label : record.lifecycle;
   const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
-    record.referenceDate ? `Verified change ${record.referenceDate}` : isoDay(record.publishedAt);
-  return `<article class="smi-record"><div class="smi-record-meta"><span class="smi-pill">${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p><div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a></article>`;
+    record.referenceDate ? `${kind?.id === 'technical' ? describeTechnicalChange(record).type : 'Verified change'} dated ${record.referenceDate}` : isoDay(record.publishedAt);
+  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a>`}</article>`;
+}
+
+function evidenceTag(record) {
+  const kind = evidenceKind(record);
+  return kind ? ` · ${escapeHtml(kind.tag)}` : '';
 }
 
 function renderTopSignal(root, records) {
@@ -275,10 +403,39 @@ function renderTopSignal(root, records) {
     return;
   }
   const record = records[0];
-  const kicker = record.dataClass?.endsWith('_REFERENCE') ? 'TOP VERIFIED REFERENCE' : 'TOP SIGNAL NOW';
-  top.innerHTML = `<p class="smi-kicker">${kicker}</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.category)}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a>`;
+  const kind = evidenceKind(record);
+  const kicker = kind ? 'TOP VERIFIED REFERENCE' : 'TOP SIGNAL NOW';
+  top.innerHTML = `<p class="smi-kicker">${kicker}</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p>${kind ? `<p class="smi-evidence-note">${escapeHtml(kind.note)}</p>` : ''}<div class="smi-signal-meta">${kind ? `<span class="smi-pill" data-evidence="${kind.id}">${escapeHtml(kind.label)}</span>` : ''}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.category)}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(kind ? kind.linkLabel : 'Open verified source')}</a>`;
   const extras = records.slice(1, 4);
-  supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
+  supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}${evidenceTag(item)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
+}
+
+
+function renderExecutiveAnalytics(root, current, previous, now) {
+  const technical = record => Boolean(evidenceKind(record));
+  const governed = current.filter(record => !technical(record));
+  const prior = previous.filter(record => !technical(record));
+  const safeBar = (label, value, max, secondary = '') =>
+    `<div class="smi-analytics-bar"><div class="smi-analytics-bar-label"><span>${escapeHtml(label)}</span><strong>${value}${secondary ? ` <small>${escapeHtml(secondary)}</small>` : ''}</strong></div><div class="smi-analytics-track"><i style="width:${max ? (value / max * 100).toFixed(2) : 0}%"></i></div></div>`;
+  const weekly = Array.from({ length: 8 }, (_, index) => utcWeekStart(now) - (7 - index) * 7 * DAY);
+  const weekCounts = weekly.map(week => governed.filter(record => {
+    const date = Date.parse(record.publishedAt);
+    return date >= week && date < week + 7 * DAY;
+  }).length);
+  const maxWeek = Math.max(1, ...weekCounts);
+  root.querySelector('[data-smart-weekly-chart]').innerHTML = `<div class="smi-week-bars" role="img" aria-label="${escapeHtml(weekly.map((week, i) => `${isoDay(week)}: ${weekCounts[i]} records`).join('; '))}">${weekly.map((week, index) => `<div class="smi-week-bar"><b>${weekCounts[index] || ''}</b><i style="height:${Math.max(3, weekCounts[index] / maxWeek * 100)}%"></i><span>${new Date(week).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span></div>`).join('')}</div>`;
+  const topics = SMART_TOPICS.map(topic => ({ label: topic.label, count: governed.filter(record => record.topicIds.includes(topic.id)).length, prior: prior.filter(record => record.topicIds.includes(topic.id)).length })).filter(topic => topic.count || topic.prior).sort((a,b) => b.count - a.count || a.label.localeCompare(b.label)).slice(0, 6);
+  const maxTopic = Math.max(1, ...topics.map(topic => topic.count));
+  root.querySelector('[data-smart-topic-chart]').innerHTML = topics.length ? topics.map(topic => safeBar(topic.label, topic.count, maxTopic, `prior ${topic.prior}`)).join('') : '<p class="smi-analytics-empty">No qualifying topic observations in this selection.</p>';
+  const geoCounts = new Map();
+  for (const record of governed) {
+    const label = clean(record.region || record.country || record.countryCode || '', 60);
+    if (label) geoCounts.set(label, (geoCounts.get(label) || 0) + 1);
+  }
+  const geos = [...geoCounts].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 6);
+  const maxGeo = Math.max(1, ...geos.map(([,count]) => count));
+  root.querySelector('[data-smart-geo-chart]').innerHTML = geos.length ? geos.map(([label,count]) => safeBar(label,count,maxGeo)).join('') : '<p class="smi-analytics-empty">No governed geographic attribution for this selection.</p>';
+  root.querySelector('[data-smart-analytics-note]').textContent = `${governed.length} industry developments · ${current.length - governed.length} technical/statistical references kept in source evidence · ${prior.length} industry developments in the preceding equivalent period. Topic counts can overlap.`;
 }
 
 function renderKpis(root, current, previous) {
@@ -291,20 +448,87 @@ function renderTopicCards(root, currentBase, previousBase) {
   target.innerHTML = SMART_TOPICS.map(topic => {
     const current = currentBase.filter(record => record.topicIds.includes(topic.id));
     const previous = previousBase.filter(record => record.topicIds.includes(topic.id));
-    const trend = comparison(current.length, previous.length);
-    const latest = current.slice(0, 2);
+    const trend = compareCounts(current.length, previous.length);
+    const latest = current.slice(0, 3);
+    const sourceCount = new Set(current.map(record => record.sourceName).filter(Boolean)).size;
+    const scale = Math.max(current.length, previous.length, 1);
+    const width = count => (count / scale * 100).toFixed(1);
+    const changeText = trend.isNew ? `New (${trend.deltaLabel})` : trend.deltaLabel;
     const summary = current.length
       ? `${current.length} validated signal${current.length === 1 ? '' : 's'} in the selected period. Most recent evidence is dated ${isoDay(current[0].publishedAt)}.`
       : 'No qualifying dated observation for this topic and selected context.';
-    return `<article class="smi-topic-card" data-topic="${topic.id}" role="button" tabindex="0" aria-label="Show ${escapeHtml(topic.label)} intelligence"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small></li>`).join('')}</ul>` : ''}</article>`;
+    const spoken = `${current.length} in the current period, ${previous.length} in the preceding period, change ${trend.isNew ? 'new' : trend.deltaLabel}, ${sourceCount} source${sourceCount === 1 ? '' : 's'}, ${current.length} evidence link${current.length === 1 ? '' : 's'}`;
+    const compare = `<div class="smi-compare" role="group" aria-label="${escapeHtml(`${topic.label} comparison: ${spoken}`)}"><div class="smi-compare-row" data-period="current"><span>Current</span><i aria-hidden="true" style="--w:${width(current.length)}%"></i><b>${current.length}</b></div><div class="smi-compare-row" data-period="previous"><span>Prior</span><i aria-hidden="true" style="--w:${width(previous.length)}%"></i><b>${previous.length}</b></div><dl class="smi-compare-facts"><div><dt>Change</dt><dd data-direction="${trend.direction}">${escapeHtml(changeText)}</dd></div><div><dt>Sources</dt><dd>${sourceCount}</dd></div><div><dt>Evidence</dt><dd>${current.length} link${current.length === 1 ? '' : 's'}</dd></div></dl></div>`;
+    const links = latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small>${evidenceKind(record) ? `<small class="smi-evidence-tag">${escapeHtml(evidenceKind(record).tag)}</small>` : ''}</li>`).join('')}${current.length > latest.length ? `<li class="smi-topic-more">+${current.length - latest.length} more in the evidence list below</li>` : ''}</ul>` : '';
+    return `<article class="smi-topic-card" data-topic="${topic.id}" role="button" tabindex="0" aria-label="${escapeHtml(`Show ${topic.label} intelligence. ${spoken}`)}"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${compare}${links}</article>`;
   }).join('');
 }
 
-function renderHeatmap(root, records, now) {
+const WEEK_FORMAT = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const WEEK_FORMAT_YEAR = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+function weekRangeLabel(weekStart) {
+  return `${WEEK_FORMAT.format(new Date(weekStart))} – ${WEEK_FORMAT_YEAR.format(new Date(weekStart + 6 * DAY))}`;
+}
+
+function heatSelectionValid(heat, weeks) {
+  return Boolean(heat && SMART_TOPICS.some(topic => topic.id === heat.topicId) && weeks.includes(heat.weekStart));
+}
+
+function renderCompareWindow(root, bounds) {
+  const target = root.querySelector('[data-smart-compare-window]');
+  if (!target) return;
+  const range = (start, end) => `${isoDay(start)} to ${isoDay(end - 1)}`;
+  const shorter = bounds.previousEnd - bounds.previousStart < bounds.end - bounds.start;
+  target.textContent = `Current period ${range(bounds.start, bounds.end)} · preceding period ${range(bounds.previousStart, bounds.previousEnd)} (UTC).${shorter ? ` The preceding window is shorter because the GPIR archive begins on ${isoDay(HISTORY_FLOOR)}.` : ''}`;
+}
+
+function renderHeatmap(root, records, now, heat) {
   const target = root.querySelector('[data-smart-heatmap]');
   const heatmap = buildHeatmap(records, now);
+  const selected = heatSelectionValid(heat, heatmap.weeks) ? heat : null;
   const level = count => !count || !heatmap.max ? 0 : Math.min(4, Math.ceil((count / heatmap.max) * 4));
-  target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${new Intl.DateTimeFormat('en',{month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(week))}</span>`).join('')}${heatmap.rows.map(row => `<span class="smi-row-label">${escapeHtml(row.topic.label)}</span>${row.counts.map((count, index) => `<span class="smi-heat-cell" data-level="${level(count)}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(heatmap.weeks[index])} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</span>`).join('')}`).join('')}`;
+  const tabStop = selected ? `${selected.topicId}|${selected.weekStart}` : `${heatmap.rows[0]?.topic.id}|${heatmap.weeks[0]}`;
+  target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${WEEK_FORMAT.format(new Date(week))}</span>`).join('')}${heatmap.rows.map((row, rowIndex) => `<span class="smi-row-label">${escapeHtml(row.topic.label)}</span>${row.counts.map((count, index) => {
+    const week = heatmap.weeks[index];
+    const isSelected = selected?.topicId === row.topic.id && selected.weekStart === week;
+    const label = `${row.topic.label}, week of ${isoDay(week)}: ${count} qualifying signal${count === 1 ? '' : 's'}. Select to list the dated records.`;
+    return `<button type="button" class="smi-heat-cell" data-level="${level(count)}" data-heat-topic="${row.topic.id}" data-heat-week="${week}" data-heat-row="${rowIndex}" data-heat-col="${index}" aria-pressed="${isSelected}" aria-label="${escapeHtml(label)}" tabindex="${`${row.topic.id}|${week}` === tabStop ? 0 : -1}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(week)} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</button>`;
+  }).join('')}`).join('')}`;
+  renderHeatDetail(root, records, selected, now);
+}
+
+function heatRecordList(records) {
+  const shown = records.slice(0, 25);
+  return `<ol class="smi-heat-records">${shown.map(record => `<li><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(isoDay(record.publishedAt))}</time><span><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}${evidenceTag(record)}</small></span></li>`).join('')}</ol>${records.length > shown.length ? `<p class="smi-heat-note">Showing the latest ${shown.length} of ${records.length} records.</p>` : ''}`;
+}
+
+function renderHeatDetail(root, records, heat, now) {
+  const target = root.querySelector('[data-smart-heat-detail]');
+  if (!target) return;
+  const status = root.querySelector('[data-smart-heat-status]');
+  if (!heat) {
+    target.dataset.state = 'idle';
+    target.innerHTML = '<p class="smi-heat-note">Select a topic and week in the grid to list its dated supporting records and compare it with the preceding week. Counts describe recorded history only.</p>';
+    return;
+  }
+  const topic = SMART_TOPICS.find(item => item.id === heat.topicId);
+  const selection = buildHeatmapSelection(records, heat.topicId, heat.weekStart, now);
+  const range = weekRangeLabel(heat.weekStart);
+  const change = selection.comparison;
+  const previousRange = weekRangeLabel(selection.previousStart);
+  const basis = selection.inProgress
+    ? `Week in progress: ${selection.elapsedDays} UTC day${selection.elapsedDays === 1 ? '' : 's'} so far, compared with the same days of the preceding week (${previousRange}).`
+    : `Compared with the preceding week (${previousRange}).`;
+  const stats = [
+    ['This week', selection.current.length],
+    ['Preceding week', selection.previousAvailable ? selection.previous.length : 'Not available'],
+    ['Change', change ? (change.isNew ? `New (${change.deltaLabel})` : `${change.deltaLabel} · ${change.label}`) : 'Not available'],
+    ['Sources', selection.sourceCount]
+  ];
+  target.dataset.state = 'selected';
+  target.innerHTML = `<div class="smi-heat-detail-head"><div><p class="smi-kicker">SELECTED TOPIC AND WEEK</p><h3>${escapeHtml(topic.label)} · ${escapeHtml(range)}</h3></div><button type="button" data-smart-heat-clear>Clear selection</button></div><p class="smi-heat-note">${escapeHtml(selection.previousAvailable ? basis : 'The preceding week is before the start of the GPIR archive, so no comparison is shown.')}</p><dl class="smi-heat-stats">${stats.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join('')}</dl>${selection.current.length ? heatRecordList(selection.current) : '<p class="smi-heat-note">No qualifying dated records for this topic in the selected week. Nothing has been inferred.</p>'}${selection.previous.length ? `<details class="smi-heat-previous"><summary>Preceding-week records (${selection.previous.length})</summary>${heatRecordList(selection.previous)}</details>` : ''}`;
+  if (status) status.textContent = `${topic.label}, ${range}: ${selection.current.length} qualifying record${selection.current.length === 1 ? '' : 's'}${change ? `, ${change.isNew ? 'new compared with the preceding week' : change.label}` : ''}.`;
 }
 
 export function eligibleLiveRecords(records, now = Date.now()) {
@@ -413,7 +637,7 @@ export async function initializeSmartIntelligence({ global = window,
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
     topics: new Set(initialTopics), customStart: params.get('from') || '2024-11-08',
     customEnd: params.get('to') || isoDay(now()),
-    alertId: clean(params.get('alert'), 100)
+    alertId: clean(params.get('alert'), 100), heat: null
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
@@ -474,8 +698,10 @@ export async function initializeSmartIntelligence({ global = window,
     loadTopicIntelligence(state.alertId);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
+    renderExecutiveAnalytics(root, current, previous, requestNow);
     renderTopicCards(root, baseCurrent, basePrevious);
-    renderHeatmap(root, historicalContext, requestNow);
+    renderCompareWindow(root, bounds);
+    renderHeatmap(root, historicalContext, requestNow, state.heat);
     const results = root.querySelector('[data-smart-results]');
     results.innerHTML = current.length ? current.map(recordMarkup).join('') :
       '<div class="smi-empty"><strong>No validated records match this context.</strong><p>Broaden the filters or period. No sample signal, KPI or market-impact conclusion has been substituted.</p></div>';
@@ -535,6 +761,61 @@ export async function initializeSmartIntelligence({ global = window,
     if (event.key !== 'Enter' && event.key !== ' ') return;
     if (!event.target.matches('[data-topic]')) return;
     event.preventDefault(); selectTopicCard(event);
+  });
+
+  // Heatmap cells are selectable buttons with a roving tab stop and arrow-key navigation.
+  const heatmapEl = root.querySelector('[data-smart-heatmap]');
+  const heatDetail = root.querySelector('[data-smart-heat-detail]');
+  const heatCells = () => [...heatmapEl.querySelectorAll('.smi-heat-cell')];
+  const setHeat = (topicId, weekStart) => {
+    state.heat = topicId ? { topicId, weekStart } : null;
+    heatCells().forEach(cell => cell.setAttribute('aria-pressed',
+      String(Boolean(state.heat) && cell.dataset.heatTopic === topicId && Number(cell.dataset.heatWeek) === weekStart)));
+    renderHeatDetail(root, records.filter(record => state.geography === 'all' || record.regionKey === state.geography), state.heat, now());
+    if (state.heat) heatDetail?.scrollIntoView?.({ block: 'nearest' });
+  };
+  heatmapEl?.addEventListener('click', event => {
+    const cell = event.target.closest?.('.smi-heat-cell');
+    if (!cell) return;
+    const week = Number(cell.dataset.heatWeek);
+    const same = state.heat?.topicId === cell.dataset.heatTopic && state.heat.weekStart === week;
+    setHeat(same ? '' : cell.dataset.heatTopic, week);
+  });
+  heatmapEl?.addEventListener('focusin', event => {
+    const cell = event.target.closest?.('.smi-heat-cell');
+    if (!cell) return;
+    heatCells().forEach(item => { item.tabIndex = -1; });
+    cell.tabIndex = 0;
+  });
+  heatmapEl?.addEventListener('keydown', event => {
+    const cell = event.target.closest?.('.smi-heat-cell');
+    if (!cell) return;
+    if (event.key === 'Escape' && state.heat) { event.preventDefault(); setHeat(''); return; }
+    const moves = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0], Home: [0, -Infinity], End: [0, Infinity] };
+    const move = moves[event.key];
+    if (!move) return;
+    event.preventDefault();
+    const visible = heatCells().filter(item => !item.hidden);
+    const byPosition = new Map(visible.map(item => [`${item.dataset.heatRow}:${item.dataset.heatCol}`, item]));
+    let row = Number(cell.dataset.heatRow);
+    let col = Number(cell.dataset.heatCol);
+    if (move[0]) {
+      const rows = [...new Set(visible.map(item => Number(item.dataset.heatRow)))].sort((left, right) => left - right);
+      const next = rows[rows.indexOf(row) + move[0]];
+      if (next === undefined) return;
+      row = next;
+    } else {
+      const last = Math.max(...visible.map(item => Number(item.dataset.heatCol)));
+      col = Math.min(last, Math.max(0, col + move[1]));
+    }
+    byPosition.get(`${row}:${col}`)?.focus();
+  });
+  heatDetail?.addEventListener('click', event => {
+    if (!event.target.closest?.('[data-smart-heat-clear]')) return;
+    const previous = state.heat;
+    setHeat('');
+    const cell = previous && heatCells().find(item => item.dataset.heatTopic === previous.topicId && Number(item.dataset.heatWeek) === previous.weekStart);
+    cell?.focus();
   });
 
   root.querySelectorAll('[data-smart-period]').forEach(button => button.addEventListener('click', () => {
