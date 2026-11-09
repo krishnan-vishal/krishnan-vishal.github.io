@@ -367,8 +367,7 @@ export function publicFxResearchRecords(value) {
     return [{ pair: item.pair, title: safeText(item.title, 180),
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
-      fxIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html`,
-      }];
+      fxIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html` }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 
