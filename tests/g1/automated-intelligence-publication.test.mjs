@@ -244,6 +244,7 @@ function retryStore(rows, audits) {
       }
       if (requestUrl.pathname.endsWith('/intelligence_publication_audits'))
         return { ok: true, json: async () => audits };
+      if (requestUrl.pathname.endsWith('/source_registry')) return { ok: true, json: async () => [SOURCE] };
       throw new Error(`Unexpected request: ${requestUrl.href}`);
     }
   });

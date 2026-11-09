@@ -1,4 +1,4 @@
-import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { T3_AUTOMATIC_PUBLICATION, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
   fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
@@ -35,6 +35,8 @@ export function effectiveAudit(rows) {
   }
   return selected;
 }
+
+const THRESHOLD_REASON = 'AUTO_PUBLICATION_THRESHOLD_NOT_MET';
 
 function auditIsFinal(audit, candidate, now) {
   if (audit.decision !== 'REVIEW' || !RETRYABLE_REASONS.test(audit.reason_code || '')) return true;
@@ -104,6 +106,21 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
   const base = `${config.url}/rest/v1`;
   const headers = serviceHeaders(config);
 
+  // A threshold review recorded before the explicit T3 automatic profile existed is
+  // re-evaluated (live window and normal backoff) only for a T3 source whose confidence
+  // reaches that profile. Full source, evidence and duplicate validation still decide.
+  async function t3ProfileReopens(audit, candidate, now) {
+    if (audit.decision !== 'REVIEW' || audit.reason_code !== THRESHOLD_REASON ||
+        !(Number(candidate.confidence_score) >= T3_AUTOMATIC_PUBLICATION.minConfidence)) return false;
+    const published = Date.parse(candidate.published_at || '');
+    const completed = Date.parse(audit.completed_at || '');
+    if (!Number.isFinite(published) || !Number.isFinite(completed) ||
+        now - published > RETRY_WINDOW_MS || now - completed < RETRY_BACKOFF_MS) return false;
+    const query = new URLSearchParams({ select: 'trust_tier', source_id: `eq.${candidate.source_id}`, limit: '2' });
+    const rows = await jsonFetch(fetchImpl, `${base}/source_registry?${query}`, { headers });
+    return Array.isArray(rows) && rows.length === 1 && rows[0].trust_tier === 'T3';
+  }
+
   return {
     async candidates({ limit, from, to, now = Date.now() }) {
       const selected = [];
@@ -146,7 +163,9 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
             if (seen.has(item.id)) continue;
             const audit = audited.get(item.id);
             if (!audit || !FINAL_DECISIONS.has(audit.decision)) { seen.add(item.id); selected.push(item); }
-            else if (!auditIsFinal(audit, item, now)) { seen.add(item.id); retries.push(item); }
+            else if (!auditIsFinal(audit, item, now) || await t3ProfileReopens(audit, item, now)) {
+              seen.add(item.id); retries.push(item);
+            }
           }
           if (candidates.length < CANDIDATE_PAGE_SIZE) break;
         }
@@ -278,8 +297,9 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     },
 
     async publish(candidate, validation, source = null) {
-      const procedure = validation.editorial === true
-        ? 'gpir_publish_t3_editorial_candidate' : 'gpir_publish_consolidated_candidate';
+      const procedure = validation.editorial === true ? 'gpir_publish_t3_editorial_candidate'
+        : validation.t3Automatic === true ? 'gpir_publish_t3_automatic_candidate'
+          : 'gpir_publish_consolidated_candidate';
       const data = await jsonFetch(fetchImpl, `${base}/rpc/${procedure}`, {
         method: 'POST', headers,
         body: JSON.stringify({
@@ -326,8 +346,6 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   const announcementId = await repository.publish(candidate, validation, source);
   return { ...validation, announcementId };
 }
-
-const THRESHOLD_REASON = 'AUTO_PUBLICATION_THRESHOLD_NOT_MET';
 
 // An editor's change after the last decision, or a due transient retry, re-opens a
 // T3 candidate. Terminal decisions are never re-opened.

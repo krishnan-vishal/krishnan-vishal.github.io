@@ -9,6 +9,7 @@ const base=readFileSync('supabase/migrations/20261031134116_g1_automated_intelli
 run(base);
 file('supabase/migrations/20261101000000_g1_r07_event_consolidation.sql');
 file('supabase/migrations/20261108140000_m39_t3_editorial_publication.sql');
+file('supabase/migrations/20261109020000_m39_t3_automatic_publication.sql');
 const ids=['00000000-0000-4000-8000-000000000101','00000000-0000-4000-8000-000000000102','00000000-0000-4000-8000-000000000103','00000000-0000-4000-8000-000000000104'];
 run(`insert into source_registry(source_id,source_name,official_url,trust_tier,source_status) values
 ('A','Source A','https://a.example','T1','GREEN'),
@@ -62,4 +63,36 @@ const newCard=await concurrent(editorialCall('00000000-0000-4000-8000-0000000001
 assert.equal(newCard.code,0,newCard.stderr);
 assert.equal(run("select ticker_eligible||':'||publication_status||':'||(published_at<=now()) from global_announcements where canonical_url='https://c.example/5'").trim(),'true:approved:true');
 await mustFail(editorialCall('00000000-0000-4000-8000-000000000105','6'.repeat(64),editorialPayload('00000000-0000-4000-8000-000000000105','https://c.example/5'),'unique media payments initiative announced for regional settlement').replace(`'${key}'`,`'${'b'.repeat(64)}'`),'editorial publication cannot repeat');
-console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route');
+// M39 T3 automatic route: a verified, high-confidence, official-domain T3 candidate publishes without Contentful.
+run(`insert into source_registry(source_id,source_name,official_url,trust_tier,source_status) values
+('D','Source D','https://d.example','T3','GREEN'),('E','Source E','https://e.example','T3','AMBER');
+insert into intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status) values
+('00000000-0000-4000-8000-000000000201','D','https://d.example/news/1','Automatic media payments initiative announced for regional rails',now()-interval '1 hour','Payments','UPDATE',96,'PENDING'),
+('00000000-0000-4000-8000-000000000202','D','https://d.example/news/2','Low confidence media payments initiative announced',now()-interval '1 hour','Payments','UPDATE',80,'PENDING'),
+('00000000-0000-4000-8000-000000000203','D','https://evil.example/news/3','Foreign domain media payments initiative announced',now()-interval '1 hour','Payments','UPDATE',99,'PENDING'),
+('00000000-0000-4000-8000-000000000204','E','https://e.example/news/4','Unverified source media payments initiative announced',now()-interval '1 hour','Payments','UPDATE',99,'PENDING'),
+('00000000-0000-4000-8000-000000000205','D','https://d.example.evil.example/news/5','Lookalike domain media payments initiative announced',now()-interval '1 hour','Payments','UPDATE',99,'PENDING');`);
+const autoPayload=(extra={})=>JSON.stringify({source_verified:true,canonical_verified:true,timestamp_verified:true,content_verified:true,relevance_verified:true,summary_grounded:true,evidence_excerpt:'Verified public source evidence.',t3_auto_verified:true,...extra});
+const autoCall=(id,fingerprint,payloadJson,subject,k)=>`select public.gpir_publish_t3_automatic_candidate('${id}','${summary}',now()-interval '1 hour','${fingerprint}','${payloadJson}'::jsonb,'${k}','D','UPDATE','${subject}',current_date,'Global',array['payments'],'PENDING');`;
+const autoSubject='automatic media payments initiative announced for regional rails';
+const autoKey='c'.repeat(64);
+const autoId='00000000-0000-4000-8000-000000000201';
+await mustFail(autoCall(autoId,'7'.repeat(64),autoPayload({t3_auto_verified:false}),autoSubject,autoKey),'automatic flag required');
+await mustFail(autoCall(autoId,'7'.repeat(64),editorialPayload(autoId,'https://d.example/news/1',{t3_auto_verified:undefined}),autoSubject,autoKey),'editorial evidence is not automatic evidence');
+await mustFail(autoCall('00000000-0000-4000-8000-000000000202','8'.repeat(64),autoPayload(),'low confidence media payments initiative announced','d'.repeat(64)),'low confidence cannot publish automatically');
+await mustFail(autoCall('00000000-0000-4000-8000-000000000203','9'.repeat(64),autoPayload(),'foreign domain media payments initiative announced','e'.repeat(64)),'canonical host must match the official domain');
+await mustFail(autoCall('00000000-0000-4000-8000-000000000205','9'.repeat(64),autoPayload(),'lookalike domain media payments initiative announced','e'.repeat(64)),'lookalike host must not match');
+await mustFail(autoCall('00000000-0000-4000-8000-000000000204','9'.repeat(64),autoPayload(),'unverified source media payments initiative announced','f'.repeat(64)),'non-GREEN source cannot publish');
+await mustFail(autoCall(ids[0],'9'.repeat(64),autoPayload(),'regional payments network launches interoperability',key),'T1 cannot use the automatic T3 route');
+await mustFail(`select public.gpir_publish_consolidated_candidate('${autoId}','${summary}',now()-interval '1 hour','${'7'.repeat(64)}','${autoPayload()}'::jsonb,'${autoKey}','D','UPDATE','${autoSubject}',current_date,'Global',array['payments'],'PENDING');`,'the T1/T1.5/T2 route still rejects T3');
+assert.equal(Number(run('select count(*) from global_announcements')),2,'rejected automatic calls must not publish');
+const autoPublished=await concurrent(autoCall(autoId,'7'.repeat(64),autoPayload(),autoSubject,autoKey));
+assert.equal(autoPublished.code,0,autoPublished.stderr);
+assert.equal(run("select ticker_eligible||':'||publication_status from global_announcements where canonical_url='https://d.example/news/1'").trim(),'true:approved');
+assert.equal(run("select decision||':'||reason_code from intelligence_publication_audits where candidate_id='"+autoId+"'").trim(),'PUBLISHED:T3_AUTOMATIC_PUBLICATION');
+assert.equal(Number(run("select count(*) from gpir_intelligence_topic_sources where source_id='D'")),1,'repository evidence recorded');
+await mustFail(autoCall(autoId,'7'.repeat(64),autoPayload(),autoSubject,autoKey),'automatic publication cannot repeat');
+assert.equal(Number(run('select count(*) from global_announcements')),3,'exactly one new announcement');
+const autoRoles=run("select has_function_privilege('anon','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')||':'||has_function_privilege('authenticated','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim();
+assert.equal(autoRoles,'false:false','automatic T3 publication must not be executable by anon or authenticated');
+console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route or the verified automatic profile');
