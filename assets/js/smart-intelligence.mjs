@@ -156,14 +156,17 @@ export function normalizeSmartRecords(value) {
   }).sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 }
 
-function normalizeLiveAlerts(value, historical) {
+export function normalizeLiveAlerts(value, historical) {
   if (!Array.isArray(value?.alerts)) return [];
   const historyById = new Map(historical.map(record => [record.id, record]));
   return value.alerts.flatMap(item => {
+    // Same approval gates as the homepage ticker; both read one governed API.
+    if (!item || (item.publicationStatus && item.publicationStatus !== 'approved')) return [];
+    if (item.tickerEligible === false || item.sourceVerified === false || item.hasUnresolvedRestrictions === true) return [];
     if (historyById.has(item?.id)) return [historyById.get(item.id)];
     const publishedAt = Date.parse(item?.publishedAt || item?.published_at || '');
     const title = clean(item?.title || item?.headline, 240);
-    const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.url || item?.source?.url);
+    const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.sourceUrl || item?.url || item?.source?.url);
     if (!Number.isFinite(publishedAt) || !title || !url) return [];
     const record = {
       id: clean(item.id, 100), title, summary: clean(item?.summary || item?.summary_narration, 2000),
@@ -176,6 +179,26 @@ function normalizeLiveAlerts(value, historical) {
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
     return [record];
+  });
+}
+
+const ALERT_CONTEXT_DAYS = 30;
+
+// Topic-specific view of one alert: related current records (last 30 days) and
+// older repository history, drawn from the same governed records as the dashboard.
+// Technical and statistical references stay out unless the alert is one itself.
+export function buildAlertContext(alert, records, now = Date.now()) {
+  const topicIds = alert.topicIds || [];
+  const reference = Boolean(alert.dataClass?.endsWith('_REFERENCE'));
+  const related = records.filter(record => record.id !== alert.id &&
+    (reference || !record.dataClass?.endsWith('_REFERENCE')) &&
+    (topicIds.length ? record.topicIds.some(id => topicIds.includes(id)) : record.category === alert.category));
+  const boundary = now - ALERT_CONTEXT_DAYS * DAY;
+  const current = related.filter(record => Date.parse(record.publishedAt) >= boundary);
+  const historical = related.filter(record => Date.parse(record.publishedAt) < boundary);
+  return Object.freeze({
+    alert, topicIds, current: current.slice(0, 6), historical: historical.slice(0, 6),
+    currentTotal: current.length, historicalTotal: historical.length
   });
 }
 
@@ -330,6 +353,25 @@ export function eligibleLiveRecords(records, now = Date.now()) {
   });
 }
 
+function renderAlertFocus(root, liveRecords, records, state, now) {
+  const target = root.querySelector('[data-smart-alert]');
+  if (!target) return;
+  if (!state.alertId) { target.hidden = true; target.innerHTML = ''; return; }
+  const alert = liveRecords.find(record => record.id === state.alertId) ||
+    records.find(record => record.id === state.alertId);
+  target.hidden = false;
+  if (!alert) {
+    target.innerHTML = '<p class="smi-kicker">SELECTED ALERT</p><h2>Alert not found in the governed repository</h2><p>No substitute content has been inferred. <a href="#" data-smart-alert-clear>Return to the dashboard</a></p>';
+    return;
+  }
+  const context = buildAlertContext(alert, records, now);
+  const live = eligibleLiveRecords([alert], now).length > 0;
+  const topics = SMART_TOPICS.filter(topic => context.topicIds.includes(topic.id))
+    .map(topic => `<span class="smi-pill">${escapeHtml(topic.label)}</span>`).join('');
+  const list = items => items.length ? `<ol>${items.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No governed records.</p>';
+  target.innerHTML = `<p class="smi-kicker">SELECTED ALERT · ${live ? 'LIVE · LATEST 12H' : 'ARCHIVED · RETAINED IN THE GPIR REPOSITORY'}</p><h2>${escapeHtml(alert.title)}</h2><p>${escapeHtml(alert.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(alert.publishedAt.slice(0, 16).replace('T', ' '))} UTC</span><span class="smi-pill">${escapeHtml(alert.category)}</span><span class="smi-pill">${escapeHtml(alert.sourceName)}</span>${topics}</div><a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#" data-smart-alert-clear>Clear selected alert</a><div class="smi-alert-columns"><div><h3>Current context · last ${ALERT_CONTEXT_DAYS} days (${context.currentTotal})</h3>${list(context.current)}</div><div><h3>Historical context · repository (${context.historicalTotal})</h3>${list(context.historical)}</div></div>`;
+}
+
 function renderLive(root, liveRecords, state, now) {
   const ribbon = document.querySelector('[data-smart-live]');
   const target = document.querySelector('[data-smart-live-content]');
@@ -343,7 +385,7 @@ function renderLive(root, liveRecords, state, now) {
     return;
   }
   ribbon.dataset.state = 'ready';
-  target.innerHTML = matches.slice(0, 4).map(record => `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a>`).join(' · ');
+  target.innerHTML = matches.slice(0, 4).map(record => `<a href="?alert=${encodeURIComponent(record.id)}" data-smart-alert-id="${escapeHtml(record.id)}">${escapeHtml(record.title)}</a>`).join(' · ');
 }
 
 function updateAskLinks(root, state) {
@@ -360,6 +402,7 @@ function updateUrl(global, state) {
   url.searchParams.set('period', state.period);
   url.searchParams.set('geo', state.geography);
   state.topics.size ? url.searchParams.set('topics', [...state.topics].join(',')) : url.searchParams.delete('topics');
+  state.alertId ? url.searchParams.set('alert', state.alertId) : url.searchParams.delete('alert');
   if (state.period === 'CUSTOM') {
     url.searchParams.set('from', state.customStart);
     url.searchParams.set('to', state.customEnd);
@@ -392,7 +435,8 @@ export async function initializeSmartIntelligence({ global = window,
     period: ['24H','7D','30D','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '30D',
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
     topics: new Set(initialTopics), customStart: params.get('from') || '2024-11-08',
-    customEnd: params.get('to') || isoDay(now())
+    customEnd: params.get('to') || isoDay(now()),
+    alertId: clean(params.get('alert'), 100)
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
@@ -433,6 +477,7 @@ export async function initializeSmartIntelligence({ global = window,
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
     renderLive(root, liveRecords, state, requestNow);
+    renderAlertFocus(root, liveRecords, records, state, requestNow);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
     renderTopicCards(root, baseCurrent, basePrevious);
@@ -450,6 +495,34 @@ export async function initializeSmartIntelligence({ global = window,
     updateUrl(global, state);
     root.dataset.state = 'ready';
   };
+
+  // Selecting an alert scopes the existing dashboard to that alert's topics.
+  const selectAlert = id => {
+    state.alertId = id;
+    const alert = id ? liveRecords.find(record => record.id === id) || records.find(record => record.id === id) : null;
+    if (alert) {
+      state.topics = new Set(alert.topicIds);
+      topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    }
+    render();
+    if (alert) root.querySelector('[data-smart-alert]')?.scrollIntoView?.({ block: 'start' });
+  };
+  const alertClick = event => {
+    const select = event.target?.closest?.('[data-smart-alert-id]');
+    const clear = event.target?.closest?.('[data-smart-alert-clear]');
+    if (!select && !clear) return;
+    event.preventDefault();
+    selectAlert(select ? select.dataset.smartAlertId : '');
+  };
+  document.querySelector('[data-smart-live]')?.addEventListener('click', alertClick);
+  root.querySelector('[data-smart-alert]')?.addEventListener('click', alertClick);
+  if (state.alertId && !initialTopics.length) {
+    const alert = liveRecords.find(record => record.id === state.alertId) || records.find(record => record.id === state.alertId);
+    if (alert) {
+      state.topics = new Set(alert.topicIds);
+      topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    }
+  }
 
   root.querySelectorAll('[data-smart-period]').forEach(button => button.addEventListener('click', () => {
     state.period = button.dataset.smartPeriod; render();

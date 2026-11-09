@@ -13,6 +13,17 @@ export const AUTO_PUBLICATION_THRESHOLDS = Object.freeze({
   T2: 90
 });
 
+// T3 (fintech media) has no entry in AUTO_PUBLICATION_THRESHOLDS: confidence alone never
+// verifies a T3 article. This explicit profile is a conservative additional gate; the
+// full source, canonical, timestamp, evidence, relevance and summary checks still apply,
+// with stricter evidence minimums than the T1/T1.5/T2 route.
+export const T3_AUTOMATIC_PUBLICATION = Object.freeze({
+  minConfidence: 95,
+  minContentLength: 1000,
+  minSentences: 3,
+  minRelevanceTerms: 3
+});
+
 function decodeEntities(value) {
   return String(value || '')
     .replace(/&nbsp;/gi, ' ')
@@ -198,7 +209,9 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
-  if (!editorialRoute && (!threshold || !Number.isFinite(confidence) || confidence < threshold)) {
+  const t3Automatic = !editorialRoute && source.trust_tier === 'T3' &&
+    Number.isFinite(confidence) && confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence;
+  if (!editorialRoute && !t3Automatic && (!threshold || !Number.isFinite(confidence) || confidence < threshold)) {
     return review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
       canonicalUrl: candidate.canonical_url,
       sourcePublishedAt: candidate.published_at,
@@ -266,10 +279,11 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
 
   const content = articleContent(html);
   const sentences = meaningfulSentences(content, candidate.title);
-  if (content.length < 600 || sentences.length < 2)
+  if (content.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
+      sentences.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
     return review('INSUFFICIENT_SOURCE_EVIDENCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
   const relevanceTerms = relevantEvidence(candidate.title, content);
-  if (relevanceTerms.length < 2)
+  if (relevanceTerms.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
     return review('INSUFFICIENT_PAYMENTS_RELEVANCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const normalizedContent = content.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -283,6 +297,7 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
 
   const evidence = {
     editorial: editorialRoute,
+    t3Automatic,
     canonicalUrl: canonical,
     sourcePublishedAt: publishedAt,
     sourceHttpStatus: response.status,
@@ -300,6 +315,10 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
       source_trust_tier: source.trust_tier,
       confidence_score: confidence,
       validator: 'GPIR-G1-PUBLICATION-1',
+      ...(t3Automatic ? {
+        t3_auto_verified: true,
+        t3_auto_min_confidence: T3_AUTOMATIC_PUBLICATION.minConfidence
+      } : {}),
       ...(editorialRoute ? {
         editorial_verified: true,
         editorial_entry_id: editorialApproval.entryId,
