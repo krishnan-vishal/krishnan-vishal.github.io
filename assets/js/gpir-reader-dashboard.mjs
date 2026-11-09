@@ -364,8 +364,8 @@ export function publicFxResearchRecords(value) {
     return [{ pair: item.pair, title: safeText(item.title, 180),
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
-      fxIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M`,
-      smartIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html` }];
+      fxIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html`,
+      smartIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M` }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 
