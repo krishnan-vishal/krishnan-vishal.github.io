@@ -332,6 +332,8 @@ test("valid recent approved alert renders summary, classification and verified s
     assert.match(harness.body.innerHTML, /GPIR Summary/);
     assert.match(harness.body.innerHTML, /authority confirmed a new instant-payment service/);
     assert.match(harness.body.innerHTML, /Read Original Source/);
+    assert.match(harness.body.innerHTML, /pages\/intelligence\/smart\.html\?alert=live-alert/);
+    assert.match(harness.body.innerHTML, /Open topic intelligence view/);
 });
 
 test("expired API alert and recent static archive record do not render live", async () => {

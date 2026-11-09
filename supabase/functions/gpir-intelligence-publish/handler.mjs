@@ -108,44 +108,62 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     async candidates({ limit, from, to, now = Date.now() }) {
       const selected = [];
       const retries = [];
+      const seen = new Set();
 
-      for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
-        const query = new URLSearchParams({
-          select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
-          candidate_status: 'in.(PENDING,REVIEW)',
-          order: 'published_at.asc,id.asc',
-          limit: String(CANDIDATE_PAGE_SIZE),
-          offset: String(page * CANDIDATE_PAGE_SIZE)
-        });
-        if (from) query.set('published_at', `gte.${from}`);
-        if (to) query.append('published_at', `lt.${to}`);
-        const candidates = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
-        if (!Array.isArray(candidates) || !candidates.length) break;
-
-        const ids = candidates.map(item => item.id).filter(id => UUID.test(id));
-        const audited = new Map();
-        if (ids.length) {
-          const auditQuery = new URLSearchParams({
-            select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
-            candidate_id: `in.(${ids.join(',')})`,
-            order: 'attempted_at.desc,candidate_id.asc',
-            limit: '1000'
+      const scan = async ({ status, lower, upper }) => {
+        for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
+          const query = new URLSearchParams({
+            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+            candidate_status: status,
+            order: 'published_at.asc,id.asc',
+            limit: String(CANDIDATE_PAGE_SIZE),
+            offset: String(page * CANDIDATE_PAGE_SIZE)
           });
-          const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
-          const grouped = new Map();
-          for (const audit of Array.isArray(audits) ? audits : []) {
-            if (!grouped.has(audit.candidate_id)) grouped.set(audit.candidate_id, []);
-            grouped.get(audit.candidate_id).push(audit);
-          }
-          for (const [candidateId, rows] of grouped) audited.set(candidateId, effectiveAudit(rows));
-        }
+          if (lower) query.set('published_at', `gte.${lower}`);
+          if (upper) query.append('published_at', `lt.${upper}`);
+          const candidates = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
+          if (!Array.isArray(candidates) || !candidates.length) break;
 
-        for (const item of candidates) {
-          const audit = audited.get(item.id);
-          if (!audit || !FINAL_DECISIONS.has(audit.decision)) selected.push(item);
-          else if (!auditIsFinal(audit, item, now)) retries.push(item);
+          const ids = candidates.map(item => item.id).filter(id => UUID.test(id));
+          const audited = new Map();
+          if (ids.length) {
+            const auditQuery = new URLSearchParams({
+              select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
+              candidate_id: `in.(${ids.join(',')})`,
+              order: 'attempted_at.desc,candidate_id.asc',
+              limit: '1000'
+            });
+            const audits = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
+            const grouped = new Map();
+            for (const audit of Array.isArray(audits) ? audits : []) {
+              if (!grouped.has(audit.candidate_id)) grouped.set(audit.candidate_id, []);
+              grouped.get(audit.candidate_id).push(audit);
+            }
+            for (const [candidateId, rows] of grouped) audited.set(candidateId, effectiveAudit(rows));
+          }
+
+          for (const item of candidates) {
+            if (seen.has(item.id)) continue;
+            const audit = audited.get(item.id);
+            if (!audit || !FINAL_DECISIONS.has(audit.decision)) { seen.add(item.id); selected.push(item); }
+            else if (!auditIsFinal(audit, item, now)) { seen.add(item.id); retries.push(item); }
+          }
+          if (candidates.length < CANDIDATE_PAGE_SIZE) break;
         }
-        if (candidates.length < CANDIDATE_PAGE_SIZE) break;
+      };
+
+      if (from || to) {
+        // Controlled backfill keeps the explicit window and both review states.
+        await scan({ status: 'in.(PENDING,REVIEW)', lower: from, upper: to });
+      } else {
+        // Candidates that can still be live are scanned first, so a backlog of
+        // finalized REVIEW rows or older unprocessed items can never starve them.
+        // Older REVIEW rows are final (a retry needs a candidate inside the
+        // 12-hour window) and are excluded from the scan; older PENDING rows are
+        // still processed for the permanent archive.
+        const liveFrom = new Date(now - RETRY_WINDOW_MS).toISOString();
+        await scan({ status: 'in.(PENDING,REVIEW)', lower: liveFrom });
+        await scan({ status: 'eq.PENDING', upper: liveFrom });
       }
 
       // Never-processed candidates take priority over scheduled retries.

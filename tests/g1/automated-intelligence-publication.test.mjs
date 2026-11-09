@@ -360,3 +360,61 @@ test('the 30-minute retry backoff applies to the latest transient audit and the 
   assert.match(requested[0].searchParams.get('select'), /attempted_at/);
   assert.equal(await store.candidates({ limit: 5, now: NOW + 40 * 60 * 1000 }).then(rows => rows.length), 1);
 });
+
+function filteringStore(rows, audits, requests) {
+  return createRestPublicationRepository({
+    config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service-role-test' },
+    fetchImpl: async url => {
+      const requestUrl = new URL(url);
+      if (requestUrl.pathname.endsWith('/intelligence_publication_audits')) {
+        const ids = new Set((requestUrl.searchParams.get('candidate_id') || '').replace(/^in\.\(|\)$/g, '').split(','));
+        return { ok: true, json: async () => audits.filter(audit => ids.has(audit.candidate_id)) };
+      }
+      requests.push(requestUrl);
+      const status = requestUrl.searchParams.get('candidate_status');
+      const allowed = status.replace(/^(in|eq)\.\(?|\)$/g, '').split(',');
+      const bounds = requestUrl.searchParams.getAll('published_at');
+      const matches = rows.filter(row => allowed.includes(row.candidate_status) && bounds.every(bound => {
+        const time = Date.parse(bound.slice(bound.indexOf('.') + 1));
+        return bound.startsWith('gte.') ? Date.parse(row.published_at) >= time : Date.parse(row.published_at) < time;
+      })).sort((left, right) => left.published_at.localeCompare(right.published_at));
+      const offset = Number(requestUrl.searchParams.get('offset') || 0);
+      return { ok: true, json: async () => matches.slice(offset, offset + Number(requestUrl.searchParams.get('limit') || 50)) };
+    }
+  });
+}
+
+test('a backlog of finalized REVIEW and older rows cannot starve a new live candidate', async () => {
+  const hex = value => value.toString(16).padStart(12, '0');
+  const finalized = Array.from({ length: 1200 }, (_value, index) => candidate({
+    id: `22222222-2222-4222-8222-${hex(index + 1)}`, candidate_status: 'REVIEW',
+    published_at: new Date(NOW - (30 + 1200 - index) * 60 * 60 * 1000).toISOString()
+  }));
+  const audits = finalized.map(item => ({ candidate_id: item.id, decision: 'REVIEW',
+    reason_code: 'AUTO_PUBLICATION_THRESHOLD_NOT_MET', completed_at: new Date(NOW - 3600000).toISOString() }));
+  const fresh = candidate({ id: '33333333-3333-4333-8333-333333333333',
+    published_at: new Date(NOW - 20 * 60 * 1000).toISOString() });
+  const requests = [];
+  const selected = await filteringStore([...finalized, fresh], audits, requests).candidates({ limit: 5, now: NOW });
+  assert.deepEqual(selected.map(item => item.id), [fresh.id]);
+  assert.ok(requests.length <= 3, 'finalized REVIEW rows older than 12 hours are never paged');
+});
+
+test('live-window candidates are processed before an older unprocessed backlog, which is still archived', async () => {
+  const old = candidate({ id: '44444444-4444-4444-8444-444444444444',
+    published_at: new Date(NOW - 5 * 24 * 60 * 60 * 1000).toISOString() });
+  const fresh = candidate({ id: '33333333-3333-4333-8333-333333333333',
+    published_at: new Date(NOW - 20 * 60 * 1000).toISOString() });
+  const selected = await filteringStore([old, fresh], [], []).candidates({ limit: 5, now: NOW });
+  assert.deepEqual(selected.map(item => item.id), [fresh.id, old.id]);
+});
+
+test('an explicit backfill window keeps both review states and its own bounds', async () => {
+  const review = candidate({ id: '55555555-5555-4555-8555-555555555551', candidate_status: 'REVIEW',
+    published_at: '2026-01-10T00:00:00.000Z' });
+  const outside = candidate({ id: '55555555-5555-4555-8555-555555555552',
+    published_at: '2026-03-10T00:00:00.000Z' });
+  const selected = await filteringStore([review, outside], [], []).candidates({
+    limit: 5, from: '2026-01-01T00:00:00.000Z', to: '2026-02-01T00:00:00.000Z', now: NOW });
+  assert.deepEqual(selected.map(item => item.id), [review.id]);
+});

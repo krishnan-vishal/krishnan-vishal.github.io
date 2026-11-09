@@ -342,7 +342,7 @@
         ` : "";
 
         const gpirButton = record.gpirMapping ? `
-            <a class="intel-gpir-link" href="${escapeHtml(record.gpirMapping.href)}">Explore Related GPIR Intelligence →</a>
+            <a class="intel-gpir-link" href="${escapeHtml(record.gpirMapping.href)}">${record.gpirPublicFeed ? "Open topic intelligence view" : "Explore Related GPIR Intelligence"} →</a>
         ` : "";
 
         const related = relatedRecords(record);
@@ -512,6 +512,7 @@
                 status: "GPIR_CLASSIFIED", contentStatus: "CONTENT_VERIFIED",
                 source: { name: sourceName, publicationTitle: sourceName, url: sourceUrl },
                 sourceOrgId: null,
+                gpirMapping: { href: `pages/intelligence/smart.html?alert=${encodeURIComponent(id)}` },
                 gpirPublicFeed: true
             };
         }).filter(Boolean);

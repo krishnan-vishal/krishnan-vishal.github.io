@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M39 Global Alerts integration (automatic publication, selectable alerts)
+
+- **Publisher correction:** `gpir-intelligence-publish` scanned `PENDING`/`REVIEW` candidates oldest-first, at most 20×50 rows. Finalized `REVIEW` rows (about 850 on 2026-11-08) stay in that pool and would eventually make new candidates unreachable. Without an explicit window it now scans live-window (12 h) candidates first, then older `PENDING` rows for the archive; `REVIEW` rows older than 12 hours are final and no longer paged. An explicit `from`/`to` backfill window is unchanged. Trust tiers, thresholds (T1 70, T1.5 80, T2 90), source/URL/timestamp/evidence validation, the T3 Contentful editorial route and the 12-hour live rule are unchanged; no schema change. T1/T1.5/T2 articles that pass every check already publish automatically without per-article approval; T3 still never publishes automatically.
+- **Alerts to Smart Intelligence:** the signed-in ribbon in `smart-intelligence.mjs` now reads the public alerts contract (`sourceUrl`, `sourceName`) and applies the homepage approval gates. An alert opens `smart.html?alert=<id>`, which selects its topics and shows the alert, current context (30 days) and historical repository context from the existing governed records, reusing the Smart topic classifier, filters and URL state. After the 12-hour live window the alert resolves from the permanent repository. The homepage ticker detail panel links to the same view. No new API, table or engine.
+- **Validation:** publisher/consolidation/editorial tests, Smart/ticker tests, content/link/announcement validators pass. Two pre-existing `reader-*` tests that pin `gpir-reader-dashboard.mjs?v=20261107b` fail on the unchanged baseline.
+- **Production (2026-11-09 01:51 UTC):** `gpir-public-alerts` returns `alerts: []`; `gpir-public-intelligence?scope=history` returns 198 records (BIS, Hyperswitch/Mojaloop, 2 MAS), none from media sources. The Supabase tokens available here are rejected, so the Edge function was not deployed and no production candidate, audit or publication state could be read or changed. Production acceptance (publish → both tickers → intelligence view → archive after expiry) remains unverified until the owner merges, deploys `gpir-intelligence-publish`, and a validated T1/T1.5/T2 announcement arrives.
+
 ### M39 governed T3 editorial publication (Contentful)
 
 - **Owner authorization:** 2026-11-08. PYMNTS and every T3 source remain T3; no trust tier, confidence threshold or T1/T1.5/T2 behaviour changed, and there is no automatic T3 approval.
