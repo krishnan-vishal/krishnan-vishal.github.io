@@ -5,6 +5,12 @@
 -- 95 automatic threshold plus editorial route); the European Payments Council is the SEPA scheme
 -- manager and an industry body, matching the existing T1.5 payments associations (threshold 80).
 -- Apply only after the matching gpir-intelligence-fetch deployment. Idempotent.
+-- Production verification (2026-11-09, Supabase egress, GPIR-ResearchBot user agent) found that
+-- Payments Dive and Finextra serve HTTP 403 for every article page and that EPC article pages carry
+-- no machine-readable publication timestamp, so none can pass the unchanged article-level
+-- verification. They are therefore registered DISABLED and never scheduled; enabling any of them
+-- requires fresh evidence that the blocker is gone. Only the already-GREEN official RBA source is
+-- scheduled.
 begin;
 
 insert into public.source_registry (
@@ -14,13 +20,13 @@ insert into public.source_registry (
 ) values
   ('PAYMENTSDIVE-US-005', 'Payments Dive', 'USA', 'United States', null,
    'Financial Services Media', 'T3', 'https://www.paymentsdive.com/', 'A',
-   'https://www.paymentsdive.com/feeds/news/', 30, 'trade-rss-v1', 'GREEN'),
+   'https://www.paymentsdive.com/feeds/news/', 30, 'trade-rss-v1', 'DISABLED'),
   ('FINEXTRA-PAY-006', 'Finextra Payments', 'GBR', 'Global', null,
    'Financial Services Media', 'T3', 'https://www.finextra.com/', 'A',
-   'https://www.finextra.com/rss/channel.aspx?channel=payments', 60, 'trade-rss-v1', 'GREEN'),
+   'https://www.finextra.com/rss/channel.aspx?channel=payments', 60, 'trade-rss-v1', 'DISABLED'),
   ('EPC-EUR-007', 'European Payments Council', 'BEL', 'Belgium', null,
    'Payment Scheme Manager', 'T1.5', 'https://www.europeanpaymentscouncil.eu/', 'A',
-   'https://www.europeanpaymentscouncil.eu/news-insights', 60, 'epc-news-html-v1', 'GREEN')
+   'https://www.europeanpaymentscouncil.eu/news-insights', 60, 'epc-news-html-v1', 'DISABLED')
 on conflict (source_id) do nothing;
 
 -- Same authenticated pattern as the existing hourly ingestion jobs (vault secret, no literal credential).
@@ -41,9 +47,6 @@ where secret.name = 'gpir_edge_function_secret'
   and secret.decrypted_secret <> '';
 $job$, job.source_id))
 from (values
-  ('m39-paymentsdive-ingestion', '10,40 * * * *', 'PAYMENTSDIVE-US-005'),
-  ('m39-finextra-payments-ingestion', '30 * * * *', 'FINEXTRA-PAY-006'),
-  ('m39-epc-ingestion', '55 * * * *', 'EPC-EUR-007'),
   ('m39-rba-ingestion', '35 * * * *', 'TEST-RBA-01')
 ) as job(name, schedule, source_id);
 

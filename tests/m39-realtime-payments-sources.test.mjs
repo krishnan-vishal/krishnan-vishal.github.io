@@ -90,6 +90,10 @@ test('release SQL registers verified-provenance tiers and schedules the same gov
     assert.match(release, /'FINEXTRA-PAY-006'[\s\S]*'T3'/);
     assert.match(release, /'EPC-EUR-007'[\s\S]*'T1\.5'/);
     assert.match(release, /on conflict \(source_id\) do nothing/);
+    const statements0 = release.replace(/^--.*$/gm, '');
+    assert.equal((statements0.match(/'DISABLED'/g) || []).length, 3);
+    assert.doesNotMatch(statements0, /'GREEN'/);
+    assert.deepEqual([...statements0.matchAll(/\('(m39-[a-z-]+)'/g)].map(m => m[1]), ['m39-rba-ingestion']);
     assert.match(release, /functions\/v1\/gpir-intelligence-fetch/);
     assert.match(release, /vault\.decrypted_secrets/);
     const statements = release.replace(/^--.*$/gm, '');
