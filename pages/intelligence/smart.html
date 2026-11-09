@@ -10,7 +10,8 @@
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
   <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
-  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109premium">
+  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109e">
+  <link rel="stylesheet" href="../../assets/css/smart-premium.css?v=20261109e">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -49,59 +50,92 @@
       </div></fieldset>
       <label class="smi-geography">Geography<select data-smart-geography><option value="all">All geographies</option><option value="global">Global</option><option value="apac">Asia Pacific</option><option value="europe">Europe</option><option value="americas">Americas</option><option value="mea">Middle East &amp; Africa</option></select></label>
       <div class="smi-custom-dates" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2024-11-08"></label><label>To<input type="date" data-smart-end min="2024-11-08"></label></div>
-      <fieldset class="smi-topic-filter"><legend>Topics <span>select one or more</span></legend><details><summary>Choose payments intelligence topics</summary><div data-smart-topic-controls></div></details></fieldset>
-      <div class="smi-command-actions"><button type="submit">Apply intelligence context</button><button type="button" class="smi-clear" data-smart-clear>All topics</button></div>
+      <fieldset class="smp-themes"><legend>Intelligence themes <span>colour-coded · select any</span></legend><div class="smp-chips" data-smart-theme-controls></div></fieldset>
+      <fieldset class="smi-topic-filter"><legend>Detailed taxonomy <span>optional · select one or more</span></legend><details><summary>Choose payments intelligence topics</summary><div data-smart-topic-controls></div></details></fieldset>
+      <div class="smi-command-actions"><span class="smp-share-status" role="status" data-smart-share-status></span><button type="button" class="smp-share" data-smart-share>Share this view</button><button type="submit">Apply intelligence context</button><button type="button" class="smi-clear" data-smart-clear>All topics</button></div>
     </form>
 
     <p class="smi-status" data-smart-status aria-live="polite">Loading governed intelligence…</p>
 
     <section class="smi-alert-focus" data-smart-alert aria-live="polite" hidden></section>
 
+    <section class="smp-summary" aria-labelledby="smp-summary-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">EXECUTIVE INTELLIGENCE SUMMARY</p><h2 id="smp-summary-title">Verified payments intelligence at a glance</h2></div><p>Archived, validated industry developments for the selected context. Live announcements are counted separately and only inside the governed 12-hour window.</p></div>
+      <div class="smp-kpis" data-smart-kpis></div>
+    </section>
+
     <section class="smi-signal-grid" aria-labelledby="smi-top-signal-title">
       <article class="smi-top-signal" data-smart-top-signal><p class="smi-kicker">TOP SIGNAL NOW</p><h2 id="smi-top-signal-title">Waiting for governed evidence</h2></article>
       <aside class="smi-supporting" data-smart-supporting><p class="smi-kicker">SUPPORTING DEVELOPMENTS</p></aside>
     </section>
 
-    <section aria-label="Intelligence indicators"><div class="smi-kpis" data-smart-kpis></div></section>
-
-    <section class="smi-analytics" aria-labelledby="smi-analytics-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">EXECUTIVE ANALYTICS</p><h2 id="smi-analytics-title">Payments intelligence at a glance</h2></div><p>Observed historical evidence · descriptive counts, not forecasts</p></div>
-      <div class="smi-analytics-grid">
-        <article class="smi-analytics-panel"><h3>Weekly development activity</h3><p>Unique verified records by publication week</p><div data-smart-weekly-chart></div></article>
-        <article class="smi-analytics-panel"><h3>Topic momentum</h3><p>Current selection versus preceding equivalent period</p><div data-smart-topic-chart></div></article>
-        <article class="smi-analytics-panel"><h3>Geographic coverage</h3><p>Distribution of records with a governed geography</p><div data-smart-geo-chart></div></article>
+    <section class="smp-section" aria-labelledby="smi-analytics-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">INTELLIGENCE MOMENTUM</p><h2 id="smi-analytics-title">Weekly activity and topic momentum</h2></div><p>Observed historical evidence · descriptive counts, not forecasts. Select a bar to drill down.</p></div>
+      <div class="smp-grid">
+        <figure class="smp-panel">
+          <figcaption><h3>Weekly Intelligence Activity</h3><p>Verified industry developments by publication week · last eight UTC weeks · select a week to open it</p></figcaption>
+          <div class="smp-chart" data-smart-chart="weekly" data-empty="No verified developments in the last eight weeks for this selection." role="img" aria-labelledby="smp-weekly-summary"></div>
+          <p class="smp-chart-summary" id="smp-weekly-summary" data-smart-chart-summary="weekly"></p>
+          <details class="smp-data"><summary>View data table</summary><div data-smart-table="weekly"></div></details>
+        </figure>
+        <figure class="smp-panel">
+          <figcaption><h3>Topic Momentum</h3><p>Current period versus the preceding equivalent period · select a theme to filter</p></figcaption>
+          <div class="smp-chart" data-smart-chart="momentum" data-empty="No themed developments in the current or preceding period." role="img" aria-labelledby="smp-momentum-summary"></div>
+          <p class="smp-chart-summary" id="smp-momentum-summary" data-smart-chart-summary="momentum"></p>
+          <details class="smp-data"><summary>View data table</summary><div data-smart-table="momentum"></div></details>
+        </figure>
       </div>
-      <p class="smi-analytics-note" data-smart-analytics-note></p>
     </section>
 
-    <section aria-labelledby="smi-topic-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period. Counts are descriptive and imply no forecast.</p></div>
+    <section class="smp-section" aria-labelledby="smp-geo-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">GEOGRAPHIC INTELLIGENCE &amp; TOPIC DISTRIBUTION</p><h2 id="smp-geo-title">Where developments occur and what they cover</h2></div><p>Geography uses verified record metadata only. The distribution counts each development once under its primary theme.</p></div>
+      <div class="smp-grid">
+        <figure class="smp-panel">
+          <figcaption><div class="smp-panel-head"><div><h3>Geographic Coverage</h3><p>Verified regional and country attribution</p></div><div class="smp-toggle" role="group" aria-label="Geographic detail"><button type="button" data-geo-mode="regions" aria-pressed="true">Regions</button><button type="button" data-geo-mode="countries" aria-pressed="false">Countries</button></div></div></figcaption>
+          <div class="smp-chart" data-smart-chart="geography" data-empty="No developments in this selection carry verified geographic metadata." role="img" aria-labelledby="smp-geography-summary"></div>
+          <p class="smp-chart-summary" id="smp-geography-summary" data-smart-chart-summary="geography"></p>
+          <details class="smp-data"><summary>View data table</summary><div data-smart-table="geography"></div></details>
+        </figure>
+        <figure class="smp-panel">
+          <figcaption><h3>Topic Distribution</h3><p>Unique developments by primary theme · select a segment to filter</p></figcaption>
+          <div class="smp-chart" data-smart-chart="distribution" data-empty="No verified developments in this selection." role="img" aria-labelledby="smp-distribution-summary"></div>
+          <p class="smp-chart-summary" id="smp-distribution-summary" data-smart-chart-summary="distribution"></p>
+          <details class="smp-data"><summary>View data table</summary><div data-smart-table="distribution"></div></details>
+        </figure>
+      </div>
+    </section>
+
+    <section class="smp-section" aria-labelledby="smi-topic-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by theme</h2></div><p>Select a theme to update every view. Comparisons use the immediately preceding equivalent period; counts imply no forecast.</p></div>
       <p class="smi-compare-window" data-smart-compare-window></p>
-      <div class="smi-topic-cards" data-smart-topic-cards></div>
+      <div class="smp-tiles" data-smart-theme-tiles></div>
     </section>
 
     <section class="smi-heatmap-panel" aria-labelledby="smi-heatmap-title">
       <div class="smi-section-heading"><div><p class="smi-kicker">HISTORICAL SIGNAL DENSITY</p><h2 id="smi-heatmap-title">Preceding 12 weeks</h2></div><div class="smi-heat-legend"><span>None</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Higher</span></div></div>
-      <p class="smi-heat-hint" id="smi-heat-hint">Select a topic-week cell to list its dated supporting records and compare it with the preceding week. Use the arrow keys to move between cells; press Escape to clear.</p>
+      <p class="smi-heat-hint" id="smi-heat-hint">Select a theme-week cell to list its dated supporting records and compare it with the preceding week. Colour identifies the theme; intensity shows the count. Use the arrow keys to move between cells; press Escape to clear.</p>
       <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap role="group" aria-labelledby="smi-heatmap-title" aria-describedby="smi-heat-hint"></div></div>
       <p class="gpir-sc-visually-hidden" role="status" data-smart-heat-status></p>
       <div class="smi-heat-detail" data-smart-heat-detail data-state="idle"></div>
     </section>
 
-    <section class="smi-evidence" aria-labelledby="smi-evidence-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">SOURCE-LINKED EVIDENCE</p><h2 id="smi-evidence-title">Matching validated developments</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
-      <div class="smi-results" data-smart-results></div>
+    <section class="smi-evidence smp-timeline-panel" data-smart-timeline aria-labelledby="smi-evidence-title">
+      <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
+      <p class="smp-note">Historical evidence from the governed archive, newest first. Live announcements appear only in the Live Global Alerts ribbon during their 12-hour window.</p>
+      <div class="smp-results" data-smart-results></div>
+      <details class="smp-reference" data-smart-reference hidden></details>
     </section>
 
     <section class="smi-editorial" data-smart-editorial hidden></section>
 
     <section class="smi-methodology" aria-labelledby="smi-methodology-title">
       <div><p class="smi-kicker">SOURCE TRANSPARENCY</p><h2 id="smi-methodology-title">Methodology and interpretation boundary</h2><p>Dashboard values use only dated, approved announcements from GREEN registry sources that pass the existing official-URL and content validation rules. The live ribbon uses the same governed 12-hour dataset as the homepage ticker. Historical records remain available after ticker expiry.</p></div>
-      <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per topic and UTC week; blank cells mean zero qualifying observations.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
+      <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per theme and UTC week; blank cells mean zero qualifying observations.</dd></div><div><dt>Themes</dt><dd>Existing GPIR taxonomy categories grouped into twelve payments themes; AI, Agentic and Web3 require explicit payments context. One development can belong to several themes, so theme counts overlap while the distribution counts each development once.</dd></div><div><dt>Geography</dt><dd>Only records carrying governed geographic metadata are plotted; the rest are reported, never guessed.</dd></div><div><dt>Reference data</dt><dd>BIS statistics are historical reference data, not news. Software repository history is kept for audit and excluded from industry analytics.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
     </section>
   </main>
   <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
-  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109b" defer></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109premium"></script>
+  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109e" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109e"></script>
 </body>
 </html>

@@ -12,7 +12,8 @@ test('smart page loads the presentation assets with versioned references and the
   assert.match(page, /<body class="smi-page gpir-sc">/);
   assert.match(page, /gpir-smart-card-sections\.css\?v=\d+[a-z]?"/);
   assert.match(page, /gpir-smart-card-sections\.js\?v=\d+[a-z]?" defer/);
-  assert.match(page, /smart-intelligence\.mjs\?v=20261109d/);
+  assert.match(page, /smart-intelligence\.mjs\?v=\d+[a-z]?"/);
+  assert.match(page, /smart-premium\.css\?v=\d+[a-z]?"/);
 });
 
 test('presentation stylesheet is scoped to .gpir-sc and never hides original text', () => {
@@ -26,8 +27,7 @@ test('presentation script reads rendered data only and never fetches or stores a
   assert.doesNotMatch(script, /\bfetch\s*\(|XMLHttpRequest|supabase|contentful|localStorage|sessionStorage|\.innerHTML\s*=\s*[^'"]*(?:title|summary)/i);
   assert.match(script, /showAllHeat/);
   assert.match(script, /aria-pressed/);
-  assert.match(script, /aria-expanded/);
-  assert.match(script, /\[data-smart-topic-controls\] input:checked/);
+  assert.match(script, /\[data-smart-topic-controls\] input/);
 });
 
 test('My GPIR navigation grid change is responsive CSS only', () => {

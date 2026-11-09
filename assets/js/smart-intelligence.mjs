@@ -1,4 +1,13 @@
 import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
+import {
+  PREMIUM_THEMES, REGION_FILTER_KEYS, buildAskQuery, buildExecutiveSummary, buildGeographyCoverage, buildItemShare, buildShareUrl,
+  buildThemeDistribution, buildThemeMomentum, buildThemeWeekly, buildWeeklyActivity, classifyThemeIds, compareCounts,
+  distributionChartOption, distributionTable, geographyChartOption, geographyTable, isExecutiveEligible, kpiMarkup, momentumChartOption,
+  momentumTable, primaryThemeId, referenceClass, sparklineSvg, themeById, themeChipMarkup, weeklyChartOption, weeklyTable
+} from './smart-presentation.mjs';
+import { createChartController } from './smart-charts.mjs';
+
+export { compareCounts, isExecutiveEligible, referenceClass };
 
 const DAY = 86400000;
 const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
@@ -126,6 +135,7 @@ export function normalizeSmartRecords(value) {
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
+    record.themeIds = classifyThemeIds(record);
     return [record];
   }).sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 }
@@ -154,6 +164,7 @@ export function normalizeLiveAlerts(value, historical) {
     };
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
+    record.themeIds = classifyThemeIds(record);
     return [record];
   }));
 }
@@ -198,11 +209,13 @@ export function filterSmartRecords(records, options = {}) {
   }
   const bounds = options.bounds || periodBounds(options.period || '30D', options.now || Date.now(), options.customStart, options.customEnd);
   const topicSet = new Set(options.topics || []);
+  const themeSet = new Set(options.themes || []);
   return records.filter(record => {
     const time = Date.parse(record.publishedAt);
     if (time < bounds.start || time >= bounds.end) return false;
     if (options.geography && options.geography !== 'all' && record.regionKey !== options.geography) return false;
     if (topicSet.size && !record.topicIds.some(topic => topicSet.has(topic))) return false;
+    if (themeSet.size && !(record.themeIds || []).some(theme => themeSet.has(theme))) return false;
     return true;
   });
 }
@@ -218,18 +231,6 @@ export function normalizeEditorial(value) {
 function isCritical(record) {
   return /\b(critical|urgent|enforcement action|sanction|breach|cyberattack|fraud)\b/i.test(
     [record.title, record.summary, record.outcomeStatus].filter(Boolean).join(' '));
-}
-
-// Descriptive count comparison. A zero preceding count never produces a percentage.
-export function compareCounts(current, previous) {
-  const delta = current - previous;
-  const deltaLabel = delta > 0 ? `+${delta}` : delta < 0 ? `−${Math.abs(delta)}` : '0';
-  if (!current && !previous) return { label: 'No activity', direction: 'flat', delta, deltaLabel, isNew: false };
-  if (!previous) return { label: 'New', direction: 'up', delta, deltaLabel, isNew: true };
-  if (!delta) return { label: 'No change', direction: 'flat', delta, deltaLabel, isNew: false };
-  const percent = Math.round((delta / previous) * 100);
-  const magnitude = percent === 0 ? '<1%' : `${Math.abs(percent)}%`;
-  return { label: `${delta > 0 ? '+' : '−'}${magnitude} vs prior`, direction: delta > 0 ? 'up' : 'down', delta, deltaLabel, isNew: false };
 }
 
 function comparison(current, previous) {
@@ -250,14 +251,14 @@ export function buildDashboardMetrics(current, previous) {
   ];
 }
 
-export function buildHeatmap(records, now = Date.now()) {
+export function buildHeatmap(records, now = Date.now(), topics = SMART_TOPICS, field = 'topicIds') {
   const lastWeek = utcWeekStart(now);
   const weeks = Array.from({ length: 12 }, (_, index) => lastWeek - (11 - index) * 7 * DAY);
-  const rows = SMART_TOPICS.map(topic => ({
+  const rows = topics.map(topic => ({
     topic,
     counts: weeks.map(week => records.filter(record => {
       const time = Date.parse(record.publishedAt);
-      return time >= week && time < week + 7 * DAY && record.topicIds.includes(topic.id);
+      return time >= week && time < week + 7 * DAY && (record[field] || []).includes(topic.id);
     }).length)
   }));
   const max = Math.max(0, ...rows.flatMap(row => row.counts));
@@ -266,13 +267,13 @@ export function buildHeatmap(records, now = Date.now()) {
 
 // Records behind one heatmap cell plus a like-for-like comparison with the preceding week.
 // A week still in progress is compared with the same elapsed days of the preceding week.
-export function buildHeatmapSelection(records, topicId, weekStart, now = Date.now()) {
+export function buildHeatmapSelection(records, topicId, weekStart, now = Date.now(), field = 'topicIds') {
   const inProgress = weekStart + 7 * DAY > now;
   const elapsedDays = inProgress ? Math.min(7, Math.max(1, Math.floor((now - weekStart) / DAY) + 1)) : 7;
   const previousStart = weekStart - 7 * DAY;
   const inWindow = (record, start, days) => {
     const time = Date.parse(record.publishedAt);
-    return time >= start && time < start + days * DAY && record.topicIds.includes(topicId);
+    return time >= start && time < start + days * DAY && (record[field] || []).includes(topicId);
   };
   const current = records.filter(record => inWindow(record, weekStart, elapsedDays));
   const previous = records.filter(record => inWindow(record, previousStart, elapsedDays));
@@ -394,6 +395,33 @@ function evidenceTag(record) {
   return kind ? ` · ${escapeHtml(kind.tag)}` : '';
 }
 
+const LONG_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const askHref = query => `../../index.html?ask=${encodeURIComponent(query)}#gpir-search`;
+const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+
+function recordGeography(record) {
+  return [...new Set([record.country, record.region, record.geography].filter(Boolean))].join(' · ');
+}
+
+// Primary theme first, then up to two overlapping themes. Text labels accompany every colour.
+function themeTags(record, limit = 3) {
+  const primary = primaryThemeId(record);
+  const ids = [primary, ...(record.themeIds || []).filter(id => id !== primary)].slice(0, limit);
+  return ids.map(id => themeById(id)).filter(Boolean)
+    .map(theme => `<span class="smp-tag" style="--theme-color:${theme.color}">${escapeHtml(theme.short)}</span>`).join('');
+}
+
+function developmentMarkup(record) {
+  const primary = themeById(primaryThemeId(record));
+  const geography = recordGeography(record) || 'Geography not classified';
+  const themes = (record.themeIds || []).map(id => themeById(id)?.label).filter(Boolean);
+  const facts = [['Source', record.sourceName], ['Source trust tier', record.sourceTrustTier], ['Published', isoDay(record.publishedAt)],
+    ['Record status', record.lifecycle], ['Geography', geography], ['Category', record.category], ['Themes', themes.join(' · ')]]
+    .filter(([, value]) => value).map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
+  const ask = askHref(buildAskQuery({}, { record }));
+  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask>Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
+}
+
 function renderTopSignal(root, records) {
   const top = root.querySelector('[data-smart-top-signal]');
   const supporting = root.querySelector('[data-smart-supporting]');
@@ -403,66 +431,82 @@ function renderTopSignal(root, records) {
     return;
   }
   const record = records[0];
-  const kind = evidenceKind(record);
-  const kicker = kind ? 'TOP VERIFIED REFERENCE' : 'TOP SIGNAL NOW';
-  top.innerHTML = `<p class="smi-kicker">${kicker}</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p>${kind ? `<p class="smi-evidence-note">${escapeHtml(kind.note)}</p>` : ''}<div class="smi-signal-meta">${kind ? `<span class="smi-pill" data-evidence="${kind.id}">${escapeHtml(kind.label)}</span>` : ''}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.category)}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(kind ? kind.linkLabel : 'Open verified source')}</a>`;
+  const primary = themeById(primaryThemeId(record));
+  top.style.setProperty('--theme-color', primary.color);
+  const geography = recordGeography(record);
+  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="${escapeHtml(askHref(buildAskQuery({}, { record })))}" data-smart-item-ask>Ask GPIR about this</a>`;
   const extras = records.slice(1, 4);
-  supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}${evidenceTag(item)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
+  supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li style="--theme-color:${themeById(primaryThemeId(item)).color}"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
+}
+
+function renderSummary(root, model) {
+  root.querySelector('[data-smart-kpis]').innerHTML = buildExecutiveSummary(model).map(kpiMarkup).join('');
+}
+
+function themeTileMarkup(row, series, selected) {
+  const spoken = `${row.short}: ${plural(row.current, 'verified development')} in the selected period, ${row.previous} in the preceding period, ${row.change.isNew ? 'new' : row.change.deltaLabel}, ${plural(row.sources, 'source')}`;
+  return `<button type="button" class="smp-tile" style="--theme-color:${row.color}" data-theme-tile="${row.id}" aria-pressed="${selected}" aria-label="${escapeHtml(`Filter by ${spoken}`)}"><span class="smp-tile-name"><i aria-hidden="true"></i>${escapeHtml(row.short)}</span><strong>${row.current}</strong><span class="smp-delta" data-direction="${row.change.direction}">${escapeHtml(row.change.isNew ? `New (${row.change.deltaLabel})` : row.change.label)}</span>${row.current || row.previous ? sparklineSvg(series, row.color) : ''}<small>${row.current ? `${plural(row.sources, 'source')} · prior ${row.previous}` : 'No verified evidence in this period'}</small></button>`;
+}
+
+function renderThemeTiles(root, rows, scopeRecords, state, now) {
+  root.querySelector('[data-smart-theme-tiles]').innerHTML = rows.map(row =>
+    themeTileMarkup(row, buildThemeWeekly(scopeRecords, row.id, now), state.themes.has(row.id))).join('');
+}
+
+function setSummary(root, name, text) {
+  const target = root.querySelector(`[data-smart-chart-summary="${name}"]`);
+  if (target) target.textContent = text;
+}
+
+function renderAnalytics(root, models) {
+  const { weekly, momentum, distribution, geography, geographyMode } = models;
+  const peak = weekly.weeks.find(week => week.count === weekly.max && week.count > 0);
+  setSummary(root, 'weekly', weekly.total
+    ? `${plural(weekly.total, 'verified development')} over the last eight UTC weeks; busiest week starting ${isoDay(peak.start)} with ${peak.count}. The current week is in progress.`
+    : 'No verified industry developments were published in the last eight UTC weeks for this selection.');
+  const leader = [...momentum].sort((left, right) => right.current - left.current || left.label.localeCompare(right.label))[0];
+  setSummary(root, 'momentum', leader && leader.current
+    ? `Largest current theme: ${leader.label} with ${leader.current} (preceding period ${leader.previous}). Counts overlap because one development can carry several themes.`
+    : 'No themed developments in the current or preceding period.');
+  setSummary(root, 'distribution', distribution.unique
+    ? `${plural(distribution.unique, 'unique development')} counted once under a primary theme. ${plural(distribution.classifications, 'topic classification')} in total because one development can belong to several themes.`
+    : 'No verified developments in this selection, so no theme distribution is shown.');
+  setSummary(root, 'geography', geography.attributed
+    ? `${geography.attributed} of ${geography.total} developments carry verified geography; ${geography.unattributed} without geographic metadata are not plotted.`
+    : 'No developments in this selection carry verified geographic metadata.');
+  root.querySelector('[data-smart-table="weekly"]').innerHTML = weeklyTable(weekly);
+  root.querySelector('[data-smart-table="momentum"]').innerHTML = momentumTable(momentum);
+  root.querySelector('[data-smart-table="distribution"]').innerHTML = distribution.unique ? distributionTable(distribution) : '';
+  root.querySelector('[data-smart-table="geography"]').innerHTML = geography.attributed ? geographyTable(geography) : '';
+  root.querySelectorAll('[data-geo-mode]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.geoMode === geographyMode));
+    button.disabled = button.dataset.geoMode === 'countries' && !geography.countries.length;
+  });
+}
+
+function renderTimeline(root, records, state) {
+  const target = root.querySelector('[data-smart-results]');
+  const shown = records.slice(0, state.visible);
+  target.innerHTML = records.length
+    ? `<ol class="smp-timeline">${shown.map(developmentMarkup).join('')}</ol>${records.length > shown.length
+      ? `<button type="button" class="smp-more" data-smart-more>Show ${Math.min(8, records.length - shown.length)} more · ${shown.length} of ${records.length} shown</button>`
+      : `<p class="smp-count">${plural(records.length, 'verified development')} shown.</p>`}`
+    : '<div class="smi-empty"><strong>No validated records match this context.</strong><p>Broaden the filters or period. No sample signal, KPI or market-impact conclusion has been substituted.</p></div>';
+}
+
+// BIS statistics and software repository history stay available for audit, outside industry analytics.
+function renderReference(root, records) {
+  const target = root.querySelector('[data-smart-reference]');
+  if (!target) return;
+  const statistical = records.filter(record => referenceClass(record) === 'statistical');
+  const technical = records.filter(record => referenceClass(record) === 'technical');
+  target.hidden = !records.length;
+  if (!records.length) { target.innerHTML = ''; return; }
+  const list = items => items.slice(0, 12).map(recordMarkup).join('') + (items.length > 12 ? `<p class="smi-heat-note">Showing the latest 12 of ${items.length} records.</p>` : '');
+  target.innerHTML = `<summary>Historical reference data &amp; audit records <span>${plural(statistical.length, 'statistical observation')} · ${plural(technical.length, 'technical record')}</span></summary><div class="smp-reference-body"><p>BIS statistical observations are historical reference data, not breaking news. Software repository history is retained for auditability and is excluded from industry rankings, momentum and analytics.</p>${statistical.length ? `<h3>BIS statistical reference data</h3><div class="smi-results">${list(statistical)}</div>` : ''}${technical.length ? `<h3>Technical repository audit records</h3><div class="smi-results">${list(technical)}</div>` : ''}</div>`;
 }
 
 
-function renderExecutiveAnalytics(root, current, previous, now) {
-  const technical = record => Boolean(evidenceKind(record));
-  const governed = current.filter(record => !technical(record));
-  const prior = previous.filter(record => !technical(record));
-  const safeBar = (label, value, max, secondary = '') =>
-    `<div class="smi-analytics-bar"><div class="smi-analytics-bar-label"><span>${escapeHtml(label)}</span><strong>${value}${secondary ? ` <small>${escapeHtml(secondary)}</small>` : ''}</strong></div><div class="smi-analytics-track"><i style="width:${max ? (value / max * 100).toFixed(2) : 0}%"></i></div></div>`;
-  const weekly = Array.from({ length: 8 }, (_, index) => utcWeekStart(now) - (7 - index) * 7 * DAY);
-  const weekCounts = weekly.map(week => governed.filter(record => {
-    const date = Date.parse(record.publishedAt);
-    return date >= week && date < week + 7 * DAY;
-  }).length);
-  const maxWeek = Math.max(1, ...weekCounts);
-  root.querySelector('[data-smart-weekly-chart]').innerHTML = `<div class="smi-week-bars" role="img" aria-label="${escapeHtml(weekly.map((week, i) => `${isoDay(week)}: ${weekCounts[i]} records`).join('; '))}">${weekly.map((week, index) => `<div class="smi-week-bar"><b>${weekCounts[index] || ''}</b><i style="height:${Math.max(3, weekCounts[index] / maxWeek * 100)}%"></i><span>${new Date(week).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span></div>`).join('')}</div>`;
-  const topics = SMART_TOPICS.map(topic => ({ label: topic.label, count: governed.filter(record => record.topicIds.includes(topic.id)).length, prior: prior.filter(record => record.topicIds.includes(topic.id)).length })).filter(topic => topic.count || topic.prior).sort((a,b) => b.count - a.count || a.label.localeCompare(b.label)).slice(0, 6);
-  const maxTopic = Math.max(1, ...topics.map(topic => topic.count));
-  root.querySelector('[data-smart-topic-chart]').innerHTML = topics.length ? topics.map(topic => safeBar(topic.label, topic.count, maxTopic, `prior ${topic.prior}`)).join('') : '<p class="smi-analytics-empty">No qualifying topic observations in this selection.</p>';
-  const geoCounts = new Map();
-  for (const record of governed) {
-    const label = clean(record.region || record.country || record.countryCode || '', 60);
-    if (label) geoCounts.set(label, (geoCounts.get(label) || 0) + 1);
-  }
-  const geos = [...geoCounts].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 6);
-  const maxGeo = Math.max(1, ...geos.map(([,count]) => count));
-  root.querySelector('[data-smart-geo-chart]').innerHTML = geos.length ? geos.map(([label,count]) => safeBar(label,count,maxGeo)).join('') : '<p class="smi-analytics-empty">No governed geographic attribution for this selection.</p>';
-  root.querySelector('[data-smart-analytics-note]').textContent = `${governed.length} industry developments · ${current.length - governed.length} technical/statistical references kept in source evidence · ${prior.length} industry developments in the preceding equivalent period. Topic counts can overlap.`;
-}
-
-function renderKpis(root, current, previous) {
-  root.querySelector('[data-smart-kpis]').innerHTML = buildDashboardMetrics(current, previous)
-    .map(item => `<article class="smi-kpi" data-tone="${item.tone || 'blue'}"><strong>${item.value}</strong><span>${escapeHtml(item.label)}</span><em>${escapeHtml(item.comparison.label)}</em></article>`).join('');
-}
-
-function renderTopicCards(root, currentBase, previousBase) {
-  const target = root.querySelector('[data-smart-topic-cards]');
-  target.innerHTML = SMART_TOPICS.map(topic => {
-    const current = currentBase.filter(record => record.topicIds.includes(topic.id));
-    const previous = previousBase.filter(record => record.topicIds.includes(topic.id));
-    const trend = compareCounts(current.length, previous.length);
-    const latest = current.slice(0, 3);
-    const sourceCount = new Set(current.map(record => record.sourceName).filter(Boolean)).size;
-    const scale = Math.max(current.length, previous.length, 1);
-    const width = count => (count / scale * 100).toFixed(1);
-    const changeText = trend.isNew ? `New (${trend.deltaLabel})` : trend.deltaLabel;
-    const summary = current.length
-      ? `${current.length} validated signal${current.length === 1 ? '' : 's'} in the selected period. Most recent evidence is dated ${isoDay(current[0].publishedAt)}.`
-      : 'No qualifying dated observation for this topic and selected context.';
-    const spoken = `${current.length} in the current period, ${previous.length} in the preceding period, change ${trend.isNew ? 'new' : trend.deltaLabel}, ${sourceCount} source${sourceCount === 1 ? '' : 's'}, ${current.length} evidence link${current.length === 1 ? '' : 's'}`;
-    const compare = `<div class="smi-compare" role="group" aria-label="${escapeHtml(`${topic.label} comparison: ${spoken}`)}"><div class="smi-compare-row" data-period="current"><span>Current</span><i aria-hidden="true" style="--w:${width(current.length)}%"></i><b>${current.length}</b></div><div class="smi-compare-row" data-period="previous"><span>Prior</span><i aria-hidden="true" style="--w:${width(previous.length)}%"></i><b>${previous.length}</b></div><dl class="smi-compare-facts"><div><dt>Change</dt><dd data-direction="${trend.direction}">${escapeHtml(changeText)}</dd></div><div><dt>Sources</dt><dd>${sourceCount}</dd></div><div><dt>Evidence</dt><dd>${current.length} link${current.length === 1 ? '' : 's'}</dd></div></dl></div>`;
-    const links = latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small>${evidenceKind(record) ? `<small class="smi-evidence-tag">${escapeHtml(evidenceKind(record).tag)}</small>` : ''}</li>`).join('')}${current.length > latest.length ? `<li class="smi-topic-more">+${current.length - latest.length} more in the evidence list below</li>` : ''}</ul>` : '';
-    return `<article class="smi-topic-card" data-topic="${topic.id}" role="button" tabindex="0" aria-label="${escapeHtml(`Show ${topic.label} intelligence. ${spoken}`)}"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${compare}${links}</article>`;
-  }).join('');
-}
 
 const WEEK_FORMAT = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const WEEK_FORMAT_YEAR = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -472,7 +516,7 @@ function weekRangeLabel(weekStart) {
 }
 
 function heatSelectionValid(heat, weeks) {
-  return Boolean(heat && SMART_TOPICS.some(topic => topic.id === heat.topicId) && weeks.includes(heat.weekStart));
+  return Boolean(heat && PREMIUM_THEMES.some(topic => topic.id === heat.topicId) && weeks.includes(heat.weekStart));
 }
 
 function renderCompareWindow(root, bounds) {
@@ -485,15 +529,15 @@ function renderCompareWindow(root, bounds) {
 
 function renderHeatmap(root, records, now, heat) {
   const target = root.querySelector('[data-smart-heatmap]');
-  const heatmap = buildHeatmap(records, now);
+  const heatmap = buildHeatmap(records, now, PREMIUM_THEMES, 'themeIds');
   const selected = heatSelectionValid(heat, heatmap.weeks) ? heat : null;
   const level = count => !count || !heatmap.max ? 0 : Math.min(4, Math.ceil((count / heatmap.max) * 4));
   const tabStop = selected ? `${selected.topicId}|${selected.weekStart}` : `${heatmap.rows[0]?.topic.id}|${heatmap.weeks[0]}`;
-  target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${WEEK_FORMAT.format(new Date(week))}</span>`).join('')}${heatmap.rows.map((row, rowIndex) => `<span class="smi-row-label">${escapeHtml(row.topic.label)}</span>${row.counts.map((count, index) => {
+  target.innerHTML = `<span></span>${heatmap.weeks.map(week => `<span class="smi-week">${WEEK_FORMAT.format(new Date(week))}</span>`).join('')}${heatmap.rows.map((row, rowIndex) => `<span class="smi-row-label" style="--theme-color:${row.topic.color}">${escapeHtml(row.topic.short)}</span>${row.counts.map((count, index) => {
     const week = heatmap.weeks[index];
     const isSelected = selected?.topicId === row.topic.id && selected.weekStart === week;
     const label = `${row.topic.label}, week of ${isoDay(week)}: ${count} qualifying signal${count === 1 ? '' : 's'}. Select to list the dated records.`;
-    return `<button type="button" class="smi-heat-cell" data-level="${level(count)}" data-heat-topic="${row.topic.id}" data-heat-week="${week}" data-heat-row="${rowIndex}" data-heat-col="${index}" aria-pressed="${isSelected}" aria-label="${escapeHtml(label)}" tabindex="${`${row.topic.id}|${week}` === tabStop ? 0 : -1}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(week)} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</button>`;
+    return `<button type="button" class="smi-heat-cell" style="--theme-color:${row.topic.color};--theme-ink:${row.topic.ink}" data-level="${level(count)}" data-heat-topic="${row.topic.id}" data-heat-week="${week}" data-heat-row="${rowIndex}" data-heat-col="${index}" aria-pressed="${isSelected}" aria-label="${escapeHtml(label)}" tabindex="${`${row.topic.id}|${week}` === tabStop ? 0 : -1}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(week)} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</button>`;
   }).join('')}`).join('')}`;
   renderHeatDetail(root, records, selected, now);
 }
@@ -512,8 +556,8 @@ function renderHeatDetail(root, records, heat, now) {
     target.innerHTML = '<p class="smi-heat-note">Select a topic and week in the grid to list its dated supporting records and compare it with the preceding week. Counts describe recorded history only.</p>';
     return;
   }
-  const topic = SMART_TOPICS.find(item => item.id === heat.topicId);
-  const selection = buildHeatmapSelection(records, heat.topicId, heat.weekStart, now);
+  const topic = PREMIUM_THEMES.find(item => item.id === heat.topicId);
+  const selection = buildHeatmapSelection(records, heat.topicId, heat.weekStart, now, 'themeIds');
   const range = weekRangeLabel(heat.weekStart);
   const change = selection.comparison;
   const previousRange = weekRangeLabel(selection.previousStart);
@@ -579,22 +623,26 @@ function renderLive(root, liveRecords, state, now) {
   if (!ribbon || !target) return;
   const matches = eligibleLiveRecords(liveRecords, now).filter(record =>
     (state.geography === 'all' || record.regionKey === state.geography) &&
-    (!state.topics.size || record.topicIds.some(topic => state.topics.has(topic))));
+    (!state.topics.size || record.topicIds.some(topic => state.topics.has(topic))) &&
+    (!state.themes.size || (record.themeIds || []).some(theme => state.themes.has(theme))));
   if (!matches.length) {
     ribbon.dataset.state = 'empty';
     target.textContent = 'No verified announcements qualify for the selected topics in the preceding 12 hours.';
-    return;
+    return 0;
   }
   ribbon.dataset.state = 'ready';
   target.innerHTML = matches.slice(0, 4).map(record => `<a href="?alert=${encodeURIComponent(record.id)}" data-smart-alert-id="${escapeHtml(record.id)}">${escapeHtml(record.title)}</a>`).join(' · ');
+  return matches.length;
 }
 
 function updateAskLinks(root, state) {
-  const topicNames = SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label);
-  const geography = root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent || 'All geographies';
-  const query = `Show validated ${topicNames.length ? topicNames.join(', ') : 'payments intelligence'} announcements for ${geography} during ${state.period}`;
+  const geographyLabel = root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent || 'All geographies';
+  const query = buildAskQuery(state, {
+    themeLabels: PREMIUM_THEMES.filter(theme => state.themes.has(theme.id)).map(theme => theme.label),
+    topicLabels: SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label), geographyLabel
+  });
   document.querySelectorAll('[data-smart-ask]').forEach(link => {
-    link.href = `../../index.html?ask=${encodeURIComponent(query)}#gpir-search`;
+    link.href = askHref(query);
   });
 }
 
@@ -603,6 +651,7 @@ function updateUrl(global, state) {
   url.searchParams.set('period', state.period);
   url.searchParams.set('geo', state.geography);
   state.topics.size ? url.searchParams.set('topics', [...state.topics].join(',')) : url.searchParams.delete('topics');
+  state.themes.size ? url.searchParams.set('themes', [...state.themes].join(',')) : url.searchParams.delete('themes');
   state.alertId ? url.searchParams.set('alert', state.alertId) : url.searchParams.delete('alert');
   if (state.period === 'CUSTOM') {
     url.searchParams.set('from', state.customStart);
@@ -632,15 +681,20 @@ export async function initializeSmartIntelligence({ global = window,
   if (!origin || !fetchImpl) return false;
   const params = new URL(global.location.href).searchParams;
   const initialTopics = clean(params.get('topics'), 300).split(',').filter(id => SMART_TOPICS.some(topic => topic.id === id));
+  const initialThemes = clean(params.get('themes'), 300).split(',').filter(id => PREMIUM_THEMES.some(theme => theme.id === id));
+  const dateParam = (name, fallback) => /^\d{4}-\d{2}-\d{2}$/.test(params.get(name) || '') ? params.get(name) : fallback;
   const state = {
     period: ['24H','7D','30D','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '30D',
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
-    topics: new Set(initialTopics), customStart: params.get('from') || '2024-11-08',
-    customEnd: params.get('to') || isoDay(now()),
-    alertId: clean(params.get('alert'), 100), heat: null
+    topics: new Set(initialTopics), themes: new Set(initialThemes), customStart: dateParam('from', '2024-11-08'),
+    customEnd: dateParam('to', isoDay(now())),
+    alertId: clean(params.get('alert'), 100), heat: null, visible: 8, geoMode: 'regions', contextKey: ''
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
+  const themeControls = root.querySelector('[data-smart-theme-controls]');
+  if (themeControls) themeControls.innerHTML = PREMIUM_THEMES.map(theme => themeChipMarkup(theme, state.themes.has(theme.id))).join('');
+  const syncThemeControls = () => themeControls?.querySelectorAll('input').forEach(input => { input.checked = state.themes.has(input.value); });
   const geo = root.querySelector('[data-smart-geography]');
   geo.value = state.geography;
   root.querySelector('[data-smart-start]').value = state.customStart;
@@ -680,37 +734,53 @@ export async function initializeSmartIntelligence({ global = window,
     })();
   };
 
+  const executiveRecords = () => records.filter(isExecutiveEligible);
+  let charts = null;
+
   const render = () => {
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
-    const current = filterSmartRecords(records, { bounds, geography: state.geography, topics: [...state.topics] });
+    const industry = executiveRecords();
+    const filters = { geography: state.geography, topics: [...state.topics], themes: [...state.themes] };
+    const current = filterSmartRecords(industry, { bounds, ...filters });
     const previousBounds = { start: bounds.previousStart, end: bounds.previousEnd };
-    const previous = filterSmartRecords(records, { bounds: previousBounds, geography: state.geography, topics: [...state.topics] });
-    const baseCurrent = filterSmartRecords(records, { bounds, geography: state.geography, topics: [] });
-    const basePrevious = filterSmartRecords(records, { bounds: previousBounds, geography: state.geography, topics: [] });
-    const historicalContext = records.filter(record => state.geography === 'all' || record.regionKey === state.geography);
+    const previous = filterSmartRecords(industry, { bounds: previousBounds, ...filters });
+    const baseCurrent = filterSmartRecords(industry, { bounds, geography: state.geography });
+    const basePrevious = filterSmartRecords(industry, { bounds: previousBounds, geography: state.geography });
+    const geographyScope = filterSmartRecords(industry, { bounds, ...filters, geography: 'all' });
+    const weeklyScope = filterSmartRecords(industry, { bounds: { start: HISTORY_FLOOR, end: requestNow + 1 }, ...filters });
+    const referenceRecords = filterSmartRecords(records.filter(record => !isExecutiveEligible(record)), { bounds, geography: state.geography });
+    const historicalContext = industry.filter(record => state.geography === 'all' || record.regionKey === state.geography);
+    const contextKey = [state.period, state.geography, state.customStart, state.customEnd, [...state.topics], [...state.themes]].join('|');
+    if (contextKey !== state.contextKey) { state.contextKey = contextKey; state.visible = 8; }
     root.querySelectorAll('[data-smart-period]').forEach(button =>
       button.setAttribute('aria-pressed', String(button.dataset.smartPeriod === state.period)));
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
-    renderLive(root, liveRecords, state, requestNow);
+    const liveCount = renderLive(root, liveRecords, state, requestNow);
     renderAlertFocus(root, liveRecords, records, state, requestNow, topicIntel.get(state.alertId));
     loadTopicIntelligence(state.alertId);
     renderTopSignal(root, current);
-    renderKpis(root, current, previous);
-    renderExecutiveAnalytics(root, current, previous, requestNow);
-    renderTopicCards(root, baseCurrent, basePrevious);
+    const weekly = buildWeeklyActivity(weeklyScope, requestNow);
+    const momentum = buildThemeMomentum(baseCurrent, basePrevious);
+    const distribution = buildThemeDistribution(current);
+    const geography = buildGeographyCoverage(geographyScope);
+    renderSummary(root, { current, previous, scope: weeklyScope, geography: buildGeographyCoverage(current), liveCount, now: requestNow });
+    renderThemeTiles(root, momentum, industry.filter(record => state.geography === 'all' || record.regionKey === state.geography), state, requestNow);
+    renderAnalytics(root, { weekly, momentum, distribution, geography, geographyMode: state.geoMode });
+    charts.render({ weekly, momentum, distribution, geography, geographyMode: state.geoMode, options: {
+      weekly: weeklyChartOption(weekly), momentum: momentumChartOption(momentum), distribution: distributionChartOption(distribution),
+      geography: geographyChartOption(geography, state.geoMode) } });
     renderCompareWindow(root, bounds);
     renderHeatmap(root, historicalContext, requestNow, state.heat);
-    const results = root.querySelector('[data-smart-results]');
-    results.innerHTML = current.length ? current.map(recordMarkup).join('') :
-      '<div class="smi-empty"><strong>No validated records match this context.</strong><p>Broaden the filters or period. No sample signal, KPI or market-impact conclusion has been substituted.</p></div>';
+    renderTimeline(root, current, state);
+    renderReference(root, referenceRecords);
     const subject = clean(params.get('subject'), 20).toUpperCase();
     const related = /^[A-Z]{3}\/[A-Z]{3}$/.test(subject) ? editorial.filter(item => item.pair === subject) : [];
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !related.length;
     editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${current.length} governed signal${current.length === 1 ? '' : 's'} shown from ${records.length} verified historical record${records.length === 1 ? '' : 's'}. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
@@ -745,22 +815,80 @@ export async function initializeSmartIntelligence({ global = window,
     }
   }
 
-  // Topic cards are selection controls; source links remain independently navigable.
-  const cards = root.querySelector('[data-smart-topic-cards]');
-  const selectTopicCard = (event) => {
-    if (event.target.closest('a')) return;
-    const card = event.target.closest('[data-topic]');
-    if (!card || !cards.contains(card)) return;
-    state.topics = new Set([card.dataset.topic]);
-    topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+  // Theme drill-down: tiles, chart elements, table buttons and chips all use one selection path.
+  const scrollToResults = () => root.querySelector('[data-smart-timeline]')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  const selectTheme = themeId => {
+    state.themes = state.themes.size === 1 && state.themes.has(themeId) ? new Set() : new Set([themeId]);
+    syncThemeControls();
     render();
-    root.querySelector('[data-smart-results]')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    if (state.themes.size) scrollToResults();
   };
-  cards?.addEventListener('click', selectTopicCard);
-  cards?.addEventListener('keydown', event => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    if (!event.target.matches('[data-topic]')) return;
-    event.preventDefault(); selectTopicCard(event);
+  const selectWeek = week => {
+    state.period = 'CUSTOM';
+    state.customStart = isoDay(week.start);
+    state.customEnd = isoDay(Math.min(week.end, now()));
+    root.querySelector('[data-smart-start]').value = state.customStart;
+    root.querySelector('[data-smart-end]').value = state.customEnd;
+    render();
+    scrollToResults();
+  };
+  const selectRegion = key => {
+    if (!REGION_FILTER_KEYS.includes(key)) return;
+    state.geography = state.geography === key ? 'all' : key;
+    geo.value = state.geography;
+    render();
+  };
+  charts = createChartController(global, root, { onWeek: selectWeek, onTheme: selectTheme, onRegion: selectRegion });
+  root.addEventListener('click', event => {
+    const target = event.target;
+    const tile = target.closest?.('[data-theme-tile]');
+    if (tile) {
+      selectTheme(tile.dataset.themeTile);
+      root.querySelector(`[data-theme-tile="${tile.dataset.themeTile}"]`)?.focus({ preventScroll: true });
+      return;
+    }
+    const theme = target.closest?.('[data-drill-theme]');
+    if (theme) { selectTheme(theme.dataset.drillTheme); return; }
+    const week = target.closest?.('[data-drill-week]');
+    if (week) { const start = Number(week.dataset.drillWeek); selectWeek({ start, end: start + 6 * DAY }); return; }
+    const region = target.closest?.('[data-drill-region]');
+    if (region) { selectRegion(region.dataset.drillRegion); return; }
+    const mode = target.closest?.('[data-geo-mode]');
+    if (mode && !mode.disabled) { state.geoMode = mode.dataset.geoMode; render(); return; }
+    if (target.closest?.('[data-smart-more]')) {
+      const firstNew = state.visible;
+      state.visible += 8;
+      render();
+      const heading = root.querySelectorAll('.smp-dev h3')[firstNew];
+      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
+      return;
+    }
+    const itemShare = target.closest?.('[data-smart-share-item]');
+    if (itemShare) {
+      const record = records.find(item => item.id === itemShare.dataset.smartShareItem);
+      if (record) void shareContent(buildItemShare(record), itemShare);
+    }
+  });
+  themeControls?.addEventListener('change', () => {
+    state.themes = new Set([...themeControls.querySelectorAll('input:checked')].map(input => input.value));
+    render();
+  });
+  const shareStatus = root.querySelector('[data-smart-share-status]');
+  // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
+  const shareContent = async (payload, trigger) => {
+    const announce = text => { if (shareStatus) shareStatus.textContent = text; };
+    try {
+      if (global.navigator?.share) { await global.navigator.share(payload); announce('Shared.'); return; }
+      await global.navigator.clipboard.writeText(`${payload.title ? `${payload.title}\n` : ''}${payload.url}`);
+      announce('Link copied to the clipboard.');
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      announce(`Copy this link: ${payload.url}`);
+    }
+    trigger?.focus?.();
+  };
+  root.querySelector('[data-smart-share]')?.addEventListener('click', event => {
+    void shareContent({ title: 'GPIR Smart Intelligence view', text: 'Verified payments intelligence from FINTECHOISIS GPIR', url: buildShareUrl(global.location.href, state) }, event.currentTarget);
   });
 
   // Heatmap cells are selectable buttons with a roving tab stop and arrow-key navigation.
@@ -771,7 +899,7 @@ export async function initializeSmartIntelligence({ global = window,
     state.heat = topicId ? { topicId, weekStart } : null;
     heatCells().forEach(cell => cell.setAttribute('aria-pressed',
       String(Boolean(state.heat) && cell.dataset.heatTopic === topicId && Number(cell.dataset.heatWeek) === weekStart)));
-    renderHeatDetail(root, records.filter(record => state.geography === 'all' || record.regionKey === state.geography), state.heat, now());
+    renderHeatDetail(root, executiveRecords().filter(record => state.geography === 'all' || record.regionKey === state.geography), state.heat, now());
     if (state.heat) heatDetail?.scrollIntoView?.({ block: 'nearest' });
   };
   heatmapEl?.addEventListener('click', event => {
@@ -831,7 +959,7 @@ export async function initializeSmartIntelligence({ global = window,
   });
   root.querySelector('[data-smart-clear]')?.addEventListener('click', () => {
     topicControls.querySelectorAll('input').forEach(input => { input.checked = false; });
-    state.topics.clear(); render();
+    state.topics.clear(); state.themes.clear(); syncThemeControls(); render();
   });
   render();
   // Periodically refresh the same governed sources. No parallel publication pipeline.

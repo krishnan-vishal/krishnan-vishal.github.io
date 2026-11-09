@@ -120,8 +120,8 @@ test('Hyperswitch GitHub records are technical repository evidence, never paymen
 
 test('rendering escapes record fields and keeps authoritative links external and noopener', () => {
   assert.match(script, /evidenceMarkup\(record, kind\)/);
-  assert.match(script, /escapeHtml\(note\)/);
-  assert.match(script, /escapeHtml\(value\)/);
+  assert.match(script, /escapeHtml\(kind\.note\)/);
+  assert.match(script, /escapeHtml\(String\(value\)\)/);
   assert.match(script, /rel="noopener noreferrer"/);
   assert.doesNotMatch(script, /\b(predict|forecast|projected|expected to)\b/i);
 });

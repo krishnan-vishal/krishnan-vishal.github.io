@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### M39 Premium Intelligence Experience (Smart Intelligence frontend)
+
+- **Scope:** presentation-only redesign of `/pages/intelligence/smart.html` (Hybrid Fintech Intelligence Design 3 + 2): executive KPI strip with ring and sparkline indicators, Apache ECharts weekly activity, topic momentum, geographic coverage and unique-record topic distribution, theme-coloured 12-week heatmap (existing date/topic drill-down, keyboard and Escape behaviour retained), theme tiles, an editorial source-linked timeline with a per-item Source & methodology disclosure, Smart Share and contextual Ask GPIR. Every chart has a text summary and a data table with drill-down buttons.
+- **Governance:** no new tables, APIs or services. Hyperswitch/GitHub technical records and BIS statistics are excluded from executive surfaces and kept in a collapsed audit disclosure (`referenceClass` / `isExecutiveEligible` in `assets/js/smart-presentation.mjs`). Live Global Alerts still use only the governed 12-hour dataset; archive records are never relabelled live. The twelve themes reuse existing taxonomy ids; AI, Agentic and Web3 need explicit payments context.
+- **State:** work is on branch `codex/m39-premium-intelligence-experience-20261109`; owner visual acceptance and production deployment are pending. The live-ingestion/publication dependency is separate and unchanged.
+
 ### M39 rolling Global Alerts relay and topic intelligence (evidence-first validation)
 
 - **Evidence-first validation:** `validateCandidateSource` now fetches and verifies the article of every eligible GREEN-source candidate (T1, T1.5, T2, T3) inside the 12-hour live window **before** the confidence gate. Every result carries `validation_payload.evidence_verification = { attempted, status, reason }` with `NOT_ATTEMPTED` (source not eligible, or candidate outside the live window and below threshold: no fetch was made), `FAILED` (fetch attempted; reason is the failure code) or `SUCCEEDED`. An unattempted fetch is never recorded as a failed verification. Official-domain, canonical URL, original timestamp, content, relevance, grounded-summary and duplicate checks are unchanged.
