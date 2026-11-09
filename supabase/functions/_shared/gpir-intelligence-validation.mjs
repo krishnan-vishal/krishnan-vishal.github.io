@@ -13,6 +13,17 @@ export const AUTO_PUBLICATION_THRESHOLDS = Object.freeze({
   T2: 90
 });
 
+// T3 (fintech media) has no entry in AUTO_PUBLICATION_THRESHOLDS: confidence alone never
+// verifies a T3 article. This explicit profile is a conservative additional gate; the
+// full source, canonical, timestamp, evidence, relevance and summary checks still apply,
+// with stricter evidence minimums than the T1/T1.5/T2 route.
+export const T3_AUTOMATIC_PUBLICATION = Object.freeze({
+  minConfidence: 95,
+  minContentLength: 1000,
+  minSentences: 3,
+  minRelevanceTerms: 3
+});
+
 function decodeEntities(value) {
   return String(value || '')
     .replace(/&nbsp;/gi, ' ')
@@ -182,34 +193,49 @@ function reject(reasonCode, evidence = {}) {
   return { decision: 'REJECTED', reasonCode, ...evidence };
 }
 
-export async function validateCandidateSource({ candidate, source, fetchImpl = fetch,
-  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null }) {
+// Evidence verification is recorded separately from the confidence gate so that an
+// unattempted fetch (NOT_ATTEMPTED) is never mistaken for a failed verification (FAILED).
+// Confidence is never changed by fetching an article; it only gates publication.
+async function validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs, editorialApproval, evidence }) {
   if (!source || source.source_status !== 'GREEN' || !source.official_url)
     return review('SOURCE_NOT_APPROVED');
   if (!candidate?.canonical_url || !isOfficialUrl(candidate.canonical_url, source.official_url))
     return reject('CANDIDATE_SOURCE_DOMAIN_MISMATCH');
 
-  // A candidate that cannot meet its approved source-tier threshold can
-  // never be auto-published. Record that governed outcome before spending
-  // up to 15 seconds on a source fetch; candidates that can qualify still
-  // pass through every evidence, timestamp and relevance check below.
+  // Eligible GREEN-source candidates inside the 12-hour live window have their article
+  // evidence fetched and verified independently of the stored confidence score. Older
+  // candidates that cannot meet the tier threshold are recorded without spending a fetch.
   // Only a T3 source with a verified Contentful editorial approval replaces the
   // automatic threshold; every evidence check below still applies to it.
   const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
-  if (!editorialRoute && (!threshold || !Number.isFinite(confidence) || confidence < threshold)) {
-    return review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
-      canonicalUrl: candidate.canonical_url,
-      sourcePublishedAt: candidate.published_at,
-      validationPayload: {
-        source_verified: false,
-        source_trust_tier: source.trust_tier,
-        confidence_score: confidence,
-        validator: 'GPIR-G1-PUBLICATION-1'
-      }
-    });
+  const t3Profile = source.trust_tier === 'T3' && !editorialRoute;
+  const t3Automatic = t3Profile && Number.isFinite(confidence) &&
+    confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence;
+  const confidenceGateMet = editorialRoute || t3Automatic ||
+    Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold);
+  const thresholdReview = (extra = {}) => review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
+    canonicalUrl: candidate.canonical_url,
+    sourcePublishedAt: candidate.published_at,
+    ...extra,
+    validationPayload: {
+      source_verified: false,
+      source_trust_tier: source.trust_tier,
+      confidence_score: confidence,
+      validator: 'GPIR-G1-PUBLICATION-1',
+      ...(extra.validationPayload || {})
+    }
+  });
+  if (!confidenceGateMet) {
+    const eligibleTier = Boolean(threshold) || source.trust_tier === 'T3';
+    if (!eligibleTier || !isWithinLiveWindow(candidate.published_at, now())) {
+      evidence.reason = eligibleTier ? 'OUTSIDE_LIVE_WINDOW' : 'SOURCE_TIER_NOT_ELIGIBLE';
+      return thresholdReview();
+    }
   }
+  evidence.attempted = true;
+  evidence.status = 'FAILED';
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -266,10 +292,11 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
 
   const content = articleContent(html);
   const sentences = meaningfulSentences(content, candidate.title);
-  if (content.length < 600 || sentences.length < 2)
+  if (content.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
+      sentences.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
     return review('INSUFFICIENT_SOURCE_EVIDENCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
   const relevanceTerms = relevantEvidence(candidate.title, content);
-  if (relevanceTerms.length < 2)
+  if (relevanceTerms.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
     return review('INSUFFICIENT_PAYMENTS_RELEVANCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const normalizedContent = content.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -281,8 +308,11 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
   if (editorialRoute && editorialApproval.sourceUrl !== editorialUrlKey(canonical))
     return review('EDITORIAL_CANONICAL_URL_MISMATCH', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
-  const evidence = {
+  evidence.status = 'SUCCEEDED';
+  evidence.reason = null;
+  const verified = {
     editorial: editorialRoute,
+    t3Automatic,
     canonicalUrl: canonical,
     sourcePublishedAt: publishedAt,
     sourceHttpStatus: response.status,
@@ -300,6 +330,10 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
       source_trust_tier: source.trust_tier,
       confidence_score: confidence,
       validator: 'GPIR-G1-PUBLICATION-1',
+      ...(t3Automatic ? {
+        t3_auto_verified: true,
+        t3_auto_min_confidence: T3_AUTOMATIC_PUBLICATION.minConfidence
+      } : {}),
       ...(editorialRoute ? {
         editorial_verified: true,
         editorial_entry_id: editorialApproval.entryId,
@@ -309,7 +343,18 @@ export async function validateCandidateSource({ candidate, source, fetchImpl = f
       } : {})
     }
   };
-  return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...evidence };
+  if (!confidenceGateMet) return thresholdReview(verified);
+  return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...verified };
+}
+
+export async function validateCandidateSource({ candidate, source, fetchImpl = fetch,
+  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null }) {
+  const evidence = { attempted: false, status: 'NOT_ATTEMPTED', reason: 'SOURCE_NOT_ELIGIBLE' };
+  const result = await validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs,
+    editorialApproval, evidence });
+  if (evidence.status === 'FAILED') evidence.reason = result.reasonCode;
+  return { ...result, evidenceVerification: { ...evidence },
+    validationPayload: { ...result.validationPayload, evidence_verification: { ...evidence } } };
 }
 
 export function isWithinLiveWindow(publishedAt, now = Date.now()) {

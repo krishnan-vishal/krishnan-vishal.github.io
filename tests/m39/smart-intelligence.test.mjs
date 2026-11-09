@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { buildDashboardMetrics, buildHeatmap, filterSmartRecords, normalizeEditorial,
-  normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
+  normalizeLiveAlerts, normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
   from '../../assets/js/smart-intelligence.mjs';
+import { buildTopicContext } from '../../assets/js/gpir-topic-intelligence.mjs';
 import { publicFxResearchRecords } from '../../assets/js/gpir-reader-dashboard.mjs';
 import { activeSection } from '../../assets/js/my-gpir-navigation.mjs';
 
@@ -89,10 +90,8 @@ test('My GPIR separates public research from paid library and exposes three exac
   const records = publicFxResearchRecords(editorialValue);
   assert.equal(records.length, 26);
   const aed = records.find(record => record.pair === 'AED/INR');
-  assert.equal(aed.fxIntelligenceUrl,
-    '/pages/fx/intelligence.html?base=AED&quote=INR&period=M');
-  assert.equal(aed.smartIntelligenceUrl,
-    '/pages/fx/pairs/aed-inr.html');
+  assert.equal(aed.fxIntelligenceUrl, '/pages/fx/pairs/aed-inr.html');
+  assert.equal(aed.smartIntelligenceUrl, '/pages/intelligence/smart.html');
   assert.match(aed.editorialUrl, /^\//);
   assert.match(dashboard, /id="public-research"/);
   assert.match(dashboard, /data-reader-public-research/);
@@ -105,4 +104,48 @@ test('Contentful editorial normalization remains limited to governed published p
   assert.equal(records.length, 26);
   assert.equal(new Set(records.map(record => record.pair)).size, 26);
   assert.ok(records.every(record => record.url.startsWith('/')));
+});
+
+const HOUR = 3600000;
+function governedRecord(id, title, hoursAgo, extra = {}) {
+  return { id, title, summary: `${title}. The published source describes a validated payments development with enough factual detail for governed display.`,
+    publishedAt: new Date(Date.now() - hoursAgo * HOUR).toISOString(), category: 'Cross-Border Payments',
+    country: 'Singapore', displayLifecycleStatus: 'ARCHIVED', canonicalUrl: `https://example.gov.sg/${id}`,
+    source: { name: 'Example Authority' }, ...extra };
+}
+
+test('public Global Alerts API alerts reach the signed-in ribbon and exclude unapproved items', () => {
+  const alert = { id: 'live-1', headline: 'Authority opens cross-border payment corridor', summary: 'The authority confirmed a cross-border payment corridor for regulated participants.',
+    publishedAt: new Date(Date.now() - HOUR).toISOString(), category: 'Cross-Border Payments', country: 'Singapore',
+    sourceName: 'Example Authority', sourceUrl: 'https://example.gov.sg/corridor', publicationStatus: 'approved', tickerEligible: true, sourceVerified: true };
+  const live = normalizeLiveAlerts({ alerts: [alert,
+    { ...alert, id: 'pending', publicationStatus: 'pending' },
+    { ...alert, id: 'ineligible', tickerEligible: false },
+    { ...alert, id: 'unverified', sourceVerified: false }] }, []);
+  assert.deepEqual(live.map(item => item.id), ['live-1']);
+  assert.equal(live[0].url, 'https://example.gov.sg/corridor');
+  assert.equal(live[0].sourceName, 'Example Authority');
+  assert.ok(live[0].topicIds.includes('cross-border'));
+});
+
+test('an alert opens a topic-specific view from current and historical repository records, including after expiry', () => {
+  const records = normalizeSmartRecords({ status: 'OK', records: [
+    governedRecord('alert', 'Authority opens cross-border payment corridor', 2),
+    governedRecord('current', 'Regulator updates cross-border payment rules', 24 * 5),
+    governedRecord('old', 'Earlier cross-border payment pilot concluded', 24 * 200),
+    governedRecord('other', 'Bank announces fraud controls', 24 * 3, { category: 'Fraud' }),
+    governedRecord('tech', 'Settlement connector change', 24 * 2, { dataClass: 'TECHNICAL_REFERENCE', category: 'Technical' })
+  ] });
+  const alert = records.find(item => item.id === 'alert');
+  for (const now of [Date.now(), Date.now() + 30 * 24 * HOUR]) {
+    const context = buildTopicContext(alert, records, now);
+    assert.deepEqual(context.topic.topicIds, alert.topicIds);
+    assert.ok(context.topic.topicIds.includes('cross-border'));
+    const ids = [...context.current, ...context.historical].map(item => item.id);
+    assert.ok(ids.includes('old') && !ids.includes('other') && !ids.includes('tech') && !ids.includes('alert'));
+  }
+  const now = Date.now();
+  assert.deepEqual(buildTopicContext(alert, records, now).current.map(item => item.id), ['current']);
+  assert.deepEqual(buildTopicContext(alert, records, now).historical.map(item => item.id), ['old']);
+  assert.match(page, /data-smart-alert/);
 });

@@ -1,3 +1,5 @@
+import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
+
 const DAY = 86400000;
 const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
 const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=100';
@@ -5,44 +7,7 @@ const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
 const LEGACY_PERIOD_DAYS = Object.freeze({ '7D': 7, '15D': 15, '30D': 30, '1Y': 365, MAX: null });
 
-export const SMART_TOPICS = Object.freeze([
-  { id: 'regulatory', label: 'Regulatory Actions', aliases: ['regulation','regulatory','central bank','policy','oversight','enforcement'] },
-  { id: 'licences', label: 'Licences & Authorisations', aliases: ['licence','license','licensing','authorisation','authorization','approval'] },
-  { id: 'cross-border', label: 'Cross-Border Payments', aliases: ['cross-border','cross border','correspondent','international payment'] },
-  { id: 'real-time', label: 'Real-Time Payments', aliases: ['real-time','real time','instant payment','faster payment','rtp'] },
-  { id: 'infrastructure', label: 'Payment Infrastructure', aliases: ['payment infrastructure','payment rail','settlement','clearing','payment network','payments network'] },
-  { id: 'remittances', label: 'Remittances', aliases: ['remittance','diaspora','money transfer'] },
-  { id: 'wallets', label: 'Wallets & Digital Payments', aliases: ['wallet','digital payment','mobile payment','embedded payment'] },
-  { id: 'aml', label: 'AML, KYC & Compliance', aliases: ['aml','cft','kyc','compliance','sanction','financial crime'] },
-  { id: 'fraud', label: 'Fraud & Cybersecurity', aliases: ['fraud','cyber','breach','scam','identity theft'] },
-  { id: 'cbdc', label: 'CBDCs & Digital Money', aliases: ['cbdc','digital money','digital currency','tokenised deposit','tokenized deposit'] },
-  { id: 'stablecoins', label: 'Stablecoins & Digital Assets', aliases: ['stablecoin','digital asset','crypto','blockchain','tokenization','tokenisation'] },
-  { id: 'deals', label: 'Deals & Partnerships', aliases: ['partnership','partner with','memorandum','consortium','deal','acquisition','merger','investment'] },
-  { id: 'payments', label: 'Payments', aliases: ["payment services","payments industry","payment system","cashless payments","credit transfer"] },
-  { id: 'fintech', label: 'Fintech', aliases: ["fintech","financial technology"] },
-  { id: 'global-regional-fintech', label: 'Global & Regional Fintech', aliases: ["global fintech","regional fintech","fintech ecosystem"] },
-  { id: 'pass', label: 'PASS', aliases: ["pass platform","pass service"] },
-  { id: 'taas', label: 'TaaS', aliases: ["treasury as a service","taas"] },
-  { id: 'saas', label: 'SaaS', aliases: ["software as a service","saas"] },
-  { id: 'caas', label: 'CaaS', aliases: ["compliance as a service","caas"] },
-  { id: 'baas', label: 'BaaS', aliases: ["banking as a service","baas"] },
-  { id: 'pobo', label: 'POBO', aliases: ["payment on behalf of","payments on behalf of","pobo"] },
-  { id: 'cobo', label: 'COBO', aliases: ["collection on behalf of","collections on behalf of","cobo"] },
-  { id: 'global-aggregators', label: 'Global Aggregators', aliases: ["global aggregator","global payment aggregator"] },
-  { id: 'regional-aggregators', label: 'Regional Aggregators', aliases: ["regional aggregator","regional payment aggregator"] },
-  { id: 'payments-licensing', label: 'Payments Licensing', aliases: ["payment institution licence","payment institution license","payments licensing","payment services licence","payment services license"] },
-  { id: 'fintech-licensing', label: 'Fintech Licensing', aliases: ["fintech licence","fintech license","fintech licensing"] },
-  { id: 'corporate-payments', label: 'Corporate Payments', aliases: ["corporate payment","business payment","b2b payment"] },
-  { id: 'diaspora-payments', label: 'Diaspora Payments', aliases: ["diaspora payment","diaspora remittance"] },
-  { id: 'immigrant-payments', label: 'Immigrant Payments', aliases: ["immigrant payment","immigrant remittance"] },
-  { id: 'migrant-movements', label: 'Migrant International Movements', aliases: ["international migration","migrant movement","migration corridor"] },
-  { id: 'money-movements', label: 'Money Movements', aliases: ["money movement","funds movement"] },
-  { id: 'super-apps', label: 'Super Apps', aliases: ["super app","super-app"] },
-  { id: 'bnpl', label: 'BNPL', aliases: ["buy now pay later","bnpl"] },
-  { id: 'apm', label: 'Alternative Payment Methods (APM)', aliases: ["alternative payment method","apm"] },
-  { id: 'cards-money-movements', label: 'Cards – Money Movements', aliases: ["card-based transfer","card to card","card payout","card payment"] },
-  { id: 'payment-gateways', label: 'Payment Gateways', aliases: ["payment gateway","payment gateways"] }
-]);
+export const SMART_TOPICS = TOPIC_TAXONOMY;
 
 function clean(value, max = 800) {
   return typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
@@ -112,15 +77,7 @@ function inferRegion(record) {
 }
 
 export function classifyRecordTopics(record) {
-  // Technical specifications are historical implementation evidence. Keep them
-  // in the existing infrastructure lane and do not let boundary language such
-  // as "not a regulatory event" classify them as regulatory actions.
-  if (record.dataClass === 'TECHNICAL_REFERENCE') return ['infrastructure'];
-  const haystack = [
-    record.category, ...(record.topics || []), ...(record.keywords || []),
-    record.title, record.summary
-  ].filter(Boolean).join(' ').toLowerCase();
-  return SMART_TOPICS.filter(topic => topic.aliases.some(alias => haystack.includes(alias))).map(topic => topic.id);
+  return classifyTopicIds(record);
 }
 
 export function normalizeSmartRecords(value) {
@@ -156,14 +113,19 @@ export function normalizeSmartRecords(value) {
   }).sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 }
 
-function normalizeLiveAlerts(value, historical) {
+export function normalizeLiveAlerts(value, historical) {
   if (!Array.isArray(value?.alerts)) return [];
   const historyById = new Map(historical.map(record => [record.id, record]));
-  return value.alerts.flatMap(item => {
+  // Overlapping reports of one development become one topic-level relay item that keeps
+  // the original publication time and every individual source as supporting evidence.
+  return groupRelayItems(value.alerts.flatMap(item => {
+    // Same approval gates as the homepage ticker; both read one governed API.
+    if (!item || (item.publicationStatus && item.publicationStatus !== 'approved')) return [];
+    if (item.tickerEligible === false || item.sourceVerified === false || item.hasUnresolvedRestrictions === true) return [];
     if (historyById.has(item?.id)) return [historyById.get(item.id)];
     const publishedAt = Date.parse(item?.publishedAt || item?.published_at || '');
     const title = clean(item?.title || item?.headline, 240);
-    const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.url || item?.source?.url);
+    const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.sourceUrl || item?.url || item?.source?.url);
     if (!Number.isFinite(publishedAt) || !title || !url) return [];
     const record = {
       id: clean(item.id, 100), title, summary: clean(item?.summary || item?.summary_narration, 2000),
@@ -176,7 +138,29 @@ function normalizeLiveAlerts(value, historical) {
     record.regionKey = inferRegion(record);
     record.topicIds = classifyRecordTopics(record);
     return [record];
-  });
+  }));
+}
+
+export function findAlert(id, liveRecords, records) {
+  return liveRecords.find(record => record.id === id || record.memberIds?.includes(id)) ||
+    records.find(record => record.id === id) || null;
+}
+
+const TOPIC_INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?topicContext=';
+
+// Enhanced topic intelligence is built and entitlement-checked on the server; the browser
+// only renders what the signed-in reader's entitlement allows.
+export async function fetchTopicIntelligence(fetchImpl, origin, accessToken, alertId) {
+  try {
+    const response = await fetchImpl(`${origin}${TOPIC_INTELLIGENCE_PATH}${encodeURIComponent(alertId)}`, {
+      cache: 'no-store', headers: { accept: 'application/json', authorization: `Bearer ${accessToken}` } });
+    if (response.status === 401) return { status: 'SESSION_EXPIRED' };
+    if (response.status === 403) return { status: 'DENIED' };
+    if (response.status === 404) return { status: 'NOT_FOUND' };
+    if (!response.ok) return { status: 'UNAVAILABLE' };
+    const payload = await response.json();
+    return payload?.status === 'OK' && payload.context ? { status: 'OK', context: payload.context } : { status: 'UNAVAILABLE' };
+  } catch { return { status: 'UNAVAILABLE' }; }
 }
 
 export function filterSmartRecords(records, options = {}) {
@@ -312,7 +296,7 @@ function renderTopicCards(root, currentBase, previousBase) {
     const summary = current.length
       ? `${current.length} validated signal${current.length === 1 ? '' : 's'} in the selected period. Most recent evidence is dated ${isoDay(current[0].publishedAt)}.`
       : 'No qualifying dated observation for this topic and selected context.';
-    return `<article class="smi-topic-card" data-topic="${topic.id}"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small></li>`).join('')}</ul>` : ''}</article>`;
+    return `<article class="smi-topic-card" data-topic="${topic.id}" role="button" tabindex="0" aria-label="Show ${escapeHtml(topic.label)} intelligence"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small></li>`).join('')}</ul>` : ''}</article>`;
   }).join('');
 }
 
@@ -330,6 +314,41 @@ export function eligibleLiveRecords(records, now = Date.now()) {
   });
 }
 
+function topicIntelligenceMarkup(intel, alert) {
+  if (!intel || intel.status === 'LOADING')
+    return '<div class="smi-topic-intel" data-state="loading"><p>Checking your plan for topic intelligence…</p></div>';
+  if (intel.status === 'DENIED')
+    return '<div class="smi-topic-intel" data-state="locked"><h3>Topic intelligence</h3><p>Topic-level intelligence — theme, corridor, supporting sources, and current and historical context — is part of the GPIR subscriber plan. The verified alert above remains free.</p><a href="/reader/plan/">View GPIR plan options</a></div>';
+  if (intel.status === 'SESSION_EXPIRED')
+    return '<div class="smi-topic-intel" data-state="expired"><p>Your session has expired. <a href="/reader/sign-in/">Sign in again</a> to view topic intelligence.</p></div>';
+  if (intel.status !== 'OK')
+    return '<div class="smi-topic-intel" data-state="unavailable"><p>Topic intelligence is temporarily unavailable. No substitute content has been inferred.</p></div>';
+  const context = intel.context;
+  const pills = [context.topic?.theme, context.topic?.country, context.topic?.corridor, ...(context.topic?.keywords || []).slice(0, 5)]
+    .filter(Boolean).map(value => `<span class="smi-pill">${escapeHtml(value)}</span>`).join('');
+  const link = item => safeHttps(item.canonicalUrl || item.url);
+  const list = items => items.length ? `<ol>${items.map(item => `<li>${link(item) ? `<a href="${escapeHtml(link(item))}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>` : escapeHtml(item.title)}<small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.source?.name || item.sourceName || 'Authoritative source')}${item.corroboratingReports ? ` · ${item.corroboratingReports} corroborating report${item.corroboratingReports === 1 ? '' : 's'}` : ''}</small></li>`).join('')}</ol>` : '<p>No governed records.</p>';
+  const sources = (context.supportingSources || []).filter(source => safeHttps(source.url)).map(source =>
+    `<li><a href="${escapeHtml(safeHttps(source.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.name)}</a><small>${escapeHtml(isoDay(source.publishedAt))}</small></li>`).join('');
+  return `<div class="smi-topic-intel" data-state="ready"><h3>Topic intelligence</h3><div class="smi-signal-meta">${pills}</div>${sources ? `<h3>Supporting sources</h3><ol class="smi-sources">${sources}</ol>` : ''}<div class="smi-alert-columns"><div><h3>Current context · last 30 days (${Number(context.currentTotal) || 0})</h3>${list(context.current || [])}</div><div><h3>Historical context · repository (${Number(context.historicalTotal) || 0})</h3>${list(context.historical || [])}</div></div></div>`;
+}
+
+function renderAlertFocus(root, liveRecords, records, state, now, intel) {
+  const target = root.querySelector('[data-smart-alert]');
+  if (!target) return;
+  if (!state.alertId) { target.hidden = true; target.innerHTML = ''; return; }
+  const alert = findAlert(state.alertId, liveRecords, records);
+  target.hidden = false;
+  if (!alert) {
+    target.innerHTML = '<p class="smi-kicker">SELECTED ALERT</p><h2>Alert not found in the governed repository</h2><p>No substitute content has been inferred. <a href="#" data-smart-alert-clear>Return to the dashboard</a></p>';
+    return;
+  }
+  const live = eligibleLiveRecords([alert], now).length > 0;
+  const topics = SMART_TOPICS.filter(topic => (alert.topicIds || []).includes(topic.id))
+    .map(topic => `<span class="smi-pill">${escapeHtml(topic.label)}</span>`).join('');
+  target.innerHTML = `<p class="smi-kicker">SELECTED ALERT · ${live ? 'LIVE · LATEST 12H' : 'ARCHIVED · RETAINED IN THE GPIR REPOSITORY'}</p><h2>${escapeHtml(alert.title)}</h2><p>${escapeHtml(alert.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(alert.publishedAt.slice(0, 16).replace('T', ' '))} UTC</span><span class="smi-pill">${escapeHtml(alert.category)}</span><span class="smi-pill">${escapeHtml(alert.sourceName)}</span>${topics}</div><a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#" data-smart-alert-clear>Clear selected alert</a>${topicIntelligenceMarkup(intel, alert)}`;
+}
+
 function renderLive(root, liveRecords, state, now) {
   const ribbon = document.querySelector('[data-smart-live]');
   const target = document.querySelector('[data-smart-live-content]');
@@ -343,7 +362,7 @@ function renderLive(root, liveRecords, state, now) {
     return;
   }
   ribbon.dataset.state = 'ready';
-  target.innerHTML = matches.slice(0, 4).map(record => `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a>`).join(' · ');
+  target.innerHTML = matches.slice(0, 4).map(record => `<a href="?alert=${encodeURIComponent(record.id)}" data-smart-alert-id="${escapeHtml(record.id)}">${escapeHtml(record.title)}</a>`).join(' · ');
 }
 
 function updateAskLinks(root, state) {
@@ -360,6 +379,7 @@ function updateUrl(global, state) {
   url.searchParams.set('period', state.period);
   url.searchParams.set('geo', state.geography);
   state.topics.size ? url.searchParams.set('topics', [...state.topics].join(',')) : url.searchParams.delete('topics');
+  state.alertId ? url.searchParams.set('alert', state.alertId) : url.searchParams.delete('alert');
   if (state.period === 'CUSTOM') {
     url.searchParams.set('from', state.customStart);
     url.searchParams.set('to', state.customEnd);
@@ -392,7 +412,8 @@ export async function initializeSmartIntelligence({ global = window,
     period: ['24H','7D','30D','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '30D',
     geography: ['all','global','apac','europe','americas','mea'].includes(params.get('geo')) ? params.get('geo') : 'all',
     topics: new Set(initialTopics), customStart: params.get('from') || '2024-11-08',
-    customEnd: params.get('to') || isoDay(now())
+    customEnd: params.get('to') || isoDay(now()),
+    alertId: clean(params.get('alert'), 100)
   };
   const topicControls = root.querySelector('[data-smart-topic-controls]');
   topicControls.innerHTML = SMART_TOPICS.map(topic => `<label><input type="checkbox" value="${topic.id}"${state.topics.has(topic.id) ? ' checked' : ''}> ${escapeHtml(topic.label)}</label>`).join('');
@@ -419,6 +440,22 @@ export async function initializeSmartIntelligence({ global = window,
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
 
+  const topicIntel = new Map();
+  const clearTransientTopicIntel = () => {
+    for (const [id, result] of topicIntel) if (['UNAVAILABLE', 'SESSION_EXPIRED'].includes(result.status)) topicIntel.delete(id);
+  };
+  const loadTopicIntelligence = alertId => {
+    if (!alertId || topicIntel.has(alertId) || !findAlert(alertId, liveRecords, records)) return;
+    topicIntel.set(alertId, { status: 'LOADING' });
+    void (async () => {
+      // Use the client's current (auto-refreshed) token, not the one captured at page load.
+      let token = session.access_token;
+      try { token = (await global.GPIR_SUPABASE_CLIENT?.auth?.getSession())?.data?.session?.access_token || token; } catch {}
+      topicIntel.set(alertId, await fetchTopicIntelligence(fetchImpl, origin, token, alertId));
+      render();
+    })();
+  };
+
   const render = () => {
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
@@ -433,6 +470,8 @@ export async function initializeSmartIntelligence({ global = window,
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
     renderLive(root, liveRecords, state, requestNow);
+    renderAlertFocus(root, liveRecords, records, state, requestNow, topicIntel.get(state.alertId));
+    loadTopicIntelligence(state.alertId);
     renderTopSignal(root, current);
     renderKpis(root, current, previous);
     renderTopicCards(root, baseCurrent, basePrevious);
@@ -450,6 +489,53 @@ export async function initializeSmartIntelligence({ global = window,
     updateUrl(global, state);
     root.dataset.state = 'ready';
   };
+
+  // Selecting an alert scopes the existing dashboard to that alert's topics.
+  const selectAlert = id => {
+    state.alertId = id;
+    clearTransientTopicIntel();
+    const alert = id ? findAlert(id, liveRecords, records) : null;
+    if (alert) {
+      state.topics = new Set(alert.topicIds);
+      topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    }
+    render();
+    if (alert) root.querySelector('[data-smart-alert]')?.scrollIntoView?.({ block: 'start' });
+  };
+  const alertClick = event => {
+    const select = event.target?.closest?.('[data-smart-alert-id]');
+    const clear = event.target?.closest?.('[data-smart-alert-clear]');
+    if (!select && !clear) return;
+    event.preventDefault();
+    selectAlert(select ? select.dataset.smartAlertId : '');
+  };
+  document.querySelector('[data-smart-live]')?.addEventListener('click', alertClick);
+  root.querySelector('[data-smart-alert]')?.addEventListener('click', alertClick);
+  if (state.alertId && !initialTopics.length) {
+    const alert = findAlert(state.alertId, liveRecords, records);
+    if (alert) {
+      state.topics = new Set(alert.topicIds);
+      topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    }
+  }
+
+  // Topic cards are selection controls; source links remain independently navigable.
+  const cards = root.querySelector('[data-smart-topic-cards]');
+  const selectTopicCard = (event) => {
+    if (event.target.closest('a')) return;
+    const card = event.target.closest('[data-topic]');
+    if (!card || !cards.contains(card)) return;
+    state.topics = new Set([card.dataset.topic]);
+    topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    render();
+    root.querySelector('[data-smart-results]')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
+  cards?.addEventListener('click', selectTopicCard);
+  cards?.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (!event.target.matches('[data-topic]')) return;
+    event.preventDefault(); selectTopicCard(event);
+  });
 
   root.querySelectorAll('[data-smart-period]').forEach(button => button.addEventListener('click', () => {
     state.period = button.dataset.smartPeriod; render();
@@ -480,6 +566,8 @@ export async function initializeSmartIntelligence({ global = window,
       ]);
       if (historical.status === 'fulfilled') records = historical.value;
       if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
+      // Only transient failures are retried; a subscription denial is kept for the session.
+      clearTransientTopicIntel();
       render();
     } finally { refreshing = false; }
   };

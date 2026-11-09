@@ -2864,3 +2864,15 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - Official source review identified three bounded registry defects and prepared idempotent update/rollback SQL for FinTech Australia, ECB and RBA endpoints. No source tier, parser, threshold or publication state is changed.
 - Focused dashboard, public API, reader/payment, ASK GPIR, Contentful, content/link/announcement, syntax, secret and diff gates pass. PR/merge, production SQL, Edge/Pages deployment and live responsive acceptance follow after checks.
 
+
+## 2026-11-09 — M39 Gate 3 production closure resume
+
+- Verified Supabase project `qlnvhfapctcpzqyuhhth` access (Management API 200, `postgres` role, 13 Edge Functions listed). GitHub write access is absent in this environment: `gh` is unauthenticated, the Codespaces token returns 401 and `git push` cannot obtain credentials. No push, PR, merge or deployment was performed.
+- Recorded production migration `m39_g3_bounded_summary_assessment` in the repository as an exact copy; no database change was made. Added ECB evidence hygiene (site-wide description removed from article evidence; duplicate-slash canonical URLs collapsed) with tests in `tests/m39-g3-bounded-summary.test.mjs`. Existing governance thresholds and publication rules are untouched.
+- Production remains truthfully empty for live alerts: no candidate meets its governed threshold. Nothing was published or marked eligible manually.
+
+## 2026-11-09 — M39 real-time payments source activation
+
+- PR #536 merged (`f7955cf`); `gpir-intelligence-fetch` deployed as v60 via `supabase functions deploy --use-api`. The adapter now filters already-ingested article URLs before the per-run page cap (3 -> 5); the 07:45 PYMNTS run fetched 0 pages instead of refetching the same three.
+- Dry runs from production egress disabled the three new sources (403 article pages for Payments Dive and Finextra; no article timestamp for EPC). They remain registered DISABLED; no threshold, validator or tier was changed. `m39-rba-ingestion` was scheduled. ECB ingestion is retained unchanged.
+- No fresh announcement currently meets its governed threshold; the live ticker remains truthfully empty.

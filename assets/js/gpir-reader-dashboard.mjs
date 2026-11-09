@@ -351,6 +351,9 @@ function renderLibrary(document, target, library, available = true) {
 
 // Public FX research is intentionally independent of paid publication entitlements.
 // Only already-published CMS editorial records are exposed; account library access is unchanged.
+// Topic-based payments Smart Intelligence dashboard; independent of the currency pair.
+export const SMART_INTELLIGENCE_URL = '/pages/intelligence/smart.html';
+
 export function publicFxResearchRecords(value) {
   if (value?.source !== 'contentful-published-public' || !Array.isArray(value.records)) return [];
   const seen = new Set();
@@ -364,16 +367,15 @@ export function publicFxResearchRecords(value) {
     return [{ pair: item.pair, title: safeText(item.title, 180),
       summary: safeText(item.summary, 280),
       editorialUrl: safePublicationDestination(item.url),
-      fxIntelligenceUrl: `/pages/fx/intelligence.html?base=${base}&quote=${quote}&period=M`,
-      smartIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html` }];
+      fxIntelligenceUrl: `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html` }];
   }).sort((a, b) => a.pair.localeCompare(b.pair));
 }
 
-async function renderPublicFxResearch(document, fetchImpl) {
+export async function renderPublicFxResearch(document, fetchImpl) {
   const target = document.querySelector('[data-reader-public-research]');
   if (!target || typeof fetchImpl !== 'function') return;
   const section = textElement(document, 'section', '', 'my-gpir-public-research');
-  section.append(textElement(document, 'p', 'FX analysis, contextual Smart Intelligence and published Contentful research are three distinct reader journeys. All are available here without payment or subscription.'));
+  section.append(textElement(document, 'p', 'Explore currency-pair analysis and published Contentful FX research. Payments Smart Intelligence is available separately from the My GPIR navigation; no paid subscription is required.'));
   try {
     const response = await fetchImpl('/assets/data/fx/editorial-public.json', { cache: 'no-store' });
     if (!response?.ok) throw new Error('PUBLIC_INDEX_UNAVAILABLE');
@@ -393,11 +395,9 @@ async function renderPublicFxResearch(document, fetchImpl) {
       const actions = textElement(document, 'div', '', 'my-gpir-public-actions');
       const fx = textElement(document, 'a', 'Open FX Intelligence', 'my-gpir-publication__action');
       fx.href = item.fxIntelligenceUrl;
-      const smart = textElement(document, 'a', 'Open Smart Intelligence', 'my-gpir-publication__action');
-      smart.href = item.smartIntelligenceUrl;
       const editorial = textElement(document, 'a', 'Read Published Research', 'my-gpir-publication__action');
       editorial.href = item.editorialUrl;
-      actions.append(fx, smart, editorial); row.append(actions);
+      actions.append(fx, editorial); row.append(actions);
       list.append(row);
     }
     filter.addEventListener('input', () => {

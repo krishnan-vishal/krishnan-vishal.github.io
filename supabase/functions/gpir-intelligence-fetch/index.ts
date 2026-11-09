@@ -22,11 +22,19 @@ import {
   buildBisDataUrl,
   buildBisReleaseCalendarUrl,
   buildGdeltQueryUrl,
+  matchGdeltPublisherSource,
   parseBisReleaseCalendarCsv,
   parseBisSdmxCsv,
   parseGdeltDiscovery,
 } from "../_shared/gpir-public-source-adapters.mjs";
 import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
+import { articleSpecificDescription, collapseOfficialPathSlashes } from "../_shared/gpir-official-evidence.mjs";
+import {
+  PAYMENTS_PUBLISHER_IDS,
+  discoverPaymentsPublisherLinks,
+  isApprovedPaymentsPublisherRegistry,
+  selectUnseenItems,
+} from "../_shared/gpir-payments-publishers.mjs";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
@@ -38,11 +46,11 @@ const RBA_SOURCE_ID = "TEST-RBA-01";
 const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 const BIS_SOURCE_ID = "BIS-GLOBAL-001";
 const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
-// RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
+// Official MAS and ECB sources use their own approved publication indexes; all existing governance gates remain unchanged.
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, MAS_SOURCE_ID, ECB_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS, ...PAYMENTS_PUBLISHER_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
-const MAX_PAGE_FETCHES = 3;
+const MAX_PAGE_FETCHES = 5;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
 // strand a source. Dry runs never obtain a claim and remain write-free.
 const SOURCE_RUN_CLAIM_TTL_SECONDS = 900;
@@ -66,6 +74,7 @@ type DiscoveredItem = {
   // Optional source publication date discovered from an index/listing page.
   indexPublishedAt?: string | null;
   discovery?: Record<string, unknown> | null;
+  publisherSource?: SourceRecord;
 };
 
 function cleanText(value: string): string {
@@ -323,6 +332,32 @@ function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
     if (seen.has(url)) continue;
     seen.add(url);
     results.push({ title, url, indexPublishedAt: date.toISOString() });
+    if (results.length >= MAX_DISCOVERED_LINKS) break;
+  }
+  return results;
+}
+
+// ECB press RSS provides dated publication links. Existing page verification,
+// evidence validation, scoring and publication controls remain unchanged.
+function discoverEcbPressLinks(xml: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  for (const item of xml.match(/<item\b[\s\S]*?<\/item>/gi) || []) {
+    const field = (name: string) => item.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)<\\/" + name + ">", "i"))?.[1]
+      ?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
+    const title = cleanText(field("title"));
+    const dateText = field("pubDate");
+    const date = dateText ? new Date(dateText) : null;
+    if (!title || !date || Number.isNaN(date.getTime())) continue;
+    let url: URL;
+    try { url = new URL(field("link")); } catch { continue; }
+    if (url.protocol !== "https:" || url.hostname !== "www.ecb.europa.eu" || url.username || url.password) continue;
+    url.pathname = url.pathname.replace(/\/{2,}/g, "/");
+    if (!url.pathname.startsWith("/press/")) continue;
+    url.hash = "";
+    if (seen.has(url.href)) continue;
+    seen.add(url.href);
+    results.push({ title, url: url.href, indexPublishedAt: date.toISOString() });
     if (results.length >= MAX_DISCOVERED_LINKS) break;
   }
   return results;
@@ -663,6 +698,7 @@ export default {
     async (req, ctx) => {
       const startedAt = new Date().toISOString();
       let runId: string | null = null;
+      let gdeltRetryAfterAt: string | null = null;
       let runSourceId: string | null = null;
       let sourceClaimToken: string | null = null;
       let sourceClaimHeld = false;
@@ -774,6 +810,8 @@ const source = sourceRows[0] as SourceRecord;
           const config = GITHUB_TECHNICAL_SOURCES[requestedSource as keyof typeof GITHUB_TECHNICAL_SOURCES];
           if (source.official_url !== `https://github.com/${config.repository}` || source.feed_or_index_url !== `https://api.github.com/repos/${config.repository}/releases`) throw new Error("TECHNICAL_SOURCE_REGISTRY_MISMATCH");
         }
+        if (requestedSource === MAS_SOURCE_ID && (source.parser_profile !== "mas-rss" || !source.official_url?.startsWith("https://www.mas.gov.sg"))) throw new Error("MAS_SOURCE_REGISTRY_MISMATCH");
+        if (requestedSource === ECB_SOURCE_ID && (source.parser_profile !== "ecb-rss" || !source.official_url?.startsWith("https://www.ecb.europa.eu"))) throw new Error("ECB_SOURCE_REGISTRY_MISMATCH");
         if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
           throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
@@ -785,6 +823,35 @@ const source = sourceRows[0] as SourceRecord;
         }
         if (requestedSource === PYMNTS_SOURCE_ID && source.parser_profile !== "universal-finance") {
           throw new Error(`PYMNTS_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
+        }
+
+        if ((PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource) &&
+          !isApprovedPaymentsPublisherRegistry(requestedSource, source)) {
+          throw new Error("PAYMENTS_PUBLISHER_REGISTRY_MISMATCH");
+        }
+
+        if (requestedSource === GDELT_SOURCE_ID) {
+          // Persist cooldown in existing ingestion history, including across deployments.
+          const { data: priorRuns, error: historyError } = await ctx.supabaseAdmin
+            .from("intelligence_ingestion_runs")
+            .select("metadata")
+            .eq("source_id", GDELT_SOURCE_ID)
+            .order("started_at", { ascending: false })
+            .limit(5);
+          if (historyError) throw new Error("GDELT_COOLDOWN_READ_FAILED: " + historyError.message);
+          const activeCooldown = (priorRuns || [])
+            .map((run: { metadata?: { gdelt_retry_after_at?: string } }) =>
+              Date.parse(run.metadata?.gdelt_retry_after_at || ""))
+            .filter((until: number) => Number.isFinite(until) && until > Date.now())
+            .sort((a: number, b: number) => b - a)[0];
+          if (activeCooldown) {
+            return Response.json({
+              ok: false, source_id: GDELT_SOURCE_ID,
+              outcome: "GDELT_RATE_LIMIT_COOLDOWN",
+              retry_after_at: new Date(activeCooldown).toISOString(),
+              external_fetch_attempted: false,
+            }, { status: 429 });
+          }
         }
 
         if (!dryRun) {
@@ -1054,9 +1121,19 @@ const source = sourceRows[0] as SourceRecord;
         });
 
         if (!indexResponse.ok) {
-          throw new Error(
-            `INDEX_FETCH_FAILED_HTTP_${indexResponse.status}`,
-          );
+          if (requestedSource === GDELT_SOURCE_ID && indexResponse.status === 429) {
+            const retryAfter = indexResponse.headers.get("Retry-After");
+            const seconds = retryAfter && /^[0-9]+$/.test(retryAfter.trim())
+              ? Number(retryAfter.trim()) : NaN;
+            const headerDate = retryAfter && !Number.isFinite(seconds)
+              ? Date.parse(retryAfter) : NaN;
+            const delayMs = Number.isFinite(seconds) ? seconds * 1000
+              : Number.isFinite(headerDate) ? headerDate - Date.now()
+              : 60 * 60 * 1000;
+            gdeltRetryAfterAt = new Date(Date.now() +
+              Math.max(15 * 60 * 1000, Math.min(6 * 60 * 60 * 1000, delayMs))).toISOString();
+          }
+          throw new Error(`INDEX_FETCH_FAILED_HTTP_${indexResponse.status}`);
         }
 
         const indexHtml = await indexResponse.text();
@@ -1069,6 +1146,8 @@ const source = sourceRows[0] as SourceRecord;
           ? parseGdeltDiscovery(JSON.parse(indexHtml), gdeltTopic, { maxRecords: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
           : requestedSource === RBA_SOURCE_ID
           ? discoverRbaMediaLinks(indexHtml)
+          : requestedSource === ECB_SOURCE_ID
+          ? discoverEcbPressLinks(indexHtml)
           : requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
           : requestedSource === RBI_SOURCE_ID
@@ -1077,10 +1156,43 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverFintechFuturesLinks(indexHtml, indexResponse.url)
           : requestedSource === PYMNTS_SOURCE_ID
           ? discoverPymntsLinks(indexHtml, indexResponse.url)
+          : (PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource)
+          ? discoverPaymentsPublisherLinks(requestedSource, indexHtml, { max: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
           : discoverLinks(indexHtml, indexResponse.url);
 
-        const selected =
-          discovered.slice(0, MAX_PAGE_FETCHES);
+        let unmatchedPublisherSources = 0;
+        let routedDiscoveries = discovered;
+        if (requestedSource === GDELT_SOURCE_ID) {
+          const { data: approvedSources, error: approvedSourceError } = await ctx.supabaseAdmin
+            .from("source_registry")
+            .select("source_id,source_name,official_url,feed_or_index_url,acquisition_method,parser_profile,source_status")
+            .eq("source_status", "GREEN")
+            .limit(1000);
+          if (approvedSourceError) throw new Error(`GDELT_PUBLISHER_REGISTRY_ERROR: ${approvedSourceError.message}`);
+          routedDiscoveries = [];
+          for (const item of discovered) {
+            const publisherSource = matchGdeltPublisherSource(item.url, approvedSources || []) as SourceRecord | null;
+            if (!publisherSource) {
+              unmatchedPublisherSources++;
+              continue;
+            }
+            routedDiscoveries.push({ ...item, publisherSource });
+          }
+        }
+
+        // Already-ingested article URLs are skipped before the page-fetch cap so new items
+        // are never starved by older items that stay at the top of the index.
+        const knownUrls = new Set<string>();
+        if (requestedSource !== GDELT_SOURCE_ID && routedDiscoveries.length) {
+          const { data: knownRows, error: knownError } = await ctx.supabaseAdmin
+            .from("intelligence_raw_ingestion")
+            .select("discovered_url")
+            .eq("source_id", source.source_id)
+            .in("discovered_url", routedDiscoveries.map((item) => item.url));
+          if (knownError) throw new Error(`KNOWN_URL_LOOKUP_FAILED: ${knownError.message}`);
+          for (const row of knownRows || []) knownUrls.add((row as { discovered_url: string }).discovered_url);
+        }
+        const selected = selectUnseenItems(routedDiscoveries, knownUrls, MAX_PAGE_FETCHES) as DiscoveredItem[];
 
         const preview: unknown[] = [];
         // ----------------------------------------------------
@@ -1088,6 +1200,7 @@ const source = sourceRows[0] as SourceRecord;
         // ----------------------------------------------------
 
         for (const item of selected) {
+          const articleSource = item.publisherSource || source;
           try {
             const pageResponse = await fetch(item.url, {
               headers: {
@@ -1130,6 +1243,14 @@ const source = sourceRows[0] as SourceRecord;
               continue;
             }
 
+            if (requestedSource === GDELT_SOURCE_ID &&
+              !matchGdeltPublisherSource(pageResponse.url || item.url, [articleSource])) {
+              fetchErrors++;
+              preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
+                type: "GDELT_PUBLISHER_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
+              continue;
+            }
+
             const pageHtml = await pageResponse.text();
 
             const meta = extractMeta(
@@ -1138,6 +1259,17 @@ const source = sourceRows[0] as SourceRecord;
               pageResponse.url,
               requestedSource === RBI_SOURCE_ID,
             );
+            if (requestedSource === ECB_SOURCE_ID) {
+              meta.canonicalUrl = collapseOfficialPathSlashes(meta.canonicalUrl || pageResponse.url, "www.ecb.europa.eu");
+            }
+            meta.description = articleSpecificDescription(articleSource.source_id, meta.description);
+            if (requestedSource === GDELT_SOURCE_ID &&
+              !matchGdeltPublisherSource(meta.canonicalUrl || pageResponse.url || item.url, [articleSource])) {
+              fetchErrors++;
+              preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
+                type: "GDELT_CANONICAL_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
+              continue;
+            }
             if (requestedSource === RBA_SOURCE_ID) {
               const canonicalUrl = absoluteUrl(meta.canonicalUrl || pageResponse.url, pageResponse.url);
               const discoveredUrl = absoluteUrl(item.url, pageResponse.url);
@@ -1184,14 +1316,14 @@ const source = sourceRows[0] as SourceRecord;
             const fingerprint =
               await sha256(
                 [
-                  source.source_id,
+                  articleSource.source_id,
                   meta.title,
                   meta.canonicalUrl || pageResponse.url,
                 ].join("|").toLowerCase(),
               );
 
             const rawRecord = {
-              source_id: source.source_id,
+              source_id: articleSource.source_id,
               discovered_url: item.url,
               canonical_url:
                 meta.canonicalUrl || pageResponse.url,
@@ -1217,9 +1349,9 @@ const source = sourceRows[0] as SourceRecord;
 
               metadata: {
                 engine: "M33-F5",
-                parser_profile: source.parser_profile,
+                parser_profile: articleSource.parser_profile,
                 acquisition_method:
-                  source.acquisition_method,
+                  articleSource.acquisition_method,
                 discovered_title:
                   item.title,
                 content_type:
@@ -1228,10 +1360,10 @@ const source = sourceRows[0] as SourceRecord;
                   dryRun,
                 discovery:
                   item.discovery || null,
-                publication_eligible:
-                  requestedSource === GDELT_SOURCE_ID ? false : null,
                 source_verification_required:
                   requestedSource === GDELT_SOURCE_ID,
+                discovery_source_id: requestedSource === GDELT_SOURCE_ID ? GDELT_SOURCE_ID : null,
+                publisher_source_id: articleSource.source_id,
               },
             };
 
@@ -1456,6 +1588,8 @@ if (gate1Decision === "PASS") {
           statistics: {
             links_discovered:
               discovered.length,
+              unmatched_publisher_sources:
+                unmatchedPublisherSources,
             pages_selected:
               selected.length,
             raw_records_inserted:
@@ -1490,7 +1624,7 @@ if (gate1Decision === "PASS") {
           await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
             completed_at: new Date().toISOString(), run_status: "FAILED",
             records_published: 0, error_message: errorMessage,
-            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors },
+            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors, ...(gdeltRetryAfterAt ? { gdelt_retry_after_at: gdeltRetryAfterAt } : {}) },
           }).eq("id", runId);
         }
         console.error("GPIR M33-F5 failure:", error);
