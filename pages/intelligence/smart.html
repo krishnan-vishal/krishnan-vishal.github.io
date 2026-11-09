@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#071a31">
+  <meta name="theme-color" content="#ffffff">
   <meta name="robots" content="noindex,nofollow">
   <meta name="description" content="Authenticated GPIR Smart Intelligence dashboard for governed payments alerts, historical signals and published research.">
   <title>My Intelligence Dashboard | FINTECHOISIS — GPIR</title>
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109b">
-  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109a">
+  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
+  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109b">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -21,7 +21,7 @@
 <body class="smi-page gpir-sc">
   <a class="smi-skip" href="#smart-main">Skip to My Intelligence Dashboard</a>
   <header class="smi-nav">
-    <a class="smi-brand" href="../../index.html"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="42" height="42"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
+    <a class="smi-brand" href="../../index.html" aria-label="FINTECHOISIS GPIR home"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="44" height="44"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
     <nav aria-label="Intelligence dashboard navigation">
       <a href="../../index.html">Homepage</a><a href="../../reader/my-gpir/">My GPIR</a><a href="../fx/intelligence.html">FX Intelligence</a><a href="./index.html">Repository</a><a data-smart-ask href="../../index.html#gpir-search">ASK GPIR</a>
     </nav>
@@ -65,13 +65,17 @@
     <section aria-label="Intelligence indicators"><div class="smi-kpis" data-smart-kpis></div></section>
 
     <section aria-labelledby="smi-topic-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period.</p></div>
+      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period. Counts are descriptive and imply no forecast.</p></div>
+      <p class="smi-compare-window" data-smart-compare-window></p>
       <div class="smi-topic-cards" data-smart-topic-cards></div>
     </section>
 
     <section class="smi-heatmap-panel" aria-labelledby="smi-heatmap-title">
       <div class="smi-section-heading"><div><p class="smi-kicker">HISTORICAL SIGNAL DENSITY</p><h2 id="smi-heatmap-title">Preceding 12 weeks</h2></div><div class="smi-heat-legend"><span>None</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Higher</span></div></div>
-      <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap></div></div>
+      <p class="smi-heat-hint" id="smi-heat-hint">Select a topic-week cell to list its dated supporting records and compare it with the preceding week. Use the arrow keys to move between cells; press Escape to clear.</p>
+      <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap role="group" aria-labelledby="smi-heatmap-title" aria-describedby="smi-heat-hint"></div></div>
+      <p class="gpir-sc-visually-hidden" role="status" data-smart-heat-status></p>
+      <div class="smi-heat-detail" data-smart-heat-detail data-state="idle"></div>
     </section>
 
     <section class="smi-evidence" aria-labelledby="smi-evidence-title">
@@ -87,7 +91,7 @@
     </section>
   </main>
   <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
-  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109a" defer></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109c"></script>
+  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109b" defer></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109d"></script>
 </body>
 </html>
