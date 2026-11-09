@@ -330,6 +330,32 @@ function discoverRbaMediaLinks(xml: string): DiscoveredItem[] {
   return results;
 }
 
+// ECB press RSS provides dated publication links. Existing page verification,
+// evidence validation, scoring and publication controls remain unchanged.
+function discoverEcbPressLinks(xml: string): DiscoveredItem[] {
+  const results: DiscoveredItem[] = [];
+  const seen = new Set<string>();
+  for (const item of xml.match(/<item\b[\s\S]*?<\/item>/gi) || []) {
+    const field = (name: string) => item.match(new RegExp("<" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)<\\/" + name + ">", "i"))?.[1]
+      ?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
+    const title = cleanText(field("title"));
+    const dateText = field("pubDate");
+    const date = dateText ? new Date(dateText) : null;
+    if (!title || !date || Number.isNaN(date.getTime())) continue;
+    let url: URL;
+    try { url = new URL(field("link")); } catch { continue; }
+    if (url.protocol !== "https:" || url.hostname !== "www.ecb.europa.eu" || url.username || url.password) continue;
+    url.pathname = url.pathname.replace(/\/{2,}/g, "/");
+    if (!url.pathname.startsWith("/press/")) continue;
+    url.hash = "";
+    if (seen.has(url.href)) continue;
+    seen.add(url.href);
+    results.push({ title, url: url.href, indexPublishedAt: date.toISOString() });
+    if (results.length >= MAX_DISCOVERED_LINKS) break;
+  }
+  return results;
+}
+
 function isOfficialRbiUrl(url: string): boolean {
   try {
     const host = new URL(url).hostname.toLowerCase();
@@ -1108,6 +1134,8 @@ const source = sourceRows[0] as SourceRecord;
           ? parseGdeltDiscovery(JSON.parse(indexHtml), gdeltTopic, { maxRecords: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
           : requestedSource === RBA_SOURCE_ID
           ? discoverRbaMediaLinks(indexHtml)
+          : requestedSource === ECB_SOURCE_ID
+          ? discoverEcbPressLinks(indexHtml)
           : requestedSource === TEST_SOURCE_ID
           ? discoverNewsLinks(indexHtml, indexResponse.url)
           : requestedSource === RBI_SOURCE_ID
