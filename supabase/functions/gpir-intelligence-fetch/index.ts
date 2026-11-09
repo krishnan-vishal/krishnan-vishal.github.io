@@ -29,6 +29,12 @@ import {
 } from "../_shared/gpir-public-source-adapters.mjs";
 import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
 import { articleSpecificDescription, collapseOfficialPathSlashes } from "../_shared/gpir-official-evidence.mjs";
+import {
+  PAYMENTS_PUBLISHER_IDS,
+  discoverPaymentsPublisherLinks,
+  isApprovedPaymentsPublisherRegistry,
+  selectUnseenItems,
+} from "../_shared/gpir-payments-publishers.mjs";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
@@ -41,10 +47,10 @@ const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 const BIS_SOURCE_ID = "BIS-GLOBAL-001";
 const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
 // Official MAS and ECB sources use their own approved publication indexes; all existing governance gates remain unchanged.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, MAS_SOURCE_ID, ECB_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, MAS_SOURCE_ID, ECB_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS, ...PAYMENTS_PUBLISHER_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
-const MAX_PAGE_FETCHES = 3;
+const MAX_PAGE_FETCHES = 5;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
 // strand a source. Dry runs never obtain a claim and remain write-free.
 const SOURCE_RUN_CLAIM_TTL_SECONDS = 900;
@@ -819,6 +825,11 @@ const source = sourceRows[0] as SourceRecord;
           throw new Error(`PYMNTS_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
 
+        if ((PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource) &&
+          !isApprovedPaymentsPublisherRegistry(requestedSource, source)) {
+          throw new Error("PAYMENTS_PUBLISHER_REGISTRY_MISMATCH");
+        }
+
         if (requestedSource === GDELT_SOURCE_ID) {
           // Persist cooldown in existing ingestion history, including across deployments.
           const { data: priorRuns, error: historyError } = await ctx.supabaseAdmin
@@ -1145,6 +1156,8 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverFintechFuturesLinks(indexHtml, indexResponse.url)
           : requestedSource === PYMNTS_SOURCE_ID
           ? discoverPymntsLinks(indexHtml, indexResponse.url)
+          : (PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource)
+          ? discoverPaymentsPublisherLinks(requestedSource, indexHtml, { max: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
           : discoverLinks(indexHtml, indexResponse.url);
 
         let unmatchedPublisherSources = 0;
@@ -1167,7 +1180,19 @@ const source = sourceRows[0] as SourceRecord;
           }
         }
 
-        const selected = routedDiscoveries.slice(0, MAX_PAGE_FETCHES);
+        // Already-ingested article URLs are skipped before the page-fetch cap so new items
+        // are never starved by older items that stay at the top of the index.
+        const knownUrls = new Set<string>();
+        if (requestedSource !== GDELT_SOURCE_ID && routedDiscoveries.length) {
+          const { data: knownRows, error: knownError } = await ctx.supabaseAdmin
+            .from("intelligence_raw_ingestion")
+            .select("discovered_url")
+            .eq("source_id", source.source_id)
+            .in("discovered_url", routedDiscoveries.map((item) => item.url));
+          if (knownError) throw new Error(`KNOWN_URL_LOOKUP_FAILED: ${knownError.message}`);
+          for (const row of knownRows || []) knownUrls.add((row as { discovered_url: string }).discovered_url);
+        }
+        const selected = selectUnseenItems(routedDiscoveries, knownUrls, MAX_PAGE_FETCHES) as DiscoveredItem[];
 
         const preview: unknown[] = [];
         // ----------------------------------------------------
