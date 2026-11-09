@@ -6,7 +6,7 @@ import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.m
 //   supabaseRecordId       -> intelligence_candidates.id
 //   legacySourceUrl        -> the candidate's canonical source article URL
 //   publicationStatus      -> CURRENT
-//   validationStatus       -> VALIDATED (explicit editorial approval)
+//   validationStatus       -> PASS (explicit editorial approval; Pending, WARN and FAIL are denied)
 //   sourceValidationSummary-> editor's evidence note
 //   gpirPublicationId      -> governed VK-GPIR publication identifier
 const PUBLICATION_ID = /^VK-GPIR?-[A-Z0-9]+(?:-[A-Z0-9]+)+$/;
@@ -122,7 +122,7 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
   if (urlKey !== editorialUrlKey(candidate.canonical_url) || !isOfficialUrl(sourceUrl, source.official_url))
     return denied('EDITORIAL_SOURCE_URL_MISMATCH');
   if (text(fields.publicationStatus).toUpperCase() !== 'CURRENT' ||
-      text(fields.validationStatus).toUpperCase() !== 'VALIDATED')
+      text(fields.validationStatus).toUpperCase() !== 'PASS')
     return denied('EDITORIAL_APPROVAL_NOT_EXPLICIT');
   if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
   if (text(fields.sourceValidationSummary).length < MIN_EVIDENCE_LENGTH)

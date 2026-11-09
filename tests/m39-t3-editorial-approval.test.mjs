@@ -23,7 +23,7 @@ function candidate(overrides = {}) {
 function entry(overrides = {}, fields = {}) {
   return { entryId: 'entry-1', updatedAt: new Date(NOW - 600000).toISOString(), fields: {
     gpirPublicationId: 'VK-GPIR-MEDIA-000001', supabaseRecordId: CANDIDATE_ID, legacySourceUrl: URL_A,
-    publicationStatus: 'CURRENT', validationStatus: 'VALIDATED',
+    publicationStatus: 'CURRENT', validationStatus: 'PASS',
     sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.',
     ...fields }, ...overrides };
 }
@@ -69,12 +69,15 @@ test('editorial approval is denied for every identity, source, status and eviden
   const cases = {
     EDITORIAL_IDENTITY_MISMATCH: entry({}, { supabaseRecordId: '99999999-9999-4999-8999-999999999999' }),
     EDITORIAL_SOURCE_URL_MISMATCH: entry({}, { legacySourceUrl: 'https://www.pymnts.com/news/other/2026/different-article/' }),
-    EDITORIAL_APPROVAL_NOT_EXPLICIT: entry({}, { validationStatus: 'AWAITING_HUMAN_VALIDATION' }),
+    EDITORIAL_APPROVAL_NOT_EXPLICIT: entry({}, { validationStatus: 'Pending' }),
     EDITORIAL_PUBLICATION_ID_INVALID: entry({}, { gpirPublicationId: 'draft-1' }),
     EDITORIAL_EVIDENCE_MISSING: entry({}, { sourceValidationSummary: ' ' })
   };
   for (const [reason, item] of Object.entries(cases))
     assert.equal(evaluateEditorialEntry({ entry: item, candidate: candidate(), source: T3 }).reasonCode, reason, reason);
+  for (const validationStatus of ['Pending', 'WARN', 'FAIL', 'VALIDATED', ''])
+    assert.equal(evaluateEditorialEntry({ entry: entry({}, { validationStatus }), candidate: candidate(), source: T3 }).reasonCode,
+      'EDITORIAL_APPROVAL_NOT_EXPLICIT', validationStatus);
   assert.equal(evaluateEditorialEntry({ entry: entry({}, { publicationStatus: 'HISTORICAL' }), candidate: candidate(), source: T3 }).reasonCode,
     'EDITORIAL_APPROVAL_NOT_EXPLICIT');
   assert.equal(evaluateEditorialEntry({ entry: entry({}, { legacySourceUrl: 'https://evil.example/news/payments/2026/a' }),
@@ -145,7 +148,7 @@ test('editorial pass publishes only candidates with a matching entry and respect
     assert.equal(terminal.published.length, 0, decision);
   }
 
-  const denied = store({ entries: [entry({}, { validationStatus: 'AWAITING_HUMAN_VALIDATION' })] });
+  const denied = store({ entries: [entry({}, { validationStatus: 'Pending' })] });
   const deniedResult = await processEditorialApprovals({ repository: denied, fetchImpl: fetchPage(candidate()), now: () => NOW });
   assert.equal(deniedResult.published, 0);
   assert.deepEqual(denied.events.filter(event => event.startsWith('record')), ['record:EDITORIAL_APPROVAL_NOT_EXPLICIT']);
@@ -274,7 +277,7 @@ test('authorization is re-read from Contentful at publication time; a withdrawn 
   const duplicated = store({ entries: [entry()], targeted: [entry(), entry({ entryId: 'entry-2' })] });
   await processEditorialApprovals({ repository: duplicated, fetchImpl: fetchPage(candidate()), now: () => NOW });
   assert.equal(duplicated.published.length, 0);
-  const changed = store({ entries: [entry()], targeted: [entry({}, { validationStatus: 'QUARANTINED' })] });
+  const changed = store({ entries: [entry()], targeted: [entry({}, { validationStatus: 'FAIL' })] });
   await processEditorialApprovals({ repository: changed, fetchImpl: fetchPage(candidate()), now: () => NOW });
   assert.equal(changed.published.length, 0);
 });

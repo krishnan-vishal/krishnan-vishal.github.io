@@ -39,7 +39,7 @@ export async function buildEditorialQueue({ env = process.env, fetchImpl = fetch
     if (linked) queue.approved.push({ ...item, contentfulEntryId: linked.entryId });
     else queue.awaiting.push({ ...item, contentfulDraftFields: {
       supabaseRecordId: candidate.id, legacySourceUrl: candidate.canonical_url, publicationTitle: candidate.title,
-      publicationStatus: 'CURRENT', validationStatus: 'VALIDATED (only after editorial verification)',
+      publicationStatus: 'CURRENT', validationStatus: 'PASS (only after editorial verification)',
       sourceValidationSummary: 'Editor evidence note required', gpirPublicationId: 'Governed VK-GPIR identifier required' } });
   }
   return queue;
