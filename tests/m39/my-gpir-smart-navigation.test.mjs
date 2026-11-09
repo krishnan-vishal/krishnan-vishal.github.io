@@ -27,7 +27,7 @@ function anchors(node, found = []) {
   return found;
 }
 
-test('all 26 published pair cards expose exactly the three approved destinations', async () => {
+test('all 26 published FX pair cards expose only their two FX destinations', async () => {
   const document = fakeDocument();
   await renderPublicFxResearch(document, async () => ({ ok: true, json: async () => editorial }));
   const cards = [];
@@ -40,19 +40,17 @@ test('all 26 published pair cards expose exactly the three approved destinations
   for (const card of cards) {
     const links = anchors(card);
     assert.deepEqual(links.map(link => link.textContent),
-      ['Open FX Intelligence', 'Open Smart Intelligence', 'Read Published Research']);
+      ['Open FX Intelligence', 'Read Published Research']);
     const pair = card.children[0].textContent;
     const [base, quote] = pair.split('/');
     assert.equal(links[0].href, `/pages/fx/pairs/${base.toLowerCase()}-${quote.toLowerCase()}.html`);
-    assert.equal(links[1].href, '/pages/intelligence/smart.html');
-    assert.equal(links[2].href, records.get(pair).editorialUrl);
-    assert.doesNotMatch(links[1].href, /\/pages\/fx\/|base=|quote=/);
+    assert.equal(links[1].href, records.get(pair).editorialUrl);
   }
 });
 
 test('Smart Intelligence destination is the shared topic-based dashboard constant', () => {
   assert.equal(SMART_INTELLIGENCE_URL, '/pages/intelligence/smart.html');
-  assert.ok(publicFxResearchRecords(editorial).every(record => record.smartIntelligenceUrl === SMART_INTELLIGENCE_URL));
+  assert.ok(publicFxResearchRecords(editorial).every(record => !('smartIntelligenceUrl' in record)));
 });
 
 test('the destination page is the live-alert and topic-based historical dashboard', () => {
@@ -64,5 +62,11 @@ test('the destination page is the live-alert and topic-based historical dashboar
 });
 
 test('My GPIR loads the corrected module version', () => {
-  assert.match(dashboardPage, /gpir-reader-dashboard\.mjs\?v=20261109c/);
+  assert.match(dashboardPage, /gpir-reader-dashboard\.mjs\?v=20261109d/);
+});
+
+test('My GPIR provides a single independent Payments Smart Intelligence navigation link', () => {
+  assert.match(dashboardPage, /href="\/pages\/intelligence\/smart\.html" aria-label="Open Payments Smart Intelligence dashboard"/);
+  assert.equal((dashboardPage.match(/href="\/pages\/intelligence\/smart\.html"/g) || []).length, 1);
+  assert.match(dashboardPage, /Currency-pair analysis and published FX research/);
 });
