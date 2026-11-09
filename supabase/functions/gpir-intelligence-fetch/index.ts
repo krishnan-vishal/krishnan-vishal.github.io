@@ -28,6 +28,7 @@ import {
   parseGdeltDiscovery,
 } from "../_shared/gpir-public-source-adapters.mjs";
 import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
+import { articleSpecificDescription, collapseOfficialPathSlashes } from "../_shared/gpir-official-evidence.mjs";
 
 const TEST_SOURCE_ID = "SFA-APAC-001";
 const RBI_SOURCE_ID = "CB-APAC-010";
@@ -1233,6 +1234,10 @@ const source = sourceRows[0] as SourceRecord;
               pageResponse.url,
               requestedSource === RBI_SOURCE_ID,
             );
+            if (requestedSource === ECB_SOURCE_ID) {
+              meta.canonicalUrl = collapseOfficialPathSlashes(meta.canonicalUrl || pageResponse.url, "www.ecb.europa.eu");
+            }
+            meta.description = articleSpecificDescription(articleSource.source_id, meta.description);
             if (requestedSource === GDELT_SOURCE_ID &&
               !matchGdeltPublisherSource(meta.canonicalUrl || pageResponse.url || item.url, [articleSource])) {
               fetchErrors++;
