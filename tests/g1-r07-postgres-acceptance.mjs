@@ -93,6 +93,14 @@ assert.equal(run("select decision||':'||reason_code from intelligence_publicatio
 assert.equal(Number(run("select count(*) from gpir_intelligence_topic_sources where source_id='D'")),1,'repository evidence recorded');
 await mustFail(autoCall(autoId,'7'.repeat(64),autoPayload(),autoSubject,autoKey),'automatic publication cannot repeat');
 assert.equal(Number(run('select count(*) from global_announcements')),3,'exactly one new announcement');
+// Backfill/expiry: an article validated after its 12-hour window is archived with its original time and never live.
+run(`insert into intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status) values
+('00000000-0000-4000-8000-000000000206','D','https://d.example/news/6','Expired media payments initiative archived after validation window',now()-interval '14 hours','Payments','UPDATE',96,'REVIEW');`);
+const expiredCall=autoCall('00000000-0000-4000-8000-000000000206','a'.repeat(64),autoPayload(),'expired media payments initiative archived after validation window','1'.repeat(64)).replace("now()-interval '1 hour'","now()-interval '14 hours'");
+const expiredPublished=await concurrent(expiredCall);
+assert.equal(expiredPublished.code,0,expiredPublished.stderr);
+assert.equal(run("select ticker_eligible||':'||publication_status||':'||(published_at<now()-interval '13 hours') from global_announcements where canonical_url='https://d.example/news/6'").trim(),'false:approved:true','expired article is retained, approved, original-time and not ticker eligible');
+assert.equal(run("select candidate_status||':'||ticker_eligible from intelligence_candidates where id='00000000-0000-4000-8000-000000000206'").trim(),'APPROVED:false');
 const autoRoles=run("select has_function_privilege('anon','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')||':'||has_function_privilege('authenticated','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim();
 assert.equal(autoRoles,'false:false','automatic T3 publication must not be executable by anon or authenticated');
 console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route or the verified automatic profile');

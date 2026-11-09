@@ -121,10 +121,11 @@ test('headline-only or insufficient source evidence remains awaiting review', as
   assert.equal(store.events.some(event => event[0] === 'publish'), false);
 });
 
-test('candidate below its governed threshold is held for review without a source request', async () => {
+test('a below-threshold candidate outside the live window is held without a fetch and is not marked as failed', async () => {
   const item = candidate({
     id: '99999999-9999-4999-8999-999999999999',
-    confidence_score: 60
+    confidence_score: 60,
+    published_at: new Date(NOW - 20 * 60 * 60 * 1000).toISOString()
   });
   const store = repository();
   let sourceRequests = 0;
@@ -140,7 +141,23 @@ test('candidate below its governed threshold is held for review without a source
   assert.equal(outcome.decision, 'REVIEW');
   assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
   assert.equal(outcome.validationPayload.source_verified, false);
+  assert.deepEqual(outcome.validationPayload.evidence_verification,
+    { attempted: false, status: 'NOT_ATTEMPTED', reason: 'OUTSIDE_LIVE_WINDOW' });
   assert.equal(sourceRequests, 0);
+});
+
+test('a live-window below-threshold candidate has its evidence verified, keeps its confidence and is not published', async () => {
+  const item = candidate({ id: '99999999-9999-4999-8999-999999999998', confidence_score: 60 });
+  const store = repository();
+  const outcome = await processCandidate({ candidate: item, repository: store,
+    fetchImpl: sourceFetch(item), now: () => NOW });
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+  assert.deepEqual(outcome.validationPayload.evidence_verification, { attempted: true, status: 'SUCCEEDED', reason: null });
+  assert.equal(outcome.validationPayload.confidence_score, 60);
+  assert.equal(outcome.validationPayload.canonical_verified, true);
+  assert.ok(outcome.contentFingerprint);
+  assert.equal(store.events.some(event => event[0] === 'publish'), false);
 });
 
 test('candidate selection pages audit lookups instead of building one oversized URL', async () => {
