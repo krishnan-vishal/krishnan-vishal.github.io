@@ -39,8 +39,8 @@ const RBA_SOURCE_ID = "TEST-RBA-01";
 const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 const BIS_SOURCE_ID = "BIS-GLOBAL-001";
 const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
-// RBA is enabled only through its official media-release RSS parser; MAS/ECB remain gated.
-const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
+// Official MAS and ECB sources use their own approved publication indexes; all existing governance gates remain unchanged.
+const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, MAS_SOURCE_ID, ECB_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 3;
@@ -777,6 +777,8 @@ const source = sourceRows[0] as SourceRecord;
           const config = GITHUB_TECHNICAL_SOURCES[requestedSource as keyof typeof GITHUB_TECHNICAL_SOURCES];
           if (source.official_url !== `https://github.com/${config.repository}` || source.feed_or_index_url !== `https://api.github.com/repos/${config.repository}/releases`) throw new Error("TECHNICAL_SOURCE_REGISTRY_MISMATCH");
         }
+        if (requestedSource === MAS_SOURCE_ID && (source.parser_profile !== "mas-rss" || !source.official_url?.startsWith("https://www.mas.gov.sg"))) throw new Error("MAS_SOURCE_REGISTRY_MISMATCH");
+        if (requestedSource === ECB_SOURCE_ID && (source.parser_profile !== "ecb-rss" || !source.official_url?.startsWith("https://www.ecb.europa.eu"))) throw new Error("ECB_SOURCE_REGISTRY_MISMATCH");
         if (requestedSource === RBA_SOURCE_ID && source.parser_profile !== "rba-rss-profile") {
           throw new Error(`RBA_PARSER_PROFILE_MISMATCH: ${source.parser_profile}`);
         }
