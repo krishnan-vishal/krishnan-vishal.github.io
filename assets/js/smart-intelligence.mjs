@@ -341,28 +341,43 @@ async function fetchHistory(fetchImpl, origin) {
 
 function evidenceMarkup(record, kind) {
   if (!kind) return '';
+  // Reader-facing highlights use validated normalized metadata only. Raw source fields
+  // remain available on demand, never as a wall of technical database columns.
   const facts = [];
   const add = (label, value) => { if (value !== '' && value != null) facts.push([label, String(value)]); };
-  let note = kind.note;
+  let headline = '';
+  let context = '';
   if (kind.id === 'statistical') {
-    add('Observation period', record.observationPeriod);
-    add('Value', record.statisticalValue);
-    add('Unit code', record.unitMeasure);
-    add('Multiplier code', record.unitMultiplier);
-    add('Reference area', record.countryCode || record.country);
-    add('Observation date', record.observationDate);
-    add('Provider release', record.providerReleaseDate);
-    record.dimensions.forEach(dimension => add(`Dimension ${dimension.key}`, dimension.value));
+    const value = record.statisticalValue;
+    const title = record.dimensions.find(d => d.key === 'TITLE')?.value || record.title;
+    const policyRate = /policy rate/i.test(title);
+    headline = value == null ? 'Recorded observation' : String(value) + (policyRate ? '%' : '');
+    context = 'Historical observation · ' + (record.country || record.countryCode || 'Reference area not specified');
+    add('Observation date', record.observationDate || record.observationPeriod);
+    add('Reference area', record.country || record.countryCode);
+    add('Series', title);
   } else {
     const change = describeTechnicalChange(record);
-    note = `${kind.note} ${change.description}`;
-    add('Product', record.product);
+    headline = change.type;
+    context = (record.product || record.repository || 'Official software repository') + ' · technical history, not an industry announcement';
+    add('Verified date', record.referenceDate);
     add('Repository', record.repository);
-    add('Record type', change.type);
     add(change.referenceLabel, change.reference);
-    add('Date', record.referenceDate);
   }
-  return `<div class="smi-record-evidence" data-evidence="${kind.id}"><p class="smi-evidence-note">${escapeHtml(note)}</p>${facts.length ? `<dl class="smi-record-facts">${facts.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl>` : ''}</div>`;
+  const technical = kind.id === 'statistical'
+    ? [['Unit code', record.unitMeasure], ['Multiplier code', record.unitMultiplier], ['Provider release', record.providerReleaseDate],
+      ...record.dimensions.map(d => ['Dimension ' + d.key, d.value])]
+    : [['Product', record.product], ['Repository', record.repository], ['Record type', describeTechnicalChange(record).type]];
+  const rows = values => values.filter(([, value]) => value !== '' && value != null)
+    .map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join('');
+  return `<div class="smi-record-evidence smi-reader-evidence" data-evidence="${kind.id}">
+    <div class="smi-reader-evidence-head"><strong>${escapeHtml(headline)}</strong><span>${escapeHtml(context)}</span></div>
+    <dl class="smi-reader-facts">${rows(facts)}</dl>
+    <details class="smi-reader-methodology"><summary>Source &amp; methodology · technical details</summary>
+      <p>${escapeHtml(kind.note)}</p><dl class="smi-record-facts">${rows(technical)}</dl>
+      <a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(kind.linkLabel)}</a>
+    </details>
+  </div>`;
 }
 
 function recordMarkup(record) {
@@ -371,7 +386,7 @@ function recordMarkup(record) {
   const recordClass = kind ? kind.label : record.lifecycle;
   const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
     record.referenceDate ? `${kind?.id === 'technical' ? describeTechnicalChange(record).type : 'Verified change'} dated ${record.referenceDate}` : isoDay(record.publishedAt);
-  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(kind ? kind.linkLabel : 'Read authoritative source')}</a></article>`;
+  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a>`}</article>`;
 }
 
 function evidenceTag(record) {
