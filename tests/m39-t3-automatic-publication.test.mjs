@@ -6,8 +6,8 @@ import { AUTO_PUBLICATION_THRESHOLDS, T3_AUTOMATIC_PUBLICATION, validateCandidat
 import { createRestPublicationRepository, processCandidate }
   from '../supabase/functions/gpir-intelligence-publish/handler.mjs';
 import { normalizeRepositoryRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
-import { buildAlertContext, eligibleLiveRecords, normalizeLiveAlerts, normalizeSmartRecords }
-  from '../assets/js/smart-intelligence.mjs';
+import { eligibleLiveRecords, normalizeLiveAlerts, normalizeSmartRecords } from '../assets/js/smart-intelligence.mjs';
+import { buildTopicContext } from '../assets/js/gpir-topic-intelligence.mjs';
 
 const NOW = Date.parse('2026-11-09T12:00:00.000Z');
 const HOUR = 3600000;
@@ -85,26 +85,47 @@ test('a verified, high-confidence T3 article publishes automatically with its or
   assert.ok(validation.summary.length >= 120);
 });
 
-test('the confidence threshold is explicit and confidence alone never verifies a T3 article', async () => {
+test('the confidence threshold is explicit; evidence is verified first and confidence is never raised by a fetch', async () => {
   assert.equal(T3_AUTOMATIC_PUBLICATION.minConfidence, 95);
   for (const confidence of [0, 40, 94.9, null, undefined, 'abc']) {
     const item = candidate({ confidence_score: confidence });
     const repository = store();
-    let fetched = false;
-    const outcome = await run(item, repository, async () => { fetched = true; throw new Error('no fetch'); });
+    const outcome = await run(item, repository);
     assert.equal(outcome.decision, 'REVIEW', String(confidence));
     assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
-    assert.equal(fetched, false, 'a below-threshold candidate is recorded before any source fetch');
+    assert.deepEqual(outcome.evidenceVerification, { attempted: true, status: 'SUCCEEDED', reason: null });
+    assert.equal(outcome.validationPayload.confidence_score, Number(confidence));
     assert.equal(repository.published.length, 0);
     assert.equal(repository.records.length, 1);
   }
   const atThreshold = await validateCandidateSource({ candidate: candidate({ confidence_score: 95 }), source: T3,
     fetchImpl: fetchPage(candidate()), now: () => NOW });
   assert.equal(atThreshold.decision, 'PUBLISHED');
+  assert.deepEqual(atThreshold.evidenceVerification, { attempted: true, status: 'SUCCEEDED', reason: null });
   // High confidence cannot rescue a failed verification.
   const unverified = await run(candidate({ confidence_score: 100 }), store(),
     fetchPage(candidate(), { canonical: 'https://www.pymnts.com/news/payments/2026/another-article/' }));
   assert.equal(unverified.decision, 'REVIEW');
+  assert.equal(unverified.evidenceVerification.status, 'FAILED');
+});
+
+test('an unattempted fetch is never recorded as a failed verification', async () => {
+  const old = candidate({ confidence_score: 40, published_at: new Date(NOW - 20 * HOUR).toISOString() });
+  let fetched = false;
+  const outcome = await run(old, store(), async () => { fetched = true; throw new Error('no fetch'); });
+  assert.equal(fetched, false);
+  assert.deepEqual(outcome.validationPayload.evidence_verification,
+    { attempted: false, status: 'NOT_ATTEMPTED', reason: 'OUTSIDE_LIVE_WINDOW' });
+  const notEligible = await run(candidate({ confidence_score: 99 }), store({ source: { ...T3, trust_tier: 'T4' } }));
+  assert.equal(notEligible.evidenceVerification.status, 'NOT_ATTEMPTED');
+  assert.equal(notEligible.evidenceVerification.reason, 'SOURCE_TIER_NOT_ELIGIBLE');
+  const unapproved = await run(candidate(), store({ source: { ...T3, source_status: 'AMBER' } }));
+  assert.equal(unapproved.evidenceVerification.attempted, false);
+  // An attempted fetch that fails is FAILED and carries the failure reason.
+  const failed = await run(candidate(), store(), async () => ({ ok: false, status: 403, url: URL_A, headers: new Headers(), text: async () => '' }));
+  assert.deepEqual(failed.evidenceVerification, { attempted: true, status: 'FAILED', reason: 'SOURCE_HTTP_403' });
+  const timeout = await run(candidate(), store(), async () => { throw new Error('network'); });
+  assert.deepEqual(timeout.evidenceVerification, { attempted: true, status: 'FAILED', reason: 'SOURCE_FETCH_FAILED' });
 });
 
 test('an unverified source, foreign domain, canonical mismatch or off-domain redirect never publishes', async () => {
@@ -267,10 +288,11 @@ test('the Contentful editorial route is preserved, takes precedence and still pu
   assert.equal(forged.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
 });
 
-function retryStore(rows, audits, source = T3) {
+function retryStore(rows, audits, source = T3, requests = []) {
   return createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' },
     fetchImpl: async url => {
       const request = new URL(url);
+      requests.push(request);
       if (request.pathname.endsWith('/intelligence_publication_audits')) return { ok: true, json: async () => audits };
       if (request.pathname.endsWith('/source_registry')) return { ok: true, json: async () => [source] };
       const status = request.searchParams.get('candidate_status').replace(/^(in|eq)\.\(?|\)$/g, '').split(',');
@@ -283,31 +305,55 @@ function retryStore(rows, audits, source = T3) {
     } });
 }
 
-test('a live T3 review recorded before the profile existed is re-evaluated only when it meets the profile', async () => {
+test('a recent T3 threshold review made without an evidence fetch is reconsidered once, within bounds', async () => {
   const completed = new Date(NOW - HOUR).toISOString();
-  const high = candidate({ id: '33333333-3333-4333-8333-333333333331', candidate_status: 'REVIEW', confidence_score: 97 });
-  const low = candidate({ id: '33333333-3333-4333-8333-333333333332', candidate_status: 'REVIEW', confidence_score: 40 });
-  const stale = candidate({ id: '33333333-3333-4333-8333-333333333333', candidate_status: 'REVIEW', confidence_score: 97,
-    published_at: new Date(NOW - 20 * HOUR).toISOString() });
-  const audits = [high, low, stale].map(item => ({ candidate_id: item.id, decision: 'REVIEW',
-    reason_code: 'AUTO_PUBLICATION_THRESHOLD_NOT_MET', completed_at: completed }));
-  const selected = await retryStore([high, low, stale], audits).candidates({ limit: 5, now: NOW });
-  assert.deepEqual(selected.map(item => item.id), [high.id]);
-  const recent = [{ ...audits[0], completed_at: new Date(NOW - 5 * 60000).toISOString() }];
-  assert.deepEqual(await retryStore([high], recent).candidates({ limit: 5, now: NOW }), [], '30-minute backoff applies');
-  assert.deepEqual(await retryStore([high], audits, { ...T3, trust_tier: 'T2' }).candidates({ limit: 5, now: NOW }), [],
-    'a threshold review for a non-T3 source stays final');
+  const row = (digit, overrides = {}) => candidate({ id: `33333333-3333-4333-8333-33333333333${digit}`,
+    candidate_status: 'REVIEW', confidence_score: 40, ...overrides });
+  const legacy = row(1);
+  const attempted = row(2);
+  const notAttempted = row(3);
+  const stale = row(4, { published_at: new Date(NOW - 20 * HOUR).toISOString() });
+  const audit = (item, payload) => ({ candidate_id: item.id, decision: 'REVIEW', reason_code: 'AUTO_PUBLICATION_THRESHOLD_NOT_MET',
+    completed_at: completed, validation_payload: payload });
+  const audits = [audit(legacy, { source_verified: false }),
+    audit(attempted, { evidence_verification: { attempted: true, status: 'SUCCEEDED' } }),
+    audit(notAttempted, { evidence_verification: { attempted: false, status: 'NOT_ATTEMPTED' } }),
+    audit(stale, { source_verified: false })];
+  const requests = [];
+  const selected = await retryStore([legacy, attempted, notAttempted, stale], audits, T3, requests).candidates({ limit: 5, now: NOW });
+  assert.deepEqual(selected.map(item => item.id), [legacy.id, notAttempted.id],
+    'confidence is irrelevant; only an unattempted fetch inside the live window qualifies');
+  assert.match(requests.find(request => request.pathname.endsWith('/intelligence_publication_audits')).searchParams.get('select'), /validation_payload/);
+  const recent = audits.map(item => ({ ...item, completed_at: new Date(NOW - 5 * 60000).toISOString() }));
+  assert.deepEqual(await retryStore([legacy], recent).candidates({ limit: 5, now: NOW }), [], '30-minute backoff applies');
+  assert.deepEqual(await retryStore([legacy], audits, { ...T3, trust_tier: 'T2' }).candidates({ limit: 5, now: NOW }), [],
+    'only T3 candidates are reconsidered');
+  assert.deepEqual(await retryStore([legacy], audits, { ...T3, source_status: 'AMBER' }).candidates({ limit: 5, now: NOW }), []);
+  assert.equal((await retryStore([legacy, notAttempted], audits).candidates({ limit: 1, now: NOW })).length, 1, 'batch limit bounds the run');
+});
+
+test('a reconsidered T3 candidate publishes only after every governance check passes', async () => {
+  const good = candidate({ confidence_score: 97, candidate_status: 'REVIEW' });
+  const published = store();
+  assert.equal((await run(good, published)).decision, 'PUBLISHED');
+  const lowConfidence = store();
+  const low = await run(candidate({ confidence_score: 60, candidate_status: 'REVIEW' }), lowConfidence);
+  assert.equal(low.decision, 'REVIEW');
+  assert.equal(lowConfidence.published.length, 0);
+  assert.equal(lowConfidence.records[0].evidenceVerification.status, 'SUCCEEDED');
+  const duplicate = store({ duplicate: true });
+  assert.equal((await run(good, duplicate)).decision, 'DUPLICATE');
 });
 
 test('a published T3 article reaches both tickers, the Smart Intelligence view and the permanent repository', () => {
   const summary = 'PYMNTS reports: The payments network announced that instant settlement will extend to additional cross-border corridors for banks, wallets and merchants. ' +
     'The operator said participating payment providers must complete certification and settlement testing before connecting.';
   // Exactly what gpir_publish_t3_automatic_candidate writes to global_announcements.
-  const row = (id, hoursAgo, url) => ({ id, source_id: T3.source_id, title: `Instant payments network expands cross-border settlement ${id}`,
+  const row = (id, hoursAgo, url, title = `Instant payments network expands cross-border settlement ${id}`) => ({ id, source_id: T3.source_id, title,
     summary_narration: summary, canonical_url: url, published_at: new Date(NOW - hoursAgo * HOUR).toISOString(),
     ticker_eligible: hoursAgo <= 12, topic_headers: ['Payments'], publication_status: 'approved' });
   const live = row('a-live', 2, URL_A);
-  const older = row('a-old', 40, 'https://www.pymnts.com/news/payments/2026/earlier-corridor-pilot/');
+  const older = row('a-old', 40, 'https://www.pymnts.com/news/payments/2026/earlier-corridor-pilot/', 'Earlier cross-border corridor pilot concluded for regional banks');
   const archived = row('a-archive', 13 * 24, 'https://www.pymnts.com/news/payments/2026/older-cross-border-settlement/');
   const records = normalizeRepositoryRows({ now: NOW, sources: [T3], announcements: [live, older, archived] });
   const byId = Object.fromEntries(records.map(record => [record.id, record]));
@@ -332,8 +378,8 @@ test('a published T3 article reaches both tickers, the Smart Intelligence view a
 
   // Selecting the alert opens the Smart Intelligence topic view with historical context.
   const alert = smart.find(record => record.id === 'a-live');
-  const context = buildAlertContext(alert, smart, NOW);
-  assert.ok(context.topicIds.includes('cross-border'));
+  const context = buildTopicContext(alert, smart, NOW);
+  assert.ok(context.topic.topicIds.includes('cross-border'));
   const related = [...context.current, ...context.historical].map(record => record.id);
   assert.ok(related.includes('a-old'));
 

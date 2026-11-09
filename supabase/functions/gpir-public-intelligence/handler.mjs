@@ -1,4 +1,6 @@
 import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
+import { buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
+import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
 export const BIS_SOURCE_ID = 'BIS-GLOBAL-001';
@@ -29,10 +31,10 @@ function allowedOrigins() {
   return new Set(DEFAULT_ORIGINS);
 }
 
-function response(status, body, requestOrigin, env) {
+function response(status, body, requestOrigin, env, { private: personalized = false } = {}) {
   const headers = {
     'content-type': 'application/json; charset=utf-8',
-    'cache-control': 'public, max-age=120',
+    'cache-control': personalized ? 'private, no-store, max-age=0' : 'public, max-age=120',
     'access-control-allow-methods': 'GET, OPTIONS',
     'access-control-allow-headers': 'content-type, apikey, authorization',
     vary: 'Origin',
@@ -270,7 +272,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
 }
 
 export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
-  loadRows = null, now = () => Date.now() }) {
+  loadRows = null, now = () => Date.now(), entitlement = null }) {
   return async function handle(request) {
     const origin = request.headers.get('origin');
     if (origin && !allowedOrigins().has(origin))
@@ -286,7 +288,9 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const limit = Math.max(1, Math.min(100, Number(requestUrl.searchParams.get('limit')) || 50));
     const offset = Math.max(0, Math.min(5000, Number(requestUrl.searchParams.get('offset')) || 0));
     const requestNow = now();
-    const history = requestUrl.searchParams.get('scope') === 'history';
+    const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
+    const relayView = requestUrl.searchParams.get('view') === 'relay';
+    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
     const date = requestUrl.searchParams.get('date');
     const year = requestUrl.searchParams.get('year');
     const lifecycle = requestUrl.searchParams.get('lifecycle');
@@ -296,6 +300,23 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     if (year && !/^\d{4}$/.test(year)) return response(400,{status:'ERROR',code:'INVALID_YEAR'},origin,env);
     if (day && !['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].includes(day)) return response(400,{status:'ERROR',code:'INVALID_DAY'},origin,env);
     if (lifecycle && !['LIVE','ARCHIVED'].includes(lifecycle)) return response(400,{status:'ERROR',code:'INVALID_LIFECYCLE'},origin,env);
+    if (topicContext && !/^[A-Za-z0-9._:-]{1,120}$/.test(topicContext))
+      return response(400, { status: 'ERROR', code: 'INVALID_TOPIC_CONTEXT' }, origin, env, { private: true });
+    if (topicContext) {
+      // Enhanced topic intelligence is subscriber-only and decided on the server for every
+      // request, before any repository data is read.
+      const accessToken = /^Bearer\s+([^\s]+)$/i.exec(request.headers.get('authorization') || '')?.[1] || null;
+      const access = entitlement
+        ? await entitlement({ accessToken, now: requestNow })
+        : config ? await resolveSubscriberAccess({ fetchImpl, supabaseUrl: config.url, serviceKey: config.key,
+          accessToken, now: requestNow }) : { decision: 'ERROR' };
+      if (access.decision === 'UNAUTHENTICATED')
+        return response(401, { status: 'ERROR', code: access.reason || 'SESSION_REQUIRED' }, origin, env, { private: true });
+      if (access.decision === 'DENY')
+        return response(403, { status: 'DENY', code: 'SUBSCRIPTION_REQUIRED' }, origin, env, { private: true });
+      if (access.decision !== 'ALLOW')
+        return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
+    }
     try {
       let rows;
       if (loadRows) rows = await loadRows();
@@ -354,6 +375,23 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
+      if (topicContext) {
+        const context = buildTopicContext(records.find(record => record.id === topicContext) || { id: null }, records, requestNow);
+        return context
+          ? response(200, { status: 'OK', context, generatedAt: new Date(requestNow).toISOString() }, origin, env, { private: true })
+          : response(404, { status: 'ERROR', code: 'TOPIC_NOT_FOUND' }, origin, env, { private: true });
+      }
+      if (relayView) {
+        // Free public relay: live (12-hour) developments as topic-level items, with every
+        // individual source retained as supporting evidence. Expired items stay in the repository.
+        // Reports are grouped before expiry is applied, so a topic leaves the relay 12 hours
+        // after its ORIGINAL report and later corroboration cannot extend its life.
+        const items = groupRelayItems(records.filter(record => !record.dataClass)
+          .map(record => ({ ...record, topic: classifyDevelopment(record) })))
+          .filter(item => item.displayLifecycleStatus === 'LIVE');
+        return response(200, { status: 'OK', view: 'relay', windowHours: 12, total: items.length, items,
+          generatedAt: new Date(requestNow).toISOString() }, origin, env);
+      }
       if (date) records = records.filter(record=>record.publicationDate===date);
       if (year) records = records.filter(record=>record.publicationYear===year);
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);

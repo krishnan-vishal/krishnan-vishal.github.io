@@ -336,6 +336,23 @@ test("valid recent approved alert renders summary, classification and verified s
     assert.match(harness.body.innerHTML, /Open topic intelligence view/);
 });
 
+test("overlapping reports of one development become one topic-level ticker item with every source retained", async () => {
+    const first = validAlert({ id: "report-a", title: "Central bank launches verified instant-payment service for banks",
+        publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() });
+    const second = validAlert({ id: "report-b", title: "Central bank launches verified instant-payment service for banks today",
+        publishedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        sourceName: "Payments Trade Press", sourceUrl: "https://trade.example/instant-payments" });
+    const distinct = validAlert({ id: "report-c", title: "Regulator fines a wallet provider over anti-money laundering failures",
+        sourceUrl: "https://centralbank.example/releases/enforcement" });
+    const harness = await createAlertsHarness({ alerts: [second, first, distinct] });
+    const feed = harness.api.getRecords().filter(record => record.gpirPublicFeed);
+    assert.deepEqual(feed.map(record => record.id).sort(), ["report-a", "report-c"]);
+    const merged = feed.find(record => record.id === "report-a");
+    assert.equal(merged.sourcePublicationTimestamp, first.publishedAt, "original publication time is preserved");
+    assert.deepEqual(Array.from(merged.supportingSources.map(source => source.url)).sort(),
+        ["https://centralbank.example/releases/instant-payments", "https://trade.example/instant-payments"]);
+});
+
 test("expired API alert and recent static archive record do not render live", async () => {
     const expired = validAlert({ publishedAt: new Date(Date.now() - 13 * 60 * 60 * 1000).toISOString() });
     const harness = await createAlertsHarness({ alerts: [expired] });

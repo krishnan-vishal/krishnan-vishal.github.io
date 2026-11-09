@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { buildAlertContext, buildDashboardMetrics, buildHeatmap, filterSmartRecords, normalizeEditorial,
+import { buildDashboardMetrics, buildHeatmap, filterSmartRecords, normalizeEditorial,
   normalizeLiveAlerts, normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
   from '../../assets/js/smart-intelligence.mjs';
+import { buildTopicContext } from '../../assets/js/gpir-topic-intelligence.mjs';
 import { publicFxResearchRecords } from '../../assets/js/gpir-reader-dashboard.mjs';
 import { activeSection } from '../../assets/js/my-gpir-navigation.mjs';
 
@@ -139,14 +140,14 @@ test('an alert opens a topic-specific view from current and historical repositor
   ] });
   const alert = records.find(item => item.id === 'alert');
   for (const now of [Date.now(), Date.now() + 30 * 24 * HOUR]) {
-    const context = buildAlertContext(alert, records, now);
-    assert.deepEqual(context.topicIds, alert.topicIds);
-    assert.ok(context.topicIds.includes('cross-border'));
+    const context = buildTopicContext(alert, records, now);
+    assert.deepEqual(context.topic.topicIds, alert.topicIds);
+    assert.ok(context.topic.topicIds.includes('cross-border'));
     const ids = [...context.current, ...context.historical].map(item => item.id);
     assert.ok(ids.includes('old') && !ids.includes('other') && !ids.includes('tech') && !ids.includes('alert'));
   }
   const now = Date.now();
-  assert.deepEqual(buildAlertContext(alert, records, now).current.map(item => item.id), ['current']);
-  assert.deepEqual(buildAlertContext(alert, records, now).historical.map(item => item.id), ['old']);
+  assert.deepEqual(buildTopicContext(alert, records, now).current.map(item => item.id), ['current']);
+  assert.deepEqual(buildTopicContext(alert, records, now).historical.map(item => item.id), ['old']);
   assert.match(page, /data-smart-alert/);
 });

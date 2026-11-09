@@ -1,4 +1,4 @@
-import { T3_AUTOMATIC_PUBLICATION, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
   fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
@@ -106,19 +106,21 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
   const base = `${config.url}/rest/v1`;
   const headers = serviceHeaders(config);
 
-  // A threshold review recorded before the explicit T3 automatic profile existed is
-  // re-evaluated (live window and normal backoff) only for a T3 source whose confidence
-  // reaches that profile. Full source, evidence and duplicate validation still decide.
-  async function t3ProfileReopens(audit, candidate, now) {
+  // Reconsideration: a recent T3 candidate whose threshold review was recorded without
+  // any evidence fetch (NOT_ATTEMPTED or a pre-verification audit) is processed again so
+  // its article evidence is verified. This is bounded by the 12-hour live window, the
+  // 30-minute backoff, the batch limit and the processing budget. It never raises the
+  // stored confidence: a verified article below its threshold remains in REVIEW.
+  async function reconsiderationDue(audit, candidate, now) {
     if (audit.decision !== 'REVIEW' || audit.reason_code !== THRESHOLD_REASON ||
-        !(Number(candidate.confidence_score) >= T3_AUTOMATIC_PUBLICATION.minConfidence)) return false;
+        audit.validation_payload?.evidence_verification?.attempted === true) return false;
     const published = Date.parse(candidate.published_at || '');
     const completed = Date.parse(audit.completed_at || '');
     if (!Number.isFinite(published) || !Number.isFinite(completed) ||
-        now - published > RETRY_WINDOW_MS || now - completed < RETRY_BACKOFF_MS) return false;
-    const query = new URLSearchParams({ select: 'trust_tier', source_id: `eq.${candidate.source_id}`, limit: '2' });
+        published > now || now - published > RETRY_WINDOW_MS || now - completed < RETRY_BACKOFF_MS) return false;
+    const query = new URLSearchParams({ select: 'trust_tier,source_status', source_id: `eq.${candidate.source_id}`, limit: '2' });
     const rows = await jsonFetch(fetchImpl, `${base}/source_registry?${query}`, { headers });
-    return Array.isArray(rows) && rows.length === 1 && rows[0].trust_tier === 'T3';
+    return Array.isArray(rows) && rows.length === 1 && rows[0].trust_tier === 'T3' && rows[0].source_status === 'GREEN';
   }
 
   return {
@@ -145,7 +147,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
           const audited = new Map();
           if (ids.length) {
             const auditQuery = new URLSearchParams({
-              select: 'candidate_id,decision,reason_code,attempted_at,completed_at',
+              select: 'candidate_id,decision,reason_code,attempted_at,completed_at,validation_payload',
               candidate_id: `in.(${ids.join(',')})`,
               order: 'attempted_at.desc,candidate_id.asc',
               limit: '1000'
@@ -163,7 +165,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
             if (seen.has(item.id)) continue;
             const audit = audited.get(item.id);
             if (!audit || !FINAL_DECISIONS.has(audit.decision)) { seen.add(item.id); selected.push(item); }
-            else if (!auditIsFinal(audit, item, now) || await t3ProfileReopens(audit, item, now)) {
+            else if (!auditIsFinal(audit, item, now) || await reconsiderationDue(audit, item, now)) {
               seen.add(item.id); retries.push(item);
             }
           }
