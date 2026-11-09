@@ -296,7 +296,7 @@ function renderTopicCards(root, currentBase, previousBase) {
     const summary = current.length
       ? `${current.length} validated signal${current.length === 1 ? '' : 's'} in the selected period. Most recent evidence is dated ${isoDay(current[0].publishedAt)}.`
       : 'No qualifying dated observation for this topic and selected context.';
-    return `<article class="smi-topic-card" data-topic="${topic.id}"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small></li>`).join('')}</ul>` : ''}</article>`;
+    return `<article class="smi-topic-card" data-topic="${topic.id}" role="button" tabindex="0" aria-label="Show ${escapeHtml(topic.label)} intelligence"><header><h3>${escapeHtml(topic.label)}</h3><span class="smi-topic-count">${current.length}</span></header><p class="smi-trend" data-direction="${trend.direction}">${escapeHtml(trend.label)}</p><p>${escapeHtml(summary)}</p>${latest.length ? `<ul>${latest.map(record => `<li><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(record.title)}</a><small>${escapeHtml(record.sourceName)}</small></li>`).join('')}</ul>` : ''}</article>`;
   }).join('');
 }
 
@@ -518,6 +518,24 @@ export async function initializeSmartIntelligence({ global = window,
       topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
     }
   }
+
+  // Topic cards are selection controls; source links remain independently navigable.
+  const cards = root.querySelector('[data-smart-topic-cards]');
+  const selectTopicCard = (event) => {
+    if (event.target.closest('a')) return;
+    const card = event.target.closest('[data-topic]');
+    if (!card || !cards.contains(card)) return;
+    state.topics = new Set([card.dataset.topic]);
+    topicControls.querySelectorAll('input').forEach(input => { input.checked = state.topics.has(input.value); });
+    render();
+    root.querySelector('[data-smart-results]')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
+  cards?.addEventListener('click', selectTopicCard);
+  cards?.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (!event.target.matches('[data-topic]')) return;
+    event.preventDefault(); selectTopicCard(event);
+  });
 
   root.querySelectorAll('[data-smart-period]').forEach(button => button.addEventListener('click', () => {
     state.period = button.dataset.smartPeriod; render();
