@@ -209,3 +209,8 @@ body.my-gpir{margin:0;background:var(--gpir-paper);color:var(--gpir-ink);font:15
 @media(max-width:380px){
   .my-gpir-nav ul{grid-template-columns:1fr}
 }
+
+/* M39 My GPIR navigation: fill the desktop width with one balanced row; all destinations, labels and links unchanged. */
+@media(min-width:1001px){
+  .my-gpir-nav ul{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
+}
