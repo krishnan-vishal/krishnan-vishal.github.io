@@ -181,7 +181,7 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
 
 export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
   topicSources = [], statisticalObservations = [], now = Date.now(),
-  windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
+  windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences = false }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
   const byTopicSources = new Map();
   const byTopicDevelopments = new Map();
@@ -261,10 +261,10 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       }
     }];
   });
-  const references = [
+  const references = includeReferences ? [
     ...normalizeBisReferenceRows({ rows: statisticalObservations, sources }),
     ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources })
-  ];
+  ] : [];
   if (!references.length) return announcementsNormalized;
   return [...announcementsNormalized, ...references]
     .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
@@ -290,7 +290,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
-    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
+    const referenceView = requestUrl.searchParams.get('view') === 'references';
+    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext) || referenceView;
     const date = requestUrl.searchParams.get('date');
     const year = requestUrl.searchParams.get('year');
     const lifecycle = requestUrl.searchParams.get('lifecycle');
@@ -366,7 +367,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           allRows('gpir_intelligence_topics', topicQuery),
           allRows('gpir_intelligence_developments', developmentsQuery),
           allRows('gpir_intelligence_topic_sources', linksQuery),
-          history ? allRows('intelligence_raw_ingestion', new URLSearchParams({
+          referenceView ? allRows('intelligence_raw_ingestion', new URLSearchParams({
             select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
             source_id: `in.(${REFERENCE_SOURCE_IDS.join(',')})`, ingestion_status: 'eq.PROCESSED',
             order: 'discovered_at.desc,id.asc'
@@ -374,7 +375,10 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         ]);
         rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
       }
-      let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
+      let records = normalizeRepositoryRows({ ...rows, now: requestNow,
+        windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences: referenceView });
+      if (referenceView) records = records.filter(record => record.dataClass === 'STATISTICAL_REFERENCE' ||
+        record.dataClass === 'TECHNICAL_REFERENCE');
       if (topicContext) {
         const context = buildTopicContext(records.find(record => record.id === topicContext) || { id: null }, records, requestNow);
         return context
@@ -403,7 +407,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', source: history ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', source: referenceView ? 'verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

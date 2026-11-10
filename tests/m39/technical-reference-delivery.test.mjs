@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   HYPERSWITCH_SOURCE_ID,
   MOJALOOP_SOURCE_ID,
+  createPublicIntelligenceHandler,
   normalizeRepositoryRows,
   normalizeTechnicalReferenceRows
 } from '../../supabase/functions/gpir-public-intelligence/handler.mjs';
@@ -57,12 +58,44 @@ test('verified technical records enter historical reference views but never Glob
   assert.ok(cards.every(card => card.dataClass === 'TECHNICAL_REFERENCE'));
 });
 
-test('technical references share the existing governed history response with announcements', () => {
+test('technical references require the explicit reference history view', () => {
   const records = normalizeRepositoryRows({ announcements: [], sources,
     statisticalObservations: [mojaloop, hyperswitch], now: Date.parse('2026-11-08T08:00:00Z'),
     windowDays: null });
-  assert.equal(records.length, 2);
-  assert.deepEqual(records.map(record => record.id), [mojaloop.id, hyperswitch.id]);
+  assert.deepEqual(records, []);
+  const references = normalizeRepositoryRows({ announcements: [], sources,
+    statisticalObservations: [mojaloop, hyperswitch], now: Date.parse('2026-11-08T08:00:00Z'),
+    windowDays: null, includeReferences: true });
+  assert.deepEqual(references.map(record => record.id), [mojaloop.id, hyperswitch.id]);
+});
+
+test('archive and relay exclude raw reference history while reference view preserves it', async () => {
+  const announcement = {
+    id: 'legitimate-hyperswitch-development',
+    source_id: HYPERSWITCH_SOURCE_ID,
+    title: 'Hyperswitch payment infrastructure development',
+    summary_narration: 'An independently reviewed payments-sector development with source-backed context and editorial approval.',
+    canonical_url: 'https://github.com/juspay/hyperswitch/releases/tag/v17.2.0',
+    published_at: '2026-11-08T04:00:00Z',
+    ticker_eligible: true,
+    publication_status: 'approved',
+    topic_headers: ['Payment infrastructure']
+  };
+  const handler = createPublicIntelligenceHandler({
+    env: {},
+    now: () => Date.parse('2026-11-08T08:00:00Z'),
+    loadRows: async () => ({ announcements: [announcement], sources, statisticalObservations: [mojaloop, hyperswitch] })
+  });
+  const archive = await (await handler(new Request('https://example.test/?scope=history'))).json();
+  assert.equal(archive.total, 1);
+  assert.equal(archive.records[0].id, announcement.id);
+  assert.equal(archive.source, 'global_announcements');
+  const relay = await (await handler(new Request('https://example.test/?view=relay'))).json();
+  assert.equal(relay.total, 1);
+  const references = await (await handler(new Request('https://example.test/?view=references'))).json();
+  assert.equal(references.source, 'verified_reference_history');
+  assert.deepEqual(references.records.map(record => record.id), [mojaloop.id, hyperswitch.id]);
+  assert.ok(references.records.every(record => record.tickerEligible === false));
 });
 
 test('publication-eligible, telemetry-shaped and off-repository lookalikes fail closed', () => {
@@ -79,4 +112,3 @@ test('history query requests all verified reference sources through the existing
   assert.match(handler, /source_id:\s*`in\.\(\$\{REFERENCE_SOURCE_IDS\.join\(','\)\}\)`/);
   assert.doesNotMatch(handler, /TECHNICAL_REFERENCE[\s\S]{0,400}tickerEligible:\s*true/);
 });
-

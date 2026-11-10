@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### M40 executive intelligence quality (partial; not deployed)
+
+- The existing public intelligence API appended raw, explicitly non-publication-eligible technical and statistical references to the `scope=history` announcement response. A production read on 2026-11-10 returned 200 records: 4 announcements, 161 technical references and 35 statistical references. A read-only database check found no approved `global_announcements` from the Hyperswitch, Mojaloop or BIS reference sources.
+- This branch separates those reference classes at the existing API boundary: announcement history and relay contain approved announcements only; the same endpoint exposes verified raw reference history through `view=references`. No source records, CMS entries, publication decisions or audit rows are changed. This is an intentional `scope=history` response change; consumers requiring those reference records must use the explicit view.
+- The change is not deployed. The requested geography/flags and bounded historical CMS publication are not implemented or verified. In particular, publisher-country metadata is not necessarily the event's geography, and no new publication may be approved or invented to demonstrate the historical path. A source-verified historical candidate and editorial approval remain necessary for end-to-end production acceptance.
+
 ### M40 Global Alerts public readability correction (CSS only)
 
 - **Scope:** presentation only. `assets/css/market.css` (homepage ticker), `assets/css/header.css` (article detail panel) and the injected stylesheet in `assets/js/supabase-archive.js` (archive record counter). Cache-busting versions bumped in `index.html`, `pages/intelligence/index.html`, `scripts/generate-intelligence-pages.js` and its test. No Contentful, Supabase, API, data, publication or timestamp change.

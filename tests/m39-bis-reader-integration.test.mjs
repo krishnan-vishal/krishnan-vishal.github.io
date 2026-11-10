@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeBisReferenceRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
+import { createPublicIntelligenceHandler, normalizeBisReferenceRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
 import { normalizeSmartRecords } from '../assets/js/smart-intelligence.mjs';
 
 const source = {
@@ -42,4 +42,20 @@ test('unverified or publication-eligible lookalikes cannot enter BIS reader reco
     { ...row, id: 'two', ingestion_status: 'RAW' },
     { ...row, id: 'three', metadata: { ...row.metadata, source_url: 'https://example.org/data' } }
   ], sources: [source] }), []);
+});
+
+test('raw BIS observations stay out of announcements and remain available as references', async () => {
+  const handler = createPublicIntelligenceHandler({
+    env: {},
+    now: () => Date.parse('2026-11-08T08:00:00Z'),
+    loadRows: async () => ({ announcements: [], sources: [source], statisticalObservations: [row] })
+  });
+  const history = await (await handler(new Request('https://example.test/?scope=history'))).json();
+  assert.equal(history.total, 0);
+  const reference = await (await handler(new Request('https://example.test/?view=references'))).json();
+  assert.equal(reference.total, 1);
+  assert.equal(reference.records[0].id, row.id);
+  assert.equal(reference.records[0].dataClass, 'STATISTICAL_REFERENCE');
+  assert.equal(reference.records[0].publishedAt, '2024-12-31T00:00:00.000Z');
+  assert.equal(reference.records[0].tickerEligible, false);
 });
