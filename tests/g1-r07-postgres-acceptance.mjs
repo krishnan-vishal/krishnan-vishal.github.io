@@ -124,4 +124,30 @@ for(const sql of deniedCalls){
 }
 assert.equal(run("select has_function_privilege('service_role','public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim(),'t');
 assert.equal(Number(run('select count(*) from global_announcements')),4,'permission checks must not modify published history');
-console.log('G1-R07 PostgreSQL acceptance PASS: legacy behavior tested before migration; service role denied legacy RPCs afterwards; editorial RPC grant retained');
+// Simulate the currently shared grants in this isolated database, never in production.
+run(`alter role service_role bypassrls;
+grant select,insert,update on public.global_announcements, public.intelligence_candidates to service_role;
+grant select on public.source_registry to service_role;
+insert into public.intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status) values
+('00000000-0000-4000-8000-000000000207','C','https://c.example/7','Unverified caller claims an editorial payments publication',now()-interval '1 hour','Payments','UPDATE',40,'REVIEW'),
+('00000000-0000-4000-8000-000000000208','C','https://c.example/8','Editorial payment publication after table privilege removal',now()-interval '1 hour','Payments','UPDATE',40,'REVIEW');`);
+const forgedId='00000000-0000-4000-8000-000000000207';
+const forged=await concurrent(`set role service_role; ${editorialCall(forgedId,'b'.repeat(64),
+ editorialPayload(forgedId,'https://c.example/7'),'unverified caller claims an editorial payments publication')
+ .replace(`'${key}'`,`'${'2'.repeat(64)}'`)}`);
+assert.equal(forged.code,0,`existing SQL RPC accepts caller-supplied CMS evidence: ${forged.stderr}`);
+const direct=await concurrent("set role service_role; insert into public.global_announcements(canonical_url,publication_status) values('https://c.example/direct','approved')");
+assert.equal(direct.code,0,`service role can bypass the editorial RPC: ${direct.stderr}`);
+run('revoke insert,update on public.global_announcements from service_role');
+const deniedDirect=await concurrent("set role service_role; insert into public.global_announcements(canonical_url,publication_status) values('https://c.example/denied','approved')");
+assert.notEqual(deniedDirect.code,0);
+assert.match(deniedDirect.stderr,/permission denied for table global_announcements/);
+const deniedEditorialId='00000000-0000-4000-8000-000000000208';
+const deniedEditorial=await concurrent(`set role service_role; ${editorialCall(deniedEditorialId,'c'.repeat(64),
+ editorialPayload(deniedEditorialId,'https://c.example/8'),'editorial payment publication after table privilege removal')
+ .replace(`'${key}'`,`'${'3'.repeat(64)}'`)}`);
+assert.notEqual(deniedEditorial.code,0);
+assert.match(deniedEditorial.stderr,/permission denied for table global_announcements/);
+const ingestion=await concurrent("set role service_role; insert into public.intelligence_candidates(id,source_id,candidate_status) values('00000000-0000-4000-8000-000000000209','C','PENDING')");
+assert.equal(ingestion.code,0,`candidate ingestion remains independently permitted: ${ingestion.stderr}`);
+console.log('G1-R07 PostgreSQL acceptance PASS: legacy RPCs denied; shared table rights allow direct writes and forged editorial proof; removing them also breaks the invoker publisher');

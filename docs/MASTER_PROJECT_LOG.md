@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 publication trust-boundary determination — 2026-11-10
+
+- **Scope:** existing PR #547; no production permission changes, publication, deployment or merge. No publication-boundary correction is claimed.
+- **Production read-only evidence:** Management API reports active `gpir-public-alerts` version 4; its deployed source reads approved, ticker-eligible `global_announcements`, GREEN sources and source domains, and uses the original 12-hour window, without a Contentful check. `service_role` has `BYPASSRLS` and announcement SELECT/INSERT/UPDATE privileges. The validated, consolidated, automatic T3 and editorial T3 RPCs are all `SECURITY INVOKER` and executable by `service_role`.
+- **Isolated PostgreSQL evidence:** a production-equivalent shared-role fixture allowed direct approved-row insertion and allowed the editorial RPC to publish with fabricated CMS flags. Revoking announcement INSERT/UPDATE denied direct writes but also denied the invoker editorial publisher; candidate insertion still succeeded. Legacy RPC revocations in the branch were also tested. There is no demonstrated least-privilege replacement using the shared role, so no additional grant migration was made.
+- **NO-GO:** Contentful verification in the Edge process is not independently provable by the database when the same service credential can bypass it. A trusted publication authority that a direct writer cannot forge requires an owner-authorized trust/credential boundary; the current grant and invoker arrangement cannot supply it. Deployed alert source must be brought under the controlled release and CMS authorization; all-tier editorial SQL support and owner-authored public announcement access remain unfinished.
+
 ## M40 final CMS enforcement continuation — 2026-11-10
 
 - **Requested scope:** finish the Contentful-only authority in existing PR #547; no new architecture, tables, deployment or publication.
