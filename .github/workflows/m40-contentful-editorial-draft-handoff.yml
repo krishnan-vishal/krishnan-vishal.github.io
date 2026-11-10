@@ -55,6 +55,7 @@ jobs:
         run: >-
           node --test
           tests/m40/contentful-editorial-drafts.test.mjs
+          tests/m40/cms-publication-flow.test.mjs
           tests/m39-t3-editorial-approval.test.mjs
           tests/m39-t3-automatic-publication.test.mjs
       - name: Hand off eligible candidates to Contentful drafts

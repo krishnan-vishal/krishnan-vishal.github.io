@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 final CMS enforcement continuation — 2026-11-10
+
+- **Requested scope:** finish the Contentful-only authority in existing PR #547; no new architecture, tables, deployment or publication.
+- **Fixture evidence:** added approved and unapproved T3 Contentful-to-source-validation-to-reader cases, including repeat idempotency and 12-hour expiry, plus owner-authored Contentful delivery through the existing entitlement-protected API without an intelligence candidate. 66 targeted editorial, draft and protected-publication tests passed. These cases mock the publication repository, Contentful and source responses; they do not demonstrate direct database enforcement or production delivery.
+- **NO-GO / genuine blockers:** the editorial RPC is `SECURITY INVOKER` and shares the service-role table privilege with direct writers. Its CMS evidence is supplied by the caller, while the only current independent Contentful Delivery check is in the Edge process; the existing asynchronous database HTTP scheduler does not supply an in-transaction Contentful authority. Revoking the shared table permission without a replacement boundary also disables the editorial publisher. The separately deployed live-alert implementation is absent here; T1/T1.5/T2 publication and owner-authored public announcement access remain unsupported. No permission, production state, historical record or publication was modified.
+
 ## M40 CMS bypass gaps continuation — 2026-11-10
 
 - **Scope:** existing PR #547 only; no merge, deployment, production permission changes, CMS publication or identity allocation.
