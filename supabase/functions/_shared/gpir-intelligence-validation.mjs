@@ -216,8 +216,8 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   const confidenceGateMet = editorialRoute || t3Automatic ||
     Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold);
   const candidateTime = Date.parse(candidate.published_at || '');
-  const historicalEvidence = historicalReview === true && !editorialRoute && t3Profile &&
-    Number.isFinite(confidence) && confidence < T3_AUTOMATIC_PUBLICATION.minConfidence &&
+  const historicalEvidence = historicalReview === true && !editorialRoute &&
+    (t3Profile || Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold)) &&
     Number.isFinite(candidateTime) && candidateTime >= Date.parse('2021-11-01T00:00:00Z') &&
     candidateTime < Date.parse('2026-12-01T00:00:00Z') && candidateTime <= now();
   if (historicalReview && !historicalEvidence) return review('HISTORICAL_REVIEW_NOT_ELIGIBLE');
@@ -350,6 +350,7 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
     }
   };
   if (!confidenceGateMet) return thresholdReview(verified);
+  if (historicalEvidence) return review('CONTENTFUL_APPROVAL_REQUIRED', verified);
   return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...verified };
 }
 

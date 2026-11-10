@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 CMS bypass gaps continuation — 2026-11-10
+
+- **Scope:** existing PR #547 only; no merge, deployment, production permission changes, CMS publication or identity allocation.
+- **Branch changes:** an unapplied migration revokes API-role execution on the legacy validated, consolidated and automatic T3 RPCs. Existing T3 editorial RPC privileges and all stored data remain untouched. The existing draft handoff accepts eligible GREEN T1/T1.5/T2/T3 candidates, including high-confidence T3 with its stricter verified evidence; historical verification stays REVIEW, retains the prior audit and original source timestamp, and creates only unpublished idempotent drafts.
+- **Validation:** isolated PostgreSQL acceptance tests exercise the real migrations, verify service-role denial for all three legacy RPCs and confirm the editorial grant remains. 135 local tests exercise all-tier drafts, tier thresholds, 2022 historical evidence, idempotency, and an entitled owner-authored Contentful protected-publication response without an intelligence candidate; content, link, announcement, intent and recovery checks also pass. This is fixture evidence, not a live publication or public archive acceptance.
+- **NO-GO:** direct service-role table writes and the editorial RPC's caller-supplied CMS evidence remain bypasses; announcement and separate live-alert delivery have no independently enforced CMS check. The existing editorial SQL route accepts only T3, and owner-authored entries without candidates do not reach the public announcement flow. No evidence establishes that all existing production publications have CMS authorization. A trusted CMS-verification boundary and compatible all-tier/owner promotion are still necessary before release.
+
 ## M40 CMS publication authority assessment — 2026-11-10
 
 - **Requested decision:** all editorial intelligence must be authorized through Contentful; no direct Supabase, GitHub or coding-tool bypass. Do not merge, deploy, publish or allocate identity.

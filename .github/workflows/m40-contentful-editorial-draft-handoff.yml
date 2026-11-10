@@ -1,8 +1,7 @@
 name: M40 Contentful editorial draft handoff
 
-# Creates unpublished gpirPublication drafts for source-verified T3 candidates that await an
-# editorial decision. It never publishes: an editor approves and publishes in Contentful, after
-# which the existing gpir-intelligence-publish cron promotes the entry to the reader APIs.
+# Creates unpublished gpirPublication drafts for eligible source-verified candidates.
+# It never approves or publishes. The current editorial publisher supports T3 only.
 on:
   schedule:
     - cron: '17,47 * * * *'

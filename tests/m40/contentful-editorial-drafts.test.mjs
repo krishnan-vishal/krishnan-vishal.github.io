@@ -22,7 +22,8 @@ const thresholdAudit = { decision: 'REVIEW', reason_code: 'AUTO_PUBLICATION_THRE
     validation_payload: flags, evidence_excerpt: 'Verified source evidence excerpt for the editor.' };
 
 function world({ candidates, audits = {}, announced = [], entries = [], sourcePage = null,
-    duplicateFingerprint = false, auditConflict = false }) {
+    duplicateFingerprint = false, auditConflict = false, sources = [{ source_id: 'PYMNTS-GLOBAL-004', source_name: 'PYMNTS',
+        official_url: 'https://www.pymnts.com/', source_status: 'GREEN', trust_tier: 'T3' }] }) {
     const state = { entries: new Map(entries.map(entry => [entry.sys.id, entry])), writes: [], auditWrites: [], reads: 0 };
     const reply = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
     state.fetch = async (url, init = {}) => {
@@ -31,10 +32,9 @@ function world({ candidates, audits = {}, announced = [], entries = [], sourcePa
         if (target.origin === SUPABASE) {
             state.reads += 1;
             const table = target.pathname.split('/').pop();
-            if (table === 'source_registry') return reply(200, [{ source_id: 'PYMNTS-GLOBAL-004', source_name: 'PYMNTS',
-                official_url: 'https://www.pymnts.com/', source_status: 'GREEN', trust_tier: 'T3' }]);
+            if (table === 'source_registry') return reply(200, sources);
             if (table === 'intelligence_candidates') {
-                assert.equal(target.searchParams.get('confidence_score'), 'lt.95');
+                assert.equal(target.searchParams.has('confidence_score'), false);
                 const id = target.searchParams.get('id')?.replace('eq.', '');
                 const matched = id ? candidates.filter(item => item.id === id) : candidates;
                 const offset = Number(target.searchParams.get('offset') || 0);
@@ -103,6 +103,42 @@ test('selects only source-verified T3 candidates awaiting an editorial decision'
     assert.deepEqual(selected.map(item => item.candidate.id), [a.id]);
 });
 
+test('all supported source tiers and high-confidence T3 create unpublished drafts without weakening thresholds', async () => {
+    const sources = ['T1', 'T1.5', 'T2', 'T3'].map(tier => ({
+        source_id: `SOURCE-${tier}`, source_name: `Source ${tier}`, official_url: 'https://www.pymnts.com/',
+        source_status: 'GREEN', trust_tier: tier }));
+    const items = [candidate(1, { source_id: 'SOURCE-T1', confidence_score: 70 }),
+        candidate(2, { source_id: 'SOURCE-T1.5', confidence_score: 80 }),
+        candidate(3, { source_id: 'SOURCE-T2', confidence_score: 90 }),
+        candidate(4, { source_id: 'SOURCE-T3', confidence_score: 99 }),
+        candidate(5, { source_id: 'SOURCE-T1', confidence_score: 69 })];
+    const audits = Object.fromEntries(items.map(item => [item.id, [{ ...thresholdAudit,
+        reason_code: 'CONTENTFUL_APPROVAL_REQUIRED', source_published_at: item.published_at,
+        validation_payload: { ...flags, ...(item.source_id === 'SOURCE-T3' ? { t3_auto_verified: true } : {}) } }]]));
+    const state = world({ candidates: items, sources, audits });
+    const report = await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW });
+    assert.equal(report.created, 4);
+    for (let i = 0; i < 4; i++) {
+        const entry = state.entries.get(draftEntryId(items[i].id, sources[i].trust_tier));
+        assert.ok(entry);
+        assert.equal(entry.sys.publishedVersion, undefined);
+        assert.equal(entry.fields.validationStatus, undefined);
+        assert.equal(entry.fields.publicationStatus, undefined);
+        assert.equal(entry.fields.gpirPublicationId, undefined);
+    }
+    assert.equal((await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW })).created, 0);
+    assert.equal(state.writes.length, 4);
+});
+
+test('high-confidence T3 cannot reuse evidence verified under the weaker editorial profile', async () => {
+    const item = candidate(1, { confidence_score: 99 });
+    const state = world({ candidates: [item], audits: { [item.id]: [{ ...thresholdAudit,
+        reason_code: 'CONTENTFUL_APPROVAL_REQUIRED', source_published_at: item.published_at }] } });
+    const report = await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW });
+    assert.equal(report.eligible, 0);
+    assert.equal(state.writes.length, 0);
+});
+
 test('historical handoff is bounded to one verified candidate and preserves the original date', async () => {
     const item = candidate(1, { published_at: '2022-05-04T10:00:00.000Z' });
     const other = candidate(2, { published_at: '2022-05-04T10:00:00.000Z' });
@@ -169,6 +205,36 @@ test('historical sync verifies source evidence, preserves the prior audit and cr
     assert.equal(repeat.results[0].outcome, 'DRAFT_CURRENT');
     assert.equal(state.auditWrites.length, 1);
     assert.equal(state.writes.length, 1);
+});
+
+test('historical verification supports T1 and high-confidence T3 without publishing', async () => {
+    const body = [
+        'The payments network announced that cross-border settlement will expand to additional markets for banks, wallets and merchants across the region.',
+        'The operator said participating payment providers must complete certification, fraud controls and settlement testing before connecting to the payment network.',
+        'The company described the compliance arrangements for remittance partners and fintech participants supporting the payment infrastructure.',
+        'Independent reviewers will assess the operational results and published controls before the payments service expands to additional markets.',
+        'Regulators will receive periodic reports on transaction monitoring, dispute handling and operational controls throughout the rollout programme.',
+        'Participating banks will publish operational timetables and document the settlement controls before making the service available to their merchants.',
+        'The network confirmed that its independent oversight committee will review performance and report material issues to all regulated participants.',
+        'New payment gateways will only be enabled after certification verifies the governance, security and reconciliation standards for every participant.'
+    ].join(' ');
+    for (const [tier, confidence] of [['T1', 70], ['T3', 99]]) {
+        const item = candidate(1, { confidence_score: confidence, published_at: '2022-05-04T10:00:00.000Z' });
+        const previous = { decision: 'REVIEW', reason_code: 'AUTO_PUBLICATION_THRESHOLD_NOT_MET',
+            updated_at: '2026-11-09T10:00:00Z', validation_payload: { evidence_verification: {
+                attempted: false, status: 'NOT_ATTEMPTED', reason: 'OUTSIDE_LIVE_WINDOW' } } };
+        const source = { source_id: item.source_id, source_name: 'Source', official_url: 'https://www.pymnts.com/',
+            source_status: 'GREEN', trust_tier: tier };
+        const sourcePage = `<link rel="canonical" href="${item.canonical_url}"><meta property="article:published_time" content="${item.published_at}"><article>${body}</article>`;
+        const state = world({ candidates: [item], audits: { [item.id]: [previous] }, sourcePage, sources: [source] });
+        const report = await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW,
+            historicalFrom: '2022-05-01', historicalTo: '2022-06-01', candidateId: item.id });
+        assert.equal(report.created, 1, JSON.stringify(report));
+        assert.deepEqual(state.auditWrites[0].validation_payload.historical_review.previous_audit, previous);
+        assert.equal(state.auditWrites[0].reason_code, 'CONTENTFUL_APPROVAL_REQUIRED');
+        assert.equal(state.entries.get(draftEntryId(item.id, tier)).sys.publishedVersion, undefined);
+        if (tier === 'T3') assert.equal(state.auditWrites[0].validation_payload.t3_auto_verified, true);
+    }
 });
 
 test('historical sync leaves the audit and CMS untouched when source verification fails', async () => {

@@ -129,7 +129,7 @@ test('an unattempted fetch is never recorded as a failed verification', async ()
   assert.deepEqual(timeout.evidenceVerification, { attempted: true, status: 'FAILED', reason: 'SOURCE_FETCH_FAILED' });
 });
 
-test('bounded historical evidence review verifies old T3 sources without authorizing publication', async () => {
+test('bounded historical evidence review verifies eligible tiers without authorizing publication', async () => {
   const old = candidate({ confidence_score: 70, published_at: '2023-06-05T10:00:00.000Z' });
   const verified = await validateCandidateSource({ candidate: old, source: T3, fetchImpl: fetchPage(old),
     now: () => NOW, historicalReview: true });
@@ -141,12 +141,28 @@ test('bounded historical evidence review verifies old T3 sources without authori
   const changedDate = await validateCandidateSource({ candidate: old, source: T3,
     fetchImpl: fetchPage(old, { timestamp: '2023-06-05T11:00:00.000Z' }), now: () => NOW, historicalReview: true });
   assert.equal(changedDate.reasonCode, 'SOURCE_TIMESTAMP_MISMATCH');
-  for (const bad of [candidate({ ...old, confidence_score: 95 }), candidate({ ...old, published_at: '2020-01-01T00:00:00Z' })]) {
+  for (const [tier, confidence] of [['T1', 70], ['T1.5', 80], ['T2', 90], ['T3', 95]]) {
+    const item = candidate({ ...old, confidence_score: confidence });
+    const outcome = await validateCandidateSource({ candidate: item, source: { ...T3, trust_tier: tier },
+      fetchImpl: fetchPage(item), now: () => NOW, historicalReview: true });
+    assert.equal(outcome.decision, 'REVIEW', tier);
+    assert.equal(outcome.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED', tier);
+    assert.equal(outcome.evidenceVerification.status, 'SUCCEEDED', tier);
+    assert.equal(outcome.sourcePublishedAt, item.published_at, tier);
+  }
+  const strict = candidate({ ...old, confidence_score: 95 });
+  const short = await validateCandidateSource({ candidate: strict, source: T3,
+    fetchImpl: fetchPage(strict, { body: SHORT_BODY }), now: () => NOW, historicalReview: true });
+  assert.equal(short.reasonCode, 'INSUFFICIENT_SOURCE_EVIDENCE');
+  for (const bad of [candidate({ ...old, published_at: '2020-01-01T00:00:00Z' })]) {
     const outcome = await validateCandidateSource({ candidate: bad, source: T3, fetchImpl: fetchPage(bad),
       now: () => NOW, historicalReview: true });
     assert.equal(outcome.reasonCode, 'HISTORICAL_REVIEW_NOT_ELIGIBLE');
     assert.equal(outcome.evidenceVerification.attempted, false);
   }
+  const belowThreshold = await validateCandidateSource({ candidate: candidate({ ...old, confidence_score: 69 }),
+    source: { ...T3, trust_tier: 'T1' }, fetchImpl: fetchPage(old), now: () => NOW, historicalReview: true });
+  assert.equal(belowThreshold.reasonCode, 'HISTORICAL_REVIEW_NOT_ELIGIBLE');
 });
 
 test('an unverified source, foreign domain, canonical mismatch or off-domain redirect never publishes', async () => {

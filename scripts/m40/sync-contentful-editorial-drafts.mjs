@@ -1,8 +1,7 @@
 // M40: idempotent Supabase -> Contentful editorial draft handoff.
 //
-// Creates (or, while untouched, refreshes) UNPUBLISHED `gpirPublication` drafts for T3 candidates
-// that GPIR validation has fully source-verified but that cannot publish automatically because
-// their confidence is below the T3 automatic threshold. It never publishes, never sets
+// Creates (or, while untouched, refreshes) UNPUBLISHED `gpirPublication` drafts for eligible
+// GREEN-source candidates that GPIR validation has fully source-verified. It never publishes, never sets
 // `validationStatus`, `publicationStatus` or `gpirPublicationId`, and never allocates identities:
 // those remain explicit editorial acts. Once an editor publishes the entry, the existing
 // `gpir-intelligence-publish` Contentful editorial route promotes it to the reader APIs.
@@ -10,12 +9,15 @@
 // Server-side credentials only: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CONTENTFUL_SPACE_ID,
 // CONTENTFUL_ENVIRONMENT, CONTENTFUL_MANAGEMENT_TOKEN. Credentials are never logged or reported.
 import { writeFileSync } from 'node:fs';
-import { editorialUrlKey, T3_AUTOMATIC_PUBLICATION, validateCandidateSource }
+import { AUTO_PUBLICATION_THRESHOLDS, editorialUrlKey, T3_AUTOMATIC_PUBLICATION, validateCandidateSource }
     from '../../supabase/functions/_shared/gpir-intelligence-validation.mjs';
 
 const CONTENT_TYPE = 'gpirPublication';
 const LOCALE = 'en-US';
 const THRESHOLD_REASON = 'AUTO_PUBLICATION_THRESHOLD_NOT_MET';
+const CMS_REASON = 'CONTENTFUL_APPROVAL_REQUIRED';
+const DRAFT_REASONS = new Set([THRESHOLD_REASON, CMS_REASON]);
+const SOURCE_TIERS = ['T1', 'T1.5', 'T2', 'T3'];
 const OPEN_STATUSES = ['PENDING', 'REVIEW', 'VALIDATING'];
 const VERIFIED_FLAGS = ['source_verified', 'canonical_verified', 'timestamp_verified', 'content_verified',
     'relevance_verified', 'summary_grounded'];
@@ -25,8 +27,9 @@ const MAX_LIMIT = 25;
 const CANDIDATE_PAGE_SIZE = 100;
 const MAX_CANDIDATE_SCAN = 1000;
 
-export function draftEntryId(candidateId) {
-    return `gpir-t3-${String(candidateId).toLowerCase()}`;
+export function draftEntryId(candidateId, tier = 'T3') {
+    if (!SOURCE_TIERS.includes(tier)) throw new Error('Unsupported draft source tier.');
+    return `gpir-${tier.toLowerCase().replace('.', '-')}-${String(candidateId).toLowerCase()}`;
 }
 
 async function readRows(fetchImpl, base, headers, table, params) {
@@ -54,7 +57,7 @@ function evidenceVerified(payload) {
 async function verifyHistoricalCandidate({ candidate, source, audit, base, headers, fetchImpl, now }) {
     const validation = await validateCandidateSource({ candidate, source, fetchImpl, now: () => now,
         historicalReview: true });
-    if (validation.decision !== 'REVIEW' || validation.reasonCode !== THRESHOLD_REASON ||
+    if (validation.decision !== 'REVIEW' || !DRAFT_REASONS.has(validation.reasonCode) ||
         !evidenceVerified(validation.validationPayload))
         return { verified: false, reason: validation.reasonCode };
     if (editorialUrlKey(validation.canonicalUrl) !== editorialUrlKey(candidate.canonical_url))
@@ -64,7 +67,7 @@ async function verifyHistoricalCandidate({ candidate, source, audit, base, heade
         limit: '1' });
     if (duplicates.length) return { verified: false, reason: 'DUPLICATE_PUBLISHED_CONTENT' };
     const params = new URLSearchParams({ candidate_id: `eq.${candidate.id}`, decision: 'eq.REVIEW',
-        reason_code: `eq.${THRESHOLD_REASON}`, updated_at: audit.updated_at ? `eq.${audit.updated_at}` : 'is.null' });
+        reason_code: `eq.${audit.reason_code}`, updated_at: audit.updated_at ? `eq.${audit.updated_at}` : 'is.null' });
     const writeHeaders = new Headers(headers);
     writeHeaders.set('content-type', 'application/json');
     writeHeaders.set('prefer', 'return=representation');
@@ -76,6 +79,7 @@ async function verifyHistoricalCandidate({ candidate, source, audit, base, heade
             source_checked_at: new Date(now).toISOString(),
             source_http_status: validation.sourceHttpStatus,
             evidence_excerpt: validation.evidenceExcerpt,
+            reason_code: validation.reasonCode,
             validation_payload: { ...validation.validationPayload,
                 historical_review: { previous_audit: audit, verified_at: new Date(now).toISOString() } }
         }) });
@@ -85,9 +89,7 @@ async function verifyHistoricalCandidate({ candidate, source, audit, base, heade
     return { verified: true, audit: rows[0] };
 }
 
-// Eligible: a T3 GREEN source, an open candidate inside the selected window, below the T3 automatic
-// threshold, whose latest audit is the threshold review with every verification flag true, and
-// which is not already published, duplicated or announced through any route.
+// Only verified, eligible GREEN-source reviews can become drafts; no draft authorizes publication.
 export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = Date.now(),
     hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT, historicalFrom, historicalTo, candidateId,
     verifyHistorical = false, verificationResults = [], verificationState = {} }) {
@@ -113,7 +115,9 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
     }
     const { base, headers } = supabaseAccess(env);
     const sources = await readRows(fetchImpl, base, headers, 'source_registry', {
-        select: 'source_id,source_name,official_url,trust_tier,source_status', trust_tier: 'eq.T3', source_status: 'eq.GREEN', limit: '100' });
+        select: 'source_id,source_name,official_url,trust_tier,source_status',
+        trust_tier: `in.(${SOURCE_TIERS.join(',')})`, source_status: 'eq.GREEN', limit: '1000' });
+    if (sources.length >= 1000) throw new Error('Source scan limit reached; narrow the source registry.');
     if (!sources.length) return [];
     const selected = [];
     for (let offset = 0; offset < MAX_CANDIDATE_SCAN; offset += CANDIDATE_PAGE_SIZE) {
@@ -124,7 +128,6 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
             candidate_status: `in.(${OPEN_STATUSES.join(',')})`,
             ...(historical ? { ...(candidateId ? { id: `eq.${candidateId}` } : {}),
                 and: `(published_at.gte.${since},published_at.lt.${until})` } : { published_at: `gte.${since}` }),
-            confidence_score: `lt.${T3_AUTOMATIC_PUBLICATION.minConfidence}`,
             order: 'published_at.desc,id.asc', limit: String(CANDIDATE_PAGE_SIZE), offset: String(offset) });
         for (const candidate of candidates) {
             if (selected.length >= limit) return selected;
@@ -137,11 +140,15 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
                 candidate_id: `eq.${candidate.id}`, order: 'attempted_at.desc', limit: '20' });
             let latest = audits[0];
             if (!latest || audits.some(item => item.decision === 'PUBLISHED' || item.decision === 'DUPLICATE')) continue;
-            if (latest.decision !== 'REVIEW' || latest.reason_code !== THRESHOLD_REASON) continue;
+            if (latest.decision !== 'REVIEW' || !DRAFT_REASONS.has(latest.reason_code)) continue;
             const announced = await readRows(fetchImpl, base, headers, 'global_announcements', {
                 select: 'id', canonical_url: `eq.${candidate.canonical_url}`, limit: '1' });
             if (announced.length) continue;
             const source = sources.find(item => item.source_id === candidate.source_id);
+            if (!source || source.source_status !== 'GREEN' || !SOURCE_TIERS.includes(source.trust_tier)) continue;
+            const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
+            const confidence = Number(candidate.confidence_score);
+            if (threshold && (!Number.isFinite(confidence) || confidence < threshold)) continue;
             if (!evidenceVerified(latest.validation_payload) && historical && verifyHistorical &&
                 latest.validation_payload?.evidence_verification?.status === 'NOT_ATTEMPTED') {
                 if (verificationResults.length >= limit) {
@@ -154,6 +161,10 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
                 if (result.verified) latest = result.audit;
             }
             if (!evidenceVerified(latest.validation_payload)) continue;
+            if (latest.validation_payload.source_trust_tier &&
+                latest.validation_payload.source_trust_tier !== source.trust_tier) continue;
+            if (source.trust_tier === 'T3' && confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence &&
+                latest.validation_payload.t3_auto_verified !== true) continue;
             if (historical) {
                 const sourceTime = Date.parse(latest.source_published_at || '');
                 if (!Number.isFinite(sourceTime) || sourceTime < Date.parse(since) ||
@@ -183,8 +194,8 @@ export function buildDraftFields({ candidate, source, audit }) {
         `Source-verified GPIR candidate ${candidate.id} from ${source?.source_name || candidate.source_id}.`,
         `Official-domain canonical URL, original timestamp ${publicationDate},`,
         'live source evidence, payments relevance and summary grounding were verified by GPIR validation.',
-        `Confidence ${confidence} is below the T3 automatic threshold ${T3_AUTOMATIC_PUBLICATION.minConfidence}, so`,
-        'publication requires explicit editorial approval.',
+        `Source trust tier ${source.trust_tier}; confidence ${confidence}.`,
+        'Publication requires explicit editorial approval.',
         taxonomy ? `Taxonomy: ${taxonomy}.` : '',
         audit.evidence_excerpt ? `Stored evidence excerpt: ${String(audit.evidence_excerpt).slice(0, 400)}` : ''
     ].filter(Boolean).join(' ');
@@ -236,7 +247,7 @@ function sameFields(entryFields, fields) {
 }
 
 async function reconcile(client, item) {
-    const id = draftEntryId(item.candidate.id);
+    const id = draftEntryId(item.candidate.id, item.source.trust_tier);
     const fields = buildDraftFields(item);
     const result = { candidateId: item.candidate.id, canonicalUrl: item.candidate.canonical_url,
         publishedAt: fields.publicationDate[LOCALE], entryId: id };
@@ -275,7 +286,7 @@ export async function syncEditorialDrafts({ env = process.env, fetchImpl = fetch
         created: 0, updated: 0, preserved: 0, verificationResults,
         verificationLimitReached: verificationState.limitReached, results: [] };
     if (dryRun) {
-        report.results = eligible.map(item => ({ candidateId: item.candidate.id, entryId: draftEntryId(item.candidate.id),
+        report.results = eligible.map(item => ({ candidateId: item.candidate.id, entryId: draftEntryId(item.candidate.id, item.source.trust_tier),
             canonicalUrl: item.candidate.canonical_url, publishedAt: new Date(item.audit.source_published_at || item.candidate.published_at).toISOString(),
             outcome: 'PLANNED', writes: 0 }));
         return report;

@@ -103,4 +103,25 @@ assert.equal(run("select ticker_eligible||':'||publication_status||':'||(publish
 assert.equal(run("select candidate_status||':'||ticker_eligible from intelligence_candidates where id='00000000-0000-4000-8000-000000000206'").trim(),'APPROVED:false');
 const autoRoles=run("select has_function_privilege('anon','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')||':'||has_function_privilege('authenticated','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim();
 assert.equal(autoRoles,'false:false','automatic T3 publication must not be executable by anon or authenticated');
-console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route or the verified automatic profile');
+file('supabase/migrations/20261110030000_m40_revoke_legacy_publication_rpcs.sql');
+const legacyFunctions=[
+ 'public.gpir_publish_validated_candidate(uuid,text,timestamptz,text,jsonb)',
+ 'public.gpir_publish_consolidated_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)',
+ 'public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)'
+];
+for(const fn of legacyFunctions)
+ for(const role of ['anon','authenticated','service_role'])
+  assert.equal(run(`select has_function_privilege('${role}','${fn}','execute')`).trim(),'f',`${role} cannot execute ${fn}`);
+const deniedCalls=[
+ `select public.gpir_publish_validated_candidate('${ids[0]}','${summary}',now(),'${'1'.repeat(64)}','${payload}'::jsonb)`,
+ call(ids[0],'1'.repeat(64)),
+ autoCall(autoId,'7'.repeat(64),autoPayload(),autoSubject,autoKey)
+];
+for(const sql of deniedCalls){
+ const result=await concurrent(`set role service_role; ${sql}`);
+ assert.notEqual(result.code,0,'legacy RPC must reject the service role');
+ assert.match(result.stderr,/permission denied for function/);
+}
+assert.equal(run("select has_function_privilege('service_role','public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim(),'t');
+assert.equal(Number(run('select count(*) from global_announcements')),4,'permission checks must not modify published history');
+console.log('G1-R07 PostgreSQL acceptance PASS: legacy behavior tested before migration; service role denied legacy RPCs afterwards; editorial RPC grant retained');
