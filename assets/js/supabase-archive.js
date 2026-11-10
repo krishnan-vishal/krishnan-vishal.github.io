@@ -358,7 +358,7 @@ function installArchiveStyles() {
         }
 
         .supabase-archive [data-results-count] {
-            color: var(--archive-amber-bright);
+            color: #7A4B00;
         }
 
         .supabase-archive .announcement-dashboard-grid {

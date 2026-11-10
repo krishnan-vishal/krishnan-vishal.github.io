@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#0b1f3d">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="description" content="Authenticated GPIR Smart Intelligence dashboard for governed payments alerts, historical signals and published research.">
-  <title>My Intelligence Dashboard | FINTECHOISIS — GPIR</title>
+  <meta name="description" content="Authenticated GPIR Executive Intelligence Dashboard for governed payments alerts, historical signals and published research.">
+  <title>Executive Intelligence Dashboard | FINTECHOISIS — GPIR</title>
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
   <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
-  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109premium">
+  <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109e">
+  <link rel="stylesheet" href="../../assets/css/smart-premium.css?v=20261109g">
+  <link rel="stylesheet" href="../../assets/css/smart-executive.css?v=20261109a">
   <link rel="stylesheet" href="../../assets/css/reader-auth.css?v=20261029c">
   <script src="../../assets/js/gpir-supabase-public-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -18,90 +20,233 @@
   <script src="../../scripts/m34/publication-authorization-provider.js"></script>
   <script src="../../assets/js/gpir-reader-auth.js?v=20261104a" defer></script>
 </head>
-<body class="smi-page gpir-sc">
-  <a class="smi-skip" href="#smart-main">Skip to My Intelligence Dashboard</a>
-  <header class="smi-nav">
-    <a class="smi-brand" href="../../index.html" aria-label="FINTECHOISIS GPIR home"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="44" height="44"><span><strong>FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
-    <nav aria-label="Intelligence dashboard navigation">
-      <a href="../../index.html">Homepage</a><a href="../../reader/my-gpir/">My GPIR</a><a href="../fx/intelligence.html">FX Intelligence</a><a href="./index.html">Repository</a><a data-smart-ask href="../../index.html#gpir-search">ASK GPIR</a>
-    </nav>
+<body class="smi-page gpir-sc smx-page">
+  <svg class="smx-sprite" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="smx-ic-ai" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="16" height="16" rx="3"/><path d="M12 4v4M16 4v4M20 4v4M12 24v4M16 24v4M20 24v4M4 12h4M4 16h4M4 20h4M24 12h4M24 16h4M24 20h4"/></g><text x="16" y="19.6" font-size="8.6" font-weight="700" text-anchor="middle" fill="currentColor" font-family="Inter,Arial,sans-serif">AI</text></symbol>
+      <symbol id="smx-ic-agentic" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5l11 6-11 6-11-6z"/><path d="M5 16l11 6 11-6"/><path d="M5 21l11 6 11-6"/></g></symbol>
+      <symbol id="smx-ic-web3" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4.5l5 2.9v5.7l-5 2.9-5-2.9V7.4z"/><path d="M10 15.6l5 2.9v5.7l-5 2.9-5-2.9v-5.7z"/><path d="M22 15.6l5 2.9v5.7l-5 2.9-5-2.9v-5.7z"/></g></symbol>
+      <symbol id="smx-ic-aml" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l10 3.8V15c0 6-4.2 10.4-10 13-5.8-2.6-10-7-10-13V7.8z"/><path d="M11.2 15.6l3.3 3.3 6.3-6.6"/></g></symbol>
+      <symbol id="smx-ic-pulse" viewBox="0 0 32 32"><path d="M3 17h6l3-8 5 16 3.5-10 1.5 2H29" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="smx-ic-check" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor"/><path d="M5.8 10.3l2.8 2.8 5.6-5.8" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="smx-ic-home" viewBox="0 0 24 24"><path d="M4 11.2L12 4l8 7.2V20h-5.2v-5.6H9.2V20H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+      <symbol id="smx-ic-bars" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14h3.4v6M10.3 20V9h3.4v11M16.6 20V4.5H20V20M3 20h18"/></g></symbol>
+      <symbol id="smx-ic-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17V11a6 6 0 0112 0v6l1.6 2H4.4z"/><path d="M10 21h4"/></g></symbol>
+      <symbol id="smx-ic-fx" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.6-3.3 7.8-8 9.5-4.7-1.7-8-4.9-8-9.5V6z"/><path d="M8.5 10.5h6.2l-1.8-1.8M15.5 13.5H9.3l1.8 1.8"/></g></symbol>
+      <symbol id="smx-ic-risk" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.6-3.3 7.8-8 9.5-4.7-1.7-8-4.9-8-9.5V6z"/><circle cx="12" cy="11" r="3"/><path d="M12 8v6M9 11h6"/></g></symbol>
+      <symbol id="smx-ic-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2.2"/><path d="M8 9h8M8 13h8M8 17h5"/></g></symbol>
+      <symbol id="smx-ic-chat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10.5H11l-4.5 3.8V16H4z"/><path d="M8 9.2h8M8 12.6h5"/></g></symbol>
+      <symbol id="smx-ic-doc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h8l4 4V20.5H6z"/><path d="M14 3.5v4h4M9 12h6M9 15.5h6"/></g></symbol>
+      <symbol id="smx-ic-trend" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4v16.5H21"/><path d="M7 15l4-4.5 3 3L20 6.5"/><path d="M16 6.5h4v4"/></g></symbol>
+      <symbol id="smx-ic-pie" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6.5A7.5 7.5 0 1017.5 13.5H10.5z"/><path d="M13.5 3.5A7.5 7.5 0 0120.5 10.5h-7z"/></g></symbol>
+      <symbol id="smx-ic-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/></g></symbol>
+      <symbol id="smx-ic-momentum" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M7.5 15l3-3 2.5 2.5 3.5-4.5"/></g></symbol>
+      <symbol id="smx-ic-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></g></symbol>
+      <symbol id="smx-ic-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><path d="M8 13.5h2M11.5 13.5h2M15 13.5h1M8 16.5h2M11.5 16.5h2"/></g></symbol>
+      <symbol id="smx-ic-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></g></symbol>
+      <symbol id="smx-ic-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="12" r="2.4"/><circle cx="17.5" cy="6" r="2.4"/><circle cx="17.5" cy="18" r="2.4"/><path d="M8.6 10.9l6.8-3.8M8.6 13.1l6.8 3.8"/></g></symbol>
+      <symbol id="smx-ic-bubble" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5c4.7 0 8.5 2.8 8.5 6.3S16.7 17 12 17c-1 0-2-.1-2.9-.4L5 19v-3.5C3.6 14.4 3.5 12.6 3.5 10.8 3.5 7.3 7.3 4.5 12 4.5z"/></g></symbol>
+      <symbol id="smx-ic-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></g></symbol>
+    </defs>
+  </svg>
+  <a class="smi-skip" href="#smart-main">Skip to the Executive Intelligence Dashboard</a>
+
+  <header class="smx-brand">
+    <a class="smx-logo" href="../../index.html" aria-label="FINTECHOISIS GPIR home"><img src="../../assets/branding/logos/fo-mark.svg" alt="" width="46" height="46"><span><strong>FINTECHOISIS<sup>®</sup></strong><small>GLOBAL PAYMENTS INTELLIGENCE REPOSITORY (GPIR)</small></span></a>
+    <span class="smx-brand-rule" aria-hidden="true"></span>
+    <div class="smx-brand-title"><p>GPIR Intelligence Observatory</p><small>Global Developments in Payments, Money Movement &amp; Financial Infrastructure</small></div>
+    <svg class="smx-brand-art" viewBox="0 0 640 80" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="smx-sky" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0b1f3d" stop-opacity="0"/><stop offset=".35" stop-color="#0b1f3d" stop-opacity=".92"/><stop offset="1" stop-color="#06122a"/></linearGradient>
+        <linearGradient id="smx-swoosh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8c25a" stop-opacity="0"/><stop offset=".5" stop-color="#e8c25a"/><stop offset="1" stop-color="#f8e3a1" stop-opacity=".2"/></linearGradient>
+        <radialGradient id="smx-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd978" stop-opacity=".9"/><stop offset="1" stop-color="#ffd978" stop-opacity="0"/></radialGradient>
+        <pattern id="smx-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.1" fill="#7fa3d6" opacity=".45"/></pattern>
+      </defs>
+      <rect width="640" height="80" fill="url(#smx-sky)"/>
+      <path d="M250 80c60-26 150-34 255-18 60 9 100 3 135-22v62z" fill="url(#smx-dots)" opacity=".7"/>
+      <path d="M180 74C300 40 440 34 640 8" fill="none" stroke="url(#smx-swoosh)" stroke-width="1.4"/>
+      <path d="M210 80C330 50 470 52 640 26" fill="none" stroke="url(#smx-swoosh)" stroke-width="1" opacity=".8"/>
+      <g fill="url(#smx-glow)"><circle cx="470" cy="58" r="16"/><circle cx="560" cy="44" r="12"/><circle cx="395" cy="66" r="10"/><circle cx="610" cy="22" r="14"/><circle cx="520" cy="30" r="8"/></g>
+    </svg>
   </header>
 
-  <section class="smi-alert-ribbon" aria-label="Live Global Alerts" data-smart-live data-state="loading">
-    <strong><span aria-hidden="true"></span> LIVE GLOBAL ALERTS</strong>
-    <div data-smart-live-content aria-live="polite">Checking the governed 12-hour publication window…</div>
-  </section>
+  <div class="smx-shell">
+    <aside class="smx-side" aria-label="Dashboard navigation">
+      <nav aria-label="Intelligence dashboard navigation">
+        <a href="../../index.html"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-home"></use></svg><span>Home</span></a>
+        <a href="./smart.html" aria-current="page" class="smx-side-active"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bars"></use></svg><span>Intelligence Dashboard</span></a>
+        <a href="#smart-live-alerts"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bell"></use></svg><span>Global Alerts</span><i class="smx-alert-dot" data-smart-alerts-dot hidden><span class="smx-sr">Live alerts available</span></i></a>
+        <a href="../fx/intelligence.html"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-fx"></use></svg><span>FX Intelligence</span></a>
+        <a href="./smart.html?themes=regulatory,aml,fraud"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-risk"></use></svg><span>Risk &amp; Regulatory</span></a>
+        <a href="../../index.html#research"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-list"></use></svg><span>Publications</span></a>
+        <a data-smart-ask href="../../index.html#gpir-search"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-chat"></use></svg><span>ASK GPIR</span></a>
+      </nav>
+    </aside>
 
-  <main id="smart-main" class="smi-main" data-smart-root data-state="loading">
-    <header class="smi-hero">
-      <div><p class="smi-kicker">AUTHENTICATED READER INTELLIGENCE · NO PAID PLAN REQUIRED</p><h1>My Intelligence Dashboard</h1><p>Verified global payments developments, historical signals and source-backed context from the GPIR governed repository.</p></div>
-      <div class="smi-hero-meta"><span data-smart-asof>As of —</span><span>Live window · 12 hours</span><span>Archive · 15 days + history</span></div>
-    </header>
+    <main id="smart-main" class="smx-main" data-smart-root data-state="loading">
+      <header class="smx-head">
+        <div class="smx-title">
+          <p class="smx-kicker">PAYMENTS INTELLIGENCE</p>
+          <h1>Executive Intelligence Dashboard</h1>
+          <p>Verified global developments, policy moves and industry shifts across key payment themes</p>
+        </div>
+        <div class="smx-tools">
+          <form class="smx-search" data-smart-search action="../../index.html" method="get" role="search">
+            <svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-search"></use></svg>
+            <label class="smx-sr" for="smx-search-input">Search GPIR</label>
+            <input id="smx-search-input" name="ask" type="search" placeholder="Search GPIR..." autocomplete="off" maxlength="300">
+          </form>
+          <a class="smx-btn smx-btn-ghost" data-smart-ask href="../../index.html#gpir-search"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bubble"></use></svg>Ask GPIR</a>
+          <button type="button" class="smx-btn smx-btn-gold smp-share" data-smart-share><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-share"></use></svg>Smart Share</button>
+          <span class="smx-sr" role="status" data-smart-share-status></span>
+        </div>
+        <form class="smx-filters" data-smart-form aria-label="Dashboard filters">
+          <label>Period
+            <select data-smart-period-select>
+              <option value="24H">Last 24 hours</option><option value="7D">Last 7 days</option><option value="30D">Last 30 days</option><option value="8W">Last 8 Weeks</option><option value="QTD">Quarter to date</option><option value="YTD">Year to date</option><option value="CUSTOM">Custom range</option>
+            </select>
+          </label>
+          <label>Region
+            <select data-smart-geography>
+              <option value="all">All Regions</option><option value="na">North America</option><option value="europe">Europe</option><option value="apac">APAC</option><option value="gcc">GCC / Middle East</option><option value="latam">Latin America</option><option value="afr">Africa</option>
+              <optgroup label="Aggregate scopes"><option value="americas">Americas (aggregate)</option><option value="mea">Middle East &amp; Africa (aggregate)</option><option value="global">Global scope</option></optgroup>
+            </select>
+          </label>
+          <label>Theme
+            <select data-smart-theme-select><option value="all">All Themes</option><option value="multiple" hidden>Multiple themes</option></select>
+          </label>
+          <div class="smx-custom" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2024-11-08"></label><label>To<input type="date" data-smart-end min="2024-11-08"></label></div>
+          <details class="smx-more">
+            <summary><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-filter"></use></svg>More filters</summary>
+            <div class="smx-more-panel">
+              <fieldset class="smx-fieldset"><legend>Intelligence themes <span>colour-coded · select any</span></legend><div class="smp-chips" data-smart-theme-controls></div></fieldset>
+              <fieldset class="smx-fieldset"><legend>Detailed taxonomy <span>36 topics · select one or more</span></legend><div class="smx-topics" data-smart-topic-controls></div></fieldset>
+              <div class="smx-more-actions"><button type="submit">Apply topics</button><button type="button" class="smi-clear" data-smart-clear>Reset filters</button></div>
+            </div>
+          </details>
+        </form>
+      </header>
 
-    <nav class="smi-intelligence-lanes" aria-label="Separate intelligence experiences">
-      <a href="../fx/index.html">FX Smart Intelligence · choose a 7-day pair card</a>
-      <a href="../../reader/my-gpir/">My GPIR · Reader Dashboard</a>
-      <span>This page: Global Payments Intelligence and governed alerts, not currency-pair pricing.</span>
-    </nav>
-    <form class="smi-command" data-smart-form>
-      <fieldset class="smi-periods"><legend>Period</legend><div>
-        <button type="button" data-smart-period="24H">24H</button><button type="button" data-smart-period="7D">7D</button><button type="button" data-smart-period="30D">30D</button><button type="button" data-smart-period="QTD">QTD</button><button type="button" data-smart-period="YTD">YTD</button><button type="button" data-smart-period="CUSTOM">Custom</button>
-      </div></fieldset>
-      <label class="smi-geography">Geography<select data-smart-geography><option value="all">All geographies</option><option value="global">Global</option><option value="apac">Asia Pacific</option><option value="europe">Europe</option><option value="americas">Americas</option><option value="mea">Middle East &amp; Africa</option></select></label>
-      <div class="smi-custom-dates" data-smart-custom hidden><label>From<input type="date" data-smart-start min="2024-11-08"></label><label>To<input type="date" data-smart-end min="2024-11-08"></label></div>
-      <fieldset class="smi-topic-filter"><legend>Topics <span>select one or more</span></legend><details><summary>Choose payments intelligence topics</summary><div data-smart-topic-controls></div></details></fieldset>
-      <div class="smi-command-actions"><button type="submit">Apply intelligence context</button><button type="button" class="smi-clear" data-smart-clear>All topics</button></div>
-    </form>
+      <section class="smi-alert-focus smx-alert" data-smart-alert aria-live="polite" hidden></section>
+      <p class="smx-sr" role="status" data-smart-status aria-live="polite">Loading governed intelligence…</p>
+      <p class="smx-sr" role="status" aria-live="polite" data-smart-chart-live></p>
+      <p class="smx-sr" id="smx-chart-help">Interactive chart. Focus it, then use the arrow keys to move between data points, Enter to filter the dashboard, and Escape to leave.</p>
 
-    <p class="smi-status" data-smart-status aria-live="polite">Loading governed intelligence…</p>
+      <section class="smx-kpis" aria-label="Featured theme indicators" data-smart-kpis></section>
 
-    <section class="smi-alert-focus" data-smart-alert aria-live="polite" hidden></section>
-
-    <section class="smi-signal-grid" aria-labelledby="smi-top-signal-title">
-      <article class="smi-top-signal" data-smart-top-signal><p class="smi-kicker">TOP SIGNAL NOW</p><h2 id="smi-top-signal-title">Waiting for governed evidence</h2></article>
-      <aside class="smi-supporting" data-smart-supporting><p class="smi-kicker">SUPPORTING DEVELOPMENTS</p></aside>
-    </section>
-
-    <section aria-label="Intelligence indicators"><div class="smi-kpis" data-smart-kpis></div></section>
-
-    <section class="smi-analytics" aria-labelledby="smi-analytics-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">EXECUTIVE ANALYTICS</p><h2 id="smi-analytics-title">Payments intelligence at a glance</h2></div><p>Observed historical evidence · descriptive counts, not forecasts</p></div>
-      <div class="smi-analytics-grid">
-        <article class="smi-analytics-panel"><h3>Weekly development activity</h3><p>Unique verified records by publication week</p><div data-smart-weekly-chart></div></article>
-        <article class="smi-analytics-panel"><h3>Topic momentum</h3><p>Current selection versus preceding equivalent period</p><div data-smart-topic-chart></div></article>
-        <article class="smi-analytics-panel"><h3>Geographic coverage</h3><p>Distribution of records with a governed geography</p><div data-smart-geo-chart></div></article>
+      <div class="smx-row smx-row-a">
+        <section class="smx-card smx-summary" aria-labelledby="smx-summary-title">
+          <header class="smx-card-head smx-summary-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-doc"></use></svg><h2 id="smx-summary-title">Executive Summary</h2></header>
+          <div data-smart-summary></div>
+        </section>
+        <figure class="smx-card smx-trend">
+          <figcaption class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-trend"></use></svg><div><h2>Development Trend by Theme</h2><p>Verified developments (weekly)</p></div></figcaption>
+          <div class="smx-chart" data-smart-chart="weekly" tabindex="0" data-empty="No verified developments for the featured themes in the last eight weeks for this selection." role="img" aria-labelledby="smp-weekly-summary" aria-describedby="smx-chart-help"></div>
+          <p class="smx-sr" id="smp-weekly-summary" data-smart-chart-summary="weekly"></p>
+        </figure>
+        <figure class="smx-card smx-donut">
+          <figcaption class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-pie"></use></svg><div><h2>Developments by Theme</h2><p>Each development counted once, by primary theme</p></div></figcaption>
+          <div class="smx-donut-body">
+            <div class="smx-donut-plot">
+              <div class="smx-chart" data-smart-chart="distribution" tabindex="0" data-empty="No verified developments in this selection." role="img" aria-labelledby="smp-distribution-summary" aria-describedby="smx-chart-help"></div>
+              <p class="smx-donut-total" aria-hidden="true"><strong data-smart-donut-total>0</strong><span>Total</span></p>
+            </div>
+            <ul class="smx-legend" data-smart-donut-legend></ul>
+          </div>
+          <p class="smx-sr" id="smp-distribution-summary" data-smart-chart-summary="distribution"></p>
+        </figure>
       </div>
-      <p class="smi-analytics-note" data-smart-analytics-note></p>
-    </section>
 
-    <section aria-labelledby="smi-topic-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by topic</h2></div><p>Comparisons use the immediately preceding equivalent period. Counts are descriptive and imply no forecast.</p></div>
-      <p class="smi-compare-window" data-smart-compare-window></p>
-      <div class="smi-topic-cards" data-smart-topic-cards></div>
-    </section>
+      <div class="smx-row smx-row-b">
+        <figure class="smx-card smx-region">
+          <figcaption class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-globe"></use></svg><div><h2>Regional Activity</h2><p>Share of verified developments</p></div></figcaption>
+          <div class="smx-chart" data-smart-chart="geography" tabindex="0" data-empty="No developments in this selection carry a specific verified region." role="img" aria-labelledby="smp-geography-summary" aria-describedby="smx-chart-help"></div>
+          <p class="smx-sr" id="smp-geography-summary" data-smart-chart-summary="geography"></p>
+        </figure>
+        <figure class="smx-card smx-momentum">
+          <figcaption class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-momentum"></use></svg><div><h2>Thematic Momentum</h2><p>Current vs. prior period (count of developments)</p></div>
+            <ul class="smx-key" aria-hidden="true"><li><i class="smx-key-now"></i><span data-smart-momentum-current>Current</span></li><li><i class="smx-key-prior"></i><span data-smart-momentum-prior>Prior</span></li></ul></figcaption>
+          <div class="smx-mom-body">
+            <div class="smx-mom-labels" data-smart-momentum-labels></div>
+            <div class="smx-chart" data-smart-chart="momentum" tabindex="0" data-empty="No featured-theme developments in the current or prior period." role="img" aria-labelledby="smp-momentum-summary" aria-describedby="smx-chart-help"></div>
+            <div class="smx-mom-deltas" data-smart-momentum-deltas></div>
+          </div>
+          <p class="smx-sr" id="smp-momentum-summary" data-smart-chart-summary="momentum"></p>
+        </figure>
+        <section class="smx-card smx-heat" aria-labelledby="smx-heat-title">
+          <header class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-grid"></use></svg><div><h2 id="smx-heat-title">Risk &amp; Policy Heatmap</h2><p data-smart-heat-period>Relative activity intensity</p></div></header>
+          <div data-smart-region-heatmap></div>
+          <div class="smx-heat-scale" aria-hidden="true"><i></i><span>Lower activity</span><span>Higher activity</span></div>
+          <p class="smx-sr" id="smx-heat-note">Cells show the number of verified developments for a featured theme in a region. Colour runs from green for lower activity to red for higher activity relative to the busiest cell. Use the arrow keys to move between cells and Enter to filter.</p>
+        </section>
+      </div>
 
-    <section class="smi-heatmap-panel" aria-labelledby="smi-heatmap-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">HISTORICAL SIGNAL DENSITY</p><h2 id="smi-heatmap-title">Preceding 12 weeks</h2></div><div class="smi-heat-legend"><span>None</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Higher</span></div></div>
-      <p class="smi-heat-hint" id="smi-heat-hint">Select a topic-week cell to list its dated supporting records and compare it with the preceding week. Use the arrow keys to move between cells; press Escape to clear.</p>
-      <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap role="group" aria-labelledby="smi-heatmap-title" aria-describedby="smi-heat-hint"></div></div>
-      <p class="gpir-sc-visually-hidden" role="status" data-smart-heat-status></p>
-      <div class="smi-heat-detail" data-smart-heat-detail data-state="idle"></div>
-    </section>
+      <section class="smx-card smx-timeline" data-smart-timeline-card aria-labelledby="smx-timeline-title">
+        <header class="smx-card-head"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-calendar"></use></svg><h2 id="smx-timeline-title">Intelligence Timeline — Key Verified Developments</h2></header>
+        <div data-smart-timeline-track></div>
+      </section>
 
-    <section class="smi-evidence" aria-labelledby="smi-evidence-title">
-      <div class="smi-section-heading"><div><p class="smi-kicker">SOURCE-LINKED EVIDENCE</p><h2 id="smi-evidence-title">Matching validated developments</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
-      <div class="smi-results" data-smart-results></div>
-    </section>
+      <section class="smi-alert-ribbon smx-live" id="smart-live-alerts" aria-label="Live Global Alerts" data-smart-live data-state="loading">
+        <strong><span aria-hidden="true"></span> LIVE GLOBAL ALERTS</strong>
+        <div data-smart-live-content aria-live="polite">Checking the governed 12-hour publication window…</div>
+        <span class="smx-asof" data-smart-asof>As of —</span>
+      </section>
 
-    <section class="smi-editorial" data-smart-editorial hidden></section>
+      <details class="smp-progressive smx-details" data-smart-progressive open>
+        <summary>Detailed analytics, sources &amp; historical signals</summary>
+        <div class="smp-progressive-content">
+          <section class="smi-signal-grid" aria-labelledby="smi-top-signal-title">
+            <article class="smi-top-signal" data-smart-top-signal><p class="smi-kicker">TOP SIGNAL NOW</p><h2 id="smi-top-signal-title">Waiting for governed evidence</h2></article>
+            <aside class="smi-supporting" data-smart-supporting><p class="smi-kicker">SUPPORTING DEVELOPMENTS</p></aside>
+          </section>
 
-    <section class="smi-methodology" aria-labelledby="smi-methodology-title">
-      <div><p class="smi-kicker">SOURCE TRANSPARENCY</p><h2 id="smi-methodology-title">Methodology and interpretation boundary</h2><p>Dashboard values use only dated, approved announcements from GREEN registry sources that pass the existing official-URL and content validation rules. The live ribbon uses the same governed 12-hour dataset as the homepage ticker. Historical records remain available after ticker expiry.</p></div>
-      <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per topic and UTC week; blank cells mean zero qualifying observations.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
-    </section>
-  </main>
-  <footer class="smi-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
-  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109b" defer></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109premium"></script>
+          <section class="smp-section" aria-labelledby="smi-topic-title">
+            <div class="smi-section-heading"><div><p class="smi-kicker">TOPIC INTELLIGENCE</p><h2 id="smi-topic-title">Governed signals by theme</h2></div><p>Select a theme to update every view. Comparisons use the immediately preceding equivalent period; counts imply no outlook.</p></div>
+            <p class="smi-compare-window" data-smart-compare-window></p>
+            <div class="smp-tiles" data-smart-theme-tiles></div>
+          </section>
+
+          <section class="smi-heatmap-panel" aria-labelledby="smi-heatmap-title">
+            <div class="smi-section-heading"><div><p class="smi-kicker">HISTORICAL SIGNAL DENSITY</p><h2 id="smi-heatmap-title">Preceding 12 weeks</h2></div><div class="smi-heat-legend"><span>None</span><i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i><span>Higher</span></div></div>
+            <p class="smi-heat-hint" id="smi-heat-hint">Select a theme-week cell to list its dated supporting records and compare it with the preceding week. Colour identifies the theme; intensity shows the count. Use the arrow keys to move between cells; press Escape to clear.</p>
+            <div class="smi-heatmap-scroll"><div class="smi-heatmap" data-smart-heatmap role="group" aria-labelledby="smi-heatmap-title" aria-describedby="smi-heat-hint"></div></div>
+            <p class="gpir-sc-visually-hidden" role="status" data-smart-heat-status></p>
+            <div class="smi-heat-detail" data-smart-heat-detail data-state="idle"></div>
+          </section>
+
+          <section class="smi-evidence smp-timeline-panel" data-smart-timeline aria-labelledby="smi-evidence-title">
+            <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
+            <p class="smp-note">Historical evidence from the governed archive, newest first. Live announcements appear only in the Live Global Alerts strip during their 12-hour window.</p>
+            <div class="smp-results" data-smart-results></div>
+            <details class="smp-reference" data-smart-reference hidden></details>
+          </section>
+
+          <section class="smx-tables" aria-labelledby="smx-tables-title">
+            <h2 id="smx-tables-title">Chart data tables</h2>
+            <p>Every chart above has an equivalent table with drill-down buttons.</p>
+            <details class="smp-data"><summary>Development trend by theme</summary><div data-smart-table="weekly"></div></details>
+            <details class="smp-data"><summary>Developments by theme</summary><div data-smart-table="distribution"></div></details>
+            <details class="smp-data"><summary>Regional activity</summary><div data-smart-table="geography"></div></details>
+            <details class="smp-data"><summary>Thematic momentum</summary><div data-smart-table="momentum"></div></details>
+            <details class="smp-data"><summary>Risk &amp; policy heatmap</summary><div data-smart-table="heatmap"></div></details>
+          </section>
+        </div>
+      </details>
+
+      <section class="smi-editorial" data-smart-editorial hidden></section>
+
+      <details class="smp-progressive smp-methodology-disclosure smx-details">
+        <summary>Source &amp; methodology</summary>
+        <section class="smi-methodology" aria-labelledby="smi-methodology-title">
+          <div><p class="smi-kicker">SOURCE TRANSPARENCY</p><h2 id="smi-methodology-title">Methodology and interpretation boundary</h2><p>Dashboard values use only dated, approved announcements from GREEN registry sources that pass the existing official-URL and content validation rules. The live strip uses the same governed 12-hour dataset as the homepage ticker. Historical records remain available after ticker expiry.</p></div>
+          <dl><div><dt>Counts</dt><dd>Eligible records in the selected period and context.</dd></div><div><dt>Trend</dt><dd>Current count versus the immediately preceding equivalent period of the same length. A percentage is shown only when the preceding count is not zero.</dd></div><div><dt>Heatmap</dt><dd>Eligible dated records per featured theme and verified region, coloured relative to the busiest cell. Zero is shown in a neutral tone.</dd></div><div><dt>Themes</dt><dd>Existing GPIR taxonomy categories grouped into twelve payments themes; AI, Agentic Commerce and Web3 require explicit payments context. One development can belong to several themes, so theme counts overlap while the donut counts each development once under its primary theme.</dd></div><div><dt>Geography</dt><dd>Only records carrying governed country, region or geography metadata that identifies one display region are plotted. Aggregate scopes such as "Americas" are reported as unmapped, never guessed.</dd></div><div><dt>Reference data</dt><dd>BIS statistics are historical reference data, not news. Software repository history, including Hyperswitch commits and releases, is kept for audit and excluded from executive analytics.</dd></div><div><dt>Disclaimer</dt><dd>Descriptive intelligence only. Counts and mentions do not establish market impact, causality, investment merit or legal advice.</dd></div></dl>
+        </section>
+      </details>
+    </main>
+  </div>
+  <footer class="smi-footer smx-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
+  <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109e" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261109f"></script>
 </body>
 </html>

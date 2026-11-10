@@ -599,6 +599,27 @@ LAST UPDATED
     color:#f0cf72;
 }
 
+/* page.css sets the light-ribbon navy on these; the ribbon is dark. */
+#market-ribbon .ticker-card--compact time,
+#market-ribbon .ticker-card--compact .ticker-country,
+#market-ribbon .ticker-card--compact .ticker-headline{
+    color:#f5f7fa;
+}
+
+/* The track already pauses on hover; reveal the whole headline for reading. */
+#market-ribbon .ticker-card--compact:hover,
+#market-ribbon .ticker-card--compact:focus-visible{
+    background:rgba(255,255,255,.1);
+}
+
+#market-ribbon .ticker-card--compact:hover .ticker-headline,
+#market-ribbon .ticker-card--compact:focus-visible .ticker-headline{
+    max-width:none;
+    overflow:visible;
+    text-overflow:clip;
+    color:#ffffff;
+}
+
 #market-ribbon .ticker-empty{
     color:#f7e7b2;
     font-weight:600;

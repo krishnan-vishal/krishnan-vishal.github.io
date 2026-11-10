@@ -120,8 +120,8 @@ test('Hyperswitch GitHub records are technical repository evidence, never paymen
 
 test('rendering escapes record fields and keeps authoritative links external and noopener', () => {
   assert.match(script, /evidenceMarkup\(record, kind\)/);
-  assert.match(script, /escapeHtml\(note\)/);
-  assert.match(script, /escapeHtml\(value\)/);
+  assert.match(script, /escapeHtml\(kind\.note\)/);
+  assert.match(script, /escapeHtml\(String\(value\)\)/);
   assert.match(script, /rel="noopener noreferrer"/);
   assert.doesNotMatch(script, /\b(predict|forecast|projected|expected to)\b/i);
 });
@@ -154,8 +154,8 @@ test('refinement keeps data contracts, periods, geography filters and the 12-hou
   assert.match(script, /INTELLIGENCE_PATH = '\/functions\/v1\/gpir-public-intelligence\?scope=history&limit=100'/);
   assert.match(script, /LIVE_PATH = '\/functions\/v1\/gpir-public-alerts'/);
   assert.match(script, /12 \* 60 \* 60 \* 1000/);
-  for (const period of ['24H', '7D', '30D', 'QTD', 'YTD', 'CUSTOM']) assert.match(page, new RegExp(`data-smart-period="${period}"`));
-  for (const geo of ['global', 'apac', 'europe', 'americas', 'mea']) assert.match(page, new RegExp(`<option value="${geo}">`));
+  for (const period of ['24H', '7D', '30D', '8W', 'QTD', 'YTD', 'CUSTOM']) assert.match(page, new RegExp(`<option value="${period}">`));
+  for (const geo of ['global', 'apac', 'europe', 'americas', 'mea', 'na', 'gcc', 'latam', 'afr']) assert.match(page, new RegExp(`<option value="${geo}">`));
   assert.match(page, /data-smart-alert/);
   assert.match(page, /data-smart-compare-window/);
 });

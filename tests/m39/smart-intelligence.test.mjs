@@ -16,11 +16,11 @@ const editorialValue = JSON.parse(await readFile(
   new URL('assets/data/fx/editorial-public.json', root), 'utf8'));
 
 test('Smart Intelligence is a distinct authenticated reader tool', () => {
-  assert.match(page, /<h1>My Intelligence Dashboard<\/h1>/);
+  assert.match(page, /<h1>Executive Intelligence Dashboard<\/h1>/);
   assert.match(page, /LIVE GLOBAL ALERTS/);
   assert.match(page, /gpir-reader-auth\.js/);
   for (const period of ['24H','7D','30D','QTD','YTD','CUSTOM'])
-    assert.match(page, new RegExp(`data-smart-period="${period}"`));
+    assert.match(page, new RegExp(`<option value="${period}">`));
   assert.match(page, /data-smart-geography/);
   assert.match(page, /data-smart-topic-controls/);
   assert.match(page, /TOP SIGNAL NOW/);
