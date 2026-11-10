@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 protected publisher worker continuation — 2026-11-10
+
+- **Owner decision:** approved the protected GitHub Actions publisher alternative for implementation and non-production testing; no production credential, schedule, deployment, merge or publication is authorized.
+- **Branch implementation:** a main-only job in a dedicated protected environment runs the existing Contentful-verifying publisher and processor. The Edge entry point no longer reads the publisher JWT, and an unapplied migration removes the database scheduler for a coordinated transition. The worker fails on missing or shared credentials, Contentful configuration failure, provider failure or logged processing errors. GitHub administrators, authorized workflows and runners remain trusted; an environment secret is not exclusive to one workflow unless operational controls enforce that boundary.
+- **Tests and limitations:** four worker configuration, provider-error and entry-point tests pass. A 35-test publisher/relay run had 34 passes and the previously recorded unrelated FX assertion failure (`NO PAID PLAN REQUIRED`); this was already established on the base branch. No protected GitHub environment, actual publisher credential, or complete non-production acceptance sequence was exercised.
+- **NO-GO:** candidate draft `supabaseRecordId` is the candidate UUID, but existing governed access policies and the protected API bind `supabaseRecordId` to a separate identity-publication UUID. Do not equate them without a governed linkage. Owner-authored public intelligence, Contentful enforcement for public intelligence and deployed Alerts v4, and integrated approved/unapproved/owner/archive/alerts/authenticated-reader acceptance remain incomplete. Alerts v4 was recovered and inspected read-only again, not changed or deployed.
+
 ## M40 all-tier integration continuation — 2026-11-10
 
 - **Branch implementation:** extend the existing Contentful approval, validator, queue and restricted editorial RPC to GREEN T1/T1.5/T2/T3 without a new table or publication service. Confidence gates 70/80/90 remain for T1/T1.5/T2, and the high-confidence T3 evidence profile remains strict; lower-confidence T3 retains editorial approval and its existing evidence profile. The replacement SQL requires the restricted-role migration and retains the immediately preceding audit snapshot. Publisher geography no longer supplies event geography. Incomplete Contentful pagination fails closed.

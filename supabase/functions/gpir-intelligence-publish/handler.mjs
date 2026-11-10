@@ -454,7 +454,7 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       }
     }
     let editorial = { status: 'NOT_CONFIGURED' };
-    if (typeof store.editorialEntries === 'function') {
+    if ((repository || config.publisherJwt) && typeof store.editorialEntries === 'function') {
       try {
         editorial = { status: 'OK', ...(await processEditorialApprovals({ repository: store, fetchImpl, now, limit, logger })) };
       } catch (error) {

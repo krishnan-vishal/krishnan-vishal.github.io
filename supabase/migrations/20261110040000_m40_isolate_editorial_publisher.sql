@@ -16,8 +16,8 @@ grant gpir_editorial_publisher to authenticator;
 grant usage on schema public to gpir_editorial_publisher;
 
 -- Only the isolated publisher role may invoke the existing editorial RPC.
--- The Edge function must independently read the published Contentful entry
--- before using its separately provisioned credential.
+-- The protected publisher must independently read the published Contentful
+-- entry before using its separately provisioned credential.
 alter function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
   security definer;
 revoke all on function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
