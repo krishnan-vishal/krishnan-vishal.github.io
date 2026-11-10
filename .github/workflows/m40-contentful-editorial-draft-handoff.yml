@@ -23,7 +23,7 @@ on:
         description: 'Historical window end (YYYY-MM-DD, exclusive; at most 31 days)'
         type: string
       historical_candidate_id:
-        description: 'Single existing candidate UUID (required for historical mode)'
+        description: 'Optional existing candidate UUID; omit for a bounded batch'
         type: string
 
 permissions:
@@ -57,6 +57,7 @@ jobs:
           node --test
           tests/m40/contentful-editorial-drafts.test.mjs
           tests/m39-t3-editorial-approval.test.mjs
+          tests/m39-t3-automatic-publication.test.mjs
       - name: Hand off eligible candidates to Contentful drafts
         run: >-
           node scripts/m40/sync-contentful-editorial-drafts.mjs

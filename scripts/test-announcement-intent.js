@@ -157,7 +157,13 @@ function buildAskGpirSandbox(datasetAvailability){
     if(String(url).includes("/functions/v1/gpir-public-intelligence")){
       const data = datasetAvailability.announcements === false ? null : announcements;
       if(data === null) return Promise.resolve({ ok: false, status: 500 });
-      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(data) });
+      assert(String(url).includes("scope=history"), "ASK must request published historical records");
+      const offset = Number(new URL(String(url)).searchParams.get("offset") || 0);
+      if(datasetAvailability.failSecondPage && offset) return Promise.resolve({ ok: false, status: 500 });
+      const records = datasetAvailability.records || data.records;
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({
+        status: "OK", total: records.length, records: records.slice(offset, offset + 100)
+      }) });
     }
     const name = Object.keys(datasetFiles).find(file => url.endsWith(file));
     const data = name ? datasetFiles[name] : null;
@@ -249,6 +255,21 @@ async function runAskGpirResilienceTests(){
     }],
     ["M: implicit Brazil query", {}, "recent payment regulation in Brazil", html => {
       assert(!isNoMatch(html) && countListItems(html) === 1, "M: implicit Brazil query must retrieve the published official record");
+    }],
+    ["N: older publication on a later page", { records: [
+      ...Array.from({ length: 100 }, (_, index) => ({ id: `filler-${index}`, status: "GPIR_CLASSIFIED",
+        displayLifecycleStatus: "LIVE", title: "Current payment development" })),
+      { id: "historical-cms", status: "GPIR_CLASSIFIED", contentStatus: "CONTENT_VERIFIED",
+        displayLifecycleStatus: "ARCHIVED", title: "Historical source-backed payment development",
+        publicationYear: "2022", publicationDate: "2022-05-04", category: "Payments",
+        canonicalUrl: "https://example.com/historical" }
+    ] }, "show historical announcements", html => {
+      assert(countListItems(html) === 1 && !isNoMatch(html), "N: later historical page must be searchable");
+    }],
+    ["O: incomplete historical pagination", { failSecondPage: true, records: Array.from({ length: 101 }, (_, index) => ({
+      id: `filler-${index}`, status: "GPIR_CLASSIFIED", displayLifecycleStatus: "ARCHIVED", title: "Payment development"
+    })) }, "show historical announcements", html => {
+      assert(isUnavailable(html), "O: a failed later page must not be presented as complete");
     }]
   ];
 
@@ -265,7 +286,7 @@ async function runAskGpirResilienceTests(){
 
 runAskGpirResilienceTests().then(() => {
   if (process.exitCode) process.exit(1);
-  console.log(`Announcement intent validation passed: ${tests.length} checks, plus ASK GPIR resilience and implicit-query scenarios A-M.`);
+  console.log(`Announcement intent validation passed: ${tests.length} checks, plus ASK GPIR resilience and implicit-query scenarios A-O.`);
 }).catch(error => {
   console.error("ASK GPIR resilience regression harness crashed:", error);
   process.exit(1);

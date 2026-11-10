@@ -658,7 +658,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 </section>
 ${footerBlock}
 <script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261110a"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261110b"></script>
 </body>
 </html>`;
     fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");

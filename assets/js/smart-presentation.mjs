@@ -398,6 +398,7 @@ export function buildTimelineEvents(records, limit = 5) {
     const theme = themeById(primaryThemeId(record));
     const date = new Date(record.publishedAt);
     return { id: record.id, title: record.title, url: record.url, sourceName: record.sourceName, publishedAt: record.publishedAt,
+      country: record.country, countryFlagUrl: record.countryFlagUrl,
       month: new Intl.DateTimeFormat('en', { month: 'short', timeZone: 'UTC' }).format(date).toUpperCase(), day: String(date.getUTCDate()).padStart(2, '0'),
       themeId: theme.id, themeLabel: theme.short, color: theme.color };
   });

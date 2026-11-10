@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M40 intelligence quality and historical delivery
+
+| ID | Requirement | Status | Dependency | Outcome |
+|---|---|---|---|---|
+| M40-QUALITY-HISTORY | Governed executive/reference separation, evidence-based geography and flags, historical CMS drafts and delivery | IN PROGRESS | Real 2022–2024 staged candidate and unpublished draft; owner editorial decision and governed publication; coordinated owner-authorized deployment and live reader acceptance | Branch implementation and focused tests pass. A 2024 PYMNTS source passed read-only historical evidence validation but is not staged. Production discovery rejects observed GDELT timestamps; the branch correction is not deployed, per the release constraint. No editorial-verified published intelligence was found for live archive/dashboard/ASK acceptance. |
+
 ## M39 Gate 2 recovery
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |

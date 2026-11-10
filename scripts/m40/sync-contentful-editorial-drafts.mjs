@@ -10,7 +10,8 @@
 // Server-side credentials only: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CONTENTFUL_SPACE_ID,
 // CONTENTFUL_ENVIRONMENT, CONTENTFUL_MANAGEMENT_TOKEN. Credentials are never logged or reported.
 import { writeFileSync } from 'node:fs';
-import { editorialUrlKey, T3_AUTOMATIC_PUBLICATION } from '../../supabase/functions/_shared/gpir-intelligence-validation.mjs';
+import { editorialUrlKey, T3_AUTOMATIC_PUBLICATION, validateCandidateSource }
+    from '../../supabase/functions/_shared/gpir-intelligence-validation.mjs';
 
 const CONTENT_TYPE = 'gpirPublication';
 const LOCALE = 'en-US';
@@ -21,6 +22,8 @@ const VERIFIED_FLAGS = ['source_verified', 'canonical_verified', 'timestamp_veri
 const DEFAULT_WINDOW_HOURS = 12;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 25;
+const CANDIDATE_PAGE_SIZE = 100;
+const MAX_CANDIDATE_SCAN = 1000;
 
 export function draftEntryId(candidateId) {
     return `gpir-t3-${String(candidateId).toLowerCase()}`;
@@ -48,11 +51,46 @@ function evidenceVerified(payload) {
         payload.evidence_verification?.status === 'SUCCEEDED';
 }
 
+async function verifyHistoricalCandidate({ candidate, source, audit, base, headers, fetchImpl, now }) {
+    const validation = await validateCandidateSource({ candidate, source, fetchImpl, now: () => now,
+        historicalReview: true });
+    if (validation.decision !== 'REVIEW' || validation.reasonCode !== THRESHOLD_REASON ||
+        !evidenceVerified(validation.validationPayload))
+        return { verified: false, reason: validation.reasonCode };
+    if (editorialUrlKey(validation.canonicalUrl) !== editorialUrlKey(candidate.canonical_url))
+        return { verified: false, reason: 'SOURCE_CANONICAL_IDENTITY_MISMATCH' };
+    const duplicates = await readRows(fetchImpl, base, headers, 'intelligence_publication_audits', {
+        select: 'candidate_id', decision: 'eq.PUBLISHED', content_fingerprint: `eq.${validation.contentFingerprint}`,
+        limit: '1' });
+    if (duplicates.length) return { verified: false, reason: 'DUPLICATE_PUBLISHED_CONTENT' };
+    const params = new URLSearchParams({ candidate_id: `eq.${candidate.id}`, decision: 'eq.REVIEW',
+        reason_code: `eq.${THRESHOLD_REASON}`, updated_at: audit.updated_at ? `eq.${audit.updated_at}` : 'is.null' });
+    const writeHeaders = new Headers(headers);
+    writeHeaders.set('content-type', 'application/json');
+    writeHeaders.set('prefer', 'return=representation');
+    const response = await fetchImpl(`${base}/rest/v1/intelligence_publication_audits?${params}`, {
+        method: 'PATCH', headers: writeHeaders, body: JSON.stringify({
+            canonical_url: validation.canonicalUrl,
+            content_fingerprint: validation.contentFingerprint,
+            source_published_at: validation.sourcePublishedAt,
+            source_checked_at: new Date(now).toISOString(),
+            source_http_status: validation.sourceHttpStatus,
+            evidence_excerpt: validation.evidenceExcerpt,
+            validation_payload: { ...validation.validationPayload,
+                historical_review: { previous_audit: audit, verified_at: new Date(now).toISOString() } }
+        }) });
+    if (!response.ok) throw new Error(`Historical audit update failed with status ${response.status}`);
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length !== 1) throw new Error('Historical audit changed during verification.');
+    return { verified: true, audit: rows[0] };
+}
+
 // Eligible: a T3 GREEN source, an open candidate inside the selected window, below the T3 automatic
 // threshold, whose latest audit is the threshold review with every verification flag true, and
 // which is not already published, duplicated or announced through any route.
 export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = Date.now(),
-    hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT, historicalFrom, historicalTo, candidateId }) {
+    hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT, historicalFrom, historicalTo, candidateId,
+    verifyHistorical = false, verificationResults = [], verificationState = {} }) {
     const historical = Boolean(historicalFrom || historicalTo || candidateId);
     let since;
     let until;
@@ -63,8 +101,8 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
             return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
         };
         if (!validDate(historicalFrom) || !validDate(historicalTo) ||
-            !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidateId || ''))
-            throw new Error('Historical mode requires valid from/to dates and one candidate UUID.');
+            (candidateId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidateId)))
+            throw new Error('Historical mode requires valid from/to dates and, if supplied, a candidate UUID.');
         since = `${historicalFrom}T00:00:00.000Z`;
         until = `${historicalTo}T00:00:00.000Z`;
         if (since < '2021-11-01T00:00:00.000Z' || until > '2026-12-01T00:00:00.000Z' ||
@@ -75,38 +113,60 @@ export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = D
     }
     const { base, headers } = supabaseAccess(env);
     const sources = await readRows(fetchImpl, base, headers, 'source_registry', {
-        select: 'source_id,source_name,official_url', trust_tier: 'eq.T3', source_status: 'eq.GREEN', limit: '100' });
+        select: 'source_id,source_name,official_url,trust_tier,source_status', trust_tier: 'eq.T3', source_status: 'eq.GREEN', limit: '100' });
     if (!sources.length) return [];
-    const candidates = await readRows(fetchImpl, base, headers, 'intelligence_candidates', {
-        select: 'id,source_id,title,canonical_url,published_at,candidate_status,confidence_score,country_code,region,' +
-            'category,subcategory,event_type',
-        source_id: `in.(${sources.map(item => item.source_id).join(',')})`,
-        candidate_status: `in.(${OPEN_STATUSES.join(',')})`,
-        ...(historical ? { id: `eq.${candidateId}`, and: `(published_at.gte.${since},published_at.lt.${until})` }
-            : { published_at: `gte.${since}` }),
-        confidence_score: `lt.${T3_AUTOMATIC_PUBLICATION.minConfidence}`,
-        order: 'published_at.desc', limit: '200' });
     const selected = [];
-    for (const candidate of candidates) {
-        if (selected.length >= limit) break;
-        const candidateTime = Date.parse(candidate.published_at);
-        if (!Number.isFinite(candidateTime) || candidateTime > now || candidateTime < Date.parse(since) ||
-            (historical && (candidate.id.toLowerCase() !== candidateId.toLowerCase() ||
-                candidateTime >= Date.parse(until))) || !editorialUrlKey(candidate.canonical_url)) continue;
-        const audits = await readRows(fetchImpl, base, headers, 'intelligence_publication_audits', {
-            select: 'decision,reason_code,validation_payload,evidence_excerpt,completed_at',
-            candidate_id: `eq.${candidate.id}`, order: 'attempted_at.desc', limit: '20' });
-        const latest = audits[0];
-        if (!latest || audits.some(item => item.decision === 'PUBLISHED' || item.decision === 'DUPLICATE')) continue;
-        if (latest.decision !== 'REVIEW' || latest.reason_code !== THRESHOLD_REASON ||
-            !evidenceVerified(latest.validation_payload)) continue;
-        const announced = await readRows(fetchImpl, base, headers, 'global_announcements', {
-            select: 'id', canonical_url: `eq.${candidate.canonical_url}`, limit: '1' });
-        if (announced.length) continue;
-        selected.push({ candidate, source: sources.find(item => item.source_id === candidate.source_id),
-            audit: latest });
+    for (let offset = 0; offset < MAX_CANDIDATE_SCAN; offset += CANDIDATE_PAGE_SIZE) {
+        const candidates = await readRows(fetchImpl, base, headers, 'intelligence_candidates', {
+            select: 'id,source_id,title,canonical_url,published_at,candidate_status,confidence_score,country_code,region,' +
+                'category,subcategory,event_type',
+            source_id: `in.(${sources.map(item => item.source_id).join(',')})`,
+            candidate_status: `in.(${OPEN_STATUSES.join(',')})`,
+            ...(historical ? { ...(candidateId ? { id: `eq.${candidateId}` } : {}),
+                and: `(published_at.gte.${since},published_at.lt.${until})` } : { published_at: `gte.${since}` }),
+            confidence_score: `lt.${T3_AUTOMATIC_PUBLICATION.minConfidence}`,
+            order: 'published_at.desc,id.asc', limit: String(CANDIDATE_PAGE_SIZE), offset: String(offset) });
+        for (const candidate of candidates) {
+            if (selected.length >= limit) return selected;
+            const candidateTime = Date.parse(candidate.published_at);
+            if (!Number.isFinite(candidateTime) || candidateTime > now || candidateTime < Date.parse(since) ||
+                (historical && ((candidateId && candidate.id.toLowerCase() !== candidateId.toLowerCase()) ||
+                    candidateTime >= Date.parse(until))) || !editorialUrlKey(candidate.canonical_url)) continue;
+            const audits = await readRows(fetchImpl, base, headers, 'intelligence_publication_audits', {
+                select: '*',
+                candidate_id: `eq.${candidate.id}`, order: 'attempted_at.desc', limit: '20' });
+            let latest = audits[0];
+            if (!latest || audits.some(item => item.decision === 'PUBLISHED' || item.decision === 'DUPLICATE')) continue;
+            if (latest.decision !== 'REVIEW' || latest.reason_code !== THRESHOLD_REASON) continue;
+            const announced = await readRows(fetchImpl, base, headers, 'global_announcements', {
+                select: 'id', canonical_url: `eq.${candidate.canonical_url}`, limit: '1' });
+            if (announced.length) continue;
+            const source = sources.find(item => item.source_id === candidate.source_id);
+            if (!evidenceVerified(latest.validation_payload) && historical && verifyHistorical &&
+                latest.validation_payload?.evidence_verification?.status === 'NOT_ATTEMPTED') {
+                if (verificationResults.length >= limit) {
+                    verificationState.limitReached = true;
+                    return selected;
+                }
+                const result = await verifyHistoricalCandidate({ candidate, source, audit: latest,
+                    base, headers, fetchImpl, now });
+                verificationResults.push({ candidateId: candidate.id, outcome: result.verified ? 'VERIFIED' : result.reason });
+                if (result.verified) latest = result.audit;
+            }
+            if (!evidenceVerified(latest.validation_payload)) continue;
+            if (historical) {
+                const sourceTime = Date.parse(latest.source_published_at || '');
+                if (!Number.isFinite(sourceTime) || sourceTime < Date.parse(since) ||
+                    sourceTime >= Date.parse(until) || sourceTime > now) {
+                    verificationResults.push({ candidateId: candidate.id, outcome: 'SOURCE_TIMESTAMP_OUTSIDE_WINDOW_OR_MISSING' });
+                    continue;
+                }
+            }
+            selected.push({ candidate, source, audit: latest });
+        }
+        if (selected.length >= limit || candidates.length < CANDIDATE_PAGE_SIZE) return selected;
     }
-    return selected;
+    throw new Error('Candidate scan limit reached; narrow the historical window.');
 }
 
 function localized(value) {
@@ -117,10 +177,11 @@ function localized(value) {
 // left for the editor; an unset `validationStatus` is denied by the publisher.
 export function buildDraftFields({ candidate, source, audit }) {
     const confidence = Number(candidate.confidence_score);
+    const publicationDate = new Date(audit.source_published_at || candidate.published_at).toISOString();
     const taxonomy = [candidate.category, candidate.subcategory, candidate.event_type].filter(Boolean).join(' / ');
     const note = [
         `Source-verified GPIR candidate ${candidate.id} from ${source?.source_name || candidate.source_id}.`,
-        `Official-domain canonical URL, original timestamp ${new Date(candidate.published_at).toISOString()},`,
+        `Official-domain canonical URL, original timestamp ${publicationDate},`,
         'live source evidence, payments relevance and summary grounding were verified by GPIR validation.',
         `Confidence ${confidence} is below the T3 automatic threshold ${T3_AUTOMATIC_PUBLICATION.minConfidence}, so`,
         'publication requires explicit editorial approval.',
@@ -131,7 +192,7 @@ export function buildDraftFields({ candidate, source, audit }) {
         supabaseRecordId: localized(candidate.id),
         legacySourceUrl: localized(candidate.canonical_url),
         publicationTitle: localized(candidate.title),
-        publicationDate: localized(new Date(candidate.published_at).toISOString()),
+        publicationDate: localized(publicationDate),
         sourceValidationSummary: localized(note)
     };
     if (candidate.region) fields.region = localized(candidate.region);
@@ -178,7 +239,7 @@ async function reconcile(client, item) {
     const id = draftEntryId(item.candidate.id);
     const fields = buildDraftFields(item);
     const result = { candidateId: item.candidate.id, canonicalUrl: item.candidate.canonical_url,
-        publishedAt: new Date(item.candidate.published_at).toISOString(), entryId: id };
+        publishedAt: fields.publicationDate[LOCALE], entryId: id };
     const own = await client.entry(id);
     if (!own) {
         // An entry created by an editor (any id) for the same candidate or URL is authoritative.
@@ -202,16 +263,20 @@ export async function syncEditorialDrafts({ env = process.env, fetchImpl = fetch
     dryRun = false, hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT,
     historicalFrom, historicalTo, candidateId } = {}) {
     const bounded = Math.min(Math.max(Number.parseInt(limit, 10) || DEFAULT_LIMIT, 1), MAX_LIMIT);
-    const eligible = await selectEligibleCandidates({ env, fetchImpl, now, hours, limit: bounded,
-        historicalFrom, historicalTo, candidateId });
     const client = contentfulClient(env, fetchImpl);
     if (!dryRun && !client) throw new Error('Contentful credentials are required for a non-dry run.');
+    const verificationResults = [];
+    const verificationState = { limitReached: false };
+    const eligible = await selectEligibleCandidates({ env, fetchImpl, now, hours, limit: bounded,
+        historicalFrom, historicalTo, candidateId, verifyHistorical: Boolean(historicalFrom && !dryRun),
+        verificationResults, verificationState });
     const report = { generatedAt: new Date(now).toISOString(), dryRun,
         ...(historicalFrom ? { historicalFrom, historicalTo, candidateId } : { windowHours: hours }), eligible: eligible.length,
-        created: 0, updated: 0, preserved: 0, results: [] };
+        created: 0, updated: 0, preserved: 0, verificationResults,
+        verificationLimitReached: verificationState.limitReached, results: [] };
     if (dryRun) {
         report.results = eligible.map(item => ({ candidateId: item.candidate.id, entryId: draftEntryId(item.candidate.id),
-            canonicalUrl: item.candidate.canonical_url, publishedAt: new Date(item.candidate.published_at).toISOString(),
+            canonicalUrl: item.candidate.canonical_url, publishedAt: new Date(item.audit.source_published_at || item.candidate.published_at).toISOString(),
             outcome: 'PLANNED', writes: 0 }));
         return report;
     }

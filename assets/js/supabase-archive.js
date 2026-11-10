@@ -132,7 +132,7 @@ function isWithinLiveWindow(record, now = Date.now()) {
     return age >= 0 && age <= LIVE_WINDOW_MS;
 }
 
-function normalizeRecord(record) {
+function normalizeRecord(record, countries, resolveGeography) {
     const title = cleanText(record.title);
 
     if (!title) return null;
@@ -147,12 +147,16 @@ function normalizeRecord(record) {
         publishedAt
     );
 
+    const geography = resolveGeography
+        ? resolveGeography(record.eventGeography, countries)
+        : { country: "", region: "", flagUrl: "" };
     return {
         title,
         narration: cleanText(record.summary || record.summary_narration) ||
             "No narration has been supplied for this approved record.",
-        region: cleanText(record.region) || "Unspecified",
-        country: cleanText(record.country) || "Unspecified",
+        region: cleanText(geography.region) || "Unspecified",
+        country: cleanText(geography.country) || "Unspecified",
+        countryFlagUrl: geography.flagUrl,
         category: cleanText(record.category) || "Payments",
         subcategory: cleanText(record.subcategory) || "Unspecified",
         publishedAt,
@@ -678,11 +682,19 @@ function createAnnouncementCard(record) {
         `Region: ${record.region}`
     );
 
-    const country = createElement(
-        "span",
-        "",
-        `Country: ${record.country}`
-    );
+    const country = createElement("span", "");
+    country.appendChild(document.createTextNode("Country: "));
+    if (record.countryFlagUrl) {
+        const flag = createElement("img");
+        flag.src = record.countryFlagUrl;
+        flag.alt = "";
+        flag.width = 18;
+        flag.height = 12;
+        flag.loading = "lazy";
+        flag.style.verticalAlign = "middle";
+        country.append(flag, document.createTextNode(" "));
+    }
+    country.appendChild(document.createTextNode(record.country));
 
     const subcategory = createElement(
         "span",
@@ -737,7 +749,7 @@ function renderGrid(container, records, emptyMessage) {
     container.replaceChildren(fragment);
 }
 
-async function fetchPublicIntelligence() {
+async function fetchPublicIntelligence(countries, resolveGeography) {
     const records = [];
     let offset = 0;
 
@@ -779,7 +791,7 @@ async function fetchPublicIntelligence() {
     }
 
     return records
-        .map(normalizeRecord)
+        .map(record => normalizeRecord(record, countries, resolveGeography))
         .filter(Boolean);
 }
 
@@ -990,7 +1002,17 @@ async function initializeSupabaseArchive() {
     }
 
     try {
-        const records = await fetchPublicIntelligence();
+        let countries = [];
+        let resolveGeography = null;
+        try {
+            const geography = await import("./gpir-geography.mjs");
+            resolveGeography = geography.resolveEventGeography;
+            countries = await geography.loadCountryRegistry(fetch);
+        } catch (error) {
+            console.error("[GPIR] Country registry unavailable:", error);
+            if (archiveStatus) archiveStatus.textContent = "Country names and flags temporarily unavailable.";
+        }
+        const records = await fetchPublicIntelligence(countries, resolveGeography);
 
         if (!records.length) {
             throw new Error(

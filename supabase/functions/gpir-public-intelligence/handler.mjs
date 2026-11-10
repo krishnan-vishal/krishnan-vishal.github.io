@@ -1,4 +1,4 @@
-import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
+import { editorialUrlKey, isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
 import { buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
 import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
 
@@ -180,9 +180,13 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
 }
 
 export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
-  topicSources = [], statisticalObservations = [], now = Date.now(),
+  topicSources = [], statisticalObservations = [], publicationAudits = [], candidates = [], now = Date.now(),
   windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences = false }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
+  const candidateById = new Map(candidates.map(candidate => [candidate.id, candidate]));
+  const eventByAnnouncement = new Map(publicationAudits.filter(audit => audit.decision === 'PUBLISHED' &&
+    audit.announcement_id && candidateById.has(audit.candidate_id))
+    .map(audit => [audit.announcement_id, candidateById.get(audit.candidate_id)]));
   const byTopicSources = new Map();
   const byTopicDevelopments = new Map();
   for (const link of topicSources) { if (!byTopicSources.has(link.topic_id)) byTopicSources.set(link.topic_id, []); byTopicSources.get(link.topic_id).push(link); }
@@ -201,6 +205,14 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
     const topic = byAnnouncement.get(row.id);
+    const linkedCandidate = eventByAnnouncement.get(row.id);
+    const event = linkedCandidate?.source_id === row.source_id &&
+      editorialUrlKey(linkedCandidate.canonical_url) === editorialUrlKey(row.canonical_url)
+      ? linkedCandidate : null;
+    const countryCode = typeof event?.country_code === 'string' && /^[A-Z]{2}$/.test(event.country_code)
+      ? event.country_code : null;
+    const eventRegion = typeof event?.region === 'string' && event.region.trim()
+      ? event.region.trim().slice(0, 100) : null;
     const verifiedSources = (byTopicSources.get(topic?.id) || []).filter(link =>
       bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
       .map(link => {
@@ -236,9 +248,10 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       topics: Array.isArray(row.topic_headers) ? row.topic_headers.filter(value =>
         typeof value === 'string' && value.trim()).slice(0, 12) : [],
       subcategory: null,
-      country: typeof source.country === 'string' ? source.country : null,
-      region: Array.isArray(source.region_tags) && source.region_tags[0]
-        ? source.region_tags[0] : null,
+      country: null,
+      countryCode,
+      region: eventRegion,
+      eventGeography: { countryCode, region: eventRegion },
       publicationDate: published.toISOString().slice(0, 10),
       publishedDate: published.toISOString().slice(0, 10),
       publishedAt: published.toISOString(),
@@ -249,7 +262,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       pageUrl: row.canonical_url,
       keywords: topic?.keywords || [],
       outcomeStatus: topic?.outcome_status || 'PENDING',
-      geography: topic?.geography || null,
+      geography: eventRegion,
       eventId: topic?.id || null,
       sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString(),country:typeof source.country==='string'?source.country:null,region:Array.isArray(source.region_tags)&&source.region_tags[0]?source.region_tags[0]:null,segment:source.category||null}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
       source: {
@@ -373,7 +386,26 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
             order: 'discovered_at.desc,id.asc'
           })) : Promise.resolve([])
         ]);
-        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
+        const announcementIds = referenceView ? [] : announcements.map(item => item.id)
+          .filter(id => /^[0-9a-f-]{36}$/i.test(id));
+        const publicationAudits = [];
+        for (let start = 0; start < announcementIds.length; start += 100) {
+          publicationAudits.push(...await allRows('intelligence_publication_audits', new URLSearchParams({
+            select: 'candidate_id,announcement_id,decision', decision: 'eq.PUBLISHED',
+            announcement_id: `in.(${announcementIds.slice(start, start + 100).join(',')})`,
+            order: 'candidate_id.asc'
+          })));
+        }
+        const candidateIds = [...new Set(publicationAudits.map(audit => audit.candidate_id)
+          .filter(id => /^[0-9a-f-]{36}$/i.test(id)))];
+        const candidates = [];
+        for (let start = 0; start < candidateIds.length; start += 100) {
+          candidates.push(...await allRows('intelligence_candidates', new URLSearchParams({
+            select: 'id,source_id,canonical_url,country_code,region', id: `in.(${candidateIds.slice(start, start + 100).join(',')})`,
+            candidate_status: 'eq.APPROVED', order: 'id.asc'
+          })));
+        }
+        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations, publicationAudits, candidates };
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences: referenceView });

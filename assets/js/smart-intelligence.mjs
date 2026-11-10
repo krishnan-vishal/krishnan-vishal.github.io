@@ -4,12 +4,13 @@ import {
   buildRegionThemeMatrix, buildRegionalActivity, buildShareUrl, buildSummaryPoints, buildThemeDistribution, buildThemeMomentum, buildThemeWeekly,
   buildTimelineEvents, buildTrendByTheme, classifyThemeIds, compareCounts, distributionTable, geographyTable, heatmapTable, isExecutiveEligible,
   matchesGeography, momentumTable, periodLabel, primaryThemeId, referenceClass, sparklineSvg, themeById, themeChipMarkup, trendTable
-} from './smart-presentation.mjs';
+} from './smart-presentation.mjs?v=20261110c';
 import {
   donutChartOption, donutLegendMarkup, donutPoints, kpiStripMarkup, mapChartOption, mapPoints, momentumChartOption, momentumDeltasMarkup,
   momentumLabelsMarkup, momentumPoints, regionHeatmapMarkup, summaryMarkup, timelineMarkup, trendChartOption, trendPoints
-} from './smart-executive.mjs';
+} from './smart-executive.mjs?v=20261110c';
 import { createChartController } from './smart-charts.mjs';
+import { countryFlagMarkup, loadCountryRegistry, resolveEventGeography } from './gpir-geography.mjs';
 
 export { compareCounts, isExecutiveEligible, referenceClass };
 
@@ -103,7 +104,7 @@ function normalizeDimensions(value) {
   }).slice(0, 12);
 }
 
-export function normalizeSmartRecords(value) {
+export function normalizeSmartRecords(value, countries = []) {
   if (value?.status !== 'OK' || !Array.isArray(value.records)) return [];
   return value.records.flatMap(item => {
     const publishedAt = Date.parse(item?.publishedAt || '');
@@ -111,13 +112,16 @@ export function normalizeSmartRecords(value) {
     const title = clean(item?.title || item?.headline, 240);
     const summary = clean(item?.summary, 2000);
     if (!Number.isFinite(publishedAt) || !url || !title || summary.length < 40) return [];
+    const eventGeography = item.eventGeography ? resolveEventGeography(item.eventGeography, countries) : null;
     const record = {
       id: clean(item.id, 100), title, summary, url,
       publishedAt: new Date(publishedAt).toISOString(),
       category: clean(item.category, 100) || 'Payments',
       topics: Array.isArray(item.topics) ? item.topics.map(value => clean(value, 100)).filter(Boolean) : [],
-      country: clean(item.country, 100), region: clean(item.region, 100),
-      geography: clean(item.geography, 180),
+      country: clean(eventGeography ? eventGeography.country : item.country, 100),
+      region: clean(eventGeography ? eventGeography.region : item.region, 100),
+      geography: clean(eventGeography ? eventGeography.region : item.geography, 180),
+      countryFlagUrl: eventGeography?.flagUrl || '',
       keywords: Array.isArray(item.keywords) ? item.keywords.map(value => clean(value, 80)).filter(Boolean) : [],
       sourceName: clean(item?.source?.name, 140) || 'Authoritative source',
       sourceTrustTier: clean(item?.source?.trustTier || item?.sourceTrustTier, 20),
@@ -131,7 +135,7 @@ export function normalizeSmartRecords(value) {
       product: clean(item.product, 100),
       repository: clean(item.repository, 100),
       observationDate: clean(item.observationDate, 10),
-      countryCode: clean(item.countryCode, 10),
+      countryCode: clean(eventGeography ? eventGeography.countryCode : item.countryCode, 10),
       statisticalValue: typeof item.statisticalValue === 'number' && Number.isFinite(item.statisticalValue)
         ? item.statisticalValue : null,
       unitMeasure: clean(item.unitMeasure, 60),
@@ -145,7 +149,7 @@ export function normalizeSmartRecords(value) {
   }).sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
 }
 
-export function normalizeLiveAlerts(value, historical) {
+export function normalizeLiveAlerts(value, historical, countries = []) {
   if (!Array.isArray(value?.alerts)) return [];
   const historyById = new Map(historical.map(record => [record.id, record]));
   // Overlapping reports of one development become one topic-level relay item that keeps
@@ -159,11 +163,13 @@ export function normalizeLiveAlerts(value, historical) {
     const title = clean(item?.title || item?.headline, 240);
     const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.sourceUrl || item?.url || item?.source?.url);
     if (!Number.isFinite(publishedAt) || !title || !url) return [];
+    const eventGeography = resolveEventGeography(item.eventGeography, countries);
     const record = {
       id: clean(item.id, 100), title, summary: clean(item?.summary || item?.summary_narration, 2000),
       url, publishedAt: new Date(publishedAt).toISOString(), category: clean(item.category, 100) || 'Payments',
       topics: Array.isArray(item.topicHeaders) ? item.topicHeaders : [], keywords: [],
-      country: clean(item.country, 100), region: clean(item.region, 100), geography: clean(item.geography, 180),
+      country: eventGeography.country, region: eventGeography.region, geography: eventGeography.region,
+      countryCode: eventGeography.countryCode, countryFlagUrl: eventGeography.flagUrl,
       sourceName: clean(item?.source?.name || item?.sourceName, 140) || 'Authoritative source',
       lifecycle: 'LIVE', outcomeStatus: clean(item.outcomeStatus, 40)
     };
@@ -332,13 +338,13 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-export async function fetchHistory(fetchImpl, origin, references = false) {
+export async function fetchHistory(fetchImpl, origin, references = false, countries = []) {
   const records = [];
   for (let offset = 0; offset <= 5000; offset += 100) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}${references ? '&view=references' : ''}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
-    const page = normalizeSmartRecords(payload);
+    const page = normalizeSmartRecords(payload, countries);
     records.push(...page);
     if (records.length >= Number(payload.total || 0) || page.length < 100) return records;
   }
@@ -392,7 +398,7 @@ function recordMarkup(record) {
   const recordClass = kind ? kind.label : record.lifecycle;
   const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
     record.referenceDate ? `${kind?.id === 'technical' ? describeTechnicalChange(record).type : 'Verified change'} dated ${record.referenceDate}` : isoDay(record.publishedAt);
-  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a>`}</article>`;
+  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${countryFlagMarkup(record.countryFlagUrl)}${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a>`}</article>`;
 }
 
 function evidenceTag(record) {
@@ -424,7 +430,7 @@ function developmentMarkup(record) {
     ['Record status', record.lifecycle], ['Geography', geography], ['Category', record.category], ['Themes', themes.join(' · ')]]
     .filter(([, value]) => value).map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const ask = askHref(buildAskQuery({}, { record }));
-  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask>Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
+  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${countryFlagMarkup(record.countryFlagUrl)}${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask>Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
 }
 
 function renderTopSignal(root, records) {
@@ -696,6 +702,13 @@ export async function initializeSmartIntelligence({ global = window,
   }
   const origin = endpointOrigin(global);
   if (!origin || !fetchImpl) return false;
+  let countries = [];
+  let countryRegistryUnavailable = false;
+  try { countries = await loadCountryRegistry(fetchImpl); }
+  catch (error) {
+    countryRegistryUnavailable = true;
+    console.error('[GPIR] Country registry unavailable:', error);
+  }
   const params = new URL(global.location.href).searchParams;
   const initialTopics = clean(params.get('topics'), 300).split(',').filter(id => SMART_TOPICS.some(topic => topic.id === id));
   const initialThemes = clean(params.get('themes'), 300).split(',').filter(id => PREMIUM_THEMES.some(theme => theme.id === id));
@@ -728,12 +741,12 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
 
   const [historyResult, liveResult, editorialResult, referencesResult] = await Promise.allSettled([
-    fetchHistory(fetchImpl, origin),
+    fetchHistory(fetchImpl, origin, false, countries),
     fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
       if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json();
     }),
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
-    fetchHistory(fetchImpl, origin, true)
+    fetchHistory(fetchImpl, origin, true, countries)
   ]);
   const status = root.querySelector('[data-smart-status]');
   if (historyResult.status !== 'fulfilled') {
@@ -744,7 +757,7 @@ export async function initializeSmartIntelligence({ global = window,
   let referenceUnavailable = referencesResult.status !== 'fulfilled';
   let references = referencesResult.status === 'fulfilled' ? referencesResult.value : [];
   let records = [...historyResult.value, ...references];
-  let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
+  let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records, countries) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
 
   const topicIntel = new Map();
@@ -821,7 +834,7 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !related.length;
     editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${referenceUnavailable ? 'reference history temporarily unavailable' : `${plural(records.length - industry.length, 'reference record')} kept separate for audit`}. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${referenceUnavailable ? 'reference history temporarily unavailable' : `${plural(records.length - industry.length, 'reference record')} kept separate for audit`}. Live alerts remain restricted to 12 hours.${countryRegistryUnavailable ? ' Country names and flags are temporarily unavailable.' : ''}`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
@@ -1073,17 +1086,17 @@ export async function initializeSmartIntelligence({ global = window,
     refreshing = true;
     try {
       const [historical, live, refreshedReferences] = await Promise.allSettled([
-        fetchHistory(fetchImpl, origin),
+        fetchHistory(fetchImpl, origin, false, countries),
         fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
           .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); }),
-        fetchHistory(fetchImpl, origin, true)
+        fetchHistory(fetchImpl, origin, true, countries)
       ]);
       referenceUnavailable = refreshedReferences.status !== 'fulfilled';
       if (refreshedReferences.status === 'fulfilled') references = refreshedReferences.value;
       if (historical.status === 'fulfilled') records = [...historical.value, ...references];
       else if (refreshedReferences.status === 'fulfilled')
         records = [...records.filter(isExecutiveEligible), ...references];
-      if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
+      if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records, countries);
       // Only transient failures are retried; a subscription denial is kept for the session.
       clearTransientTopicIntel();
       render();

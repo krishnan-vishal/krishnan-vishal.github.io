@@ -1,6 +1,7 @@
 // Executive dashboard composition for the M39 Smart Intelligence page: markup and Apache ECharts options.
 // Pure and deterministic. Every figure comes from the governed models built in smart-presentation.mjs.
-import { deltaBadge, esc, heatColor, priorPeriodLabel } from './smart-presentation.mjs';
+import { deltaBadge, esc, heatColor, priorPeriodLabel } from './smart-presentation.mjs?v=20261110c';
+import { countryFlagMarkup } from './gpir-geography.mjs';
 
 const AXIS_TEXT = '#4d5d6e';
 const GRID_LINE = '#e3e6ea';
@@ -74,7 +75,7 @@ export function regionHeatmapMarkup(matrix, selected) {
 
 export function timelineMarkup(events) {
   if (!events.length) return '<p class="smx-empty">No verified developments in this selection. Nothing has been inferred.</p>';
-  return `<ol class="smx-tl-track">${events.map(event => `<li style="--dot:${esc(event.color)}"><i class="smx-tl-dot" aria-hidden="true"></i><time class="smx-tl-date" datetime="${esc(isoDay(Date.parse(event.publishedAt)))}"><b>${esc(event.month)}</b><span>${esc(event.day)}</span></time><div class="smx-tl-text"><a href="${esc(event.url)}" target="_blank" rel="noopener noreferrer" title="${esc(`${event.title} — ${event.sourceName}. Opens the verified source.`)}">${esc(event.title)}</a><span class="smx-pill" style="--theme-color:${esc(event.color)}">${esc(event.themeLabel)}</span></div></li>`).join('')}</ol>`;
+  return `<ol class="smx-tl-track">${events.map(event => `<li style="--dot:${esc(event.color)}"><i class="smx-tl-dot" aria-hidden="true"></i><time class="smx-tl-date" datetime="${esc(isoDay(Date.parse(event.publishedAt)))}"><b>${esc(event.month)}</b><span>${esc(event.day)}</span></time><div class="smx-tl-text"><a href="${esc(event.url)}" target="_blank" rel="noopener noreferrer" title="${esc(`${event.title} — ${event.sourceName}. Opens the verified source.`)}">${esc(event.title)}</a>${event.country ? `<span>${countryFlagMarkup(event.countryFlagUrl)}${esc(event.country)}</span>` : ''}<span class="smx-pill" style="--theme-color:${esc(event.color)}">${esc(event.themeLabel)}</span></div></li>`).join('')}</ol>`;
 }
 
 // ECharts options ---------------------------------------------------------------------------------

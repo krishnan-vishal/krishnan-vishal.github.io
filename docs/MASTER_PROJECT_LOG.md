@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 intelligence quality and historical delivery — 2026-11-10
+
+- **Continuation:** existing draft PR #547 and branch `codex/m40-intelligence-quality`; no merge, deployment, new model, table or publication route.
+- **Implementation:** publication-linked candidate event geography with the existing country registry and local flags; bounded historical evidence verification and Contentful draft batches with previous audit preserved and optimistic concurrency; corrected GDELT timestamp parsing and expanded approved discovery topics; paginated approved historical ASK context. Original timestamps, editorial approval, T3 auto-publication, the 12-hour alert window and separate technical/statistical reference view remain governed by existing paths.
+- **Validation:** 86 focused tests plus four focused dashboard tests passed, as did content, internal-link, announcement, intent and continuous-intelligence checks. These are local results, not live release acceptance.
+- **Read-only evidence and limitations:** the 2024-12-31 PYMNTS cross-border article cited in `PROJECT_STATUS.md` scored 90 in the existing assessment and passed historical source validation as REVIEW. It was not staged or drafted. Production had no T3 2022–2024 candidate or editorial-verified published intelligence in the checked queue/audits; the observed GDELT timestamp is rejected by the deployed parser and the latest external probe was rate-limited. No editorial approval, identity allocation, publication, live reader verification or deployment occurred.
+
 ## M39 Gate 2 recovery — 2026-11-08
 
 - **Classification / objective:** INTELLIGENCE, DATA and AUTOMATION. Integrate recovered technical exports, verify the World Bank workbook, acquire Mojaloop and Hyperswitch history through the existing governed staging path, test, and submit one branch PR without production writes or deployments.

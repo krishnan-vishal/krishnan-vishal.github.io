@@ -196,7 +196,7 @@ function reject(reasonCode, evidence = {}) {
 // Evidence verification is recorded separately from the confidence gate so that an
 // unattempted fetch (NOT_ATTEMPTED) is never mistaken for a failed verification (FAILED).
 // Confidence is never changed by fetching an article; it only gates publication.
-async function validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs, editorialApproval, evidence }) {
+async function validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs, editorialApproval, historicalReview, evidence }) {
   if (!source || source.source_status !== 'GREEN' || !source.official_url)
     return review('SOURCE_NOT_APPROVED');
   if (!candidate?.canonical_url || !isOfficialUrl(candidate.canonical_url, source.official_url))
@@ -215,6 +215,12 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
     confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence;
   const confidenceGateMet = editorialRoute || t3Automatic ||
     Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold);
+  const candidateTime = Date.parse(candidate.published_at || '');
+  const historicalEvidence = historicalReview === true && !editorialRoute && t3Profile &&
+    Number.isFinite(confidence) && confidence < T3_AUTOMATIC_PUBLICATION.minConfidence &&
+    Number.isFinite(candidateTime) && candidateTime >= Date.parse('2021-11-01T00:00:00Z') &&
+    candidateTime < Date.parse('2026-12-01T00:00:00Z') && candidateTime <= now();
+  if (historicalReview && !historicalEvidence) return review('HISTORICAL_REVIEW_NOT_ELIGIBLE');
   const thresholdReview = (extra = {}) => review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
     canonicalUrl: candidate.canonical_url,
     sourcePublishedAt: candidate.published_at,
@@ -229,7 +235,7 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   });
   if (!confidenceGateMet) {
     const eligibleTier = Boolean(threshold) || source.trust_tier === 'T3';
-    if (!eligibleTier || !isWithinLiveWindow(candidate.published_at, now())) {
+    if (!eligibleTier || (!isWithinLiveWindow(candidate.published_at, now()) && !historicalEvidence)) {
       evidence.reason = eligibleTier ? 'OUTSIDE_LIVE_WINDOW' : 'SOURCE_TIER_NOT_ELIGIBLE';
       return thresholdReview();
     }
@@ -284,10 +290,10 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   const publishedAt = sourceTimestamp(html);
   if (!publishedAt) return review('SOURCE_TIMESTAMP_MISSING', { canonicalUrl: canonical, sourceHttpStatus: response.status });
   const publishedTime = Date.parse(publishedAt);
-  const candidateTime = Date.parse(candidate.published_at || '');
   if (!Number.isFinite(candidateTime) || publishedTime > now() + 5 * 60 * 1000)
     return reject('SOURCE_TIMESTAMP_INVALID', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
-  if (Math.abs(publishedTime - candidateTime) > 36 * 60 * 60 * 1000)
+  if ((historicalEvidence && publishedTime !== candidateTime) ||
+      Math.abs(publishedTime - candidateTime) > 36 * 60 * 60 * 1000)
     return review('SOURCE_TIMESTAMP_MISMATCH', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const content = articleContent(html);
@@ -348,10 +354,10 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
 }
 
 export async function validateCandidateSource({ candidate, source, fetchImpl = fetch,
-  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null }) {
+  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null, historicalReview = false }) {
   const evidence = { attempted: false, status: 'NOT_ATTEMPTED', reason: 'SOURCE_NOT_ELIGIBLE' };
   const result = await validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs,
-    editorialApproval, evidence });
+    editorialApproval, historicalReview, evidence });
   if (evidence.status === 'FAILED') evidence.reason = result.reasonCode;
   return { ...result, evidenceVerification: { ...evidence },
     validationPayload: { ...result.validationPayload, evidence_verification: { ...evidence } } };
