@@ -53,7 +53,7 @@ jobs:
       - name: Hand off eligible candidates to Contentful drafts
         run: >-
           node scripts/m40/sync-contentful-editorial-drafts.mjs
-          ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run')) && '--dry-run' || '' }}
+          ${{ github.event_name == 'push' && '--limit=1' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run' && '--dry-run') || '' }}
           --report=m40-draft-handoff-report.json
       - name: Upload credential-free handoff report
         if: always()
