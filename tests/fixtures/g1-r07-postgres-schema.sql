@@ -2,6 +2,8 @@
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin;
+create role authenticator nologin noinherit;
+grant anon, authenticated, service_role to authenticator;
 create table public.source_registry(source_id text primary key,source_name text,official_url text,trust_tier text,source_status text);
 create table public.intelligence_candidates(
  id uuid primary key,raw_ingestion_id uuid,source_id text,canonical_url text,title text,

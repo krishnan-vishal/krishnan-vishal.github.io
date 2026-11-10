@@ -181,10 +181,12 @@ test('only the published Delivery API is used and a management token is refused'
   assert.equal(entries[0].entryId, 'e1');
 });
 
-test('the T3 publication RPC is used only for editorial publications', async () => {
+test('the T3 publication RPC requires verified approval and a separate publisher credential', async () => {
   const calls = [];
-  const repository = createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' },
-    fetchImpl: async url => { calls.push(new URL(url).pathname); return { ok: true, json: async () => 'id' }; } });
+  const config = { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'service',
+    publicKey: 'public', publisherJwt: 'publisher' };
+  const repository = createRestPublicationRepository({ config,
+    fetchImpl: async (url, init) => { calls.push({ path: new URL(url).pathname, headers: init.headers }); return { ok: true, json: async () => 'id' }; } });
   const item = candidate();
   const approval = evaluateEditorialEntry({ entry: entry(), candidate: item, source: T3 });
   const validation = await validateCandidateSource({ candidate: item, source: T3, fetchImpl: fetchPage(item),
@@ -192,8 +194,15 @@ test('the T3 publication RPC is used only for editorial publications', async () 
   await assert.rejects(repository.publish(item, validation, T3, { ...approval }), /CONTENTFUL_APPROVAL_REQUIRED/);
   await assert.rejects(repository.publish({ ...item, id: '22222222-2222-4222-8222-222222222222' },
     validation, T3, approval), /CONTENTFUL_APPROVAL_REQUIRED/);
+  const noPublisher = createRestPublicationRepository({ config: { ...config, publisherJwt: '' } });
+  await assert.rejects(noPublisher.publish(item, validation, T3, approval), /EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED/);
+  const sharedPublisher = createRestPublicationRepository({ config: { ...config, publisherJwt: config.key } });
+  await assert.rejects(sharedPublisher.publish(item, validation, T3, approval), /EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED/);
   await repository.publish(item, validation, T3, approval);
-  assert.deepEqual(calls, ['/rest/v1/rpc/gpir_publish_t3_editorial_candidate']);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].path, '/rest/v1/rpc/gpir_publish_t3_editorial_candidate');
+  assert.equal(calls[0].headers.get('apikey'), 'public');
+  assert.equal(calls[0].headers.get('authorization'), 'Bearer publisher');
 });
 
 test('missing Contentful delivery configuration is an explicit error, not an empty approval list', async () => {

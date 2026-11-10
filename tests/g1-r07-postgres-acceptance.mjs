@@ -150,4 +150,48 @@ assert.notEqual(deniedEditorial.code,0);
 assert.match(deniedEditorial.stderr,/permission denied for table global_announcements/);
 const ingestion=await concurrent("set role service_role; insert into public.intelligence_candidates(id,source_id,candidate_status) values('00000000-0000-4000-8000-000000000209','C','PENDING')");
 assert.equal(ingestion.code,0,`candidate ingestion remains independently permitted: ${ingestion.stderr}`);
-console.log('G1-R07 PostgreSQL acceptance PASS: legacy RPCs denied; shared table rights allow direct writes and forged editorial proof; removing them also breaks the invoker publisher');
+
+// Apply the proposed migration in the isolated database, starting with the
+// production-like service-role announcement grants.
+const editorialFunction='public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)';
+run('grant insert,update on public.global_announcements to service_role');
+file('supabase/migrations/20261110040000_m40_isolate_editorial_publisher.sql');
+assert.equal(run(`select has_function_privilege('service_role','${editorialFunction}','execute')`).trim(),'f');
+assert.equal(run(`select has_function_privilege('gpir_editorial_publisher','${editorialFunction}','execute')`).trim(),'t');
+assert.equal(run("select has_table_privilege('service_role','public.global_announcements','select')").trim(),'t');
+assert.equal(run("select pg_has_role('authenticator','gpir_editorial_publisher','member')").trim(),'t');
+for (const sql of [
+ `set role service_role; ${editorialCall(deniedEditorialId,'c'.repeat(64),editorialPayload(deniedEditorialId,'https://c.example/8'),'editorial payment publication after table privilege removal').replace(`'${key}'`,`'${'3'.repeat(64)}'`)}`,
+ 'set session authorization service_role; set role gpir_editorial_publisher',
+ "set role gpir_editorial_publisher; insert into public.global_announcements(canonical_url,publication_status) values('https://c.example/publisher-direct','approved')"
+]) {
+ const result=await concurrent(sql);
+ assert.notEqual(result.code,0,`untrusted publication or direct table write must fail: ${sql}`);
+ assert.match(result.stderr,/permission denied/);
+}
+const trusted=await concurrent(`set session authorization authenticator; set role gpir_editorial_publisher; ${editorialCall(deniedEditorialId,'c'.repeat(64),
+ editorialPayload(deniedEditorialId,'https://c.example/8'),'editorial payment publication after table privilege removal')
+ .replace(`'${key}'`,`'${'3'.repeat(64)}'`)}`);
+assert.equal(trusted.code,0,`isolated trusted publisher must retain editorial publication: ${trusted.stderr}`);
+assert.equal(run("select publication_status from public.global_announcements where canonical_url='https://c.example/8'").trim(),'approved');
+const historicalId='00000000-0000-4000-8000-000000000211';
+run(`insert into public.intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status)
+ values('${historicalId}','C','https://c.example/historical','Historical payments development for regional settlement',
+ '2024-01-15T10:00:00Z','Payments','UPDATE',40,'REVIEW')`);
+const historicalCall=editorialCall(historicalId,'d'.repeat(64),editorialPayload(historicalId,'https://c.example/historical'),
+ 'historical payments development for regional settlement')
+ .replace(`'${key}'`,`'${'4'.repeat(64)}'`).replace("now()-interval '1 hour'","'2024-01-15T10:00:00Z'::timestamptz");
+const invalidProof=await concurrent(`set session authorization authenticator; set role gpir_editorial_publisher; ${
+ historicalCall.replace('"editorial_verified":true','"editorial_verified":false')}`);
+assert.notEqual(invalidProof.code,0,'even the trusted publisher must reject incomplete editorial evidence');
+assert.match(invalidProof.stderr,/G1_T3_EDITORIAL_INVALID_EVIDENCE/);
+const historical=await concurrent(`set session authorization authenticator; set role gpir_editorial_publisher; ${historicalCall}`);
+assert.equal(historical.code,0,historical.stderr);
+assert.equal(run("select ticker_eligible||':'||to_char(published_at at time zone 'UTC','YYYY-MM-DD HH24:MI:SS') from public.global_announcements where canonical_url='https://c.example/historical'").trim(),
+ 'false:2024-01-15 10:00:00');
+const repeat=await concurrent(`set session authorization authenticator; set role gpir_editorial_publisher; ${historicalCall}`);
+assert.notEqual(repeat.code,0,'a repeated publication cannot create a duplicate');
+assert.equal(run("select count(*) from public.global_announcements where canonical_url='https://c.example/historical'").trim(),'1');
+const ingestionAfter=await concurrent("set role service_role; insert into public.intelligence_candidates(id,source_id,candidate_status) values('00000000-0000-4000-8000-000000000210','C','PENDING')");
+assert.equal(ingestionAfter.code,0,`candidate ingestion must remain permitted: ${ingestionAfter.stderr}`);
+console.log('G1-R07 PostgreSQL acceptance PASS: isolated dedicated publisher can call the definer RPC; service role cannot publish and candidate ingestion remains permitted');

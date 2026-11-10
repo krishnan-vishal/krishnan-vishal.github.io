@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 isolated publisher boundary continuation — 2026-11-10
+
+- **Scope:** existing PR #547; owner authorized isolated implementation only. No production migration, credential rotation, deployment, merge or publication.
+- **Branch changes:** propose a dedicated NOLOGIN publisher role, with the NOINHERIT PostgREST authenticator as member; revoke announcement mutation from ordinary API roles and restrict the existing SECURITY DEFINER T3 RPC to the publisher role. The Edge publisher uses a separately provisioned publisher JWT and public API key for that RPC after its existing fresh Contentful approval check. The scheduled scraper now writes raw discovery and invokes existing assessment rather than approving announcements directly.
+- **Tests:** actual isolated PostgreSQL applies the migration and confirms direct service-role and spoofed RPC denial, no role switch by the ordinary service role, restricted-role T3 publication, continued candidate insertion, original historical source date, 12-hour ineligibility and duplicate rejection. 46 editorial/flow/consolidation tests and 34 publisher/relay tests passed; the scraper fixture checks bounded ingestion, repeat behavior, RAW recovery and explicit assessment errors. These do not prove an actual Contentful-to-PostgREST-to-database flow or real scheduled ingestion. An additional FX assertion failed as previously established on the base branch and was excluded from the 34-test run. Deno was unavailable.
+- **NO-GO:** the dedicated role isolates the ordinary processor, but the SQL function cannot verify Contentful and accepts caller-supplied flags from a holder of the publisher credential. Publisher JWT provisioning and PostgREST integration have not been tested end to end. Deployed alert v4 and public intelligence have not been brought under Contentful authority, and T1/T1.5/T2 and owner-authored public promotion remain unfinished. The proposed migration is not safe to deploy alone. No owner decision is asserted for publication.
+
 ## M40 publication trust-boundary determination — 2026-11-10
 
 - **Scope:** existing PR #547; no production permission changes, publication, deployment or merge. No publication-boundary correction is claimed.

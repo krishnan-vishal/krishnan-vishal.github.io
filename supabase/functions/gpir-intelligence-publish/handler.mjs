@@ -64,7 +64,12 @@ function configuration(env) {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:' || !/^[a-z0-9]{20}\.supabase\.co$/.test(parsed.hostname) || !key)
       return null;
-    return { url: parsed.origin, key };
+    return {
+      url: parsed.origin,
+      key,
+      publicKey: String(env.SUPABASE_ANON_KEY || '').trim(),
+      publisherJwt: String(env.GPIR_EDITORIAL_PUBLISHER_JWT || '').trim()
+    };
   } catch {
     return null;
   }
@@ -309,8 +314,16 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
           validation.validationPayload.editorial_publication_id !== approval.publicationId ||
           validation.validationPayload.editorial_source_url !== candidate.canonical_url)
         throw new Error('CONTENTFUL_APPROVAL_REQUIRED');
+      if (!config.publicKey || !config.publisherJwt ||
+          config.publisherJwt === config.key || config.publisherJwt === config.publicKey)
+        throw new Error('EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED');
+      const publisherHeaders = new Headers({
+        apikey: config.publicKey,
+        authorization: `Bearer ${config.publisherJwt}`,
+        'content-type': 'application/json'
+      });
       const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_t3_editorial_candidate`, {
-        method: 'POST', headers,
+        method: 'POST', headers: publisherHeaders,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
           ...await eventIdentity(candidate, validation, source),
