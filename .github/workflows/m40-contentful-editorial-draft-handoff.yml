@@ -1,0 +1,60 @@
+name: M40 Contentful editorial draft handoff
+
+# Creates unpublished gpirPublication drafts for source-verified T3 candidates that await an
+# editorial decision. It never publishes: an editor approves and publishes in Contentful, after
+# which the existing gpir-intelligence-publish cron promotes the entry to the reader APIs.
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run lists planned drafts; sync creates or refreshes unpublished drafts'
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - sync
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m40-contentful-editorial-draft-handoff
+  cancel-in-progress: false
+
+jobs:
+  draft-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: contentful-production
+    env:
+      SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate the handoff and the existing editorial publication contract
+        run: >-
+          node --test
+          tests/m40/contentful-editorial-drafts.test.mjs
+          tests/m39-t3-editorial-approval.test.mjs
+      - name: Hand off eligible candidates to Contentful drafts
+        run: >-
+          node scripts/m40/sync-contentful-editorial-drafts.mjs
+          ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') && '--dry-run' || '' }}
+          --report=m40-draft-handoff-report.json
+      - name: Upload credential-free handoff report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m40-draft-handoff-report-${{ github.run_id }}
+          path: m40-draft-handoff-report.json
+          if-no-files-found: ignore
+          retention-days: 14
