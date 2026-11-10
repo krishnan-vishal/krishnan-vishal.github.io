@@ -1020,7 +1020,7 @@ not a bolted-on news widget.
 
     margin-bottom:10px;
 
-    color:#8A94A6;
+    color:#5A6579;
 
     font-size:12px;
 
@@ -1179,7 +1179,7 @@ not a bolted-on news widget.
 
     margin:0;
 
-    color:#8A94A6;
+    color:#5A6579;
 
     font-size:13px;
 
@@ -1201,7 +1201,7 @@ not a bolted-on news widget.
 
 .intel-source-list dt{
 
-    color:#8A94A6;
+    color:#434E60;
 
     font-weight:700;
 }
@@ -1301,7 +1301,7 @@ TRUST / SOURCE VERIFICATION LAYER
 
     margin:0 0 4px;
 
-    color:#8A94A6;
+    color:#5A6579;
 
     font-size:11px;
 
@@ -1406,7 +1406,7 @@ TRUST / SOURCE VERIFICATION LAYER
 
     background:transparent;
 
-    color:#8A94A6;
+    color:#5A6579;
 
     font-size:12.5px;
 
@@ -1469,11 +1469,16 @@ TRUST / SOURCE VERIFICATION LAYER
 
     border-top:1px solid #E4E9F0;
 
-    color:#A0AAB8;
+    color:#5A6579;
 
     font-size:11px;
 
     line-height:1.6;
+}
+
+.intel-panel .search-panel-title{
+
+    color:#5A6579;
 }
 
 .intel-related{
