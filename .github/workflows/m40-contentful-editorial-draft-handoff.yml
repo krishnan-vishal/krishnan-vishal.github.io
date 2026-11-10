@@ -4,6 +4,11 @@ name: M40 Contentful editorial draft handoff
 # editorial decision. It never publishes: an editor approves and publishes in Contentful, after
 # which the existing gpir-intelligence-publish cron promotes the entry to the reader APIs.
 on:
+  push:
+    branches:
+      - codex/m40-contentful-editorial-draft-handoff
+    paths:
+      - .github/workflows/m40-contentful-editorial-draft-handoff.yml
   schedule:
     - cron: '17,47 * * * *'
   workflow_dispatch:
@@ -48,7 +53,7 @@ jobs:
       - name: Hand off eligible candidates to Contentful drafts
         run: >-
           node scripts/m40/sync-contentful-editorial-drafts.mjs
-          ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') && '--dry-run' || '' }}
+          ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run')) && '--dry-run' || '' }}
           --report=m40-draft-handoff-report.json
       - name: Upload credential-free handoff report
         if: always()
