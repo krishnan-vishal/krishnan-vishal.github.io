@@ -17,6 +17,12 @@ test('same topic persists across milestone and date',async()=>{
 test('missing evidence does not produce event identity',async()=>{
  await assert.rejects(()=>eventIdentity({title:'Short'},validation),/G1_R07_EVENT_IDENTITY_REVIEW/);
 });
+test('event geography comes from the candidate, not publisher headquarters',async()=>{
+ const item={title:'Regional payments network launches interoperability',source_id:'A'};
+ const source={country:'US',region_tags:['North America']};
+ assert.equal((await eventIdentity(item,validation,source)).p_geography,'UNSPECIFIED');
+ assert.equal((await eventIdentity({...item,country_code:'IN',region:'South Asia'},validation,source)).p_geography,'South Asia');
+});
 test('public feed exposes verified links only and preserves archived lifecycle',()=>{
  const announcement={id:'a',source_id:'A',title:'Regional payments network launches interoperability',
  summary_narration:'Verified payments and remittance infrastructure announcement across several regions.',

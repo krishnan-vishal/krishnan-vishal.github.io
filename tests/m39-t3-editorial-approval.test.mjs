@@ -83,8 +83,8 @@ test('editorial approval is denied for every identity, source, status and eviden
   assert.equal(evaluateEditorialEntry({ entry: entry({}, { legacySourceUrl: 'https://evil.example/news/payments/2026/a' }),
     candidate: candidate({ canonical_url: 'https://evil.example/news/payments/2026/a' }), source: T3 }).reasonCode,
   'EDITORIAL_SOURCE_URL_MISMATCH');
-  assert.equal(evaluateEditorialEntry({ entry: entry(), candidate: candidate(), source: { ...T3, trust_tier: 'T2' } }).reasonCode,
-    'EDITORIAL_SOURCE_NOT_T3');
+  assert.equal(evaluateEditorialEntry({ entry: entry(), candidate: candidate(), source: { ...T3, trust_tier: 'T4' } }).reasonCode,
+    'EDITORIAL_SOURCE_NOT_ELIGIBLE');
 });
 
 test('duplicate Contentful entries for one candidate or URL are ambiguous and never approve', () => {
@@ -319,6 +319,8 @@ test('every published editorial entry is read across pages and an incomplete rea
   assert.ok(entries.some(item => item.entryId === 'e0249'));
   await assert.rejects(() => fetchPublishedEditorialEntries({ config,
     fetchImpl: async () => ({ ok: true, json: async () => ({ total: 999999, items: [make(1)] }) }) }), /CONTENTFUL_ENTRY_LIMIT_EXCEEDED/);
+  await assert.rejects(() => fetchPublishedEditorialEntries({ config,
+    fetchImpl: async () => ({ ok: true, json: async () => ({ total: 1, items: [] }) }) }), /CONTENTFUL_INCOMPLETE_PAGE/);
   await assert.rejects(() => fetchPublishedEditorialEntries({ config, fetchImpl: async () => ({ ok: false, status: 429 }) }), /CONTENTFUL_HTTP_429/);
 });
 

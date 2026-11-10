@@ -137,7 +137,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       const scan = async ({ status, lower, upper }) => {
         for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
           const query = new URLSearchParams({
-            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,country_code,region,created_at',
             candidate_status: status,
             order: 'published_at.asc,id.asc',
             limit: String(CANDIDATE_PAGE_SIZE),
@@ -209,7 +209,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     async candidate(candidateId) {
       if (!UUID.test(candidateId)) return null;
       const query = new URLSearchParams({
-        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,country_code,region,created_at',
         id: `eq.${candidateId}`,
         candidate_status: 'in.(PENDING,REVIEW,VALIDATING)',
         limit: '1'
@@ -375,7 +375,7 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
 }
 
 // An editor's change after the last decision, or a due transient retry, re-opens a
-// T3 candidate. Terminal decisions are never re-opened.
+// candidate. Terminal decisions are never re-opened.
 function editorialDue(audit, candidate, entry, now) {
   if (!audit || !FINAL_DECISIONS.has(audit.decision)) return true;
   if (TERMINAL_DECISIONS.has(audit.decision)) return false;
@@ -386,7 +386,7 @@ function editorialDue(audit, candidate, entry, now) {
   return Number.isFinite(updated) && Number.isFinite(completed) && updated > completed;
 }
 
-// Publishes T3 candidates only through a Contentful entry that is published and
+// Publishes candidates only through a Contentful entry that is published and
 // explicitly approved. No entry, no publication; nothing here approves anything.
 export async function processEditorialApprovals({ repository, fetchImpl = fetch, now = () => Date.now(),
   limit = 5, logger = console }) {
@@ -401,7 +401,7 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
     try {
       const candidate = await repository.candidate(candidateId);
       const source = candidate ? await repository.source(candidate.source_id) : null;
-      if (!candidate || source?.trust_tier !== 'T3') { summary.skipped += 1; continue; }
+      if (!candidate || !['T1', 'T1.5', 'T2', 'T3'].includes(source?.trust_tier)) { summary.skipped += 1; continue; }
       if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
       const entriesForCandidate = await repository.editorialEntriesFor(candidate);
       const outcome = await processCandidate({ candidate, repository, fetchImpl, now,

@@ -1,6 +1,6 @@
 import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.mjs';
 
-// T3 editorial approval reuses the existing Contentful `gpirPublication` model.
+// Editorial approval reuses the existing Contentful `gpirPublication` model.
 // Only the read-only Delivery API is used, so an entry is visible here solely
 // when an editor has published it in Contentful. Mapping, with no new fields:
 //   supabaseRecordId       -> intelligence_candidates.id
@@ -15,6 +15,7 @@ const CONTENT_TYPE = 'gpirPublication';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
 const MIN_EVIDENCE_LENGTH = 40;
+const EDITORIAL_SOURCE_TIERS = new Set(['T1', 'T1.5', 'T2', 'T3']);
 const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
   'fields.legacySourceUrl', 'fields.publicationStatus', 'fields.validationStatus',
   'fields.sourceValidationSummary'].join(',');
@@ -75,8 +76,11 @@ export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch
     const { items, total } = await readEntries(config, fetchImpl, {
       'fields.supabaseRecordId[exists]': 'true', 'fields.legacySourceUrl[exists]': 'true',
       order: 'sys.id', limit: String(PAGE_SIZE), skip: String(page * PAGE_SIZE) });
+    if (total > PAGE_SIZE * MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
+    if (items.length !== Math.min(PAGE_SIZE, Math.max(0, total - page * PAGE_SIZE)))
+      throw new Error('CONTENTFUL_INCOMPLETE_PAGE');
     entries.push(...items);
-    if ((page + 1) * PAGE_SIZE >= total || !items.length) break;
+    if ((page + 1) * PAGE_SIZE >= total) break;
   }
   return entries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.entryId.localeCompare(b.entryId));
 }
@@ -109,8 +113,8 @@ export function ambiguousEditorialKeys(entries) {
 
 export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = new Set() }) {
   const denied = reasonCode => ({ approved: false, reasonCode });
-  if (!source || source.trust_tier !== 'T3' || source.source_status !== 'GREEN')
-    return denied('EDITORIAL_SOURCE_NOT_T3');
+  if (!source || !EDITORIAL_SOURCE_TIERS.has(source.trust_tier) || source.source_status !== 'GREEN')
+    return denied('EDITORIAL_SOURCE_NOT_ELIGIBLE');
   const fields = entry?.fields || {};
   const recordId = text(fields.supabaseRecordId).toLowerCase();
   const sourceUrl = text(fields.legacySourceUrl);

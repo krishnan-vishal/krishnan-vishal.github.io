@@ -205,15 +205,18 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   // Eligible GREEN-source candidates inside the 12-hour live window have their article
   // evidence fetched and verified independently of the stored confidence score. Older
   // candidates that cannot meet the tier threshold are recorded without spending a fetch.
-  // Only a T3 source with a verified Contentful editorial approval replaces the
-  // automatic threshold; every evidence check below still applies to it.
-  const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
+  // Only an editorially approved T3 source can use the existing lower-confidence
+  // editorial profile. Other tiers retain their confidence thresholds.
+  const editorialRoute = (source.trust_tier === 'T3' ||
+    Object.hasOwn(AUTO_PUBLICATION_THRESHOLDS, source.trust_tier)) &&
+    isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
   const t3Profile = source.trust_tier === 'T3' && !editorialRoute;
-  const t3Automatic = t3Profile && Number.isFinite(confidence) &&
+  const t3StrictEvidence = source.trust_tier === 'T3' && Number.isFinite(confidence) &&
     confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence;
-  const confidenceGateMet = editorialRoute || t3Automatic ||
+  const t3Automatic = t3Profile && t3StrictEvidence;
+  const confidenceGateMet = (source.trust_tier === 'T3' && editorialRoute) || t3Automatic ||
     Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold);
   const candidateTime = Date.parse(candidate.published_at || '');
   const historicalEvidence = historicalReview === true && !editorialRoute &&
@@ -298,11 +301,11 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
 
   const content = articleContent(html);
   const sentences = meaningfulSentences(content, candidate.title);
-  if (content.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
-      sentences.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
+  if (content.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
+      sentences.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
     return review('INSUFFICIENT_SOURCE_EVIDENCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
   const relevanceTerms = relevantEvidence(candidate.title, content);
-  if (relevanceTerms.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
+  if (relevanceTerms.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
     return review('INSUFFICIENT_PAYMENTS_RELEVANCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const normalizedContent = content.toLowerCase().replace(/\s+/g, ' ').trim();

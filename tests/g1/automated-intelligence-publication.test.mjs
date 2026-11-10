@@ -307,7 +307,7 @@ test('a retried transient failure still requires full validation and cannot bypa
 test('publisher geography is not used as event geography and source attribution remains intact', async () => {
   const { eventIdentity } = await import('../../supabase/functions/_shared/gpir-event-identity.mjs');
   const identity = await eventIdentity(candidate(), { sourcePublishedAt: new Date(NOW).toISOString() }, SOURCE);
-  assert.equal(identity.p_geography, 'Exampleland');
+  assert.equal(identity.p_geography, 'UNSPECIFIED');
   const other = { ...SOURCE, source_id: 'CB-TEST-002', source_name: 'Second Authority',
     official_url: 'https://second.example', country: 'Otherland', region_tags: ['EMEA'], category: 'Regulator' };
   const item = candidate();
