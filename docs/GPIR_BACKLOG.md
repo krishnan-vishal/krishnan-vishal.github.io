@@ -12,6 +12,7 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 | ID | Requirement | Status | Dependency | Outcome |
 |---|---|---|---|---|
 | M40-QUALITY-HISTORY | Governed executive/reference separation, evidence-based geography and flags, historical CMS drafts and delivery | IN PROGRESS | Real 2022–2024 staged candidate and unpublished draft; owner editorial decision and governed publication; coordinated owner-authorized deployment and live reader acceptance | Branch implementation and focused tests pass. A 2024 PYMNTS source passed read-only historical evidence validation but is not staged. Production discovery rejects observed GDELT timestamps; the branch correction is not deployed, per the release constraint. No editorial-verified published intelligence was found for live archive/dashboard/ASK acceptance. |
+| M40-CMS-AUTHORITY | Make Contentful authority mandatory for all editorial intelligence without disabling historical, alert or owner-authored flows | BLOCKED | Enforce authority across privileged database write paths while preserving audit and service contracts; extend existing CMS handoff and publisher to currently unsupported source tiers, high-confidence T3 and owner-authored entries; verify live only after authorization | Branch publisher fails closed without CMS approval, but existing privileged RPC/table writes bypass it and the current CMS route is T3-only. The changes are not deployed; automatic non-CMS publication is intentionally no longer permitted by the requested policy. |
 
 ## M39 Gate 2 recovery
 

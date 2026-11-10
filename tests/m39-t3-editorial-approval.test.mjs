@@ -185,11 +185,21 @@ test('the T3 publication RPC is used only for editorial publications', async () 
   const calls = [];
   const repository = createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' },
     fetchImpl: async url => { calls.push(new URL(url).pathname); return { ok: true, json: async () => 'id' }; } });
-  const validation = { sourcePublishedAt: candidate().published_at, summary: 's', contentFingerprint: 'a'.repeat(64),
-    validationPayload: {}, relevanceTerms: ['payment'] };
-  await repository.publish(candidate(), { ...validation, editorial: true }, T3);
-  await repository.publish(candidate(), validation, T3);
-  assert.deepEqual(calls, ['/rest/v1/rpc/gpir_publish_t3_editorial_candidate', '/rest/v1/rpc/gpir_publish_consolidated_candidate']);
+  const item = candidate();
+  const approval = evaluateEditorialEntry({ entry: entry(), candidate: item, source: T3 });
+  const validation = await validateCandidateSource({ candidate: item, source: T3, fetchImpl: fetchPage(item),
+    now: () => NOW, editorialApproval: approval });
+  await assert.rejects(repository.publish(item, validation, T3, { ...approval }), /CONTENTFUL_APPROVAL_REQUIRED/);
+  await assert.rejects(repository.publish({ ...item, id: '22222222-2222-4222-8222-222222222222' },
+    validation, T3, approval), /CONTENTFUL_APPROVAL_REQUIRED/);
+  await repository.publish(item, validation, T3, approval);
+  assert.deepEqual(calls, ['/rest/v1/rpc/gpir_publish_t3_editorial_candidate']);
+});
+
+test('missing Contentful delivery configuration is an explicit error, not an empty approval list', async () => {
+  const repository = createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' } });
+  await assert.rejects(repository.editorialEntries(), /CONTENTFUL_CONFIGURATION_REQUIRED/);
+  await assert.rejects(repository.editorialEntriesFor(candidate()), /CONTENTFUL_CONFIGURATION_REQUIRED/);
 });
 
 test('handler reports editorial availability without affecting the automated batch', async () => {

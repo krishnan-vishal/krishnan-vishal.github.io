@@ -130,6 +130,7 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
   const approval = Object.freeze({
     approved: true,
     entryId: entry.entryId,
+    candidateId: recordId,
     publicationId: text(fields.gpirPublicationId),
     sourceUrl: urlKey
   });

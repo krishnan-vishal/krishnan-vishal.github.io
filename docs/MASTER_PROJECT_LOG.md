@@ -14,6 +14,14 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 CMS publication authority assessment — 2026-11-10
+
+- **Requested decision:** all editorial intelligence must be authorized through Contentful; no direct Supabase, GitHub or coding-tool bypass. Do not merge, deploy, publish or allocate identity.
+- **Branch correction:** the existing Edge publisher no longer calls its automatic T3 or consolidated T1/T1.5/T2 publication RPCs. Validated non-duplicates remain REVIEW until verified Contentful approval; the T3 editorial route continues its fresh Delivery read and source checks. The REST repository rejects missing, copied or candidate-mismatched approvals, and missing CMS configuration is surfaced. This intentionally changes the earlier automatic-publication policy.
+- **Release blockers:** the existing service role retains direct announcement writes and execute permissions on legacy and automatic RPCs; the editorial RPC trusts supplied evidence and cannot independently verify Contentful. Current CMS drafts exclude high-confidence T3, and the editorial route only accepts T3 candidates, not T1/T1.5/T2 or unlinked owner-authored entries. The application change alone cannot establish the requested mandatory authority or independently operating end-to-end flows. No database grant, audit, content, approval or production state was changed.
+- **Validation:** 103 targeted publisher, CMS, historical, source, geography and reference tests passed. Content, links, announcements, intent, recovery and whitespace checks passed. An unrelated pre-existing FX/dashboard text assertion was excluded after its absence was confirmed on `origin/main`.
+- **Deployment boundary:** after resolution and authorization, coordinate `gpir-intelligence-publish`, `gpir-intelligence-fetch`, `gpir-public-intelligence`, Pages assets and the existing draft-handoff workflow. Full historical draft, approved intelligence delivery and authenticated live acceptance remain unverified.
+
 ## M40 intelligence quality and historical delivery — 2026-11-10
 
 - **Continuation:** existing draft PR #547 and branch `codex/m40-intelligence-quality`; no merge, deployment, new model, table or publication route.

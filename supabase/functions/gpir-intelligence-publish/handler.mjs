@@ -1,7 +1,7 @@
 import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
-  fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
+  fetchPublishedEditorialEntries, isVerifiedEditorialApproval, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -192,11 +192,13 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     },
 
     async editorialEntries() {
-      return contentful ? fetchPublishedEditorialEntries({ config: contentful, fetchImpl }) : [];
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchPublishedEditorialEntries({ config: contentful, fetchImpl });
     },
 
     async editorialEntriesFor(candidate) {
-      return contentful ? fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate }) : [];
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate });
     },
 
     async candidate(candidateId) {
@@ -298,11 +300,16 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       ]);
     },
 
-    async publish(candidate, validation, source = null) {
-      const procedure = validation.editorial === true ? 'gpir_publish_t3_editorial_candidate'
-        : validation.t3Automatic === true ? 'gpir_publish_t3_automatic_candidate'
-          : 'gpir_publish_consolidated_candidate';
-      const data = await jsonFetch(fetchImpl, `${base}/rpc/${procedure}`, {
+    async publish(candidate, validation, source = null, approval = null) {
+      if (!isVerifiedEditorialApproval(approval) || validation.editorial !== true ||
+          validation.validationPayload?.editorial_verified !== true ||
+          approval.candidateId !== String(candidate.id).toLowerCase() ||
+          validation.validationPayload.editorial_supabase_record_id !== candidate.id ||
+          validation.validationPayload.editorial_entry_id !== approval.entryId ||
+          validation.validationPayload.editorial_publication_id !== approval.publicationId ||
+          validation.validationPayload.editorial_source_url !== candidate.canonical_url)
+        throw new Error('CONTENTFUL_APPROVAL_REQUIRED');
+      const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_t3_editorial_candidate`, {
         method: 'POST', headers,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
@@ -345,7 +352,12 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
     await repository.record(candidate, duplicate);
     return duplicate;
   }
-  const announcementId = await repository.publish(candidate, validation, source);
+  if (!isVerifiedEditorialApproval(editorialApproval) || validation.editorial !== true) {
+    const pending = { ...validation, decision: 'REVIEW', reasonCode: 'CONTENTFUL_APPROVAL_REQUIRED' };
+    await repository.record(candidate, pending);
+    return pending;
+  }
+  const announcementId = await repository.publish(candidate, validation, source, editorialApproval);
   return { ...validation, announcementId };
 }
 
