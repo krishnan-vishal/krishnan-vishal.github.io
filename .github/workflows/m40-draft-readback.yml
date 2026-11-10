@@ -1,0 +1,44 @@
+name: M40 draft readback (read-only, temporary)
+
+on:
+  push:
+    branches:
+      - codex/m40-draft-readback
+    paths:
+      - .github/workflows/m40-draft-readback.yml
+
+permissions:
+  contents: read
+
+jobs:
+  readback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: contentful-production
+    env:
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+    steps:
+      - name: Read the draft, its content type model and entries for the candidate (GET only)
+        run: |
+          node --input-type=module -e '
+          const root = `https://api.contentful.com/spaces/${process.env.CONTENTFUL_SPACE_ID}/environments/${process.env.CONTENTFUL_ENVIRONMENT}`;
+          const headers = new Headers({ accept: "application/vnd.contentful.management.v1+json" });
+          headers.set("authorization", ["Bearer", process.env.CONTENTFUL_MANAGEMENT_TOKEN].join(" "));
+          const get = async path => { const r = await fetch(root + path, { headers }); return { status: r.status, body: await r.json() }; };
+          const id = "gpir-t3-8f3745e0-5ecc-4962-b22c-802936843ea7";
+          const entry = await get(`/entries/${id}`);
+          console.log("ENTRY_STATUS", entry.status);
+          console.log("SYS", JSON.stringify({ version: entry.body.sys?.version, publishedVersion: entry.body.sys?.publishedVersion ?? null,
+            archivedVersion: entry.body.sys?.archivedVersion ?? null, createdAt: entry.body.sys?.createdAt, updatedAt: entry.body.sys?.updatedAt }));
+          console.log("FIELDS", JSON.stringify(entry.body.fields, null, 1));
+          const ct = await get("/content_types/gpirPublication");
+          console.log("CONTENT_TYPE_FIELDS", JSON.stringify(ct.body.fields?.map(f => ({ id: f.id, type: f.type, required: f.required, validations: f.validations?.length ? f.validations : undefined })), null, 0));
+          for (const [k, v] of [["supabaseRecordId", "8f3745e0-5ecc-4962-b22c-802936843ea7"], ["legacySourceUrl", "https://www.pymnts.com/authentication/2026/global-payments-expands-authentication-platform-with-visa-data-sharing-tool/"]]) {
+            const r = await get(`/entries?content_type=gpirPublication&fields.${k}=${encodeURIComponent(v)}`);
+            console.log("LINKED", k, r.body.items?.map(i => i.sys.id));
+          }
+          const t3 = await get("/entries?content_type=gpirPublication&fields.legacySourceUrl[match]=pymnts.com&limit=20");
+          console.log("PYMNTS_ENTRIES", t3.body.total, t3.body.items?.map(i => [i.sys.id, i.sys.publishedVersion ?? null]));
+          '
