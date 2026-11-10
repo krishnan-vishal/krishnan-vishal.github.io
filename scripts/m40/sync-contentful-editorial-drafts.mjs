@@ -48,27 +48,51 @@ function evidenceVerified(payload) {
         payload.evidence_verification?.status === 'SUCCEEDED';
 }
 
-// Eligible: a T3 GREEN source, an open candidate inside the live window, below the T3 automatic
+// Eligible: a T3 GREEN source, an open candidate inside the selected window, below the T3 automatic
 // threshold, whose latest audit is the threshold review with every verification flag true, and
 // which is not already published, duplicated or announced through any route.
 export async function selectEligibleCandidates({ env, fetchImpl = fetch, now = Date.now(),
-    hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT }) {
+    hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT, historicalFrom, historicalTo, candidateId }) {
+    const historical = Boolean(historicalFrom || historicalTo || candidateId);
+    let since;
+    let until;
+    if (historical) {
+        const validDate = value => {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+            const timestamp = Date.parse(`${value}T00:00:00Z`);
+            return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
+        };
+        if (!validDate(historicalFrom) || !validDate(historicalTo) ||
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(candidateId || ''))
+            throw new Error('Historical mode requires valid from/to dates and one candidate UUID.');
+        since = `${historicalFrom}T00:00:00.000Z`;
+        until = `${historicalTo}T00:00:00.000Z`;
+        if (since < '2021-11-01T00:00:00.000Z' || until > '2026-12-01T00:00:00.000Z' ||
+            Date.parse(until) <= Date.parse(since) || Date.parse(until) - Date.parse(since) > 31 * 86400000)
+            throw new Error('Historical range must be at most 31 days within November 2021–November 2026.');
+    } else {
+        since = new Date(now - hours * 3600 * 1000).toISOString();
+    }
     const { base, headers } = supabaseAccess(env);
     const sources = await readRows(fetchImpl, base, headers, 'source_registry', {
         select: 'source_id,source_name,official_url', trust_tier: 'eq.T3', source_status: 'eq.GREEN', limit: '100' });
     if (!sources.length) return [];
-    const since = new Date(now - hours * 3600 * 1000).toISOString();
     const candidates = await readRows(fetchImpl, base, headers, 'intelligence_candidates', {
         select: 'id,source_id,title,canonical_url,published_at,candidate_status,confidence_score,country_code,region,' +
             'category,subcategory,event_type',
         source_id: `in.(${sources.map(item => item.source_id).join(',')})`,
-        candidate_status: `in.(${OPEN_STATUSES.join(',')})`, published_at: `gte.${since}`,
+        candidate_status: `in.(${OPEN_STATUSES.join(',')})`,
+        ...(historical ? { id: `eq.${candidateId}`, and: `(published_at.gte.${since},published_at.lt.${until})` }
+            : { published_at: `gte.${since}` }),
         confidence_score: `lt.${T3_AUTOMATIC_PUBLICATION.minConfidence}`,
         order: 'published_at.desc', limit: '200' });
     const selected = [];
     for (const candidate of candidates) {
         if (selected.length >= limit) break;
-        if (Date.parse(candidate.published_at) > now || !editorialUrlKey(candidate.canonical_url)) continue;
+        const candidateTime = Date.parse(candidate.published_at);
+        if (!Number.isFinite(candidateTime) || candidateTime > now || candidateTime < Date.parse(since) ||
+            (historical && (candidate.id.toLowerCase() !== candidateId.toLowerCase() ||
+                candidateTime >= Date.parse(until))) || !editorialUrlKey(candidate.canonical_url)) continue;
         const audits = await readRows(fetchImpl, base, headers, 'intelligence_publication_audits', {
             select: 'decision,reason_code,validation_payload,evidence_excerpt,completed_at',
             candidate_id: `eq.${candidate.id}`, order: 'attempted_at.desc', limit: '20' });
@@ -175,12 +199,15 @@ async function reconcile(client, item) {
 }
 
 export async function syncEditorialDrafts({ env = process.env, fetchImpl = fetch, now = Date.now(),
-    dryRun = false, hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT } = {}) {
+    dryRun = false, hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT,
+    historicalFrom, historicalTo, candidateId } = {}) {
     const bounded = Math.min(Math.max(Number.parseInt(limit, 10) || DEFAULT_LIMIT, 1), MAX_LIMIT);
-    const eligible = await selectEligibleCandidates({ env, fetchImpl, now, hours, limit: bounded });
+    const eligible = await selectEligibleCandidates({ env, fetchImpl, now, hours, limit: bounded,
+        historicalFrom, historicalTo, candidateId });
     const client = contentfulClient(env, fetchImpl);
     if (!dryRun && !client) throw new Error('Contentful credentials are required for a non-dry run.');
-    const report = { generatedAt: new Date(now).toISOString(), dryRun, windowHours: hours, eligible: eligible.length,
+    const report = { generatedAt: new Date(now).toISOString(), dryRun,
+        ...(historicalFrom ? { historicalFrom, historicalTo, candidateId } : { windowHours: hours }), eligible: eligible.length,
         created: 0, updated: 0, preserved: 0, results: [] };
     if (dryRun) {
         report.results = eligible.map(item => ({ candidateId: item.candidate.id, entryId: draftEntryId(item.candidate.id),
@@ -202,7 +229,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const args = process.argv.slice(2);
     const option = name => args.find(item => item.startsWith(`--${name}=`))?.split('=')[1];
     syncEditorialDrafts({ dryRun: args.includes('--dry-run'), hours: Number(option('hours')) || DEFAULT_WINDOW_HOURS,
-        limit: option('limit') || DEFAULT_LIMIT })
+        limit: option('limit') || DEFAULT_LIMIT, historicalFrom: process.env.GPIR_HISTORICAL_FROM,
+        historicalTo: process.env.GPIR_HISTORICAL_TO, candidateId: process.env.GPIR_HISTORICAL_CANDIDATE_ID })
         .then(report => {
             const text = JSON.stringify(report, null, 2);
             if (option('report')) writeFileSync(option('report'), `${text}\n`);

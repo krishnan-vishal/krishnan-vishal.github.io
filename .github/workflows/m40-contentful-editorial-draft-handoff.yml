@@ -16,6 +16,15 @@ on:
         options:
           - dry-run
           - sync
+      historical_from:
+        description: 'Optional historical window start (YYYY-MM-DD, inclusive)'
+        type: string
+      historical_to:
+        description: 'Historical window end (YYYY-MM-DD, exclusive; at most 31 days)'
+        type: string
+      historical_candidate_id:
+        description: 'Single existing candidate UUID (required for historical mode)'
+        type: string
 
 permissions:
   contents: read
@@ -35,6 +44,9 @@ jobs:
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
       CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      GPIR_HISTORICAL_FROM: ${{ inputs.historical_from }}
+      GPIR_HISTORICAL_TO: ${{ inputs.historical_to }}
+      GPIR_HISTORICAL_CANDIDATE_ID: ${{ inputs.historical_candidate_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

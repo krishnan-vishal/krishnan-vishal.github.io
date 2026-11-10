@@ -59,7 +59,7 @@ test('a week in progress is compared with the same elapsed days of the preceding
 });
 
 test('a preceding week before the archive floor is never invented', () => {
-  const selection = buildHeatmapSelection([], 'regulatory', Date.parse('2024-11-04T00:00:00Z'), NOW);
+  const selection = buildHeatmapSelection([], 'regulatory', Date.parse('2021-11-01T00:00:00Z'), NOW);
   assert.equal(selection.previousAvailable, false);
   assert.equal(selection.comparison, null);
   const empty = buildHeatmapSelection([], 'regulatory', Date.parse('2026-11-02T00:00:00Z'), NOW);

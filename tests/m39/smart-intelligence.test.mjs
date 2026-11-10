@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { buildDashboardMetrics, buildHeatmap, filterSmartRecords, normalizeEditorial,
+import { buildDashboardMetrics, buildHeatmap, fetchHistory, filterSmartRecords, normalizeEditorial,
   normalizeLiveAlerts, normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
   from '../../assets/js/smart-intelligence.mjs';
 import { buildTopicContext } from '../../assets/js/gpir-topic-intelligence.mjs';
@@ -84,6 +84,31 @@ test('dashboard calculations use all 36 governed topics, equivalent periods and 
   assert.equal(heatmap.weeks.length, 12);
   assert.equal(heatmap.rows.length, SMART_TOPICS.length);
   assert.ok(heatmap.rows.some(row => row.counts.some(Boolean)));
+});
+
+test('custom periods include governed records from the five-year historical window', () => {
+  const bounds = periodBounds('CUSTOM', Date.parse('2026-11-10T12:00:00Z'), '2021-11-01', '2022-05-05');
+  const records = normalizeSmartRecords({ status: 'OK', records: [{
+    id: 'historical', title: 'A historical payments development',
+    summary: 'An approved source describes a historical payments development with sufficient factual detail for display.',
+    publishedAt: '2022-05-04T10:00:00Z', category: 'Payments',
+    canonicalUrl: 'https://example.com/publication', source: { name: 'Official source' }
+  }] });
+  assert.equal(bounds.start, Date.parse('2021-11-01T00:00:00Z'));
+  assert.equal(filterSmartRecords(records, { bounds, geography: 'all', topics: [] }).length, 1);
+});
+
+test('reference history uses the distinct existing API view', async () => {
+  const requested = [];
+  const fetchImpl = async url => {
+    requested.push(new URL(url));
+    return { ok: true, json: async () => ({ status: 'OK', total: 0, records: [] }) };
+  };
+  await fetchHistory(fetchImpl, 'https://example.supabase.co');
+  await fetchHistory(fetchImpl, 'https://example.supabase.co', true);
+  assert.equal(requested[0].searchParams.get('view'), null);
+  assert.equal(requested[1].searchParams.get('view'), 'references');
+  assert.equal(requested[1].searchParams.get('scope'), 'history');
 });
 
 test('My GPIR separates public research from paid library and exposes three exact actions', () => {

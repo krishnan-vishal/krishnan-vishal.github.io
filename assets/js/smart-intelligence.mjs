@@ -14,7 +14,7 @@ import { createChartController } from './smart-charts.mjs';
 export { compareCounts, isExecutiveEligible, referenceClass };
 
 const DAY = 86400000;
-const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
+const HISTORY_FLOOR = Date.parse('2021-11-01T00:00:00Z');
 const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=100';
 const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
@@ -332,10 +332,10 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin, references = false) {
   const records = [];
   for (let offset = 0; offset <= 5000; offset += 100) {
-    const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
+    const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}${references ? '&view=references' : ''}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
     const page = normalizeSmartRecords(payload);
@@ -703,7 +703,7 @@ export async function initializeSmartIntelligence({ global = window,
   const state = {
     period: ['24H','7D','30D','8W','QTD','YTD','CUSTOM'].includes(params.get('period')) ? params.get('period') : '8W',
     geography: GEOGRAPHY_FILTER_KEYS.includes(params.get('geo')) ? params.get('geo') : 'all',
-    topics: new Set(initialTopics), themes: new Set(initialThemes), customStart: dateParam('from', '2024-11-08'),
+    topics: new Set(initialTopics), themes: new Set(initialThemes), customStart: dateParam('from', '2021-11-01'),
     customEnd: dateParam('to', isoDay(now())),
     alertId: clean(params.get('alert'), 100), heat: null,
     visible: global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4, contextKey: ''
@@ -727,12 +727,13 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-end]').value = state.customEnd;
   root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
 
-  const [historyResult, liveResult, editorialResult] = await Promise.allSettled([
+  const [historyResult, liveResult, editorialResult, referencesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
     fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
       if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json();
     }),
-    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
+    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
+    fetchHistory(fetchImpl, origin, true)
   ]);
   const status = root.querySelector('[data-smart-status]');
   if (historyResult.status !== 'fulfilled') {
@@ -740,7 +741,9 @@ export async function initializeSmartIntelligence({ global = window,
     status.textContent = 'Governed historical intelligence is temporarily unavailable. No analytical values have been inferred.';
     return false;
   }
-  let records = historyResult.value;
+  let referenceUnavailable = referencesResult.status !== 'fulfilled';
+  let references = referencesResult.status === 'fulfilled' ? referencesResult.value : [];
+  let records = [...historyResult.value, ...references];
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
 
@@ -818,7 +821,7 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !related.length;
     editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${referenceUnavailable ? 'reference history temporarily unavailable' : `${plural(records.length - industry.length, 'reference record')} kept separate for audit`}. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
@@ -953,7 +956,7 @@ export async function initializeSmartIntelligence({ global = window,
   geo.addEventListener('change', () => { state.geography = geo.value; render(); });
   periodSelect.addEventListener('change', () => { state.period = periodSelect.value; render(); });
   ['[data-smart-start]', '[data-smart-end]'].forEach(selector => root.querySelector(selector).addEventListener('change', () => {
-    state.customStart = root.querySelector('[data-smart-start]').value || '2024-11-08';
+    state.customStart = root.querySelector('[data-smart-start]').value || '2021-11-01';
     state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
     render();
   }));
@@ -1069,12 +1072,17 @@ export async function initializeSmartIntelligence({ global = window,
     if (refreshing) return;
     refreshing = true;
     try {
-      const [historical, live] = await Promise.allSettled([
+      const [historical, live, refreshedReferences] = await Promise.allSettled([
         fetchHistory(fetchImpl, origin),
         fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
-          .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); })
+          .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); }),
+        fetchHistory(fetchImpl, origin, true)
       ]);
-      if (historical.status === 'fulfilled') records = historical.value;
+      referenceUnavailable = refreshedReferences.status !== 'fulfilled';
+      if (refreshedReferences.status === 'fulfilled') references = refreshedReferences.value;
+      if (historical.status === 'fulfilled') records = [...historical.value, ...references];
+      else if (refreshedReferences.status === 'fulfilled')
+        records = [...records.filter(isExecutiveEligible), ...references];
       if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
       // Only transient failures are retried; a subscription denial is kept for the session.
       clearTransientTopicIntel();

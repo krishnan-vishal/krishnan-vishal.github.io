@@ -84,6 +84,31 @@ test('selects only source-verified T3 candidates awaiting an editorial decision'
     assert.deepEqual(selected.map(item => item.candidate.id), [a.id]);
 });
 
+test('historical handoff is bounded to one verified candidate and preserves the original date', async () => {
+    const item = candidate(1, { published_at: '2022-05-04T10:00:00.000Z' });
+    const other = candidate(2, { published_at: '2022-05-04T10:00:00.000Z' });
+    const state = world({ candidates: [item, other] });
+    const options = { env, fetchImpl: state.fetch, now: NOW, historicalFrom: '2022-05-01',
+        historicalTo: '2022-06-01', candidateId: item.id };
+    const first = await syncEditorialDrafts(options);
+    assert.equal(first.created, 1);
+    assert.equal(state.entries.get(draftEntryId(item.id)).fields.publicationDate['en-US'], item.published_at);
+    assert.equal((await syncEditorialDrafts(options)).results[0].outcome, 'DRAFT_CURRENT');
+    assert.equal(state.writes.length, 1);
+    const unverified = world({ candidates: [item], audits: { [item.id]: [
+        { ...thresholdAudit, validation_payload: { ...flags, relevance_verified: false } }] } });
+    assert.equal((await syncEditorialDrafts({ ...options, fetchImpl: unverified.fetch })).eligible, 0);
+});
+
+test('historical handoff rejects missing, invalid and unbounded selections', async () => {
+    const options = { env, now: NOW, historicalFrom: '2022-05-01', historicalTo: '2022-06-01',
+        candidateId: candidate(1).id };
+    for (const invalid of [
+        { candidateId: '' }, { historicalTo: '2022-05-40' }, { historicalFrom: '2021-10-31' },
+        { historicalTo: '2022-07-01' }, { historicalTo: '2022-05-01' }
+    ]) await assert.rejects(selectEligibleCandidates({ ...options, ...invalid }), /Historical/);
+});
+
 test('draft fields preserve identity, source URL, original date and governed evidence only', () => {
     const item = { candidate: candidate(1, { country_code: 'US', region: 'North America' }),
         source: { source_name: 'PYMNTS' }, audit: thresholdAudit };
