@@ -2,6 +2,13 @@
 
 ## Current handoff
 
+### M40 Global Alerts public readability correction (CSS only)
+
+- **Scope:** presentation only. `assets/css/market.css` (homepage ticker), `assets/css/header.css` (article detail panel) and the injected stylesheet in `assets/js/supabase-archive.js` (archive record counter). Cache-busting versions bumped in `index.html`, `pages/intelligence/index.html`, `scripts/generate-intelligence-pages.js` and its test. No Contentful, Supabase, API, data, publication or timestamp change.
+- **Measured defects (production, 2026-11-10, rendered-pixel contrast):** ticker headline and country navy `#0b2742` on the dark ribbon (about 1.0:1, from `page.css` overriding the dark-ribbon scheme); panel category, summary heading, source labels, report toggle and panel title `#8a94a6` (3.1:1) and disclaimer `#a0aab8` (2.3:1); archive `56 records` counter gold on cream (about 1.4:1). Archive record cards, filters and source links already measured readable and were not changed.
+- **Result:** ticker text at 9.6:1 or better; panel text at 4.6:1 or better; archive counter 7.2:1. Hovering or focusing a ticker item reveals the full headline (the track already pauses on hover). Click-to-open, year/month/region filters, the 12-hour window and the panel's scrolling and Escape-to-close are unchanged.
+- **Evidence:** before/after screenshots in `docs/m40/screenshots/` (desktop 1440 and mobile 390). Signed-in verification was not performed (no reader credentials); the ticker, panel and archive are public and use identical markup and CSS for signed-in readers.
+
 ### M40 Contentful editorial draft handoff (Supabase candidate → Contentful draft)
 
 - **Scope:** one script (`scripts/m40/sync-contentful-editorial-drafts.mjs`), one workflow (`.github/workflows/m40-contentful-editorial-draft-handoff.yml`) and tests (`tests/m40/`). No new content type, table, API, Edge Function, identity allocation or Contentful field. The existing Contentful editorial route in `gpir-intelligence-publish` (cron every 10 minutes) is unchanged and remains the only path from Contentful to the reader APIs, so publishing an entry needs no PR or deployment.
