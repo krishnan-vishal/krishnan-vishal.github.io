@@ -92,6 +92,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Validate non-disruptive CMS release staging
+        if: ${{ inputs.mode == 'delivery' }}
+        run: node --test tests/m35/contentful-release-staging.test.cjs
       - name: Stage governed publication routes without overwriting live pages
         if: ${{ inputs.mode == 'delivery' }}
         run: node scripts/m35/stage-contentful-release.js .generated/m35/production-site .
