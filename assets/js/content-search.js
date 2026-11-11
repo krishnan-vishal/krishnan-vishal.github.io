@@ -88,17 +88,17 @@
     }
 
     // M35 governed publication route metadata only. Protected bodies are never indexed.
-    const PUBLICATION_ROUTES_URL = INDEX_URL.replace(/assets\\/data\\/search-index\\.json$/, "routes.json");
+    const PUBLICATION_ROUTES_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "routes.json");
     function publicationRouteEntries(data){
         if(data?.schemaVersion !== "1.0.0" || !Array.isArray(data.routes)) return [];
         const seen = new Set();
         return data.routes.flatMap(record => {
             if(record?.authAuthority !== "supabase" || record?.controlledValidation !== false ||
                typeof record.identity !== "string" || !/^VK-GPIR-P-[0-9]+-[0-9]+$/.test(record.identity) ||
-               typeof record.route !== "string" || !/^\\/[a-z0-9][a-z0-9/_-]*\\/$/.test(record.route) ||
+               typeof record.route !== "string" || !/^\/[a-z0-9][a-z0-9/_-]*\/$/.test(record.route) ||
                record.canonicalUrl !== "https://fintechoisis.com" + record.route || seen.has(record.identity)) return [];
             seen.add(record.identity);
-            const title = record.route.split("/").filter(Boolean).pop().replace(/-/g, " ").replace(/\\b\\w/g, c => c.toUpperCase());
+            const title = record.route.split("/").filter(Boolean).pop().replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
             const type = String(record.publicationType || "Research Publication").slice(0, 80);
             return [{ id: "cms-" + record.identity, pageTitle: title,
                 sectionTitle: type, url: record.route.slice(1), type: "GPIR Publication",
