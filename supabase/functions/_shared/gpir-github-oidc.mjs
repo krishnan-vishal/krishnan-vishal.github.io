@@ -22,7 +22,8 @@ export async function verifyGithubPublisherOIDC(token, {
   if (typeof token !== 'string' || token.length > MAX_TOKEN_LENGTH || !audience) deny();
   const parts = token.split('.');
   if (parts.length !== 3) deny();
-  const [header, payload] = parts.map(parseSegment);
+  const header = parseSegment(parts[0]);
+  const payload = parseSegment(parts[1]);
   if (!header || !payload || !['RS256', 'ES256'].includes(header.alg) ||
       typeof header.kid !== 'string' || !header.kid || header.typ !== 'JWT') deny();
   const expectedWorkflow = repository + '/' + workflowPath + '@' + ref;
