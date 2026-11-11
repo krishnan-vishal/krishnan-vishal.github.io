@@ -324,5 +324,104 @@
   "VK-GPIR-P-000000000035-6": {
     "accessClass": "PUBLIC",
     "publicDescription": "Cross-Border Payments — GPIR research publication."
+  },
+  "VK-GPIR-P-000000000001-8": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000002-6": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000003-4": {
+    "accessClass": "PUBLIC"
+  },
+  "VK-GPIR-P-000000000004-2": {
+    "accessClass": "PUBLIC"
+  },
+  "VK-GPIR-P-000000000005-9": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000006-7": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000007-5": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000008-3": {
+    "accessClass": "PUBLIC"
+  },
+  "VK-GPIR-P-000000000009-1": {
+    "accessClass": "PUBLIC"
+  },
+  "VK-GPIR-P-000000000010-9": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000011-7": {
+    "accessClass": "PUBLIC"
+  },
+  "VK-GPIR-P-000000000012-5": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000013-3": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000014-1": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000015-8": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000016-6": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000017-4": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000018-2": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000019-0": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000020-8": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000021-6": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000022-4": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000023-2": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000024-0": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000025-7": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000026-5": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000027-3": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000028-1": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000029-9": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000030-7": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000031-5": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000032-3": {
+    "accessClass": "ENTITLED"
+  },
+  "VK-GPIR-P-000000000034-9": {
+    "accessClass": "PUBLIC"
   }
 }
