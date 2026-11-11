@@ -18,6 +18,8 @@ jobs:
         run: |
           node <<'NODE'
           (async () => {
+            if (!process.env.ACTIONS_ID_TOKEN_REQUEST_URL || !process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN)
+              throw new Error('OIDC_REQUEST_ENV_MISSING');
             const requestUrl = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
             requestUrl.searchParams.set('audience', 'gpir-m40-draft-registration');
             const tokenResponse = await fetch(requestUrl, {
@@ -32,12 +34,21 @@ jobs:
               headers: { authorization: ['Bearer', token].join(' '), 'content-type': 'application/json' },
               body: JSON.stringify({ operation: 'verify-only' })
             });
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
+            if (response.status !== 200) {
+              console.error('OIDC_GATE_HTTP_' + response.status);
+              console.error('OIDC_GATE_ERROR_' + String(result.error || 'UNKNOWN').replace(/[^A-Z0-9_]/g, '').slice(0,60));
+            }
             if (response.status !== 200 || result.status !== 'OIDC_VERIFIED' || result.registration !== 'DISABLED')
               throw new Error(`OIDC_GATE_REJECTED_HTTP_${response.status}`);
             const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
             console.log(JSON.stringify({ http: response.status, status: result.status, registration: result.registration,
               claims: { aud: claims.aud, repository: claims.repository, ref: claims.ref,
                 environment: claims.environment, workflow_ref: claims.workflow_ref, event_name: claims.event_name } }));
-          })().catch(() => { console.error('OIDC_SMOKE_FAILED'); process.exitCode = 1; });
+          })().catch(error => {
+            const code = String(error?.message || 'UNKNOWN');
+            const allowed = /^(OIDC_[A-Z0-9_]+|fetch failed)$/;
+            console.error('OIDC_SMOKE_FAILED_STAGE_' + (allowed.test(code) ? code.replace(/ /g, '_') : 'UNEXPECTED'));
+            process.exitCode = 1;
+          });
           NODE
