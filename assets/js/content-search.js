@@ -87,6 +87,26 @@
             }));
     }
 
+    // M35 governed publication route metadata only. Protected bodies are never indexed.
+    const PUBLICATION_ROUTES_URL = INDEX_URL.replace(/assets\/data\/search-index\.json$/, "routes.json");
+    function publicationRouteEntries(data){
+        if(data?.schemaVersion !== "1.0.0" || !Array.isArray(data.routes)) return [];
+        const seen = new Set();
+        return data.routes.flatMap(record => {
+            if(record?.authAuthority !== "supabase" || record?.controlledValidation !== false ||
+               typeof record.identity !== "string" || !/^VK-GPIR-P-[0-9]+-[0-9]+$/.test(record.identity) ||
+               typeof record.route !== "string" || !/^\/[a-z0-9][a-z0-9/_-]*\/$/.test(record.route) ||
+               record.canonicalUrl !== "https://fintechoisis.com" + record.route || seen.has(record.identity)) return [];
+            seen.add(record.identity);
+            const title = record.route.split("/").filter(Boolean).pop().replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+            const type = String(record.publicationType || "Research Publication").slice(0, 80);
+            return [{ id: "cms-" + record.identity, pageTitle: title,
+                sectionTitle: type, url: record.route.slice(1), type: "GPIR Publication",
+                category: "Published Research", header: "Verified Research",
+                text: [title, type, "GPIR research publication", "Access conditions apply"].join(" · ") }];
+        });
+    }
+
     // FX discovery uses only configured pairs. Historical coverage and subscriber
     // entitlement remain verified by the existing intelligence card service.
     const FX_CONFIG_URL = INDEX_URL.replace("assets/data/search-index.json", "assets/data/fx/fx-config.json");
@@ -141,10 +161,14 @@
             fetch(FX_CONFIG_URL)
                 .then(r => { if(!r.ok) throw new Error("FX config unavailable"); return r.json(); })
                 .then(fxPairEntries)
+                .catch(() => []),
+            fetch(PUBLICATION_ROUTES_URL)
+                .then(r => { if(!r.ok) throw new Error("governed publication route metadata unavailable"); return r.json(); })
+                .then(publicationRouteEntries)
                 .catch(() => [])
         ])
-            .then(([indexEntries, dashboardIndexEntries, announcementIndexEntries, fxEntries]) => {
-                entries = indexEntries.concat(dashboardIndexEntries, announcementIndexEntries, fxEntries);
+            .then(([indexEntries, dashboardIndexEntries, announcementIndexEntries, fxEntries, publicationEntries]) => {
+                entries = indexEntries.concat(dashboardIndexEntries, announcementIndexEntries, fxEntries, publicationEntries);
                 loaded = true;
             })
             .catch(() => {
@@ -345,6 +369,6 @@
     };
 
     if(typeof window !== "undefined") window.GPIRContentSearch = api;
-    if(typeof module !== "undefined") module.exports = { ...api, resolveAnnouncementIntent, search, announcementEntries };
+    if(typeof module !== "undefined") module.exports = { ...api, resolveAnnouncementIntent, search, announcementEntries, publicationRouteEntries };
 
 })();

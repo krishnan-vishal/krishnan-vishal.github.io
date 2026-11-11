@@ -15,9 +15,10 @@ export { compareCounts, isExecutiveEligible, referenceClass };
 
 const DAY = 86400000;
 const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
-const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=100';
+const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=1000';
 const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
+const GOVERNED_ROUTES_PATH = '/routes.json';
 const LEGACY_PERIOD_DAYS = Object.freeze({ '7D': 7, '15D': 15, '30D': 30, '1Y': 365, MAX: null });
 
 export const SMART_TOPICS = TOPIC_TAXONOMY;
@@ -233,6 +234,21 @@ export function normalizeEditorial(value) {
     : []);
 }
 
+function normalizeGovernedRoutes(value) {
+  if (value?.schemaVersion !== '1.0.0' || !Array.isArray(value.routes)) return [];
+  const seen = new Set();
+  return value.routes.flatMap(item => {
+    if (item?.authAuthority !== 'supabase' || item.controlledValidation !== false ||
+        !/^VK-GPIR-P-[0-9]+-[0-9]+$/.test(item.identity || '') ||
+        !/^\/[a-z0-9][a-z0-9/_-]*\/$/.test(item.route || '') ||
+        item.canonicalUrl !== 'https://fintechoisis.com' + item.route || seen.has(item.identity)) return [];
+    seen.add(item.identity);
+    const title = item.route.split('/').filter(Boolean).pop().replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return { title, summary: clean(item.publicationType, 80) || 'Research publication', url: item.route,
+      search: title.toLowerCase() };
+  });
+}
+
 function isCritical(record) {
   return /\b(critical|urgent|enforcement action|sanction|breach|cyberattack|fraud)\b/i.test(
     [record.title, record.summary, record.outcomeStatus].filter(Boolean).join(' '));
@@ -293,6 +309,12 @@ export function buildHeatmapSelection(records, topicId, weekStart, now = Date.no
 
 // Distinguishes machine-readable statistics and GitHub repository history from announcements.
 export function evidenceKind(record) {
+  if (record?.dataClass === 'STATISTICAL_REFERENCE' && record?.recordType === 'RPW_CORRIDOR_QUARTER') {
+    return { id: 'statistical', label: 'World Bank RPW statistical reference',
+      tag: 'World Bank Remittance Prices Worldwide',
+      note: 'USD 200 transfer cost is an unweighted mean of surveyed service quotes. The quarter-end reference marker is not the survey or publication date. This is historical evidence, not a news announcement.',
+      linkLabel: 'Open World Bank RPW source catalog' };
+  }
   if (record?.dataClass === 'STATISTICAL_REFERENCE') {
     return { id: 'statistical', label: 'BIS statistical reference',
       tag: 'BIS statistical data (SDMX XML)',
@@ -332,15 +354,15 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin) {
   const records = [];
-  for (let offset = 0; offset <= 5000; offset += 100) {
+  for (let offset = 0; offset <= 50000; offset += 1000) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
     const page = normalizeSmartRecords(payload);
     records.push(...page);
-    if (records.length >= Number(payload.total || 0) || page.length < 100) return records;
+    if (records.length >= Number(payload.total || 0) || page.length < 1000) return records;
   }
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
@@ -727,12 +749,27 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-end]').value = state.customEnd;
   root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
 
-  const [historyResult, liveResult, editorialResult] = await Promise.allSettled([
+  // The 12-hour live relay must not wait for thousands of historical reference rows.
+  // Keep the same governed endpoint and filters; history still loads in full for analytics.
+  const livePromise = fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
+    if (!response.ok) throw new Error('LIVE_UNAVAILABLE');
+    return response.json();
+  });
+  void livePromise.then(payload => {
+    renderLive(root, normalizeLiveAlerts(payload, []), state, now());
+  }).catch(() => {
+    const ribbon = document.querySelector('[data-smart-live]');
+    const target = document.querySelector('[data-smart-live-content]');
+    if (ribbon && target) {
+      ribbon.dataset.state = 'unavailable';
+      target.textContent = 'Live announcements are temporarily unavailable. Historical records remain separate.';
+    }
+  });
+  const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
-    fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
-      if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json();
-    }),
-    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
+    livePromise,
+    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
+    fetchImpl(GOVERNED_ROUTES_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
   ]);
   const status = root.querySelector('[data-smart-status]');
   if (historyResult.status !== 'fulfilled') {
@@ -743,6 +780,7 @@ export async function initializeSmartIntelligence({ global = window,
   let records = historyResult.value;
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
+  const governedRoutes = routesResult.status === 'fulfilled' ? normalizeGovernedRoutes(routesResult.value) : [];
 
   const topicIntel = new Map();
   const clearTransientTopicIntel = () => {
@@ -815,9 +853,12 @@ export async function initializeSmartIntelligence({ global = window,
     renderReference(root, referenceRecords);
     const subject = clean(params.get('subject'), 20).toUpperCase();
     const related = /^[A-Z]{3}\/[A-Z]{3}$/.test(subject) ? editorial.filter(item => item.pair === subject) : [];
+    const queryTerms = [...state.topics].map(id => SMART_TOPICS.find(topic => topic.id === id)?.label || '').filter(Boolean);
+    const routeMatches = governedRoutes.filter(item => !queryTerms.length || queryTerms.some(term => item.search.includes(term.toLowerCase()))).slice(0, 8);
+    const publications = [...related, ...routeMatches.filter(item => !related.some(fx => fx.url === item.url))];
     const editorialTarget = root.querySelector('[data-smart-editorial]');
-    editorialTarget.hidden = !related.length;
-    editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
+    editorialTarget.hidden = !publications.length;
+    editorialTarget.innerHTML = publications.length ? `<p class="smi-kicker">PUBLISHED GPIR RESEARCH</p>${publications.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
     status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
