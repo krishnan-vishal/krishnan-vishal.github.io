@@ -456,8 +456,7 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
       const emptyIdentity = values.every(value => !value);
       const sourceKey = editorialUrlKey(fields.legacySourceUrl);
       const identityKey = String(fields.supabaseRecordId || '').trim().toLowerCase();
-      if (String(fields.publicationStatus || '').toUpperCase() !== 'CURRENT' ||
-          String(fields.validationStatus || '').toUpperCase() !== 'PASS' ||
+      if (fields.publicationStatus !== 'CURRENT' || fields.validationStatus !== 'PASS' ||
           typeof fields.sourceValidationSummary !== 'string' || fields.sourceValidationSummary.trim().length < 40 ||
           typeof fields.publicationType !== 'string' || !fields.publicationType.trim() ||
           (!completeIdentity && !emptyIdentity) || (!candidateId && !completeIdentity) ||

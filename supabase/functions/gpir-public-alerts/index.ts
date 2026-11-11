@@ -46,7 +46,7 @@ Deno.serve(async req => {
    if(!Array.isArray(audits)||audits.length>=1000) return reply(req,{error:"FEED_UNAVAILABLE"},503);
    const candidateIds=[...new Set(audits.map((a:any)=>a.candidate_id).filter((id:string)=>/^[0-9a-f-]{36}$/i.test(id)))];
    if(candidateIds.length) {
-    const candidateParams=new URLSearchParams({select:"id,source_id,canonical_url,published_at",
+    const candidateParams=new URLSearchParams({select:"id,source_id,title,canonical_url,published_at",
      candidate_status:"eq.APPROVED",id:`in.(${candidateIds.join(",")})`,limit:"1000"});
     const candidateResponse=await fetch(PROJECT_URL+"/rest/v1/intelligence_candidates?"+candidateParams,{headers});
     if(!candidateResponse.ok) return reply(req,{error:"FEED_UNAVAILABLE"},503);

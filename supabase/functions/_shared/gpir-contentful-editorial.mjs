@@ -1,5 +1,5 @@
-import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.mjs';
-import { TOPIC_TAXONOMY } from './gpir-topic-intelligence.mjs';
+import { editorialUrlKey, isOfficialUrl, relevantEvidence } from './gpir-intelligence-validation.mjs';
+import { classifyTopicIds } from './gpir-topic-intelligence.mjs';
 
 // Editorial approval reuses the existing Contentful `gpirPublication` model.
 // Only the read-only Delivery API is used, so an entry is visible here solely
@@ -17,12 +17,12 @@ const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
 const MIN_EVIDENCE_LENGTH = 40;
 const EDITORIAL_SOURCE_TIERS = new Set(['T1', 'T1.5', 'T2', 'T3']);
-const EXECUTIVE_TYPES = new Set(['intelligence', 'executive intelligence', 'announcement']);
-const RESEARCH_TYPES = new Set(['research', 'research publication', 'research chapter',
-  'country intelligence', 'country', 'country-html-publication', 'regional directory',
-  'regional-directory', 'research-publication', 'research-chapter']);
-const FX_CATEGORIES = new Set(['fx', 'fx intelligence', 'foreign exchange', 'exchange rates', 'currency pair analysis']);
-const EXECUTIVE_CATEGORIES = new Set(TOPIC_TAXONOMY.flatMap(topic => [topic.id.toLowerCase(), topic.label.toLowerCase()]));
+const EXECUTIVE_TYPES = new Set(['Intelligence Brief', 'Regulatory Intelligence', 'Market Intelligence']);
+const RESEARCH_TYPES = new Set(['Research Publication', 'Research Chapter', 'Methodology',
+  'Country Intelligence', 'Regional Directory', 'Dashboard']);
+const PAYMENT_USE_CASES = new Set(['C2C', 'B2B', 'B2C', 'C2B', 'Multi-use-case', 'Not Applicable']);
+const FX_FOCUS = /\b(?:fx|forex|foreign exchange|exchange rates?|currency pairs?|currency markets?|monetary policy|interest rates?|inflation)\b/i;
+const FX_PAIR = /\b([A-Z]{3})\s*[/-]\s*([A-Z]{3})\b/;
 const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
   'fields.editionLineageId', 'fields.publicationType',
   'fields.publicationTitle', 'fields.executiveSummary', 'fields.publicationDate',
@@ -54,14 +54,23 @@ function text(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-export function classifyEditorialPublication(fields = {}) {
-  const type = text(fields.publicationType).toLowerCase();
-  const categories = text(fields.useCasePaymentCategory).split(';')
-    .map(value => value.trim().toLowerCase()).filter(Boolean);
-  if (FX_CATEGORIES.has(type) || categories.some(category => FX_CATEGORIES.has(category))) return 'FX';
+export function classifyEditorialPublication(fields = {}, candidate = null) {
+  const type = fields.publicationType;
   if (RESEARCH_TYPES.has(type)) return 'RESEARCH';
-  if (EXECUTIVE_TYPES.has(type) && categories.length > 0 &&
-      categories.every(category => EXECUTIVE_CATEGORIES.has(category))) return 'EXECUTIVE';
+  if (!EXECUTIVE_TYPES.has(type) ||
+      (fields.useCasePaymentCategory != null && !PAYMENT_USE_CASES.has(fields.useCasePaymentCategory)))
+    return 'REVIEW';
+  const title = text(fields.publicationTitle);
+  const summary = text(fields.executiveSummary);
+  const content = `${title} ${summary}`;
+  const candidateTitle = candidate ? text(candidate.title) : '';
+  if (FX_FOCUS.test(`${content} ${candidateTitle}`) || FX_PAIR.test(`${content} ${candidateTitle}`) ||
+      /^\/fx(?:\/|$)/i.test(text(fields.canonicalUrlCandidate)))
+    return 'FX';
+  if (title && classifyTopicIds({ title, summary }).length > 0 &&
+      relevantEvidence(title, summary).length >= 2 &&
+      (!candidate || (candidateTitle && classifyTopicIds({ title: candidateTitle }).length > 0)))
+    return 'EXECUTIVE';
   return 'REVIEW';
 }
 
@@ -144,7 +153,7 @@ export function evaluateEditorialEntry({ entry, candidate, source, identity, amb
   if (!source || !EDITORIAL_SOURCE_TIERS.has(source.trust_tier) || source.source_status !== 'GREEN')
     return denied('EDITORIAL_SOURCE_NOT_ELIGIBLE');
   const fields = entry?.fields || {};
-  const classification = classifyEditorialPublication(fields);
+  const classification = classifyEditorialPublication(fields, candidate);
   if (classification !== 'EXECUTIVE')
     return denied(classification === 'REVIEW' ? 'EDITORIAL_CLASSIFICATION_REVIEW_REQUIRED' : 'EDITORIAL_NOT_EXECUTIVE_INTELLIGENCE');
   const recordId = text(fields.supabaseRecordId).toLowerCase();
@@ -161,8 +170,7 @@ export function evaluateEditorialEntry({ entry, candidate, source, identity, amb
     return denied('EDITORIAL_ENTRY_AMBIGUOUS');
   if (urlKey !== editorialUrlKey(candidate.canonical_url) || !isOfficialUrl(sourceUrl, source.official_url))
     return denied('EDITORIAL_SOURCE_URL_MISMATCH');
-  if (text(fields.publicationStatus).toUpperCase() !== 'CURRENT' ||
-      text(fields.validationStatus).toUpperCase() !== 'PASS')
+  if (fields.publicationStatus !== 'CURRENT' || fields.validationStatus !== 'PASS')
     return denied('EDITORIAL_APPROVAL_NOT_EXPLICIT');
   if (text(fields.sourceValidationSummary).length < MIN_EVIDENCE_LENGTH)
     return denied('EDITORIAL_EVIDENCE_MISSING');

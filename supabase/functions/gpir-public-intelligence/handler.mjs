@@ -412,7 +412,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const candidates = [];
         for (let start = 0; start < candidateIds.length; start += 100) {
           candidates.push(...await allRows('intelligence_candidates', new URLSearchParams({
-            select: 'id,source_id,canonical_url,published_at,country_code,region', id: `in.(${candidateIds.slice(start, start + 100).join(',')})`,
+            select: 'id,source_id,title,canonical_url,published_at,country_code,region', id: `in.(${candidateIds.slice(start, start + 100).join(',')})`,
             candidate_status: 'in.(APPROVED,DUPLICATE)', order: 'id.asc'
           })));
         }

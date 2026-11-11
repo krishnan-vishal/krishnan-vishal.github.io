@@ -44,8 +44,7 @@ export async function loadPublicEditorialAuthority({ env, supabaseUrl, serviceKe
         fields.editionLineageId !== row.lineage_id ||
         fields.publicationType !== row.publication_type ||
         counts.get(row.record_id) !== 1 || counts.get(row.publication_id) !== 1 ||
-        String(fields.publicationStatus || '').toUpperCase() !== 'CURRENT' ||
-        String(fields.validationStatus || '').toUpperCase() !== 'PASS' ||
+        fields.publicationStatus !== 'CURRENT' || fields.validationStatus !== 'PASS' ||
         typeof fields.sourceValidationSummary !== 'string' || fields.sourceValidationSummary.trim().length < 40)
       continue;
     eligible.push({ row, entry });
@@ -73,7 +72,9 @@ export function authorizedEditorialCandidates({ authority, candidates, audits, s
     const match = approvals.get(audit.candidate_id);
     const payload = audit.validation_payload || {};
     if (!candidate || !source || !match || ambiguous.has(audit.candidate_id) ||
-        classifyEditorialPublication(match.entry.fields) !== 'EXECUTIVE' ||
+        classifyEditorialPublication(match.entry.fields, candidate) !== 'EXECUTIVE' ||
+        !['source_verified', 'canonical_verified', 'timestamp_verified', 'content_verified',
+          'relevance_verified', 'summary_grounded'].every(key => payload[key] === true) ||
         payload.editorial_verified !== true ||
         payload.editorial_entry_reference !== match.row.entry_reference ||
         payload.editorial_entry_id !== match.entry.entryId ||

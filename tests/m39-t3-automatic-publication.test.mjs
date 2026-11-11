@@ -306,8 +306,8 @@ test('the Contentful editorial route is preserved, takes precedence and still pu
       candidateId: CANDIDATE_ID, entryReference: 'space/master/entry-1' };
     const entry = { entryId: 'entry-1', updatedAt: new Date(NOW - 600000).toISOString(), fields: {
       gpirPublicationId: identity.gpirPublicationId, supabaseRecordId: identity.supabaseRecordId,
-      editionLineageId: identity.editionLineageId, publicationType: 'Intelligence',
-      useCasePaymentCategory: 'Payments', legacySourceUrl: URL_A,
+      editionLineageId: identity.editionLineageId, publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: item.title, legacySourceUrl: URL_A,
       publicationStatus: 'CURRENT', validationStatus: 'PASS',
       sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.' } };
     assert.equal(evaluateEditorialEntry({ entry, candidate: item, source: T3, identity }).approved, true);

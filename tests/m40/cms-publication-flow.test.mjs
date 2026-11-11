@@ -30,7 +30,8 @@ function fixture(status) {
   const config = { spaceId: 'space', environment: 'master', token: 'delivery-fixture' };
   const entry = { sys: { id: `gpir-t3-${id}`, updatedAt: '2026-11-10T11:00:00Z' }, fields: {
     gpirPublicationId: publicationId, supabaseRecordId: recordId, editionLineageId: lineageId,
-    publicationType: 'Intelligence', useCasePaymentCategory: 'Payments', legacySourceUrl: url,
+    publicationType: 'Intelligence Brief', useCasePaymentCategory: 'B2B', legacySourceUrl: url,
+    publicationTitle: candidate.title,
     publicationStatus: 'CURRENT', validationStatus: status,
     sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.'
   } };
@@ -96,6 +97,16 @@ test('published, approved CMS entry passes source validation into the existing r
   assert.equal(records[0].publishedAt, candidate.published_at);
   assert.equal(records[0].tickerEligible, true);
   assert.equal((await publicRecords(state, NOW + 11 * 3600000))[0].tickerEligible, false);
+});
+
+test('all three existing Contentful intelligence types pass the governed publication flow', async () => {
+  for (const publicationType of ['Intelligence Brief', 'Regulatory Intelligence', 'Market Intelligence']) {
+    const state = fixture('PASS');
+    state.entry.fields.publicationType = publicationType;
+    const result = await processEditorialApprovals({ repository: state.repository, fetchImpl: state.fetchImpl, now: () => NOW });
+    assert.equal(result.published, 1, publicationType);
+    assert.equal((await publicRecords(state)).length, 1, publicationType);
+  }
 });
 
 test('a CMS entry without explicit editorial approval never reaches the reader API', async () => {

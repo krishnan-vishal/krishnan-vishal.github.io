@@ -29,8 +29,8 @@ function candidate(overrides = {}) {
 function entry(overrides = {}, fields = {}) {
   return { entryId: ENTRY_ID, updatedAt: new Date(NOW - 600000).toISOString(), fields: {
     gpirPublicationId: IDENTITY.gpirPublicationId, supabaseRecordId: RECORD_ID,
-    editionLineageId: IDENTITY.editionLineageId, publicationType: 'Intelligence',
-    useCasePaymentCategory: 'Payments', legacySourceUrl: URL_A,
+    editionLineageId: IDENTITY.editionLineageId, publicationType: 'Intelligence Brief',
+    useCasePaymentCategory: 'B2B', publicationTitle: candidate().title, legacySourceUrl: URL_A,
     publicationStatus: 'CURRENT', validationStatus: 'PASS',
     sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.',
     ...fields }, ...overrides };
@@ -175,13 +175,13 @@ test('editorial pass reports an attached duplicate as a duplicate, not a new pub
 
 test('editorial pass never registers or publishes research, FX or unclassified candidates', async () => {
   for (const fields of [{ publicationType: 'Research Publication' },
-    { useCasePaymentCategory: 'FX Intelligence' }, { useCasePaymentCategory: '' }]) {
+    { publicationTitle: 'USD/JPY exchange rates and payment settlement' }, { useCasePaymentCategory: '' }]) {
     const repository = store({ entries: [entry({}, fields)] });
     repository.registerEditorialIdentity = async () => { throw new Error('registration must not run'); };
     const result = await processEditorialApprovals({ repository, fetchImpl: fetchPage(candidate()), now: () => NOW });
     assert.equal(result.published, 0);
     assert.equal(repository.published.length, 0);
-    if (!fields.useCasePaymentCategory && fields.publicationType === undefined)
+    if (fields.useCasePaymentCategory === '')
       assert.equal(result.outcomes[0].reasonCode, 'EDITORIAL_CLASSIFICATION_REVIEW_REQUIRED');
   }
 });

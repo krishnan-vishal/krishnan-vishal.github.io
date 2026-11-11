@@ -149,7 +149,7 @@ function meaningfulSentences(content, title) {
     .filter(sentence => !/cookie|privacy policy|subscribe|newsletter|all rights reserved/i.test(sentence));
 }
 
-function relevantEvidence(title, content) {
+export function relevantEvidence(title, content) {
   const text = `${title || ''} ${content || ''}`.toLowerCase();
   return PAYMENT_TERMS.filter(term => text.includes(term));
 }

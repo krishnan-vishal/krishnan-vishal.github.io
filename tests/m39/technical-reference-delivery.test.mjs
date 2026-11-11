@@ -81,14 +81,16 @@ test('archive and relay exclude raw reference history while reference view prese
     publication_status: 'approved',
     topic_headers: ['Payment infrastructure']
   };
-  const candidate = { id: '33333333-3333-4333-8333-333333333333', source_id: announcement.source_id,
+  const candidate = { id: '33333333-3333-4333-8333-333333333333', source_id: announcement.source_id, title: announcement.title,
     canonical_url: announcement.canonical_url, published_at: announcement.published_at };
   const authority = [{ row: { candidate_id: candidate.id, record_id: 'publication-record',
     publication_id: 'governed-publication', entry_reference: 'space/master/approved-entry' },
-    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence',
-      useCasePaymentCategory: 'Payments', legacySourceUrl: candidate.canonical_url } } }];
+    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: announcement.title, executiveSummary: announcement.summary_narration,
+      legacySourceUrl: candidate.canonical_url } } }];
   const publicationAudits = [{ candidate_id: candidate.id, announcement_id: announcement.id,
-    decision: 'PUBLISHED', validation_payload: { editorial_verified: true,
+    decision: 'PUBLISHED', validation_payload: { source_verified: true, canonical_verified: true,
+      timestamp_verified: true, content_verified: true, relevance_verified: true, summary_grounded: true, editorial_verified: true,
       editorial_entry_reference: authority[0].row.entry_reference, editorial_entry_id: 'approved-entry',
       editorial_publication_id: 'governed-publication', editorial_supabase_record_id: 'publication-record',
       editorial_source_url: candidate.canonical_url } }];

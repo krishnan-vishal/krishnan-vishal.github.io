@@ -89,7 +89,8 @@ test('real PostgREST enforces publisher credential separation and all-tier edito
           fields: {
             ...(record.identity ? { gpirPublicationId: record.identity.gpirPublicationId,
               supabaseRecordId: record.identity.supabaseRecordId, editionLineageId: record.identity.editionLineageId } : {}),
-            publicationType: 'Intelligence', useCasePaymentCategory: 'Payments', legacySourceUrl: record.canonical,
+            publicationType: 'Intelligence Brief', useCasePaymentCategory: 'B2B',
+            publicationTitle: record.title, legacySourceUrl: record.canonical,
             publicationStatus: 'CURRENT', validationStatus: record.status,
             sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.'
           }

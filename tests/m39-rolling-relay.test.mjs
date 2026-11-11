@@ -40,12 +40,14 @@ const ANNOUNCEMENTS = [
 ];
 
 function repositoryRows(announcements = ANNOUNCEMENTS) {
-  const candidates = announcements.map(item => ({ id: `candidate-${item.id}`, source_id: item.source_id,
+  const candidates = announcements.map(item => ({ id: `candidate-${item.id}`, source_id: item.source_id, title: item.title,
     canonical_url: item.canonical_url, published_at: item.published_at }));
   const publicationAudits = announcements.map((item, index) => {
     const candidateId = candidates[index].id;
     return { candidate_id: candidateId, announcement_id: item.id, decision: 'PUBLISHED',
-      validation_payload: { editorial_verified: true, editorial_entry_reference: `space/master/${item.id}`,
+      validation_payload: { source_verified: true, canonical_verified: true, timestamp_verified: true,
+        content_verified: true, relevance_verified: true, summary_grounded: true,
+        editorial_verified: true, editorial_entry_reference: `space/master/${item.id}`,
         editorial_entry_id: item.id, editorial_publication_id: `publication-${item.id}`,
         editorial_supabase_record_id: `record-${item.id}`, editorial_source_url: item.canonical_url } };
   });
@@ -58,8 +60,9 @@ function publicHandler(extra = {}) {
   const authority = ANNOUNCEMENTS.map(item => ({
     row: { candidate_id: `candidate-${item.id}`, record_id: `record-${item.id}`,
       publication_id: `publication-${item.id}`, entry_reference: `space/master/${item.id}` },
-    entry: { entryId: item.id, fields: { publicationType: 'Intelligence',
-      useCasePaymentCategory: 'Payments', legacySourceUrl: item.canonical_url } }
+    entry: { entryId: item.id, fields: { publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: item.title, executiveSummary: item.summary_narration,
+      legacySourceUrl: item.canonical_url } }
   }));
   const handler = createPublicIntelligenceHandler({
     env: { SUPABASE_URL: PRODUCTION_URL, SUPABASE_SERVICE_ROLE_KEY: 'service' },

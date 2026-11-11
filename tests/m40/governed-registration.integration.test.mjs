@@ -52,7 +52,7 @@ test('isolated governed registration, publication and reader acceptance',
       values('${item.id}','REVIEW','AUTO_PUBLICATION_THRESHOLD_NOT_MET','${item.url}','${evidence}'::jsonb);`).join('')}`);
     const ownerIdentity = type => {
       const row = JSON.parse(sql(`select to_jsonb(p) from public.gpir_identity_resolve(
-        'gpir:intake:publication:owner:${type}:${nonce}', 'Intelligence','isolated-acceptance') p`));
+        'gpir:intake:publication:owner:${type}:${nonce}', 'Intelligence Brief','isolated-acceptance') p`));
       return { id: row.id, publication: row.gpir_publication_id,
         lineage: sql(`select edition_lineage_id from public.gpir_identity_lineages where id='${row.lineage_id}'`) };
     };
@@ -64,17 +64,18 @@ test('isolated governed registration, publication and reader acceptance',
              ('${restricted.id}','${restricted.publication}','AUTHENTICATED','isolated-editorial-fixture','EVIDENCED')`);
     const entryFor = item => ({
       sys: { id: `gpir-t2-${item.id}`, updatedAt: new Date(now).toISOString() },
-      fields: { publicationType: 'Intelligence', useCasePaymentCategory: 'Payments', publicationStatus: 'CURRENT',
+      fields: { publicationType: 'Intelligence Brief', useCasePaymentCategory: 'B2B',
+        publicationTitle: 'Cross-border payment initiative expands settlement', publicationStatus: 'CURRENT',
         validationStatus: item.status, legacySourceUrl: item.url,
         sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.' }
     });
     const ownerEntry = (identity, id) => ({
       sys: { id, updatedAt: new Date(now).toISOString() },
       fields: { gpirPublicationId: identity.publication, supabaseRecordId: identity.id,
-        editionLineageId: identity.lineage, publicationType: 'Intelligence', useCasePaymentCategory: 'Payments',
+        editionLineageId: identity.lineage, publicationType: 'Intelligence Brief', useCasePaymentCategory: 'B2B',
         publicationStatus: 'CURRENT', validationStatus: 'PASS',
         sourceValidationSummary: 'Owner checked the evidence and its payments-sector relevance.',
-        publicationTitle: 'Owner authored payments sector research',
+        publicationTitle: 'Owner authored cross-border payment settlement development',
         executiveSummary: 'This owner-authored publication describes a verified payments-sector development.',
         publicationDate: historicalDate, canonicalUrlCandidate: `/pages/research/${id}/` }
     });

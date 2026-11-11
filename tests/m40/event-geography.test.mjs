@@ -15,7 +15,8 @@ const announcement = { id: 'announcement', source_id: source.source_id, publicat
   title: 'A source-backed payments development', summary_narration: 'The source reports a payments development with sufficient context for a governed intelligence record.',
   canonical_url: 'https://example.com/report', published_at: '2024-05-04T10:00:00Z', ticker_eligible: false };
 const audit = { announcement_id: announcement.id, candidate_id: 'candidate', decision: 'PUBLISHED' };
-const candidate = { id: 'candidate', source_id: source.source_id, canonical_url: announcement.canonical_url };
+const candidate = { id: 'candidate', source_id: source.source_id,
+  title: 'Cross-border payment network expands settlement', canonical_url: announcement.canonical_url };
 const normalize = (event, auditRows = [audit]) => normalizeRepositoryRows({
   announcements: [announcement], sources: [source], publicationAudits: auditRows,
   candidates: [{ ...candidate, ...event }], now: Date.parse('2026-11-10T00:00:00Z'), windowDays: null
@@ -59,8 +60,10 @@ test('public API loads only published-audit-linked approved event geography', as
   const candidateId = '22222222-2222-4222-8222-222222222222';
   const authority = [{ row: { candidate_id: candidateId, record_id: 'publication-record',
     publication_id: 'governed-publication', entry_reference: 'space/master/approved-entry' },
-    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence',
-      useCasePaymentCategory: 'Payments', legacySourceUrl: candidate.canonical_url } } }];
+    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: candidate.title,
+      executiveSummary: 'The payment network expands cross-border settlement services for providers.',
+      legacySourceUrl: candidate.canonical_url } } }];
   const seen = [];
   const rows = {
     global_announcements: [{ ...announcement, id }],
@@ -69,7 +72,9 @@ test('public API loads only published-audit-linked approved event geography', as
     gpir_intelligence_developments: [],
     gpir_intelligence_topic_sources: [],
     intelligence_publication_audits: [{ ...audit, candidate_id: candidateId, announcement_id: id,
-      validation_payload: { editorial_verified: true, editorial_entry_reference: authority[0].row.entry_reference,
+      validation_payload: { source_verified: true, canonical_verified: true, timestamp_verified: true,
+        content_verified: true, relevance_verified: true, summary_grounded: true,
+        editorial_verified: true, editorial_entry_reference: authority[0].row.entry_reference,
         editorial_entry_id: 'approved-entry', editorial_publication_id: 'governed-publication',
         editorial_supabase_record_id: 'publication-record', editorial_source_url: candidate.canonical_url } }],
     intelligence_candidates: [{ ...candidate, id: candidateId, published_at: announcement.published_at, country_code: 'IN' }]
