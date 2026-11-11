@@ -36,8 +36,12 @@ declare
   first_result jsonb;
   repeated jsonb;
   owner_result jsonb;
+  draft_result jsonb;
   evidence jsonb := '{"contentful_delivery_verified":true,"publication_status":"CURRENT",
     "validation_status":"PASS","contentful_updated_at":"2026-11-10T12:00:00Z",
+    "source_validation_summary":"Editor verified source evidence and the publication relevance."}'::jsonb;
+  draft_evidence jsonb := '{"contentful_draft_verified":true,
+    "contentful_updated_at":"2026-11-10T12:00:00Z",
     "source_validation_summary":"Editor verified source evidence and the publication relevance."}'::jsonb;
   denied boolean;
 begin
@@ -75,6 +79,39 @@ begin
          and publication_type = 'Intelligence'
          and entry_reference = 'space/master/gpir-t2-11111111-1111-4111-8111-111111111111') <> 1
   then raise exception 'evidenced PUBLIC identity was not returned'; end if;
+
+  insert into public.intelligence_candidates values
+    ('22222222-2222-4222-8222-222222222222', 'SOURCE', 'https://source.example/draft', 'REVIEW');
+  insert into public.intelligence_publication_audits values
+    ('22222222-2222-4222-8222-222222222222', 'https://source.example/draft',
+     '{"source_verified":true,"canonical_verified":true,"timestamp_verified":true,
+       "content_verified":true,"relevance_verified":true,"summary_grounded":true}'::jsonb);
+  draft_result := public.gpir_register_editorial_identity(
+    'space/master/gpir-t2-22222222-2222-4222-8222-222222222222',
+    'Intelligence', '22222222-2222-4222-8222-222222222222',
+    'https://source.example/draft', null, null, null, draft_evidence);
+  if draft_result->>'supabaseRecordId' = draft_result->>'candidateId'
+     or draft_result->>'policyStatus' <> 'INACTIVE'
+     or draft_result->>'policyReviewState' <> 'OWNER_REVIEW'
+     or (select decision from public.resolve_publication_entitlement(
+       draft_result->>'gpirPublicationId', draft_result->>'supabaseRecordId')) <> 'DENY'
+     or exists (select 1 from public.gpir_public_editorial_authorizations()
+       where record_id = (draft_result->>'supabaseRecordId')::uuid)
+  then raise exception 'draft registration granted access: %', draft_result; end if;
+  repeated := public.gpir_register_editorial_identity(
+    'space/master/gpir-t2-22222222-2222-4222-8222-222222222222',
+    'Intelligence', '22222222-2222-4222-8222-222222222222',
+    'https://source.example/draft', null, null, null, draft_evidence);
+  if repeated is distinct from draft_result then raise exception 'draft retry changed identity'; end if;
+  denied := false;
+  begin
+    perform public.gpir_register_editorial_identity(
+      'space/master/gpir-t2-22222222-2222-4222-8222-222222222222',
+      'Intelligence', '22222222-2222-4222-8222-222222222222', 'https://source.example/draft',
+      '22222222-2222-4222-8222-222222222222', draft_result->>'gpirPublicationId',
+      draft_result->>'editionLineageId', draft_evidence);
+  exception when others then denied := true; end;
+  if not denied then raise exception 'candidate UUID was accepted as publication identity'; end if;
 
   owner_result := public.gpir_register_editorial_identity(
     'space/master/owner-entry', 'Research Publication', null, null, null, null, null, evidence);

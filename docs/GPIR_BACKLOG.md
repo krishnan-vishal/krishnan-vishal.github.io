@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M40 intelligence quality and historical delivery
 
+Draft identity sequencing is implemented on this branch: the protected manual registration creates an inactive review policy before CMS publication, without modifying Contentful. The existing candidate-valued draft field needs editorial correction using the returned governed identity after separately authorized deployment and registration. Focused application tests use fixtures; the revised SQL has not been executed under the code-only authorization.
+
 | ID | Requirement | Status | Dependency | Outcome |
 |---|---|---|---|---|
 | M40-GOVERNED-REGISTRATION | Register evidenced CMS/candidate/publication lineage and enforce it on existing readers | IN PROGRESS | Prove protected publisher credential isolation; owner review of actual missing identity triples and access policies; verify existing CMS field vocabulary; separately authorize coordinated deployment | Branch CMS/policy/audit checks pass isolated acceptance. Production read-only inspection found RLS blocks anon/authenticated direct table reads, but deployed Edge readers are not yet CMS-gated and other indirect exposure is not conclusively excluded. The 27 OWNER_REVIEW policies are inventoried and classified without approval; zero verified CMS/candidate registry links were found. No production change or live acceptance. |

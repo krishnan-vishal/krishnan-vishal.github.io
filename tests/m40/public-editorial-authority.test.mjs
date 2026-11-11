@@ -39,6 +39,9 @@ test('public authority requires a unique, published, approved CMS and policy ide
   assert.deepEqual(await load(provider({ entries: [{ ...item, fields: { ...fields, validationStatus: 'pass' } }] })), []);
   assert.deepEqual(await load(provider({ entries: [{ ...item, fields: { ...fields, publicationStatus: 'current' } }] })), []);
   assert.deepEqual(await load(provider({ entries: [{ ...item, fields: { ...fields, editionLineageId: 'other' } }] })), []);
+  assert.deepEqual(await load(provider({ entries: [{ ...item, fields: { ...fields, supabaseRecordId: identity.candidate_id } }] })), []);
+  assert.deepEqual(await load(provider({ entries: [{ ...item, fields: { ...fields, editionLineageId: undefined } }] })), []);
+  assert.deepEqual(await load(provider({ authorizations: [{ ...identity, entry_reference: 'space/master/unlinked' }] })), []);
   assert.deepEqual(await load(provider({ authorizations: [{ ...identity, publication_type: 'Research Publication' }] })), []);
   assert.deepEqual(await load(provider({ authorizations: [{ ...identity, publication_type: null }] })), []);
   assert.deepEqual(await load(provider({ entries: [item, { ...item, sys: { ...item.sys, id: 'second-entry' } }] })), []);

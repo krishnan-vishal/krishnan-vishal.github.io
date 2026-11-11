@@ -34,9 +34,49 @@ const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 
 // validator accepts nothing that is not registered here. Request bodies, plain
 // objects and copies of a real approval are never trusted.
 const VERIFIED_APPROVALS = new WeakSet();
+const VERIFIED_DRAFTS = new WeakSet();
 
 export function isVerifiedEditorialApproval(approval) {
   return approval !== null && typeof approval === 'object' && VERIFIED_APPROVALS.has(approval);
+}
+
+export function isVerifiedEditorialDraft(entry) {
+  return entry !== null && typeof entry === 'object' && VERIFIED_DRAFTS.has(entry);
+}
+
+// Management reads are restricted to the protected registration job; drafts are
+// never treated as Delivery approvals and this function performs no CMS writes.
+export async function fetchUnpublishedEditorialDraft({ config, managementToken, entryId, fetchImpl = fetch }) {
+  if (!config || !managementToken || managementToken === config.token ||
+      !/^[A-Za-z0-9_-]+$/.test(entryId || ''))
+    throw new Error('CONTENTFUL_DRAFT_CONFIGURATION_REQUIRED');
+  const root = `https://api.contentful.com/spaces/${encodeURIComponent(config.spaceId)}` +
+    `/environments/${encodeURIComponent(config.environment)}`;
+  const headers = new Headers({ accept: 'application/vnd.contentful.management.v1+json' });
+  headers.set('authorization', ['Bearer', managementToken].join(' '));
+  const response = await fetchImpl(`${root}/entries/${encodeURIComponent(entryId)}`, { headers });
+  if (!response.ok) throw new Error(`CONTENTFUL_DRAFT_HTTP_${response.status}`);
+  const item = await response.json();
+  if (item?.sys?.id !== entryId || item.sys.contentType?.sys?.id !== CONTENT_TYPE ||
+      item.sys.publishedVersion != null || item.sys.archivedVersion != null ||
+      !Number.isInteger(item.sys.version) || !text(item.sys.updatedAt) ||
+      !item.fields || typeof item.fields !== 'object')
+    throw new Error('CONTENTFUL_DRAFT_NOT_UNPUBLISHED');
+  const fields = Object.fromEntries(Object.entries(item.fields).map(([key, value]) =>
+    [key, value && typeof value === 'object' ? value['en-US'] : undefined]));
+  if (text(fields.legacySourceUrl)) {
+    const query = new URLSearchParams({ content_type: CONTENT_TYPE,
+      'fields.legacySourceUrl': fields.legacySourceUrl, limit: '2' });
+    const search = await fetchImpl(`${root}/entries?${query}`, { headers });
+    if (!search.ok) throw new Error(`CONTENTFUL_DRAFT_SEARCH_HTTP_${search.status}`);
+    const matches = await search.json();
+    if (matches?.total !== 1 || !Array.isArray(matches.items) || matches.items.length !== 1 ||
+        matches.items[0]?.sys?.id !== entryId)
+      throw new Error('CONTENTFUL_DRAFT_SOURCE_AMBIGUOUS');
+  }
+  const entry = Object.freeze({ entryId, updatedAt: item.sys.updatedAt, fields: Object.freeze(fields) });
+  VERIFIED_DRAFTS.add(entry);
+  return entry;
 }
 
 export function contentfulEditorialConfig(env) {

@@ -1,6 +1,5 @@
--- The dedicated publisher is the trusted caller: it must freshly verify the
--- Contentful Delivery entry before invoking this function. This function does
--- not publish content or establish PUBLIC access.
+-- The dedicated publisher verifies either a published Delivery entry or an
+-- unpublished Management entry. Draft registration never activates a policy.
 create function public.gpir_register_editorial_identity(
   p_entry_reference text,
   p_publication_type text,
@@ -26,15 +25,21 @@ declare
   matches integer;
   related public.gpir_identity_related_identifiers%rowtype;
   lineage text;
+  is_draft boolean := coalesce(p_evidence->>'contentful_draft_verified', '') = 'true';
 begin
   if p_entry_reference is null or p_entry_reference !~ '^[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+$'
      or length(p_entry_reference) > 300
      or length(btrim(coalesce(p_publication_type, ''))) = 0
-     or p_evidence->>'contentful_delivery_verified' is distinct from 'true'
-     or p_evidence->>'publication_status' is distinct from 'CURRENT'
-     or p_evidence->>'validation_status' is distinct from 'PASS'
+     or not (
+       (is_draft and p_evidence->>'contentful_delivery_verified' is distinct from 'true')
+       or (not is_draft
+           and coalesce(p_evidence->>'contentful_delivery_verified', '') = 'true'
+           and coalesce(p_evidence->>'publication_status', '') = 'CURRENT'
+           and coalesce(p_evidence->>'validation_status', '') = 'PASS')
+     )
      or length(btrim(coalesce(p_evidence->>'source_validation_summary', ''))) < 40
      or coalesce(p_evidence->>'contentful_updated_at', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T'
+     or (p_candidate_id is not null and p_record_id = p_candidate_id)
      or ((p_record_id is null or p_publication_id is null or p_lineage_id is null) and
          (p_record_id is not null or p_publication_id is not null or p_lineage_id is not null))
   then
@@ -123,6 +128,7 @@ begin
     then raise exception 'M40_IDENTITY_REVIEW_REQUIRED: allocator did not assign identity'; end if;
   end if;
   if identity_row.publication_type is distinct from p_publication_type
+     or (p_candidate_id is not null and identity_row.id = p_candidate_id)
      or (p_candidate_id is not null and identity_row.source_legacy_path is not null
          and identity_row.source_legacy_path is distinct from p_source_url)
   then raise exception 'M40_IDENTITY_REVIEW_REQUIRED: publication source or type mismatch'; end if;
@@ -167,13 +173,16 @@ begin
   end loop;
 
   insert into public.gpir_publication_access_policies
-    (supabase_record_id, publication_id, access_class, classification_source, review_state)
+    (supabase_record_id, publication_id, access_class, status, classification_source, review_state)
   values (identity_row.id, identity_row.gpir_publication_id, 'ENTITLED',
-    'M34_A3_UNRESOLVED_DEFAULT', 'OWNER_REVIEW')
+    case when is_draft then 'INACTIVE' else 'ACTIVE' end, 'M34_A3_UNRESOLVED_DEFAULT', 'OWNER_REVIEW')
   on conflict (supabase_record_id) do nothing;
   select * into policy_row from public.gpir_publication_access_policies
    where supabase_record_id = identity_row.id and publication_id = identity_row.gpir_publication_id;
   if not found then raise exception 'M40_IDENTITY_REVIEW_REQUIRED: access policy mismatch'; end if;
+  if is_draft and policy_row.status <> 'INACTIVE' then
+    raise exception 'M40_IDENTITY_REVIEW_REQUIRED: draft policy must be inactive';
+  end if;
   select edition_lineage_id into lineage from public.gpir_identity_lineages
    where id = identity_row.lineage_id and lineage_status = 'ACTIVE';
   if lineage is null then raise exception 'M40_IDENTITY_REVIEW_REQUIRED: inactive lineage'; end if;

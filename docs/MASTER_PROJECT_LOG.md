@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 draft identity sequencing — 2026-11-11
+
+- **Scope:** code-only continuation of PR #547. No CMS/database writes, migration execution, credential changes, publication or deployment were authorized or performed.
+- **Sequence:** the existing protected publisher has a single-draft manual registration mode. It independently reads an unpublished `gpirPublication` through Contentful Management, rejects ambiguous source links and unverified identity inputs, and uses the existing restricted registry function. Draft-created policies are inactive and await owner review; candidate and publication UUIDs remain distinct. The publisher does not edit the draft or activate its policy. Published Delivery, approval, source verification, linked identity and active policy remain required by existing publication and public-reader gates.
+- **Editorial handoff:** draft `gpir-t3-9f9d9e2f-03e8-44a4-90a8-b66f90c3c908` retains the incorrect candidate-valued `supabaseRecordId`. The editor must choose an evidenced eligible publication type; after separately authorized deployment and protected registration, replace that field and supply the returned publication and lineage IDs. Review the proposed policy and approve publication separately.
+- **Release impact:** the unapplied `20261111000000` migration now includes draft registration and must be included in the existing coordinated migration order. The protected manual registration also needs authorized access to the existing Contentful management credential in its protected environment. No secret was provisioned or changed. Focused application tests use fixtures; the updated SQL acceptance test is prepared but not executed because database writes and migration execution are outside this authorization.
+
 ## M40 production-readiness assessment — 2026-11-11
 
 - **Scope:** read-only production and GitHub inspection starting at PR #547 commit `abf111b`; no production permissions, credentials, data, deployments or publications changed. Completed isolated tests were not repeated.

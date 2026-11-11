@@ -1,7 +1,8 @@
 import { editorialUrlKey, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, classifyEditorialPublication, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
-  fetchEditorialEntryById, fetchPublishedEditorialEntries, isVerifiedEditorialApproval, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
+  fetchEditorialEntryById, fetchPublishedEditorialEntries, isVerifiedEditorialApproval, isVerifiedEditorialDraft,
+  verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -213,11 +214,17 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       return fetchEditorialEntryById({ config: contentful, fetchImpl, entryId });
     },
 
-    async registerEditorialIdentity(entry, candidate) {
+    async registerEditorialIdentity(entry, candidate, { draft = false } = {}) {
       if (!contentful || !config.publicKey || !config.publisherJwt ||
           config.publisherJwt === config.key || config.publisherJwt === config.publicKey)
         throw new Error('EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED');
+      if (draft && !isVerifiedEditorialDraft(entry))
+        throw new Error('CONTENTFUL_DRAFT_VERIFICATION_REQUIRED');
       const fields = entry.fields || {};
+      const legacyCandidateId = draft && candidate && typeof fields.supabaseRecordId === 'string' &&
+        fields.supabaseRecordId.toLowerCase() === candidate.id.toLowerCase();
+      if (legacyCandidateId && (fields.gpirPublicationId || fields.editionLineageId))
+        throw new Error('M40_IDENTITY_REVIEW_REQUIRED');
       const headers = new Headers({
         apikey: config.publicKey,
         authorization: `Bearer ${config.publisherJwt}`,
@@ -230,13 +237,15 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
           p_publication_type: fields.publicationType,
           p_candidate_id: candidate?.id || null,
           p_source_url: candidate?.canonical_url || fields.legacySourceUrl || null,
-          p_record_id: fields.supabaseRecordId || null,
+          p_record_id: legacyCandidateId ? null : fields.supabaseRecordId || null,
           p_publication_id: fields.gpirPublicationId || null,
           p_lineage_id: fields.editionLineageId || null,
           p_evidence: {
-            contentful_delivery_verified: true,
-            publication_status: String(fields.publicationStatus).toUpperCase(),
-            validation_status: String(fields.validationStatus).toUpperCase(),
+            ...(draft ? { contentful_draft_verified: true } : {
+              contentful_delivery_verified: true,
+              publication_status: fields.publicationStatus,
+              validation_status: fields.validationStatus
+            }),
             source_validation_summary: fields.sourceValidationSummary,
             contentful_updated_at: entry.updatedAt
           }
