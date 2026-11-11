@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeRpwReferenceRows, createPublicIntelligenceHandler } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
-import { normalizeSmartRecords, evidenceKind } from '../assets/js/smart-intelligence.mjs';
+import { normalizeSmartRecords, evidenceKind, fetchHistory } from '../assets/js/smart-intelligence.mjs';
 
 const catalog = 'https://datacatalog.worldbank.org/search/dataset/0037898/remittance-prices-worldwide';
 const workbook = 'https://datacatalogfiles.worldbank.org/ddh-published/0037898/DR0095523/rpw_dataset_2011_2025_q3.xlsx';
@@ -73,4 +73,31 @@ test('Existing history API search returns RPW references without promoting them 
   const relay = await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=relay'));
   assert.equal(relay.status, 200);
   assert.equal((await relay.json()).items.length, 0);
+});
+
+
+test('Smart history paginates the complete RPW and BIS repository past 5,000 records', async () => {
+  const total = 6174;
+  const all = Array.from({ length: total }, (_, i) => ({
+    id: String(i), title: 'GPIR verified historical statistical reference ' + i,
+    summary: 'Official historical statistical reference, not a contemporary publication or news alert.',
+    publishedAt: '2025-09-30T00:00:00.000Z', canonicalUrl: catalog,
+    dataClass: 'STATISTICAL_REFERENCE', recordType: 'RPW_CORRIDOR_QUARTER',
+    category: 'Remittances & Diaspora',
+    source: { name: 'World Bank Remittance Prices Worldwide', trustTier: 'T1' }
+  }));
+  const offsets = [];
+  const fetchImpl = async url => {
+    const u = new URL(url);
+    const offset = Number(u.searchParams.get('offset'));
+    const limit = Number(u.searchParams.get('limit'));
+    offsets.push(offset);
+    assert.equal(limit, 1000);
+    return { ok: true, json: async () => ({
+      status: 'OK', total, records: all.slice(offset, offset + limit)
+    }) };
+  };
+  const result = await fetchHistory(fetchImpl, 'https://qlnvhfapctcpzqyuhhth.supabase.co');
+  assert.equal(result.length, total);
+  assert.deepEqual(offsets, [0, 1000, 2000, 3000, 4000, 5000, 6000]);
 });
