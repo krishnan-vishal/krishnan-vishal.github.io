@@ -1,0 +1,62 @@
+name: GPIR Five-Year BIS Historical Acquisition
+on:
+  workflow_dispatch:
+    inputs:
+      country_codes:
+        description: 'JSON array of BIS country codes (maximum 8)'
+        required: true
+        default: '["IN"]'
+      start_period:
+        required: true
+        default: '2021-11'
+      end_period:
+        required: true
+        default: '2026-11'
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate bounded source and date inputs
+        env:
+          COUNTRIES: ${{ inputs.country_codes }}
+          START: ${{ inputs.start_period }}
+          END: ${{ inputs.end_period }}
+        run: |
+          node --input-type=module -e '
+            const codes=JSON.parse(process.env.COUNTRIES);
+            if(!Array.isArray(codes)||codes.length<1||codes.length>8||!codes.every(c=>/^[A-Z]{2}$/.test(c)))throw Error("INVALID_COUNTRY_CODES");
+            const re=/^20\d{2}-(0[1-9]|1[0-2])$/;
+            if(!re.test(process.env.START)||!re.test(process.env.END)||process.env.START>process.env.END||process.env.START<"2021-11"||process.env.END>"2026-11")throw Error("INVALID_FIVE_YEAR_WINDOW");
+          '
+      - name: Acquire official BIS historical observations (no database writes)
+        env:
+          COUNTRIES: ${{ inputs.country_codes }}
+          START: ${{ inputs.start_period }}
+          END: ${{ inputs.end_period }}
+        run: |
+          mkdir -p .generated/m39/bis-history
+          for flow in WS_CBPOL WS_CPMI_CASHLESS WS_CPMI_SYSTEMS WS_LBS_D_PUB; do
+            node scripts/intelligence/fetch-bis-backfill-batch.mjs "$flow" "$START" "$END" "$COUNTRIES" '{}' 120 2000 > ".generated/m39/bis-history/$flow.json"
+          done
+      - name: Verify artifact metadata and safety boundaries
+        run: |
+          node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            for(const flow of ["WS_CBPOL","WS_CPMI_CASHLESS","WS_CPMI_SYSTEMS","WS_LBS_D_PUB"]){
+              const data=JSON.parse(readFileSync(".generated/m39/bis-history/"+flow+".json"));
+              if(data.dataflow!==flow||!Array.isArray(data.records)||data.records.some(r=>r.source_id!=="BIS-GLOBAL-001"||r.metadata?.publication_eligible!==false||r.metadata?.alert_eligible!==false))throw Error("UNSAFE_BIS_ARTIFACT_"+flow);
+              process.stdout.write(flow+": "+data.records.length+" observations\\n");
+            }
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpir-bis-five-year-official-observations
+          path: .generated/m39/bis-history/*.json
+          retention-days: 14
