@@ -24,7 +24,7 @@ export async function handleM40OIDC(request, verify = verifyGithubPublisherOIDC)
       body.operation !== 'verify-only') return reply(403, { error: 'REGISTRATION_DISABLED' });
   try {
     await verify(auth.slice(7), { audience: 'gpir-m40-draft-registration',
-      workflowPath: '.github/workflows/m40-oidc-smoke.yml' });
+      workflowPath: '.github/workflows/m40-oidc-smoke.yml', environment: 'gpir-oidc-verification' });
     return reply(200, { status: 'OIDC_VERIFIED', registration: 'DISABLED' });
   } catch {
     return reply(401, { error: 'UNAUTHORIZED' });
