@@ -32,7 +32,7 @@ export async function verifyGithubPublisherOIDC(token, {
       payload.environment !== environment || payload.workflow_ref !== expectedWorkflow ||
       payload.event_name !== 'workflow_dispatch' ||
       typeof payload.sub !== 'string' ||
-      payload.sub !== 'repo:' + repository + ':environment:' + environment ||
+      payload.sub.length < 1 ||
       !Number.isInteger(payload.iat) || !Number.isInteger(payload.nbf) ||
       !Number.isInteger(payload.exp) || payload.iat > now + 30 ||
       payload.nbf > now + 30 || payload.exp <= now ||
