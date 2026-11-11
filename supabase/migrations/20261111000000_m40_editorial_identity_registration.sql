@@ -193,11 +193,12 @@ grant execute on function public.gpir_register_editorial_identity(text, text, uu
 -- Only PUBLIC policies are returned to the existing public reader functions.
 -- Restricted publications continue to use resolve_publication_entitlement.
 create function public.gpir_public_editorial_authorizations()
-returns table(record_id uuid, publication_id text, lineage_id text, entry_reference text, candidate_id text)
+returns table(record_id uuid, publication_id text, lineage_id text, entry_reference text, candidate_id text,
+              publication_type text)
 language sql stable security definer set search_path = pg_catalog
 as $function$
   select p.id, p.gpir_publication_id, l.edition_lineage_id, cms.identifier_value,
-         candidate.identifier_value
+         candidate.identifier_value, p.publication_type::text
     from public.gpir_identity_publications p
     join public.gpir_identity_lineages l on l.id = p.lineage_id and l.lineage_status = 'ACTIVE'
     join public.gpir_publication_access_policies policy

@@ -30,7 +30,7 @@ function fixture(status) {
   const config = { spaceId: 'space', environment: 'master', token: 'delivery-fixture' };
   const entry = { sys: { id: `gpir-t3-${id}`, updatedAt: '2026-11-10T11:00:00Z' }, fields: {
     gpirPublicationId: publicationId, supabaseRecordId: recordId, editionLineageId: lineageId,
-    publicationType: 'Intelligence', legacySourceUrl: url,
+    publicationType: 'Intelligence', useCasePaymentCategory: 'Payments', legacySourceUrl: url,
     publicationStatus: 'CURRENT', validationStatus: status,
     sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.'
   } };

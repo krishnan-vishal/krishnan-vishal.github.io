@@ -72,6 +72,7 @@ begin
    where supabase_record_id = (first_result->>'supabaseRecordId')::uuid;
   if (select count(*) from public.gpir_public_editorial_authorizations()
        where candidate_id = '11111111-1111-4111-8111-111111111111'
+         and publication_type = 'Intelligence'
          and entry_reference = 'space/master/gpir-t2-11111111-1111-4111-8111-111111111111') <> 1
   then raise exception 'evidenced PUBLIC identity was not returned'; end if;
 

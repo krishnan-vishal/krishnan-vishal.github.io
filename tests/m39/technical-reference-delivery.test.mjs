@@ -85,7 +85,8 @@ test('archive and relay exclude raw reference history while reference view prese
     canonical_url: announcement.canonical_url, published_at: announcement.published_at };
   const authority = [{ row: { candidate_id: candidate.id, record_id: 'publication-record',
     publication_id: 'governed-publication', entry_reference: 'space/master/approved-entry' },
-    entry: { entryId: 'approved-entry', fields: { legacySourceUrl: candidate.canonical_url } } }];
+    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence',
+      useCasePaymentCategory: 'Payments', legacySourceUrl: candidate.canonical_url } } }];
   const publicationAudits = [{ candidate_id: candidate.id, announcement_id: announcement.id,
     decision: 'PUBLISHED', validation_payload: { editorial_verified: true,
       editorial_entry_reference: authority[0].row.entry_reference, editorial_entry_id: 'approved-entry',

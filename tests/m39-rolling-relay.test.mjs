@@ -58,7 +58,8 @@ function publicHandler(extra = {}) {
   const authority = ANNOUNCEMENTS.map(item => ({
     row: { candidate_id: `candidate-${item.id}`, record_id: `record-${item.id}`,
       publication_id: `publication-${item.id}`, entry_reference: `space/master/${item.id}` },
-    entry: { entryId: item.id, fields: { legacySourceUrl: item.canonical_url } }
+    entry: { entryId: item.id, fields: { publicationType: 'Intelligence',
+      useCasePaymentCategory: 'Payments', legacySourceUrl: item.canonical_url } }
   }));
   const handler = createPublicIntelligenceHandler({
     env: { SUPABASE_URL: PRODUCTION_URL, SUPABASE_SERVICE_ROLE_KEY: 'service' },

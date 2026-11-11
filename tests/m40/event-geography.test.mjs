@@ -59,7 +59,8 @@ test('public API loads only published-audit-linked approved event geography', as
   const candidateId = '22222222-2222-4222-8222-222222222222';
   const authority = [{ row: { candidate_id: candidateId, record_id: 'publication-record',
     publication_id: 'governed-publication', entry_reference: 'space/master/approved-entry' },
-    entry: { entryId: 'approved-entry', fields: { legacySourceUrl: candidate.canonical_url } } }];
+    entry: { entryId: 'approved-entry', fields: { publicationType: 'Intelligence',
+      useCasePaymentCategory: 'Payments', legacySourceUrl: candidate.canonical_url } } }];
   const seen = [];
   const rows = {
     global_announcements: [{ ...announcement, id }],

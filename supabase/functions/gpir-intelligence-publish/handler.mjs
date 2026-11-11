@@ -1,6 +1,6 @@
 import { editorialUrlKey, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
-import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
+import { ambiguousEditorialKeys, classifyEditorialPublication, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
   fetchEditorialEntryById, fetchPublishedEditorialEntries, isVerifiedEditorialApproval, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -442,6 +442,15 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
     try {
       const fresh = await repository.freshEditorialEntry(entry.entryId);
       const fields = fresh.fields || {};
+      const classification = classifyEditorialPublication(fields);
+      if (classification !== 'EXECUTIVE') {
+        if (classification === 'REVIEW') {
+          summary.awaitingReview += 1;
+          summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+            reasonCode: 'EDITORIAL_CLASSIFICATION_REVIEW_REQUIRED' });
+        } else summary.skipped += 1;
+        continue;
+      }
       const values = [fields.supabaseRecordId, fields.gpirPublicationId, fields.editionLineageId];
       const completeIdentity = values.every(value => typeof value === 'string' && value.trim());
       const emptyIdentity = values.every(value => !value);

@@ -1,4 +1,5 @@
-import { contentfulEditorialConfig, fetchPublishedEditorialEntries } from './gpir-contentful-editorial.mjs';
+import { classifyEditorialPublication, contentfulEditorialConfig, fetchPublishedEditorialEntries }
+  from './gpir-contentful-editorial.mjs';
 import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.mjs';
 
 const PAGE_SIZE = 1000;
@@ -41,6 +42,7 @@ export async function loadPublicEditorialAuthority({ env, supabaseUrl, serviceKe
     const fields = entry?.fields || {};
     if (fields.supabaseRecordId !== row.record_id || fields.gpirPublicationId !== row.publication_id ||
         fields.editionLineageId !== row.lineage_id ||
+        fields.publicationType !== row.publication_type ||
         counts.get(row.record_id) !== 1 || counts.get(row.publication_id) !== 1 ||
         String(fields.publicationStatus || '').toUpperCase() !== 'CURRENT' ||
         String(fields.validationStatus || '').toUpperCase() !== 'PASS' ||
@@ -71,6 +73,7 @@ export function authorizedEditorialCandidates({ authority, candidates, audits, s
     const match = approvals.get(audit.candidate_id);
     const payload = audit.validation_payload || {};
     if (!candidate || !source || !match || ambiguous.has(audit.candidate_id) ||
+        classifyEditorialPublication(match.entry.fields) !== 'EXECUTIVE' ||
         payload.editorial_verified !== true ||
         payload.editorial_entry_reference !== match.row.entry_reference ||
         payload.editorial_entry_id !== match.entry.entryId ||
@@ -85,7 +88,8 @@ export function authorizedEditorialCandidates({ authority, candidates, audits, s
 }
 
 export function normalizeOwnerEditorialPublications({ authority, now, windowDays }) {
-  return authority.filter(item => item.row.candidate_id == null).flatMap(({ row, entry }) => {
+  return authority.filter(item => item.row.candidate_id == null &&
+    classifyEditorialPublication(item.entry.fields) === 'EXECUTIVE').flatMap(({ row, entry }) => {
     const fields = entry.fields;
     const title = typeof fields.publicationTitle === 'string' ? fields.publicationTitle.trim() : '';
     const summary = typeof fields.executiveSummary === 'string' ? fields.executiveSummary.trim() : '';

@@ -52,7 +52,7 @@ test('isolated governed registration, publication and reader acceptance',
       values('${item.id}','REVIEW','AUTO_PUBLICATION_THRESHOLD_NOT_MET','${item.url}','${evidence}'::jsonb);`).join('')}`);
     const ownerIdentity = type => {
       const row = JSON.parse(sql(`select to_jsonb(p) from public.gpir_identity_resolve(
-        'gpir:intake:publication:owner:${type}:${nonce}', 'Research Publication','isolated-acceptance') p`));
+        'gpir:intake:publication:owner:${type}:${nonce}', 'Intelligence','isolated-acceptance') p`));
       return { id: row.id, publication: row.gpir_publication_id,
         lineage: sql(`select edition_lineage_id from public.gpir_identity_lineages where id='${row.lineage_id}'`) };
     };
@@ -64,14 +64,14 @@ test('isolated governed registration, publication and reader acceptance',
              ('${restricted.id}','${restricted.publication}','AUTHENTICATED','isolated-editorial-fixture','EVIDENCED')`);
     const entryFor = item => ({
       sys: { id: `gpir-t2-${item.id}`, updatedAt: new Date(now).toISOString() },
-      fields: { publicationType: 'Intelligence', publicationStatus: 'CURRENT',
+      fields: { publicationType: 'Intelligence', useCasePaymentCategory: 'Payments', publicationStatus: 'CURRENT',
         validationStatus: item.status, legacySourceUrl: item.url,
         sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.' }
     });
     const ownerEntry = (identity, id) => ({
       sys: { id, updatedAt: new Date(now).toISOString() },
       fields: { gpirPublicationId: identity.publication, supabaseRecordId: identity.id,
-        editionLineageId: identity.lineage, publicationType: 'Research Publication',
+        editionLineageId: identity.lineage, publicationType: 'Intelligence', useCasePaymentCategory: 'Payments',
         publicationStatus: 'CURRENT', validationStatus: 'PASS',
         sourceValidationSummary: 'Owner checked the evidence and its payments-sector relevance.',
         publicationTitle: 'Owner authored payments sector research',
