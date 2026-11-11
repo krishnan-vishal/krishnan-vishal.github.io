@@ -50,3 +50,8 @@ test('rejects tampered signature',async()=>{
 test('rejects unknown signing key',async()=>{
  await assert.rejects(verifyGithubPublisherOIDC(token(),{audience:claims.aud,fetchImpl:async()=>({ok:true,json:async()=>({keys:[]})}),now}),/OIDC_DENIED/);
 });
+
+test('accepts customized subject when all signed authorization claims match',async()=>{
+ const result=await verifyGithubPublisherOIDC(token({sub:'repo:customized:subject'}),{audience:claims.aud,fetchImpl,now});
+ assert.equal(result.repository,repo);
+});
