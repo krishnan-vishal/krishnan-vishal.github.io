@@ -27,7 +27,7 @@ begin
         select t.geography from public.gpir_intelligence_topics t
         where t.announcement_id = a.id order by t.created_at desc limit 1
       ) t on true
-      where a.publication_status = 'approved'
+      where a.publication_status = 'approved' and a.published_at is not null
         and (p_topic is null or p_topic = any(a.topic_headers))
         and (p_region is null or coalesce(t.geography,'UNSPECIFIED') = p_region)
         and (p_from is null or a.published_at >= p_from::timestamptz)
