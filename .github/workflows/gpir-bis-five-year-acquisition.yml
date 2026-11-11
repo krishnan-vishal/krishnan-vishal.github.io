@@ -32,7 +32,7 @@ jobs:
           node --input-type=module -e '
             const codes=JSON.parse(process.env.COUNTRIES);
             if(!Array.isArray(codes)||codes.length<1||codes.length>8||!codes.every(c=>/^[A-Z]{2}$/.test(c)))throw Error("INVALID_COUNTRY_CODES");
-            const re=/^20\\d{2}-(0[1-9]|1[0-2])$/;
+            const re=/^20\d{2}-(0[1-9]|1[0-2])$/;
             if(!re.test(process.env.START)||!re.test(process.env.END)||process.env.START>process.env.END||process.env.START<"2021-11"||process.env.END>"2026-11")throw Error("INVALID_FIVE_YEAR_WINDOW");
           '
       - name: Acquire official BIS historical observations (no database writes)
