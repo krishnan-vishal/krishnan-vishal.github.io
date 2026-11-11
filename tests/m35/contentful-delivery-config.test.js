@@ -73,7 +73,13 @@ test('governed presentation manifest activates only the exact publication identi
     sys: { id: 'unrelated', contentType: { sys: { id: 'gpirPublication' } } },
     fields: { gpirPublicationId: 'VK-GPIR-P-000000000001-8', publicationTitle: 'Existing' }
   }]).records[0];
-  assert.equal(Object.hasOwn(unrelated, 'presentation'), false);
+  assert.equal(unrelated.presentation.accessClass, 'ENTITLED');
+
+  const unknown = buildArtifact(contentfulDeliveryConfig(base, 'delivery'), [{
+    sys: { id: 'unknown', contentType: { sys: { id: 'gpirPublication' } } },
+    fields: { gpirPublicationId: 'VK-GPIR-P-UNKNOWN', publicationTitle: 'Unknown' }
+  }]).records[0];
+  assert.equal(Object.hasOwn(unknown, 'presentation'), false);
 });
 
 test('Contentful failure produces no partial collection', async () => {
