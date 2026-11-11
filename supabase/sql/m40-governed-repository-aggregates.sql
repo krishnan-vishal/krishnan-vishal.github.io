@@ -27,7 +27,7 @@ begin
         select t.geography from public.gpir_intelligence_topics t
         where t.announcement_id = a.id order by t.created_at desc limit 1
       ) t on true
-      where a.publication_status = 'approved'
+      where a.publication_status = 'approved' and a.published_at is not null
         and (p_topic is null or p_topic = any(a.topic_headers))
         and (p_region is null or coalesce(t.geography,'UNSPECIFIED') = p_region)
         and (p_from is null or a.published_at >= p_from::timestamptz)
@@ -35,13 +35,13 @@ begin
     ), aggregates as (
       select count(*) as total,
         coalesce((select jsonb_object_agg(topic,n) from (
-          select topic,count(*) n from eligible e cross join lateral unnest(e.topic_headers) topic group by topic
+          select topic,count(*) n from eligible e cross join lateral unnest(e.topic_headers) topic where topic is not null group by topic
         ) x),'{}'::jsonb) as themes,
         coalesce((select jsonb_object_agg(region,n) from (
           select region,count(*) n from eligible group by region
         ) x),'{}'::jsonb) as regions,
-        coalesce((select jsonb_object_agg(day,n) from (
-          select published_at::date::text day,count(*) n from eligible group by 1
+        coalesce((select jsonb_object_agg(bucket,n) from (
+          select published_at::date::text bucket,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as daily
       from eligible
     )
@@ -68,7 +68,7 @@ begin
         and i.metadata->>'data_class' = 'STATISTICAL_REFERENCE'
         and i.metadata->>'publication_eligible' = 'false'
         and i.metadata->>'alert_eligible' = 'false'
-        and i.metadata->>'observation_date' ~ '^\\d{4}-\\d{2}-\\d{2}$'
+        and i.metadata->>'observation_date' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
         and (p_topic is null or i.metadata->>'topic' = p_topic)
         and (p_region is null or coalesce(i.metadata->>'source_region','UNSPECIFIED') = p_region)
         and (p_from is null or (i.metadata->>'observation_date')::date >= p_from)
@@ -81,8 +81,8 @@ begin
         coalesce((select jsonb_object_agg(region,n) from (
           select region,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as regions,
-        coalesce((select jsonb_object_agg(day,n) from (
-          select observation_date::text day,count(*) n from eligible group by 1
+        coalesce((select jsonb_object_agg(bucket,n) from (
+          select observation_date::text bucket,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as daily
       from eligible
     )
