@@ -15,7 +15,7 @@ export { compareCounts, isExecutiveEligible, referenceClass };
 
 const DAY = 86400000;
 const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
-const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=100';
+const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=1000';
 const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
 const LEGACY_PERIOD_DAYS = Object.freeze({ '7D': 7, '15D': 15, '30D': 30, '1Y': 365, MAX: null });
@@ -338,15 +338,15 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin) {
   const records = [];
-  for (let offset = 0; offset <= 5000; offset += 100) {
+  for (let offset = 0; offset <= 50000; offset += 1000) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
     const page = normalizeSmartRecords(payload);
     records.push(...page);
-    if (records.length >= Number(payload.total || 0) || page.length < 100) return records;
+    if (records.length >= Number(payload.total || 0) || page.length < 1000) return records;
   }
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
