@@ -25,6 +25,7 @@ revoke all on function public.gpir_publish_t3_editorial_candidate(uuid,text,time
 grant execute on function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
   to gpir_editorial_publisher;
 
--- Reader SELECT and all candidate/raw-ingestion privileges remain unchanged.
+-- Preserve service_role writes for the existing governed Global Alerts pipeline.
+-- Remove direct writes from public reader roles without disrupting production ingestion.
 revoke insert, update, delete, truncate, references, trigger
-  on table public.global_announcements from public, anon, authenticated, service_role;
+  on table public.global_announcements from public, anon, authenticated;
