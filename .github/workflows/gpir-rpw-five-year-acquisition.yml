@@ -1,0 +1,46 @@
+name: GPIR World Bank RPW Five-Year Acquisition
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch official World Bank RPW workbook
+        run: |
+          mkdir -p .generated/m39/rpw/extracted
+          curl --fail --location --retry 3 --max-time 180 --output .generated/m39/rpw/source.xlsx 'https://datacatalogfiles.worldbank.org/ddh-published/0037898/DR0095523/rpw_dataset_2011_2025_q3.xlsx'
+          unzip -q .generated/m39/rpw/source.xlsx -d .generated/m39/rpw/extracted
+      - name: Aggregate verified corridor-quarter observations in the five-year window
+        run: |
+          node scripts/intelligence/rpw-xlsx-quarterly.mjs .generated/m39/rpw/extracted --aggregate --start 2021-Q4 --end 2025-Q3 --out .generated/m39/rpw/corridor-quarter.json
+      - name: Validate source, lineage, dates and publication isolation
+        run: |
+          node --input-type=module -e '
+            import {readFileSync,writeFileSync} from "node:fs";
+            const p=".generated/m39/rpw/corridor-quarter.json";
+            const x=JSON.parse(readFileSync(p,"utf8"));
+            if(!Array.isArray(x.records)||!x.records.length)throw Error("RPW_EMPTY_ACQUISITION");
+            const hashes=new Set();
+            for(const r of x.records){
+              const m=r.metadata||{};
+              if(r.source_id!=="WORLD-BANK-RPW-001"||m.provider!=="WORLD_BANK_RPW"||m.data_class!=="STATISTICAL_REFERENCE"||m.publication_eligible!==false||m.alert_eligible!==false||m.observation_period<"2021-Q4"||m.observation_period>"2025-Q3"||!r.content_hash||hashes.has(r.content_hash))throw Error("RPW_GOVERNANCE_VALIDATION_FAILED");
+              hashes.add(r.content_hash);
+            }
+            writeFileSync(".generated/m39/rpw/manifest.json",JSON.stringify({source:"WORLD-BANK-RPW-001",period_start:"2021-Q4",period_end:"2025-Q3",records:x.records.length,statistics:x.statistics,publication_eligible:false,alert_eligible:false},null,2)+"\\n");
+            console.log(JSON.stringify({records:x.records.length,statistics:x.statistics}));
+          '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpir-world-bank-rpw-five-year-official-observations
+          path: |
+            .generated/m39/rpw/corridor-quarter.json
+            .generated/m39/rpw/manifest.json
+          retention-days: 14
+          if-no-files-found: error
