@@ -7,11 +7,12 @@ const { controlledValidationAuthorization } = require('./contentful-auth-boundar
 const { renderNotFoundPage, renderPublicationPage } = require('./contentful-publication-renderer');
 
 function parseArgs(argv) {
-  const options = { input: null, output: null, expected: null, controlledValidation: false };
+  const options = { input: null, output: null, expected: null, controlledValidation: false, releaseDecisions: null };
   for (const arg of argv) {
     if (arg.startsWith('--input=')) options.input = arg.slice(8);
     else if (arg.startsWith('--output=')) options.output = arg.slice(9);
     else if (arg.startsWith('--expected=')) options.expected = Number(arg.slice(11));
+    else if (arg.startsWith('--release-decisions=')) options.releaseDecisions = arg.slice(20);
     else if (arg === '--controlled-validation') options.controlledValidation = true;
     else throw new Error(`Unsupported argument: ${arg}`);
   }
@@ -36,10 +37,18 @@ function buildPublicationSite(artifact, options) {
   const estate = adaptEstate(artifact.records || []);
   if (options.expected !== null && estate.publications.length !== options.expected)
     throw new Error(`Expected ${options.expected} adapted publications; received ${estate.publications.length}.`);
+  if (options.releaseDecisions && options.controlledValidation) throw new Error('Production and controlled validation cannot be combined.');
+  const releaseRows = options.releaseDecisions ? JSON.parse(fs.readFileSync(options.releaseDecisions, 'utf8')).decisions : null;
+  if (releaseRows && (!Array.isArray(releaseRows) || releaseRows.length !== estate.publications.length)) throw new Error('Release authority coverage mismatch.');
+  const decisions = releaseRows ? new Map(releaseRows.map(d => [d.identity + ':' + d.supabaseRecordId, d])) : null;
+  if (decisions && decisions.size !== releaseRows.length) throw new Error('Duplicate release authority decisions.');
   const outputRoot = path.resolve(options.output);
   fs.mkdirSync(outputRoot, { recursive: true });
   const manifest = [];
   for (const publication of estate.publications) {
+    const decision = decisions?.get(publication.identity + ':' + publication.supabaseRecordId);
+    if (decisions && (!decision || decision.route !== publication.route || decision.accessClass !== publication.accessClass)) throw new Error('Release decision mismatch for ' + publication.identity);
+    if (decisions && !decision.releaseEligible) continue;
     const destination = routeDirectory(outputRoot, publication.route);
     fs.mkdirSync(destination, { recursive: true });
     const authorization = options.controlledValidation
@@ -58,7 +67,7 @@ function buildPublicationSite(artifact, options) {
   fs.writeFileSync(path.join(outputRoot, '404.html'), renderNotFoundPage(), 'utf8');
   fs.writeFileSync(path.join(outputRoot, 'routes.json'), `${JSON.stringify({
     schemaVersion: '1.0.0',
-    deploymentEligible: false,
+    deploymentEligible: Boolean(decisions),
     recordCount: manifest.length,
     routes: manifest
   }, null, 2)}\n`, 'utf8');
