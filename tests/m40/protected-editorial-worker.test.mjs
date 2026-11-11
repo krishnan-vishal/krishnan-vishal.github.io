@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { registerEditorialDraft, runEditorialPublisher } from '../../scripts/m40/run-editorial-publisher.mjs';
+import { registerEditorialDraft, runEditorialPublisher, writebackEditorialDraftIdentity } from '../../scripts/m40/run-editorial-publisher.mjs';
 import { createPublicationHandler } from '../../supabase/functions/gpir-intelligence-publish/handler.mjs';
 
 const env = {
@@ -73,7 +73,7 @@ test('ordinary Edge processing does not attempt the editorial sweep', async () =
     assert.ok(calls.every(host => host.endsWith('.supabase.co')));
 });
 
-test('a verified unpublished draft registers a separate identity without publishing or changing CMS', async () => {
+test('a verified unpublished draft registers a separate identity and synchronizes without publishing', async () => {
     const candidateId = '9f9d9e2f-03e8-44a4-90a8-b66f90c3c908';
     const entryId = `gpir-t3-${candidateId}`;
     const recordId = '44444444-4444-4444-8444-444444444444';
@@ -94,7 +94,14 @@ test('a verified unpublished draft registers a separate identity without publish
         const url = new URL(input);
         requests.push({ url, method: init.method || 'GET', body: init.body });
         if (url.hostname === 'api.contentful.com') {
-            if (url.pathname.endsWith(`/entries/${entryId}`)) return Response.json(item);
+            if (url.pathname.endsWith(`/entries/${entryId}`)) {
+                if (init.method === 'PUT') {
+                    assert.equal(init.headers.get('x-contentful-version'), '1');
+                    item.fields = JSON.parse(init.body).fields;
+                    return Response.json(item);
+                }
+                return Response.json(item);
+            }
             return Response.json({ total: 1, items: [{ sys: { id: entryId } }] });
         }
         if (url.pathname.endsWith('/intelligence_candidates')) return Response.json([{
@@ -112,19 +119,25 @@ test('a verified unpublished draft registers a separate identity without publish
     assert.equal(result.legacyCandidateId, true);
     assert.equal(result.identity.supabaseRecordId, recordId);
     const writes = requests.filter(request => request.method !== 'GET');
-    assert.equal(writes.length, 1);
+    assert.equal(writes.length, 2);
+    assert.equal(writes[1].method, 'PUT');
+    assert.equal(result.synchronization.status, 'SYNCHRONIZED');
+    assert.equal(item.fields.supabaseRecordId['en-US'], recordId);
+    assert.equal(item.fields.gpirPublicationId['en-US'], identity.gpirPublicationId);
+    assert.equal(item.sys.publishedVersion, undefined);
     const body = JSON.parse(writes[0].body);
     assert.equal(body.p_candidate_id, candidateId);
     assert.equal(body.p_record_id, null);
     assert.equal(body.p_evidence.contentful_draft_verified, true);
     assert.equal(body.p_evidence.contentful_delivery_verified, undefined);
-    assert.ok(requests.filter(request => request.url.hostname === 'api.contentful.com')
-        .every(request => request.method === 'GET'));
+    assert.equal(requests.filter(request => request.url.hostname === 'api.contentful.com' && request.method === 'PUT').length, 1);
 
     item.sys.publishedVersion = 1;
     await assert.rejects(registerEditorialDraft({ env: { ...env, CONTENTFUL_MANAGEMENT_TOKEN: 'management-fixture' },
         entryId, fetchImpl }), /CONTENTFUL_DRAFT_NOT_UNPUBLISHED/);
     delete item.sys.publishedVersion;
+    item.fields.supabaseRecordId = { 'en-US': candidateId };
+    item.fields.editionLineageId = undefined;
     item.fields.gpirPublicationId = { 'en-US': identity.gpirPublicationId };
     await assert.rejects(registerEditorialDraft({ env: { ...env, CONTENTFUL_MANAGEMENT_TOKEN: 'management-fixture' },
         entryId, fetchImpl }), /EDITORIAL_DRAFT_IDENTITY_REVIEW_REQUIRED/);
@@ -138,6 +151,11 @@ test('owner-authored unpublished drafts register without manufacturing a discove
     const entryId = 'owner-payments-draft';
     const fetchImpl = async (input, init = {}) => {
         const url = new URL(input);
+        if (url.hostname === 'api.contentful.com' && init.method === 'PUT') {
+            const fields = JSON.parse(init.body).fields;
+            assert.equal(fields.gpirPublicationId['en-US'], 'VK-GPIR-P-000000000001-8');
+            return Response.json({ sys: { id: entryId, version: 2 }, fields });
+        }
         if (url.hostname === 'api.contentful.com') return Response.json({
             sys: { id: entryId, version: 1, updatedAt: '2026-11-10T12:00:00Z',
                 contentType: { sys: { id: 'gpirPublication' } } },
@@ -159,6 +177,7 @@ test('owner-authored unpublished drafts register without manufacturing a discove
         entryId, fetchImpl });
     assert.equal(result.candidateId, null);
     assert.equal(result.identity.policyStatus, 'INACTIVE');
+    assert.equal(result.synchronization.status, 'SYNCHRONIZED');
 });
 
 test('blank manual registration input never falls back to the publication sweep', () => {
@@ -181,4 +200,30 @@ test('draft registration SQL remains publisher-only and creates no active policy
         'relevance_verified', 'summary_grounded']) assert.match(sql, new RegExp(`validation_payload->>'${flag}'`));
     assert.match(sql, /from public, anon, authenticated, service_role;/);
     assert.match(sql, /to gpir_editorial_publisher;/);
+});
+
+
+test('writeback is idempotent and rejects identity conflict or changed draft', async () => {
+    const entryId = 'owner-payments-draft';
+    const contentful = { spaceId: 'fixture', environment: 'master', token: 'delivery-fixture' };
+    const identity = { supabaseRecordId: '44444444-4444-4444-8444-444444444444',
+        gpirPublicationId: 'VK-GPIR-P-000000000001-8', editionLineageId: 'VK-GPIR-LINEAGE-000001' };
+    const item = { sys: { id: entryId, version: 3, updatedAt: '2026-11-10T12:00:00Z',
+        contentType: { sys: { id: 'gpirPublication' } } }, fields: Object.fromEntries(
+        Object.entries(identity).map(([key, value]) => [key, { 'en-US': value }])) };
+    let writes = 0;
+    const fetchImpl = async (_input, init = {}) => {
+        if (init.method === 'PUT') { writes++; return Response.json(item); }
+        return Response.json(item);
+    };
+    const args = { contentful, managementToken: 'management-fixture', entryId, identity,
+        expectedUpdatedAt: item.sys.updatedAt, candidateId: null, fetchImpl };
+    assert.equal((await writebackEditorialDraftIdentity(args)).status, 'ALREADY_SYNCHRONIZED');
+    assert.equal(writes, 0);
+    item.fields.supabaseRecordId = { 'en-US': '55555555-5555-4555-8555-555555555555' };
+    await assert.rejects(writebackEditorialDraftIdentity(args), /CONTENTFUL_WRITEBACK_IDENTITY_CONFLICT/);
+    item.fields.supabaseRecordId = { 'en-US': identity.supabaseRecordId };
+    item.sys.updatedAt = '2026-11-11T12:00:00Z';
+    await assert.rejects(writebackEditorialDraftIdentity(args), /CONTENTFUL_WRITEBACK_DRAFT_CHANGED/);
+    assert.equal(writes, 0);
 });
