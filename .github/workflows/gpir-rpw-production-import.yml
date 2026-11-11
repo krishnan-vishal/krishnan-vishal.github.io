@@ -1,0 +1,62 @@
+name: GPIR World Bank RPW Governed Production Import
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gpir-rpw-production-import.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/gpir-rpw-production-import.yml'
+      - 'scripts/intelligence/import-rpw-governed.mjs'
+      - 'tests/m39-rpw-production-import.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpir-rpw-governed-production-import
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/intelligence/import-rpw-governed.mjs
+      - run: node --test tests/m39-gate2-recovery.test.mjs tests/m39-rpw-production-import.test.mjs
+  import:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: contentful-production
+    env:
+      SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate existing RPW parser and governed import
+        run: node --test tests/m39-gate2-recovery.test.mjs tests/m39-rpw-production-import.test.mjs
+      - name: Fetch published World Bank RPW data
+        run: |
+          mkdir -p .generated/m39/rpw/extracted
+          curl --fail --location --retry 3 --max-time 180 --output .generated/m39/rpw/source.xlsx 'https://datacatalogfiles.worldbank.org/ddh-published/0037898/DR0095523/rpw_dataset_2011_2025_q3.xlsx'
+          unzip -q .generated/m39/rpw/source.xlsx -d .generated/m39/rpw/extracted
+      - name: Reconstruct the validated five-year corridor-quarter archive
+        run: |
+          node scripts/intelligence/rpw-xlsx-quarterly.mjs .generated/m39/rpw/extracted --aggregate --start 2021-Q4 --end 2025-Q3 --out .generated/m39/rpw/corridor-quarter.json
+      - name: Import through existing Supabase source registry, raw staging and run ledger
+        run: |
+          node scripts/intelligence/import-rpw-governed.mjs .generated/m39/rpw/corridor-quarter.json .generated/m39/rpw/import-report.json
+      - name: Upload credential-free import result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-rpw-production-import-report
+          path: .generated/m39/rpw/import-report.json
+          if-no-files-found: ignore
+          retention-days: 14
