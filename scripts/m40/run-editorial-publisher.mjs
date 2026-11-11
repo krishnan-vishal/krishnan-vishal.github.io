@@ -43,7 +43,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
                 entries: result.editorial.entries,
                 published: result.editorial.published,
                 awaitingReview: result.editorial.awaitingReview,
-                skipped: result.editorial.skipped
+                skipped: result.editorial.skipped,
+                identityReviews: result.editorial.outcomes
+                    .filter(item => item.reasonCode === 'EDITORIAL_IDENTITY_REVIEW_REQUIRED')
+                    .map(({ entryId, candidateId, identity }) => ({ entryId, candidateId, identity }))
             }
         })))
         .catch(error => {

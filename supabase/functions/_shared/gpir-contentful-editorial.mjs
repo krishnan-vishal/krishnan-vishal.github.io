@@ -3,7 +3,7 @@ import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.m
 // Editorial approval reuses the existing Contentful `gpirPublication` model.
 // Only the read-only Delivery API is used, so an entry is visible here solely
 // when an editor has published it in Contentful. Mapping, with no new fields:
-//   supabaseRecordId       -> intelligence_candidates.id
+//   supabaseRecordId       -> gpir_identity_publications.id
 //   legacySourceUrl        -> the candidate's canonical source article URL
 //   publicationStatus      -> CURRENT
 //   validationStatus       -> PASS (explicit editorial approval; Pending, WARN and FAIL are denied)
@@ -17,6 +17,9 @@ const MAX_PAGES = 50;
 const MIN_EVIDENCE_LENGTH = 40;
 const EDITORIAL_SOURCE_TIERS = new Set(['T1', 'T1.5', 'T2', 'T3']);
 const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
+  'fields.editionLineageId', 'fields.publicationType',
+  'fields.publicationTitle', 'fields.executiveSummary', 'fields.publicationDate',
+  'fields.canonicalUrlCandidate', 'fields.region', 'fields.countryMarket', 'fields.useCasePaymentCategory',
   'fields.legacySourceUrl', 'fields.publicationStatus', 'fields.validationStatus',
   'fields.sourceValidationSummary'].join(',');
 
@@ -67,14 +70,13 @@ async function readEntries(config, fetchImpl, params) {
   };
 }
 
-// Complete, paginated read of every published candidate-linked entry. A result that
+// Complete, paginated read of published entries, including those awaiting identity. A result that
 // cannot be read completely fails closed instead of silently dropping approvals.
 export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch }) {
   const entries = [];
   for (let page = 0; ; page += 1) {
     if (page >= MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
     const { items, total } = await readEntries(config, fetchImpl, {
-      'fields.supabaseRecordId[exists]': 'true', 'fields.legacySourceUrl[exists]': 'true',
       order: 'sys.id', limit: String(PAGE_SIZE), skip: String(page * PAGE_SIZE) });
     if (total > PAGE_SIZE * MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
     if (items.length !== Math.min(PAGE_SIZE, Math.max(0, total - page * PAGE_SIZE)))
@@ -86,9 +88,9 @@ export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch
 }
 
 // Fresh, targeted authorization read made immediately before publication.
-export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fetch, candidate }) {
+export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fetch, candidate, recordId }) {
   const found = new Map();
-  for (const params of [{ 'fields.supabaseRecordId': String(candidate.id) },
+  for (const params of [{ 'fields.supabaseRecordId': String(recordId) },
     { 'fields.legacySourceUrl': String(candidate.canonical_url) }]) {
     const { items, total } = await readEntries(config, fetchImpl, { ...params, limit: '10', order: 'sys.id' });
     if (total > items.length) throw new Error('CONTENTFUL_ENTRY_AMBIGUOUS_RESULT');
@@ -97,13 +99,21 @@ export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fe
   return [...found.values()];
 }
 
+export async function fetchEditorialEntryById({ config, fetchImpl = fetch, entryId }) {
+  const { items, total } = await readEntries(config, fetchImpl, { 'sys.id': entryId, limit: '2' });
+  if (total !== 1 || items.length !== 1 || items[0].entryId !== entryId)
+    throw new Error('CONTENTFUL_ENTRY_NOT_UNIQUE_OR_WITHDRAWN');
+  return items[0];
+}
+
 // Entries that share a candidate identifier or source URL are ambiguous: none is trusted.
 export function ambiguousEditorialKeys(entries) {
   const seen = new Map();
   const ambiguous = new Set();
   for (const entry of entries) {
-    for (const key of [`id:${text(entry.fields.supabaseRecordId).toLowerCase()}`,
-      `url:${editorialUrlKey(text(entry.fields.legacySourceUrl))}`]) {
+    const record = text(entry.fields.supabaseRecordId).toLowerCase();
+    const url = editorialUrlKey(text(entry.fields.legacySourceUrl));
+    for (const key of [record && `id:${record}`, url && `url:${url}`].filter(Boolean)) {
       if (seen.has(key) && seen.get(key) !== entry.entryId) ambiguous.add(key);
       seen.set(key, entry.entryId);
     }
@@ -111,7 +121,7 @@ export function ambiguousEditorialKeys(entries) {
   return ambiguous;
 }
 
-export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = new Set() }) {
+export function evaluateEditorialEntry({ entry, candidate, source, identity, ambiguous = new Set() }) {
   const denied = reasonCode => ({ approved: false, reasonCode });
   if (!source || !EDITORIAL_SOURCE_TIERS.has(source.trust_tier) || source.source_status !== 'GREEN')
     return denied('EDITORIAL_SOURCE_NOT_ELIGIBLE');
@@ -119,7 +129,12 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
   const recordId = text(fields.supabaseRecordId).toLowerCase();
   const sourceUrl = text(fields.legacySourceUrl);
   const urlKey = editorialUrlKey(sourceUrl);
-  if (!UUID.test(recordId) || recordId !== String(candidate.id).toLowerCase() || !urlKey)
+  if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
+  if (!UUID.test(recordId) || !identity || recordId !== String(identity.supabaseRecordId).toLowerCase() ||
+      text(fields.gpirPublicationId) !== identity.gpirPublicationId ||
+      text(fields.editionLineageId) !== identity.editionLineageId ||
+      identity.candidateId !== String(candidate.id).toLowerCase() ||
+      String(identity.entryReference || '').split('/').pop() !== entry?.entryId || !urlKey)
     return denied('EDITORIAL_IDENTITY_MISMATCH');
   if (ambiguous.has(`id:${recordId}`) || ambiguous.has(`url:${urlKey}`))
     return denied('EDITORIAL_ENTRY_AMBIGUOUS');
@@ -128,13 +143,14 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
   if (text(fields.publicationStatus).toUpperCase() !== 'CURRENT' ||
       text(fields.validationStatus).toUpperCase() !== 'PASS')
     return denied('EDITORIAL_APPROVAL_NOT_EXPLICIT');
-  if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
   if (text(fields.sourceValidationSummary).length < MIN_EVIDENCE_LENGTH)
     return denied('EDITORIAL_EVIDENCE_MISSING');
   const approval = Object.freeze({
     approved: true,
     entryId: entry.entryId,
-    candidateId: recordId,
+    candidateId: String(candidate.id).toLowerCase(),
+    supabaseRecordId: recordId,
+    entryReference: identity.entryReference,
     publicationId: text(fields.gpirPublicationId),
     sourceUrl: urlKey
   });
@@ -144,9 +160,9 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
 
 // Authorization comes only from the freshly read set of published entries for this
 // candidate id and URL; exactly one distinct entry must exist.
-export function verifyEditorialApproval({ entries, candidate, source, ambiguous = new Set() }) {
+export function verifyEditorialApproval({ entries, candidate, source, identity, ambiguous = new Set() }) {
   const distinct = new Map((entries || []).map(item => [item.entryId, item]));
   if (distinct.size === 0) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_NOT_FOUND' };
   if (distinct.size > 1) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_AMBIGUOUS' };
-  return evaluateEditorialEntry({ entry: [...distinct.values()][0], candidate, source, ambiguous });
+  return evaluateEditorialEntry({ entry: [...distinct.values()][0], candidate, source, identity, ambiguous });
 }

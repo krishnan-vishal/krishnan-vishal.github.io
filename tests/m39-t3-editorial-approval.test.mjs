@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ambiguousEditorialKeys, contentfulEditorialConfig, evaluateEditorialEntry,
+import { ambiguousEditorialKeys, contentfulEditorialConfig, evaluateEditorialEntry as evaluateRegisteredEntry,
   fetchEditorialEntriesForCandidate, fetchPublishedEditorialEntries } from '../supabase/functions/_shared/gpir-contentful-editorial.mjs';
 import { validateCandidateSource } from '../supabase/functions/_shared/gpir-intelligence-validation.mjs';
 import { createRestPublicationRepository, createPublicationHandler, processCandidate,
@@ -9,6 +9,12 @@ import { normalizeRepositoryRows } from '../supabase/functions/gpir-public-intel
 
 const NOW = Date.parse('2026-11-08T12:00:00.000Z');
 const CANDIDATE_ID = '11111111-1111-4111-8111-111111111111';
+const RECORD_ID = '33333333-3333-4333-8333-333333333333';
+const ENTRY_ID = `gpir-t3-${CANDIDATE_ID}`;
+const IDENTITY = Object.freeze({ supabaseRecordId: RECORD_ID, gpirPublicationId: 'VK-GPIR-MEDIA-000001',
+  editionLineageId: 'VK-GPIR-L-000000000001-8', candidateId: CANDIDATE_ID,
+  entryReference: `space/master/${ENTRY_ID}` });
+const evaluateEditorialEntry = args => evaluateRegisteredEntry({ ...args, identity: IDENTITY });
 const URL_A = 'https://www.pymnts.com/news/payments/2026/instant-payments-network-expands/';
 const T3 = Object.freeze({ source_id: 'PYMNTS-GLOBAL-004', source_name: 'PYMNTS', official_url: 'https://www.pymnts.com',
   trust_tier: 'T3', source_status: 'GREEN', country: 'Global', region_tags: ['Global'], category: 'Payments News' });
@@ -21,8 +27,9 @@ function candidate(overrides = {}) {
 }
 
 function entry(overrides = {}, fields = {}) {
-  return { entryId: 'entry-1', updatedAt: new Date(NOW - 600000).toISOString(), fields: {
-    gpirPublicationId: 'VK-GPIR-MEDIA-000001', supabaseRecordId: CANDIDATE_ID, legacySourceUrl: URL_A,
+  return { entryId: ENTRY_ID, updatedAt: new Date(NOW - 600000).toISOString(), fields: {
+    gpirPublicationId: IDENTITY.gpirPublicationId, supabaseRecordId: RECORD_ID,
+    editionLineageId: IDENTITY.editionLineageId, publicationType: 'Intelligence', legacySourceUrl: URL_A,
     publicationStatus: 'CURRENT', validationStatus: 'PASS',
     sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.',
     ...fields }, ...overrides };
@@ -44,19 +51,23 @@ function page(item) {
 const fetchPage = item => async () => ({ ok: true, status: 200, url: item.canonical_url,
   headers: new Headers({ 'content-type': 'text/html' }), text: async () => page(item) });
 
-function store({ audit = null, entries = [], published = [], targeted = null } = {}) {
+function store({ audit = null, entries = [], published = [], targeted = null, publicationDecision = 'PUBLISHED' } = {}) {
   const events = [];
+  let currentAudit = audit;
   return { events, published,
     async editorialEntries() { return entries; },
-    async editorialEntriesFor(item) {
-      return (targeted || entries).filter(row => row.fields.supabaseRecordId === item.id); },
+    async freshEditorialEntry(id) { return entries.find(row => row.entryId === id); },
+    async registerEditorialIdentity() { return IDENTITY; },
+    async editorialEntriesFor(_item) { return targeted ?? entries; },
     async candidate(id) { return id === CANDIDATE_ID ? candidate() : null; },
-    async audit() { return audit; },
+    async audit() { return currentAudit; },
     async start() { events.push('start'); },
     async source() { return T3; },
     async duplicate() { return false; },
     async record(_item, validation) { events.push(`record:${validation.reasonCode}`); },
-    async publish(_item, validation) { published.push(validation); return '22222222-2222-4222-8222-222222222222'; } };
+    async publish(_item, validation) { published.push(validation);
+      currentAudit = { decision: publicationDecision, reason_code: 'FINALIZED' };
+      return '22222222-2222-4222-8222-222222222222'; } };
 }
 
 test('an explicitly approved, published, matching Contentful entry is accepted', () => {
@@ -111,13 +122,13 @@ test('approved T3 is revalidated against the live source before release and keep
   const approval = evaluateEditorialEntry({ entry: entry(), candidate: item, source: T3 });
   const events = store({ entries: [entry()] });
   const outcome = await processCandidate({ candidate: item, repository: events, fetchImpl: fetchPage(item), now: () => NOW,
-    editorial: { entries: [entry()], ambiguous: new Set() } });
+    editorial: { entries: [entry()], identity: IDENTITY, ambiguous: new Set() } });
   assert.equal(approval.approved, true);
   assert.equal(outcome.decision, 'PUBLISHED');
   assert.equal(outcome.sourcePublishedAt, item.published_at);
   assert.equal(events.published[0].editorial, true);
-  assert.equal(events.published[0].validationPayload.editorial_entry_id, 'entry-1');
-  assert.equal(events.published[0].validationPayload.editorial_supabase_record_id, CANDIDATE_ID);
+  assert.equal(events.published[0].validationPayload.editorial_entry_id, ENTRY_ID);
+  assert.equal(events.published[0].validationPayload.editorial_supabase_record_id, RECORD_ID);
 
   const stale = candidate({ id: '22222222-2222-4222-8222-222222222222', canonical_url: URL_A });
   const bad = await validateCandidateSource({ candidate: stale, source: T3, now: () => NOW,
@@ -151,7 +162,14 @@ test('editorial pass publishes only candidates with a matching entry and respect
   const denied = store({ entries: [entry({}, { validationStatus: 'Pending' })] });
   const deniedResult = await processEditorialApprovals({ repository: denied, fetchImpl: fetchPage(candidate()), now: () => NOW });
   assert.equal(deniedResult.published, 0);
-  assert.deepEqual(denied.events.filter(event => event.startsWith('record')), ['record:EDITORIAL_APPROVAL_NOT_EXPLICIT']);
+  assert.equal(deniedResult.outcomes[0].reasonCode, 'EDITORIAL_IDENTITY_REVIEW_REQUIRED');
+});
+
+test('editorial pass reports an attached duplicate as a duplicate, not a new publication', async () => {
+  const repository = store({ entries: [entry()], publicationDecision: 'DUPLICATE' });
+  const result = await processEditorialApprovals({ repository, fetchImpl: fetchPage(candidate()), now: () => NOW });
+  assert.equal(result.published, 0);
+  assert.equal(result.outcomes[0].decision, 'DUPLICATE');
 });
 
 test('a prior non-transient review reopens only after the editor updates the entry', async () => {
@@ -246,7 +264,7 @@ test('the editorial queue is read-only, lists only T3 candidates and flags exist
   assert.deepEqual(new Set(requests), new Set(['GET']));
   assert.equal(queue.approved[0].contentfulEntryId, 'entry-1');
   assert.equal(queue.awaiting.length, 1);
-  assert.equal(queue.awaiting[0].contentfulDraftFields.supabaseRecordId, open.id);
+  assert.equal('supabaseRecordId' in queue.awaiting[0].contentfulDraftFields, false);
 });
 
 test('a forged, copied or caller-supplied approval can never bypass the verified Contentful path', async () => {
@@ -324,15 +342,15 @@ test('every published editorial entry is read across pages and an incomplete rea
   await assert.rejects(() => fetchPublishedEditorialEntries({ config, fetchImpl: async () => ({ ok: false, status: 429 }) }), /CONTENTFUL_HTTP_429/);
 });
 
-test('targeted authorization lookup queries the candidate id and source URL and rejects ambiguous result sets', async () => {
+test('targeted authorization lookup queries the publication id and source URL and rejects ambiguous result sets', async () => {
   const config = { spaceId: 's', environment: 'master', token: 't' };
   const queries = [];
-  const entries = await fetchEditorialEntriesForCandidate({ config, candidate: candidate(), fetchImpl: async url => {
+  const entries = await fetchEditorialEntriesForCandidate({ config, candidate: candidate(), recordId: RECORD_ID, fetchImpl: async url => {
     const parsed = new URL(url); queries.push(parsed.searchParams);
     return { ok: true, json: async () => ({ total: 1, items: [{ sys: { id: 'entry-1' }, fields: entry().fields }] }) };
   } });
   assert.equal(entries.length, 1);
-  assert.equal(queries[0].get('fields.supabaseRecordId'), CANDIDATE_ID);
+  assert.equal(queries[0].get('fields.supabaseRecordId'), RECORD_ID);
   assert.equal(queries[1].get('fields.legacySourceUrl'), URL_A);
   await assert.rejects(() => fetchEditorialEntriesForCandidate({ config, candidate: candidate(),
     fetchImpl: async () => ({ ok: true, json: async () => ({ total: 11, items: [] }) }) }), /CONTENTFUL_ENTRY_AMBIGUOUS_RESULT/);

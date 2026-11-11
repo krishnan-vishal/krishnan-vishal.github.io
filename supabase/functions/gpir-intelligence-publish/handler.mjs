@@ -1,7 +1,7 @@
-import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { editorialUrlKey, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
-  fetchPublishedEditorialEntries, isVerifiedEditorialApproval, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
+  fetchEditorialEntryById, fetchPublishedEditorialEntries, isVerifiedEditorialApproval, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -90,6 +90,8 @@ async function jsonFetch(fetchImpl, url, init = {}) {
   let data = null;
   try { data = await response.json(); } catch {}
   if (!response.ok) {
+    if (typeof data?.message === 'string' && data.message.startsWith('M40_IDENTITY_REVIEW_REQUIRED:'))
+      throw new Error('M40_IDENTITY_REVIEW_REQUIRED');
     const code = typeof data?.code === 'string' ? data.code : `HTTP_${response.status}`;
     throw new Error(`SUPABASE_${code}`);
   }
@@ -201,9 +203,45 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       return fetchPublishedEditorialEntries({ config: contentful, fetchImpl });
     },
 
-    async editorialEntriesFor(candidate) {
+    async editorialEntriesFor(candidate, recordId) {
       if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
-      return fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate });
+      return fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate, recordId });
+    },
+
+    async freshEditorialEntry(entryId) {
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchEditorialEntryById({ config: contentful, fetchImpl, entryId });
+    },
+
+    async registerEditorialIdentity(entry, candidate) {
+      if (!contentful || !config.publicKey || !config.publisherJwt ||
+          config.publisherJwt === config.key || config.publisherJwt === config.publicKey)
+        throw new Error('EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED');
+      const fields = entry.fields || {};
+      const headers = new Headers({
+        apikey: config.publicKey,
+        authorization: `Bearer ${config.publisherJwt}`,
+        'content-type': 'application/json'
+      });
+      return jsonFetch(fetchImpl, `${base}/rpc/gpir_register_editorial_identity`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          p_entry_reference: `${contentful.spaceId}/${contentful.environment}/${entry.entryId}`,
+          p_publication_type: fields.publicationType,
+          p_candidate_id: candidate?.id || null,
+          p_source_url: candidate?.canonical_url || fields.legacySourceUrl || null,
+          p_record_id: fields.supabaseRecordId || null,
+          p_publication_id: fields.gpirPublicationId || null,
+          p_lineage_id: fields.editionLineageId || null,
+          p_evidence: {
+            contentful_delivery_verified: true,
+            publication_status: String(fields.publicationStatus).toUpperCase(),
+            validation_status: String(fields.validationStatus).toUpperCase(),
+            source_validation_summary: fields.sourceValidationSummary,
+            contentful_updated_at: entry.updatedAt
+          }
+        })
+      });
     },
 
     async candidate(candidateId) {
@@ -309,7 +347,8 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       if (!isVerifiedEditorialApproval(approval) || validation.editorial !== true ||
           validation.validationPayload?.editorial_verified !== true ||
           approval.candidateId !== String(candidate.id).toLowerCase() ||
-          validation.validationPayload.editorial_supabase_record_id !== candidate.id ||
+          validation.validationPayload.editorial_supabase_record_id !== approval.supabaseRecordId ||
+          validation.validationPayload.editorial_entry_reference !== approval.entryReference ||
           validation.validationPayload.editorial_entry_id !== approval.entryId ||
           validation.validationPayload.editorial_publication_id !== approval.publicationId ||
           validation.validationPayload.editorial_source_url !== candidate.canonical_url)
@@ -348,7 +387,8 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   await repository.start(candidate);
   const source = await repository.source(candidate.source_id);
   const editorialApproval = editorial
-    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source, ambiguous: editorial.ambiguous })
+    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source,
+      identity: editorial.identity, ambiguous: editorial.ambiguous })
     : null;
   if (editorialApproval && !editorialApproval.approved) {
     const denied = { decision: 'REVIEW', reasonCode: editorialApproval.reasonCode };
@@ -397,20 +437,78 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
   const started = Date.now();
   for (const entry of entries) {
     if (summary.outcomes.length >= limit || Date.now() - started >= PROCESSING_BUDGET_MS) break;
-    const candidateId = String(entry.fields.supabaseRecordId || '').trim();
+    const match = /^gpir-(t1|t1-5|t2|t3)-([0-9a-f-]{36})$/i.exec(entry.entryId);
+    const candidateId = match && UUID.test(match[2]) ? match[2].toLowerCase() : null;
     try {
-      const candidate = await repository.candidate(candidateId);
+      const fresh = await repository.freshEditorialEntry(entry.entryId);
+      const fields = fresh.fields || {};
+      const values = [fields.supabaseRecordId, fields.gpirPublicationId, fields.editionLineageId];
+      const completeIdentity = values.every(value => typeof value === 'string' && value.trim());
+      const emptyIdentity = values.every(value => !value);
+      const sourceKey = editorialUrlKey(fields.legacySourceUrl);
+      const identityKey = String(fields.supabaseRecordId || '').trim().toLowerCase();
+      if (String(fields.publicationStatus || '').toUpperCase() !== 'CURRENT' ||
+          String(fields.validationStatus || '').toUpperCase() !== 'PASS' ||
+          typeof fields.sourceValidationSummary !== 'string' || fields.sourceValidationSummary.trim().length < 40 ||
+          typeof fields.publicationType !== 'string' || !fields.publicationType.trim() ||
+          (!completeIdentity && !emptyIdentity) || (!candidateId && !completeIdentity) ||
+          (sourceKey && ambiguous.has(`url:${sourceKey}`)) ||
+          (identityKey && ambiguous.has(`id:${identityKey}`))) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
+      const candidate = candidateId ? await repository.candidate(candidateId) : null;
       const source = candidate ? await repository.source(candidate.source_id) : null;
-      if (!candidate || !['T1', 'T1.5', 'T2', 'T3'].includes(source?.trust_tier)) { summary.skipped += 1; continue; }
+      if (candidateId && (!candidate || !['T1', 'T1.5', 'T2', 'T3'].includes(source?.trust_tier))) {
+        summary.skipped += 1; continue;
+      }
+      if (candidate && (fresh.entryId !== `gpir-${source.trust_tier.toLowerCase().replace('.', '-')}-${candidate.id}` ||
+          editorialUrlKey(fields.legacySourceUrl) !== editorialUrlKey(candidate.canonical_url))) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
+      const identity = await repository.registerEditorialIdentity(fresh, candidate);
+      if (!completeIdentity || !identity ||
+          identity.supabaseRecordId !== fields.supabaseRecordId ||
+          identity.gpirPublicationId !== fields.gpirPublicationId ||
+          identity.editionLineageId !== fields.editionLineageId) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED', identity });
+        continue;
+      }
+      if (!candidate) {
+        summary.outcomes.push({ candidateId: null, entryId: entry.entryId,
+          decision: 'REGISTERED', reasonCode: 'OWNER_PUBLICATION_IDENTITY_REGISTERED' });
+        continue;
+      }
       if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
-      const entriesForCandidate = await repository.editorialEntriesFor(candidate);
-      const outcome = await processCandidate({ candidate, repository, fetchImpl, now,
-        editorial: { entries: entriesForCandidate, ambiguous } });
+      const entriesForCandidate = await repository.editorialEntriesFor(candidate, identity.supabaseRecordId);
+      let outcome = await processCandidate({ candidate, repository, fetchImpl, now,
+        editorial: { entries: entriesForCandidate, identity, ambiguous } });
+      if (outcome.decision === 'PUBLISHED') {
+        const finalAudit = await repository.audit(candidate.id);
+        if (!finalAudit || !['PUBLISHED', 'DUPLICATE'].includes(finalAudit.decision))
+          throw new Error('EDITORIAL_PUBLICATION_AUDIT_NOT_FINAL');
+        if (finalAudit.decision === 'DUPLICATE')
+          outcome = { ...outcome, decision: 'DUPLICATE', reasonCode: finalAudit.reason_code };
+      }
       summary.outcomes.push({ candidateId: candidate.id, entryId: entry.entryId, decision: outcome.decision,
         reasonCode: outcome.reasonCode, announcementId: outcome.announcementId });
       if (outcome.decision === 'PUBLISHED') summary.published += 1;
+      else if (outcome.decision === 'DUPLICATE') summary.skipped += 1;
       else summary.awaitingReview += 1;
     } catch (error) {
+      if (error instanceof Error && error.message === 'M40_IDENTITY_REVIEW_REQUIRED') {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
       logger.error('gpir editorial publication failed', { candidateId, error });
       summary.skipped += 1;
     }

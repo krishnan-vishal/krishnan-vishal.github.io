@@ -1,7 +1,12 @@
 // GPIR M39 G1: read-only public alerts; no candidate promotion or writes.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { authorizedEditorialCandidates, loadPublicEditorialAuthority } from "../_shared/gpir-public-editorial.mjs";
+import { editorialUrlKey } from "../_shared/gpir-intelligence-validation.mjs";
 const PROJECT_URL = Deno.env.get("SUPABASE_URL");
 const SERVER_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const editorialEnv = Object.fromEntries([
+ "CONTENTFUL_SPACE_ID", "CONTENTFUL_ENVIRONMENT", "CONTENTFUL_DELIVERY_TOKEN"
+].map(name => [name, Deno.env.get(name)]));
 const allowedOrigins = new Set([
  "https://fintechoisis.com",
  "https://codex-m39-g1-alerts-krishnan-vishal-github-io.krishnanvishal12.workers.dev"
@@ -29,11 +34,39 @@ Deno.serve(async req => {
   ]);
   if(!itemsResponse.ok || !sourcesResponse.ok) return reply(req,{error:"FEED_UNAVAILABLE"},503);
   const items=await itemsResponse.json(),sources=await sourcesResponse.json();
+  const authority=await loadPublicEditorialAuthority({env:editorialEnv,supabaseUrl:PROJECT_URL,serviceKey:SERVER_KEY});
+  const ids=items.map((r:any)=>r.id).filter((id:string)=>/^[0-9a-f-]{36}$/i.test(id));
+  let audits:any[]=[],candidates:any[]=[];
+  if(ids.length) {
+   const auditParams=new URLSearchParams({select:"candidate_id,announcement_id,decision,validation_payload",
+    decision:"eq.PUBLISHED",announcement_id:`in.(${ids.join(",")})`,limit:"1000"});
+   const auditResponse=await fetch(PROJECT_URL+"/rest/v1/intelligence_publication_audits?"+auditParams,{headers});
+   if(!auditResponse.ok) return reply(req,{error:"FEED_UNAVAILABLE"},503);
+   audits=await auditResponse.json();
+   if(!Array.isArray(audits)||audits.length>=1000) return reply(req,{error:"FEED_UNAVAILABLE"},503);
+   const candidateIds=[...new Set(audits.map((a:any)=>a.candidate_id).filter((id:string)=>/^[0-9a-f-]{36}$/i.test(id)))];
+   if(candidateIds.length) {
+    const candidateParams=new URLSearchParams({select:"id,source_id,canonical_url,published_at",
+     candidate_status:"eq.APPROVED",id:`in.(${candidateIds.join(",")})`,limit:"1000"});
+    const candidateResponse=await fetch(PROJECT_URL+"/rest/v1/intelligence_candidates?"+candidateParams,{headers});
+    if(!candidateResponse.ok) return reply(req,{error:"FEED_UNAVAILABLE"},503);
+    candidates=await candidateResponse.json();
+    if(!Array.isArray(candidates)||candidates.length>=1000) return reply(req,{error:"FEED_UNAVAILABLE"},503);
+   }
+  }
+  const accepted=authorizedEditorialCandidates({authority,candidates,audits,sources});
+  const byCandidate=new Map(candidates.map((c:any)=>[c.id,c]));
+  const byAnnouncement=new Map(audits.filter((a:any)=>accepted.has(a.candidate_id))
+   .map((a:any)=>[a.announcement_id,byCandidate.get(a.candidate_id)]));
   const bySource=new Map(sources.filter((s:any)=>s.source_status==="GREEN").map((s:any)=>[s.source_id,s]));
   const alerts=items.filter((r:any)=>{
    const s:any=bySource.get(r.source_id);
+   const candidate:any=byAnnouncement.get(r.id);
    const t=Date.parse(r.published_at||"");
-   return s && Number.isFinite(t) && t<=now && t>=now-12*3600000 &&
+   return s && candidate && candidate.source_id===r.source_id &&
+    editorialUrlKey(candidate.canonical_url)===editorialUrlKey(r.canonical_url) &&
+    Number.isFinite(Date.parse(candidate.published_at||"")) && Date.parse(candidate.published_at)===t &&
+    Number.isFinite(t) && t<=now && t>=now-12*3600000 &&
     typeof r.title==="string" && r.title.trim().length>=12 &&
     typeof r.summary_narration==="string" && r.summary_narration.trim().length>=40 &&
     typeof r.canonical_url==="string" && verifiedUrl(r.canonical_url,s.official_url);

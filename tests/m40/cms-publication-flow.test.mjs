@@ -8,7 +8,9 @@ import { createProtectedPublicationHandler } from '../../supabase/functions/gpir
 
 const NOW = Date.parse('2026-11-10T12:00:00Z');
 const id = '11111111-1111-4111-8111-111111111111';
+const recordId = '44444444-4444-4444-8444-444444444444';
 const publicationId = 'VK-GPIR-P-000000000001-8';
+const lineageId = 'VK-GPIR-LINEAGE-000001';
 const url = 'https://www.pymnts.com/news/payments/verified-initiative/';
 const candidate = {
   id, source_id: 'PYMNTS-GLOBAL-004', canonical_url: url, candidate_status: 'REVIEW',
@@ -26,11 +28,14 @@ const article = [
 
 function fixture(status) {
   const config = { spaceId: 'space', environment: 'master', token: 'delivery-fixture' };
-  const entry = { sys: { id: 'editorial-entry', updatedAt: '2026-11-10T11:00:00Z' }, fields: {
-    gpirPublicationId: publicationId, supabaseRecordId: id, legacySourceUrl: url,
+  const entry = { sys: { id: `gpir-t3-${id}`, updatedAt: '2026-11-10T11:00:00Z' }, fields: {
+    gpirPublicationId: publicationId, supabaseRecordId: recordId, editionLineageId: lineageId,
+    publicationType: 'Intelligence', legacySourceUrl: url,
     publicationStatus: 'CURRENT', validationStatus: status,
     sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.'
   } };
+  const identity = { supabaseRecordId: recordId, gpirPublicationId: publicationId,
+    editionLineageId: lineageId, candidateId: id, entryReference: `space/master/${entry.sys.id}` };
   const announcements = [];
   let audit = null;
   const fetchImpl = async requestUrl => {
@@ -44,15 +49,19 @@ function fixture(status) {
   };
   const repository = {
     editorialEntries: () => fetchPublishedEditorialEntries({ config, fetchImpl }),
-    editorialEntriesFor: item => fetchEditorialEntriesForCandidate({ config, fetchImpl, candidate: item }),
+    freshEditorialEntry: async () => (await fetchPublishedEditorialEntries({ config, fetchImpl }))[0],
+    editorialEntriesFor: item => fetchEditorialEntriesForCandidate({ config, fetchImpl, candidate: item, recordId }),
+    registerEditorialIdentity: async () => identity,
     candidate: async candidateId => candidateId === id ? candidate : null,
     source: async () => source,
     audit: async () => audit,
     start: async () => {},
     duplicate: async () => false,
-    record: async (_candidate, validation) => { audit = { decision: validation.decision, reason_code: validation.reasonCode }; },
+    record: async (_candidate, validation) => { audit = { candidate_id: id, decision: validation.decision,
+      reason_code: validation.reasonCode, validation_payload: validation.validationPayload }; },
     publish: async (_candidate, validation) => {
-      audit = { decision: 'PUBLISHED', reason_code: validation.reasonCode };
+      audit = { candidate_id: id, announcement_id: '22222222-2222-4222-8222-222222222222',
+        decision: 'PUBLISHED', reason_code: validation.reasonCode, validation_payload: validation.validationPayload };
       announcements.push({
         id: '22222222-2222-4222-8222-222222222222', source_id: source.source_id,
         title: candidate.title, summary_narration: validation.summary, canonical_url: validation.canonicalUrl,
@@ -62,12 +71,16 @@ function fixture(status) {
       return announcements[0].id;
     }
   };
-  return { repository, fetchImpl, announcements };
+  return { repository, fetchImpl, announcements, identity, entry, getAudit: () => audit };
 }
 
-async function publicRecords(announcements, now = NOW) {
+async function publicRecords(state, now = NOW) {
   const handler = createPublicIntelligenceHandler({ env: {}, now: () => now,
-    loadRows: async () => ({ announcements, sources: [source] }) });
+    loadAuthority: async () => [{ row: { record_id: recordId, publication_id: publicationId,
+      candidate_id: id, entry_reference: state.identity.entryReference },
+      entry: { entryId: state.entry.sys.id, fields: state.entry.fields } }],
+    loadRows: async () => ({ announcements: state.announcements, sources: [source],
+      candidates: [candidate], publicationAudits: state.getAudit() ? [state.getAudit()] : [] }) });
   const response = await handler(new Request('https://example.test/?scope=history'));
   assert.equal(response.status, 200);
   return (await response.json()).records;
@@ -78,19 +91,19 @@ test('published, approved CMS entry passes source validation into the existing r
   const result = await processEditorialApprovals({ repository: state.repository, fetchImpl: state.fetchImpl, now: () => NOW });
   assert.equal(result.published, 1);
   assert.equal((await processEditorialApprovals({ repository: state.repository, fetchImpl: state.fetchImpl, now: () => NOW })).published, 0);
-  const records = await publicRecords(state.announcements);
+  const records = await publicRecords(state);
   assert.equal(records.length, 1);
   assert.equal(records[0].publishedAt, candidate.published_at);
   assert.equal(records[0].tickerEligible, true);
-  assert.equal((await publicRecords(state.announcements, NOW + 11 * 3600000))[0].tickerEligible, false);
+  assert.equal((await publicRecords(state, NOW + 11 * 3600000))[0].tickerEligible, false);
 });
 
 test('a CMS entry without explicit editorial approval never reaches the reader API', async () => {
   const state = fixture('Pending');
   const result = await processEditorialApprovals({ repository: state.repository, fetchImpl: state.fetchImpl, now: () => NOW });
   assert.equal(result.published, 0);
-  assert.equal(result.outcomes[0].reasonCode, 'EDITORIAL_APPROVAL_NOT_EXPLICIT');
-  assert.deepEqual(await publicRecords(state.announcements), []);
+  assert.equal(result.outcomes[0].reasonCode, 'EDITORIAL_IDENTITY_REVIEW_REQUIRED');
+  assert.deepEqual(await publicRecords(state), []);
 });
 
 test('owner-authored published Contentful content is available through the existing entitled publication API', async () => {

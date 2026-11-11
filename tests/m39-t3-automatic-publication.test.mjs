@@ -301,14 +301,18 @@ test('publication repository refuses non-editorial and forged approvals before a
 test('the Contentful editorial route is preserved, takes precedence and still publishes low-confidence T3 articles', async () => {
   for (const confidence of [40, 99]) {
     const item = candidate({ confidence_score: confidence });
+    const identity = { supabaseRecordId: '22222222-2222-4222-8222-222222222222',
+      gpirPublicationId: 'VK-GPIR-MEDIA-000001', editionLineageId: 'VK-GPIR-LINEAGE-000001',
+      candidateId: CANDIDATE_ID, entryReference: 'space/master/entry-1' };
     const entry = { entryId: 'entry-1', updatedAt: new Date(NOW - 600000).toISOString(), fields: {
-      gpirPublicationId: 'VK-GPIR-MEDIA-000001', supabaseRecordId: CANDIDATE_ID, legacySourceUrl: URL_A,
+      gpirPublicationId: identity.gpirPublicationId, supabaseRecordId: identity.supabaseRecordId,
+      editionLineageId: identity.editionLineageId, legacySourceUrl: URL_A,
       publicationStatus: 'CURRENT', validationStatus: 'PASS',
       sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.' } };
-    assert.equal(evaluateEditorialEntry({ entry, candidate: item, source: T3 }).approved, true);
+    assert.equal(evaluateEditorialEntry({ entry, candidate: item, source: T3, identity }).approved, true);
     const repository = store();
     const outcome = await processCandidate({ candidate: item, repository, fetchImpl: fetchPage(item), now: () => NOW,
-      editorial: { entries: [entry], ambiguous: new Set() } });
+      editorial: { entries: [entry], identity, ambiguous: new Set() } });
     assert.equal(outcome.decision, 'PUBLISHED', String(confidence));
     assert.equal(repository.published[0].editorial, true);
     assert.equal(repository.published[0].t3Automatic, false);

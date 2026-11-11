@@ -44,8 +44,28 @@ begin
     or coalesce(p_validation_payload->>'editorial_verified','false') <> 'true'
     or length(btrim(coalesce(p_validation_payload->>'editorial_entry_id',''))) = 0
     or coalesce(p_validation_payload->>'editorial_publication_id','') !~ '^VK-GPIR?-[A-Z0-9]+(-[A-Z0-9]+)+$'
-    or p_validation_payload->>'editorial_supabase_record_id' is distinct from p_candidate_id::text
+    or coalesce(p_validation_payload->>'editorial_supabase_record_id','') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+    or coalesce(p_validation_payload->>'editorial_entry_reference','') = ''
  then raise exception 'G1_T3_EDITORIAL_INVALID_EVIDENCE'; end if;
+
+ if not exists (
+   select 1 from public.gpir_identity_publications p
+   join public.gpir_identity_lineages l on l.id = p.lineage_id and l.lineage_status = 'ACTIVE'
+   join public.gpir_publication_access_policies policy on policy.supabase_record_id = p.id
+     and policy.publication_id = p.gpir_publication_id and policy.status = 'ACTIVE'
+   join public.gpir_identity_related_identifiers cms on cms.publication_id = p.id
+     and cms.identifier_type = 'cms' and cms.relationship = 'contentful-entry'
+     and cms.verification_state = 'VERIFIED'
+   join public.gpir_identity_related_identifiers candidate on candidate.publication_id = p.id
+     and candidate.identifier_type = 'source' and candidate.relationship = 'intelligence-candidate'
+     and candidate.verification_state = 'VERIFIED'
+   where p.id::text = lower(p_validation_payload->>'editorial_supabase_record_id')
+     and p.gpir_publication_id = p_validation_payload->>'editorial_publication_id'
+     and p.identity_status in ('SOURCE_NATIVE','GOVERNED_ASSIGNED') and p.collision_state = 'none'
+     and cms.identifier_value = p_validation_payload->>'editorial_entry_reference'
+     and split_part(cms.identifier_value,'/',3) = p_validation_payload->>'editorial_entry_id'
+     and candidate.identifier_value = p_candidate_id::text
+ ) then raise exception 'G1_T3_EDITORIAL_IDENTITY_REVIEW_REQUIRED'; end if;
 
  select * into c from public.intelligence_candidates where id=p_candidate_id for update;
  if not found or c.candidate_status not in ('PENDING','REVIEW','VALIDATING')

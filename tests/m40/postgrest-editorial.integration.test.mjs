@@ -4,10 +4,10 @@ import { execFileSync } from 'node:child_process';
 import test from 'node:test';
 import { createRestPublicationRepository, processEditorialApprovals } from '../../supabase/functions/gpir-intelligence-publish/handler.mjs';
 
-const endpoint = process.env.GPIR_TEST_POSTGREST_URL;
-const secret = process.env.GPIR_TEST_POSTGREST_JWT_SECRET;
-const enabled = Boolean(endpoint && secret && process.env.PGHOST === '127.0.0.1' &&
-  process.env.PGPORT === '55439' && process.env.PGDATABASE === 'postgres');
+const endpoint = process.env.GPIR_M40_TEST_POSTGREST;
+const secret = process.env.GPIR_M40_TEST_JWT_SECRET;
+const enabled = Boolean(endpoint === 'http://127.0.0.1:33074' && secret && process.env.PGHOST === '127.0.0.1' &&
+  process.env.PGPORT === '55468' && process.env.PGDATABASE === 'postgres');
 
 function jwt(role) {
   const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -19,7 +19,7 @@ test('real PostgREST enforces publisher credential separation and all-tier edito
   { skip: enabled ? false : 'requires the isolated PostgREST and PostgreSQL test environment' }, async () => {
     const url = new URL(endpoint);
     assert.equal(url.hostname, '127.0.0.1', 'integration test must never target production');
-    assert.equal(url.port, '33073', 'integration test must target the isolated PostgREST server');
+    assert.equal(url.port, '33074', 'integration test must target the isolated PostgREST server');
     const serviceJwt = jwt('service_role');
     const publisherJwt = jwt('gpir_editorial_publisher');
     const now = Date.now();
@@ -49,7 +49,11 @@ test('real PostgREST enforces publisher credential separation and all-tier edito
       insert into public.source_registry(source_id,source_name,official_url,trust_tier,source_status)
         values('${record.sourceId}','Fixture source','https://source.example','${record.tier}','GREEN');
       insert into public.intelligence_candidates(id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status)
-        values('${record.id}','${record.sourceId}','${record.canonical}','${record.title}','${record.publishedAt}','Payments','LAUNCH',${record.confidence},'PENDING');`).join('\n');
+        values('${record.id}','${record.sourceId}','${record.canonical}','${record.title}','${record.publishedAt}','Payments','LAUNCH',${record.confidence},'PENDING');
+      insert into public.intelligence_publication_audits(candidate_id,decision,reason_code,canonical_url,validation_payload)
+        values('${record.id}','REVIEW','AUTO_PUBLICATION_THRESHOLD_NOT_MET','${record.canonical}',
+          '{"source_verified":true,"canonical_verified":true,"timestamp_verified":true,
+            "content_verified":true,"relevance_verified":true,"summary_grounded":true}'::jsonb);`).join('\n');
     execFileSync('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-q', '-c', statements], { env: process.env });
 
     const requests = [];
@@ -75,13 +79,17 @@ test('real PostgREST enforces publisher credential separation and all-tier edito
       if (target.hostname === 'cdn.contentful.com') {
         const id = target.searchParams.get('fields.supabaseRecordId');
         const canonical = target.searchParams.get('fields.legacySourceUrl');
-        const selected = !id && !canonical ? records :
-          records.filter(record => record.id === id || record.canonical === canonical);
+        const entryId = target.searchParams.get('sys.id');
+        const selected = records.filter(record =>
+          (!id || record.identity?.supabaseRecordId === id) &&
+          (!canonical || record.canonical === canonical) &&
+          (!entryId || entryId === `gpir-${record.tier.toLowerCase().replace('.', '-')}-${record.id}`));
         return Response.json({ total: selected.length, items: selected.map(record => ({
-          sys: { id: `entry-${record.id}`, updatedAt: new Date(now).toISOString() },
+          sys: { id: `gpir-${record.tier.toLowerCase().replace('.', '-')}-${record.id}`, updatedAt: new Date(now).toISOString() },
           fields: {
-            gpirPublicationId: `VK-GPIR-TEST-${record.id.slice(-12).toUpperCase()}`,
-            supabaseRecordId: record.id, legacySourceUrl: record.canonical,
+            ...(record.identity ? { gpirPublicationId: record.identity.gpirPublicationId,
+              supabaseRecordId: record.identity.supabaseRecordId, editionLineageId: record.identity.editionLineageId } : {}),
+            publicationType: 'Intelligence', legacySourceUrl: record.canonical,
             publicationStatus: 'CURRENT', validationStatus: record.status,
             sourceValidationSummary: 'Editor checked the original source and its payments-sector relevance.'
           }
@@ -93,6 +101,16 @@ test('real PostgREST enforces publisher credential separation and all-tier edito
     const repository = createRestPublicationRepository({ config, fetchImpl,
       contentful: { spaceId: 'fixture', environment: 'master', token: 'fixture-delivery' } });
     const errors = [];
+    const registration = await processEditorialApprovals({ repository, fetchImpl, now: () => now, limit: 20,
+      logger: { error(...args) { errors.push(args); } } });
+    assert.deepEqual(errors, []);
+    assert.equal(registration.published, 0);
+    for (const record of records.filter(item => item.status === 'PASS')) {
+      const review = registration.outcomes.find(item => item.candidateId === record.id);
+      assert.equal(review.reasonCode, 'EDITORIAL_IDENTITY_REVIEW_REQUIRED');
+      assert.notEqual(review.identity.supabaseRecordId, record.id);
+      record.identity = review.identity;
+    }
     const result = await processEditorialApprovals({ repository, fetchImpl, now: () => now, limit: 20,
       logger: { error(...args) { errors.push(args); } } });
     assert.deepEqual(errors, []);

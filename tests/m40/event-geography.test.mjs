@@ -57,6 +57,9 @@ test('explicit global and unknown geography remain distinct without invented cou
 test('public API loads only published-audit-linked approved event geography', async () => {
   const id = '11111111-1111-4111-8111-111111111111';
   const candidateId = '22222222-2222-4222-8222-222222222222';
+  const authority = [{ row: { candidate_id: candidateId, record_id: 'publication-record',
+    publication_id: 'governed-publication', entry_reference: 'space/master/approved-entry' },
+    entry: { entryId: 'approved-entry', fields: { legacySourceUrl: candidate.canonical_url } } }];
   const seen = [];
   const rows = {
     global_announcements: [{ ...announcement, id }],
@@ -64,12 +67,16 @@ test('public API loads only published-audit-linked approved event geography', as
     gpir_intelligence_topics: [],
     gpir_intelligence_developments: [],
     gpir_intelligence_topic_sources: [],
-    intelligence_publication_audits: [{ ...audit, candidate_id: candidateId, announcement_id: id }],
-    intelligence_candidates: [{ ...candidate, id: candidateId, country_code: 'IN' }]
+    intelligence_publication_audits: [{ ...audit, candidate_id: candidateId, announcement_id: id,
+      validation_payload: { editorial_verified: true, editorial_entry_reference: authority[0].row.entry_reference,
+        editorial_entry_id: 'approved-entry', editorial_publication_id: 'governed-publication',
+        editorial_supabase_record_id: 'publication-record', editorial_source_url: candidate.canonical_url } }],
+    intelligence_candidates: [{ ...candidate, id: candidateId, published_at: announcement.published_at, country_code: 'IN' }]
   };
   const handler = createPublicIntelligenceHandler({
     env: { SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-key' },
     now: () => Date.parse('2026-11-10T00:00:00Z'),
+    loadAuthority: async () => authority,
     fetchImpl: async url => {
       const request = new URL(url);
       seen.push(request);
@@ -82,6 +89,6 @@ test('public API loads only published-audit-linked approved event geography', as
   assert.equal(response.status, 200);
   const result = await response.json();
   assert.equal(result.records[0].eventGeography.countryCode, 'IN');
-  assert.equal(seen.find(url => url.pathname.endsWith('/intelligence_candidates')).searchParams.get('candidate_status'), 'eq.APPROVED');
+  assert.equal(seen.find(url => url.pathname.endsWith('/intelligence_candidates')).searchParams.get('candidate_status'), 'in.(APPROVED,DUPLICATE)');
   assert.equal(seen.find(url => url.pathname.endsWith('/intelligence_publication_audits')).searchParams.get('decision'), 'eq.PUBLISHED');
 });

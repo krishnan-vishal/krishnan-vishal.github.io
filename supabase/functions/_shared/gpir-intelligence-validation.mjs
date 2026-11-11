@@ -347,7 +347,8 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
         editorial_verified: true,
         editorial_entry_id: editorialApproval.entryId,
         editorial_publication_id: editorialApproval.publicationId,
-        editorial_supabase_record_id: candidate.id,
+        editorial_supabase_record_id: editorialApproval.supabaseRecordId,
+        editorial_entry_reference: editorialApproval.entryReference,
         editorial_source_url: candidate.canonical_url
       } : {})
     }

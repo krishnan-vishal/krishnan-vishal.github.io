@@ -40,14 +40,30 @@ const ANNOUNCEMENTS = [
 ];
 
 function repositoryRows(announcements = ANNOUNCEMENTS) {
-  return { announcements, sources: [T3, T1], topics: [], developments: [], topicSources: [], statisticalObservations: [] };
+  const candidates = announcements.map(item => ({ id: `candidate-${item.id}`, source_id: item.source_id,
+    canonical_url: item.canonical_url, published_at: item.published_at }));
+  const publicationAudits = announcements.map((item, index) => {
+    const candidateId = candidates[index].id;
+    return { candidate_id: candidateId, announcement_id: item.id, decision: 'PUBLISHED',
+      validation_payload: { editorial_verified: true, editorial_entry_reference: `space/master/${item.id}`,
+        editorial_entry_id: item.id, editorial_publication_id: `publication-${item.id}`,
+        editorial_supabase_record_id: `record-${item.id}`, editorial_source_url: item.canonical_url } };
+  });
+  return { announcements, sources: [T3, T1], candidates, publicationAudits, topics: [], developments: [],
+    topicSources: [], statisticalObservations: [] };
 }
 
 function publicHandler(extra = {}) {
   let loaded = 0;
+  const authority = ANNOUNCEMENTS.map(item => ({
+    row: { candidate_id: `candidate-${item.id}`, record_id: `record-${item.id}`,
+      publication_id: `publication-${item.id}`, entry_reference: `space/master/${item.id}` },
+    entry: { entryId: item.id, fields: { legacySourceUrl: item.canonical_url } }
+  }));
   const handler = createPublicIntelligenceHandler({
     env: { SUPABASE_URL: PRODUCTION_URL, SUPABASE_SERVICE_ROLE_KEY: 'service' },
-    loadRows: async () => { loaded += 1; return repositoryRows(); }, now: () => NOW, ...extra });
+    loadRows: async () => { loaded += 1; return repositoryRows(); },
+    loadAuthority: async () => authority, now: () => NOW, ...extra });
   return { handler, loads: () => loaded };
 }
 
