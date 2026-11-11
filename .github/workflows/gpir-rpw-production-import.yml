@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/gpir-rpw-production-import.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/gpir-rpw-production-import.yml'
+      - 'scripts/intelligence/import-rpw-governed.mjs'
+      - 'tests/m39-rpw-production-import.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,7 +16,18 @@ concurrency:
   group: gpir-rpw-governed-production-import
   cancel-in-progress: false
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/intelligence/import-rpw-governed.mjs
+      - run: node --test tests/m39-gate2-recovery.test.mjs tests/m39-rpw-production-import.test.mjs
   import:
+    needs: validate
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: contentful-production
