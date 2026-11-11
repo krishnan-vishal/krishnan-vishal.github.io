@@ -15,15 +15,25 @@ create role gpir_editorial_publisher nologin noinherit nobypassrls;
 grant gpir_editorial_publisher to authenticator;
 grant usage on schema public to gpir_editorial_publisher;
 
--- Only the isolated publisher role may invoke the existing editorial RPC.
--- The protected publisher must independently read the published Contentful
--- entry before using its separately provisioned credential.
-alter function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
-  security definer;
-revoke all on function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
-  from public, anon, authenticated, service_role;
-grant execute on function public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)
-  to gpir_editorial_publisher;
+-- TRANSITION: install the isolated publisher identity without changing the
+-- live editorial RPC's SECURITY INVOKER mode or existing service_role grant.
+-- The active Supabase Edge Function still calls this RPC as service_role.
+-- Its revocation, SECURITY DEFINER conversion and dedicated-role grant
+-- belong to the separately verified cutover, after the replacement caller,
+-- trusted JWT and Contentful approval checks are operational.
+-- In particular, do not grant the new role execution of the legacy RPC:
+-- this phase must not make the old unguarded entry point newly accessible.
+do $
+begin
+  if not pg_catalog.has_function_privilege(
+    'service_role',
+    'public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)',
+    'execute'
+  ) then
+    raise exception 'Existing service_role editorial RPC grant missing; review transition';
+  end if;
+end
+$;
 
 -- Preserve service_role writes for the existing governed Global Alerts pipeline.
 -- Remove direct writes from public reader roles without disrupting production ingestion.
