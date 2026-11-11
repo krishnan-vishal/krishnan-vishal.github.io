@@ -44,6 +44,15 @@ jobs:
           --mode=${{ inputs.mode }}
           --expected=${{ inputs.expected_count }}
           --output=.generated/m35/contentful-publications.json
+      - name: Reconcile published Contentful estate with trusted Supabase release authority
+        if: ${{ inputs.mode == 'delivery' }}
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+        run: >-
+          node scripts/m35/verify-contentful-release.js
+          .generated/m35/contentful-publications.json
+          .generated/m35/release-decisions.json
       - name: Render controlled non-deploying publication output
         run: >-
           node scripts/m35/render-contentful-publications.js
@@ -67,7 +76,7 @@ jobs:
           name: m35-contentful-${{ inputs.mode }}
           path: |
             .generated/m35/contentful-publications.json
-            .generated/m35/site
+            .generated/m35/site\n            .generated/m35/release-decisions.json
             .generated/m39/fx-editorial-public.json
           if-no-files-found: error
           retention-days: 1
