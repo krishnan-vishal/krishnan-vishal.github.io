@@ -354,9 +354,9 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-export async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin, { maxPages = 51 } = {}) {
   const records = [];
-  for (let offset = 0; offset <= 50000; offset += 1000) {
+  for (let offset = 0; offset < maxPages * 1000; offset += 1000) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
@@ -364,6 +364,7 @@ export async function fetchHistory(fetchImpl, origin) {
     records.push(...page);
     if (records.length >= Number(payload.total || 0) || page.length < 1000) return records;
   }
+  if (maxPages < 51) return records;
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
 
@@ -766,7 +767,7 @@ export async function initializeSmartIntelligence({ global = window,
     }
   });
   const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
-    fetchHistory(fetchImpl, origin),
+    fetchHistory(fetchImpl, origin, { maxPages: 1 }),
     livePromise,
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
     fetchImpl(GOVERNED_ROUTES_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
@@ -778,6 +779,7 @@ export async function initializeSmartIntelligence({ global = window,
     return false;
   }
   let records = historyResult.value;
+  let historyComplete = records.length < 1000;
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
   const governedRoutes = routesResult.status === 'fulfilled' ? normalizeGovernedRoutes(routesResult.value) : [];
@@ -859,11 +861,31 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !publications.length;
     editorialTarget.innerHTML = publications.length ? `<p class="smi-kicker">PUBLISHED GPIR RESEARCH</p>${publications.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${historyComplete ? '' : 'PREVIEW: first 1,000 records only; counts are incomplete until full history is requested. '}${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
   };
+
+  // Explicit reader action: do not silently scan the full repository at page load.
+  const historyAction = document.createElement('button');
+  historyAction.type = 'button';
+  historyAction.textContent = 'Load full historical analysis';
+  historyAction.hidden = historyComplete;
+  historyAction.addEventListener('click', async () => {
+    historyAction.disabled = true;
+    historyAction.textContent = 'Loading historical analysis…';
+    try {
+      records = await fetchHistory(fetchImpl, origin);
+      historyComplete = true;
+      historyAction.hidden = true;
+      render();
+    } catch {
+      historyAction.disabled = false;
+      historyAction.textContent = 'Retry full historical analysis';
+    }
+  });
+  status.insertAdjacentElement('afterend', historyAction);
 
   const progressiveSections = [...root.querySelectorAll('[data-smart-progressive]')];
   let compactLayout = global.matchMedia?.('(max-width: 640px)').matches || false;
