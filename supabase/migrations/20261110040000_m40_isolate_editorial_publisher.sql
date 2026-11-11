@@ -1,5 +1,5 @@
--- Proposed only: deploy together with the publisher credential and the
--- governed scraper. Never grant this role or its JWT to ordinary processors.
+-- Phase 1: additive role provisioning only. No production publisher cutover.
+-- Never grant this role or its JWT to ordinary processors.
 do $$
 begin
   if exists (select 1 from pg_catalog.pg_roles where rolname = 'gpir_editorial_publisher') then
@@ -23,7 +23,7 @@ grant usage on schema public to gpir_editorial_publisher;
 -- trusted JWT and Contentful approval checks are operational.
 -- In particular, do not grant the new role execution of the legacy RPC:
 -- this phase must not make the old unguarded entry point newly accessible.
-do $
+do $m40check$
 begin
   if not pg_catalog.has_function_privilege(
     'service_role',
@@ -33,7 +33,7 @@ begin
     raise exception 'Existing service_role editorial RPC grant missing; review transition';
   end if;
 end
-$;
+$m40check$;
 
 -- Direct table-write privilege changes are deferred to the separately
 -- verified cutover. Existing Global Alerts callers must remain unaffected.
