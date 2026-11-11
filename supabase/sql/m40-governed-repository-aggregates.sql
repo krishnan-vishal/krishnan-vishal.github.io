@@ -40,8 +40,8 @@ begin
         coalesce((select jsonb_object_agg(region,n) from (
           select region,count(*) n from eligible group by region
         ) x),'{}'::jsonb) as regions,
-        coalesce((select jsonb_object_agg(day,n) from (
-          select published_at::date::text day,count(*) n from eligible group by 1
+        coalesce((select jsonb_object_agg(bucket,n) from (
+          select published_at::date::text bucket,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as daily
       from eligible
     )
@@ -81,8 +81,8 @@ begin
         coalesce((select jsonb_object_agg(region,n) from (
           select region,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as regions,
-        coalesce((select jsonb_object_agg(day,n) from (
-          select observation_date::text day,count(*) n from eligible group by 1
+        coalesce((select jsonb_object_agg(bucket,n) from (
+          select observation_date::text bucket,count(*) n from eligible group by 1
         ) x),'{}'::jsonb) as daily
       from eligible
     )
