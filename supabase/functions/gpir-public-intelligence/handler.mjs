@@ -402,11 +402,13 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           [from,to].some(value => value && !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) ||
           offset > 1000000) return response(400,{status:'ERROR',code:'INVALID_AGGREGATE_FILTER'},origin,env);
       try {
+        const headers = new Headers();
+        headers.set('apikey', config.key);
+        headers.set('authorization', `Bearer ${config.key}`);
+        headers.set('content-type', 'application/json');
+        headers.set('accept', 'application/json');
         const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query`, {
-          method: 'POST', headers: {
-            apikey: config.key, authorization: `Bearer ${config.key}`,
-            'content-type': 'application/json', accept: 'application/json'
-          }, body: JSON.stringify({ p_kind: kind, p_topic: topic, p_region: region,
+          method: 'POST', headers, body: JSON.stringify({ p_kind: kind, p_topic: topic, p_region: region,
             p_from: from, p_to: to, p_limit: Math.min(limit, 100), p_offset: offset })
         });
         if (!result.ok) throw new Error('AGGREGATE_RPC_UNAVAILABLE');
