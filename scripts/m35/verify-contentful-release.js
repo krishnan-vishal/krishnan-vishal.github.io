@@ -8,9 +8,11 @@ async function resolveReleaseDecisions(artifact, { url, key, fetchImpl = globalT
   const estate = adaptEstate(artifact.records || []);
   const decisions = [];
   for (const publication of estate.publications) {
+    const headers = new Headers({ Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' });
+    headers.set('apikey', key);
     const response = await fetchImpl(url.replace(/\/$/, '') + '/rest/v1/rpc/gpir_publication_release_decision', {
       method: 'POST',
-      headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ p_publication_id: publication.identity, p_supabase_record_id: publication.supabaseRecordId })
     });
     if (!response.ok) throw new Error('Release authority unavailable (HTTP ' + response.status + ')');
