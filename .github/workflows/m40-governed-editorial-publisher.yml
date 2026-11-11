@@ -30,7 +30,7 @@ jobs:
       - name: Run existing governed publication processor
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.registration_entry_id == '' }}
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.GPIR_SUPABASE_PUBLISHABLE_KEY }}
           GPIR_EDITORIAL_PUBLISHER_JWT: ${{ secrets.GPIR_EDITORIAL_PUBLISHER_JWT }}
@@ -41,7 +41,7 @@ jobs:
       - name: Register one unpublished editorial draft for identity review
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.registration_entry_id != '' }}
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.GPIR_SUPABASE_PUBLISHABLE_KEY }}
           GPIR_EDITORIAL_PUBLISHER_JWT: ${{ secrets.GPIR_EDITORIAL_PUBLISHER_JWT }}
