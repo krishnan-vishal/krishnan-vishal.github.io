@@ -70,7 +70,7 @@ test('Existing history API search returns RPW references without promoting them 
   assert.equal(result.total, 1);
   assert.equal(result.records[0].recordType, 'RPW_CORRIDOR_QUARTER');
   assert.equal(result.records[0].tickerEligible, false);
-  const live = await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?limit=100'));
-  assert.equal(live.status, 200);
-  assert.equal((await live.json()).total, 0);
+  const relay = await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=relay'));
+  assert.equal(relay.status, 200);
+  assert.equal((await relay.json()).items.length, 0);
 });
