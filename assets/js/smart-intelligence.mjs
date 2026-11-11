@@ -733,11 +733,25 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-end]').value = state.customEnd;
   root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
 
+  // The 12-hour live relay must not wait for thousands of historical reference rows.
+  // Keep the same governed endpoint and filters; history still loads in full for analytics.
+  const livePromise = fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
+    if (!response.ok) throw new Error('LIVE_UNAVAILABLE');
+    return response.json();
+  });
+  void livePromise.then(payload => {
+    renderLive(root, normalizeLiveAlerts(payload, []), state, now());
+  }).catch(() => {
+    const ribbon = document.querySelector('[data-smart-live]');
+    const target = document.querySelector('[data-smart-live-content]');
+    if (ribbon && target) {
+      ribbon.dataset.state = 'unavailable';
+      target.textContent = 'Live announcements are temporarily unavailable. Historical records remain separate.';
+    }
+  });
   const [historyResult, liveResult, editorialResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
-    fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
-      if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json();
-    }),
+    livePromise,
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
   ]);
   const status = root.querySelector('[data-smart-status]');
