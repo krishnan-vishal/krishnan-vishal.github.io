@@ -13,6 +13,10 @@ assert.equal(parsedUrl.pathname, '/api/v2/data/dataflow/BIS/WS_CPMI_CASHLESS/1.0
 assert.equal(parsedUrl.searchParams.get('c[REP_CTY]'), 'IN+SG');
 assert.equal(parsedUrl.searchParams.get('c[TIME_PERIOD]'), 'ge:2023+le:2024');
 
+const fiveYearUrl = buildBisDataUrl({ dataflow: 'WS_CBPOL', startPeriod: '2021-11', endPeriod: '2026-11', countryCodes: ['IN'], lastNObservations: 120 });
+assert.equal(new URL(fiveYearUrl).searchParams.get('lastNObservations'), '120');
+assert.throws(() => buildBisDataUrl({ dataflow: 'WS_CBPOL', startPeriod: '2021-11', endPeriod: '2026-11', countryCodes: ['IN'], lastNObservations: 121 }), /OBSERVATION_WINDOW/);
+
 const sample = 'DATAFLOW,FREQ,REP_CTY,TIME_PERIOD,OBS_VALUE,UNIT_MULT,UNIT_MEASURE,TITLE\n' +
   'BIS:WS_CPMI_CASHLESS(1.0),A,IN,2024,12.5,6,373,"India, payments"\n' +
   'BIS:WS_CPMI_CASHLESS(1.0),A,IN,2024,12.5,6,373,"India, payments"\n' +

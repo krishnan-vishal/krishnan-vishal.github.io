@@ -119,7 +119,7 @@ export function buildBisDataUrl({ dataflow, startPeriod, endPeriod, countryCodes
   const [flow, config] = approvedFlow(dataflow);
   if (!validPeriod(startPeriod) || !validPeriod(endPeriod) || startPeriod > endPeriod)
     throw new Error('BIS_INVALID_PERIOD_WINDOW');
-  if (!Number.isInteger(lastNObservations) || lastNObservations < 1 || lastNObservations > 24)
+  if (!Number.isInteger(lastNObservations) || lastNObservations < 1 || lastNObservations > 120)
     throw new Error('BIS_INVALID_OBSERVATION_WINDOW');
   const countries = Array.isArray(countryCodes)
     ? [...new Set(countryCodes.map(value => String(value || '').trim().toUpperCase()))]
