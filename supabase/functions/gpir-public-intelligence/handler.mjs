@@ -356,7 +356,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
     const requestUrl = new URL(request.url);
     const queryText = String(requestUrl.searchParams.get('q') || '').trim().toLowerCase().slice(0, 120);
-    const limit = Math.max(1, Math.min(100, Number(requestUrl.searchParams.get('limit')) || 50));
+    const limit = Math.max(1, Math.min(1000, Number(requestUrl.searchParams.get('limit')) || 50));
     const offset = Math.max(0, Math.min(50000, Number(requestUrl.searchParams.get('offset')) || 0));
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
