@@ -380,7 +380,7 @@ function main(){
             breadcrumbLabel: pair,
             activeNav: "Currency Explorer",
             depth: 3,
-            bodyHtml: `        <div class="fx-pair-detail" data-fx-view="pair-detail" data-fx-pair="${escapeHtml(pair)}" data-fx-first-snapshot-date="${escapeHtml(firstSnapshotDate)}" aria-live="polite">
+            bodyHtml: `        <p class="fx-intelligence-link"><a href="../intelligence.html?base=${encodeURIComponent(pair.split("/")[0])}&amp;quote=${encodeURIComponent(pair.split("/")[1])}&amp;period=M">Open ${escapeHtml(pair)} Smart FX Intelligence Card — historical trends and analytics</a></p>\n        <div class="fx-pair-detail" data-fx-view="pair-detail" data-fx-pair="${escapeHtml(pair)}" data-fx-first-snapshot-date="${escapeHtml(firstSnapshotDate)}" aria-live="polite">
             <p class="fx-loading">Loading ${escapeHtml(pair)}…</p>
         </div>`
         });
