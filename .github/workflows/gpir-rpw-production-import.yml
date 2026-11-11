@@ -17,7 +17,7 @@ jobs:
     environment: contentful-production
     env:
       SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: {{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
