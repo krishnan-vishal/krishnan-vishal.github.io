@@ -765,6 +765,30 @@ export async function initializeSmartIntelligence({ global = window,
       target.textContent = 'Live announcements are temporarily unavailable. Historical records remain separate.';
     }
   });
+  // Independent server-calculated summary: never derive repository-wide totals from a client page.
+  const governedSummary = document.createElement('section');
+  governedSummary.className = 'smi-governed-summary';
+  governedSummary.setAttribute('aria-live', 'polite');
+  governedSummary.textContent = 'Loading verified repository totals…';
+  root.prepend(governedSummary);
+  const summaryPromise = fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?view=aggregate&kind=announcements&limit=10&offset=0`,
+    { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
+      if (!response.ok) throw new Error('AGGREGATE_UNAVAILABLE');
+      const payload = await response.json();
+      if (payload.status !== 'OK' || !Number.isInteger(payload.total) ||
+          !Array.isArray(payload.records) || !payload.themes || !payload.regions || !payload.daily)
+        throw new Error('AGGREGATE_INVALID');
+      const heading = document.createElement('strong');
+      heading.textContent = `Verified dated announcements: ${payload.total.toLocaleString()}`;
+      const context = document.createElement('span');
+      context.textContent = ' · Complete repository total (all periods/regions); individual Smart Intelligence filters apply below.';
+      governedSummary.replaceChildren(heading, context);
+      return payload;
+    }).catch(() => {
+      governedSummary.textContent = 'Complete repository totals temporarily unavailable; no totals have been estimated.';
+      return null;
+    });
+  void summaryPromise;
   const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
     livePromise,
