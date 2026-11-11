@@ -4,10 +4,13 @@ import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs'
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
 export const BIS_SOURCE_ID = 'BIS-GLOBAL-001';
+export const RPW_SOURCE_ID = 'WORLD-BANK-RPW-001';
+export const RPW_CATALOG_URL = 'https://datacatalog.worldbank.org/search/dataset/0037898/remittance-prices-worldwide';
+export const RPW_WORKBOOK_URL = 'https://datacatalogfiles.worldbank.org/ddh-published/0037898/DR0095523/rpw_dataset_2011_2025_q3.xlsx';
 export const MOJALOOP_SOURCE_ID = 'MOJALOOP-OSS-001';
 export const HYPERSWITCH_SOURCE_ID = 'HYPERSWITCH-OSS-001';
 export const REFERENCE_SOURCE_IDS = Object.freeze([
-  BIS_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
+  BIS_SOURCE_ID, RPW_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
 ]);
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
@@ -105,6 +108,73 @@ export function normalizeBisReferenceRows({ rows = [], sources = [] }) {
       statisticalValue: value, unitMeasure: unit, unitMultiplier: multiplier,
       dimensions: metadata.dimensions && typeof metadata.dimensions === 'object'
         ? metadata.dimensions : {}
+    }];
+  });
+}
+
+
+export function normalizeRpwReferenceRows({ rows = [], sources = [] }) {
+  const source = sources.find(item => item.source_id === RPW_SOURCE_ID &&
+    item.source_status === 'GREEN' && item.trust_tier === 'T1' &&
+    item.official_url === RPW_CATALOG_URL);
+  if (!source) return [];
+  return rows.flatMap(row => {
+    const m = row?.metadata || {};
+    const period = m.observation_period;
+    const observationDate = m.observation_date;
+    const value = Number(m.value);
+    const quoteCount = Number(m.quote_count);
+    const periodMatch = /^(\d{4})-Q([1-4])$/.exec(period || '');
+    const endDate = periodMatch ? new Date(Date.UTC(Number(periodMatch[1]), Number(periodMatch[2]) * 3, 0))
+      .toISOString().slice(0, 10) : null;
+    const sendingCode = m.sending_country_code;
+    const receivingCode = m.receiving_country_code;
+    const sendingName = typeof m.sending_country === 'string' ? m.sending_country.trim() : '';
+    const receivingName = typeof m.receiving_country === 'string' ? m.receiving_country.trim() : '';
+    if (row?.source_id !== RPW_SOURCE_ID || row?.ingestion_status !== 'PROCESSED' ||
+        row?.canonical_url !== RPW_CATALOG_URL ||
+        m.provider !== 'WORLD_BANK_RPW' || m.data_class !== 'STATISTICAL_REFERENCE' ||
+        m.record_type !== 'RPW_CORRIDOR_QUARTER' ||
+        m.source_url !== RPW_WORKBOOK_URL || m.catalog_url !== RPW_CATALOG_URL ||
+        m.publication_eligible !== false || m.alert_eligible !== false ||
+        !periodMatch || !observationDate || endDate !== observationDate ||
+        period < '2021-Q4' || period > '2025-Q3' ||
+        !/^[A-Z]{3}$/.test(sendingCode || '') ||
+        !/^[A-Z]{3}$/.test(receivingCode || '') ||
+        !sendingName || !receivingName ||
+        !Number.isFinite(value) || value < 0 ||
+        !Number.isInteger(quoteCount) || quoteCount < 1) return [];
+    const title = typeof row.raw_title === 'string' && row.raw_title.trim().length >= 12
+      ? row.raw_title.trim().slice(0, 400)
+      : 'RPW ' + sendingName + ' to ' + receivingName + ' — ' + period + ' $200 transfer cost';
+    const summary = 'World Bank Remittance Prices Worldwide ' + period + ': the unweighted mean total cost ' +
+      'of a USD 200 remittance from ' + sendingName + ' to ' + receivingName + ' was ' +
+      value.toFixed(2) + '% across ' + quoteCount + ' surveyed service quotes. ' +
+      observationDate + ' is a quarter-end reference marker, not an actual survey or publication date.';
+    return [{
+      id: row.id, status: 'GPIR_CLASSIFIED', contentStatus: 'STATISTICAL_REFERENCE_VERIFIED',
+      dataClass: 'STATISTICAL_REFERENCE', recordType: 'RPW_CORRIDOR_QUARTER',
+      lifecycleStatus: 'HISTORICAL', displayLifecycleStatus: 'ARCHIVED',
+      headline: title, title, summary, developments: [],
+      category: 'Remittances & Diaspora', topics: ['Remittances & Diaspora', 'Statistical reference'],
+      subcategory: 'World Bank RPW',
+      country: receivingName, countryCode: receivingCode,
+      region: typeof m.destination_region === 'string' ? m.destination_region : null,
+      observationPeriod: period, observationDate, referenceDate: observationDate,
+      providerReleaseDate: null, publicationDate: observationDate, publishedDate: observationDate,
+      publishedAt: observationDate + 'T00:00:00.000Z',
+      publicationMonth: observationDate.slice(5, 7), publicationYear: observationDate.slice(0, 4),
+      tickerEligible: false, canonicalUrl: RPW_CATALOG_URL, pageUrl: RPW_CATALOG_URL,
+      keywords: ['world bank', 'remittance prices worldwide', 'remittances', sendingName.toLowerCase(),
+        receivingName.toLowerCase(), sendingCode.toLowerCase(), receivingCode.toLowerCase()],
+      outcomeStatus: 'REFERENCE', geography: receivingCode, eventId: null,
+      sources: [{ name: source.source_name, url: RPW_CATALOG_URL, publishedAt: null }],
+      source: { name: source.source_name, publicationTitle: 'Remittance Prices Worldwide',
+        url: RPW_CATALOG_URL, trustTier: source.trust_tier, category: source.category || null },
+      statisticalValue: value, unitMeasure: 'percent', unitMultiplier: '1',
+      dimensions: { sending_country: sendingName, sending_country_code: sendingCode,
+        receiving_country: receivingName, receiving_country_code: receivingCode,
+        quote_count: String(quoteCount), denomination_usd: '200', aggregation: 'unweighted mean' }
     }];
   });
 }
@@ -263,6 +333,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
   });
   const references = [
     ...normalizeBisReferenceRows({ rows: statisticalObservations, sources }),
+    ...normalizeRpwReferenceRows({ rows: statisticalObservations, sources }),
     ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources })
   ];
   if (!references.length) return announcementsNormalized;
@@ -286,7 +357,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const requestUrl = new URL(request.url);
     const queryText = String(requestUrl.searchParams.get('q') || '').trim().toLowerCase().slice(0, 120);
     const limit = Math.max(1, Math.min(100, Number(requestUrl.searchParams.get('limit')) || 50));
-    const offset = Math.max(0, Math.min(5000, Number(requestUrl.searchParams.get('offset')) || 0));
+    const offset = Math.max(0, Math.min(50000, Number(requestUrl.searchParams.get('offset')) || 0));
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
