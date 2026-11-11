@@ -112,11 +112,11 @@ async function importRpw(file, reportPath) {
     }
     await rest(config, "intelligence_ingestion_runs", "PATCH", { id: "eq." + runId },
       { run_status: "SUCCESS", completed_at: new Date().toISOString(), records_discovered: validated.count,
-        records_candidate: 0, records_rejected: input.statistics?.records_rejected || 0,
+        records_candidate: 0, records_rejected: 0,
         records_published: 0, error_message: null,
         metadata: { milestone: "M39-RPW-FIVE-YEAR", provider: "WORLD_BANK_RPW",
           acquisition_run: 43017126016, reference_only: true,
-          alert_eligible: false, publication_eligible: false, inserted, skipped } },
+          alert_eligible: false, publication_eligible: false, inserted, skipped, filtered_source_quotes: input.statistics?.records_rejected || 0 } },
       "return=minimal");
     const report = { status: "SUCCESS", source_id: SOURCE_ID, ...validated, inserted, skipped,
       publication_attempted: false, global_announcements_modified: false, cms_modified: false };
