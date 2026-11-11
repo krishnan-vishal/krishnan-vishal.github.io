@@ -54,7 +54,7 @@ jobs:
           find assets/js scripts -type f -name '*.js' -print0 | xargs -0 -n1 node --check
 
       - name: Verify M40 Contentful identity writeback without external writes
-        run: node --test tests/m40/protected-editorial-worker.test.mjs tests/m40/github-oidc-verifier.test.mjs
+        run: node --test tests/m40/protected-editorial-worker.test.mjs tests/m40/github-oidc-verifier.test.mjs tests/m40/oidc-endpoint.test.mjs
 
       - name: Scan for high-confidence secret patterns
         run: node scripts/scan-high-confidence-secrets.js
