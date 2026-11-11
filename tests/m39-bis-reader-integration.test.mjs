@@ -48,6 +48,7 @@ test('raw BIS observations stay out of announcements and remain available as ref
   const handler = createPublicIntelligenceHandler({
     env: {},
     now: () => Date.parse('2026-11-08T08:00:00Z'),
+    loadAuthority: async () => [],
     loadRows: async () => ({ announcements: [], sources: [source], statisticalObservations: [row] })
   });
   const history = await (await handler(new Request('https://example.test/?scope=history'))).json();
