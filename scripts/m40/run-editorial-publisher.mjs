@@ -23,6 +23,56 @@ function publisherConfiguration(env) {
     return { config: { url: target.origin, key: serviceKey, publicKey, publisherJwt }, contentful };
 }
 
+// Update only governed identity fields on the same unpublished draft. A version
+// conflict or any editorial change fails closed; no publish endpoint is called.
+export async function writebackEditorialDraftIdentity({ contentful, managementToken, entryId, identity,
+    expectedUpdatedAt, candidateId, fetchImpl = fetch }) {
+    if (!managementToken || managementToken === contentful.token) throw new Error('CONTENTFUL_WRITEBACK_CONFIGURATION_REQUIRED');
+    const root = `https://api.contentful.com/spaces/${encodeURIComponent(contentful.spaceId)}` +
+        `/environments/${encodeURIComponent(contentful.environment)}/entries/${encodeURIComponent(entryId)}`;
+    const headers = new Headers({ accept: 'application/vnd.contentful.management.v1+json' });
+    headers.set('authorization', `Bearer ${managementToken}`);
+    const response = await fetchImpl(root, { headers });
+    if (!response.ok) throw new Error(`CONTENTFUL_WRITEBACK_READ_HTTP_${response.status}`);
+    const item = await response.json();
+    if (item?.sys?.id !== entryId || item.sys.contentType?.sys?.id !== 'gpirPublication' ||
+        item.sys.publishedVersion != null || item.sys.archivedVersion != null ||
+        !Number.isInteger(item.sys.version) || item.sys.updatedAt !== expectedUpdatedAt ||
+        !item.fields || typeof item.fields !== 'object') throw new Error('CONTENTFUL_WRITEBACK_DRAFT_CHANGED');
+    const expected = { supabaseRecordId: identity.supabaseRecordId,
+        gpirPublicationId: identity.gpirPublicationId, editionLineageId: identity.editionLineageId };
+    const fields = { ...item.fields };
+    let changed = false;
+    for (const [key, value] of Object.entries(expected)) {
+        if (typeof value !== 'string' || !value.trim()) throw new Error('CONTENTFUL_WRITEBACK_IDENTITY_INVALID');
+        const existing = fields[key];
+        if (existing != null && (typeof existing !== 'object' ||
+            Object.keys(existing).some(locale => locale !== 'en-US')))
+            throw new Error('CONTENTFUL_WRITEBACK_LOCALE_REVIEW_REQUIRED');
+        const current = existing?.['en-US'];
+        if (current === value) continue;
+        if (current != null && current !== '' && !(key === 'supabaseRecordId' &&
+            candidateId && String(current).toLowerCase() === candidateId))
+            throw new Error('CONTENTFUL_WRITEBACK_IDENTITY_CONFLICT');
+        fields[key] = { 'en-US': value };
+        changed = true;
+    }
+    if (!changed) return { status: 'ALREADY_SYNCHRONIZED', entryId };
+    const writeHeaders = new Headers(headers);
+    writeHeaders.set('content-type', 'application/vnd.contentful.management.v1+json');
+    writeHeaders.set('x-contentful-version', String(item.sys.version));
+    const updated = await fetchImpl(root, { method: 'PUT', headers: writeHeaders,
+        body: JSON.stringify({ fields }) });
+    if (updated.status === 409 || updated.status === 412)
+        throw new Error('CONTENTFUL_WRITEBACK_VERSION_CONFLICT');
+    if (!updated.ok) throw new Error(`CONTENTFUL_WRITEBACK_HTTP_${updated.status}`);
+    const saved = await updated.json();
+    if (saved?.sys?.id !== entryId || saved.sys.publishedVersion != null ||
+        !Object.entries(expected).every(([key, value]) => saved.fields?.[key]?.['en-US'] === value))
+        throw new Error('CONTENTFUL_WRITEBACK_READBACK_FAILED');
+    return { status: 'SYNCHRONIZED', entryId };
+}
+
 export async function registerEditorialDraft({ env, entryId, fetchImpl = fetch }) {
     const { config, contentful } = publisherConfiguration(env);
     const entry = await fetchUnpublishedEditorialDraft({ config: contentful,
@@ -52,7 +102,10 @@ export async function registerEditorialDraft({ env, entryId, fetchImpl = fetch }
         identity.entryReference !== `${contentful.spaceId}/${contentful.environment}/${entryId}` ||
         identity.policyStatus !== 'INACTIVE')
         throw new Error('EDITORIAL_DRAFT_IDENTITY_REVIEW_REQUIRED');
-    return { status: 'IDENTITY_REVIEW', entryId, candidateId, identity,
+    const synchronization = await writebackEditorialDraftIdentity({ contentful,
+        managementToken: String(env.CONTENTFUL_MANAGEMENT_TOKEN || '').trim(), entryId, identity,
+        expectedUpdatedAt: entry.updatedAt, candidateId, fetchImpl });
+    return { status: 'IDENTITY_REVIEW', entryId, candidateId, identity, synchronization,
         legacyCandidateId: Boolean(legacyCandidateId) };
 }
 
