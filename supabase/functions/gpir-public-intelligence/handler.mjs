@@ -388,6 +388,36 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       if (access.decision !== 'ALLOW')
         return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
     }
+    // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
+    // Existing topicContext entitlement check above must run before any aggregate access.
+    if (requestUrl.searchParams.get('view') === 'aggregate') {
+      if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
+      const kind = requestUrl.searchParams.get('kind') || 'announcements';
+      const topic = requestUrl.searchParams.get('topic') || null;
+      const region = requestUrl.searchParams.get('region') || null;
+      const from = requestUrl.searchParams.get('from') || null;
+      const to = requestUrl.searchParams.get('to') || null;
+      if (!['announcements', 'statistics'].includes(kind) ||
+          [topic,region].some(value => value && (value.length > 120 || /[<>]/.test(value))) ||
+          [from,to].some(value => value && !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) ||
+          offset > 1000000) return response(400,{status:'ERROR',code:'INVALID_AGGREGATE_FILTER'},origin,env);
+      try {
+        const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query`, {
+          method: 'POST', headers: {
+            apikey: config.key, authorization: `Bearer ${config.key}`,
+            'content-type': 'application/json', accept: 'application/json'
+          }, body: JSON.stringify({ p_kind: kind, p_topic: topic, p_region: region,
+            p_from: from, p_to: to, p_limit: Math.min(limit, 100), p_offset: offset })
+        });
+        if (!result.ok) throw new Error('AGGREGATE_RPC_UNAVAILABLE');
+        const data = await result.json();
+        if (data?.status !== 'OK' || !Array.isArray(data.records) || !Number.isInteger(data.total))
+          throw new Error('AGGREGATE_CONTRACT_INVALID');
+        return response(200, { ...data, generatedAt: new Date(requestNow).toISOString() }, origin, env);
+      } catch {
+        return response(503,{status:'ERROR',code:'AGGREGATE_UNAVAILABLE'},origin,env);
+      }
+    }
     try {
       let rows;
       if (loadRows) rows = await loadRows();
