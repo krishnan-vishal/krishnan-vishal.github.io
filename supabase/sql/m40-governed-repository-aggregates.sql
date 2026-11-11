@@ -35,7 +35,7 @@ begin
     ), aggregates as (
       select count(*) as total,
         coalesce((select jsonb_object_agg(topic,n) from (
-          select topic,count(*) n from eligible e cross join lateral unnest(e.topic_headers) topic group by topic
+          select topic,count(*) n from eligible e cross join lateral unnest(e.topic_headers) topic where topic is not null group by topic
         ) x),'{}'::jsonb) as themes,
         coalesce((select jsonb_object_agg(region,n) from (
           select region,count(*) n from eligible group by region
@@ -68,7 +68,38 @@ begin
         and i.metadata->>'data_class' = 'STATISTICAL_REFERENCE'
         and i.metadata->>'publication_eligible' = 'false'
         and i.metadata->>'alert_eligible' = 'false'
-        and i.metadata->>'observation_date' ~ '^\\d{4}-\\d{2}-\\d{2}$'
+        and i.metadata->>'observation_date' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}
+        and (p_topic is null or i.metadata->>'topic' = p_topic)
+        and (p_region is null or coalesce(i.metadata->>'source_region','UNSPECIFIED') = p_region)
+        and (p_from is null or (i.metadata->>'observation_date')::date >= p_from)
+        and (p_to is null or (i.metadata->>'observation_date')::date <= p_to)
+    ), aggregates as (
+      select count(*) as total,
+        coalesce((select jsonb_object_agg(topic,n) from (
+          select coalesce(topic,'UNSPECIFIED') topic,count(*) n from eligible group by 1
+        ) x),'{}'::jsonb) as themes,
+        coalesce((select jsonb_object_agg(region,n) from (
+          select region,count(*) n from eligible group by 1
+        ) x),'{}'::jsonb) as regions,
+        coalesce((select jsonb_object_agg(bucket,n) from (
+          select observation_date::text bucket,count(*) n from eligible group by 1
+        ) x),'{}'::jsonb) as daily
+      from eligible
+    )
+    select jsonb_build_object('status','OK','kind','statistics','total',agg.total,
+      'themes',agg.themes,'regions',agg.regions,'daily',agg.daily,
+      'limit',p_limit,'offset',p_offset,
+      'records',coalesce((select jsonb_agg(to_jsonb(x)) from (
+        select id,source_id,title,canonical_url,provider,record_type,topic,region,observation_date
+        from eligible order by observation_date desc nulls last,id limit p_limit offset p_offset
+      ) x),'[]'::jsonb))
+    into v_result from aggregates agg;
+  end if;
+  return v_result;
+end $$;
+revoke all on function public.gpir_m40_repository_query(text,text,text,date,date,integer,integer) from public,anon,authenticated;
+grant execute on function public.gpir_m40_repository_query(text,text,text,date,date,integer,integer) to service_role;
+
         and (p_topic is null or i.metadata->>'topic' = p_topic)
         and (p_region is null or coalesce(i.metadata->>'source_region','UNSPECIFIED') = p_region)
         and (p_from is null or (i.metadata->>'observation_date')::date >= p_from)
