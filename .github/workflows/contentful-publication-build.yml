@@ -48,7 +48,7 @@ jobs:
       - name: Reconcile published Contentful estate with trusted Supabase release authority
         if: ${{ inputs.mode == 'delivery' }}
         env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://qlnvhfapctcpzqyuhhth.supabase.co' }}
           GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
         run: >-
           node scripts/m35/verify-contentful-release.js
