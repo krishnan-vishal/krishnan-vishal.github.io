@@ -67,7 +67,8 @@ function buildPublicationSite(artifact, options) {
   fs.writeFileSync(path.join(outputRoot, '404.html'), renderNotFoundPage(), 'utf8');
   fs.writeFileSync(path.join(outputRoot, 'routes.json'), `${JSON.stringify({
     schemaVersion: '1.0.0',
-    deploymentEligible: Boolean(decisions),
+    deploymentEligible: false,
+    releaseAuthorityChecked: Boolean(decisions),
     recordCount: manifest.length,
     routes: manifest
   }, null, 2)}\n`, 'utf8');
