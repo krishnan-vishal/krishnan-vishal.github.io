@@ -14,6 +14,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 OIDC smoke preparation — 2026-11-11
+
+- **Scope:** prepare the existing verification-only gate and an isolated main-only, manual OIDC smoke workflow on PR #547. The gate uses the existing cryptographic verifier with the smoke workflow's exact identity; the publisher verifier's default identity is unchanged. No token, registration, publication, database permission or environment-protection change is made.
+- **Production negative checks:** the existing deployed gate returned HTTP 401 for a missing token, HTTP 401 for an invalid token and HTTP 403 `REGISTRATION_DISABLED` for an unauthorized registration request. Positive OIDC verification has not run.
+- **Execution dependencies:** the current deployed gate trusts the publisher workflow, not the new smoke workflow. Place the exact smoke workflow on main and deploy its corresponding exact verifier binding only with appropriate authorization. The environment is restricted to main with administrator bypass disabled and self-review prohibited; only the triggering owner is configured as a reviewer and only that user has repository write access. A distinct eligible workflow trigger or reviewer is needed without weakening those protections. No production acceptance is claimed.
+
 ## M40 draft identity sequencing — 2026-11-11
 
 - **Scope:** code-only continuation of PR #547. No CMS/database writes, migration execution, credential changes, publication or deployment were authorized or performed.

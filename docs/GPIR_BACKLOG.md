@@ -9,6 +9,8 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 ## M40 intelligence quality and historical delivery
 
+The M40 OIDC verification-only smoke is blocked pending separately authorized main workflow placement, deployment of its exact gate binding and a distinct eligible workflow trigger or environment reviewer. Three live negative checks passed; no genuine GitHub token acceptance or registration was performed.
+
 Draft identity sequencing is implemented on this branch: the protected manual registration creates an inactive review policy before CMS publication, without modifying Contentful. The existing candidate-valued draft field needs editorial correction using the returned governed identity after separately authorized deployment and registration. Focused application tests use fixtures; the revised SQL has not been executed under the code-only authorization.
 
 | ID | Requirement | Status | Dependency | Outcome |

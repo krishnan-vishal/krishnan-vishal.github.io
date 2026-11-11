@@ -18,7 +18,11 @@ test('registration request forbidden even with a valid verifier',async()=>{
  assert.equal(response.status,403);
 });
 test('valid OIDC permits verification only and never registration',async()=>{
- const response=await handleM40OIDC(request({operation:'verify-only'},'valid.token'),async()=>({repository:'expected'}));
+ const response=await handleM40OIDC(request({operation:'verify-only'},'valid.token'),async(_token, options)=>{
+  assert.equal(options.audience,'gpir-m40-draft-registration');
+  assert.equal(options.workflowPath,'.github/workflows/m40-oidc-smoke.yml');
+  return {repository:'expected'};
+ });
  assert.equal(response.status,200);
  assert.deepEqual(await response.json(),{status:'OIDC_VERIFIED',registration:'DISABLED'});
 });

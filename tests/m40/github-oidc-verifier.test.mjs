@@ -25,6 +25,15 @@ test('accepts a cryptographically valid exact workflow token',async()=>{
  const result=await verifyGithubPublisherOIDC(token(),{audience:claims.aud,fetchImpl,now});
  assert.equal(result.repository,repo);
 });
+test('smoke verifier accepts only its exact workflow without changing publisher trust',async()=>{
+ const workflowPath='.github/workflows/m40-oidc-smoke.yml';
+ const smoke={workflow_ref:repo+'/'+workflowPath+'@refs/heads/main'};
+ const options={audience:claims.aud,fetchImpl,now,workflowPath};
+ assert.equal((await verifyGithubPublisherOIDC(token(smoke),options)).workflow_ref,smoke.workflow_ref);
+ await assert.rejects(verifyGithubPublisherOIDC(token(),options),/OIDC_DENIED/);
+ await assert.rejects(verifyGithubPublisherOIDC(token(smoke),{audience:claims.aud,fetchImpl,now}),/OIDC_DENIED/);
+ await assert.rejects(verifyGithubPublisherOIDC(token({...smoke,event_name:'pull_request'}),options),/OIDC_DENIED/);
+});
 for(const [label,changes] of Object.entries({
  'wrong audience':{aud:'elsewhere'}, 'wrong repository':{repository:'attacker/repo'},
  'wrong branch':{ref:'refs/heads/dev'}, 'wrong environment':{environment:'unprotected'},
