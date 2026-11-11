@@ -17,7 +17,8 @@ on:
         default: '61'
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   generate-publication-input:
@@ -44,6 +45,15 @@ jobs:
           --mode=${{ inputs.mode }}
           --expected=${{ inputs.expected_count }}
           --output=.generated/m35/contentful-publications.json
+      - name: Reconcile published Contentful estate with trusted Supabase release authority
+        if: ${{ inputs.mode == 'delivery' }}
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || 'https://qlnvhfapctcpzqyuhhth.supabase.co' }}
+          GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
+        run: >-
+          node scripts/m35/verify-contentful-release.js
+          .generated/m35/contentful-publications.json
+          .generated/m35/release-decisions.json
       - name: Render controlled non-deploying publication output
         run: >-
           node scripts/m35/render-contentful-publications.js
@@ -51,6 +61,14 @@ jobs:
           --output=.generated/m35/site
           --expected=${{ inputs.expected_count }}
           --controlled-validation
+      - name: Render production-safe eligible publication routes (delivery only)
+        if: ${{ inputs.mode == 'delivery' }}
+        run: >-
+          node scripts/m35/render-contentful-publications.js
+          --input=.generated/m35/contentful-publications.json
+          --output=.generated/m35/production-site
+          --expected=${{ inputs.expected_count }}
+          --release-decisions=.generated/m35/release-decisions.json
       - name: Build governed public FX editorial index (delivery only)
         if: ${{ inputs.mode == 'delivery' }}
         run: >-
@@ -67,7 +85,33 @@ jobs:
           name: m35-contentful-${{ inputs.mode }}
           path: |
             .generated/m35/contentful-publications.json
-            .generated/m35/site
+            .generated/m35/site/
+            .generated/m35/release-decisions.json
+            .generated/m35/production-site/
             .generated/m39/fx-editorial-public.json
           if-no-files-found: error
           retention-days: 1
+
+      - name: Validate non-disruptive CMS release staging
+        if: ${{ inputs.mode == 'delivery' }}
+        run: node --test tests/m35/contentful-release-staging.test.cjs
+      - name: Stage governed publication routes without overwriting live pages
+        if: ${{ inputs.mode == 'delivery' }}
+        run: node scripts/m35/stage-contentful-release.js .generated/m35/production-site .
+      - name: Propose governed CMS publication routes for existing site deployment
+        if: ${{ inputs.mode == 'delivery' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: automation/m35-governed-publication-routes
+          delete-branch: true
+          commit-message: 'M35: stage approved Contentful publication routes'
+          title: 'M35: publish governed Contentful routes into existing GPIR site'
+          body: |
+            Generated from Contentful Delivery and the service-role-only Supabase release decision.
+            Existing GPIR routes are preserved, not overwritten.
+            Only protected-discovery publication shells are staged; no controlled-validation content.
+            Review the staged route report and merge through the existing site deployment process.
+          add-paths: |
+            .generated/m35/release-stage-report.json
+            **/index.html
