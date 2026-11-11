@@ -9,7 +9,7 @@ test('M40 aggregate delegates exact totals and pagination to existing server-sid
     calls++;
     assert.match(url,/\/rpc\/gpir_m40_repository_query$/);
     assert.equal(init.method,'POST');
-    assert.equal(init.headers.authorization,'Bearer test-only-server-secret');
+    assert.equal(init.headers.get('authorization'),'Bearer test-only-server-secret');
     const body=JSON.parse(init.body);
     assert.deepEqual(body,{p_kind:'statistics',p_topic:'Remittances & Diaspora',
       p_region:'Sub-Saharan Africa',p_from:'2022-01-01',p_to:'2025-12-31',p_limit:25,p_offset:50});
