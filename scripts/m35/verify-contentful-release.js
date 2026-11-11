@@ -22,11 +22,13 @@ async function resolveReleaseDecisions(artifact, { url, key, fetchImpl = globalT
     const decision = rows[0];
     if (!['PUBLIC', 'AUTHENTICATED', 'ENTITLED'].includes(decision.access_class))
       throw new Error('Invalid access class for ' + publication.identity);
-    if (decision.access_class !== publication.accessClass)
-      throw new Error('Contentful/Supabase access class mismatch for ' + publication.identity);
+    // Ineligible records are withheld, not promoted. A classification mismatch
+    // must still fail closed for any publication proposed for release.
+    if (decision.release_eligible === true && decision.access_class !== publication.accessClass)
+      throw new Error('Contentful/Supabase access class mismatch for eligible publication ' + publication.identity);
     decisions.push({
       identity: publication.identity, supabaseRecordId: publication.supabaseRecordId,
-      route: publication.route, accessClass: decision.access_class,
+      route: publication.route, accessClass: decision.release_eligible === true ? decision.access_class : publication.accessClass,
       releaseEligible: decision.release_eligible === true,
       reviewState: decision.review_state, policyStatus: decision.policy_status
     });
