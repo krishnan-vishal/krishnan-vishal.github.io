@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const { adaptEstate } = require('./contentful-publication-adapter');
 
 async function resolveReleaseDecisions(artifact, { url, key, fetchImpl = globalThis.fetch }) {
-  if (!url || !/^https:\/\//.test(url) || !key) throw new Error('Trusted Supabase release credentials are required.');
+  if (!url || !/^https:\/\//.test(url)) throw new Error('Missing or invalid SUPABASE_URL for trusted release.');
+  if (!key) throw new Error('Missing GPIR_SUPABASE_SECRET_KEY in the contentful-production environment.');
   const estate = adaptEstate(artifact.records || []);
   const decisions = [];
   for (const publication of estate.publications) {
