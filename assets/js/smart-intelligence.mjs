@@ -293,6 +293,12 @@ export function buildHeatmapSelection(records, topicId, weekStart, now = Date.no
 
 // Distinguishes machine-readable statistics and GitHub repository history from announcements.
 export function evidenceKind(record) {
+  if (record?.dataClass === 'STATISTICAL_REFERENCE' && record?.recordType === 'RPW_CORRIDOR_QUARTER') {
+    return { id: 'statistical', label: 'World Bank RPW statistical reference',
+      tag: 'World Bank Remittance Prices Worldwide',
+      note: 'USD 200 transfer cost is an unweighted mean of surveyed service quotes. The quarter-end reference marker is not the survey or publication date. This is historical evidence, not a news announcement.',
+      linkLabel: 'Open World Bank RPW source catalog' };
+  }
   if (record?.dataClass === 'STATISTICAL_REFERENCE') {
     return { id: 'statistical', label: 'BIS statistical reference',
       tag: 'BIS statistical data (SDMX XML)',
