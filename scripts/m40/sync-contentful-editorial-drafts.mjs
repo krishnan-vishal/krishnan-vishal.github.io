@@ -2,9 +2,9 @@
 //
 // Creates (or, while untouched, refreshes) UNPUBLISHED `gpirPublication` drafts for eligible
 // GREEN-source candidates that GPIR validation has fully source-verified. It never publishes, never sets
-// `validationStatus`, `publicationStatus` or `gpirPublicationId`, and never allocates identities:
-// those remain explicit editorial acts. Once an editor publishes the entry, the existing
-// `gpir-intelligence-publish` Contentful editorial route promotes it to the reader APIs.
+// `validationStatus`, `publicationStatus`, `gpirPublicationId` or `supabaseRecordId`, and
+// never allocates identities. A candidate UUID is not a governed publication record UUID.
+// Publication requires a separately evidenced registry and CMS identity relationship.
 //
 // Server-side credentials only: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CONTENTFUL_SPACE_ID,
 // CONTENTFUL_ENVIRONMENT, CONTENTFUL_MANAGEMENT_TOKEN. Credentials are never logged or reported.
@@ -200,7 +200,6 @@ export function buildDraftFields({ candidate, source, audit }) {
         audit.evidence_excerpt ? `Stored evidence excerpt: ${String(audit.evidence_excerpt).slice(0, 400)}` : ''
     ].filter(Boolean).join(' ');
     const fields = {
-        supabaseRecordId: localized(candidate.id),
         legacySourceUrl: localized(candidate.canonical_url),
         publicationTitle: localized(candidate.title),
         publicationDate: localized(publicationDate),
@@ -246,6 +245,13 @@ function sameFields(entryFields, fields) {
         JSON.stringify(entryFields?.[name]?.[LOCALE]) === JSON.stringify(value[LOCALE]));
 }
 
+function containsCandidateAsPublicationId(entry, candidateId) {
+    const localizedId = entry.fields?.supabaseRecordId;
+    return localizedId && typeof localizedId === 'object' &&
+        Object.values(localizedId).some(value =>
+            typeof value === 'string' && value.toLowerCase() === candidateId.toLowerCase());
+}
+
 async function reconcile(client, item) {
     const id = draftEntryId(item.candidate.id, item.source.trust_tier);
     const fields = buildDraftFields(item);
@@ -256,12 +262,17 @@ async function reconcile(client, item) {
         // An entry created by an editor (any id) for the same candidate or URL is authoritative.
         const linked = [...await client.search('supabaseRecordId', item.candidate.id),
             ...await client.search('legacySourceUrl', item.candidate.canonical_url)];
-        if (linked.length) return { ...result, entryId: linked[0].sys.id, outcome: 'EXISTING_ENTRY_PRESERVED', writes: 0 };
+        if (linked.length) return { ...result, entryId: linked[0].sys.id,
+            outcome: linked.some(entry => containsCandidateAsPublicationId(entry, item.candidate.id))
+                ? 'IDENTITY_REVIEW_REQUIRED' : 'EXISTING_ENTRY_PRESERVED', writes: 0 };
         const created = await client.create(id, fields);
         if (created?.conflict) return { ...result, outcome: 'EXISTING_ENTRY_PRESERVED', writes: 0 };
         return { ...result, outcome: 'DRAFT_CREATED', writes: 1, version: created.sys.version,
             published: Boolean(created.sys.publishedVersion) };
     }
+    if (containsCandidateAsPublicationId(own, item.candidate.id))
+        return { ...result, outcome: 'IDENTITY_REVIEW_REQUIRED', writes: 0,
+            version: own.sys.version, published: Boolean(own.sys.publishedVersion) };
     const untouched = !own.sys.publishedVersion && !own.sys.archivedVersion && own.sys.version === 1;
     if (!untouched || sameFields(own.fields, fields))
         return { ...result, outcome: untouched ? 'DRAFT_CURRENT' : 'EDITED_ENTRY_PRESERVED', writes: 0,

@@ -276,16 +276,17 @@ test('historical verification refuses duplicate content and concurrent audit cha
     assert.equal(conflict.writes.length, 0);
 });
 
-test('draft fields preserve identity, source URL, original date and governed evidence only', () => {
+test('draft fields preserve candidate lineage without claiming a publication identity', () => {
     const item = { candidate: candidate(1, { country_code: 'US', region: 'North America' }),
         source: { source_name: 'PYMNTS' }, audit: thresholdAudit };
     const fields = buildDraftFields(item);
-    assert.equal(fields.supabaseRecordId['en-US'], item.candidate.id);
+    assert.equal('supabaseRecordId' in fields, false);
     assert.equal(fields.legacySourceUrl['en-US'], item.candidate.canonical_url);
     assert.equal(fields.publicationDate['en-US'], item.candidate.published_at);
     assert.equal(fields.region['en-US'], 'North America');
     assert.equal(fields.countryMarket['en-US'], 'US');
     assert.ok(fields.sourceValidationSummary['en-US'].length >= 40);
+    assert.match(fields.sourceValidationSummary['en-US'], new RegExp(item.candidate.id));
     assert.match(fields.sourceValidationSummary['en-US'], /STABLECOINS_DIGITAL_ASSETS/);
     for (const forbidden of ['validationStatus', 'publicationStatus', 'gpirPublicationId', 'slug'])
         assert.equal(forbidden in fields, false);
@@ -314,15 +315,14 @@ test('an editor-created entry for the candidate or URL is preserved and never du
     const state = world({ candidates: [item], entries: [{ sys: { id: 'editor-entry', version: 4, publishedVersion: 3 },
         fields: { supabaseRecordId: { 'en-US': item.id }, legacySourceUrl: { 'en-US': item.canonical_url } } }] });
     const report = await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW });
-    assert.equal(report.results[0].outcome, 'EXISTING_ENTRY_PRESERVED');
+    assert.equal(report.results[0].outcome, 'IDENTITY_REVIEW_REQUIRED');
     assert.equal(report.results[0].entryId, 'editor-entry');
     assert.equal(state.writes.length, 0);
 });
 
 test('an untouched draft is refreshed once; an edited or published draft is never overwritten', async () => {
     const item = candidate(1);
-    const stale = { sys: { id: draftEntryId(item.id), version: 1 }, fields: { publicationTitle: { 'en-US': 'Old title' },
-        supabaseRecordId: { 'en-US': item.id } } };
+    const stale = { sys: { id: draftEntryId(item.id), version: 1 }, fields: { publicationTitle: { 'en-US': 'Old title' } } };
     const state = world({ candidates: [item], entries: [stale] });
     assert.equal((await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW })).updated, 1);
     assert.equal(state.entries.get(draftEntryId(item.id)).fields.publicationTitle['en-US'], item.title);
@@ -332,6 +332,26 @@ test('an untouched draft is refreshed once; an edited or published draft is neve
     const published = world({ candidates: [item], entries: [{ ...stale, sys: { id: draftEntryId(item.id), version: 1, publishedVersion: 1 } }] });
     assert.equal((await syncEditorialDrafts({ env, fetchImpl: published.fetch, now: NOW })).results[0].outcome, 'EDITED_ENTRY_PRESERVED');
     assert.equal(edited.writes.length + published.writes.length, 0);
+});
+
+test('a legacy draft with the candidate UUID in the publication field is preserved for review', async () => {
+    const item = candidate(1);
+    for (const sys of [{ version: 1 }, { version: 3 }, { version: 4, publishedVersion: 3 }]) {
+        const state = world({ candidates: [item], entries: [{
+            sys: { id: draftEntryId(item.id), ...sys },
+            fields: { supabaseRecordId: { 'en-US': item.id } }
+        }] });
+        const report = await syncEditorialDrafts({ env, fetchImpl: state.fetch, now: NOW });
+        assert.equal(report.results[0].outcome, 'IDENTITY_REVIEW_REQUIRED');
+        assert.equal(state.writes.length, 0);
+    }
+    const localized = world({ candidates: [item], entries: [{
+        sys: { id: draftEntryId(item.id), version: 1 },
+        fields: { supabaseRecordId: { 'fr-FR': item.id.toUpperCase() } }
+    }] });
+    const report = await syncEditorialDrafts({ env, fetchImpl: localized.fetch, now: NOW });
+    assert.equal(report.results[0].outcome, 'IDENTITY_REVIEW_REQUIRED');
+    assert.equal(localized.writes.length, 0);
 });
 
 test('dry run writes nothing, needs no Contentful credentials and reports no secrets', async () => {

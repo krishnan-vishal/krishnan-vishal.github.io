@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 draft identity safeguard — 2026-11-11
+
+- **Scope:** continue PR #547 at `4cc273d`; owner authorized implementing the governed linkage and isolated testing, but not production changes.
+- **Correction:** new Contentful drafts no longer use a candidate UUID as `supabaseRecordId`. The candidate remains separately traceable in the existing validation note and deterministic entry ID. Existing drafts and editor-created entries with a candidate UUID in any localized publication-ID field are preserved without writes and reported for identity review.
+- **Validation:** all 17 focused Contentful draft tests pass, including original-date preservation, draft idempotence, historical validation and untouched/edited/published legacy cases. These are local mock-provider tests, not a CMS or database integration acceptance.
+- **NO-GO / unfinished:** no evidenced candidate-to-entry-to-publication registry linkage, publication-record allocation, reader access-policy mapping, public-intelligence or Alerts CMS enforcement, owner-authored public-intelligence delivery, or integrated six-case acceptance was implemented. The existing publisher still conflates candidate and publication IDs; no production deployment or publication is safe. Registry related identifiers are not globally unique, and the ordinary service role lacks direct registry table access, so neither a UUID/URL guess nor a simple unrestricted lookup establishes the needed authority.
+
 ## M40 publication identity and Alerts source recovery — 2026-11-11
 
 - **Scope:** continue PR #547 at `e6fa26f`; no production mutation, credential change, deployment, merge or publication. Preserve the existing protected publisher, publication role and tier validation.
