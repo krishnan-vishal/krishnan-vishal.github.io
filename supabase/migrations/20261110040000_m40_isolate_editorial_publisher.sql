@@ -35,7 +35,5 @@ begin
 end
 $;
 
--- Preserve service_role writes for the existing governed Global Alerts pipeline.
--- Remove direct writes from public reader roles without disrupting production ingestion.
-revoke insert, update, delete, truncate, references, trigger
-  on table public.global_announcements from public, anon, authenticated;
+-- Direct table-write privilege changes are deferred to the separately
+-- verified cutover. Existing Global Alerts callers must remain unaffected.
