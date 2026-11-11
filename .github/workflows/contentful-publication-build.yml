@@ -84,7 +84,8 @@ jobs:
           name: m35-contentful-${{ inputs.mode }}
           path: |
             .generated/m35/contentful-publications.json
-            .generated/m35/site\n            .generated/m35/release-decisions.json
+            .generated/m35/site/
+            .generated/m35/release-decisions.json
             .generated/m35/production-site/
             .generated/m39/fx-editorial-public.json
           if-no-files-found: error
