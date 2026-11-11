@@ -18,6 +18,7 @@ const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
 const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=1000';
 const LIVE_PATH = '/functions/v1/gpir-public-alerts';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
+const GOVERNED_ROUTES_PATH = '/routes.json';
 const LEGACY_PERIOD_DAYS = Object.freeze({ '7D': 7, '15D': 15, '30D': 30, '1Y': 365, MAX: null });
 
 export const SMART_TOPICS = TOPIC_TAXONOMY;
@@ -231,6 +232,21 @@ export function normalizeEditorial(value) {
     typeof item?.url === 'string' && item.url.startsWith('/')
     ? [{ pair: item.pair, title: clean(item.title, 200), summary: clean(item.summary, 500), url: item.url }]
     : []);
+}
+
+function normalizeGovernedRoutes(value) {
+  if (value?.schemaVersion !== '1.0.0' || !Array.isArray(value.routes)) return [];
+  const seen = new Set();
+  return value.routes.flatMap(item => {
+    if (item?.authAuthority !== 'supabase' || item.controlledValidation !== false ||
+        !/^VK-GPIR-P-[0-9]+-[0-9]+$/.test(item.identity || '') ||
+        !/^\/[a-z0-9][a-z0-9/_-]*\/$/.test(item.route || '') ||
+        item.canonicalUrl !== 'https://fintechoisis.com' + item.route || seen.has(item.identity)) return [];
+    seen.add(item.identity);
+    const title = item.route.split('/').filter(Boolean).pop().replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return { title, summary: clean(item.publicationType, 80) || 'Research publication', url: item.route,
+      search: title.toLowerCase() };
+  });
 }
 
 function isCritical(record) {
@@ -749,10 +765,11 @@ export async function initializeSmartIntelligence({ global = window,
       target.textContent = 'Live announcements are temporarily unavailable. Historical records remain separate.';
     }
   });
-  const [historyResult, liveResult, editorialResult] = await Promise.allSettled([
+  const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
     livePromise,
-    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
+    fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
+    fetchImpl(GOVERNED_ROUTES_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
   ]);
   const status = root.querySelector('[data-smart-status]');
   if (historyResult.status !== 'fulfilled') {
@@ -763,6 +780,7 @@ export async function initializeSmartIntelligence({ global = window,
   let records = historyResult.value;
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
+  const governedRoutes = routesResult.status === 'fulfilled' ? normalizeGovernedRoutes(routesResult.value) : [];
 
   const topicIntel = new Map();
   const clearTransientTopicIntel = () => {
@@ -835,9 +853,12 @@ export async function initializeSmartIntelligence({ global = window,
     renderReference(root, referenceRecords);
     const subject = clean(params.get('subject'), 20).toUpperCase();
     const related = /^[A-Z]{3}\/[A-Z]{3}$/.test(subject) ? editorial.filter(item => item.pair === subject) : [];
+    const queryTerms = [...state.topics].map(id => SMART_TOPICS.find(topic => topic.id === id)?.label || '').filter(Boolean);
+    const routeMatches = governedRoutes.filter(item => !queryTerms.length || queryTerms.some(term => item.search.includes(term.toLowerCase()))).slice(0, 8);
+    const publications = [...related, ...routeMatches.filter(item => !related.some(fx => fx.url === item.url))];
     const editorialTarget = root.querySelector('[data-smart-editorial]');
-    editorialTarget.hidden = !related.length;
-    editorialTarget.innerHTML = related.length ? `<p class="smi-kicker">PUBLISHED CONTENTFUL RESEARCH</p>${related.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
+    editorialTarget.hidden = !publications.length;
+    editorialTarget.innerHTML = publications.length ? `<p class="smi-kicker">PUBLISHED GPIR RESEARCH</p>${publications.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
     status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
