@@ -320,5 +320,9 @@
       "Cross-Border Payments",
       "Treasury and Liquidity"
     ]
+  },
+  "VK-GPIR-P-000000000035-6": {
+    "accessClass": "PUBLIC",
+    "publicDescription": "Cross-Border Payments — GPIR research publication."
   }
 }
