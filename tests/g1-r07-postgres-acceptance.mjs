@@ -103,4 +103,26 @@ assert.equal(run("select ticker_eligible||':'||publication_status||':'||(publish
 assert.equal(run("select candidate_status||':'||ticker_eligible from intelligence_candidates where id='00000000-0000-4000-8000-000000000206'").trim(),'APPROVED:false');
 const autoRoles=run("select has_function_privilege('anon','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')||':'||has_function_privilege('authenticated','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim();
 assert.equal(autoRoles,'false:false','automatic T3 publication must not be executable by anon or authenticated');
-console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route or the verified automatic profile');
+// M40 phase-1 acceptance: only the additive publisher role is deployed.
+// Cutover migrations intentionally remain unapplied until parity approval.
+const legacyFunctions=[
+ 'public.gpir_publish_validated_candidate(uuid,text,timestamptz,text,jsonb)',
+ 'public.gpir_publish_consolidated_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)',
+ 'public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)'
+];
+const editorialFunction='public.gpir_publish_t3_editorial_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)';
+const beforeGrants=legacyFunctions.map(fn=>run(`select has_function_privilege('service_role','${fn}','execute')`).trim());
+const beforeMode=run(`select prosecdef from pg_proc where oid='${editorialFunction}'::regprocedure`).trim();
+const beforeEditorial=run(`select has_function_privilege('service_role','${editorialFunction}','execute')`).trim();
+assert.equal(beforeEditorial,'t','fixture must retain the live service-role editorial path');
+file('supabase/migrations/20261110040000_m40_isolate_editorial_publisher.sql');
+assert.equal(run("select pg_has_role('authenticator','gpir_editorial_publisher','member')").trim(),'t');
+assert.equal(run("select rolcanlogin||':'||rolinherit||':'||rolbypassrls from pg_roles where rolname='gpir_editorial_publisher'").trim(),'false:false:false');
+assert.equal(run(`select has_function_privilege('service_role','${editorialFunction}','execute')`).trim(),beforeEditorial,'existing editorial publisher must not lose RPC access');
+assert.equal(run(`select has_function_privilege('gpir_editorial_publisher','${editorialFunction}','execute')`).trim(),'f','staged role must not acquire legacy RPC access');
+assert.equal(run(`select prosecdef from pg_proc where oid='${editorialFunction}'::regprocedure`).trim(),beforeMode,'RPC security mode must remain unchanged');
+for(let n=0;n<legacyFunctions.length;n++){
+ assert.equal(run(`select has_function_privilege('service_role','${legacyFunctions[n]}','execute')`).trim(),beforeGrants[n],'legacy RPC permissions must be preserved during stage 1');
+}
+assert.equal(Number(run('select count(*) from global_announcements')),4,'staging must preserve published history');
+console.log('G1-R07 PostgreSQL acceptance PASS: M40 additive role stage preserves legacy publisher grants and data; cutover remains withheld');

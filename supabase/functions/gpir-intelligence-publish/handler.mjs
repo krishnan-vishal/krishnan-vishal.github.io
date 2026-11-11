@@ -1,7 +1,8 @@
-import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { editorialUrlKey, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
-import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
-  fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
+import { ambiguousEditorialKeys, classifyEditorialPublication, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
+  fetchEditorialEntryById, fetchPublishedEditorialEntries, isVerifiedEditorialApproval, isVerifiedEditorialDraft,
+  verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
@@ -64,7 +65,12 @@ function configuration(env) {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:' || !/^[a-z0-9]{20}\.supabase\.co$/.test(parsed.hostname) || !key)
       return null;
-    return { url: parsed.origin, key };
+    return {
+      url: parsed.origin,
+      key,
+      publicKey: String(env.SUPABASE_ANON_KEY || '').trim(),
+      publisherJwt: String(env.GPIR_EDITORIAL_PUBLISHER_JWT || '').trim()
+    };
   } catch {
     return null;
   }
@@ -85,6 +91,8 @@ async function jsonFetch(fetchImpl, url, init = {}) {
   let data = null;
   try { data = await response.json(); } catch {}
   if (!response.ok) {
+    if (typeof data?.message === 'string' && data.message.startsWith('M40_IDENTITY_REVIEW_REQUIRED:'))
+      throw new Error('M40_IDENTITY_REVIEW_REQUIRED');
     const code = typeof data?.code === 'string' ? data.code : `HTTP_${response.status}`;
     throw new Error(`SUPABASE_${code}`);
   }
@@ -132,7 +140,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       const scan = async ({ status, lower, upper }) => {
         for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
           const query = new URLSearchParams({
-            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,country_code,region,created_at',
             candidate_status: status,
             order: 'published_at.asc,id.asc',
             limit: String(CANDIDATE_PAGE_SIZE),
@@ -192,17 +200,63 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     },
 
     async editorialEntries() {
-      return contentful ? fetchPublishedEditorialEntries({ config: contentful, fetchImpl }) : [];
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchPublishedEditorialEntries({ config: contentful, fetchImpl });
     },
 
-    async editorialEntriesFor(candidate) {
-      return contentful ? fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate }) : [];
+    async editorialEntriesFor(candidate, recordId) {
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchEditorialEntriesForCandidate({ config: contentful, fetchImpl, candidate, recordId });
+    },
+
+    async freshEditorialEntry(entryId) {
+      if (!contentful) throw new Error('CONTENTFUL_CONFIGURATION_REQUIRED');
+      return fetchEditorialEntryById({ config: contentful, fetchImpl, entryId });
+    },
+
+    async registerEditorialIdentity(entry, candidate, { draft = false } = {}) {
+      if (!contentful || !config.publicKey || !config.publisherJwt ||
+          config.publisherJwt === config.key || config.publisherJwt === config.publicKey)
+        throw new Error('EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED');
+      if (draft && !isVerifiedEditorialDraft(entry))
+        throw new Error('CONTENTFUL_DRAFT_VERIFICATION_REQUIRED');
+      const fields = entry.fields || {};
+      const legacyCandidateId = draft && candidate && typeof fields.supabaseRecordId === 'string' &&
+        fields.supabaseRecordId.toLowerCase() === candidate.id.toLowerCase();
+      if (legacyCandidateId && (fields.gpirPublicationId || fields.editionLineageId))
+        throw new Error('M40_IDENTITY_REVIEW_REQUIRED');
+      const headers = new Headers({
+        apikey: config.publicKey,
+        authorization: `Bearer ${config.publisherJwt}`,
+        'content-type': 'application/json'
+      });
+      return jsonFetch(fetchImpl, `${base}/rpc/gpir_register_editorial_identity`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          p_entry_reference: `${contentful.spaceId}/${contentful.environment}/${entry.entryId}`,
+          p_publication_type: fields.publicationType,
+          p_candidate_id: candidate?.id || null,
+          p_source_url: candidate?.canonical_url || fields.legacySourceUrl || null,
+          p_record_id: legacyCandidateId ? null : fields.supabaseRecordId || null,
+          p_publication_id: fields.gpirPublicationId || null,
+          p_lineage_id: fields.editionLineageId || null,
+          p_evidence: {
+            ...(draft ? { contentful_draft_verified: true } : {
+              contentful_delivery_verified: true,
+              publication_status: fields.publicationStatus,
+              validation_status: fields.validationStatus
+            }),
+            source_validation_summary: fields.sourceValidationSummary,
+            contentful_updated_at: entry.updatedAt
+          }
+        })
+      });
     },
 
     async candidate(candidateId) {
       if (!UUID.test(candidateId)) return null;
       const query = new URLSearchParams({
-        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,country_code,region,created_at',
         id: `eq.${candidateId}`,
         candidate_status: 'in.(PENDING,REVIEW,VALIDATING)',
         limit: '1'
@@ -298,12 +352,26 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       ]);
     },
 
-    async publish(candidate, validation, source = null) {
-      const procedure = validation.editorial === true ? 'gpir_publish_t3_editorial_candidate'
-        : validation.t3Automatic === true ? 'gpir_publish_t3_automatic_candidate'
-          : 'gpir_publish_consolidated_candidate';
-      const data = await jsonFetch(fetchImpl, `${base}/rpc/${procedure}`, {
-        method: 'POST', headers,
+    async publish(candidate, validation, source = null, approval = null) {
+      if (!isVerifiedEditorialApproval(approval) || validation.editorial !== true ||
+          validation.validationPayload?.editorial_verified !== true ||
+          approval.candidateId !== String(candidate.id).toLowerCase() ||
+          validation.validationPayload.editorial_supabase_record_id !== approval.supabaseRecordId ||
+          validation.validationPayload.editorial_entry_reference !== approval.entryReference ||
+          validation.validationPayload.editorial_entry_id !== approval.entryId ||
+          validation.validationPayload.editorial_publication_id !== approval.publicationId ||
+          validation.validationPayload.editorial_source_url !== candidate.canonical_url)
+        throw new Error('CONTENTFUL_APPROVAL_REQUIRED');
+      if (!config.publicKey || !config.publisherJwt ||
+          config.publisherJwt === config.key || config.publisherJwt === config.publicKey)
+        throw new Error('EDITORIAL_PUBLISHER_CREDENTIAL_REQUIRED');
+      const publisherHeaders = new Headers({
+        apikey: config.publicKey,
+        authorization: `Bearer ${config.publisherJwt}`,
+        'content-type': 'application/json'
+      });
+      const data = await jsonFetch(fetchImpl, `${base}/rpc/gpir_publish_t3_editorial_candidate`, {
+        method: 'POST', headers: publisherHeaders,
         body: JSON.stringify({
           p_candidate_id: candidate.id,
           ...await eventIdentity(candidate, validation, source),
@@ -328,7 +396,8 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   await repository.start(candidate);
   const source = await repository.source(candidate.source_id);
   const editorialApproval = editorial
-    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source, ambiguous: editorial.ambiguous })
+    ? verifyEditorialApproval({ entries: editorial.entries, candidate, source,
+      identity: editorial.identity, ambiguous: editorial.ambiguous })
     : null;
   if (editorialApproval && !editorialApproval.approved) {
     const denied = { decision: 'REVIEW', reasonCode: editorialApproval.reasonCode };
@@ -345,12 +414,17 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
     await repository.record(candidate, duplicate);
     return duplicate;
   }
-  const announcementId = await repository.publish(candidate, validation, source);
+  if (!isVerifiedEditorialApproval(editorialApproval) || validation.editorial !== true) {
+    const pending = { ...validation, decision: 'REVIEW', reasonCode: 'CONTENTFUL_APPROVAL_REQUIRED' };
+    await repository.record(candidate, pending);
+    return pending;
+  }
+  const announcementId = await repository.publish(candidate, validation, source, editorialApproval);
   return { ...validation, announcementId };
 }
 
 // An editor's change after the last decision, or a due transient retry, re-opens a
-// T3 candidate. Terminal decisions are never re-opened.
+// candidate. Terminal decisions are never re-opened.
 function editorialDue(audit, candidate, entry, now) {
   if (!audit || !FINAL_DECISIONS.has(audit.decision)) return true;
   if (TERMINAL_DECISIONS.has(audit.decision)) return false;
@@ -361,7 +435,7 @@ function editorialDue(audit, candidate, entry, now) {
   return Number.isFinite(updated) && Number.isFinite(completed) && updated > completed;
 }
 
-// Publishes T3 candidates only through a Contentful entry that is published and
+// Publishes candidates only through a Contentful entry that is published and
 // explicitly approved. No entry, no publication; nothing here approves anything.
 export async function processEditorialApprovals({ repository, fetchImpl = fetch, now = () => Date.now(),
   limit = 5, logger = console }) {
@@ -372,20 +446,86 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
   const started = Date.now();
   for (const entry of entries) {
     if (summary.outcomes.length >= limit || Date.now() - started >= PROCESSING_BUDGET_MS) break;
-    const candidateId = String(entry.fields.supabaseRecordId || '').trim();
+    const match = /^gpir-(t1|t1-5|t2|t3)-([0-9a-f-]{36})$/i.exec(entry.entryId);
+    const candidateId = match && UUID.test(match[2]) ? match[2].toLowerCase() : null;
     try {
-      const candidate = await repository.candidate(candidateId);
+      const fresh = await repository.freshEditorialEntry(entry.entryId);
+      const fields = fresh.fields || {};
+      const classification = classifyEditorialPublication(fields);
+      if (classification !== 'EXECUTIVE') {
+        if (classification === 'REVIEW') {
+          summary.awaitingReview += 1;
+          summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+            reasonCode: 'EDITORIAL_CLASSIFICATION_REVIEW_REQUIRED' });
+        } else summary.skipped += 1;
+        continue;
+      }
+      const values = [fields.supabaseRecordId, fields.gpirPublicationId, fields.editionLineageId];
+      const completeIdentity = values.every(value => typeof value === 'string' && value.trim());
+      const emptyIdentity = values.every(value => !value);
+      const sourceKey = editorialUrlKey(fields.legacySourceUrl);
+      const identityKey = String(fields.supabaseRecordId || '').trim().toLowerCase();
+      if (fields.publicationStatus !== 'CURRENT' || fields.validationStatus !== 'PASS' ||
+          typeof fields.sourceValidationSummary !== 'string' || fields.sourceValidationSummary.trim().length < 40 ||
+          typeof fields.publicationType !== 'string' || !fields.publicationType.trim() ||
+          (!completeIdentity && !emptyIdentity) || (!candidateId && !completeIdentity) ||
+          (sourceKey && ambiguous.has(`url:${sourceKey}`)) ||
+          (identityKey && ambiguous.has(`id:${identityKey}`))) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
+      const candidate = candidateId ? await repository.candidate(candidateId) : null;
       const source = candidate ? await repository.source(candidate.source_id) : null;
-      if (!candidate || source?.trust_tier !== 'T3') { summary.skipped += 1; continue; }
+      if (candidateId && (!candidate || !['T1', 'T1.5', 'T2', 'T3'].includes(source?.trust_tier))) {
+        summary.skipped += 1; continue;
+      }
+      if (candidate && (fresh.entryId !== `gpir-${source.trust_tier.toLowerCase().replace('.', '-')}-${candidate.id}` ||
+          editorialUrlKey(fields.legacySourceUrl) !== editorialUrlKey(candidate.canonical_url))) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
+      const identity = await repository.registerEditorialIdentity(fresh, candidate);
+      if (!completeIdentity || !identity ||
+          identity.supabaseRecordId !== fields.supabaseRecordId ||
+          identity.gpirPublicationId !== fields.gpirPublicationId ||
+          identity.editionLineageId !== fields.editionLineageId) {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED', identity });
+        continue;
+      }
+      if (!candidate) {
+        summary.outcomes.push({ candidateId: null, entryId: entry.entryId,
+          decision: 'REGISTERED', reasonCode: 'OWNER_PUBLICATION_IDENTITY_REGISTERED' });
+        continue;
+      }
       if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
-      const entriesForCandidate = await repository.editorialEntriesFor(candidate);
-      const outcome = await processCandidate({ candidate, repository, fetchImpl, now,
-        editorial: { entries: entriesForCandidate, ambiguous } });
+      const entriesForCandidate = await repository.editorialEntriesFor(candidate, identity.supabaseRecordId);
+      let outcome = await processCandidate({ candidate, repository, fetchImpl, now,
+        editorial: { entries: entriesForCandidate, identity, ambiguous } });
+      if (outcome.decision === 'PUBLISHED') {
+        const finalAudit = await repository.audit(candidate.id);
+        if (!finalAudit || !['PUBLISHED', 'DUPLICATE'].includes(finalAudit.decision))
+          throw new Error('EDITORIAL_PUBLICATION_AUDIT_NOT_FINAL');
+        if (finalAudit.decision === 'DUPLICATE')
+          outcome = { ...outcome, decision: 'DUPLICATE', reasonCode: finalAudit.reason_code };
+      }
       summary.outcomes.push({ candidateId: candidate.id, entryId: entry.entryId, decision: outcome.decision,
         reasonCode: outcome.reasonCode, announcementId: outcome.announcementId });
       if (outcome.decision === 'PUBLISHED') summary.published += 1;
+      else if (outcome.decision === 'DUPLICATE') summary.skipped += 1;
       else summary.awaitingReview += 1;
     } catch (error) {
+      if (error instanceof Error && error.message === 'M40_IDENTITY_REVIEW_REQUIRED') {
+        summary.awaitingReview += 1;
+        summary.outcomes.push({ candidateId, entryId: entry.entryId, decision: 'REVIEW',
+          reasonCode: 'EDITORIAL_IDENTITY_REVIEW_REQUIRED' });
+        continue;
+      }
       logger.error('gpir editorial publication failed', { candidateId, error });
       summary.skipped += 1;
     }
@@ -429,7 +569,7 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       }
     }
     let editorial = { status: 'NOT_CONFIGURED' };
-    if (typeof store.editorialEntries === 'function') {
+    if ((repository || config.publisherJwt) && typeof store.editorialEntries === 'function') {
       try {
         editorial = { status: 'OK', ...(await processEditorialApprovals({ repository: store, fetchImpl, now, limit, logger })) };
       } catch (error) {

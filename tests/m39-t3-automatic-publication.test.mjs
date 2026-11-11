@@ -66,14 +66,15 @@ function store({ source = T3, duplicate = false } = {}) {
 const run = (item, repository, fetchImpl = fetchPage(item)) =>
   processCandidate({ candidate: item, repository, fetchImpl, now: () => NOW });
 
-test('a verified, high-confidence T3 article publishes automatically with its original timestamp and no Contentful entry', async () => {
+test('a verified high-confidence T3 article requires Contentful approval before publication', async () => {
   const item = candidate();
   const repository = store();
   const outcome = await run(item, repository);
-  assert.equal(outcome.decision, 'PUBLISHED');
-  assert.equal(repository.published.length, 1);
-  assert.equal(repository.records.length, 0);
-  const [validation] = repository.published;
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED');
+  assert.equal(repository.published.length, 0);
+  assert.equal(repository.records.length, 1);
+  const [validation] = repository.records;
   assert.equal(validation.t3Automatic, true);
   assert.equal(validation.editorial, false);
   assert.equal(validation.sourcePublishedAt, item.published_at);
@@ -126,6 +127,42 @@ test('an unattempted fetch is never recorded as a failed verification', async ()
   assert.deepEqual(failed.evidenceVerification, { attempted: true, status: 'FAILED', reason: 'SOURCE_HTTP_403' });
   const timeout = await run(candidate(), store(), async () => { throw new Error('network'); });
   assert.deepEqual(timeout.evidenceVerification, { attempted: true, status: 'FAILED', reason: 'SOURCE_FETCH_FAILED' });
+});
+
+test('bounded historical evidence review verifies eligible tiers without authorizing publication', async () => {
+  const old = candidate({ confidence_score: 70, published_at: '2023-06-05T10:00:00.000Z' });
+  const verified = await validateCandidateSource({ candidate: old, source: T3, fetchImpl: fetchPage(old),
+    now: () => NOW, historicalReview: true });
+  assert.equal(verified.decision, 'REVIEW');
+  assert.equal(verified.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+  assert.equal(verified.evidenceVerification.status, 'SUCCEEDED');
+  assert.equal(verified.sourcePublishedAt, old.published_at);
+  assert.equal(verified.validationPayload.editorial_verified, undefined);
+  const changedDate = await validateCandidateSource({ candidate: old, source: T3,
+    fetchImpl: fetchPage(old, { timestamp: '2023-06-05T11:00:00.000Z' }), now: () => NOW, historicalReview: true });
+  assert.equal(changedDate.reasonCode, 'SOURCE_TIMESTAMP_MISMATCH');
+  for (const [tier, confidence] of [['T1', 70], ['T1.5', 80], ['T2', 90], ['T3', 95]]) {
+    const item = candidate({ ...old, confidence_score: confidence });
+    const outcome = await validateCandidateSource({ candidate: item, source: { ...T3, trust_tier: tier },
+      fetchImpl: fetchPage(item), now: () => NOW, historicalReview: true });
+    assert.equal(outcome.decision, 'REVIEW', tier);
+    assert.equal(outcome.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED', tier);
+    assert.equal(outcome.evidenceVerification.status, 'SUCCEEDED', tier);
+    assert.equal(outcome.sourcePublishedAt, item.published_at, tier);
+  }
+  const strict = candidate({ ...old, confidence_score: 95 });
+  const short = await validateCandidateSource({ candidate: strict, source: T3,
+    fetchImpl: fetchPage(strict, { body: SHORT_BODY }), now: () => NOW, historicalReview: true });
+  assert.equal(short.reasonCode, 'INSUFFICIENT_SOURCE_EVIDENCE');
+  for (const bad of [candidate({ ...old, published_at: '2020-01-01T00:00:00Z' })]) {
+    const outcome = await validateCandidateSource({ candidate: bad, source: T3, fetchImpl: fetchPage(bad),
+      now: () => NOW, historicalReview: true });
+    assert.equal(outcome.reasonCode, 'HISTORICAL_REVIEW_NOT_ELIGIBLE');
+    assert.equal(outcome.evidenceVerification.attempted, false);
+  }
+  const belowThreshold = await validateCandidateSource({ candidate: candidate({ ...old, confidence_score: 69 }),
+    source: { ...T3, trust_tier: 'T1' }, fetchImpl: fetchPage(old), now: () => NOW, historicalReview: true });
+  assert.equal(belowThreshold.reasonCode, 'HISTORICAL_REVIEW_NOT_ELIGIBLE');
 });
 
 test('an unverified source, foreign domain, canonical mismatch or off-domain redirect never publishes', async () => {
@@ -220,15 +257,17 @@ test('the duplicate check consults both the canonical URL and the content finger
     ['/rest/v1/global_announcements', '/rest/v1/intelligence_publication_audits']);
 });
 
-test('T1, T1.5 and T2 automatic publication is unchanged and never uses the T3 route', async () => {
+test('T1, T1.5 and T2 evidence thresholds remain intact but publication requires Contentful', async () => {
   assert.deepEqual({ ...AUTO_PUBLICATION_THRESHOLDS }, { T1: 70, 'T1.5': 80, T2: 90 });
   for (const [tier, passing, failing] of [['T1', 70, 69], ['T1.5', 80, 79], ['T2', 90, 89]]) {
     const source = { ...T3, trust_tier: tier };
     const pass = store({ source });
     const passed = await run(candidate({ confidence_score: passing }), pass);
-    assert.equal(passed.decision, 'PUBLISHED', tier);
-    assert.equal(pass.published[0].t3Automatic, false, tier);
-    assert.equal(pass.published[0].validationPayload.t3_auto_verified, undefined, tier);
+    assert.equal(passed.decision, 'REVIEW', tier);
+    assert.equal(passed.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED', tier);
+    assert.equal(pass.published.length, 0, tier);
+    assert.equal(pass.records[0].t3Automatic, false, tier);
+    assert.equal(pass.records[0].validationPayload.t3_auto_verified, undefined, tier);
     const fail = store({ source });
     const failed = await run(candidate({ confidence_score: failing }), fail);
     assert.equal(failed.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET', tier);
@@ -245,36 +284,36 @@ test('T1, T1.5 and T2 automatic publication is unchanged and never uses the T3 r
   }
 });
 
-test('publication RPC routing: T3 automatic, Contentful editorial and T1/T1.5/T2 use distinct service-role functions', async () => {
+test('publication repository refuses non-editorial and forged approvals before any RPC', async () => {
   const calls = [];
   const repository = createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' },
     fetchImpl: async (url, init) => { calls.push({ path: new URL(url).pathname, auth: init.headers.get('authorization') });
       return { ok: true, json: async () => 'id' }; } });
   const base = { sourcePublishedAt: candidate().published_at, summary: 's', contentFingerprint: 'a'.repeat(64),
     validationPayload: {}, relevanceTerms: ['payment'] };
-  await repository.publish(candidate(), { ...base, t3Automatic: true }, T3);
-  await repository.publish(candidate(), { ...base, editorial: true }, T3);
-  await repository.publish(candidate(), { ...base, editorial: true, t3Automatic: false }, T3);
-  await repository.publish(candidate(), { ...base, t3Automatic: false, editorial: false }, { ...T3, trust_tier: 'T1' });
-  assert.deepEqual(calls.map(call => call.path), [
-    '/rest/v1/rpc/gpir_publish_t3_automatic_candidate',
-    '/rest/v1/rpc/gpir_publish_t3_editorial_candidate',
-    '/rest/v1/rpc/gpir_publish_t3_editorial_candidate',
-    '/rest/v1/rpc/gpir_publish_consolidated_candidate']);
+  for (const validation of [{ ...base, t3Automatic: true }, { ...base, editorial: true },
+    { ...base, editorial: false }])
+    await assert.rejects(repository.publish(candidate(), validation, T3, { approved: true }), /CONTENTFUL_APPROVAL_REQUIRED/);
+  assert.deepEqual(calls, []);
   assert.ok(calls.every(call => call.auth === 'Bearer k'), 'every call is made with the service-role key');
 });
 
 test('the Contentful editorial route is preserved, takes precedence and still publishes low-confidence T3 articles', async () => {
   for (const confidence of [40, 99]) {
     const item = candidate({ confidence_score: confidence });
+    const identity = { supabaseRecordId: '22222222-2222-4222-8222-222222222222',
+      gpirPublicationId: 'VK-GPIR-MEDIA-000001', editionLineageId: 'VK-GPIR-LINEAGE-000001',
+      candidateId: CANDIDATE_ID, entryReference: 'space/master/entry-1' };
     const entry = { entryId: 'entry-1', updatedAt: new Date(NOW - 600000).toISOString(), fields: {
-      gpirPublicationId: 'VK-GPIR-MEDIA-000001', supabaseRecordId: CANDIDATE_ID, legacySourceUrl: URL_A,
+      gpirPublicationId: identity.gpirPublicationId, supabaseRecordId: identity.supabaseRecordId,
+      editionLineageId: identity.editionLineageId, publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: item.title, legacySourceUrl: URL_A,
       publicationStatus: 'CURRENT', validationStatus: 'PASS',
       sourceValidationSummary: 'Editor verified the PYMNTS article against the original page and payments scope.' } };
-    assert.equal(evaluateEditorialEntry({ entry, candidate: item, source: T3 }).approved, true);
+    assert.equal(evaluateEditorialEntry({ entry, candidate: item, source: T3, identity }).approved, true);
     const repository = store();
     const outcome = await processCandidate({ candidate: item, repository, fetchImpl: fetchPage(item), now: () => NOW,
-      editorial: { entries: [entry], ambiguous: new Set() } });
+      editorial: { entries: [entry], identity, ambiguous: new Set() } });
     assert.equal(outcome.decision, 'PUBLISHED', String(confidence));
     assert.equal(repository.published[0].editorial, true);
     assert.equal(repository.published[0].t3Automatic, false);
@@ -332,10 +371,11 @@ test('a recent T3 threshold review made without an evidence fetch is reconsidere
   assert.equal((await retryStore([legacy, notAttempted], audits).candidates({ limit: 1, now: NOW })).length, 1, 'batch limit bounds the run');
 });
 
-test('a reconsidered T3 candidate publishes only after every governance check passes', async () => {
+test('a reconsidered T3 candidate remains in review until Contentful approval', async () => {
   const good = candidate({ confidence_score: 97, candidate_status: 'REVIEW' });
   const published = store();
-  assert.equal((await run(good, published)).decision, 'PUBLISHED');
+  assert.equal((await run(good, published)).reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED');
+  assert.equal(published.published.length, 0);
   const lowConfidence = store();
   const low = await run(candidate({ confidence_score: 60, candidate_status: 'REVIEW' }), lowConfidence);
   assert.equal(low.decision, 'REVIEW');

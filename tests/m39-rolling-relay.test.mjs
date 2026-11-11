@@ -40,14 +40,34 @@ const ANNOUNCEMENTS = [
 ];
 
 function repositoryRows(announcements = ANNOUNCEMENTS) {
-  return { announcements, sources: [T3, T1], topics: [], developments: [], topicSources: [], statisticalObservations: [] };
+  const candidates = announcements.map(item => ({ id: `candidate-${item.id}`, source_id: item.source_id, title: item.title,
+    canonical_url: item.canonical_url, published_at: item.published_at }));
+  const publicationAudits = announcements.map((item, index) => {
+    const candidateId = candidates[index].id;
+    return { candidate_id: candidateId, announcement_id: item.id, decision: 'PUBLISHED',
+      validation_payload: { source_verified: true, canonical_verified: true, timestamp_verified: true,
+        content_verified: true, relevance_verified: true, summary_grounded: true,
+        editorial_verified: true, editorial_entry_reference: `space/master/${item.id}`,
+        editorial_entry_id: item.id, editorial_publication_id: `publication-${item.id}`,
+        editorial_supabase_record_id: `record-${item.id}`, editorial_source_url: item.canonical_url } };
+  });
+  return { announcements, sources: [T3, T1], candidates, publicationAudits, topics: [], developments: [],
+    topicSources: [], statisticalObservations: [] };
 }
 
 function publicHandler(extra = {}) {
   let loaded = 0;
+  const authority = ANNOUNCEMENTS.map(item => ({
+    row: { candidate_id: `candidate-${item.id}`, record_id: `record-${item.id}`,
+      publication_id: `publication-${item.id}`, entry_reference: `space/master/${item.id}` },
+    entry: { entryId: item.id, fields: { publicationType: 'Intelligence Brief',
+      useCasePaymentCategory: 'B2B', publicationTitle: item.title, executiveSummary: item.summary_narration,
+      legacySourceUrl: item.canonical_url } }
+  }));
   const handler = createPublicIntelligenceHandler({
     env: { SUPABASE_URL: PRODUCTION_URL, SUPABASE_SERVICE_ROLE_KEY: 'service' },
-    loadRows: async () => { loaded += 1; return repositoryRows(); }, now: () => NOW, ...extra });
+    loadRows: async () => { loaded += 1; return repositoryRows(); },
+    loadAuthority: async () => authority, now: () => NOW, ...extra });
   return { handler, loads: () => loaded };
 }
 
@@ -137,7 +157,7 @@ test('live eligibility expires at 12 hours while the item stays in the permanent
   assert.ok(archived.records.some(record => record.id === 'a-first'));
 });
 
-test('the 12-hour backfill publishes genuine articles with original timestamps; low confidence stays in review; older articles are archive-only', async () => {
+test('the 12-hour backfill preserves source timestamps and awaits CMS approval', async () => {
   const body = 'The payments network announced that instant settlement will extend to additional cross-border corridors for banks, wallets and merchants across several markets. ' +
     'The operator said participating payment providers must complete certification, fraud controls and settlement testing before connecting to the expanded real-time payment rail. ' +
     'Executives explained that the rollout will be phased and that card, wallet and bank transfer flows will share common reconciliation and reporting standards. ' +
@@ -159,18 +179,18 @@ test('the 12-hour backfill publishes genuine articles with original timestamps; 
     headers: new Headers({ 'content-type': 'text/html' }),
     text: async () => `<html><head><link rel="canonical" href="${item.canonical_url}"><meta property="article:published_time" content="${item.published_at}"></head><body><article><p>${body}</p></article></body></html>` });
   for (const item of candidates) await processCandidate({ candidate: item, repository, fetchImpl: fetchFor(item), now: () => NOW });
-  assert.deepEqual(published.map(entry => entry.id), [candidates[0], candidates[1], candidates[2], candidates[4]].map(item => item.id));
-  for (const entry of published) {
+  assert.deepEqual(published, []);
+  for (const entry of records.filter(entry => entry.id !== candidates[3].id)) {
     const source = candidates.find(item => item.id === entry.id);
     assert.equal(entry.validation.sourcePublishedAt, source.published_at, 'original publication time is preserved');
+    assert.equal(entry.validation.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED');
   }
   const low = records.find(entry => entry.id === candidates[3].id).validation;
   assert.equal(low.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
   assert.equal(low.evidenceVerification.status, 'SUCCEEDED');
   assert.equal(low.validationPayload.confidence_score, 40, 'a fetched article never raises its confidence');
-  // An older validated article is archived with its original time; the database RPC sets
-  // ticker_eligible from that time, so it never reaches a live ticker (see the PostgreSQL acceptance run).
-  assert.equal(published.find(entry => entry.id === candidates[4].id).validation.sourcePublishedAt, candidates[4].published_at);
+  // An existing older approved article remains outside the live window.
+  assert.equal(records.find(entry => entry.id === candidates[4].id).validation.sourcePublishedAt, candidates[4].published_at);
   assert.equal(normalizeRepositoryRows({ now: NOW, sources: [T3], announcements: [announcement('old-one', 'Cross-border settlement corridor article 5', 14)] })[0].tickerEligible, false);
 });
 
@@ -319,15 +339,14 @@ test('the working FX Intelligence experience is untouched and carries no new pai
   assert.match(css, /--smi-gold/);
 });
 
-test('publisher RPC routing, thresholds and the Contentful editorial route are unchanged by the relay work', async () => {
+test('relay publication cannot bypass Contentful approval', async () => {
   const calls = [];
   const repository = createRestPublicationRepository({ config: { url: 'https://abcdefghijklmnopqrst.supabase.co', key: 'k' },
     fetchImpl: async url => { calls.push(new URL(url).pathname); return { ok: true, json: async () => 'id' }; } });
   const base = { sourcePublishedAt: new Date(NOW).toISOString(), summary: 's', contentFingerprint: 'a'.repeat(64), validationPayload: {}, relevanceTerms: ['payment'] };
   const item = { id: '00000000-0000-4000-8000-000000000001', title: 'Instant payments network expands settlement', source_id: 'x', event_type: 'u' };
-  await repository.publish(item, { ...base, t3Automatic: true }, T3);
-  await repository.publish(item, { ...base, editorial: true }, T3);
-  await repository.publish(item, base, T1);
-  assert.deepEqual(calls, ['/rest/v1/rpc/gpir_publish_t3_automatic_candidate', '/rest/v1/rpc/gpir_publish_t3_editorial_candidate',
-    '/rest/v1/rpc/gpir_publish_consolidated_candidate']);
+  await assert.rejects(repository.publish(item, { ...base, t3Automatic: true }, T3), /CONTENTFUL_APPROVAL_REQUIRED/);
+  await assert.rejects(repository.publish(item, { ...base, editorial: true }, T3), /CONTENTFUL_APPROVAL_REQUIRED/);
+  await assert.rejects(repository.publish(item, base, T1), /CONTENTFUL_APPROVAL_REQUIRED/);
+  assert.deepEqual(calls, []);
 });

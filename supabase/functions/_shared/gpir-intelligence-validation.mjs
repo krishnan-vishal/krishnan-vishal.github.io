@@ -149,7 +149,7 @@ function meaningfulSentences(content, title) {
     .filter(sentence => !/cookie|privacy policy|subscribe|newsletter|all rights reserved/i.test(sentence));
 }
 
-function relevantEvidence(title, content) {
+export function relevantEvidence(title, content) {
   const text = `${title || ''} ${content || ''}`.toLowerCase();
   return PAYMENT_TERMS.filter(term => text.includes(term));
 }
@@ -196,7 +196,7 @@ function reject(reasonCode, evidence = {}) {
 // Evidence verification is recorded separately from the confidence gate so that an
 // unattempted fetch (NOT_ATTEMPTED) is never mistaken for a failed verification (FAILED).
 // Confidence is never changed by fetching an article; it only gates publication.
-async function validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs, editorialApproval, evidence }) {
+async function validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs, editorialApproval, historicalReview, evidence }) {
   if (!source || source.source_status !== 'GREEN' || !source.official_url)
     return review('SOURCE_NOT_APPROVED');
   if (!candidate?.canonical_url || !isOfficialUrl(candidate.canonical_url, source.official_url))
@@ -205,16 +205,25 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   // Eligible GREEN-source candidates inside the 12-hour live window have their article
   // evidence fetched and verified independently of the stored confidence score. Older
   // candidates that cannot meet the tier threshold are recorded without spending a fetch.
-  // Only a T3 source with a verified Contentful editorial approval replaces the
-  // automatic threshold; every evidence check below still applies to it.
-  const editorialRoute = source.trust_tier === 'T3' && isVerifiedEditorialApproval(editorialApproval);
+  // Only an editorially approved T3 source can use the existing lower-confidence
+  // editorial profile. Other tiers retain their confidence thresholds.
+  const editorialRoute = (source.trust_tier === 'T3' ||
+    Object.hasOwn(AUTO_PUBLICATION_THRESHOLDS, source.trust_tier)) &&
+    isVerifiedEditorialApproval(editorialApproval);
   const threshold = AUTO_PUBLICATION_THRESHOLDS[source.trust_tier];
   const confidence = Number(candidate.confidence_score);
   const t3Profile = source.trust_tier === 'T3' && !editorialRoute;
-  const t3Automatic = t3Profile && Number.isFinite(confidence) &&
+  const t3StrictEvidence = source.trust_tier === 'T3' && Number.isFinite(confidence) &&
     confidence >= T3_AUTOMATIC_PUBLICATION.minConfidence;
-  const confidenceGateMet = editorialRoute || t3Automatic ||
+  const t3Automatic = t3Profile && t3StrictEvidence;
+  const confidenceGateMet = (source.trust_tier === 'T3' && editorialRoute) || t3Automatic ||
     Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold);
+  const candidateTime = Date.parse(candidate.published_at || '');
+  const historicalEvidence = historicalReview === true && !editorialRoute &&
+    (t3Profile || Boolean(threshold && Number.isFinite(confidence) && confidence >= threshold)) &&
+    Number.isFinite(candidateTime) && candidateTime >= Date.parse('2021-11-01T00:00:00Z') &&
+    candidateTime < Date.parse('2026-12-01T00:00:00Z') && candidateTime <= now();
+  if (historicalReview && !historicalEvidence) return review('HISTORICAL_REVIEW_NOT_ELIGIBLE');
   const thresholdReview = (extra = {}) => review('AUTO_PUBLICATION_THRESHOLD_NOT_MET', {
     canonicalUrl: candidate.canonical_url,
     sourcePublishedAt: candidate.published_at,
@@ -229,7 +238,7 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   });
   if (!confidenceGateMet) {
     const eligibleTier = Boolean(threshold) || source.trust_tier === 'T3';
-    if (!eligibleTier || !isWithinLiveWindow(candidate.published_at, now())) {
+    if (!eligibleTier || (!isWithinLiveWindow(candidate.published_at, now()) && !historicalEvidence)) {
       evidence.reason = eligibleTier ? 'OUTSIDE_LIVE_WINDOW' : 'SOURCE_TIER_NOT_ELIGIBLE';
       return thresholdReview();
     }
@@ -284,19 +293,19 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
   const publishedAt = sourceTimestamp(html);
   if (!publishedAt) return review('SOURCE_TIMESTAMP_MISSING', { canonicalUrl: canonical, sourceHttpStatus: response.status });
   const publishedTime = Date.parse(publishedAt);
-  const candidateTime = Date.parse(candidate.published_at || '');
   if (!Number.isFinite(candidateTime) || publishedTime > now() + 5 * 60 * 1000)
     return reject('SOURCE_TIMESTAMP_INVALID', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
-  if (Math.abs(publishedTime - candidateTime) > 36 * 60 * 60 * 1000)
+  if ((historicalEvidence && publishedTime !== candidateTime) ||
+      Math.abs(publishedTime - candidateTime) > 36 * 60 * 60 * 1000)
     return review('SOURCE_TIMESTAMP_MISMATCH', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const content = articleContent(html);
   const sentences = meaningfulSentences(content, candidate.title);
-  if (content.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
-      sentences.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
+  if (content.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minContentLength : 600) ||
+      sentences.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minSentences : 2))
     return review('INSUFFICIENT_SOURCE_EVIDENCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
   const relevanceTerms = relevantEvidence(candidate.title, content);
-  if (relevanceTerms.length < (t3Automatic ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
+  if (relevanceTerms.length < (t3StrictEvidence ? T3_AUTOMATIC_PUBLICATION.minRelevanceTerms : 2))
     return review('INSUFFICIENT_PAYMENTS_RELEVANCE', { canonicalUrl: canonical, sourcePublishedAt: publishedAt });
 
   const normalizedContent = content.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -338,20 +347,22 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
         editorial_verified: true,
         editorial_entry_id: editorialApproval.entryId,
         editorial_publication_id: editorialApproval.publicationId,
-        editorial_supabase_record_id: candidate.id,
+        editorial_supabase_record_id: editorialApproval.supabaseRecordId,
+        editorial_entry_reference: editorialApproval.entryReference,
         editorial_source_url: candidate.canonical_url
       } : {})
     }
   };
   if (!confidenceGateMet) return thresholdReview(verified);
+  if (historicalEvidence) return review('CONTENTFUL_APPROVAL_REQUIRED', verified);
   return { decision: 'PUBLISHED', reasonCode: 'VALIDATED_FOR_PUBLICATION', ...verified };
 }
 
 export async function validateCandidateSource({ candidate, source, fetchImpl = fetch,
-  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null }) {
+  now = () => Date.now(), timeoutMs = 15000, editorialApproval = null, historicalReview = false }) {
   const evidence = { attempted: false, status: 'NOT_ATTEMPTED', reason: 'SOURCE_NOT_ELIGIBLE' };
   const result = await validateAgainstSource({ candidate, source, fetchImpl, now, timeoutMs,
-    editorialApproval, evidence });
+    editorialApproval, historicalReview, evidence });
   if (evidence.status === 'FAILED') evidence.reason = result.reasonCode;
   return { ...result, evidenceVerification: { ...evidence },
     validationPayload: { ...result.validationPayload, evidence_verification: { ...evidence } } };

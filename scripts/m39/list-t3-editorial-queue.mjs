@@ -29,16 +29,15 @@ export async function buildEditorialQueue({ env = process.env, fetchImpl = fetch
     order: 'published_at.desc', limit: '200' });
   const config = contentfulEditorialConfig(env);
   const entries = config ? await fetchPublishedEditorialEntries({ config, fetchImpl }) : [];
-  const byId = new Map(entries.map(entry => [String(entry.fields.supabaseRecordId || '').toLowerCase(), entry]));
   const byUrl = new Map(entries.map(entry => [editorialUrlKey(String(entry.fields.legacySourceUrl || '')), entry]));
   const queue = { generatedAt: new Date(now).toISOString(), contentfulChecked: Boolean(config), awaiting: [], approved: [] };
   for (const candidate of candidates) {
-    const linked = byId.get(candidate.id.toLowerCase()) || byUrl.get(editorialUrlKey(candidate.canonical_url));
+    const linked = byUrl.get(editorialUrlKey(candidate.canonical_url));
     const item = { candidateId: candidate.id, sourceId: candidate.source_id, title: candidate.title,
       canonicalUrl: candidate.canonical_url, publishedAt: candidate.published_at };
     if (linked) queue.approved.push({ ...item, contentfulEntryId: linked.entryId });
     else queue.awaiting.push({ ...item, contentfulDraftFields: {
-      supabaseRecordId: candidate.id, legacySourceUrl: candidate.canonical_url, publicationTitle: candidate.title,
+      legacySourceUrl: candidate.canonical_url, publicationTitle: candidate.title,
       publicationStatus: 'CURRENT', validationStatus: 'PASS (only after editorial verification)',
       sourceValidationSummary: 'Editor evidence note required', gpirPublicationId: 'Governed VK-GPIR identifier required' } });
   }

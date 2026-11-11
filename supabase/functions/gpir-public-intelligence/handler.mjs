@@ -1,6 +1,8 @@
-import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
+import { editorialUrlKey, isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
 import { buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
 import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
+import { authorizedEditorialCandidates, loadPublicEditorialAuthority,
+  normalizeOwnerEditorialPublications } from '../_shared/gpir-public-editorial.mjs';
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
 export const BIS_SOURCE_ID = 'BIS-GLOBAL-001';
@@ -180,9 +182,13 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
 }
 
 export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
-  topicSources = [], statisticalObservations = [], now = Date.now(),
-  windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
+  topicSources = [], statisticalObservations = [], publicationAudits = [], candidates = [], now = Date.now(),
+  windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences = false }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
+  const candidateById = new Map(candidates.map(candidate => [candidate.id, candidate]));
+  const eventByAnnouncement = new Map(publicationAudits.filter(audit => audit.decision === 'PUBLISHED' &&
+    audit.announcement_id && candidateById.has(audit.candidate_id))
+    .map(audit => [audit.announcement_id, candidateById.get(audit.candidate_id)]));
   const byTopicSources = new Map();
   const byTopicDevelopments = new Map();
   for (const link of topicSources) { if (!byTopicSources.has(link.topic_id)) byTopicSources.set(link.topic_id, []); byTopicSources.get(link.topic_id).push(link); }
@@ -201,6 +207,14 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
         !isOfficialUrl(row.canonical_url, source.official_url)) return [];
     const published = new Date(publishedTime);
     const topic = byAnnouncement.get(row.id);
+    const linkedCandidate = eventByAnnouncement.get(row.id);
+    const event = linkedCandidate?.source_id === row.source_id &&
+      editorialUrlKey(linkedCandidate.canonical_url) === editorialUrlKey(row.canonical_url)
+      ? linkedCandidate : null;
+    const countryCode = typeof event?.country_code === 'string' && /^[A-Z]{2}$/.test(event.country_code)
+      ? event.country_code : null;
+    const eventRegion = typeof event?.region === 'string' && event.region.trim()
+      ? event.region.trim().slice(0, 100) : null;
     const verifiedSources = (byTopicSources.get(topic?.id) || []).filter(link =>
       bySource.has(link.source_id) && isOfficialUrl(link.canonical_url,bySource.get(link.source_id).official_url))
       .map(link => {
@@ -236,9 +250,10 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       topics: Array.isArray(row.topic_headers) ? row.topic_headers.filter(value =>
         typeof value === 'string' && value.trim()).slice(0, 12) : [],
       subcategory: null,
-      country: typeof source.country === 'string' ? source.country : null,
-      region: Array.isArray(source.region_tags) && source.region_tags[0]
-        ? source.region_tags[0] : null,
+      country: null,
+      countryCode,
+      region: eventRegion,
+      eventGeography: { countryCode, region: eventRegion },
       publicationDate: published.toISOString().slice(0, 10),
       publishedDate: published.toISOString().slice(0, 10),
       publishedAt: published.toISOString(),
@@ -249,7 +264,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       pageUrl: row.canonical_url,
       keywords: topic?.keywords || [],
       outcomeStatus: topic?.outcome_status || 'PENDING',
-      geography: topic?.geography || null,
+      geography: eventRegion,
       eventId: topic?.id || null,
       sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString(),country:typeof source.country==='string'?source.country:null,region:Array.isArray(source.region_tags)&&source.region_tags[0]?source.region_tags[0]:null,segment:source.category||null}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
       source: {
@@ -261,10 +276,10 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       }
     }];
   });
-  const references = [
+  const references = includeReferences ? [
     ...normalizeBisReferenceRows({ rows: statisticalObservations, sources }),
     ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources })
-  ];
+  ] : [];
   if (!references.length) return announcementsNormalized;
   return [...announcementsNormalized, ...references]
     .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
@@ -272,7 +287,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
 }
 
 export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
-  loadRows = null, now = () => Date.now(), entitlement = null }) {
+  loadRows = null, loadAuthority = null, now = () => Date.now(), entitlement = null }) {
   return async function handle(request) {
     const origin = request.headers.get('origin');
     if (origin && !allowedOrigins().has(origin))
@@ -290,7 +305,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
-    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
+    const referenceView = requestUrl.searchParams.get('view') === 'references';
+    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext) || referenceView;
     const date = requestUrl.searchParams.get('date');
     const year = requestUrl.searchParams.get('year');
     const lifecycle = requestUrl.searchParams.get('lifecycle');
@@ -335,7 +351,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           limit: '500'
         });
         const topicQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
-        const developmentsQuery = new URLSearchParams({select:'id,topic_id,event_type,effective_date,summary,outcome_status',limit:'5000'});
+        const developmentsQuery = new URLSearchParams({select:'id,topic_id,candidate_id,event_type,effective_date,summary,outcome_status',limit:'5000'});
         const linksQuery = new URLSearchParams({select:'topic_id,development_id,source_id,canonical_url,source_published_at',limit:'5000'});
         // Fetch all approved announcements in bounded PostgREST pages, not just the first 1,000.
         // Fail closed if a page cannot be retrieved; never report a truncated archive as complete.
@@ -366,15 +382,73 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           allRows('gpir_intelligence_topics', topicQuery),
           allRows('gpir_intelligence_developments', developmentsQuery),
           allRows('gpir_intelligence_topic_sources', linksQuery),
-          history ? allRows('intelligence_raw_ingestion', new URLSearchParams({
+          referenceView ? allRows('intelligence_raw_ingestion', new URLSearchParams({
             select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
             source_id: `in.(${REFERENCE_SOURCE_IDS.join(',')})`, ingestion_status: 'eq.PROCESSED',
             order: 'discovered_at.desc,id.asc'
           })) : Promise.resolve([])
         ]);
-        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
+        const announcementIds = referenceView ? [] : announcements.map(item => item.id)
+          .filter(id => /^[0-9a-f-]{36}$/i.test(id));
+        const publicationAudits = [];
+        for (let start = 0; start < announcementIds.length; start += 100) {
+          publicationAudits.push(...await allRows('intelligence_publication_audits', new URLSearchParams({
+            select: 'candidate_id,announcement_id,decision,validation_payload', decision: 'eq.PUBLISHED',
+            announcement_id: `in.(${announcementIds.slice(start, start + 100).join(',')})`,
+            order: 'candidate_id.asc'
+          })));
+        }
+        const developmentCandidates = [...new Set(developments.map(item => item.candidate_id)
+          .filter(id => /^[0-9a-f-]{36}$/i.test(id)))];
+        for (let start = 0; start < developmentCandidates.length; start += 100) {
+          publicationAudits.push(...await allRows('intelligence_publication_audits', new URLSearchParams({
+            select: 'candidate_id,announcement_id,decision,validation_payload',
+            candidate_id: `in.(${developmentCandidates.slice(start, start + 100).join(',')})`,
+            decision: 'eq.DUPLICATE', order: 'candidate_id.asc'
+          })));
+        }
+        const candidateIds = [...new Set(publicationAudits.map(audit => audit.candidate_id)
+          .filter(id => /^[0-9a-f-]{36}$/i.test(id)))];
+        const candidates = [];
+        for (let start = 0; start < candidateIds.length; start += 100) {
+          candidates.push(...await allRows('intelligence_candidates', new URLSearchParams({
+            select: 'id,source_id,title,canonical_url,published_at,country_code,region', id: `in.(${candidateIds.slice(start, start + 100).join(',')})`,
+            candidate_status: 'in.(APPROVED,DUPLICATE)', order: 'id.asc'
+          })));
+        }
+        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations, publicationAudits, candidates };
       }
-      let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
+      let ownerRecords = [];
+      if (!referenceView) {
+        const authority = loadAuthority ? await loadAuthority() :
+          await loadPublicEditorialAuthority({ env, supabaseUrl: config?.url, serviceKey: config?.key, fetchImpl });
+        ownerRecords = normalizeOwnerEditorialPublications({ authority, now: requestNow,
+          windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
+        const accepted = authorizedEditorialCandidates({ authority,
+          candidates: rows.candidates || [], audits: rows.publicationAudits || [], sources: rows.sources || [] });
+        const byCandidate = new Map((rows.candidates || []).map(candidate => [candidate.id, candidate]));
+        const byAnnouncement = new Map((rows.publicationAudits || [])
+          .filter(audit => audit.decision === 'PUBLISHED' && accepted.has(audit.candidate_id))
+          .map(audit => [audit.announcement_id, byCandidate.get(audit.candidate_id)]));
+        const announcements = (rows.announcements || []).filter(item => {
+          const candidate = byAnnouncement.get(item.id);
+          return candidate && candidate.source_id === item.source_id &&
+            editorialUrlKey(candidate.canonical_url) === editorialUrlKey(item.canonical_url) &&
+            Number.isFinite(Date.parse(candidate.published_at || '')) &&
+            Date.parse(candidate.published_at) === Date.parse(item.published_at);
+        });
+        const developments = (rows.developments || []).filter(item => accepted.has(item.candidate_id));
+        const developmentIds = new Set(developments.map(item => item.id));
+        rows = { ...rows, announcements,
+          developments, topicSources: (rows.topicSources || []).filter(item => developmentIds.has(item.development_id)) };
+      }
+      let records = normalizeRepositoryRows({ ...rows, now: requestNow,
+        windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS, includeReferences: referenceView });
+      if (ownerRecords.length) records = [...records, ...ownerRecords]
+        .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
+          String(left.id).localeCompare(String(right.id)));
+      if (referenceView) records = records.filter(record => record.dataClass === 'STATISTICAL_REFERENCE' ||
+        record.dataClass === 'TECHNICAL_REFERENCE');
       if (topicContext) {
         const context = buildTopicContext(records.find(record => record.id === topicContext) || { id: null }, records, requestNow);
         return context
@@ -403,7 +477,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', source: history ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', source: referenceView ? 'verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

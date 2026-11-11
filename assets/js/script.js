@@ -1633,7 +1633,7 @@ function initializeReaderAssistant(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
-    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?limit=100";
+    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&limit=100";
     let contextPromise = null;
 
     // Each dataset settles independently (never rejects the shared
@@ -1651,12 +1651,37 @@ function initializeReaderAssistant(){
             return { ok: false, data: null };
         });
 
+    const settleIntelligence = async () => {
+        try {
+            const records = [];
+            let total = null;
+            for(let offset = 0; offset < 5000; offset += 100){
+                const response = await fetch(`${intelligenceRepositoryUrl}&offset=${offset}`);
+                if(!response.ok) throw new Error(`repository unavailable (HTTP ${response.status})`);
+                const page = await response.json();
+                if(page.status !== "OK" || !Array.isArray(page.records) ||
+                    !Number.isInteger(page.total) || page.total < 0 ||
+                    (total !== null && page.total !== total))
+                    throw new Error("invalid or changing repository page");
+                total = page.total;
+                records.push(...page.records);
+                if(records.length === total) return { ok: true, data: { records } };
+                if(records.length > total || page.records.length !== 100)
+                    throw new Error("incomplete repository page");
+            }
+            throw new Error("repository exceeds the 5000-record reader limit");
+        } catch(error) {
+            console.error("[GPIR] ASK GPIR context dataset failed: authoritative intelligence repository", error);
+            return { ok: false, data: null };
+        }
+    };
+
     const loadContext = () => {
         if(contextPromise) return contextPromise;
         contextPromise = Promise.all([
             settleDataset(dataPrefix + "content-registry.json", "content registry"),
             settleDataset(dataPrefix + "trusted-sources.json", "trusted source registry"),
-            settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository"),
+            settleIntelligence(),
             settleDataset(dataPrefix + "dashboard-metadata.json", "dashboard metadata"),
             settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives")
         ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
@@ -1748,7 +1773,9 @@ function initializeReaderAssistant(){
             answer.innerHTML = "<p>Published announcement records are temporarily unavailable.</p>";
             return true;
         }
-        const records = context.announcements.filter(record => record.status === "GPIR_CLASSIFIED" && record.contentStatus !== "CONTENT_UNDER_REVIEW");
+        const records = context.announcements.filter(record => record.status === "GPIR_CLASSIFIED" &&
+            record.contentStatus !== "CONTENT_UNDER_REVIEW" &&
+            !["STATISTICAL_REFERENCE", "TECHNICAL_REFERENCE"].includes(record.dataClass));
         const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
         const monthIndex = monthNames.findIndex(month => normalized.includes(month));
         const yearMatch = normalized.match(/\b(20\d{2})\b/);
@@ -1765,7 +1792,7 @@ function initializeReaderAssistant(){
             if(monthIndex !== -1 && record.publicationMonth !== String(monthIndex + 1).padStart(2, "0")) return false;
             if(yearMatch && record.publicationYear !== yearMatch[1]) return false;
             if(/\b(historical|archive|live|latest 24)\b/.test(normalized) && queryTokens.every(token => ["show","historical","archive","live"].includes(token))) return true;
-            const text = [record.headline, record.title, record.tickerHeadline, record.summary, record.whyItMatters, record.country, record.region, record.category, record.subcategory, record.subCategory, record.eventType, record.organisation, record.sourceName, record.gpirSection, record.gpirSubsection, ...(record.tags || []), ...(record.keywords || [])].filter(Boolean).join(" ").toLowerCase();
+            const text = [record.headline, record.title, record.tickerHeadline, record.summary, record.whyItMatters, record.country, record.region, record.category, record.subcategory, record.subCategory, record.eventType, record.organisation, record.sourceName, record.gpirSection, record.gpirSubsection, record.publicationDate, record.publishedDate, record.publicationYear, ...(record.tags || []), ...(record.keywords || [])].filter(Boolean).join(" ").toLowerCase();
             record.__askScore = queryTokens.reduce((score, token) => score + (text.includes(token) ? 1 : 0), 0);
             return queryTokens.length === 0 || record.__askScore >= Math.max(1, Math.ceil(queryTokens.length * 0.6));
         });

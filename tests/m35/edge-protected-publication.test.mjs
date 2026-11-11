@@ -100,6 +100,21 @@ test('05 entitled authenticated user receives minimum protected payload', async 
   assert.equal(result.body.publication.entryId, undefined);
 });
 
+test('05a owner-authored published Contentful content is delivered without an intelligence candidate', async () => {
+  const entry = contentfulEntry({ publicationTitle: 'Owner-authored research',
+    publicationType: 'Research Chapter', executiveSummary: 'Owner editorial summary' });
+  const result = await invoke({ items: [entry] });
+  assert.equal(result.body.status, 'ALLOW');
+  assert.equal(result.body.publication.title, 'Owner-authored research');
+  assert.equal(result.body.publication.summary, 'Owner editorial summary');
+  assert.equal(result.body.publication.identity, publicationId);
+  assert.equal(result.calls.length, 3);
+  assert.ok(result.calls.every(call => !call.url.includes('intelligence_candidates')));
+  const denied = await invoke({ decision: 'DENY', items: [entry] });
+  assert.equal(denied.response.status, 403);
+  assert.ok(denied.calls.every(call => !call.url.includes('cdn.contentful.com')));
+});
+
 test('05b controlled owner preview may use the Contentful Preview API host', async () => {
   let contentfulUrl = null;
   const handler = createProtectedPublicationHandler({ env: {

@@ -97,7 +97,15 @@ export const GDELT_TOPICS = Object.freeze({
   'cross-border-payments': '"cross-border payments"',
   wallets: '"digital wallet" OR "mobile money"',
   bnpl: '"buy now pay later" OR "BNPL"',
-  fintech: '"fintech" AND (payments OR banking)'
+  fintech: '"fintech" AND (payments OR banking)',
+  licensing: '(fintech OR payments) AND (licensing OR licence OR license)',
+  'banking-as-a-service': '"banking as a service" OR "BaaS"',
+  'payments-as-a-service': '("software as a service" OR "technology as a service" OR "compliance as a service" OR SaaS OR TaaS OR CaaS) AND payments',
+  'on-behalf-of': '("payment on behalf of" OR "collection on behalf of" OR POBO OR COBO) AND payments',
+  'payment-gateways': '"payment gateway" OR "payment orchestration"',
+  'aml-fraud': '(AML OR fraud OR "money laundering") AND payments',
+  'blockchain-web3': '(blockchain OR Web3) AND payments',
+  'agentic-ai': '("agentic AI" OR "AI agents") AND payments'
 });
 
 function approvedFlow(dataflow) {
@@ -294,10 +302,11 @@ export function buildGdeltQueryUrl(topic, { start, end, maxRecords = 20 } = {}) 
 }
 
 function gdeltTimestamp(value) {
-  const stamp = String(value || '');
+  const stamp = String(value || '').replace(/^(\d{8})T(\d{6})Z$/, '$1$2');
   if (!/^\d{14}$/.test(stamp)) return null;
   const iso = `${stamp.slice(0,4)}-${stamp.slice(4,6)}-${stamp.slice(6,8)}T${stamp.slice(8,10)}:${stamp.slice(10,12)}:${stamp.slice(12,14)}Z`;
-  return Number.isFinite(Date.parse(iso)) ? iso : null;
+  const time = Date.parse(iso);
+  return Number.isFinite(time) && new Date(time).toISOString() === iso.replace('Z', '.000Z') ? iso : null;
 }
 
 export function parseGdeltDiscovery(payload, topic, { maxRecords = 50 } = {}) {

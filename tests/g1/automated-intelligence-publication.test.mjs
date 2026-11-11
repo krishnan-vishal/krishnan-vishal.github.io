@@ -88,16 +88,17 @@ function announcement(item, overrides = {}) {
   };
 }
 
-test('valid source evidence produces one governed publication', async () => {
+test('valid source evidence remains in review until CMS approval', async () => {
   const item = candidate();
   const store = repository();
   const outcome = await processCandidate({ candidate: item, repository: store,
     fetchImpl: sourceFetch(item), now: () => NOW });
-  assert.equal(outcome.decision, 'PUBLISHED');
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED');
   assert.equal(outcome.sourcePublishedAt, item.published_at);
   assert.match(outcome.summary, /^Example Central Bank reports:/);
   assert.ok(outcome.summary.length > item.title.length);
-  assert.equal(store.events.filter(event => event[0] === 'publish').length, 1);
+  assert.equal(store.events.filter(event => event[0] === 'publish').length, 0);
 });
 
 test('canonical or content duplicate is rejected before publication', async () => {
@@ -196,7 +197,7 @@ test('candidate selection pages audit lookups instead of building one oversized 
   assert.ok(requestedAuditUrls.every(url => url.length < 3000));
 });
 
-test('publication older than 12 hours is retained by the repository but not live', async () => {
+test('an older source awaits CMS approval and retained approved records are not live', async () => {
   const item = candidate({
     id: '55555555-5555-4555-8555-555555555555',
     published_at: new Date(NOW - 13 * 60 * 60 * 1000).toISOString()
@@ -204,12 +205,13 @@ test('publication older than 12 hours is retained by the repository but not live
   const store = repository();
   const outcome = await processCandidate({ candidate: item, repository: store,
     fetchImpl: sourceFetch(item), now: () => NOW });
-  assert.equal(outcome.decision, 'PUBLISHED');
+  assert.equal(outcome.decision, 'REVIEW');
+  assert.equal(outcome.reasonCode, 'CONTENTFUL_APPROVAL_REQUIRED');
   const records = normalizeRepositoryRows({
     now: NOW,
     sources: [SOURCE],
     announcements: [{
-      id: outcome.announcementId,
+      id: 'existing-approved-announcement',
       source_id: item.source_id,
       title: item.title,
       summary_narration: outcome.summary,
@@ -223,8 +225,8 @@ test('publication older than 12 hours is retained by the repository but not live
   assert.equal(records.length, 1);
   assert.equal(records[0].lifecycleStatus, 'HISTORICAL');
   assert.equal(records[0].tickerEligible, false);
-  assert.equal(records[0].country, 'Exampleland');
-  assert.equal(records[0].region, 'APAC');
+  assert.equal(records[0].country, null);
+  assert.equal(records[0].region, null);
   assert.equal(records[0].source.trustTier, 'T1');
 });
 
@@ -302,10 +304,10 @@ test('a retried transient failure still requires full validation and cannot bypa
   assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
 });
 
-test('topic geography and corroborating-source region and segment are retained', async () => {
+test('publisher geography is not used as event geography and source attribution remains intact', async () => {
   const { eventIdentity } = await import('../../supabase/functions/_shared/gpir-event-identity.mjs');
   const identity = await eventIdentity(candidate(), { sourcePublishedAt: new Date(NOW).toISOString() }, SOURCE);
-  assert.equal(identity.p_geography, 'Exampleland');
+  assert.equal(identity.p_geography, 'UNSPECIFIED');
   const other = { ...SOURCE, source_id: 'CB-TEST-002', source_name: 'Second Authority',
     official_url: 'https://second.example', country: 'Otherland', region_tags: ['EMEA'], category: 'Regulator' };
   const item = candidate();
@@ -327,7 +329,7 @@ test('topic geography and corroborating-source region and segment are retained',
   assert.equal(second.region, 'EMEA');
   assert.equal(second.segment, 'Regulator');
   assert.equal(record.sources[0].region, 'APAC');
-  assert.equal(record.geography, 'Exampleland');
+  assert.equal(record.geography, null);
 });
 
 test('terminal decisions take precedence over any older or newer transient audit for the same candidate', async () => {

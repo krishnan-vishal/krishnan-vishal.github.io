@@ -1,8 +1,7 @@
 name: M40 Contentful editorial draft handoff
 
-# Creates unpublished gpirPublication drafts for source-verified T3 candidates that await an
-# editorial decision. It never publishes: an editor approves and publishes in Contentful, after
-# which the existing gpir-intelligence-publish cron promotes the entry to the reader APIs.
+# Creates unpublished gpirPublication drafts for eligible source-verified candidates.
+# It never approves or publishes. The current editorial publisher supports T3 only.
 on:
   schedule:
     - cron: '17,47 * * * *'
@@ -16,6 +15,15 @@ on:
         options:
           - dry-run
           - sync
+      historical_from:
+        description: 'Optional historical window start (YYYY-MM-DD, inclusive)'
+        type: string
+      historical_to:
+        description: 'Historical window end (YYYY-MM-DD, exclusive; at most 31 days)'
+        type: string
+      historical_candidate_id:
+        description: 'Optional existing candidate UUID; omit for a bounded batch'
+        type: string
 
 permissions:
   contents: read
@@ -35,6 +43,9 @@ jobs:
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
       CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+      GPIR_HISTORICAL_FROM: ${{ inputs.historical_from }}
+      GPIR_HISTORICAL_TO: ${{ inputs.historical_to }}
+      GPIR_HISTORICAL_CANDIDATE_ID: ${{ inputs.historical_candidate_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,7 +55,9 @@ jobs:
         run: >-
           node --test
           tests/m40/contentful-editorial-drafts.test.mjs
+          tests/m40/cms-publication-flow.test.mjs
           tests/m39-t3-editorial-approval.test.mjs
+          tests/m39-t3-automatic-publication.test.mjs
       - name: Hand off eligible candidates to Contentful drafts
         run: >-
           node scripts/m40/sync-contentful-editorial-drafts.mjs

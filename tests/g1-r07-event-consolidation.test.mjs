@@ -17,6 +17,12 @@ test('same topic persists across milestone and date',async()=>{
 test('missing evidence does not produce event identity',async()=>{
  await assert.rejects(()=>eventIdentity({title:'Short'},validation),/G1_R07_EVENT_IDENTITY_REVIEW/);
 });
+test('event geography comes from the candidate, not publisher headquarters',async()=>{
+ const item={title:'Regional payments network launches interoperability',source_id:'A'};
+ const source={country:'US',region_tags:['North America']};
+ assert.equal((await eventIdentity(item,validation,source)).p_geography,'UNSPECIFIED');
+ assert.equal((await eventIdentity({...item,country_code:'IN',region:'South Asia'},validation,source)).p_geography,'South Asia');
+});
 test('public feed exposes verified links only and preserves archived lifecycle',()=>{
  const announcement={id:'a',source_id:'A',title:'Regional payments network launches interoperability',
  summary_narration:'Verified payments and remittance infrastructure announcement across several regions.',
@@ -95,12 +101,11 @@ test('verified subject alias groups differently worded reports; unverified alias
  assert.notEqual(a.p_event_key,unverified.p_event_key);
 });
 
-test('publisher RPC contract supplies verified evidence and canonical topic fields',async()=>{
+test('publisher RPC requires Contentful approval even with verified topic evidence',async()=>{
  const {createRestPublicationRepository}=await import('../supabase/functions/gpir-intelligence-publish/handler.mjs');
- let payload;
+ let called=false;
  const repo=createRestPublicationRepository({config:{url:'https://abcdefghijklmnopqrst.supabase.co',key:'test'},
- fetchImpl:async(url,init)=>{assert.match(url,/\/rpc\/gpir_publish_consolidated_candidate$/);
- payload=JSON.parse(init.body);return new Response(JSON.stringify('00000000-0000-4000-8000-000000000001'),
+ fetchImpl:async()=>{called=true;return new Response(JSON.stringify('00000000-0000-4000-8000-000000000001'),
  {status:200,headers:{'content-type':'application/json'}});}});
  const candidate={id:'00000000-0000-4000-8000-000000000001',title:'Regional payments network launches interoperability',
  source_id:'BANK-A',event_type:'LAUNCH'};
@@ -108,11 +113,6 @@ test('publisher RPC contract supplies verified evidence and canonical topic fiel
  contentFingerprint:'a'.repeat(64),validationPayload:{source_verified:true,canonical_verified:true,
  timestamp_verified:true,content_verified:true,relevance_verified:true,summary_grounded:true},
  evidenceExcerpt:'The bank confirms the cross-border payment initiative.',sourceHttpStatus:200};
- await repo.publish(candidate,verified);
- assert.match(payload.p_event_key,/^[0-9a-f]{64}$/);
- assert.equal(payload.p_issuer,'BANK-A');
- assert.equal(payload.p_subject,'regional payments network launches interoperability');
- assert.equal(payload.p_validation_payload.summary_grounded,true);
- assert.equal(payload.p_validation_payload.source_verified,true);
- assert.equal(payload.p_content_fingerprint,'a'.repeat(64));
+ await assert.rejects(repo.publish(candidate,verified),/CONTENTFUL_APPROVAL_REQUIRED/);
+ assert.equal(called,false);
 });

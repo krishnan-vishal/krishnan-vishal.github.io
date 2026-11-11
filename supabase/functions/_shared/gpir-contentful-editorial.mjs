@@ -1,9 +1,10 @@
-import { editorialUrlKey, isOfficialUrl } from './gpir-intelligence-validation.mjs';
+import { editorialUrlKey, isOfficialUrl, relevantEvidence } from './gpir-intelligence-validation.mjs';
+import { classifyTopicIds } from './gpir-topic-intelligence.mjs';
 
-// T3 editorial approval reuses the existing Contentful `gpirPublication` model.
+// Editorial approval reuses the existing Contentful `gpirPublication` model.
 // Only the read-only Delivery API is used, so an entry is visible here solely
 // when an editor has published it in Contentful. Mapping, with no new fields:
-//   supabaseRecordId       -> intelligence_candidates.id
+//   supabaseRecordId       -> gpir_identity_publications.id
 //   legacySourceUrl        -> the candidate's canonical source article URL
 //   publicationStatus      -> CURRENT
 //   validationStatus       -> PASS (explicit editorial approval; Pending, WARN and FAIL are denied)
@@ -15,7 +16,17 @@ const CONTENT_TYPE = 'gpirPublication';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 50;
 const MIN_EVIDENCE_LENGTH = 40;
+const EDITORIAL_SOURCE_TIERS = new Set(['T1', 'T1.5', 'T2', 'T3']);
+const EXECUTIVE_TYPES = new Set(['Intelligence Brief', 'Regulatory Intelligence', 'Market Intelligence']);
+const RESEARCH_TYPES = new Set(['Research Publication', 'Research Chapter', 'Methodology',
+  'Country Intelligence', 'Regional Directory', 'Dashboard']);
+const PAYMENT_USE_CASES = new Set(['C2C', 'B2B', 'B2C', 'C2B', 'Multi-use-case', 'Not Applicable']);
+const FX_FOCUS = /\b(?:fx|forex|foreign exchange|exchange rates?|currency pairs?|currency markets?|monetary policy|interest rates?|inflation)\b/i;
+const FX_PAIR = /\b([A-Z]{3})\s*[/-]\s*([A-Z]{3})\b/;
 const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 'fields.supabaseRecordId',
+  'fields.editionLineageId', 'fields.publicationType',
+  'fields.publicationTitle', 'fields.executiveSummary', 'fields.publicationDate',
+  'fields.canonicalUrlCandidate', 'fields.region', 'fields.countryMarket', 'fields.useCasePaymentCategory',
   'fields.legacySourceUrl', 'fields.publicationStatus', 'fields.validationStatus',
   'fields.sourceValidationSummary'].join(',');
 
@@ -23,9 +34,49 @@ const SELECTED_FIELDS = ['sys.id', 'sys.updatedAt', 'fields.gpirPublicationId', 
 // validator accepts nothing that is not registered here. Request bodies, plain
 // objects and copies of a real approval are never trusted.
 const VERIFIED_APPROVALS = new WeakSet();
+const VERIFIED_DRAFTS = new WeakSet();
 
 export function isVerifiedEditorialApproval(approval) {
   return approval !== null && typeof approval === 'object' && VERIFIED_APPROVALS.has(approval);
+}
+
+export function isVerifiedEditorialDraft(entry) {
+  return entry !== null && typeof entry === 'object' && VERIFIED_DRAFTS.has(entry);
+}
+
+// Management reads are restricted to the protected registration job; drafts are
+// never treated as Delivery approvals and this function performs no CMS writes.
+export async function fetchUnpublishedEditorialDraft({ config, managementToken, entryId, fetchImpl = fetch }) {
+  if (!config || !managementToken || managementToken === config.token ||
+      !/^[A-Za-z0-9_-]+$/.test(entryId || ''))
+    throw new Error('CONTENTFUL_DRAFT_CONFIGURATION_REQUIRED');
+  const root = `https://api.contentful.com/spaces/${encodeURIComponent(config.spaceId)}` +
+    `/environments/${encodeURIComponent(config.environment)}`;
+  const headers = new Headers({ accept: 'application/vnd.contentful.management.v1+json' });
+  headers.set('authorization', ['Bearer', managementToken].join(' '));
+  const response = await fetchImpl(`${root}/entries/${encodeURIComponent(entryId)}`, { headers });
+  if (!response.ok) throw new Error(`CONTENTFUL_DRAFT_HTTP_${response.status}`);
+  const item = await response.json();
+  if (item?.sys?.id !== entryId || item.sys.contentType?.sys?.id !== CONTENT_TYPE ||
+      item.sys.publishedVersion != null || item.sys.archivedVersion != null ||
+      !Number.isInteger(item.sys.version) || !text(item.sys.updatedAt) ||
+      !item.fields || typeof item.fields !== 'object')
+    throw new Error('CONTENTFUL_DRAFT_NOT_UNPUBLISHED');
+  const fields = Object.fromEntries(Object.entries(item.fields).map(([key, value]) =>
+    [key, value && typeof value === 'object' ? value['en-US'] : undefined]));
+  if (text(fields.legacySourceUrl)) {
+    const query = new URLSearchParams({ content_type: CONTENT_TYPE,
+      'fields.legacySourceUrl': fields.legacySourceUrl, limit: '2' });
+    const search = await fetchImpl(`${root}/entries?${query}`, { headers });
+    if (!search.ok) throw new Error(`CONTENTFUL_DRAFT_SEARCH_HTTP_${search.status}`);
+    const matches = await search.json();
+    if (matches?.total !== 1 || !Array.isArray(matches.items) || matches.items.length !== 1 ||
+        matches.items[0]?.sys?.id !== entryId)
+      throw new Error('CONTENTFUL_DRAFT_SOURCE_AMBIGUOUS');
+  }
+  const entry = Object.freeze({ entryId, updatedAt: item.sys.updatedAt, fields: Object.freeze(fields) });
+  VERIFIED_DRAFTS.add(entry);
+  return entry;
 }
 
 export function contentfulEditorialConfig(env) {
@@ -41,6 +92,26 @@ export function contentfulEditorialConfig(env) {
 
 function text(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+export function classifyEditorialPublication(fields = {}, candidate = null) {
+  const type = fields.publicationType;
+  if (RESEARCH_TYPES.has(type)) return 'RESEARCH';
+  if (!EXECUTIVE_TYPES.has(type) ||
+      (fields.useCasePaymentCategory != null && !PAYMENT_USE_CASES.has(fields.useCasePaymentCategory)))
+    return 'REVIEW';
+  const title = text(fields.publicationTitle);
+  const summary = text(fields.executiveSummary);
+  const content = `${title} ${summary}`;
+  const candidateTitle = candidate ? text(candidate.title) : '';
+  if (FX_FOCUS.test(`${content} ${candidateTitle}`) || FX_PAIR.test(`${content} ${candidateTitle}`) ||
+      /^\/fx(?:\/|$)/i.test(text(fields.canonicalUrlCandidate)))
+    return 'FX';
+  if (title && classifyTopicIds({ title, summary }).length > 0 &&
+      relevantEvidence(title, summary).length >= 2 &&
+      (!candidate || (candidateTitle && classifyTopicIds({ title: candidateTitle }).length > 0)))
+    return 'EXECUTIVE';
+  return 'REVIEW';
 }
 
 function entriesUrl(config, params) {
@@ -66,25 +137,27 @@ async function readEntries(config, fetchImpl, params) {
   };
 }
 
-// Complete, paginated read of every published candidate-linked entry. A result that
+// Complete, paginated read of published entries, including those awaiting identity. A result that
 // cannot be read completely fails closed instead of silently dropping approvals.
 export async function fetchPublishedEditorialEntries({ config, fetchImpl = fetch }) {
   const entries = [];
   for (let page = 0; ; page += 1) {
     if (page >= MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
     const { items, total } = await readEntries(config, fetchImpl, {
-      'fields.supabaseRecordId[exists]': 'true', 'fields.legacySourceUrl[exists]': 'true',
       order: 'sys.id', limit: String(PAGE_SIZE), skip: String(page * PAGE_SIZE) });
+    if (total > PAGE_SIZE * MAX_PAGES) throw new Error('CONTENTFUL_ENTRY_LIMIT_EXCEEDED');
+    if (items.length !== Math.min(PAGE_SIZE, Math.max(0, total - page * PAGE_SIZE)))
+      throw new Error('CONTENTFUL_INCOMPLETE_PAGE');
     entries.push(...items);
-    if ((page + 1) * PAGE_SIZE >= total || !items.length) break;
+    if ((page + 1) * PAGE_SIZE >= total) break;
   }
   return entries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.entryId.localeCompare(b.entryId));
 }
 
 // Fresh, targeted authorization read made immediately before publication.
-export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fetch, candidate }) {
+export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fetch, candidate, recordId }) {
   const found = new Map();
-  for (const params of [{ 'fields.supabaseRecordId': String(candidate.id) },
+  for (const params of [{ 'fields.supabaseRecordId': String(recordId) },
     { 'fields.legacySourceUrl': String(candidate.canonical_url) }]) {
     const { items, total } = await readEntries(config, fetchImpl, { ...params, limit: '10', order: 'sys.id' });
     if (total > items.length) throw new Error('CONTENTFUL_ENTRY_AMBIGUOUS_RESULT');
@@ -93,13 +166,21 @@ export async function fetchEditorialEntriesForCandidate({ config, fetchImpl = fe
   return [...found.values()];
 }
 
+export async function fetchEditorialEntryById({ config, fetchImpl = fetch, entryId }) {
+  const { items, total } = await readEntries(config, fetchImpl, { 'sys.id': entryId, limit: '2' });
+  if (total !== 1 || items.length !== 1 || items[0].entryId !== entryId)
+    throw new Error('CONTENTFUL_ENTRY_NOT_UNIQUE_OR_WITHDRAWN');
+  return items[0];
+}
+
 // Entries that share a candidate identifier or source URL are ambiguous: none is trusted.
 export function ambiguousEditorialKeys(entries) {
   const seen = new Map();
   const ambiguous = new Set();
   for (const entry of entries) {
-    for (const key of [`id:${text(entry.fields.supabaseRecordId).toLowerCase()}`,
-      `url:${editorialUrlKey(text(entry.fields.legacySourceUrl))}`]) {
+    const record = text(entry.fields.supabaseRecordId).toLowerCase();
+    const url = editorialUrlKey(text(entry.fields.legacySourceUrl));
+    for (const key of [record && `id:${record}`, url && `url:${url}`].filter(Boolean)) {
       if (seen.has(key) && seen.get(key) !== entry.entryId) ambiguous.add(key);
       seen.set(key, entry.entryId);
     }
@@ -107,29 +188,38 @@ export function ambiguousEditorialKeys(entries) {
   return ambiguous;
 }
 
-export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = new Set() }) {
+export function evaluateEditorialEntry({ entry, candidate, source, identity, ambiguous = new Set() }) {
   const denied = reasonCode => ({ approved: false, reasonCode });
-  if (!source || source.trust_tier !== 'T3' || source.source_status !== 'GREEN')
-    return denied('EDITORIAL_SOURCE_NOT_T3');
+  if (!source || !EDITORIAL_SOURCE_TIERS.has(source.trust_tier) || source.source_status !== 'GREEN')
+    return denied('EDITORIAL_SOURCE_NOT_ELIGIBLE');
   const fields = entry?.fields || {};
+  const classification = classifyEditorialPublication(fields, candidate);
+  if (classification !== 'EXECUTIVE')
+    return denied(classification === 'REVIEW' ? 'EDITORIAL_CLASSIFICATION_REVIEW_REQUIRED' : 'EDITORIAL_NOT_EXECUTIVE_INTELLIGENCE');
   const recordId = text(fields.supabaseRecordId).toLowerCase();
   const sourceUrl = text(fields.legacySourceUrl);
   const urlKey = editorialUrlKey(sourceUrl);
-  if (!UUID.test(recordId) || recordId !== String(candidate.id).toLowerCase() || !urlKey)
+  if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
+  if (!UUID.test(recordId) || !identity || recordId !== String(identity.supabaseRecordId).toLowerCase() ||
+      text(fields.gpirPublicationId) !== identity.gpirPublicationId ||
+      text(fields.editionLineageId) !== identity.editionLineageId ||
+      identity.candidateId !== String(candidate.id).toLowerCase() ||
+      String(identity.entryReference || '').split('/').pop() !== entry?.entryId || !urlKey)
     return denied('EDITORIAL_IDENTITY_MISMATCH');
   if (ambiguous.has(`id:${recordId}`) || ambiguous.has(`url:${urlKey}`))
     return denied('EDITORIAL_ENTRY_AMBIGUOUS');
   if (urlKey !== editorialUrlKey(candidate.canonical_url) || !isOfficialUrl(sourceUrl, source.official_url))
     return denied('EDITORIAL_SOURCE_URL_MISMATCH');
-  if (text(fields.publicationStatus).toUpperCase() !== 'CURRENT' ||
-      text(fields.validationStatus).toUpperCase() !== 'PASS')
+  if (fields.publicationStatus !== 'CURRENT' || fields.validationStatus !== 'PASS')
     return denied('EDITORIAL_APPROVAL_NOT_EXPLICIT');
-  if (!PUBLICATION_ID.test(text(fields.gpirPublicationId))) return denied('EDITORIAL_PUBLICATION_ID_INVALID');
   if (text(fields.sourceValidationSummary).length < MIN_EVIDENCE_LENGTH)
     return denied('EDITORIAL_EVIDENCE_MISSING');
   const approval = Object.freeze({
     approved: true,
     entryId: entry.entryId,
+    candidateId: String(candidate.id).toLowerCase(),
+    supabaseRecordId: recordId,
+    entryReference: identity.entryReference,
     publicationId: text(fields.gpirPublicationId),
     sourceUrl: urlKey
   });
@@ -139,9 +229,9 @@ export function evaluateEditorialEntry({ entry, candidate, source, ambiguous = n
 
 // Authorization comes only from the freshly read set of published entries for this
 // candidate id and URL; exactly one distinct entry must exist.
-export function verifyEditorialApproval({ entries, candidate, source, ambiguous = new Set() }) {
+export function verifyEditorialApproval({ entries, candidate, source, identity, ambiguous = new Set() }) {
   const distinct = new Map((entries || []).map(item => [item.entryId, item]));
   if (distinct.size === 0) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_NOT_FOUND' };
   if (distinct.size > 1) return { approved: false, reasonCode: 'EDITORIAL_ENTRY_AMBIGUOUS' };
-  return evaluateEditorialEntry({ entry: [...distinct.values()][0], candidate, source, ambiguous });
+  return evaluateEditorialEntry({ entry: [...distinct.values()][0], candidate, source, identity, ambiguous });
 }

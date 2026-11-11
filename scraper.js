@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 
-// Standalone Supabase discovery job. It does not update GPIR's canonical
-// announcements.json or publish anything to the public site.
-// Uses the owner-supplied source_registry and global_announcements schemas.
-// Discovered links are approved for the Supabase-backed ticker after the
-// registered-source and URL checks below. Canonical GPIR JSON is unchanged.
+// Standalone Supabase discovery job. Discovered links enter the existing raw
+// ingestion and assessment workflow; this job does not approve or publish them.
 // Run with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in a private job only.
 
 const cheerio = require("cheerio");
 const { createClient } = require("@supabase/supabase-js");
 const { isIP } = require("node:net");
+const { createHash } = require("node:crypto");
 
 const HTML_SELECTOR = "a[href]";
 const UPSERT_BATCH_SIZE = 100;
@@ -241,7 +239,6 @@ async function run(options = {}) {
 
     let discovered = 0;
     let failedSources = 0;
-    const month = archiveMonthYear();
 
     for (const source of sources || []) {
         let items;
@@ -265,13 +262,19 @@ async function run(options = {}) {
 
         const rows = items.map(item => ({
             source_id: source.source_id,
-            title: item.title,
+            discovered_url: item.url,
             canonical_url: item.url,
-            url: item.url,
-            published_at: item.publishedAt,
-            archive_month_year: month,
-            publication_status: "approved",
-            ticker_eligible: true
+            raw_title: item.title,
+            source_published_at: item.publishedAt,
+            content_hash: createHash("sha256")
+                .update([source.source_id, item.title, item.url].join("|").toLowerCase())
+                .digest("hex"),
+            ingestion_status: "RAW",
+            metadata: {
+                engine: "GPIR-announcement-discovery/1.0",
+                parser_profile: source.parser_profile || null,
+                acquisition_method: source.acquisition_method
+            }
         }));
 
         for (
@@ -284,34 +287,43 @@ async function run(options = {}) {
                 index + UPSERT_BATCH_SIZE
             );
 
-            const { error } = await db
-                .from("global_announcements")
-                .upsert(batch, {
-                    onConflict: "canonical_url",
-                    ignoreDuplicates: true
-                });
-
-            if (error) {
+            const { data: existing, error: lookupError } = await db
+                .from("intelligence_raw_ingestion")
+                .select("id,content_hash,ingestion_status")
+                .in("content_hash", batch.map(row => row.content_hash));
+            if (lookupError) {
                 throw new Error(
-                    `${source.source_id}: global_announcements insert failed: ${describeError(error)}`
+                    `${source.source_id}: raw ingestion lookup failed: ${describeError(lookupError)}`
                 );
             }
 
-            const { error: updateError } = await db
-                .from("global_announcements")
-                .update({
-                    publication_status: "approved",
-                    ticker_eligible: true
-                })
-                .in(
-                    "canonical_url",
-                    batch.map(row => row.canonical_url)
-                );
-
-            if (updateError) {
-                throw new Error(
-                    `${source.source_id}: global_announcements visibility update failed: ${describeError(updateError)}`
-                );
+            const known = new Set((existing || []).map(row => row.content_hash));
+            const pending = batch.filter(row => !known.has(row.content_hash));
+            let inserted = [];
+            if (pending.length) {
+                const result = await db.from("intelligence_raw_ingestion")
+                    .insert(pending).select("id,content_hash,ingestion_status");
+                if (result.error || !Array.isArray(result.data) ||
+                    result.data.length !== pending.length) {
+                    throw new Error(
+                        `${source.source_id}: raw ingestion insert failed: ${describeError(result.error)}`
+                    );
+                }
+                inserted = result.data;
+            }
+            const toProcess = [...(existing || []), ...inserted]
+                .filter(row => row.ingestion_status === "RAW");
+            for (const raw of toProcess) {
+                const { data: decision, error } = await db.rpc("gpir_process_raw_record", {
+                    p_raw_id: raw.id
+                });
+                if (error || typeof decision !== "string" ||
+                    !/^(CANDIDATE|REVIEW|DUPLICATE|ALREADY_PROCESSED|REJECT:GATE[12]:.+)$/.test(decision)) {
+                    throw new Error(
+                        `${source.source_id}: raw ingestion assessment failed: ${describeError(error)}` +
+                        ` | decision=${String(decision)}`
+                    );
+                }
             }
         }
 
@@ -322,7 +334,7 @@ async function run(options = {}) {
     }
 
     console.log(
-        `Approved ${discovered} candidate links; skipped ${failedSources} unavailable sources.`
+        `Discovered ${discovered} links for governed assessment; skipped ${failedSources} unavailable sources.`
     );
 
     if (discovered === 0) {

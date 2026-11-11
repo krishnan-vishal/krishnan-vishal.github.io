@@ -3,6 +3,7 @@ import { createPublicationHandler } from './handler.mjs';
 const env = Object.fromEntries([
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_ANON_KEY',
   'CONTENTFUL_SPACE_ID',
   'CONTENTFUL_ENVIRONMENT',
   'CONTENTFUL_DELIVERY_TOKEN'

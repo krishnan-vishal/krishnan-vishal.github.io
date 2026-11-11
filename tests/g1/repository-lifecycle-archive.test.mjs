@@ -34,7 +34,7 @@ test('announcement archive consumes the canonical historical API with a bounded 
   assert.match(archiveSource,/REQUEST_TIMEOUT_MS = 8000/);
   assert.match(archiveSource,/LIVE_WINDOW_MS = 12 \* 60 \* 60 \* 1000/);
   assert.doesNotMatch(archiveSource,/createClient|supabase-js@/);
-  assert.match(archiveHtml,/supabase-archive\.js\?v=20261110a/);
+  assert.match(archiveHtml,/supabase-archive\.js\?v=20261110b/);
   assert.doesNotMatch(archiveHtml,/supabase-combined-engine\.js/);
 });
 test('archive cards use compact high-contrast presentation tokens',()=>{

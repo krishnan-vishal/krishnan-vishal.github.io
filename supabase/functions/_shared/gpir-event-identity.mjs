@@ -16,7 +16,7 @@ export async function eventIdentity(candidate, validation, source = null) {
    ? normalize(verifiedTopic.subject) : subject;
  // Deliberately omit source, event type and date: a topic persists across publishers
  // and milestones. Distinct subjects never merge by keyword similarity.
- const geography=String(source?.country || (Array.isArray(source?.region_tags) && source.region_tags[0]) || 'UNSPECIFIED');
+ const geography=String(candidate.region || candidate.country_code || 'UNSPECIFIED');
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(topic));
  const key=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
  return {p_event_key:key,p_issuer:String(candidate.source_id),p_event_type:type,
