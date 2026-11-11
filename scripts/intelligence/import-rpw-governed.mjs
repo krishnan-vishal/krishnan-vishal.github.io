@@ -57,14 +57,18 @@ function client(env = process.env) {
   const key = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!/^https:\/\/[a-z0-9]{20}\.supabase\.co$/.test(base) || !key)
     throw new Error("GPIR_SUPABASE_PRODUCTION_CREDENTIALS_REQUIRED");
-  return { base, headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" } };
+  const headers = new Headers();
+  headers.set("apikey", key);
+  headers.set("authorization", ["Bearer", key].join(" "));
+  headers.set("content-type", "application/json");
+  return { base, headers };
 }
 
 async function rest(config, table, method, params = {}, body = undefined, prefer = undefined) {
   const url = new URL(config.base + "/rest/v1/" + table);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
-  const headers = { ...config.headers };
-  if (prefer) headers.Prefer = prefer;
+  const headers = new Headers(config.headers);
+  if (prefer) headers.set("Prefer", prefer);
   const response = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const text = await response.text();
   if (!response.ok) throw new Error("RPW_SUPABASE_" + table + "_HTTP_" + response.status + "_" + text.slice(0, 240));
