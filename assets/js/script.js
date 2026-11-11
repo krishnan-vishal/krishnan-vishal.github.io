@@ -1596,7 +1596,7 @@ function initializeReaderAssistant(){
     assistant.innerHTML = `
         <div class="gpir-assistant-header">
             <div>
-                <p class="gpir-assistant-kicker">AI-ready reader tool</p>
+                <p class="gpir-assistant-kicker">Published intelligence</p>
                 <h2 id="gpir-assistant-title">ASK GPIR</h2>
             </div>
             <button type="button" class="gpir-assistant-close" aria-label="Close ASK GPIR">Close</button>
@@ -1773,7 +1773,7 @@ function initializeReaderAssistant(){
         if(normalized.includes("recent") || normalized.includes("latest")) matches = matches.slice(0, 6);
         const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
         if(!matches.length){
-            answer.innerHTML = "<p>No validated GPIR announcement record is available for this query.</p>";
+            answer.innerHTML = "<p>No matching verified announcement was found. Related research publications and repository results may still be available below.</p>";
             return true;
         }
         const items = matches.map(record => {

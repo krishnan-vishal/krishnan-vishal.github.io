@@ -102,8 +102,8 @@
             const type = String(record.publicationType || "Research Publication").slice(0, 80);
             return [{ id: "cms-" + record.identity, pageTitle: title,
                 sectionTitle: type, url: record.route.slice(1), type: "GPIR Publication",
-                category: "Published Research", header: "Contentful Research",
-                text: [title, type, "GPIR governed publication", "Supabase access check on opening"].join(" · ") }];
+                category: "Published Research", header: "Verified Research",
+                text: [title, type, "GPIR research publication", "Access conditions apply"].join(" · ") }];
         });
     }
 
