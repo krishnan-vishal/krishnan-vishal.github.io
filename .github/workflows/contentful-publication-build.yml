@@ -17,7 +17,8 @@ on:
         default: '61'
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   generate-publication-input:
@@ -90,3 +91,24 @@ jobs:
             .generated/m39/fx-editorial-public.json
           if-no-files-found: error
           retention-days: 1
+
+      - name: Stage governed publication routes without overwriting live pages
+        if: ${{ inputs.mode == 'delivery' }}
+        run: node scripts/m35/stage-contentful-release.js .generated/m35/production-site .
+      - name: Propose governed CMS publication routes for existing site deployment
+        if: ${{ inputs.mode == 'delivery' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: automation/m35-governed-publication-routes
+          delete-branch: true
+          commit-message: 'M35: stage approved Contentful publication routes'
+          title: 'M35: publish governed Contentful routes into existing GPIR site'
+          body: |
+            Generated from Contentful Delivery and the service-role-only Supabase release decision.
+            Existing GPIR routes are preserved, not overwritten.
+            Only protected-discovery publication shells are staged; no controlled-validation content.
+            Review the staged route report and merge through the existing site deployment process.
+          add-paths: |
+            .generated/m35/release-stage-report.json
+            **/index.html
