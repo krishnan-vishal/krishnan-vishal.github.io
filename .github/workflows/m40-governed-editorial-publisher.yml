@@ -11,6 +11,9 @@ on:
 
 permissions:
   contents: read
+  # OIDC issuance is reserved for the future verified publisher bridge.
+  # Do not request id-token: write until the endpoint verifies issuer,
+  # signature, audience, repository, ref and workflow identity.
 
 concurrency:
   group: m40-governed-editorial-publisher
