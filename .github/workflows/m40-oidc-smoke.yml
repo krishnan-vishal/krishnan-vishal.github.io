@@ -12,7 +12,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: gpir-editorial-publisher
+    environment: gpir-oidc-verification
     steps:
       - name: Verify GitHub OIDC against the existing gate
         run: |
