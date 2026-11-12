@@ -189,6 +189,26 @@ export async function fetchM40Aggregate(fetchImpl, origin, state, bounds, option
   return payload;
 }
 
+
+// Historical evidence pages use the service-governed keyset route; totals stay with aggregates.
+export async function fetchM40HistoryCursor(fetchImpl, origin, state, bounds, cursor = null) {
+  const query = m40Query(state,bounds,{view:'history-cursor',limit:10,offset:0});
+  query.delete('offset');
+  if (cursor) {
+    query.set('afterTime',cursor.publishedAt);
+    query.set('afterId',cursor.id);
+  }
+  const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?${query}`,
+    {cache:'no-store',headers:{accept:'application/json'}});
+  if (!response.ok) throw new Error('M40_HISTORY_UNAVAILABLE');
+  const payload = await response.json();
+  if (payload?.status !== 'OK' || payload.kind !== 'announcements' || !Array.isArray(payload.records) ||
+      payload.records.length > 10 || typeof payload.hasMore !== 'boolean' ||
+      (payload.hasMore && (!payload.nextCursor?.publishedAt || !payload.nextCursor?.id)))
+    throw new Error('M40_HISTORY_INVALID');
+  return payload;
+}
+
 export function normalizeLiveAlerts(value, historical) {
   if (!Array.isArray(value?.alerts)) return [];
   const historyById = new Map(historical.map(record => [record.id, record]));
@@ -845,6 +865,9 @@ export async function initializeSmartIntelligence({ global = window,
   root.prepend(cardsPanel);
   let dashboardSequence = 0;
   let cardsOffset = 0;
+  let historyCursors = [null];
+  let historyPageIndex = 0;
+  let currentHistoryPage = null;
   const [liveResult, editorialResult, routesResult] = await Promise.allSettled([
     livePromise,
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
@@ -877,7 +900,7 @@ export async function initializeSmartIntelligence({ global = window,
 
   let charts = null;
 
-  const render = async (nextOffset = cardsOffset) => {
+  const render = async (nextOffset = cardsOffset, navigation = null) => {
     const sequence = ++dashboardSequence;
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
@@ -886,6 +909,7 @@ export async function initializeSmartIntelligence({ global = window,
       state.contextKey = contextKey;
       state.visible = global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4;
       nextOffset = 0;
+      historyCursors = [null]; historyPageIndex = 0; currentHistoryPage = null;
     }
     cardsOffset = nextOffset;
     periodSelect.value = state.period;
@@ -901,13 +925,28 @@ export async function initializeSmartIntelligence({ global = window,
     const previousBounds = {start:bounds.previousStart,end:bounds.previousEnd};
     const trendBounds = {start:utcWeekStart(requestNow)-11*7*DAY,end:requestNow+1};
     try {
-      [currentAggregate,previousAggregate,trendAggregate] = await Promise.all([
-        fetchM40Aggregate(fetchImpl,origin,state,bounds,{view:'cards',limit:10,offset:cardsOffset}),
-        fetchM40Aggregate(fetchImpl,origin,state,previousBounds,{view:'aggregate',limit:1,offset:0}),
-        fetchM40Aggregate(fetchImpl,origin,state,trendBounds,{view:'aggregate',limit:1,offset:0})
-      ]);
-      if (sequence !== dashboardSequence) return;
-      records = normalizeM40Records(currentAggregate);
+      // Navigate historical evidence without recomputing exact aggregate totals.
+      if (navigation && currentAggregate && previousAggregate && trendAggregate) {
+        const targetIndex = navigation === 'next' ? historyPageIndex + 1 : Math.max(0,historyPageIndex - 1);
+        if (navigation === 'next' && !currentHistoryPage?.hasMore) return;
+        const cursor = navigation === 'next' ? currentHistoryPage.nextCursor : historyCursors[targetIndex];
+        const page = await fetchM40HistoryCursor(fetchImpl,origin,state,bounds,cursor);
+        if (sequence !== dashboardSequence) return;
+        historyPageIndex = targetIndex;
+        historyCursors[targetIndex] = cursor;
+        currentHistoryPage = page;
+      } else {
+        [currentAggregate,previousAggregate,trendAggregate,currentHistoryPage] = await Promise.all([
+          fetchM40Aggregate(fetchImpl,origin,state,bounds,{view:'cards',limit:10,offset:0}),
+          fetchM40Aggregate(fetchImpl,origin,state,previousBounds,{view:'aggregate',limit:1,offset:0}),
+          fetchM40Aggregate(fetchImpl,origin,state,trendBounds,{view:'aggregate',limit:1,offset:0}),
+          fetchM40HistoryCursor(fetchImpl,origin,state,bounds,null)
+        ]);
+        if (sequence !== dashboardSequence) return;
+        historyPageIndex = 0; historyCursors = [null];
+      }
+      cardsOffset = historyPageIndex * 10;
+      records = normalizeM40Records(currentHistoryPage);
       if (liveResult.status === 'fulfilled') liveRecords = normalizeLiveAlerts(liveResult.value,records);
     } catch {
       if (sequence !== dashboardSequence) return;
@@ -930,11 +969,11 @@ export async function initializeSmartIntelligence({ global = window,
     page.textContent=currentAggregate.total ? ` Showing ${cardsOffset+1}–${cardsOffset+records.length}.` : ' No matching evidence.';
     const controls=document.createElement('div');
     const previousButton=document.createElement('button');
-    previousButton.type='button'; previousButton.textContent='Previous'; previousButton.disabled=cardsOffset===0;
-    previousButton.addEventListener('click',()=>{void render(Math.max(0,cardsOffset-10));});
+    previousButton.type='button'; previousButton.textContent='Previous'; previousButton.disabled=historyPageIndex===0;
+    previousButton.addEventListener('click',()=>{void render(cardsOffset,'previous');});
     const nextButton=document.createElement('button');
-    nextButton.type='button'; nextButton.textContent='Next'; nextButton.disabled=!currentAggregate.hasMore;
-    nextButton.addEventListener('click',()=>{void render(currentAggregate.nextOffset);});
+    nextButton.type='button'; nextButton.textContent='Next'; nextButton.disabled=!currentHistoryPage?.hasMore;
+    nextButton.addEventListener('click',()=>{void render(cardsOffset,'next');});
     controls.append(previousButton,nextButton);
     cardsPanel.replaceChildren(cardHeading,page,controls);
     const liveCount = renderLive(root, liveRecords, state, requestNow);
