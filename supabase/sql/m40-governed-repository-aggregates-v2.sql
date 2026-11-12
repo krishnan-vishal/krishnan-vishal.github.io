@@ -321,8 +321,7 @@ begin
     with page as (
       select a.id, a.published_at, a.source_id, a.topic_headers,
              a.gpir_m40_topic_mask as topic_mask, a.gpir_m40_theme_mask as theme_mask,
-             coalesce(t.geography, 'UNSPECIFIED') as geography,
-             public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) as region_key
+             coalesce(t.geography, 'UNSPECIFIED') as geography
       from public.global_announcements a
       join public.source_registry s on s.source_id = a.source_id and s.source_status = 'GREEN'
       left join public.gpir_intelligence_topics t on t.announcement_id = a.id
@@ -348,7 +347,8 @@ begin
       select p.id, a.title, a.summary_narration as summary, a.canonical_url, p.source_id,
              s.source_name, s.trust_tier, p.published_at, p.topic_headers,
              coalesce(p.topic_headers[1], 'Payments') as category, s.country, s.region_tags,
-             p.geography, p.region_key,
+             p.geography,
+             public.gpir_m40_region_key(p.geography, s.country, s.region_tags) as region_key,
              public.gpir_m40_topic_names(p.topic_mask) as topic_ids,
              public.gpir_m40_theme_names(p.theme_mask) as theme_ids,
              public.gpir_m40_primary_theme(p.theme_mask) as primary_theme
