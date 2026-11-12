@@ -237,7 +237,7 @@ const cursorAnchors = [null, middleOffset, finalOffset].map(offset => {
 });
 const cursorQueries = cursorAnchors.map(([ts,id])=>cursorRpc(ts,id));
 
-function invoke(expression) {
+function invoke(expression, group = 'dashboardAggregates') {
     return new Promise(resolve => {
         const started = performance.now();
         const child = spawn('psql',[...psqlArgs(),'-c',serviceQuery(expression)],{
@@ -260,7 +260,10 @@ function invoke(expression) {
             if (code === 0) {
                 try {
                     const payload = JSON.parse(stdout.trim());
-                    valid = payload.status === 'OK' && Number.isInteger(payload.total) &&
+                    valid = payload.status === 'OK' &&
+                        (['historicalPagination','historicalCursor'].includes(group) ?
+                            !Object.hasOwn(payload,'total') && typeof payload.hasMore === 'boolean' :
+                            Number.isInteger(payload.total)) &&
                         Array.isArray(payload.records) && payload.records.length <= 10;
                 } catch {}
             }
@@ -283,7 +286,7 @@ function percentile(values, ratio) {
 
 async function runWave(group, concurrency, queries) {
     const started = performance.now();
-    const results = await Promise.all(Array.from({length:concurrency},(_,index)=>invoke(queries[index%queries.length])));
+    const results = await Promise.all(Array.from({length:concurrency},(_,index)=>invoke(queries[index%queries.length],group)));
     const wallMs = performance.now()-started;
     const successful = results.filter(result=>result.ok);
     const latencies = successful.map(result=>result.latencyMs);
@@ -298,7 +301,9 @@ async function runWave(group, concurrency, queries) {
 
 console.log('Warming representative query paths...');
 stage = 'warmup';
-for (const expression of [...dashboardQueries,...cardQueries,...historicalQueries,...cursorQueries]) await invoke(expression);
+for (const [group,queries] of [['dashboardAggregates',dashboardQueries],['filteredSmartCards',cardQueries],
+    ['historicalPagination',historicalQueries],['historicalCursor',cursorQueries]])
+    for (const expression of queries) await invoke(expression,group);
 
 stage = 'query plans';
 const plans = {
