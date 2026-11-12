@@ -14,6 +14,23 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 aggregate concurrency correction — 2026-11-12
+
+- **Objective:** Reduce the 500,000-record aggregate workload without changing
+  offset pagination, governance, exact results or RPC permissions.
+- **Evidence:** Existing Actions plans hid the nested statements. Isolated
+  PostgreSQL 16 nested plans showed a spilled materialized join for every
+  aggregate and an external sort for deep pages. An index-first experiment
+  required 450,000 individual geography lookups and was not adopted.
+- **Change and validation:** Group joined rows by day and dimensions before
+  region lookup, retaining their counts. The aggregate plan no longer wrote
+  temporary blocks; the deep-page sort still spilled. Three complete responses
+  on the 500,000-row dataset matched the prior implementation. The isolated
+  SQL correctness and role fixture and ten focused API tests passed.
+- **Gate:** The existing Actions benchmark and security checks must be rerun;
+  performance remains FAIL until the measured gates pass. No merge or
+  deployment is authorized.
+
 ## M39 Gate 2 recovery — 2026-11-08
 
 - **Classification / objective:** INTELLIGENCE, DATA and AUTOMATION. Integrate recovered technical exports, verify the World Bank workbook, acquire Mojaloop and Hyperswitch history through the existing governed staging path, test, and submit one branch PR without production writes or deployments.

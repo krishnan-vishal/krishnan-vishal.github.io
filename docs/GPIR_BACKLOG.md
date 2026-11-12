@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M40 repository aggregate concurrency gate
+
+| ID | Requirement | Status | Dependency | Outcome |
+|---|---|---|---|---|
+| M40-AGGREGATE-PERFORMANCE | Exact governed 500,000-record aggregates and offset pagination at 10/25/50/100 readers, within the existing p95 and zero-error gates | IN PROGRESS | Passing benchmark, security checks, operational review and owner approval | PR #574 remains blocked for release. Grouping joined rows before region lookup removes aggregate materialization spill in an isolated plan; correctness fixtures and full-response comparisons pass. Actions concurrency measurement remains pending. |
+
 ## M39 Gate 2 recovery
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |

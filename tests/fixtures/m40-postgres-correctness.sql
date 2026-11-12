@@ -22,21 +22,31 @@ declare
   first_page jsonb;
   next_page jsonb;
   regional jsonb;
+  windowed jsonb;
 begin
   first_page := public.gpir_m40_repository_query_v2('announcements',null,null,null,null,null,null,null,1,0);
   next_page := public.gpir_m40_repository_query_v2('announcements',null,null,null,null,null,null,null,1,1);
   regional := public.gpir_m40_repository_query_v2('announcements',null,null,null,'apac',null,null,null,10,0);
+  windowed := public.gpir_m40_repository_query_v2('announcements',null,null,null,null,null,
+    '2026-01-02 00:00+00','2026-01-03 00:00+00',10,0);
   if (first_page->>'total')::integer <> 3
      or first_page->'categories' <> '{"Payments":2,"REGULATION":1}'::jsonb
      or first_page->'topics' <> '{"payments":2,"regulatory":1}'::jsonb
      or first_page->'themes' <> '{"ai":2,"regulatory":1}'::jsonb
      or first_page->'regions' <> '{"apac":1,"europe":1,"unclassified":1}'::jsonb
      or first_page->'daily' <> '{"2026-01-01":1,"2026-01-02":2}'::jsonb
+     or first_page->'weekly' <> '{"2025-12-29":3}'::jsonb
+     or first_page->'monthly' <> '{"2026-01":3}'::jsonb
+     or first_page->'primaryThemes' <> '{"ai":2,"regulatory":1}'::jsonb
      or first_page->'dailyThemes' <> '{"2026-01-01":{"regulatory":1},"2026-01-02":{"ai":2}}'::jsonb
+     or first_page->'regionThemes' <> '{"apac":{"ai":1},"europe":{"ai":1},"unclassified":{"regulatory":1}}'::jsonb
      or (first_page - array['records','limit','offset','hasMore','nextOffset'])
         <> (next_page - array['records','limit','offset','hasMore','nextOffset'])
      or (regional->>'total')::integer <> 1
      or regional->'records'->0->>'geography' <> 'Singapore'
+     or regional->'daily' <> '{"2026-01-02":1}'::jsonb
+     or (windowed->>'total')::integer <> 2
+     or windowed->'regions' <> '{"apac":1,"europe":1}'::jsonb
      or (first_page->>'hasMore')::boolean is not true
      or (next_page->>'nextOffset')::integer <> 2 then
     raise exception 'aggregate, pagination, or geography contract mismatch: first %, next %, regional %',

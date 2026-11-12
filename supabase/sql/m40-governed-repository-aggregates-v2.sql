@@ -379,16 +379,19 @@ begin
           and (p_query is null or a.id in (
             select qa.id from public.global_announcements qa
             where concat_ws(' ', qa.title, qa.summary_narration, coalesce(qa.topic_headers[1], 'Payments')) ilike '%' || p_query || '%'))
-      ), joined as materialized (
-        select b.published_at, b.category, b.topic_mask, b.theme_mask,
+      -- Reduce joined rows before region lookup without losing joined-row counts.
+      ), grouped as materialized (
+        select b.published_at::date as day, b.category, b.topic_mask, b.theme_mask,
                coalesce(g.geography, 'UNSPECIFIED') as geography,
-               coalesce(s.country, '') as country, coalesce(s.region_tags, '{}'::text[]) as region_tags
+               coalesce(s.country, '') as country, coalesce(s.region_tags, '{}'::text[]) as region_tags,
+               count(*) as n
         from base b
         join public.source_registry s on s.source_id = b.source_id and s.source_status = 'GREEN'
         left join public.gpir_intelligence_topics g on g.announcement_id = b.id
+        group by 1, 2, 3, 4, 5, 6, 7
       ), classified as (
-        select b.published_at, b.category, b.topic_mask, b.theme_mask, rm.region_key
-        from joined b
+        select b.day, b.category, b.topic_mask, b.theme_mask, rm.region_key, b.n
+        from grouped b
         join region_map rm on rm.geography = b.geography
                           and rm.country = b.country
                           and rm.region_tags = b.region_tags
@@ -396,10 +399,10 @@ begin
                or (p_region = 'americas' and rm.region_key in ('na','latam'))
                or (p_region = 'mea' and rm.region_key in ('gcc','afr')))
       ), rollup as materialized (
-        select c.published_at::date as day, c.category, c.region_key,
-               c.topic_mask, c.theme_mask, count(*) as n
+        select c.day, c.category, c.region_key,
+               c.topic_mask, c.theme_mask, sum(c.n) as n
         from classified c
-        group by grouping sets ((c.published_at::date, c.theme_mask),
+        group by grouping sets ((c.day, c.theme_mask),
                                 (c.category, c.region_key, c.topic_mask, c.theme_mask))
       ), day_rollup as (
         select day, theme_mask, n from rollup where day is not null
