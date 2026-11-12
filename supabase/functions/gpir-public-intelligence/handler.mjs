@@ -390,6 +390,40 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     }
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
     // Existing topicContext entitlement check above must run before any aggregate access.
+    if (requestUrl.searchParams.get('view') === 'cards') {
+      if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
+      const kind = requestUrl.searchParams.get('kind') || 'announcements';
+      const topics = requestUrl.searchParams.getAll('topic');
+      const region = requestUrl.searchParams.get('region') || null;
+      const start = requestUrl.searchParams.get('start') || null;
+      const end = requestUrl.searchParams.get('end') || null;
+      if (!['announcements','statistics'].includes(kind) || topics.length > 24 ||
+          topics.some(v => !v || v.length > 120 || /[<>]/.test(v)) ||
+          (region && (region.length > 120 || /[<>]/.test(region))) ||
+          [start,end].some(v => v && (!/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/.test(v) || !Number.isFinite(Date.parse(v)))) ||
+          (start && end && Date.parse(start) >= Date.parse(end)) || offset > 1000000)
+        return response(400,{status:'ERROR',code:'INVALID_CARD_FILTER'},origin,env);
+      try {
+        const headers = new Headers();
+        headers.set('apikey', config.key);
+        headers.set('authorization', `Bearer ${config.key}`);
+        headers.set('content-type', 'application/json');
+        headers.set('accept', 'application/json');
+        const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query_v2`, {
+          method:'POST', headers, body:JSON.stringify({
+            p_kind:kind,p_topics:topics.length ? topics : null,p_region:region,
+            p_start:start,p_end:end,p_limit:Math.min(limit,100),p_offset:offset
+          })
+        });
+        if (!result.ok) throw new Error('CARD_RPC_UNAVAILABLE');
+        const data = await result.json();
+        if (data?.status !== 'OK' || !Array.isArray(data.records) || !Number.isInteger(data.total))
+          throw new Error('CARD_CONTRACT_INVALID');
+        return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env);
+      } catch {
+        return response(503,{status:'ERROR',code:'CARDS_UNAVAILABLE'},origin,env);
+      }
+    }
     if (requestUrl.searchParams.get('view') === 'aggregate') {
       if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
       const kind = requestUrl.searchParams.get('kind') || 'announcements';
