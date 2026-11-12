@@ -92,7 +92,7 @@ test('My GPIR separates public FX research, standalone Smart Intelligence and pa
   const aed = records.find(record => record.pair === 'AED/INR');
   assert.equal(aed.fxIntelligenceUrl, '/pages/fx/pairs/aed-inr.html');
   assert.equal(aed.smartIntelligenceUrl, undefined);
-  assert.match(dashboard, /pages\\/intelligence\\/smart\\.html|Smart Intelligence/);
+  assert.ok(dashboard.includes('/pages/intelligence/smart.html'));
   assert.match(aed.editorialUrl, /^\//);
   assert.match(dashboard, /id="public-research"/);
   assert.match(dashboard, /data-reader-public-research/);
