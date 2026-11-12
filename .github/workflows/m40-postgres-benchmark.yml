@@ -2,6 +2,12 @@ name: M40 PostgreSQL performance benchmark
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/m40-postgres-benchmark.yml'
+      - 'tests/m40-postgres-benchmark.mjs'
+      - 'tests/fixtures/m40-postgres-benchmark-schema.sql'
+      - 'supabase/sql/m40-governed-repository-aggregates-v2.sql'
 
 permissions:
   contents: read
