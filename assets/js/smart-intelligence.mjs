@@ -910,6 +910,8 @@ export async function initializeSmartIntelligence({ global = window,
       state.visible = global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4;
       nextOffset = 0;
       historyCursors = [null]; historyPageIndex = 0; currentHistoryPage = null;
+      currentAggregate = null; previousAggregate = null; trendAggregate = null;
+      state.loadedContextKey = null;
     }
     cardsOffset = nextOffset;
     periodSelect.value = state.period;
@@ -935,7 +937,7 @@ export async function initializeSmartIntelligence({ global = window,
         historyPageIndex = targetIndex;
         historyCursors[targetIndex] = cursor;
         currentHistoryPage = page;
-      } else {
+      } else if (!currentAggregate || !previousAggregate || !trendAggregate || !currentHistoryPage || contextKey !== state.loadedContextKey) {
         [currentAggregate,previousAggregate,trendAggregate,currentHistoryPage] = await Promise.all([
           fetchM40Aggregate(fetchImpl,origin,state,bounds,{view:'cards',limit:10,offset:0}),
           fetchM40Aggregate(fetchImpl,origin,state,previousBounds,{view:'aggregate',limit:1,offset:0}),
@@ -944,6 +946,7 @@ export async function initializeSmartIntelligence({ global = window,
         ]);
         if (sequence !== dashboardSequence) return;
         historyPageIndex = 0; historyCursors = [null];
+        state.loadedContextKey = contextKey;
       }
       cardsOffset = historyPageIndex * 10;
       records = normalizeM40Records(currentHistoryPage);
