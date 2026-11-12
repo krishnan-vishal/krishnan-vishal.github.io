@@ -67,6 +67,10 @@ function rpc({ topics = null, themes = null, categories = null, region = null, q
         `${limit},${offset})`;
 }
 
+function historyRpc(offset, limit = 10) {
+    return `public.gpir_m40_repository_records_v1('announcements',null,null,null,null,null,null,null,${limit},${offset})`;
+}
+
 function serviceQuery(expression, timeout = '20s') {
     return `set statement_timeout=${sqlString(timeout)}; set role service_role; select ${expression};`;
 }
@@ -180,6 +184,16 @@ function directIds(offset) {
 for (const [label, offset] of [['first',0],['middle',middleOffset],['final',finalOffset]]) {
     assert.deepEqual(rpcIds(offset),directIds(offset),`${label} page must match independent stable pagination`);
 }
+for (const offset of [0,middleOffset,finalOffset]) {
+    const page = jsonResult(historyRpc(offset));
+    assert.deepEqual(page.records.map(record=>record.id),directIds(offset),
+        'records-only page must preserve governed stable ordering');
+}
+const recordPrivileges = JSON.parse(runSql(`select json_build_object(
+    'anon',has_function_privilege('anon','public.gpir_m40_repository_records_v1(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer)','execute'),
+    'authenticated',has_function_privilege('authenticated','public.gpir_m40_repository_records_v1(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer)','execute'),
+    'serviceRole',has_function_privilege('service_role','public.gpir_m40_repository_records_v1(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer)','execute'))::text;`));
+assert.deepEqual(recordPrivileges,{anon:false,authenticated:false,serviceRole:true});
 assert.equal(new Set([...rpcIds(0),...rpcIds(middleOffset),...rpcIds(finalOffset)]).size,30,
     'first, middle and final pages must not overlap');
 
@@ -205,11 +219,7 @@ const cardQueries = [
     rpc({topics:multiTopics,start:monthStart,end,limit:10,offset:10}),
     rpc({themes:['aml'],region:'afr',start:monthStart,end,limit:10,offset:20})
 ];
-const historicalQueries = [
-    rpc({limit:10,offset:0}),
-    rpc({limit:10,offset:middleOffset}),
-    rpc({limit:10,offset:finalOffset})
-];
+const historicalQueries = [historyRpc(0), historyRpc(middleOffset), historyRpc(finalOffset)];
 
 function invoke(expression) {
     return new Promise(resolve => {
@@ -319,7 +329,7 @@ environment.runnerMemoryBytes=os.totalmem();
 const evidence = {
     status:failures.length?'FAIL':'PASS',generatedAt:new Date().toISOString(),recordCount:rowCount,
     eligibleRecordCount:total,environment,correctness:{independentTotal,rpcTotal:total,direct24h,rpc24h:rpc24h.total,
-        directMulti,rpcMulti:rpcMulti.total,middleOffset,finalOffset,privileges,pagination:'MATCH'},
+        directMulti,rpcMulti:rpcMulti.total,middleOffset,finalOffset,privileges,recordPrivileges,pagination:'MATCH'},
     targetsMs:groupTargets,measurements,failures
 };
 writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify(evidence,null,2)+'\n');
