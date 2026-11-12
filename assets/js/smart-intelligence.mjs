@@ -771,24 +771,44 @@ export async function initializeSmartIntelligence({ global = window,
   governedSummary.setAttribute('aria-live', 'polite');
   governedSummary.textContent = 'Loading verified repository totals…';
   root.prepend(governedSummary);
-  const summaryPromise = fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?view=aggregate&kind=announcements&limit=10&offset=0`,
-    { cache: 'no-store', headers: { accept: 'application/json' } }).then(async response => {
+  let summarySequence = 0;
+  const refreshGovernedSummary = async () => {
+    const sequence = ++summarySequence;
+    const bounds = periodBounds(state.period, now(), state.customStart, state.customEnd);
+    const query = new URLSearchParams({ view: 'aggregate', kind: 'announcements', limit: '10', offset: '0' });
+    query.set('from', isoDay(bounds.start));
+    query.set('to', isoDay(Math.max(bounds.start, bounds.end - 1)));
+    const selectedTopics = [...state.topics];
+    const topic = selectedTopics.length === 1 ? selectedTopics[0] : null;
+    // API supports one exact topic; do not silently misrepresent multi-topic OR filtering.
+    if (topic) query.set('topic', topic);
+    const geography = state.geography;
+    if (geography !== 'all') query.set('region', geography);
+    governedSummary.textContent = 'Loading verified filtered repository totals…';
+    try {
+      const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?${query}`,
+        { cache: 'no-store', headers: { accept: 'application/json' } });
       if (!response.ok) throw new Error('AGGREGATE_UNAVAILABLE');
       const payload = await response.json();
       if (payload.status !== 'OK' || !Number.isInteger(payload.total) ||
           !Array.isArray(payload.records) || !payload.themes || !payload.regions || !payload.daily)
         throw new Error('AGGREGATE_INVALID');
+      if (sequence !== summarySequence) return;
+      if (selectedTopics.length > 1 || state.themes.size) {
+        governedSummary.textContent = 'Exact totals for multiple topics or additional theme filters are not yet supported by this aggregate endpoint.';
+        return;
+      }
       const heading = document.createElement('strong');
       heading.textContent = `Verified dated announcements: ${payload.total.toLocaleString()}`;
       const context = document.createElement('span');
-      context.textContent = ' · Complete repository total (all periods/regions); individual Smart Intelligence filters apply below.';
+      context.textContent = ' · Server-calculated for the selected period, geography and supported topic filter.';
       governedSummary.replaceChildren(heading, context);
-      return payload;
-    }).catch(() => {
-      governedSummary.textContent = 'Complete repository totals temporarily unavailable; no totals have been estimated.';
-      return null;
-    });
-  void summaryPromise;
+    } catch {
+      if (sequence === summarySequence)
+        governedSummary.textContent = 'Filtered repository totals temporarily unavailable; no totals have been estimated.';
+    }
+  };
+  void refreshGovernedSummary();
   const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin),
     livePromise,
@@ -826,6 +846,7 @@ export async function initializeSmartIntelligence({ global = window,
   let charts = null;
 
   const render = () => {
+    void refreshGovernedSummary();
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
     const industry = executiveRecords();
