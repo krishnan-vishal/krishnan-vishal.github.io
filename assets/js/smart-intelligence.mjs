@@ -354,9 +354,9 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-export async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin, { maxPages = 51 } = {}) {
   const records = [];
-  for (let offset = 0; offset <= 50000; offset += 1000) {
+  for (let offset = 0; offset < maxPages * 1000; offset += 1000) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
@@ -364,6 +364,7 @@ export async function fetchHistory(fetchImpl, origin) {
     records.push(...page);
     if (records.length >= Number(payload.total || 0) || page.length < 1000) return records;
   }
+  if (maxPages < 51) return records;
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
 
@@ -810,7 +811,7 @@ export async function initializeSmartIntelligence({ global = window,
   };
   void refreshGovernedSummary();
   const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
-    fetchHistory(fetchImpl, origin),
+    fetchHistory(fetchImpl, origin, { maxPages: 1 }),
     livePromise,
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
     fetchImpl(GOVERNED_ROUTES_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
@@ -822,6 +823,7 @@ export async function initializeSmartIntelligence({ global = window,
     return false;
   }
   let records = historyResult.value;
+  let fullHistoryLoaded = false;
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
   const governedRoutes = routesResult.status === 'fulfilled' ? normalizeGovernedRoutes(routesResult.value) : [];
@@ -842,6 +844,23 @@ export async function initializeSmartIntelligence({ global = window,
     })();
   };
 
+  const historyButton = document.createElement('button');
+  historyButton.type = 'button';
+  historyButton.textContent = 'Load full historical analysis';
+  historyButton.addEventListener('click', async () => {
+    historyButton.disabled = true;
+    historyButton.textContent = 'Loading full historical analysis…';
+    try {
+      records = await fetchHistory(fetchImpl, origin);
+      fullHistoryLoaded = true;
+      historyButton.remove();
+      render();
+    } catch {
+      historyButton.disabled = false;
+      historyButton.textContent = 'Retry full historical analysis';
+    }
+  });
+  status.insertAdjacentElement('afterend', historyButton);
   const executiveRecords = () => records.filter(isExecutiveEligible);
   let charts = null;
 
@@ -904,7 +923,7 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !publications.length;
     editorialTarget.innerHTML = publications.length ? `<p class="smi-kicker">PUBLISHED GPIR RESEARCH</p>${publications.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
+    status.textContent = `${fullHistoryLoaded ? '' : 'PARTIAL PREVIEW: charts and card counts use only the first 1,000 historical records and are not complete. Use the server-calculated total above or load full history. '}${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
