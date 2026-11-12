@@ -224,6 +224,8 @@ const cardQueries = [
     rpc({topics:multiTopics,start:monthStart,end,limit:10,offset:10}),
     rpc({themes:['aml'],region:'afr',start:monthStart,end,limit:10,offset:20})
 ];
+// Legacy offset pagination is retained only for deterministic correctness and plan evidence.
+// The production reader uses the governed cursor RPC; offset is not a release latency gate.
 const historicalQueries = [historyRpc(0), historyRpc(middleOffset), historyRpc(finalOffset)];
 
 const cursorAnchors = [null, middleOffset, finalOffset].map(offset => {
@@ -302,7 +304,7 @@ async function runWave(group, concurrency, queries) {
 console.log('Warming representative query paths...');
 stage = 'warmup';
 for (const [group,queries] of [['dashboardAggregates',dashboardQueries],['filteredSmartCards',cardQueries],
-    ['historicalPagination',historicalQueries],['historicalCursor',cursorQueries]])
+    ['historicalCursor',cursorQueries]])
     for (const expression of queries) await invoke(expression,group);
 
 stage = 'query plans';
@@ -327,7 +329,6 @@ for (const concurrency of [10,25,50,100]) {
     stage = `measurements: ${concurrency} readers`;
     measurements.push(await runWave('dashboardAggregates',concurrency,dashboardQueries));
     measurements.push(await runWave('filteredSmartCards',concurrency,cardQueries));
-    measurements.push(await runWave('historicalPagination',concurrency,historicalQueries));
     measurements.push(await runWave('historicalCursor',concurrency,cursorQueries));
     writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify({
         status:'IN_PROGRESS',generatedAt:new Date().toISOString(),stage,measurements
@@ -340,7 +341,7 @@ const rounded = value => value === null ? null : Math.round(value*100)/100;
 for (const measurement of measurements) {
     for (const key of ['p50Ms','p95Ms','throughputRps','wallMs']) measurement[key]=rounded(measurement[key]);
 }
-const groupTargets = {dashboardAggregates:3000,filteredSmartCards:3000,historicalPagination:5000,historicalCursor:5000};
+const groupTargets = {dashboardAggregates:3000,filteredSmartCards:3000,historicalCursor:5000};
 const failures = measurements.filter(item => item.errors || item.p95Ms === null || item.p95Ms>groupTargets[item.group]);
 const environment = JSON.parse(runSql(`select json_build_object(
     'version',version(),'maxConnections',current_setting('max_connections'),
