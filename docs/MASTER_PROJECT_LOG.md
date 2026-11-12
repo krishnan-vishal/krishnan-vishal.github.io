@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 reader acceptance continuation — 2026-11-12
+
+- **Objective:** Complete isolated authenticated cursor navigation acceptance before optimizing dashboard aggregates on PR #574.
+- **Outcome:** The owner identified `hoewtptllwkcqrgryazu` as the isolated project. Its supplied database URL identified that project, but read-only pooler connections timed out on ports 5432 and 6543. Supabase management access returned HTTP 403 with the available access token and HTTP 401 with the deploy token. Compatibility, deployment and authenticated navigation remain unverified; no SQL or Edge Function was deployed, and Step 2 was not started.
+- **Existing evidence:** G1 R07 run 43191611266 passed on `cf803c7`. Benchmark run 43191611260 failed: at 100 readers dashboard, cards, cursor and legacy offset p95 were respectively 12,676.07, 2,936.99, 1,473.98 and 18,606.15 ms, with zero errors. The benchmark reported exact count, rolling-window, topic-OR, offset IDs and listed RPC grant checks passing. This does not substitute for the requested authenticated navigation and service-role acceptance.
+- **Next dependency:** Restore scoped test-project management and database connectivity and authenticated reader access. No merge or production deployment is authorized.
+
 ## M40 aggregate concurrency correction — 2026-11-12
 
 - **Objective:** Reduce the 500,000-record aggregate workload without changing
