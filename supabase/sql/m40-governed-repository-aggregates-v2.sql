@@ -358,14 +358,7 @@ begin
     ) x;
 
       -- Every page carries the same exact aggregate breakdowns.
-      with region_map as materialized (
-        select g.geography, c.country, c.region_tags,
-               public.gpir_m40_region_key(g.geography, nullif(c.country, ''), c.region_tags) as region_key
-        from (select distinct geography from public.gpir_intelligence_topics where geography is not null
-              union select 'UNSPECIFIED') g
-        cross join (select distinct coalesce(country, '') as country, coalesce(region_tags, '{}'::text[]) as region_tags
-                    from public.source_registry where source_status = 'GREEN') c
-      ), base as (
+      with base as (
         select a.id, a.published_at, a.source_id,
                coalesce(a.topic_headers[1], 'Payments') as category,
                a.gpir_m40_topic_mask as topic_mask, a.gpir_m40_theme_mask as theme_mask
@@ -389,15 +382,16 @@ begin
         join public.source_registry s on s.source_id = b.source_id and s.source_status = 'GREEN'
         left join public.gpir_intelligence_topics g on g.announcement_id = b.id
         group by 1, 2, 3, 4, 5, 6, 7
-      ), classified as (
-        select b.day, b.category, b.topic_mask, b.theme_mask, rm.region_key, b.n
+      ), classified_keys as materialized (
+        select b.day, b.category, b.topic_mask, b.theme_mask, b.n,
+               public.gpir_m40_region_key(b.geography, nullif(b.country, ''), b.region_tags) as region_key
         from grouped b
-        join region_map rm on rm.geography = b.geography
-                          and rm.country = b.country
-                          and rm.region_tags = b.region_tags
-        where (p_region is null or rm.region_key = p_region
-               or (p_region = 'americas' and rm.region_key in ('na','latam'))
-               or (p_region = 'mea' and rm.region_key in ('gcc','afr')))
+      ), classified as (
+        select b.day, b.category, b.topic_mask, b.theme_mask, b.region_key, b.n
+        from classified_keys b
+        where (p_region is null or b.region_key = p_region
+               or (p_region = 'americas' and b.region_key in ('na','latam'))
+               or (p_region = 'mea' and b.region_key in ('gcc','afr')))
       ), rollup as materialized (
         select c.day, c.category, c.region_key,
                c.topic_mask, c.theme_mask, sum(c.n) as n
