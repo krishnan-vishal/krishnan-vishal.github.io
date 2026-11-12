@@ -106,3 +106,23 @@ test('M40 history-records rejects unsupported kinds and fails closed on RPC fail
   assert.equal(failed.status,503);
   assert.equal((await failed.json()).code,'HISTORY_UNAVAILABLE');
 });
+
+
+test('M40 history cursor forwards validated keyset anchor without exposing service key',async()=>{
+ let called=0;
+ const handler=createPublicIntelligenceHandler({env,fetchImpl:async(url,init)=>{
+  called++;
+  assert.match(url,/\/rpc\/gpir_m40_repository_cursor_v1$/);
+  const body=JSON.parse(init.body);
+  assert.equal(body.p_after_time,'2026-11-01T00:00:00.000Z');
+  assert.equal(body.p_after_id,'00000000-0000-4000-8000-000000000001');
+  assert.equal(Object.hasOwn(body,'p_offset'),false);
+  return {ok:true,json:async()=>({status:'OK',kind:'announcements',limit:10,hasMore:false,nextCursor:null,records:[]})};
+ }});
+ const result=await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=history-cursor&afterTime=2026-11-01T00%3A00%3A00.000Z&afterId=00000000-0000-4000-8000-000000000001&limit=10'));
+ assert.equal(result.status,200);
+ assert.equal(called,1);
+ const invalid=await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=history-cursor&afterId=00000000-0000-4000-8000-000000000001'));
+ assert.equal(invalid.status,400);
+ assert.equal(called,1);
+});
