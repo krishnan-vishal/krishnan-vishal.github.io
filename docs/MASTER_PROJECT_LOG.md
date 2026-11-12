@@ -27,9 +27,12 @@ reliable prompt-level record, that fact is stated rather than inferred.
   temporary blocks; the deep-page sort still spilled. Three complete responses
   on the 500,000-row dataset matched the prior implementation. The isolated
   SQL correctness and role fixture and ten focused API tests passed.
-- **Gate:** The existing Actions benchmark and security checks must be rerun;
-  performance remains FAIL until the measured gates pass. No merge or
-  deployment is authorized.
+- **Gate:** Actions run 43179746444 on `c34bdb1` passed exact counts, rolling
+  window, topic OR, pagination IDs and service-role permissions; security CI
+  passed. It failed the performance gate: dashboard p95 at 10/25/50/100 was
+  1,670/4,047/6,681/13,478 ms; cards 661/862/1,634/2,840 ms; historical
+  5,117/12,646/19,229/n/a ms with 0/0/33/100 errors. The 50-reader historical
+  p95 includes only successful requests. No merge or deployment is authorized.
 
 ## M39 Gate 2 recovery — 2026-11-08
 

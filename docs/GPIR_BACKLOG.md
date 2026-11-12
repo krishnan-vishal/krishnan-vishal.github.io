@@ -11,7 +11,7 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 
 | ID | Requirement | Status | Dependency | Outcome |
 |---|---|---|---|---|
-| M40-AGGREGATE-PERFORMANCE | Exact governed 500,000-record aggregates and offset pagination at 10/25/50/100 readers, within the existing p95 and zero-error gates | IN PROGRESS | Passing benchmark, security checks, operational review and owner approval | PR #574 remains blocked for release. Grouping joined rows before region lookup removes aggregate materialization spill in an isolated plan; correctness fixtures and full-response comparisons pass. Actions concurrency measurement remains pending. |
+| M40-AGGREGATE-PERFORMANCE | Exact governed 500,000-record aggregates and offset pagination at 10/25/50/100 readers, within the existing p95 and zero-error gates | BLOCKED | Passing benchmark, security checks, operational review and owner approval | PR #574 remains blocked for release. Run 43179746444 on `c34bdb1` passed correctness and security but failed dashboard and historical performance gates, including 33/50 and 100/100 historical errors. Exact maintained summaries and offset-compatible rank checkpoints or optional cursors require separate design approval and validation. |
 
 ## M39 Gate 2 recovery
 
