@@ -67,6 +67,15 @@ function rpc({ topics = null, themes = null, categories = null, region = null, q
         `${limit},${offset})`;
 }
 
+// Record-only requests must not repeat dashboard-wide aggregate calculations.
+function recordsRpc({ topics = null, themes = null, categories = null, region = null, query = null,
+    start = null, end = null, limit = 10, offset = 0 } = {}) {
+    return `public.gpir_m40_repository_records_v1('announcements',${sqlArray(topics)},${sqlArray(themes)},` +
+        `${sqlArray(categories)},${region ? sqlString(region) : 'null'},${query ? sqlString(query) : 'null'},` +
+        `${start ? `${sqlString(start)}::timestamptz` : 'null'},${end ? `${sqlString(end)}::timestamptz` : 'null'},` +
+        `${limit},${offset})`;
+}
+
 function historyRpc(offset, limit = 10) {
     return `public.gpir_m40_repository_records_v1('announcements',null,null,null,null,null,null,null,${limit},${offset})`;
 }
@@ -219,10 +228,10 @@ const dashboardQueries = [
     rpc({limit:1})
 ];
 const cardQueries = [
-    rpc({topics:['payments'],start:start24h,end,limit:10,offset:0}),
-    rpc({themes:['web3'],region:'apac',start:monthStart,end,limit:10,offset:0}),
-    rpc({topics:multiTopics,start:monthStart,end,limit:10,offset:10}),
-    rpc({themes:['aml'],region:'afr',start:monthStart,end,limit:10,offset:20})
+    recordsRpc({topics:['payments'],start:start24h,end,limit:10,offset:0}),
+    recordsRpc({themes:['web3'],region:'apac',start:monthStart,end,limit:10,offset:0}),
+    recordsRpc({topics:multiTopics,start:monthStart,end,limit:10,offset:10}),
+    recordsRpc({themes:['aml'],region:'afr',start:monthStart,end,limit:10,offset:20})
 ];
 // Legacy offset pagination is retained only for deterministic correctness and plan evidence.
 // The production reader uses the governed cursor RPC; offset is not a release latency gate.
@@ -263,7 +272,7 @@ function invoke(expression, group = 'dashboardAggregates') {
                 try {
                     const payload = JSON.parse(stdout.trim());
                     valid = payload.status === 'OK' &&
-                        (['historicalPagination','historicalCursor'].includes(group) ?
+                        (['historicalPagination','historicalCursor','filteredSmartCards'].includes(group) ?
                             !Object.hasOwn(payload,'total') && typeof payload.hasMore === 'boolean' :
                             Number.isInteger(payload.total)) &&
                         Array.isArray(payload.records) && payload.records.length <= 10;
