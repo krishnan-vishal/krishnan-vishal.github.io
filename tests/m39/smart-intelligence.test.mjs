@@ -86,12 +86,13 @@ test('dashboard calculations use all 36 governed topics, equivalent periods and 
   assert.ok(heatmap.rows.some(row => row.counts.some(Boolean)));
 });
 
-test('My GPIR separates public research from paid library and exposes three exact actions', () => {
+test('My GPIR separates public FX research, standalone Smart Intelligence and paid library', () => {
   const records = publicFxResearchRecords(editorialValue);
   assert.equal(records.length, 26);
   const aed = records.find(record => record.pair === 'AED/INR');
   assert.equal(aed.fxIntelligenceUrl, '/pages/fx/pairs/aed-inr.html');
-  assert.equal(aed.smartIntelligenceUrl, '/pages/intelligence/smart.html');
+  assert.equal(aed.smartIntelligenceUrl, undefined);
+  assert.match(dashboard, /pages\\/intelligence\\/smart\\.html|Smart Intelligence/);
   assert.match(aed.editorialUrl, /^\//);
   assert.match(dashboard, /id="public-research"/);
   assert.match(dashboard, /data-reader-public-research/);
