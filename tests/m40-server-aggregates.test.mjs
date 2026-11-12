@@ -58,7 +58,7 @@ test('SQL contract is service-role-only, stable, approved-only and excludes CMS 
   const sql = await readFile(new URL('../supabase/sql/m40-governed-repository-aggregates-v2.sql', import.meta.url),'utf8');
   assert.match(sql,/publication_status='approved'/);
   assert.match(sql,/source_status='GREEN'/);
-  assert.match(sql,/order by published_at desc,id limit p_limit offset p_offset/);
+  assert.match(sql,/order by (?:a\.)?published_at desc,\s*(?:a\.)?id\s+limit p_limit offset p_offset/);
   assert.match(sql,/revoke all on function public\.gpir_m40_repository_query_v2[\s\S]+from public,anon,authenticated/);
   assert.match(sql,/grant execute on function public\.gpir_m40_repository_query_v2[\s\S]+to service_role/);
   assert.match(sql,/'daily'.*'weekly'.*'monthly'/s);

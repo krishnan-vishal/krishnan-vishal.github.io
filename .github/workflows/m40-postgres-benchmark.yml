@@ -7,6 +7,7 @@ on:
       - '.github/workflows/m40-postgres-benchmark.yml'
       - 'tests/m40-postgres-benchmark.mjs'
       - 'tests/fixtures/m40-postgres-benchmark-schema.sql'
+      - 'tests/fixtures/m40-postgres-correctness.sql'
       - 'supabase/sql/m40-governed-repository-aggregates-v2.sql'
 
 permissions:
@@ -56,6 +57,14 @@ jobs:
 
       - name: Run 500,000-record benchmark
         run: node tests/m40-postgres-benchmark.mjs
+
+      - name: Preserve setup failure evidence
+        if: always()
+        run: |
+          mkdir -p benchmark-artifacts/m40
+          if [ ! -f benchmark-artifacts/m40/benchmark-results.json ]; then
+            printf '%s\n' '{"status":"FAIL","stage":"workflow setup or benchmark startup","error":"Benchmark did not produce results; inspect the workflow log."}' > benchmark-artifacts/m40/benchmark-results.json
+          fi
 
       - name: Upload benchmark evidence
         if: always()

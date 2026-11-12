@@ -2,53 +2,215 @@
 -- No CMS entry is created for individual announcements or statistical observations.
 -- The public Edge Function receives only approved announcement metadata and governed
 -- aggregates; protected CMS/editorial bodies are never selected by this contract.
+--
+-- M40 performance architecture (500,000-record benchmark gate):
+-- Topic and theme classification is immutable per row, so it is computed once at
+-- write time into stored generated columns encoded as bitmasks, then served from
+-- covering partial indexes. Queries aggregate a single-pass grouping-sets rollup
+-- instead of re-running regex classification on every row for every request.
+-- Classifier functions remain the single source of truth: the generated columns
+-- call them, so classification semantics cannot drift. If any classifier mapping
+-- changes, the generated columns and their indexes must be rebuilt in the same
+-- migration (alter table ... drop column / add column) to stay exact.
 
+create or replace function public.gpir_m40_topic_dictionary()
+returns table(bit_position integer, topic_id text)
+language sql immutable parallel safe
+set search_path = public, pg_temp
+as $$
+  values
+    (0,'aml'), (1,'apm'), (2,'baas'), (3,'bnpl'), (4,'caas'),
+    (5,'cards-money-movements'), (6,'cbdc'), (7,'cobo'), (8,'corporate-payments'),
+    (9,'cross-border'), (10,'deals'), (11,'diaspora-payments'), (12,'fintech'),
+    (13,'fintech-licensing'), (14,'fraud'), (15,'global-aggregators'),
+    (16,'global-regional-fintech'), (17,'immigrant-payments'), (18,'infrastructure'),
+    (19,'licences'), (20,'migrant-movements'), (21,'money-movements'), (22,'pass'),
+    (23,'payment-gateways'), (24,'payments'), (25,'payments-licensing'), (26,'pobo'),
+    (27,'real-time'), (28,'regional-aggregators'), (29,'regulatory'), (30,'remittances'),
+    (31,'saas'), (32,'stablecoins'), (33,'super-apps'), (34,'taas'), (35,'wallets')
+$$;
+
+create or replace function public.gpir_m40_theme_dictionary()
+returns table(bit_position integer, theme_id text)
+language sql immutable parallel safe
+set search_path = public, pg_temp
+as $$
+  values
+    (0,'agentic'), (1,'ai'), (2,'aml'), (3,'cbdc'), (4,'cross-border'), (5,'fraud'),
+    (6,'infrastructure'), (7,'partnerships'), (8,'real-time'), (9,'regulatory'),
+    (10,'wallets'), (11,'web3')
+$$;
+
+-- Mask primitives: write-time classification encoded as bit positions from the
+-- dictionaries above. The CASE mapping below and the dictionary are the single
+-- normalization contract; gpir_m40_topic_ids/gpir_m40_theme_ids decode these masks,
+-- so array and mask classifications can never diverge.
+create or replace function public.gpir_m40_topic_mask(p_headers text[])
+returns bigint
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select coalesce(bit_or(
+    case lower(regexp_replace(btrim(header), '[^a-zA-Z0-9]+', ' ', 'g'))
+      when 'regulation' then 1::bigint << 29
+      when 'regulatory' then 1::bigint << 29
+      when 'regulatory actions' then 1::bigint << 29
+      when 'central bank' then 1::bigint << 29
+      when 'monetary policy' then 1::bigint << 29
+      when 'licences authorisations' then 1::bigint << 19
+      when 'licenses authorizations' then 1::bigint << 19
+      when 'licensing' then 1::bigint << 19
+      when 'payments licensing' then 1::bigint << 25
+      when 'fintech licensing' then 1::bigint << 13
+      when 'cross border payments' then 1::bigint << 9
+      when 'cross border banking' then 1::bigint << 9
+      when 'correspondent banking' then 1::bigint << 9
+      when 'real time payments' then 1::bigint << 27
+      when 'instant payments' then 1::bigint << 27
+      when 'rtp' then 1::bigint << 27
+      when 'payment infrastructure' then 1::bigint << 18
+      when 'payments infrastructure' then 1::bigint << 18
+      when 'clearing settlement' then 1::bigint << 18
+      when 'payment networks' then 1::bigint << 18
+      when 'payment orchestration' then 1::bigint << 18
+      when 'remittances' then 1::bigint << 30
+      when 'remittances diaspora' then 1::bigint << 30
+      when 'wallets digital payments' then 1::bigint << 35
+      when 'digital payments' then 1::bigint << 35
+      when 'aml cft' then 1::bigint << 0
+      when 'aml kyc compliance' then 1::bigint << 0
+      when 'financial crime' then 1::bigint << 0
+      when 'fraud cybersecurity' then 1::bigint << 14
+      when 'fraud' then 1::bigint << 14
+      when 'cybersecurity' then 1::bigint << 14
+      when 'cbdcs digital money' then 1::bigint << 6
+      when 'digital money' then 1::bigint << 6
+      when 'stablecoins digital assets' then 1::bigint << 32
+      when 'digital assets' then 1::bigint << 32
+      when 'deals partnerships' then 1::bigint << 10
+      when 'partnerships' then 1::bigint << 10
+      when 'payments' then 1::bigint << 24
+      when 'payment services' then 1::bigint << 24
+      when 'cashless payments' then 1::bigint << 24
+      when 'fintech' then 1::bigint << 12
+      when 'financial technology' then 1::bigint << 12
+      when 'global regional fintech' then 1::bigint << 16
+      when 'pass' then 1::bigint << 22
+      when 'taas' then 1::bigint << 34
+      when 'saas' then 1::bigint << 31
+      when 'caas' then 1::bigint << 4
+      when 'baas' then 1::bigint << 2
+      when 'pobo' then 1::bigint << 26
+      when 'cobo' then 1::bigint << 7
+      when 'global aggregators' then 1::bigint << 15
+      when 'regional aggregators' then 1::bigint << 28
+      when 'corporate payments' then 1::bigint << 8
+      when 'b2b payments' then 1::bigint << 8
+      when 'diaspora payments' then 1::bigint << 11
+      when 'immigrant payments' then 1::bigint << 17
+      when 'migrant international movements' then 1::bigint << 20
+      when 'money movements' then 1::bigint << 21
+      when 'super apps' then 1::bigint << 33
+      when 'bnpl' then 1::bigint << 3
+      when 'alternative payment methods apm' then 1::bigint << 1
+      when 'cards money movements' then 1::bigint << 5
+      when 'merchant acquiring' then 1::bigint << 5
+      when 'payment gateways' then 1::bigint << 23
+    end), 0)
+  from unnest(coalesce(p_headers, '{}'::text[])) header
+  where nullif(btrim(header), '') is not null
+$$;
+
+create or replace function public.gpir_m40_theme_mask(
+  p_topic_mask bigint, p_headers text[], p_title text, p_summary text
+) returns integer
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select
+    (case when p_topic_mask & ((1::bigint << 9) | (1::bigint << 30) | (1::bigint << 11) | (1::bigint << 17)) <> 0 then 1 << 4 else 0 end)
+  | (case when p_topic_mask & (1::bigint << 27) <> 0 then 1 << 8 else 0 end)
+  | (case when p_topic_mask & ((1::bigint << 18) | (1::bigint << 23)) <> 0 then 1 << 6 else 0 end)
+  | (case when pay
+           and value ~ '\m(artificial intelligence|machine learning|generative ai|large language model|large language models|llm|llms|ai powered|ai driven|ai based|ai enabled|ai model|ai models|ai assistant|ai assistants|ai)\M' then 1 << 1 else 0 end)
+  | (case when pay
+           and value ~ '\m(agentic|ai agent|ai agents|autonomous agent|autonomous agents|agent to agent|machine payment|machine payments)\M' then 1 << 0 else 0 end)
+  | (case when pay
+           and (p_topic_mask & (1::bigint << 32) <> 0
+                or value ~ '\m(web3|blockchain|crypto|digital asset|digital assets|distributed ledger|dlt|smart contract|smart contracts|on chain)\M') then 1 << 11 else 0 end)
+  | (case when p_topic_mask & (1::bigint << 0) <> 0 then 1 << 2 else 0 end)
+  | (case when p_topic_mask & (1::bigint << 14) <> 0 then 1 << 5 else 0 end)
+  | (case when p_topic_mask & ((1::bigint << 29) | (1::bigint << 19) | (1::bigint << 25) | (1::bigint << 13)) <> 0 then 1 << 9 else 0 end)
+  | (case when p_topic_mask & ((1::bigint << 6) | (1::bigint << 32)) <> 0 then 1 << 3 else 0 end)
+  | (case when p_topic_mask & ((1::bigint << 35) | (1::bigint << 33)) <> 0 then 1 << 10 else 0 end)
+  | (case when p_topic_mask & (1::bigint << 10) <> 0 then 1 << 7 else 0 end)
+  from (
+    -- The payments-context pattern is shared by the ai/agentic/web3 themes;
+    -- evaluate it once per row instead of once per theme.
+    select value,
+      value ~ '\m(payment|payments|settlement|remittance|money movement|money transfer|banking|bank|financial services|card|cards|wallet|wallets|clearing|fintech|merchant|checkout|payout|payouts)\M' as pay
+    from (
+      select lower(concat_ws(' ', array_to_string(coalesce(p_headers, '{}'::text[]), ' '),
+        coalesce(p_title, ''), coalesce(p_summary, ''))) as value
+    ) content
+  ) context
+$$;
+
+create or replace function public.gpir_m40_topic_mask_of_ids(p_topic_ids text[])
+returns bigint
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select coalesce(bit_or(1::bigint << d.bit_position), 0)
+  from unnest(coalesce(p_topic_ids, '{}'::text[])) mapped(topic_id)
+  join public.gpir_m40_topic_dictionary() d on d.topic_id = mapped.topic_id
+$$;
+
+-- Dictionary bits are assigned in alphabetical id order, so ascending-bit decoding
+-- reproduces the classifiers' alphabetical array ordering exactly.
+create or replace function public.gpir_m40_topic_names(p_mask bigint)
+returns text[]
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select coalesce(array_agg(d.topic_id order by d.topic_id), '{}'::text[])
+  from public.gpir_m40_topic_dictionary() d
+  where p_mask & (1::bigint << d.bit_position) <> 0
+$$;
+
+create or replace function public.gpir_m40_theme_names(p_mask integer)
+returns text[]
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select coalesce(array_agg(d.theme_id order by d.theme_id), '{}'::text[])
+  from public.gpir_m40_theme_dictionary() d
+  where p_mask & (1 << d.bit_position) <> 0
+$$;
+
+create or replace function public.gpir_m40_primary_theme(p_mask integer)
+returns text
+language sql immutable parallel safe security invoker
+set search_path = public, pg_temp
+as $$
+  select coalesce((
+    select candidate.theme_id
+    from unnest(array['agentic','ai','web3','cbdc','aml','fraud','regulatory','real-time','cross-border','infrastructure','wallets','partnerships']) with ordinality candidate(theme_id, priority)
+    join public.gpir_m40_theme_dictionary() d on d.theme_id = candidate.theme_id
+    where p_mask & (1 << d.bit_position) <> 0
+    order by candidate.priority
+    limit 1
+  ), 'other')
+$$;
+
+-- Canonical classifier contract preserved: identical signatures and outputs,
+-- now decoding the mask primitives so there is a single normalization source.
 create or replace function public.gpir_m40_topic_ids(p_headers text[])
 returns text[]
 language sql immutable parallel safe security invoker
 set search_path = public, pg_temp
 as $$
-  with normalized as (
-    select distinct lower(regexp_replace(btrim(header), '[^a-zA-Z0-9]+', ' ', 'g')) as value
-    from unnest(coalesce(p_headers, '{}'::text[])) header
-    where nullif(btrim(header), '') is not null
-  ), mapped(topic_id) as (
-    select distinct mapping.topic_id
-    from normalized n
-    join (values
-      ('regulatory','regulation'), ('regulatory','regulatory'), ('regulatory','regulatory actions'),
-      ('regulatory','central bank'), ('regulatory','monetary policy'),
-      ('licences','licences authorisations'), ('licences','licenses authorizations'),
-      ('licences','licensing'), ('payments-licensing','payments licensing'),
-      ('fintech-licensing','fintech licensing'),
-      ('cross-border','cross border payments'), ('cross-border','cross border banking'),
-      ('cross-border','correspondent banking'),
-      ('real-time','real time payments'), ('real-time','instant payments'), ('real-time','rtp'),
-      ('infrastructure','payment infrastructure'), ('infrastructure','payments infrastructure'),
-      ('infrastructure','clearing settlement'), ('infrastructure','payment networks'),
-      ('remittances','remittances'), ('remittances','remittances diaspora'),
-      ('wallets','wallets digital payments'), ('wallets','digital payments'),
-      ('aml','aml cft'), ('aml','aml kyc compliance'), ('aml','financial crime'),
-      ('fraud','fraud cybersecurity'), ('fraud','fraud'), ('fraud','cybersecurity'),
-      ('cbdc','cbdcs digital money'), ('cbdc','digital money'),
-      ('stablecoins','stablecoins digital assets'), ('stablecoins','digital assets'),
-      ('deals','deals partnerships'), ('deals','partnerships'),
-      ('payments','payments'), ('payments','payment services'), ('payments','cashless payments'),
-      ('fintech','fintech'), ('fintech','financial technology'),
-      ('global-regional-fintech','global regional fintech'),
-      ('pass','pass'), ('taas','taas'), ('saas','saas'), ('caas','caas'), ('baas','baas'),
-      ('pobo','pobo'), ('cobo','cobo'),
-      ('global-aggregators','global aggregators'), ('regional-aggregators','regional aggregators'),
-      ('corporate-payments','corporate payments'), ('corporate-payments','b2b payments'),
-      ('diaspora-payments','diaspora payments'), ('immigrant-payments','immigrant payments'),
-      ('migrant-movements','migrant international movements'),
-      ('money-movements','money movements'), ('super-apps','super apps'),
-      ('bnpl','bnpl'), ('apm','alternative payment methods apm'),
-      ('cards-money-movements','cards money movements'), ('cards-money-movements','merchant acquiring'),
-      ('payment-gateways','payment gateways'), ('infrastructure','payment orchestration')
-    ) as mapping(topic_id, source_value) on mapping.source_value = n.value
-  )
-  select coalesce(array_agg(topic_id order by topic_id), '{}'::text[]) from mapped
+  select public.gpir_m40_topic_names(public.gpir_m40_topic_mask(p_headers))
 $$;
 
 create or replace function public.gpir_m40_theme_ids(
@@ -57,31 +219,8 @@ create or replace function public.gpir_m40_theme_ids(
 language sql immutable parallel safe security invoker
 set search_path = public, pg_temp
 as $$
-  with content as (
-    select lower(concat_ws(' ', array_to_string(coalesce(p_headers, '{}'::text[]), ' '),
-      coalesce(p_title, ''), coalesce(p_summary, ''))) as value
-  ), flags as (
-    select array_remove(array[
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['cross-border','remittances','diaspora-payments','immigrant-payments'] then 'cross-border' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['real-time'] then 'real-time' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['infrastructure','payment-gateways'] then 'infrastructure' end,
-      case when value ~ '\m(payment|payments|settlement|remittance|money movement|money transfer|banking|bank|financial services|card|cards|wallet|wallets|clearing|fintech|merchant|checkout|payout|payouts)\M'
-             and value ~ '\m(artificial intelligence|machine learning|generative ai|large language model|large language models|llm|llms|ai powered|ai driven|ai based|ai enabled|ai model|ai models|ai assistant|ai assistants|ai)\M' then 'ai' end,
-      case when value ~ '\m(payment|payments|settlement|remittance|money movement|money transfer|banking|bank|financial services|card|cards|wallet|wallets|clearing|fintech|merchant|checkout|payout|payouts)\M'
-             and value ~ '\m(agentic|ai agent|ai agents|autonomous agent|autonomous agents|agent to agent|machine payment|machine payments)\M' then 'agentic' end,
-      case when value ~ '\m(payment|payments|settlement|remittance|money movement|money transfer|banking|bank|financial services|card|cards|wallet|wallets|clearing|fintech|merchant|checkout|payout|payouts)\M'
-             and (value ~ '\m(web3|blockchain|crypto|digital asset|digital assets|distributed ledger|dlt|smart contract|smart contracts|on chain)\M'
-                  or coalesce(p_topic_ids, '{}'::text[]) && array['stablecoins']) then 'web3' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['aml'] then 'aml' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['fraud'] then 'fraud' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['regulatory','licences','payments-licensing','fintech-licensing'] then 'regulatory' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['cbdc','stablecoins'] then 'cbdc' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['wallets','super-apps'] then 'wallets' end,
-      case when coalesce(p_topic_ids, '{}'::text[]) && array['deals'] then 'partnerships' end
-    ], null) as values
-    from content
-  )
-  select coalesce(array(select distinct value from flags, unnest(values) value order by value), '{}'::text[])
+  select public.gpir_m40_theme_names(public.gpir_m40_theme_mask(
+    public.gpir_m40_topic_mask_of_ids(p_topic_ids), p_headers, p_title, p_summary))
 $$;
 
 create or replace function public.gpir_m40_region_key(
@@ -106,6 +245,34 @@ as $$
   end from input
 $$;
 
+-- Write-time classification storage. PostgreSQL maintains stored generated columns
+-- on every insert and update, so they can never drift from the authoritative rows.
+alter table public.global_announcements
+  add column if not exists gpir_m40_topic_mask bigint
+    generated always as (public.gpir_m40_topic_mask(topic_headers)) stored;
+alter table public.global_announcements
+  add column if not exists gpir_m40_theme_mask integer
+    generated always as (public.gpir_m40_theme_mask(public.gpir_m40_topic_mask(topic_headers), topic_headers, title, summary_narration)) stored;
+
+-- Covering partial indexes: aggregate and pagination scans run as index-only scans
+-- over approved, published rows without touching wide heap tuples.
+create index if not exists idx_m40_announcements_time_classified
+  on public.global_announcements (published_at desc, id)
+  include (source_id, topic_headers, gpir_m40_topic_mask, gpir_m40_theme_mask)
+  where publication_status = 'approved' and published_at is not null;
+
+create index if not exists idx_m40_announcements_id_classified
+  on public.global_announcements (id)
+  include (published_at, source_id, topic_headers, gpir_m40_topic_mask, gpir_m40_theme_mask)
+  where publication_status = 'approved' and published_at is not null;
+
+create index if not exists idx_m40_intelligence_topics_announcement_geography
+  on public.gpir_intelligence_topics (announcement_id, id)
+  include (geography);
+
+create index if not exists idx_m40_intelligence_topics_geography
+  on public.gpir_intelligence_topics (geography);
+
 -- Retain the earlier seven-argument M40 draft as a compatibility overload. The Edge
 -- function calls only this ten-argument contract, so no dependency needs to be dropped.
 create or replace function public.gpir_m40_repository_query_v2(
@@ -122,9 +289,14 @@ create or replace function public.gpir_m40_repository_query_v2(
 ) returns jsonb
 language plpgsql stable security invoker
 set search_path = public, pg_temp
+set work_mem = '64MB'
 as $$
 declare
   v_result jsonb;
+  v_total integer;
+  v_records jsonb;
+  v_topic_filter bigint;
+  v_theme_filter integer;
   v_topics constant text[] := array['regulatory','licences','cross-border','real-time','infrastructure','remittances','wallets','aml','fraud','cbdc','stablecoins','deals','payments','fintech','global-regional-fintech','pass','taas','saas','caas','baas','pobo','cobo','global-aggregators','regional-aggregators','payments-licensing','fintech-licensing','corporate-payments','diaspora-payments','immigrant-payments','migrant-movements','money-movements','super-apps','bnpl','apm','cards-money-movements','payment-gateways'];
   v_themes constant text[] := array['cross-border','real-time','infrastructure','ai','agentic','web3','aml','fraud','regulatory','cbdc','wallets','partnerships'];
 begin
@@ -140,73 +312,146 @@ begin
   end if;
 
   if p_kind = 'announcements' then
-    with base as materialized (
-      select a.id, a.title, a.canonical_url, a.source_id, a.published_at,
-             a.topic_headers, coalesce(a.topic_headers[1],'Payments') as category,
-             s.source_name, s.trust_tier, s.country, s.region_tags,
-             coalesce(t.geography,'UNSPECIFIED') as geography,
-             public.gpir_m40_topic_ids(a.topic_headers) as topic_ids,
-             a.summary_narration
+    v_topic_filter := case when p_topics is null then null else
+      (select coalesce(bit_or(1::bigint << d.bit_position), 0) from public.gpir_m40_topic_dictionary() d where d.topic_id = any(p_topics)) end;
+    v_theme_filter := case when p_themes is null then null else
+      (select coalesce(bit_or(1 << d.bit_position), 0) from public.gpir_m40_theme_dictionary() d where d.theme_id = any(p_themes)) end;
+
+    -- Preserve the existing joined-row pagination and geography semantics.
+    with page as (
+      select a.id, a.published_at, a.source_id, a.topic_headers,
+             a.gpir_m40_topic_mask as topic_mask, a.gpir_m40_theme_mask as theme_mask,
+             coalesce(t.geography, 'UNSPECIFIED') as geography,
+             public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) as region_key
       from public.global_announcements a
       join public.source_registry s on s.source_id = a.source_id and s.source_status = 'GREEN'
       left join public.gpir_intelligence_topics t on t.announcement_id = a.id
       where a.publication_status = 'approved' and a.published_at is not null
         and (p_start is null or a.published_at >= p_start)
         and (p_end is null or a.published_at < p_end)
-    ), classified as materialized (
-      select b.*, public.gpir_m40_theme_ids(b.topic_ids,b.topic_headers,b.title,b.summary_narration) as theme_ids,
-             public.gpir_m40_region_key(b.geography,b.country,b.region_tags) as region_key
-      from base b
-    ), eligible as materialized (
-      select *, coalesce((select x from unnest(array['agentic','ai','web3','cbdc','aml','fraud','regulatory','real-time','cross-border','infrastructure','wallets','partnerships']) x where x = any(theme_ids) limit 1),'other') as primary_theme
-      from classified
-      where (p_topics is null or topic_ids && p_topics)
-        and (p_themes is null or theme_ids && p_themes)
-        and (p_categories is null or category = any(p_categories))
-        and (p_region is null or region_key = p_region
-             or (p_region = 'americas' and region_key in ('na','latam'))
-             or (p_region = 'mea' and region_key in ('gcc','afr')))
-        and (p_query is null or concat_ws(' ',title,summary_narration,category) ilike '%' || p_query || '%')
-    ), aggregate as (
-      select count(*)::integer as total,
-        coalesce((select jsonb_object_agg(category,n order by category) from (select category,count(*)::integer n from eligible group by category) x),'{}'::jsonb) categories,
-        coalesce((select jsonb_object_agg(topic,n order by topic) from (select topic,count(*)::integer n from eligible e cross join lateral unnest(e.topic_ids) topic group by topic) x),'{}'::jsonb) topics,
-        coalesce((select jsonb_object_agg(theme,n order by theme) from (select theme,count(*)::integer n from eligible e cross join lateral unnest(e.theme_ids) theme group by theme) x),'{}'::jsonb) themes,
-        coalesce((select jsonb_object_agg(primary_theme,n order by primary_theme) from (select primary_theme,count(*)::integer n from eligible group by primary_theme) x),'{}'::jsonb) primary_themes,
-        coalesce((select jsonb_object_agg(region_key,n order by region_key) from (select region_key,count(*)::integer n from eligible group by region_key) x),'{}'::jsonb) regions,
-        coalesce((select jsonb_object_agg(bucket,n order by bucket) from (select published_at::date::text bucket,count(*)::integer n from eligible group by 1) x),'{}'::jsonb) daily,
-        coalesce((select jsonb_object_agg(bucket,n order by bucket) from (select date_trunc('week',published_at)::date::text bucket,count(*)::integer n from eligible group by 1) x),'{}'::jsonb) weekly,
-        coalesce((select jsonb_object_agg(bucket,n order by bucket) from (select to_char(date_trunc('month',published_at),'YYYY-MM') bucket,count(*)::integer n from eligible group by 1) x),'{}'::jsonb) monthly,
-        coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
-          select bucket,jsonb_object_agg(theme,n order by theme) theme_counts from (
-            select published_at::date::text bucket,theme,count(*)::integer n from eligible e cross join lateral unnest(e.theme_ids) theme group by 1,2
-          ) d group by bucket) x),'{}'::jsonb) daily_themes,
-        coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
-          select bucket,jsonb_object_agg(theme,n order by theme) theme_counts from (
-            select date_trunc('week',published_at)::date::text bucket,theme,count(*)::integer n from eligible e cross join lateral unnest(e.theme_ids) theme group by 1,2
-          ) d group by bucket) x),'{}'::jsonb) weekly_themes,
-        coalesce((select jsonb_object_agg(region_key,theme_counts order by region_key) from (
-          select region_key,jsonb_object_agg(theme,n order by theme) theme_counts from (
-            select region_key,theme,count(*)::integer n from eligible e cross join lateral unnest(e.theme_ids) theme group by 1,2
-          ) d group by region_key) x),'{}'::jsonb) region_themes,
-        count(*) filter (where cardinality(topic_ids)=0)::integer as unmapped
-      from eligible
+        and (v_topic_filter is null or (a.gpir_m40_topic_mask & v_topic_filter) <> 0)
+        and (v_theme_filter is null or (a.gpir_m40_theme_mask & v_theme_filter) <> 0)
+        and (p_categories is null or coalesce(a.topic_headers[1], 'Payments') = any(p_categories))
+        and (p_query is null or a.id in (
+          select qa.id from public.global_announcements qa
+          where concat_ws(' ', qa.title, qa.summary_narration, coalesce(qa.topic_headers[1], 'Payments')) ilike '%' || p_query || '%'))
+        and (p_region is null
+             or public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) = p_region
+             or (p_region = 'americas' and public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) in ('na','latam'))
+             or (p_region = 'mea' and public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) in ('gcc','afr')))
+      order by a.published_at desc, a.id
+      limit p_limit offset p_offset
     )
-    select jsonb_build_object('status','OK','kind','announcements','total',agg.total,
-      'categories',agg.categories,'topics',agg.topics,'themes',agg.themes,
-      'primaryThemes',agg.primary_themes,'regions',agg.regions,'daily',agg.daily,
-      'weekly',agg.weekly,'monthly',agg.monthly,'dailyThemes',agg.daily_themes,
-      'weeklyThemes',agg.weekly_themes,'regionThemes',agg.region_themes,
-      'unmapped',agg.unmapped,'limit',p_limit,'offset',p_offset,
-      'hasMore',p_offset + p_limit < agg.total,
-      'nextOffset',case when p_offset + p_limit < agg.total then p_offset + p_limit else null end,
-      'records',coalesce((select jsonb_agg(to_jsonb(x) order by x.published_at desc,x.id) from (
-        select id,title,summary_narration as summary,canonical_url,source_id,source_name,trust_tier,published_at,
-               topic_headers,category,country,region_tags,geography,region_key,
-               topic_ids,theme_ids,primary_theme
-        from eligible order by published_at desc,id limit p_limit offset p_offset
-      ) x),'[]'::jsonb))
-    into v_result from aggregate agg;
+    select coalesce(jsonb_agg(to_jsonb(x) order by x.published_at desc, x.id), '[]'::jsonb)
+    into v_records
+    from (
+      select p.id, a.title, a.summary_narration as summary, a.canonical_url, p.source_id,
+             s.source_name, s.trust_tier, p.published_at, p.topic_headers,
+             coalesce(p.topic_headers[1], 'Payments') as category, s.country, s.region_tags,
+             p.geography, p.region_key,
+             public.gpir_m40_topic_names(p.topic_mask) as topic_ids,
+             public.gpir_m40_theme_names(p.theme_mask) as theme_ids,
+             public.gpir_m40_primary_theme(p.theme_mask) as primary_theme
+      from page p
+      join public.global_announcements a on a.id = p.id
+      join public.source_registry s on s.source_id = p.source_id
+    ) x;
+
+      -- Every page carries the same exact aggregate breakdowns.
+      with region_map as materialized (
+        select g.geography, c.country, c.region_tags,
+               public.gpir_m40_region_key(g.geography, nullif(c.country, ''), c.region_tags) as region_key
+        from (select distinct geography from public.gpir_intelligence_topics where geography is not null
+              union select 'UNSPECIFIED') g
+        cross join (select distinct coalesce(country, '') as country, coalesce(region_tags, '{}'::text[]) as region_tags
+                    from public.source_registry where source_status = 'GREEN') c
+      ), base as (
+        select a.id, a.published_at, a.source_id,
+               coalesce(a.topic_headers[1], 'Payments') as category,
+               a.gpir_m40_topic_mask as topic_mask, a.gpir_m40_theme_mask as theme_mask
+        from public.global_announcements a
+        where a.publication_status = 'approved' and a.published_at is not null
+          and (p_start is null or a.published_at >= p_start)
+          and (p_end is null or a.published_at < p_end)
+          and (v_topic_filter is null or (a.gpir_m40_topic_mask & v_topic_filter) <> 0)
+          and (v_theme_filter is null or (a.gpir_m40_theme_mask & v_theme_filter) <> 0)
+          and (p_categories is null or coalesce(a.topic_headers[1], 'Payments') = any(p_categories))
+          and (p_query is null or a.id in (
+            select qa.id from public.global_announcements qa
+            where concat_ws(' ', qa.title, qa.summary_narration, coalesce(qa.topic_headers[1], 'Payments')) ilike '%' || p_query || '%'))
+      ), joined as materialized (
+        select b.published_at, b.category, b.topic_mask, b.theme_mask,
+               coalesce(g.geography, 'UNSPECIFIED') as geography,
+               coalesce(s.country, '') as country, coalesce(s.region_tags, '{}'::text[]) as region_tags
+        from base b
+        join public.source_registry s on s.source_id = b.source_id and s.source_status = 'GREEN'
+        left join public.gpir_intelligence_topics g on g.announcement_id = b.id
+      ), classified as (
+        select b.published_at, b.category, b.topic_mask, b.theme_mask, rm.region_key
+        from joined b
+        join region_map rm on rm.geography = b.geography
+                          and rm.country = b.country
+                          and rm.region_tags = b.region_tags
+        where (p_region is null or rm.region_key = p_region
+               or (p_region = 'americas' and rm.region_key in ('na','latam'))
+               or (p_region = 'mea' and rm.region_key in ('gcc','afr')))
+      ), rollup as materialized (
+        select c.published_at::date as day, c.category, c.region_key,
+               c.topic_mask, c.theme_mask, count(*) as n
+        from classified c
+        group by grouping sets ((c.published_at::date, c.theme_mask),
+                                (c.category, c.region_key, c.topic_mask, c.theme_mask))
+      ), day_rollup as (
+        select day, theme_mask, n from rollup where day is not null
+      ), dim_rollup as (
+        select category, region_key, topic_mask, theme_mask, n from rollup where day is null
+      )
+      select jsonb_build_object('status','OK','kind','announcements',
+        'total',coalesce((select sum(n) from dim_rollup),0)::integer,
+        'categories',coalesce((select jsonb_object_agg(category,n order by category) from (
+          select category,sum(n)::integer n from dim_rollup group by category) x),'{}'::jsonb),
+        'topics',coalesce((select jsonb_object_agg(topic_id,n order by topic_id) from (
+          select d.topic_id,sum(r.n)::integer n from dim_rollup r
+          join public.gpir_m40_topic_dictionary() d on r.topic_mask & (1::bigint << d.bit_position) <> 0
+          group by d.topic_id) x),'{}'::jsonb),
+        'themes',coalesce((select jsonb_object_agg(theme_id,n order by theme_id) from (
+          select d.theme_id,sum(r.n)::integer n from dim_rollup r
+          join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+          group by d.theme_id) x),'{}'::jsonb),
+        'primaryThemes',coalesce((select jsonb_object_agg(primary_theme,n order by primary_theme) from (
+          select public.gpir_m40_primary_theme(theme_mask) primary_theme,sum(n)::integer n
+          from dim_rollup group by 1) x),'{}'::jsonb),
+        'regions',coalesce((select jsonb_object_agg(region_key,n order by region_key) from (
+          select region_key,sum(n)::integer n from dim_rollup group by region_key) x),'{}'::jsonb),
+        'daily',coalesce((select jsonb_object_agg(bucket,n order by bucket) from (
+          select day::text bucket,sum(n)::integer n from day_rollup group by 1) x),'{}'::jsonb),
+        'weekly',coalesce((select jsonb_object_agg(bucket,n order by bucket) from (
+          select date_trunc('week',day)::date::text bucket,sum(n)::integer n from day_rollup group by 1) x),'{}'::jsonb),
+        'monthly',coalesce((select jsonb_object_agg(bucket,n order by bucket) from (
+          select to_char(day,'YYYY-MM') bucket,sum(n)::integer n from day_rollup group by 1) x),'{}'::jsonb),
+        'dailyThemes',coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
+          select bucket,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (
+            select r.day::text bucket,d.theme_id,sum(r.n)::integer n from day_rollup r
+            join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+            group by 1,2) i group by bucket) x),'{}'::jsonb),
+        'weeklyThemes',coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
+          select bucket,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (
+            select date_trunc('week',r.day)::date::text bucket,d.theme_id,sum(r.n)::integer n from day_rollup r
+            join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+            group by 1,2) i group by bucket) x),'{}'::jsonb),
+        'regionThemes',coalesce((select jsonb_object_agg(region_key,theme_counts order by region_key) from (
+          select region_key,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (
+            select r.region_key,d.theme_id,sum(r.n)::integer n from dim_rollup r
+            join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+            group by 1,2) i group by region_key) x),'{}'::jsonb),
+        'unmapped',coalesce((select sum(n) from dim_rollup where topic_mask = 0),0)::integer)
+      into v_result;
+      v_total := (v_result->>'total')::integer;
+
+    v_result := v_result || jsonb_build_object('limit',p_limit,'offset',p_offset,
+      'hasMore',p_offset + p_limit < v_total,
+      'nextOffset',case when p_offset + p_limit < v_total then p_offset + p_limit else null end,
+      'records',v_records);
   else
     with eligible as materialized (
       select i.id,i.source_id,i.raw_title as title,i.canonical_url,
@@ -262,13 +507,29 @@ begin
   return v_result;
 end $$;
 
+revoke all on function public.gpir_m40_topic_dictionary() from public,anon,authenticated;
+revoke all on function public.gpir_m40_theme_dictionary() from public,anon,authenticated;
 revoke all on function public.gpir_m40_topic_ids(text[]) from public,anon,authenticated;
 revoke all on function public.gpir_m40_theme_ids(text[],text[],text,text) from public,anon,authenticated;
 revoke all on function public.gpir_m40_region_key(text,text,text[]) from public,anon,authenticated;
+revoke all on function public.gpir_m40_topic_mask(text[]) from public,anon,authenticated;
+revoke all on function public.gpir_m40_theme_mask(bigint,text[],text,text) from public,anon,authenticated;
+revoke all on function public.gpir_m40_topic_mask_of_ids(text[]) from public,anon,authenticated;
+revoke all on function public.gpir_m40_topic_names(bigint) from public,anon,authenticated;
+revoke all on function public.gpir_m40_theme_names(integer) from public,anon,authenticated;
+revoke all on function public.gpir_m40_primary_theme(integer) from public,anon,authenticated;
 revoke all on function public.gpir_m40_repository_query_v2(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer) from public,anon,authenticated;
+grant execute on function public.gpir_m40_topic_dictionary() to service_role;
+grant execute on function public.gpir_m40_theme_dictionary() to service_role;
 grant execute on function public.gpir_m40_topic_ids(text[]) to service_role;
 grant execute on function public.gpir_m40_theme_ids(text[],text[],text,text) to service_role;
 grant execute on function public.gpir_m40_region_key(text,text,text[]) to service_role;
+grant execute on function public.gpir_m40_topic_mask(text[]) to service_role;
+grant execute on function public.gpir_m40_theme_mask(bigint,text[],text,text) to service_role;
+grant execute on function public.gpir_m40_topic_mask_of_ids(text[]) to service_role;
+grant execute on function public.gpir_m40_topic_names(bigint) to service_role;
+grant execute on function public.gpir_m40_theme_names(integer) to service_role;
+grant execute on function public.gpir_m40_primary_theme(integer) to service_role;
 grant execute on function public.gpir_m40_repository_query_v2(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer) to service_role;
 
 -- The production advisor reports the source_id foreign key as unindexed. This partial

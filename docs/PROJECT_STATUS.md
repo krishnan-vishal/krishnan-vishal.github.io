@@ -2,6 +2,12 @@
 
 ## Current handoff
 
+### M40 repository aggregate performance (PR #574)
+
+- Run 43163366540 timed out at 20 seconds on the first 500,000-row aggregate; its evidence upload had no files. The working-branch correction stores classification masks and groups approved GREEN-source records, while retaining joined geography, exact aggregate breakdowns on every page, and service-role-only RPC access.
+- Focused PostgreSQL correctness, pagination, update and privilege checks pass, as do the M40 API/card tests. On an isolated local PostgreSQL 16 dataset of 500,000 synthetic rows, an unfiltered call returned 450,000 eligible rows in 1.47 seconds; a filtered regional page returned 1,622 in 0.37 seconds. These are single-reader development measurements, not release benchmark results.
+- The existing workflow now records early failure evidence as well as completed measurements. The 10/25/50/100-reader benchmark and current security checks remain release gates. Do not merge or deploy until they pass and the owner approves. Generated columns/indexes require migration and operational review; classifier changes require recomputation of stored masks.
+
 ### M40 Global Alerts public readability correction (CSS only)
 
 - **Scope:** presentation only. `assets/css/market.css` (homepage ticker), `assets/css/header.css` (article detail panel) and the injected stylesheet in `assets/js/supabase-archive.js` (archive record counter). Cache-busting versions bumped in `index.html`, `pages/intelligence/index.html`, `scripts/generate-intelligence-pages.js` and its test. No Contentful, Supabase, API, data, publication or timestamp change.

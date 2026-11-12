@@ -9,6 +9,19 @@ const artifactRoot = path.resolve('benchmark-artifacts/m40');
 const planRoot = path.join(artifactRoot, 'plans');
 mkdirSync(planRoot, { recursive: true });
 
+const measurements = [];
+let stage = 'initialization';
+function writeFailure(error) {
+    const message = error?.stack || String(error);
+    writeFileSync(path.join(artifactRoot, 'benchmark-results.json'), JSON.stringify({
+        status: 'FAIL', generatedAt: new Date().toISOString(), stage, error: message, measurements
+    }, null, 2) + '\n');
+    console.error(message);
+    process.exitCode = 1;
+}
+process.on('uncaughtException', writeFailure);
+process.on('unhandledRejection', writeFailure);
+
 const baseEnv = {
     ...process.env,
     PGCONNECT_TIMEOUT: '5',
@@ -63,8 +76,12 @@ function jsonResult(expression) {
 }
 
 console.log('Preparing isolated M40 benchmark schema...');
+stage = 'schema and data preparation';
 runFile('tests/fixtures/m40-postgres-benchmark-schema.sql');
 runFile('supabase/sql/m40-governed-repository-aggregates-v2.sql');
+stage = 'SQL correctness fixture';
+runFile('tests/fixtures/m40-postgres-correctness.sql');
+stage = 'synthetic data preparation';
 
 runSql(`
 insert into public.source_registry(source_id,source_name,official_url,trust_tier,source_status,country,region_tags,category)
@@ -121,6 +138,7 @@ analyze public.gpir_intelligence_topics;
 const rowCount = Number(runSql('select count(*) from public.global_announcements;'));
 assert.equal(rowCount, 500000, 'benchmark must contain exactly 500,000 governed records');
 
+stage = 'correctness';
 const full = jsonResult(rpc({ limit: 10 }));
 const total = full.total;
 const middleOffset = Math.floor(total / 20) * 10;
@@ -253,8 +271,10 @@ async function runWave(group, concurrency, queries) {
 }
 
 console.log('Warming representative query paths...');
+stage = 'warmup';
 for (const expression of [...dashboardQueries,...cardQueries,...historicalQueries]) await invoke(expression);
 
+stage = 'query plans';
 const plans = {
     dashboardSingle24h:dashboardQueries[0],
     dashboardMultiMonthlyRegion:dashboardQueries[1],
@@ -271,14 +291,18 @@ for (const [name,expression] of Object.entries(plans)) {
     writeFileSync(path.join(planRoot,`${name}.json`),plan+'\n');
 }
 
-const measurements = [];
 for (const concurrency of [10,25,50,100]) {
+    stage = `measurements: ${concurrency} readers`;
     measurements.push(await runWave('dashboardAggregates',concurrency,dashboardQueries));
     measurements.push(await runWave('filteredSmartCards',concurrency,cardQueries));
     measurements.push(await runWave('historicalPagination',concurrency,historicalQueries));
+    writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify({
+        status:'IN_PROGRESS',generatedAt:new Date().toISOString(),stage,measurements
+    },null,2)+'\n');
     console.log(`Completed concurrency ${concurrency}`);
 }
 
+stage = 'report';
 const rounded = value => value === null ? null : Math.round(value*100)/100;
 for (const measurement of measurements) {
     for (const key of ['p50Ms','p95Ms','throughputRps','wallMs']) measurement[key]=rounded(measurement[key]);
