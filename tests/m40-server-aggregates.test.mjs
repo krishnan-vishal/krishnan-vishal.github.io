@@ -76,3 +76,33 @@ test('M40 rejects invalid filters before calling repository and fails closed on 
   assert.equal(failed.status,503);
   assert.equal((await failed.json()).code,'AGGREGATE_UNAVAILABLE');
 });
+
+
+test('M40 records-only history is service-role routed without inventing aggregate totals', async () => {
+  let calls=0;
+  const handler=createPublicIntelligenceHandler({env,fetchImpl:async (url,init)=>{
+    calls++;
+    assert.match(url,/\/rpc\/gpir_m40_repository_records_v1$/);
+    assert.equal(init.headers.get('authorization'),'Bearer test-only-server-secret');
+    assert.equal(JSON.parse(init.body).p_offset,225000);
+    return {ok:true,json:async()=>({status:'OK',kind:'announcements',limit:10,offset:225000,
+      hasMore:true,records:[{id:'governed-record'}]})};
+  }});
+  const response=await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=history-records&kind=announcements&limit=10&offset=225000'));
+  assert.equal(response.status,200);
+  const data=await response.json();
+  assert.equal(data.records[0].id,'governed-record');
+  assert.equal(Object.hasOwn(data,'total'),false);
+  assert.equal(calls,1);
+});
+
+test('M40 history-records rejects unsupported kinds and fails closed on RPC failure',async()=>{
+  let calls=0;
+  const handler=createPublicIntelligenceHandler({env,fetchImpl:async()=>{calls++;return {ok:false,status:503}}});
+  const bad=await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=history-records&kind=statistics'));
+  assert.equal(bad.status,400);
+  assert.equal(calls,0);
+  const failed=await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?view=history-records'));
+  assert.equal(failed.status,503);
+  assert.equal((await failed.json()).code,'HISTORY_UNAVAILABLE');
+});
