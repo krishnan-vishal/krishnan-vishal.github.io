@@ -71,6 +71,11 @@ function historyRpc(offset, limit = 10) {
     return `public.gpir_m40_repository_records_v1('announcements',null,null,null,null,null,null,null,${limit},${offset})`;
 }
 
+function cursorRpc(afterTime = null, afterId = null, limit = 10) {
+    const ts = afterTime === null ? 'null' : `'${afterTime}'::timestamptz`;
+    const id = afterId === null ? 'null' : `'${afterId}'::uuid`;
+    return `public.gpir_m40_repository_cursor_v1('announcements',null,null,null,null,null,null,null,${limit},${ts},${id})`;
+}
 function serviceQuery(expression, timeout = '20s') {
     return `set statement_timeout=${sqlString(timeout)}; set role service_role; select ${expression};`;
 }
@@ -221,6 +226,17 @@ const cardQueries = [
 ];
 const historicalQueries = [historyRpc(0), historyRpc(middleOffset), historyRpc(finalOffset)];
 
+const cursorAnchors = [null, middleOffset, finalOffset].map(offset => {
+    if (offset === null) return [null,null];
+    const row = JSON.parse(runSql(`select row_to_json(x)::text from (
+      select a.published_at, a.id from public.global_announcements a
+      join public.source_registry s on s.source_id=a.source_id and s.source_status='GREEN'
+      where a.publication_status='approved' and a.published_at is not null
+      order by a.published_at desc,a.id limit 1 offset ${offset-1}) x;`));
+    return [row.published_at,row.id];
+});
+const cursorQueries = cursorAnchors.map(([ts,id])=>cursorRpc(ts,id));
+
 function invoke(expression) {
     return new Promise(resolve => {
         const started = performance.now();
@@ -282,7 +298,7 @@ async function runWave(group, concurrency, queries) {
 
 console.log('Warming representative query paths...');
 stage = 'warmup';
-for (const expression of [...dashboardQueries,...cardQueries,...historicalQueries]) await invoke(expression);
+for (const expression of [...dashboardQueries,...cardQueries,...historicalQueries,...cursorQueries]) await invoke(expression);
 
 stage = 'query plans';
 const plans = {
@@ -293,7 +309,8 @@ const plans = {
     cardsFilteredMonthly:cardQueries[1],
     paginationFirst:historicalQueries[0],
     paginationMiddle:historicalQueries[1],
-    paginationFinal:historicalQueries[2]
+    paginationFinal:historicalQueries[2],
+    cursorFirst:cursorQueries[0],cursorMiddle:cursorQueries[1],cursorFinal:cursorQueries[2]
 };
 for (const [name,expression] of Object.entries(plans)) {
     const plan = runSql(`set statement_timeout='60s'; set role service_role;
@@ -306,6 +323,7 @@ for (const concurrency of [10,25,50,100]) {
     measurements.push(await runWave('dashboardAggregates',concurrency,dashboardQueries));
     measurements.push(await runWave('filteredSmartCards',concurrency,cardQueries));
     measurements.push(await runWave('historicalPagination',concurrency,historicalQueries));
+    measurements.push(await runWave('historicalCursor',concurrency,cursorQueries));
     writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify({
         status:'IN_PROGRESS',generatedAt:new Date().toISOString(),stage,measurements
     },null,2)+'\n');
@@ -317,7 +335,7 @@ const rounded = value => value === null ? null : Math.round(value*100)/100;
 for (const measurement of measurements) {
     for (const key of ['p50Ms','p95Ms','throughputRps','wallMs']) measurement[key]=rounded(measurement[key]);
 }
-const groupTargets = {dashboardAggregates:3000,filteredSmartCards:3000,historicalPagination:5000};
+const groupTargets = {dashboardAggregates:3000,filteredSmartCards:3000,historicalPagination:5000,historicalCursor:5000};
 const failures = measurements.filter(item => item.errors || item.p95Ms === null || item.p95Ms>groupTargets[item.group]);
 const environment = JSON.parse(runSql(`select json_build_object(
     'version',version(),'maxConnections',current_setting('max_connections'),
