@@ -810,6 +810,81 @@ export async function initializeSmartIntelligence({ global = window,
     }
   };
   void refreshGovernedSummary();
+  // Bounded governed Smart Card evidence is independent of the historical chart preview.
+  const cardsPanel = document.createElement('section');
+  cardsPanel.className = 'smi-governed-cards';
+  cardsPanel.setAttribute('aria-live', 'polite');
+  root.prepend(cardsPanel);
+  let cardsSequence = 0;
+  let cardsOffset = 0;
+  const renderGovernedCards = async (nextOffset = 0) => {
+    const sequence = ++cardsSequence;
+    cardsOffset = nextOffset;
+    const bounds = periodBounds(state.period, now(), state.customStart, state.customEnd);
+    const query = new URLSearchParams({
+      view:'cards',kind:'announcements',start:new Date(bounds.start).toISOString(),
+      end:new Date(bounds.end).toISOString(),limit:'10',offset:String(cardsOffset)
+    });
+    // Only use exact governed topic-header mappings. Never silently treat a taxonomy ID
+    // as an exact source category or claim unsupported selections are complete.
+    const topicHeaders = {
+      regulatory:['Regulation','REGULATION'], 'cross-border':['Cross-Border Payments','CROSS_BORDER_PAYMENTS'],
+      'real-time':['Real-Time Payments'],infrastructure:['Payments Infrastructure'],
+      cbdc:['Digital Money'],stablecoins:['STABLECOINS_DIGITAL_ASSETS'],
+      payments:['PAYMENTS']
+    };
+    const selectedTopics = [...state.topics];
+    if (selectedTopics.some(topic => !topicHeaders[topic]) || state.themes.size ||
+        state.geography !== 'all') {
+      cardsPanel.textContent = 'Exact Smart Card evidence for this topic, theme or geography selection is not yet mapped to governed source classifications. No partial count is presented.';
+      return;
+    }
+    selectedTopics.flatMap(topic => topicHeaders[topic]).forEach(topic => query.append('topic',topic));
+    cardsPanel.textContent = 'Loading exact governed Smart Card evidence…';
+    try {
+      const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?${query}`,
+        {cache:'no-store',headers:{accept:'application/json'}});
+      if (!response.ok) throw new Error('CARDS_UNAVAILABLE');
+      const payload = await response.json();
+      if (payload.status !== 'OK' || !Number.isInteger(payload.total) || !Array.isArray(payload.records))
+        throw new Error('CARDS_INVALID');
+      if (sequence !== cardsSequence) return;
+      const heading = document.createElement('h2');
+      heading.textContent = `Governed Smart Card evidence — ${payload.total.toLocaleString()} exact matches`;
+      const list = document.createElement('div');
+      for (const record of payload.records) {
+        const article = document.createElement('article');
+        const title = document.createElement('strong');
+        title.textContent = record.title || 'Verified development';
+        article.append(title);
+        const link = safeHttps(record.canonical_url);
+        if (link) {
+          const anchor = document.createElement('a');
+          anchor.href = link;
+          anchor.textContent = ' Read source';
+          anchor.rel = 'noopener noreferrer';
+          article.append(anchor);
+        }
+        list.append(article);
+      }
+      const controls = document.createElement('div');
+      const previous = document.createElement('button');
+      previous.type = 'button';
+      previous.textContent = 'Previous';
+      previous.disabled = cardsOffset === 0;
+      previous.addEventListener('click', () => { void renderGovernedCards(Math.max(0,cardsOffset-10)); });
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.textContent = 'Next';
+      next.disabled = cardsOffset + payload.records.length >= payload.total;
+      next.addEventListener('click', () => { void renderGovernedCards(cardsOffset+10); });
+      controls.append(previous,next);
+      cardsPanel.replaceChildren(heading,list,controls);
+    } catch {
+      if (sequence === cardsSequence) cardsPanel.textContent = 'Governed Smart Card evidence is temporarily unavailable; no records have been inferred.';
+    }
+  };
+  void renderGovernedCards();
   const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
     fetchHistory(fetchImpl, origin, { maxPages: 1 }),
     livePromise,
@@ -866,6 +941,7 @@ export async function initializeSmartIntelligence({ global = window,
 
   const render = () => {
     void refreshGovernedSummary();
+    void renderGovernedCards();
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
     const industry = executiveRecords();
