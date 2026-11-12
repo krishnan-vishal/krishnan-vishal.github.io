@@ -1,0 +1,61 @@
+name: M40 PostgreSQL performance benchmark
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m40-postgres-benchmark-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --shm-size 1g
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Configure bounded benchmark capacity
+        run: |
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "alter system set max_connections = 160;"
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "alter system set shared_buffers = '512MB';"
+          docker restart "${{ job.services.postgres.id }}"
+          for attempt in {1..30}; do pg_isready -h localhost -U postgres && exit 0; sleep 2; done
+          exit 1
+
+      - name: Run 500,000-record benchmark
+        run: node tests/m40-postgres-benchmark.mjs
+
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m40-postgres-benchmark-${{ github.run_id }}
+          path: benchmark-artifacts/m40/
+          if-no-files-found: error
+          retention-days: 14

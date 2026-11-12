@@ -1,5 +1,5 @@
 import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
-import { buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
+import { TOPIC_TAXONOMY, buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
 import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
@@ -12,6 +12,14 @@ export const HYPERSWITCH_SOURCE_ID = 'HYPERSWITCH-OSS-001';
 export const REFERENCE_SOURCE_IDS = Object.freeze([
   BIS_SOURCE_ID, RPW_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
 ]);
+export const M40_THEME_IDS = Object.freeze([
+  'cross-border', 'real-time', 'infrastructure', 'ai', 'agentic', 'web3',
+  'aml', 'fraud', 'regulatory', 'cbdc', 'wallets', 'partnerships'
+]);
+export const M40_REGION_IDS = Object.freeze([
+  'global', 'apac', 'europe', 'americas', 'mea', 'na', 'latam', 'gcc', 'afr', 'unclassified'
+]);
+export const M40_TOPIC_IDS = Object.freeze(TOPIC_TAXONOMY.map(topic => topic.id));
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
 const DEFAULT_ORIGINS = Object.freeze([
@@ -389,20 +397,39 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
     }
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
-    // Existing topicContext entitlement check above must run before any aggregate access.
-    if (requestUrl.searchParams.get('view') === 'cards') {
+    // Both views use one RPC contract, so dashboard totals and Smart Card pages cannot drift.
+    const m40View = requestUrl.searchParams.get('view');
+    if (m40View === 'cards' || m40View === 'aggregate') {
       if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
       const kind = requestUrl.searchParams.get('kind') || 'announcements';
       const topics = requestUrl.searchParams.getAll('topic');
+      const themes = requestUrl.searchParams.getAll('theme');
+      const categories = requestUrl.searchParams.getAll('category');
       const region = requestUrl.searchParams.get('region') || null;
-      const start = requestUrl.searchParams.get('start') || null;
-      const end = requestUrl.searchParams.get('end') || null;
-      if (!['announcements','statistics'].includes(kind) || topics.length > 24 ||
-          topics.some(v => !v || v.length > 120 || /[<>]/.test(v)) ||
-          (region && (region.length > 120 || /[<>]/.test(region))) ||
-          [start,end].some(v => v && (!/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/.test(v) || !Number.isFinite(Date.parse(v)))) ||
-          (start && end && Date.parse(start) >= Date.parse(end)) || offset > 1000000)
-        return response(400,{status:'ERROR',code:'INVALID_CARD_FILTER'},origin,env);
+      const query = String(requestUrl.searchParams.get('q') || '').trim() || null;
+      let start = requestUrl.searchParams.get('start') || null;
+      let end = requestUrl.searchParams.get('end') || null;
+      const from = requestUrl.searchParams.get('from');
+      const to = requestUrl.searchParams.get('to');
+      if (!start && /^\d{4}-\d{2}-\d{2}$/.test(from || '')) start = `${from}T00:00:00.000Z`;
+      if (!end && /^\d{4}-\d{2}-\d{2}$/.test(to || '')) end = new Date(Date.parse(`${to}T00:00:00.000Z`) + 86400000).toISOString();
+      const rawLimit = Number(requestUrl.searchParams.get('limit') || 25);
+      const rawOffset = Number(requestUrl.searchParams.get('offset') || 0);
+      const validTimestamp = value => value === null || (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)));
+      const safeList = (values, maximum) => values.length <= maximum && values.every(value =>
+        value && value.length <= 120 && !/[<>\u0000-\u001f\u007f-\u009f]/.test(value));
+      if (!['announcements','statistics'].includes(kind) || !safeList(topics,24) ||
+          !safeList(themes,12) || !safeList(categories,24) ||
+          topics.some(value => !M40_TOPIC_IDS.includes(value)) ||
+          themes.some(value => !M40_THEME_IDS.includes(value)) ||
+          (region && !M40_REGION_IDS.includes(region)) ||
+          (query && (query.length > 120 || /[<>\u0000-\u001f\u007f-\u009f]/.test(query))) ||
+          !validTimestamp(start) || !validTimestamp(end) ||
+          (start && end && Date.parse(start) >= Date.parse(end)) ||
+          !Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 100 ||
+          !Number.isInteger(rawOffset) || rawOffset < 0 || rawOffset > 1000000 ||
+          (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) || (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)))
+        return response(400,{status:'ERROR',code:m40View === 'cards' ? 'INVALID_CARD_FILTER' : 'INVALID_AGGREGATE_FILTER'},origin,env);
       try {
         const headers = new Headers();
         headers.set('apikey', config.key);
@@ -411,47 +438,21 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         headers.set('accept', 'application/json');
         const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query_v2`, {
           method:'POST', headers, body:JSON.stringify({
-            p_kind:kind,p_topics:topics.length ? topics : null,p_region:region,
-            p_start:start,p_end:end,p_limit:Math.min(limit,100),p_offset:offset
+            p_kind:kind,p_topics:topics.length ? topics : null,
+            p_themes:themes.length ? themes : null,p_categories:categories.length ? categories : null,
+            p_region:region,p_query:query,p_start:start,p_end:end,p_limit:rawLimit,p_offset:rawOffset
           })
         });
-        if (!result.ok) throw new Error('CARD_RPC_UNAVAILABLE');
+        if (!result.ok) throw new Error('M40_RPC_UNAVAILABLE');
         const data = await result.json();
-        if (data?.status !== 'OK' || !Array.isArray(data.records) || !Number.isInteger(data.total))
-          throw new Error('CARD_CONTRACT_INVALID');
+        const objects = ['categories','topics','themes','primaryThemes','regions','daily','weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
+        if (data?.status !== 'OK' || data.kind !== kind || !Array.isArray(data.records) ||
+            !Number.isInteger(data.total) || !Number.isInteger(data.limit) || !Number.isInteger(data.offset) ||
+            typeof data.hasMore !== 'boolean' || objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key])))
+          throw new Error('M40_CONTRACT_INVALID');
         return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env);
       } catch {
-        return response(503,{status:'ERROR',code:'CARDS_UNAVAILABLE'},origin,env);
-      }
-    }
-    if (requestUrl.searchParams.get('view') === 'aggregate') {
-      if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
-      const kind = requestUrl.searchParams.get('kind') || 'announcements';
-      const topic = requestUrl.searchParams.get('topic') || null;
-      const region = requestUrl.searchParams.get('region') || null;
-      const from = requestUrl.searchParams.get('from') || null;
-      const to = requestUrl.searchParams.get('to') || null;
-      if (!['announcements', 'statistics'].includes(kind) ||
-          [topic,region].some(value => value && (value.length > 120 || /[<>]/.test(value))) ||
-          [from,to].some(value => value && !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) ||
-          offset > 1000000) return response(400,{status:'ERROR',code:'INVALID_AGGREGATE_FILTER'},origin,env);
-      try {
-        const headers = new Headers();
-        headers.set('apikey', config.key);
-        headers.set('authorization', `Bearer ${config.key}`);
-        headers.set('content-type', 'application/json');
-        headers.set('accept', 'application/json');
-        const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query`, {
-          method: 'POST', headers, body: JSON.stringify({ p_kind: kind, p_topic: topic, p_region: region,
-            p_from: from, p_to: to, p_limit: Math.min(limit, 100), p_offset: offset })
-        });
-        if (!result.ok) throw new Error('AGGREGATE_RPC_UNAVAILABLE');
-        const data = await result.json();
-        if (data?.status !== 'OK' || !Array.isArray(data.records) || !Number.isInteger(data.total))
-          throw new Error('AGGREGATE_CONTRACT_INVALID');
-        return response(200, { ...data, generatedAt: new Date(requestNow).toISOString() }, origin, env);
-      } catch {
-        return response(503,{status:'ERROR',code:'AGGREGATE_UNAVAILABLE'},origin,env);
+        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
       }
     }
     try {
