@@ -399,7 +399,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
     // Both views use one RPC contract, so dashboard totals and Smart Card pages cannot drift.
     const m40View = requestUrl.searchParams.get('view');
-    if (m40View === 'cards' || m40View === 'aggregate' || m40View === 'history-records') {
+    if (m40View === 'cards' || m40View === 'aggregate' || m40View === 'history-records' || m40View === 'history-cursor') {
       if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
       const kind = requestUrl.searchParams.get('kind') || 'announcements';
       const topics = requestUrl.searchParams.getAll('topic');
@@ -430,34 +430,41 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           !Number.isInteger(rawOffset) || rawOffset < 0 || rawOffset > 1000000 ||
           (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) || (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)))
         return response(400,{status:'ERROR',code:m40View === 'cards' ? 'INVALID_CARD_FILTER' : 'INVALID_AGGREGATE_FILTER'},origin,env);
-      if (m40View === 'history-records' && kind !== 'announcements')
+      if ((m40View === 'history-records' || m40View === 'history-cursor') && kind !== 'announcements')
         return response(400,{status:'ERROR',code:'INVALID_HISTORY_KIND'},origin,env);
+      const afterTime = requestUrl.searchParams.get('afterTime');
+      const afterId = requestUrl.searchParams.get('afterId');
+      if (m40View === 'history-cursor' && ((afterTime === null) !== (afterId === null) ||
+          (afterTime !== null && (!validTimestamp(afterTime) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(afterId)))))
+        return response(400,{status:'ERROR',code:'INVALID_HISTORY_CURSOR'},origin,env);
       try {
         const headers = new Headers();
         headers.set('apikey', config.key);
         headers.set('authorization', `Bearer ${config.key}`);
         headers.set('content-type', 'application/json');
         headers.set('accept', 'application/json');
-        const rpcName = m40View === 'history-records' ? 'gpir_m40_repository_records_v1' : 'gpir_m40_repository_query_v2';
+        const rpcName = m40View === 'history-cursor' ? 'gpir_m40_repository_cursor_v1' :
+          m40View === 'history-records' ? 'gpir_m40_repository_records_v1' : 'gpir_m40_repository_query_v2';
         const result = await fetchImpl(`${config.url}/rest/v1/rpc/${rpcName}`, {
           method:'POST', headers, body:JSON.stringify({
             p_kind:kind,p_topics:topics.length ? topics : null,
             p_themes:themes.length ? themes : null,p_categories:categories.length ? categories : null,
-            p_region:region,p_query:query,p_start:start,p_end:end,p_limit:rawLimit,p_offset:rawOffset
+            p_region:region,p_query:query,p_start:start,p_end:end,p_limit:rawLimit,
+            ...(m40View === 'history-cursor' ? {p_after_time:afterTime,p_after_id:afterId} : {p_offset:rawOffset})
           })
         });
         if (!result.ok) throw new Error('M40_RPC_UNAVAILABLE');
         const data = await result.json();
         const objects = ['categories','topics','themes','primaryThemes','regions','daily','weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
         if (data?.status !== 'OK' || data.kind !== kind || !Array.isArray(data.records) ||
-            (m40View !== 'history-records' && !Number.isInteger(data.total)) ||
-            !Number.isInteger(data.limit) || !Number.isInteger(data.offset) ||
+            (!['history-records','history-cursor'].includes(m40View) && !Number.isInteger(data.total)) ||
+            !Number.isInteger(data.limit) || (m40View !== 'history-cursor' && !Number.isInteger(data.offset)) ||
             typeof data.hasMore !== 'boolean' ||
-            (m40View !== 'history-records' && objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))))
+            (!['history-records','history-cursor'].includes(m40View) && objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))))
           throw new Error('M40_CONTRACT_INVALID');
         return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env);
       } catch {
-        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : m40View === 'history-records' ? 'HISTORY_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
+        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : ['history-records','history-cursor'].includes(m40View) ? 'HISTORY_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
       }
     }
     try {
