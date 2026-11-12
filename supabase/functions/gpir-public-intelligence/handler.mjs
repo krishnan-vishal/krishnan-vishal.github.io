@@ -399,7 +399,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
     // Both views use one RPC contract, so dashboard totals and Smart Card pages cannot drift.
     const m40View = requestUrl.searchParams.get('view');
-    if (m40View === 'cards' || m40View === 'aggregate') {
+    if (m40View === 'cards' || m40View === 'aggregate' || m40View === 'history-records') {
       if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
       const kind = requestUrl.searchParams.get('kind') || 'announcements';
       const topics = requestUrl.searchParams.getAll('topic');
@@ -430,13 +430,16 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
           !Number.isInteger(rawOffset) || rawOffset < 0 || rawOffset > 1000000 ||
           (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) || (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)))
         return response(400,{status:'ERROR',code:m40View === 'cards' ? 'INVALID_CARD_FILTER' : 'INVALID_AGGREGATE_FILTER'},origin,env);
+      if (m40View === 'history-records' && kind !== 'announcements')
+        return response(400,{status:'ERROR',code:'INVALID_HISTORY_KIND'},origin,env);
       try {
         const headers = new Headers();
         headers.set('apikey', config.key);
         headers.set('authorization', `Bearer ${config.key}`);
         headers.set('content-type', 'application/json');
         headers.set('accept', 'application/json');
-        const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query_v2`, {
+        const rpcName = m40View === 'history-records' ? 'gpir_m40_repository_records_v1' : 'gpir_m40_repository_query_v2';
+        const result = await fetchImpl(`${config.url}/rest/v1/rpc/${rpcName}`, {
           method:'POST', headers, body:JSON.stringify({
             p_kind:kind,p_topics:topics.length ? topics : null,
             p_themes:themes.length ? themes : null,p_categories:categories.length ? categories : null,
@@ -447,12 +450,14 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const data = await result.json();
         const objects = ['categories','topics','themes','primaryThemes','regions','daily','weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
         if (data?.status !== 'OK' || data.kind !== kind || !Array.isArray(data.records) ||
-            !Number.isInteger(data.total) || !Number.isInteger(data.limit) || !Number.isInteger(data.offset) ||
-            typeof data.hasMore !== 'boolean' || objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key])))
+            (m40View !== 'history-records' && !Number.isInteger(data.total)) ||
+            !Number.isInteger(data.limit) || !Number.isInteger(data.offset) ||
+            typeof data.hasMore !== 'boolean' ||
+            (m40View !== 'history-records' && objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))))
           throw new Error('M40_CONTRACT_INVALID');
         return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env);
       } catch {
-        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
+        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : m40View === 'history-records' ? 'HISTORY_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
       }
     }
     try {
