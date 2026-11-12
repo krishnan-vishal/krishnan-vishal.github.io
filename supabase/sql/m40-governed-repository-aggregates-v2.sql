@@ -540,3 +540,89 @@ grant execute on function public.gpir_m40_repository_query_v2(text,text[],text[]
 create index if not exists idx_m40_announcements_approved_time_source
   on public.global_announcements (published_at desc,id,source_id)
   where publication_status='approved' and published_at is not null;
+
+
+-- Bounded records-only path: no repository-wide rollup for historical page requests.
+-- This does not replace the exact aggregate RPC and preserves offset/order semantics.
+create or replace function public.gpir_m40_repository_records_v1(
+  p_kind text default 'announcements',
+  p_topics text[] default null,
+  p_themes text[] default null,
+  p_categories text[] default null,
+  p_region text default null,
+  p_query text default null,
+  p_start timestamptz default null,
+  p_end timestamptz default null,
+  p_limit integer default 25,
+  p_offset integer default 0
+) returns jsonb
+language plpgsql stable security invoker
+set search_path = public, pg_temp
+set work_mem = '64MB'
+as $$
+declare
+  v_records jsonb;
+  v_topic_filter bigint;
+  v_theme_filter integer;
+  v_topics constant text[] := array['regulatory','licences','cross-border','real-time','infrastructure','remittances','wallets','aml','fraud','cbdc','stablecoins','deals','payments','fintech','global-regional-fintech','pass','taas','saas','caas','baas','pobo','cobo','global-aggregators','regional-aggregators','payments-licensing','fintech-licensing','corporate-payments','diaspora-payments','immigrant-payments','migrant-movements','money-movements','super-apps','bnpl','apm','cards-money-movements','payment-gateways'];
+  v_themes constant text[] := array['cross-border','real-time','infrastructure','ai','agentic','web3','aml','fraud','regulatory','cbdc','wallets','partnerships'];
+begin
+  if p_kind <> 'announcements' or p_limit not between 1 and 100
+     or p_offset not between 0 and 1000000
+     or (p_start is not null and p_end is not null and p_start >= p_end)
+     or (p_topics is not null and (cardinality(p_topics) > 24 or not p_topics <@ v_topics))
+     or (p_themes is not null and (cardinality(p_themes) > 12 or not p_themes <@ v_themes))
+     or (p_categories is not null and (cardinality(p_categories) > 24 or exists(select 1 from unnest(p_categories) v where nullif(btrim(v),'') is null or length(v) > 120)))
+     or (p_region is not null and p_region not in ('global','apac','europe','americas','mea','na','latam','gcc','afr','unclassified'))
+     or (p_query is not null and (nullif(btrim(p_query),'') is null or length(p_query) > 120)) then
+    raise exception 'INVALID_QUERY_PARAMETERS' using errcode = '22023';
+  end if;
+  v_topic_filter := case when p_topics is null then null else
+    (select coalesce(bit_or(1::bigint << d.bit_position), 0) from public.gpir_m40_topic_dictionary() d where d.topic_id = any(p_topics)) end;
+  v_theme_filter := case when p_themes is null then null else
+    (select coalesce(bit_or(1 << d.bit_position), 0) from public.gpir_m40_theme_dictionary() d where d.theme_id = any(p_themes)) end;
+    with page as (
+      select a.id, a.published_at, a.source_id, a.topic_headers,
+             a.gpir_m40_topic_mask as topic_mask, a.gpir_m40_theme_mask as theme_mask,
+             coalesce(t.geography, 'UNSPECIFIED') as geography
+      from public.global_announcements a
+      join public.source_registry s on s.source_id = a.source_id and s.source_status = 'GREEN'
+      left join public.gpir_intelligence_topics t on t.announcement_id = a.id
+      where a.publication_status = 'approved' and a.published_at is not null
+        and (p_start is null or a.published_at >= p_start)
+        and (p_end is null or a.published_at < p_end)
+        and (v_topic_filter is null or (a.gpir_m40_topic_mask & v_topic_filter) <> 0)
+        and (v_theme_filter is null or (a.gpir_m40_theme_mask & v_theme_filter) <> 0)
+        and (p_categories is null or coalesce(a.topic_headers[1], 'Payments') = any(p_categories))
+        and (p_query is null or a.id in (
+          select qa.id from public.global_announcements qa
+          where concat_ws(' ', qa.title, qa.summary_narration, coalesce(qa.topic_headers[1], 'Payments')) ilike '%' || p_query || '%'))
+        and (p_region is null
+             or public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) = p_region
+             or (p_region = 'americas' and public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) in ('na','latam'))
+             or (p_region = 'mea' and public.gpir_m40_region_key(coalesce(t.geography, 'UNSPECIFIED'), s.country, s.region_tags) in ('gcc','afr')))
+      order by a.published_at desc, a.id
+      limit p_limit offset p_offset
+    )
+    select coalesce(jsonb_agg(to_jsonb(x) order by x.published_at desc, x.id), '[]'::jsonb)
+    into v_records
+    from (
+      select p.id, a.title, a.summary_narration as summary, a.canonical_url, p.source_id,
+             s.source_name, s.trust_tier, p.published_at, p.topic_headers,
+             coalesce(p.topic_headers[1], 'Payments') as category, s.country, s.region_tags,
+             p.geography,
+             public.gpir_m40_region_key(p.geography, s.country, s.region_tags) as region_key,
+             public.gpir_m40_topic_names(p.topic_mask) as topic_ids,
+             public.gpir_m40_theme_names(p.theme_mask) as theme_ids,
+             public.gpir_m40_primary_theme(p.theme_mask) as primary_theme
+      from page p
+      join public.global_announcements a on a.id = p.id
+      join public.source_registry s on s.source_id = p.source_id
+    ) x;
+
+  return jsonb_build_object('status','OK','kind','announcements','limit',p_limit,'offset',p_offset,
+    'records',v_records,'hasMore',jsonb_array_length(v_records) = p_limit);
+end $$;
+
+revoke all on function public.gpir_m40_repository_records_v1(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer) from public,anon,authenticated;
+grant execute on function public.gpir_m40_repository_records_v1(text,text[],text[],text[],text,text,timestamptz,timestamptz,integer,integer) to service_role;
