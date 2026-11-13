@@ -86,12 +86,13 @@ test('dashboard calculations use all 36 governed topics, equivalent periods and 
   assert.ok(heatmap.rows.some(row => row.counts.some(Boolean)));
 });
 
-test('My GPIR separates public research from paid library and exposes three exact actions', () => {
+test('My GPIR separates public FX research, standalone Smart Intelligence and paid library', () => {
   const records = publicFxResearchRecords(editorialValue);
   assert.equal(records.length, 26);
   const aed = records.find(record => record.pair === 'AED/INR');
   assert.equal(aed.fxIntelligenceUrl, '/pages/fx/pairs/aed-inr.html');
-  assert.equal(aed.smartIntelligenceUrl, '/pages/intelligence/smart.html');
+  assert.equal(aed.smartIntelligenceUrl, undefined);
+  assert.ok(dashboard.includes('/pages/intelligence/smart.html'));
   assert.match(aed.editorialUrl, /^\//);
   assert.match(dashboard, /id="public-research"/);
   assert.match(dashboard, /data-reader-public-research/);
@@ -148,4 +149,41 @@ test('an alert opens a topic-specific view from current and historical repositor
   assert.deepEqual(buildTopicContext(alert, records, now).current.map(item => item.id), ['current']);
   assert.deepEqual(buildTopicContext(alert, records, now).historical.map(item => item.id), ['old']);
   assert.match(page, /data-smart-alert/);
+});
+
+
+test('M40 governed cursor history preserves filters and forwards stable continuation anchors',async()=>{
+  const {fetchM40HistoryCursor}=await import('../../assets/js/smart-intelligence.mjs');
+  const state={topics:new Set(['cross-border']),themes:new Set(['regulatory']),geography:'apac'};
+  const bounds={start:Date.parse('2026-11-01T00:00:00Z'),end:Date.parse('2026-11-12T00:00:00Z')};
+  const anchor={publishedAt:'2026-11-10T10:00:00Z',id:'00000000-0000-4000-8000-000000000001'};
+  let count=0;
+  const fetchImpl=async(url)=>{
+    count++;
+    const query=new URL(url).searchParams;
+    assert.equal(query.get('view'),'history-cursor');
+    assert.equal(query.get('offset'),null);
+    assert.equal(query.get('region'),'apac');
+    assert.deepEqual(query.getAll('topic'),['cross-border']);
+    assert.deepEqual(query.getAll('theme'),['regulatory']);
+    assert.equal(query.get('afterTime'),count===1?null:anchor.publishedAt);
+    assert.equal(query.get('afterId'),count===1?null:anchor.id);
+    return {ok:true,json:async()=>({status:'OK',kind:'announcements',records:[{id:'one'}],
+      hasMore:count===1,nextCursor:count===1?anchor:null})};
+  };
+  const first=await fetchM40HistoryCursor(fetchImpl,'https://fintechoisis.com',state,bounds);
+  assert.deepEqual(first.nextCursor,anchor);
+  const second=await fetchM40HistoryCursor(fetchImpl,'https://fintechoisis.com',state,bounds,first.nextCursor);
+  assert.equal(second.hasMore,false);
+  assert.equal(count,2);
+});
+
+test('M40 cursor rejects malformed or unsuccessful history responses without guessed records',async()=>{
+  const {fetchM40HistoryCursor}=await import('../../assets/js/smart-intelligence.mjs');
+  const state={topics:new Set(),themes:new Set(),geography:'all'};
+  const bounds={start:0,end:Date.now()};
+  await assert.rejects(()=>fetchM40HistoryCursor(async()=>({ok:true,json:async()=>({status:'OK',kind:'announcements',records:[],hasMore:true})}),
+    'https://fintechoisis.com',state,bounds),/M40_HISTORY_INVALID/);
+  await assert.rejects(()=>fetchM40HistoryCursor(async()=>({ok:false}),
+    'https://fintechoisis.com',state,bounds),/M40_HISTORY_UNAVAILABLE/);
 });

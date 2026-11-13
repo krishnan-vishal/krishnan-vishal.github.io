@@ -360,6 +360,87 @@ export function buildExecutiveKpis({ scoped, previous, current, previousCurrent,
   return { themes, total };
 }
 
+function aggregateCount(map, key) {
+  const value = Number(map?.[key] || 0);
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+
+function aggregateRecord(record) {
+  const publishedAt = Date.parse(record?.publishedAt || '');
+  return Number.isFinite(publishedAt) && typeof record?.title === 'string' && record.title && record.url;
+}
+
+// Builds the complete executive dashboard from server aggregates. Individual records are
+// used only for the bounded evidence timeline; no chart or total is derived from that page.
+export function buildServerAggregateModels({ current, previous, trend, records = [], now = Date.now(), period = '8W' }) {
+  const themes = PREMIUM_THEMES.map(theme => {
+    const value = aggregateCount(current?.themes, theme.id);
+    const before = aggregateCount(previous?.themes, theme.id);
+    return { id: theme.id, label: theme.label, short: theme.short, color: theme.color,
+      current: value, previous: before, change: compareCounts(value, before), sources: null };
+  });
+  const featured = EXECUTIVE_THEME_IDS.map(id => themes.find(theme => theme.id === id));
+  const currentTotal = aggregateCount({ total: current?.total }, 'total');
+  const previousTotal = aggregateCount({ total: previous?.total }, 'total');
+  const kpis = {
+    themes: featured.map(item => ({ ...item, icon: item.id, value: item.current })),
+    total: { id: 'total', label: 'Verified Developments', color: '#b8913a', icon: 'pulse',
+      value: currentTotal, previous: previousTotal, change: compareCounts(currentTotal, previousTotal) }
+  };
+  const primary = new Map(Object.entries(current?.primaryThemes || {}).map(([id, count]) => [id, Number(count) || 0]));
+  const distribution = {
+    unique: currentTotal,
+    classifications: Object.values(current?.themes || {}).reduce((sum, count) => sum + (Number(count) || 0), 0),
+    slices: [...PREMIUM_THEMES, OTHER_THEME].filter(theme => primary.get(theme.id))
+      .map(theme => ({ id: theme.id, label: theme.label, short: theme.short, color: theme.color, count: primary.get(theme.id) }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+  };
+  const donut = buildExecutiveDonut(distribution);
+  const mapped = DISPLAY_REGIONS.reduce((sum, region) => sum + aggregateCount(current?.regions, region.key), 0);
+  const regions = DISPLAY_REGIONS.map(region => {
+    const count = aggregateCount(current?.regions, region.key);
+    return { ...region, count, share: mapped ? count / mapped : 0, percent: mapped ? Math.round(count / mapped * 100) : 0 };
+  });
+  const regional = { total: currentTotal, mapped, unmapped: Math.max(0, currentTotal - mapped), regions };
+  const coverage = { total: currentTotal, attributed: mapped, unattributed: Math.max(0, currentTotal - mapped),
+    regions: regions.map(region => ({ key: region.key, label: region.label, count: region.count })), countries: [] };
+  const matrixThemes = EXECUTIVE_THEME_IDS.map(id => themeById(id));
+  const cells = matrixThemes.map(theme => DISPLAY_REGIONS.map(region => ({ themeId: theme.id, regionKey: region.key,
+    count: aggregateCount(current?.regionThemes?.[region.key], theme.id) })));
+  const matrix = { themes: matrixThemes, regions: DISPLAY_REGIONS, cells,
+    max: Math.max(0, ...cells.flat().map(cell => cell.count)), mapped };
+  const lastWeek = utcWeekStart(now);
+  const weeks = Array.from({ length: 8 }, (_, index) => {
+    const start = lastWeek - (7 - index) * 7 * DAY;
+    return { start, short: `W${index + 1}`, date: AXIS_DATE.format(new Date(start)), inProgress: start + 7 * DAY > now };
+  });
+  const trendSeries = EXECUTIVE_THEME_IDS.map(id => {
+    const theme = themeById(id);
+    return { id, label: theme.short, color: theme.color,
+      data: weeks.map(week => aggregateCount(trend?.weeklyThemes?.[isoDay(week.start)], id)) };
+  });
+  const trendModel = { weeks, series: trendSeries, max: Math.max(0, ...trendSeries.flatMap(item => item.data)),
+    total: trendSeries.reduce((sum, item) => sum + item.data.reduce((a, b) => a + b, 0), 0) };
+  const evidence = records.filter(aggregateRecord);
+  const leader = [...featured].sort((left, right) => right.current - left.current)[0];
+  const topRegion = [...regions].sort((left, right) => right.count - left.count)[0];
+  const latest = evidence[0];
+  const summary = [leader?.current
+    ? `${leader.label} leads with ${leader.current} of ${currentTotal} verified developments.`
+    : 'No verified development in this selection matches the four featured themes.',
+    featured.some(item => item.current > item.previous)
+      ? `${[...featured].sort((a,b) => (b.current-b.previous)-(a.current-a.previous))[0].label} has the largest absolute increase versus the preceding period.`
+      : 'No featured theme grew compared with the preceding period.',
+    topRegion?.count ? `${topRegion.label} has the largest regional share: ${topRegion.percent}% of ${mapped} geo-verified developments.`
+      : 'Too few developments carry verified geography to compare regions.',
+    latest ? `Latest: ${latest.title.length > 38 ? `${latest.title.slice(0,35)}…` : latest.title} (${latest.sourceName}, ${isoDay(Date.parse(latest.publishedAt))}).`
+      : 'No verified development is available for the selected period.'
+  ];
+  return { kpis, momentum: featured, allThemes: themes, distribution, donut, regional, coverage, matrix,
+    trend: trendModel, summary, events: buildTimelineEvents(evidence), themeSeries: Object.fromEntries(themes.map(theme => [theme.id,
+      weeks.map(week => aggregateCount(trend?.weeklyThemes?.[isoDay(week.start)], theme.id))])), period };
+}
+
 // Executive Summary sentences are assembled from computed figures only; they never assert more than the counts show.
 export function buildSummaryPoints({ kpis, regional, current, scoped, period }) {
   const points = [];

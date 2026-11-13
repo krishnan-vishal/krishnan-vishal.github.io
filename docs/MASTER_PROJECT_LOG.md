@@ -14,6 +14,41 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 dashboard rollup continuation — 2026-11-13
+
+- **Objective:** Reduce repeated dashboard aggregation on PR #574 without changing exact results, filtering, regional classification, grants or reader RPCs.
+- **Evidence:** On `da85cce`, benchmark 43362611541 failed with dashboard p95 12,614.73 ms at 100 readers; cards and cursor passed with zero errors. The unfiltered nested plan showed joined-row grouping at 747 ms and the grouping-sets rollup at 832 ms, with daily and weekly theme JSON subplans at 30 and 15 ms.
+- **Change and correctness:** Materialize daily theme counts once and reuse them for both daily and weekly JSON. The SQL fixture covers multiple themes, week boundaries, OR filters and empty results. Four complete 500,000-row responses matched the original implementation, independent count and pagination checks and service-role grants passed, and 13 focused Node tests passed.
+- **Local gate:** The existing benchmark failed on isolated PostgreSQL 16.15 with two CPUs: at 100 readers dashboard p95 9,604.14 ms for 62 successful requests with 38 timeouts, cards 4,740.17 ms and cursor 5,455.03 ms with zero errors. Dashboard p95 excludes failures. The local unfiltered plan still spent 991 ms in grouping and 1,114 ms through rollup. This host is not comparable to the four-CPU Actions runner.
+- **Actions gate:** Run 43364458540 on `40c7170` failed: at 100 readers dashboard p95 17,467.07 ms, cards 1,703.90 ms and cursor 1,941.39 ms, all without errors. Exact total, rolling window, topic OR, pagination and listed RPC grants passed. The unfiltered nested plan took 1,219 ms, including 896 ms in joined-row grouping and 1,016 ms through the grouping-sets rollup; daily theme counts took 21 ms. Plan timings overlap. No production deployment or merge was performed.
+
+## M40 reader acceptance continuation — 2026-11-12
+
+- **Objective:** Complete isolated authenticated cursor navigation acceptance before optimizing dashboard aggregates on PR #574.
+- **Outcome:** The owner identified `hoewtptllwkcqrgryazu` as the isolated project. Its supplied database URL identified that project, but read-only pooler connections timed out on ports 5432 and 6543. Supabase management access returned HTTP 403 with the available access token and HTTP 401 with the deploy token. Compatibility, deployment and authenticated navigation remain unverified; no SQL or Edge Function was deployed, and Step 2 was not started.
+- **Existing evidence:** G1 R07 run 43191611266 passed on `cf803c7`. Benchmark run 43191611260 failed: at 100 readers dashboard, cards, cursor and legacy offset p95 were respectively 12,676.07, 2,936.99, 1,473.98 and 18,606.15 ms, with zero errors. The benchmark reported exact count, rolling-window, topic-OR, offset IDs and listed RPC grant checks passing. This does not substitute for the requested authenticated navigation and service-role acceptance.
+- **Next dependency:** Restore scoped test-project management and database connectivity and authenticated reader access. No merge or production deployment is authorized.
+
+## M40 aggregate concurrency correction — 2026-11-12
+
+- **Objective:** Reduce the 500,000-record aggregate workload without changing
+  offset pagination, governance, exact results or RPC permissions.
+- **Evidence:** Existing Actions plans hid the nested statements. Isolated
+  PostgreSQL 16 nested plans showed a spilled materialized join for every
+  aggregate and an external sort for deep pages. An index-first experiment
+  required 450,000 individual geography lookups and was not adopted.
+- **Change and validation:** Group joined rows by day and dimensions before
+  region lookup, retaining their counts. The aggregate plan no longer wrote
+  temporary blocks; the deep-page sort still spilled. Three complete responses
+  on the 500,000-row dataset matched the prior implementation. The isolated
+  SQL correctness and role fixture and ten focused API tests passed.
+- **Gate:** Actions run 43179746444 on `c34bdb1` passed exact counts, rolling
+  window, topic OR, pagination IDs and service-role permissions; security CI
+  passed. It failed the performance gate: dashboard p95 at 10/25/50/100 was
+  1,670/4,047/6,681/13,478 ms; cards 661/862/1,634/2,840 ms; historical
+  5,117/12,646/19,229/n/a ms with 0/0/33/100 errors. The 50-reader historical
+  p95 includes only successful requests. No merge or deployment is authorized.
+
 ## M39 Gate 2 recovery — 2026-11-08
 
 - **Classification / objective:** INTELLIGENCE, DATA and AUTOMATION. Integrate recovered technical exports, verify the World Bank workbook, acquire Mojaloop and Hyperswitch history through the existing governed staging path, test, and submit one branch PR without production writes or deployments.

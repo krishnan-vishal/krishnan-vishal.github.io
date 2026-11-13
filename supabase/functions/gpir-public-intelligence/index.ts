@@ -5,4 +5,5 @@ const env = Object.fromEntries([
   'SUPABASE_SERVICE_ROLE_KEY'
 ].map(name => [name, Deno.env.get(name)]));
 
-Deno.serve(createPublicIntelligenceHandler({ env }));
+// M40 controlled activation: snapshot reads are eligible only for unfiltered aggregates.
+Deno.serve(createPublicIntelligenceHandler({ env: { ...env, M40_SNAPSHOT_READ_ENABLED: 'true' } }));

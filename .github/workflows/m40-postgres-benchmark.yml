@@ -1,0 +1,100 @@
+name: M40 PostgreSQL performance benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      record_count:
+        description: 'Isolated synthetic record count (250000 or 500000)'
+        required: true
+        default: '250000'
+        type: choice
+        options:
+          - '250000'
+          - '500000'
+      snapshot_benchmark:
+        description: 'Measure unfiltered snapshot plus bounded records at concurrency'
+        required: true
+        default: false
+        type: boolean
+      snapshot_only:
+        description: 'Run only the focused governed snapshot correctness test'
+        required: true
+        default: false
+        type: boolean
+  pull_request:
+    paths:
+      - '.github/workflows/m40-postgres-benchmark.yml'
+      - 'tests/m40-postgres-benchmark.mjs'
+      - 'tests/fixtures/m40-postgres-benchmark-schema.sql'
+      - 'tests/fixtures/m40-postgres-correctness.sql'
+      - 'supabase/sql/m40-governed-repository-aggregates-v2.sql'
+      - 'supabase/sql/m40-dashboard-snapshot-poc.sql'
+      - 'tests/fixtures/m40-dashboard-snapshot-poc-test.sql'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m40-postgres-benchmark-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --shm-size 1g
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: postgres
+      M40_RECORD_COUNT: ${{ github.event_name == 'workflow_dispatch' && inputs.record_count || '500000' }}
+      M40_SNAPSHOT_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.snapshot_only || false }}
+      M40_SNAPSHOT_BENCHMARK: ${{ github.event_name == 'workflow_dispatch' && inputs.snapshot_benchmark || false }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Configure bounded benchmark capacity
+        run: |
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "alter system set max_connections = 160;"
+          docker exec "${{ job.services.postgres.id }}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "alter system set shared_buffers = '512MB';"
+          docker restart "${{ job.services.postgres.id }}"
+          for attempt in {1..30}; do pg_isready -h localhost -U postgres && exit 0; sleep 2; done
+          exit 1
+
+      - name: Run staged M40 capacity benchmark
+        run: node tests/m40-postgres-benchmark.mjs
+
+      - name: Preserve setup failure evidence
+        if: always()
+        run: |
+          mkdir -p benchmark-artifacts/m40
+          if [ ! -f benchmark-artifacts/m40/benchmark-results.json ]; then
+            printf '%s\n' '{"status":"FAIL","stage":"workflow setup or benchmark startup","error":"Benchmark did not produce results; inspect the workflow log."}' > benchmark-artifacts/m40/benchmark-results.json
+          fi
+
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m40-postgres-benchmark-${{ github.run_id }}
+          path: benchmark-artifacts/m40/
+          if-no-files-found: error
+          retention-days: 14

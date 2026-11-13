@@ -151,7 +151,9 @@ test('heatmap is an accessible, keyboard-operable selection grid with a live sta
 });
 
 test('refinement keeps data contracts, periods, geography filters and the 12-hour live window', () => {
-  assert.match(script, /INTELLIGENCE_PATH = '\/functions\/v1\/gpir-public-intelligence\?scope=history&limit=100'/);
+  assert.match(script, /view = 'cards', limit = 10, offset = 0/);
+  assert.match(script, /gpir-public-intelligence\?\$\{m40Query/);
+  assert.doesNotMatch(script, /await fetchHistory/);
   assert.match(script, /LIVE_PATH = '\/functions\/v1\/gpir-public-alerts'/);
   assert.match(script, /12 \* 60 \* 60 \* 1000/);
   for (const period of ['24H', '7D', '30D', '8W', 'QTD', 'YTD', 'CUSTOM']) assert.match(page, new RegExp(`<option value="${period}">`));

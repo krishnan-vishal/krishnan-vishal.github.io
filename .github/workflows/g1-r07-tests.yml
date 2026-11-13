@@ -7,6 +7,9 @@ on:
       - 'supabase/functions/gpir-public-intelligence/handler.mjs'
       - 'supabase/migrations/20261101000000_g1_r07_event_consolidation.sql'
       - 'tests/g1-r07-event-consolidation.test.mjs'
+      - 'assets/js/smart-intelligence.mjs'
+      - 'tests/m39/smart-intelligence.test.mjs'
+      - 'tests/m40-server-aggregates.test.mjs'
       - '.github/workflows/g1-r07-tests.yml'
   workflow_dispatch:
 jobs:
@@ -24,5 +27,6 @@ jobs:
           node --check supabase/functions/_shared/gpir-event-identity.mjs
           node --check supabase/functions/gpir-intelligence-publish/handler.mjs
           node --check supabase/functions/gpir-public-intelligence/handler.mjs
+          node --check assets/js/smart-intelligence.mjs
       - name: Run G1 R07 tests
-        run: node --test tests/g1-r07-event-consolidation.test.mjs
+        run: node --test tests/g1-r07-event-consolidation.test.mjs tests/m39/smart-intelligence.test.mjs tests/m40-server-aggregates.test.mjs
