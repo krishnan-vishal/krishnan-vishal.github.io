@@ -8,9 +8,10 @@ Representative page: `/cross-border-payments/`.
 | Mobile, 390 × 844 | `cross-border-before-mobile.jpg` | `cross-border-after-mobile.jpg` |
 
 The baseline images show the production site before PR #575. The result images
-show the same route and viewport on the PR branch preview. The comparison is
+show the same route and viewport on the PR branch preview at `f146ade`. The comparison is
 limited to presentation and contextual ASK GPIR navigation; publication text,
 identity, canonical route and access classification are unchanged.
 
-Responsive acceptance also records `scrollWidth <= clientWidth` at both
-viewports and verifies the topic-context `ASK GPIR` link in the rendered page.
+Responsive acceptance records `scrollWidth == clientWidth` at both viewports.
+The rendered topic-context link reads `ASK GPIR about this topic`; the mobile
+topic context uses a column layout and the publication H1 computes to 32px.
