@@ -62,21 +62,35 @@ as $$
 declare
   v_payload jsonb;
   v_revision bigint;
+  v_current_revision bigint;
+  v_attempt integer;
 begin
-  -- Lock serializes refresh with eligibility changes, avoiding a stale snapshot race.
-  select revision into v_revision
-  from public.gpir_m40_dashboard_revision_v1
-  where snapshot_key = 'announcements:unfiltered' for update;
-  -- Compute once using the existing governed exact implementation.
-  v_payload := public.gpir_m40_repository_query_v2(
-    'announcements',null,null,null,null,null,null,null,1,0
-  ) - 'records' - 'limit' - 'offset' - 'hasMore' - 'nextOffset';
-  insert into public.gpir_m40_dashboard_snapshot_v1(snapshot_key,payload,refreshed_at,revision)
-  values ('announcements:unfiltered',v_payload,clock_timestamp(),v_revision)
-  on conflict (snapshot_key) do update
-  set payload = excluded.payload, refreshed_at = excluded.refreshed_at,
-      revision = excluded.revision;
-  return v_payload;
+  -- Compute outside the revision lock so ingestion writes never wait for aggregation.
+  -- If a write commits during computation, discard the obsolete result and retry.
+  for v_attempt in 1..3 loop
+    select revision into v_revision
+    from public.gpir_m40_dashboard_revision_v1
+    where snapshot_key = 'announcements:unfiltered';
+    v_payload := public.gpir_m40_repository_query_v2(
+      'announcements',null,null,null,null,null,null,null,1,0
+    ) - 'records' - 'limit' - 'offset' - 'hasMore' - 'nextOffset';
+    select revision into v_current_revision
+    from public.gpir_m40_dashboard_revision_v1
+    where snapshot_key = 'announcements:unfiltered' for update;
+    if v_current_revision = v_revision then
+      insert into public.gpir_m40_dashboard_snapshot_v1(snapshot_key,payload,refreshed_at,revision)
+      values ('announcements:unfiltered',v_payload,clock_timestamp(),v_revision)
+      on conflict (snapshot_key) do update
+      set payload = excluded.payload, refreshed_at = excluded.refreshed_at,
+          revision = excluded.revision;
+      return v_payload;
+    end if;
+    -- Release row lock before retry: this block is a subtransaction.
+    -- A stale snapshot must never be published as current.
+    raise notice 'M40 snapshot refresh revision changed; retry %', v_attempt;
+  end loop;
+  -- A failed refresh leaves the prior snapshot invalid by revision and forces exact RPC.
+  return null;
 end $$;
 
 create or replace function public.gpir_m40_read_dashboard_snapshot_v1(
