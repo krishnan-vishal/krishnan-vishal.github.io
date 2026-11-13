@@ -443,6 +443,51 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         headers.set('authorization', `Bearer ${config.key}`);
         headers.set('content-type', 'application/json');
         headers.set('accept', 'application/json');
+        // M40 opt-in POC: only the unfiltered announcement aggregate is snapshot-eligible.
+        // No automatic refresh/invalidation exists yet: disabled by default and never deployed
+        // until a governed refresh path and freshness acceptance are independently verified.
+        if (env.M40_SNAPSHOT_READ_ENABLED === 'true' && m40View === 'aggregate' &&
+            kind === 'announcements' && !topics.length && !themes.length &&
+            !categories.length && !region && !query && !start && !end) {
+          try {
+            const snapshotResponse = await fetchImpl(
+              `${config.url}/rest/v1/rpc/gpir_m40_read_dashboard_snapshot_v1`, {
+                method:'POST',headers,body:JSON.stringify({p_max_age:'30 seconds'})
+              });
+            if (snapshotResponse.ok) {
+              const snapshot = await snapshotResponse.json();
+              const required = ['categories','topics','themes','primaryThemes','regions','daily',
+                'weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
+              if (snapshot?.status === 'OK' && snapshot.kind === kind &&
+                  Number.isInteger(snapshot.total) && required.every(key =>
+                    snapshot[key] && typeof snapshot[key] === 'object' && !Array.isArray(snapshot[key]))) {
+                const pageResponse = await fetchImpl(
+                  `${config.url}/rest/v1/rpc/gpir_m40_repository_records_v1`, {
+                    method:'POST',headers,body:JSON.stringify({
+                      p_kind:kind,p_topics:null,p_themes:null,p_categories:null,
+                      p_region:null,p_query:null,p_start:null,p_end:null,
+                      p_limit:rawLimit,p_offset:rawOffset
+                    })
+                  });
+                if (pageResponse.ok) {
+                  const page = await pageResponse.json();
+                  if (page?.status === 'OK' && page.kind === kind &&
+                      Array.isArray(page.records) && page.limit === rawLimit &&
+                      page.offset === rawOffset && typeof page.hasMore === 'boolean') {
+                    return response(200,{
+                      ...snapshot,limit:rawLimit,offset:rawOffset,
+                      hasMore:rawOffset + rawLimit < snapshot.total,
+                      nextOffset:rawOffset + rawLimit < snapshot.total ? rawOffset + rawLimit : null,
+                      records:page.records,generatedAt:new Date(requestNow).toISOString()
+                    },origin,env);
+                  }
+                }
+              }
+            }
+          } catch {
+            // Snapshot failures must never bypass the exact governed RPC.
+          }
+        }
         const rpcName = m40View === 'history-cursor' ? 'gpir_m40_repository_cursor_v1' :
           m40View === 'history-records' ? 'gpir_m40_repository_records_v1' : 'gpir_m40_repository_query_v2';
         const result = await fetchImpl(`${config.url}/rest/v1/rpc/${rpcName}`, {
