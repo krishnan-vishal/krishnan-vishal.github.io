@@ -155,6 +155,12 @@ function normalizeRecord(record) {
         country: cleanText(record.country) || "Unspecified",
         category: cleanText(record.category) || "Payments",
         subcategory: cleanText(record.subcategory) || "Unspecified",
+        topicIds: Array.isArray(record.topicIds)
+            ? record.topicIds.map(cleanText).filter(Boolean)
+            : [],
+        lifecycleStatus: cleanText(
+            record.displayLifecycleStatus || record.lifecycleStatus
+        ) || "ARCHIVED",
         publishedAt,
         period,
         sourceUrl: approvedSourceUrl(record)
@@ -472,12 +478,20 @@ function installArchiveStyles() {
             color: #cdd9e6;
         }
 
-        .supabase-archive-source {
+        .supabase-archive-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .supabase-archive-source,
+        .supabase-archive-ask {
             display: inline-flex;
             align-items: center;
             align-self: flex-start;
             min-height: 38px;
-            margin-top: 12px;
             padding: 7px 13px;
             border-radius: 7px;
             background: var(--archive-amber);
@@ -487,14 +501,21 @@ function installArchiveStyles() {
             text-decoration: none;
         }
 
+        .supabase-archive-ask {
+            border: 1px solid var(--archive-amber);
+            background: transparent;
+            color: var(--archive-amber-bright);
+        }
+
         .supabase-archive-source:hover,
-        .supabase-archive-source:focus-visible {
+        .supabase-archive-source:focus-visible,
+        .supabase-archive-ask:hover,
+        .supabase-archive-ask:focus-visible {
             background: var(--archive-amber-bright);
             color: #07111f;
         }
 
         .supabase-archive-source-unavailable {
-            margin-top: 12px;
             color: var(--archive-muted);
             font-size: 11px;
             font-weight: 700;
@@ -693,6 +714,8 @@ function createAnnouncementCard(record) {
     metadata.append(region, country, subcategory);
     article.append(topLine, title, narration, metadata);
 
+    const actions = createElement("div", "supabase-archive-actions");
+
     if (record.sourceUrl) {
         const sourceLink = createElement(
             "a",
@@ -704,14 +727,32 @@ function createAnnouncementCard(record) {
         sourceLink.target = "_blank";
         sourceLink.rel = "noopener noreferrer";
 
-        article.appendChild(sourceLink);
+        actions.appendChild(sourceLink);
     } else {
-        article.appendChild(createElement(
+        actions.appendChild(createElement(
             "span",
             "supabase-archive-source-unavailable",
             "Verified source URL unavailable"
         ));
     }
+
+    const topic = record.topicIds.length
+        ? record.topicIds.join(", ")
+        : record.category;
+    const askQuery = [
+        "Show published research and validated current and archived intelligence for",
+        topic,
+        record.country !== "Unspecified" ? `in ${record.country}` : "",
+        record.lifecycleStatus === "ARCHIVED" ? "including this archived record" : ""
+    ].filter(Boolean).join(" ");
+    const askLink = createElement(
+        "a",
+        "supabase-archive-ask",
+        "ASK GPIR about this topic"
+    );
+    askLink.href = `/?ask=${encodeURIComponent(askQuery)}#gpir-search`;
+    actions.appendChild(askLink);
+    article.appendChild(actions);
 
     return article;
 }
