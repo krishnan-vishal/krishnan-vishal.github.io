@@ -11,6 +11,11 @@ on:
         options:
           - '250000'
           - '500000'
+      snapshot_only:
+        description: 'Run only the focused governed snapshot correctness test'
+        required: true
+        default: false
+        type: boolean
   pull_request:
     paths:
       - '.github/workflows/m40-postgres-benchmark.yml'
@@ -18,6 +23,8 @@ on:
       - 'tests/fixtures/m40-postgres-benchmark-schema.sql'
       - 'tests/fixtures/m40-postgres-correctness.sql'
       - 'supabase/sql/m40-governed-repository-aggregates-v2.sql'
+      - 'supabase/sql/m40-dashboard-snapshot-poc.sql'
+      - 'tests/fixtures/m40-dashboard-snapshot-poc-test.sql'
 
 permissions:
   contents: read
@@ -51,6 +58,7 @@ jobs:
       PGDATABASE: postgres
       PGPASSWORD: postgres
       M40_RECORD_COUNT: ${{ github.event_name == 'workflow_dispatch' && inputs.record_count || '500000' }}
+      M40_SNAPSHOT_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.snapshot_only || false }}
     steps:
       - uses: actions/checkout@v4
 
