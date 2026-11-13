@@ -93,7 +93,10 @@ function jsonResult(expression) {
     return JSON.parse(runSql(serviceQuery(expression)));
 }
 
-console.log('Preparing isolated M40 benchmark schema...');
+const recordCount = Number(process.env.M40_RECORD_COUNT || '500000');
+if (![250000, 500000].includes(recordCount)) throw new Error('M40_RECORD_COUNT must be 250000 or 500000');
+const concurrencyLevels = recordCount === 250000 ? [10,25,50] : [10,25,50,100];
+console.log(`Preparing isolated M40 benchmark schema for ${recordCount} records...`);
 stage = 'schema and data preparation';
 runFile('tests/fixtures/m40-postgres-benchmark-schema.sql');
 runFile('supabase/sql/m40-governed-repository-aggregates-v2.sql');
@@ -129,7 +132,7 @@ with generated as (
         when 3 then 'Cross-border payment network regulatory development'
         when 4 then 'Real-time clearing and wallet payments expansion'
         else 'Merchant card payment partnership announcement' end title
-    from generate_series(1,500000) g
+    from generate_series(1,${recordCount}) g
 )
 insert into public.global_announcements
     (id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status)
@@ -154,7 +157,7 @@ analyze public.gpir_intelligence_topics;
 `, { timeout: 600000 });
 
 const rowCount = Number(runSql('select count(*) from public.global_announcements;'));
-assert.equal(rowCount, 500000, 'benchmark must contain exactly 500,000 governed records');
+assert.equal(rowCount, recordCount, 'benchmark must contain exactly the requested governed record count');
 
 stage = 'correctness';
 const full = jsonResult(rpc({ limit: 10 }));
@@ -364,7 +367,7 @@ for (const [name,expression] of Object.entries({
     }
 }
 
-for (const concurrency of [10,25,50,100]) {
+for (const concurrency of concurrencyLevels) {
     stage = `measurements: ${concurrency} readers`;
     measurements.push(await runWave('dashboardAggregates',concurrency,dashboardQueries));
     measurements.push(await runWave('filteredSmartCards',concurrency,cardQueries));
