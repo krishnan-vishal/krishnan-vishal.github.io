@@ -24,13 +24,13 @@ grant select, update on public.gpir_m40_dashboard_revision_v1 to service_role;
 create or replace function public.gpir_m40_invalidate_dashboard_snapshot_v1()
 returns trigger language plpgsql security definer
 set search_path = public, pg_temp
-as $
+as $m40_invalidate$
 begin
   update public.gpir_m40_dashboard_revision_v1
   set revision = revision + 1
   where snapshot_key = 'announcements:unfiltered';
   return null;
-end $;
+end $m40_invalidate$;
 revoke all on function public.gpir_m40_invalidate_dashboard_snapshot_v1()
   from public,anon,authenticated;
 
