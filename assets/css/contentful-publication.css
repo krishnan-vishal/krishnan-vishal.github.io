@@ -1191,3 +1191,90 @@ body.gpir-publication-page {
 @media (max-width: 640px) {
     .gpir-publication-meta { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* M35 publication typography and chapter alignment — presentation only.
+   Shared across governed Contentful publication pages; no content or access changes. */
+.gpir-publication {
+    --gpir-font-headline: Arial, Helvetica, sans-serif;
+    --gpir-font-body: Arial, Helvetica, sans-serif;
+    --gpir-size-body: .9375rem;
+    --gpir-size-secondary: 1.125rem;
+    --gpir-type-module: 1.125rem;
+    --gpir-type-h2: 1.0625rem;
+    --gpir-type-h3: 1rem;
+    --gpir-leading-body: 1.55;
+}
+.gpir-publication-hero .container,
+.gpir-publication-layout {
+    width: min(1440px, calc(100% - 48px));
+    max-width: 1440px;
+}
+.gpir-publication-hero {
+    padding-block: 1.25rem 1.35rem;
+}
+.gpir-publication-hero h1 {
+    font-family: var(--gpir-font-headline);
+    font-weight: 750;
+    margin-block: .5rem .45rem;
+}
+.gpir-publication-hero > .container > p,
+.gpir-research-module-content > p,
+.gpir-research-module-content > ul,
+.gpir-research-module-content > ol {
+    max-width: none;
+}
+.gpir-publication-layout {
+    padding-block: 1.15rem 2rem;
+}
+.gpir-publication-summary,
+.gpir-research-module,
+.gpir-publication-body {
+    max-width: none;
+    margin-bottom: .85rem;
+    padding: 1rem 1.25rem;
+}
+.gpir-publication-summary {
+    width: 100%;
+}
+.gpir-research-module-nav {
+    margin-bottom: .85rem;
+}
+.gpir-research-module > header {
+    margin-bottom: .6rem;
+    padding-bottom: .5rem;
+}
+.gpir-research-module-content,
+.gpir-research-module-content p,
+.gpir-research-module-content li {
+    font-family: var(--gpir-font-body);
+    font-size: var(--gpir-type-body);
+    line-height: var(--gpir-leading-body);
+    text-align: left;
+}
+.gpir-research-module-content p {
+    margin-bottom: .65rem;
+}
+.gpir-research-module-content h2,
+.gpir-research-module-content h3,
+.gpir-research-module-content h4 {
+    font-family: var(--gpir-font-headline);
+    font-weight: 750;
+}
+.gpir-publication-meta {
+    margin-top: .85rem;
+}
+@media (max-width: 720px) {
+    .gpir-publication-hero .container,
+    .gpir-publication-layout {
+        width: calc(100% - 28px);
+    }
+    .gpir-publication-summary,
+    .gpir-research-module,
+    .gpir-publication-body {
+        padding: .85rem;
+    }
+    .gpir-research-module-nav {
+        max-height: 48px;
+    }
+}
