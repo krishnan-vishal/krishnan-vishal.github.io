@@ -389,12 +389,11 @@ begin
                public.gpir_m40_region_key(geography, nullif(country, ''), region_tags) as region_key
         from region_keys
       ), classified_keys as materialized (
-        select b.day, b.category, b.topic_mask, b.theme_mask, b.n,
-               (select r.region_key from region_lookup r
-                where r.geography = b.geography
-                  and r.country = b.country
-                  and r.region_tags = b.region_tags) as region_key
+        select b.day, b.category, b.topic_mask, b.theme_mask, b.n, r.region_key
         from grouped b
+        join region_lookup r on r.geography = b.geography
+                            and r.country = b.country
+                            and r.region_tags = b.region_tags
       ), classified as (
         select b.day, b.category, b.topic_mask, b.theme_mask, b.region_key, b.n
         from classified_keys b
