@@ -479,7 +479,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
                       hasMore:rawOffset + rawLimit < snapshot.total,
                       nextOffset:rawOffset + rawLimit < snapshot.total ? rawOffset + rawLimit : null,
                       records:page.records,generatedAt:new Date(requestNow).toISOString()
-                    },origin,env);
+                    },origin,env,{private:true});
                   }
                 }
               }
@@ -507,7 +507,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
             typeof data.hasMore !== 'boolean' ||
             (!['history-records','history-cursor'].includes(m40View) && objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))))
           throw new Error('M40_CONTRACT_INVALID');
-        return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env);
+        return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env,{private:true});
       } catch {
         return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : ['history-records','history-cursor'].includes(m40View) ? 'HISTORY_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
       }
