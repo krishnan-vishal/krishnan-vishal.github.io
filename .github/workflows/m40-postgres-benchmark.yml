@@ -2,6 +2,15 @@ name: M40 PostgreSQL performance benchmark
 
 on:
   workflow_dispatch:
+    inputs:
+      record_count:
+        description: 'Isolated synthetic record count (250000 or 500000)'
+        required: true
+        default: '250000'
+        type: choice
+        options:
+          - '250000'
+          - '500000'
   pull_request:
     paths:
       - '.github/workflows/m40-postgres-benchmark.yml'
@@ -41,6 +50,7 @@ jobs:
       PGUSER: postgres
       PGDATABASE: postgres
       PGPASSWORD: postgres
+      M40_RECORD_COUNT: ${{ github.event_name == 'workflow_dispatch' && inputs.record_count || '500000' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,7 +65,7 @@ jobs:
           for attempt in {1..30}; do pg_isready -h localhost -U postgres && exit 0; sleep 2; done
           exit 1
 
-      - name: Run 500,000-record benchmark
+      - name: Run staged M40 capacity benchmark
         run: node tests/m40-postgres-benchmark.mjs
 
       - name: Preserve setup failure evidence
