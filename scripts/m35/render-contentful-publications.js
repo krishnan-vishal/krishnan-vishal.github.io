@@ -47,7 +47,7 @@ function buildPublicationSite(artifact, options) {
   const manifest = [];
   for (const publication of estate.publications) {
     const decision = decisions?.get(publication.identity + ':' + publication.supabaseRecordId);
-    if (decisions && (!decision || decision.route !== publication.route || decision.accessClass !== publication.accessClass)) throw new Error('Release decision mismatch for ' + publication.identity);
+    if (decisions && (!decision || decision.route !== publication.route || (publication.accessClass != null && decision.releaseEligible && decision.accessClass !== publication.accessClass))) throw new Error('Release decision mismatch for ' + publication.identity);
     if (decisions && !decision.releaseEligible) continue;
     const destination = routeDirectory(outputRoot, publication.route);
     fs.mkdirSync(destination, { recursive: true });
