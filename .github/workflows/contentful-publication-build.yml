@@ -61,6 +61,7 @@ jobs:
           --output=.generated/m35/site
           --expected=${{ inputs.expected_count }}
           --controlled-validation
+          ${{ inputs.mode == 'preview' && '--preview-skip-incomplete' || '' }}
       - name: Render production-safe eligible publication routes (delivery only)
         if: ${{ inputs.mode == 'delivery' }}
         run: >-
