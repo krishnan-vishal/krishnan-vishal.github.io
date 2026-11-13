@@ -1,0 +1,31 @@
+name: M40 final live HTTP smoke
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/m40-final-http-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify deployed unfiltered and filtered HTTP routes once
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence'
+          for case_name in unfiltered filtered; do
+            if [ "$case_name" = unfiltered ]; then
+              url="$base?view=aggregate&kind=announcements&limit=1"
+            else
+              url="$base?view=aggregate&kind=announcements&region=global&limit=1"
+            fi
+            code=$(curl --retry 2 --retry-delay 1 --max-time 20 -sS -D headers.txt -o response.json -w '%{http_code}' "$url")
+            test "$code" = 200 || { echo "FAIL $case_name HTTP $code"; cat response.json; exit 1; }
+            grep -Eiq '^cache-control: private, no-store, max-age=0\r?$' headers.txt || { echo "FAIL $case_name cache-control"; cat headers.txt; exit 1; }
+            node -e 'const x=require("./response.json");if(x.status!=="OK"||x.kind!=="announcements"||!Number.isInteger(x.total)||!Array.isArray(x.records))process.exit(1)' || { echo "FAIL $case_name contract"; exit 1; }
+            echo "PASS $case_name HTTP 200, governed JSON contract, private no-store"
+          done
+          echo 'PASS live HTTP smoke: 2 production routes'
