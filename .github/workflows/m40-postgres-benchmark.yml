@@ -11,6 +11,11 @@ on:
         options:
           - '250000'
           - '500000'
+      snapshot_benchmark:
+        description: 'Measure unfiltered snapshot plus bounded records at concurrency'
+        required: true
+        default: false
+        type: boolean
       snapshot_only:
         description: 'Run only the focused governed snapshot correctness test'
         required: true
@@ -59,6 +64,7 @@ jobs:
       PGPASSWORD: postgres
       M40_RECORD_COUNT: ${{ github.event_name == 'workflow_dispatch' && inputs.record_count || '500000' }}
       M40_SNAPSHOT_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.snapshot_only || false }}
+      M40_SNAPSHOT_BENCHMARK: ${{ github.event_name == 'workflow_dispatch' && inputs.snapshot_benchmark || false }}
     steps:
       - uses: actions/checkout@v4
 
