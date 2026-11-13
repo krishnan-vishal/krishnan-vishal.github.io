@@ -1309,3 +1309,113 @@ body.gpir-publication-page {
         flex-direction:column;
     }
 }
+
+
+/* M39 research-card acceptance correction: scoped to governed publications. */
+.gpir-publication .gpir-publication-hero h1,
+.gpir-publication-hero h1{font-size:clamp(1.75rem,2.7vw,2.4rem);line-height:1.16;overflow-wrap:anywhere}
+.gpir-research-modules{min-width:0}
+.gpir-research-module-nav{position:static;max-height:none;overflow:visible;display:block;padding:.8rem;margin:0 0 1rem}
+.gpir-research-module-nav h2{white-space:normal;font-size:1.15rem;margin:0 0 .7rem}
+.gpir-research-module-nav ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,215px),1fr));gap:.65rem;overflow:visible;max-height:none;padding:0;list-style:none}
+.gpir-research-module-nav li{min-width:0;max-width:100%;scroll-snap-align:none}
+.gpir-research-module-nav a{display:flex;align-items:flex-start;white-space:normal;overflow-wrap:anywhere;min-width:0;min-height:66px;padding:.85rem;border:1px solid var(--gpir-border,#d8dee8);border-radius:12px;background:#fff;line-height:1.35;font-size:.9rem}
+.gpir-research-module-nav a span{flex:none}
+.gpir-research-module{min-width:0;overflow-wrap:anywhere}
+.gpir-research-module > header h2{font-size:clamp(1.2rem,2vw,1.5rem);line-height:1.3}
+.gpir-research-chapter > summary{cursor:pointer;display:flex;justify-content:space-between;gap:1rem;align-items:center;padding:.7rem .9rem;border-radius:9px;background:#f4f6f9;color:#102747;font-size:.9rem;font-weight:700;list-style:none}
+.gpir-research-chapter > summary::-webkit-details-marker,.gpir-research-subsection > summary::-webkit-details-marker{display:none}
+.gpir-research-chapter[open] > summary{margin-bottom:1rem}
+.gpir-research-subsection{display:block;margin:.7rem 0;border:1px solid var(--gpir-border,#d8dee8);border-radius:11px;background:#fff;overflow:hidden}
+.gpir-research-subsection > summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.85rem 1rem;font-size:1rem;font-weight:650;line-height:1.4;color:#102747;list-style:none}
+.gpir-research-subsection > summary::after{content:"+";font-size:1.25rem;color:#a17b23}
+.gpir-research-subsection[open] > summary::after{content:"−"}
+.gpir-research-subsection-body{padding:.25rem 1rem 1rem;min-width:0}
+.gpir-research-module-content{font-size:clamp(.94rem,1vw,1rem);line-height:1.6}
+.gpir-research-module-content p,.gpir-research-subsection-body p{max-width:100%;text-align:justify;text-justify:inter-word;hyphens:auto;overflow-wrap:break-word}
+.gpir-research-module-content h2{font-size:1.25rem}
+.gpir-research-module-content h3{font-size:1.1rem}
+.gpir-research-module-content h4{font-size:1rem}
+.gpir-research-chapter summary:focus-visible,.gpir-research-subsection summary:focus-visible{outline:3px solid #c8a24a;outline-offset:2px}
+@media(max-width:720px){
+ .gpir-research-module-nav{position:static;max-height:none;overflow:visible;display:block}
+ .gpir-research-module-nav h2{position:static;width:auto;height:auto;margin:0 0 .7rem}
+ .gpir-research-module-nav ol{display:grid;grid-template-columns:1fr;overflow:visible;max-height:none}
+ .gpir-research-module-nav a{min-width:0;min-height:52px}
+ .gpir-research-module-content p,.gpir-research-subsection-body p{text-align:left;hyphens:manual}
+}
+
+
+/* GPIR institutional chapter cards: restrained topic differentiation, no new content. */
+.gpir-research-module-nav ol{grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.gpir-research-module-nav li{--chapter-accent:#b48b32;--chapter-tint:#fff8e9}
+.gpir-research-module-nav li:nth-child(4n + 2){--chapter-accent:#28688b;--chapter-tint:#eff7fb}
+.gpir-research-module-nav li:nth-child(4n + 3){--chapter-accent:#71619c;--chapter-tint:#f5f2fb}
+.gpir-research-module-nav li:nth-child(4n + 4){--chapter-accent:#277f74;--chapter-tint:#eff9f6}
+.gpir-research-module-nav a{
+ position:relative;display:flex;flex-direction:column;align-items:flex-start;
+ justify-content:space-between;gap:1rem;min-height:148px;padding:1rem 1.1rem 1rem;
+ border:1px solid #dce2e9;border-top:3px solid var(--chapter-accent);
+ border-radius:14px;background:linear-gradient(145deg,var(--chapter-tint),#fff 76%);
+ box-shadow:0 5px 15px rgba(16,39,71,.045);color:#102747;
+ font-size:clamp(.9rem,1vw,1rem);font-weight:700;line-height:1.35;
+ text-decoration:none;transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease
+}
+.gpir-research-module-nav a span{
+ display:inline-flex;align-items:center;justify-content:center;min-width:2.4rem;
+ height:2.4rem;padding:0 .4rem;border-radius:10px;background:#fff;
+ border:1px solid color-mix(in srgb,var(--chapter-accent) 28%,#fff);
+ color:var(--chapter-accent);font-size:.88rem;letter-spacing:.03em
+}
+.gpir-research-module-nav a::after{content:"Explore chapter  ↗";font-size:.72rem;font-weight:650;color:var(--chapter-accent);letter-spacing:.015em}
+.gpir-research-module-nav a:hover{transform:translateY(-2px);border-color:var(--chapter-accent);box-shadow:0 10px 22px rgba(16,39,71,.11)}
+.gpir-research-module-nav a:focus-visible{outline:3px solid var(--chapter-accent);outline-offset:3px}
+.gpir-research-subsection > summary:hover{background:#f7f9fc}
+@media(max-width:1000px){.gpir-research-module-nav ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.gpir-research-module-nav ol{grid-template-columns:minmax(0,1fr)}.gpir-research-module-nav a{min-height:112px}}
+@media(prefers-reduced-motion:reduce){.gpir-research-module-nav a{transition:none}.gpir-research-module-nav a:hover{transform:none}}
+
+
+/* M39 focused research reader: compact chapter library, one chapter in view.
+   Native fragment navigation; no new JavaScript or change to governed content. */
+.gpir-research-module-nav{background:#f7f9fc;border:1px solid #e1e7ee;border-radius:16px;padding:1rem 1.15rem;margin-bottom:1rem}
+.gpir-research-module-nav h2{font-size:1.15rem;line-height:1.25;margin:0 0 .15rem;color:#102747}
+.gpir-research-nav-hint{margin:0 0 .8rem;color:#5a6980;font-size:.82rem}
+.gpir-research-module-nav ol{grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem}
+.gpir-research-module-nav a{min-height:92px;padding:.7rem .85rem;gap:.35rem;border-radius:11px;border-top-width:3px;font-size:.83rem;line-height:1.24;box-shadow:none;justify-content:flex-start}
+.gpir-research-module-nav a span{min-width:1.9rem;height:1.9rem;border-radius:7px;font-size:.75rem}
+.gpir-research-module-nav a::after{content:"View research  →";font-size:.67rem;margin-top:auto}
+.gpir-research-module-nav a:hover{box-shadow:0 4px 12px rgba(16,39,71,.1)}
+.gpir-research-modules>.gpir-research-module{display:none;margin:0;scroll-margin-top:1rem}
+.gpir-research-modules>.gpir-research-module:first-of-type{display:block}
+.gpir-research-modules:has(>.gpir-research-module:target)>.gpir-research-module:first-of-type{display:none}
+.gpir-research-modules>.gpir-research-module:target{display:block}
+.gpir-research-module{border:1px solid #dce3eb;border-radius:14px;background:#fff;padding:clamp(1rem,2vw,1.6rem)}
+.gpir-research-module>header{margin-bottom:.55rem;padding-bottom:.55rem}
+.gpir-research-module>header h2{font-size:clamp(1.15rem,1.7vw,1.55rem)}
+.gpir-research-chapter>summary{padding:.55rem .8rem;background:#f5f8fc;font-size:.82rem}
+.gpir-research-chapter[open]>summary{margin-bottom:.7rem}
+.gpir-research-module-content p{line-height:1.62}
+.gpir-research-module-nav li:has(a[href="#research-module-1"]) a{border-left:3px solid var(--chapter-accent)}
+.gpir-research-modules:not(:has(>.gpir-research-module:target)) .gpir-research-module-nav li:first-child a,
+.gpir-research-modules:has(>#research-module-1:target) .gpir-research-module-nav li:first-child a{background:#fff2d9;border-color:#b48b32}
+@media(max-width:1100px){.gpir-research-module-nav ol{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.gpir-research-module-nav ol{grid-template-columns:repeat(2,minmax(0,1fr))}.gpir-research-module-nav a{min-height:84px;padding:.65rem}.gpir-research-module-nav{padding:.75rem}}
+@media(max-width:420px){.gpir-research-module-nav ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}.gpir-research-module-nav a{font-size:.77rem;min-height:84px}}
+
+/* Contextual ASK GPIR: existing governed homepage search displayed in-place. */
+.gpir-publication-ask-dialog{width:min(820px,94vw);height:min(760px,88dvh);max-width:none;max-height:none;margin:auto;padding:0;border:1px solid #c9d3df;border-radius:16px;background:#fff;box-shadow:0 24px 80px rgba(6,25,51,.3);overflow:hidden;color:#102747}
+.gpir-publication-ask-dialog::backdrop{background:rgba(7,25,50,.55)}
+.gpir-publication-ask-header{height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;background:#102747;color:#fff;font:600 .95rem system-ui,sans-serif}
+.gpir-publication-ask-header button{border:1px solid #a7b5c8;border-radius:8px;background:#fff;color:#102747;padding:7px 13px;cursor:pointer;font:600 .82rem system-ui,sans-serif}
+.gpir-publication-ask-body{height:calc(100% - 56px);overflow-y:auto;padding:22px;font:400 1rem/1.5 system-ui,sans-serif}
+.gpir-publication-ask-body label{display:block;margin-bottom:10px;font-weight:650}
+.gpir-publication-ask-body input{box-sizing:border-box;width:100%;border:1px solid #c7d2df;border-radius:10px;padding:13px 15px;font:inherit;color:#102747;background:#fff}
+.gpir-publication-ask-status{margin:16px 0 8px;color:#65748a;font-size:.9rem}
+.gpir-publication-ask-results{display:grid;gap:9px}
+.gpir-publication-ask-result{display:grid;gap:4px;padding:14px 16px;border:1px solid #e0e6ee;border-radius:10px;background:#f9fbfd;color:#102747;text-decoration:none}
+.gpir-publication-ask-result:hover,.gpir-publication-ask-result:focus-visible{border-color:#b58a30;background:#fffaf0}
+.gpir-publication-ask-result strong{font-size:.96rem;line-height:1.35}
+.gpir-publication-ask-result small{color:#a07927;font-size:.77rem}
+.gpir-publication-ask-result span{font-size:.86rem;color:#53647b;line-height:1.45}
+@media(max-width:640px){.gpir-publication-ask-dialog{width:100vw;height:100dvh;border:0;border-radius:0}.gpir-publication-ask-body{padding:16px}}

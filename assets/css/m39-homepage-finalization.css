@@ -151,7 +151,8 @@
      The controller restores their normal absolute positioning by adding
      .is-open before they become visible. */
   .header .nav-item-mega:not(.is-open) > .mega-menu {
-    position: fixed;
+    visibility: hidden;
+    pointer-events: none;
   }
   .header .header-container > .main-nav {
     display: flex;
@@ -276,3 +277,31 @@
 }
 .header .mega-item-soon strong { color: #64748b; }
 .header .mega-item-soon small { color: #718096; }
+
+/* M39 preview regression correction: keep navigation triggers above
+   closed panels and restore ASK GPIR contrast at rest. */
+@media (min-width: 1101px) {
+  .header .main-nav > ul > .nav-item-mega > .nav-mega-trigger {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .header .main-nav > ul > .nav-item-mega.is-open > .mega-menu {
+    z-index: 3;
+  }
+}
+.header .main-nav .header-tools > a.ask-gpir-btn,
+.header .main-nav .header-tools > a.ask-gpir-btn:visited {
+  background: #fff8e9;
+  border: 1px solid #bd8e28;
+  color: #102747;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.header .main-nav .header-tools > a.ask-gpir-btn:hover,
+.header .main-nav .header-tools > a.ask-gpir-btn:focus-visible {
+  background: #d4af37;
+  color: #071a2f;
+}

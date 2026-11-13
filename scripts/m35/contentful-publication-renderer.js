@@ -233,14 +233,14 @@ function askGpirHref(items, title = '') {
 }
 
 function renderTopicContext(items, title = '') {
-  if (!Array.isArray(items) || !items.length) return '';
+  if (!Array.isArray(items) || !items.length) return `<nav class="gpir-topic-context" aria-label="Topic context"><a class="gpir-topic-ask" href="${escapeHtml(askGpirHref([], title))}" data-gpir-contextual-ask>ASK GPIR about this topic</a></nav>`;
   const content = items.map((item, index) => {
     const label = escapeHtml(item.label);
     const href = safeHref(item.href);
     const value = href ? `<a href="${escapeHtml(href)}">${label}</a>` : `<span>${label}</span>`;
     return `<li${index === items.length - 1 ? ' aria-current="page"' : ''}>${value}</li>`;
   }).join('');
-  return `<nav class="gpir-topic-context" aria-label="Topic context"><ol>${content}</ol><a class="gpir-topic-ask" href="${escapeHtml(askGpirHref(items, title))}">ASK GPIR about this topic</a></nav>`;
+  return `<nav class="gpir-topic-context" aria-label="Topic context"><ol>${content}</ol><a class="gpir-topic-ask" href="${escapeHtml(askGpirHref(items, title))}" data-gpir-contextual-ask>ASK GPIR about this topic</a></nav>`;
 }
 
 function renderPrimaryDashboard(dashboard) {
@@ -256,18 +256,19 @@ function renderPrimaryDashboard(dashboard) {
 function renderResearchModules(modules) {
   if (!Array.isArray(modules) || !modules.length) return '';
   const navigation = modules.map((module, index) => {
-    const id = `research-module-${escapeHtml(module.moduleNumber || String(index + 1))}`;
+    const id = `research-module-${index + 1}`;
     return `<li><a href="#${id}"><span>${escapeHtml(module.moduleNumber || String(index + 1))}</span>${escapeHtml(module.title || `Module ${index + 1}`)}</a></li>`;
   }).join('');
   const sections = modules.map((module, index) => {
     const number = module.moduleNumber || String(index + 1);
-    const id = `research-module-${escapeHtml(number)}`;
-    const body = (module.sections || []).map(section => {
-      const heading = section.title ? `<h3>${escapeHtml(section.title)}</h3>` : '';
+    const id = `research-module-${index + 1}`;
+    const body = (module.sections || []).map((section, sectionIndex) => {
       const content = section.body ? renderRichText(section.body)
         : section.text !== null && section.text !== undefined
-          ? `<p>${escapeHtml(section.text).replace(/\r?\n/g, '<br>')}</p>` : '';
-      return `${heading}${content}`;
+          ? `<p>${escapeHtml(section.text).replace(/\\r?\\n/g, '<br>')}</p>` : '';
+      if (!content.trim()) return '';
+      if (!section.title) return `<div class="gpir-research-module-prose">${content}</div>`;
+      return `<details class="gpir-research-subsection"><summary><span>${escapeHtml(section.title)}</span></summary><div class="gpir-research-subsection-body">${content}</div></details>`;
     }).join('');
     const modifier = /disclaimer/i.test(module.title || '') ? ' gpir-research-module--disclaimer' : '';
     const drillDown = module.drillDown || { eligible: true, status: 'UNRESOLVED' };
@@ -276,9 +277,9 @@ function renderResearchModules(modules) {
     const heading = route ? `<a href="${escapeHtml(route)}">${escapeHtml(module.title || `Module ${index + 1}`)}</a>` : escapeHtml(module.title || `Module ${index + 1}`);
     const sourceSha256 = module.provenance?.sourceSha256
       ? ` data-gpir-source-sha256="${escapeHtml(module.provenance.sourceSha256)}"` : '';
-    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><div class="gpir-research-module-content">${body}</div></section>`;
+    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><details class="gpir-research-chapter" open><summary>Explore chapter <span aria-hidden="true">⌄</span></summary><div class="gpir-research-module-content">${body}</div></details></section>`;
   }).join('');
-  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>`;
+  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Explore research chapters</h2><p class="gpir-research-nav-hint">Select a chapter to read its research.</p><ol>${navigation}</ol></nav>${sections}</div>`;
 }
 
 function renderHistoricalEditions(editions) {
@@ -333,7 +334,7 @@ function renderPublicationPage(publication, options = {}) {
 
 
   return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(publication.title)} | GPIR | FINTECHOISIS</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(publication.canonicalUrl)}"><meta property="og:type" content="article"><meta property="og:site_name" content="FINTECHOISIS | GPIR"><meta property="og:title" content="${escapeHtml(publication.title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(publication.canonicalUrl)}"><link rel="icon" href="/assets/favicon/favicon.ico" sizes="any"><link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/typography.css"><link rel="stylesheet" href="/assets/css/layout.css"><link rel="stylesheet" href="/assets/css/components.css"><link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css"><link rel="stylesheet" href="/assets/css/footer.css"><link rel="stylesheet" href="/assets/css/site-polish.css"><link rel="stylesheet" href="/assets/css/contentful-publication.css"><script src="/assets/js/gpir-supabase-public-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script><script src="/scripts/m34/supabase-browser-client.js"></script><script src="/scripts/m34/publication-authorization-provider.js"></script><script src="/assets/js/gpir-reader-auth.js"></script><script type="module" src="/assets/js/gpir-protected-publication.mjs"></script></head><body class="gpir-publication-page">${commonHeader()}<main id="chapter-content" class="gpir-publication" data-gpir-auth-authority="supabase" data-gpir-entitlement="gpir-publication" data-gpir-publication-id="${escapeHtml(publication.identity)}" data-gpir-supabase-record-id="${escapeHtml(publication.supabaseRecordId)}" data-gpir-edge-endpoint="${PROTECTED_PUBLICATION_ENDPOINT}" data-gpir-auth-result="${auth.allowed ? 'controlled-validation' : 'required'}"><section class="gpir-publication-hero"><div class="container">${topicContext}<span class="page-tag">${escapeHtml(publication.publicationType)}</span><h1>${escapeHtml(publication.title)}</h1><p>${escapeHtml(description)}</p><dl class="gpir-publication-meta">${publicMetadata}</dl></div></section><div class="container gpir-publication-layout">${protectedContent}${provenance}</div></main>${commonFooter()}</body></html>`;
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(publication.title)} | GPIR | FINTECHOISIS</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${escapeHtml(publication.canonicalUrl)}"><meta property="og:type" content="article"><meta property="og:site_name" content="FINTECHOISIS | GPIR"><meta property="og:title" content="${escapeHtml(publication.title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${escapeHtml(publication.canonicalUrl)}"><link rel="icon" href="/assets/favicon/favicon.ico" sizes="any"><link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/typography.css"><link rel="stylesheet" href="/assets/css/layout.css"><link rel="stylesheet" href="/assets/css/components.css"><link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css"><link rel="stylesheet" href="/assets/css/footer.css"><link rel="stylesheet" href="/assets/css/site-polish.css"><link rel="stylesheet" href="/assets/css/contentful-publication.css"><script src="/assets/js/gpir-supabase-public-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script><script src="/scripts/m34/supabase-browser-client.js"></script><script src="/scripts/m34/publication-authorization-provider.js"></script><script src="/assets/js/gpir-reader-auth.js"></script><script type="module" src="/assets/js/gpir-protected-publication.mjs"></script></head><body class="gpir-publication-page">${commonHeader()}<main id="chapter-content" class="gpir-publication" data-gpir-auth-authority="supabase" data-gpir-entitlement="gpir-publication" data-gpir-publication-id="${escapeHtml(publication.identity)}" data-gpir-supabase-record-id="${escapeHtml(publication.supabaseRecordId)}" data-gpir-edge-endpoint="${PROTECTED_PUBLICATION_ENDPOINT}" data-gpir-auth-result="${auth.allowed ? 'controlled-validation' : 'required'}"><section class="gpir-publication-hero"><div class="container">${topicContext}<span class="page-tag">${escapeHtml(publication.publicationType)}</span><h1>${escapeHtml(publication.title)}</h1><p>${escapeHtml(description)}</p><dl class="gpir-publication-meta">${publicMetadata}</dl></div></section><div class="container gpir-publication-layout">${protectedContent}${provenance}</div></main>${commonFooter()}<script defer src="/assets/js/gpir-publication-ask.js"></script></body></html>`;
 }
 
 async function renderPublicationPageWithProvider(publication, provider) {

@@ -3815,7 +3815,16 @@ content="#0B1120">
   function openLinkedSearch(){
     if (location.hash !== '#gpir-search') return;
     const trigger = document.getElementById('search-toggle');
-    if (trigger) trigger.click();
+    if (!trigger) return;
+    const overlay = document.getElementById('search-overlay');
+    if (!overlay || overlay.getAttribute('aria-hidden') !== 'false') trigger.click();
+    const query = new URLSearchParams(location.search).get('ask');
+    if (!query) return;
+    const input = document.getElementById('search-input');
+    if (!input) return;
+    input.value = query;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openLinkedSearch, {once:true});
   else openLinkedSearch();

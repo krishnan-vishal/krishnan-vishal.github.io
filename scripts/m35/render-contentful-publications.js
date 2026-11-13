@@ -7,15 +7,18 @@ const { controlledValidationAuthorization } = require('./contentful-auth-boundar
 const { renderNotFoundPage, renderPublicationPage } = require('./contentful-publication-renderer');
 
 function parseArgs(argv) {
-  const options = { input: null, output: null, expected: null, controlledValidation: false, releaseDecisions: null };
+  const options = { input: null, output: null, expected: null, controlledValidation: false, releaseDecisions: null, previewSkipIncomplete: false };
   for (const arg of argv) {
     if (arg.startsWith('--input=')) options.input = arg.slice(8);
     else if (arg.startsWith('--output=')) options.output = arg.slice(9);
     else if (arg.startsWith('--expected=')) options.expected = Number(arg.slice(11));
     else if (arg.startsWith('--release-decisions=')) options.releaseDecisions = arg.slice(20);
     else if (arg === '--controlled-validation') options.controlledValidation = true;
+    else if (arg === '--preview-skip-incomplete') options.previewSkipIncomplete = true;
     else throw new Error(`Unsupported argument: ${arg}`);
   }
+  if (options.previewSkipIncomplete && (!options.controlledValidation || options.releaseDecisions))
+    throw new Error('Preview incomplete-record exclusion requires controlled validation without release decisions.');
   if (!options.input || !options.output) throw new Error('--input and --output are required.');
   if (options.expected !== null && (!Number.isInteger(options.expected) || options.expected < 0))
     throw new Error('--expected must be a non-negative integer.');
@@ -34,9 +37,29 @@ function routeDirectory(outputRoot, route) {
 function buildPublicationSite(artifact, options) {
   if (artifact?.source?.contentType !== 'gpirPublication')
     throw new Error('The build input is not a gpirPublication artifact.');
-  const estate = adaptEstate(artifact.records || []);
-  if (options.expected !== null && estate.publications.length !== options.expected)
-    throw new Error(`Expected ${options.expected} adapted publications; received ${estate.publications.length}.`);
+  const records = artifact.records || [];
+  if (options.expected !== null && records.length !== options.expected)
+    throw new Error(`Expected ${options.expected} input publications; received ${records.length}.`);
+  let selectedRecords = records;
+  if (options.previewSkipIncomplete) {
+    if (artifact?.source?.mode !== 'preview') throw new Error('Incomplete-record exclusion is only allowed for Contentful Preview input.');
+    const { adaptPublication } = require('./contentful-publication-adapter');
+    const excluded = [];
+    selectedRecords = records.filter(record => {
+      try { adaptPublication(record); return true; }
+      catch (error) {
+        if (!/^Missing required governed publication fields: /.test(error.message)) throw error;
+        excluded.push({ entryId: record.entryId, reason: error.message });
+        return false;
+      }
+    });
+    if (!selectedRecords.length) throw new Error('No complete governed Preview records are available for rendering.');
+    process.stdout.write(`Controlled Preview: ${selectedRecords.length} complete records; ${excluded.length} incomplete drafts excluded.\n`);
+    const reportPath = path.resolve(options.output, 'preview-exclusions.json');
+    fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+    fs.writeFileSync(reportPath, JSON.stringify({ inputCount: records.length, renderedCandidates: selectedRecords.length, excluded }, null, 2) + '\n');
+  }
+  const estate = adaptEstate(selectedRecords);
   if (options.releaseDecisions && options.controlledValidation) throw new Error('Production and controlled validation cannot be combined.');
   const releaseRows = options.releaseDecisions ? JSON.parse(fs.readFileSync(options.releaseDecisions, 'utf8')).decisions : null;
   if (releaseRows && (!Array.isArray(releaseRows) || releaseRows.length !== estate.publications.length)) throw new Error('Release authority coverage mismatch.');
