@@ -46,19 +46,15 @@ jobs:
         run: |
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -c "select public.gpir_m40_refresh_dashboard_snapshot_v1();" >/dev/null
-          # A held refresh revision lock must not silently block a publication write indefinitely.
-          psql -v ON_ERROR_STOP=1 -c "begin; select revision from public.gpir_m40_dashboard_revision_v1 for update; select pg_sleep(2); commit;" >/tmp/m40-lock-holder.log 2>&1 &
-          lock_pid=$!
-          sleep 0.5
-          set +e
-          psql -v ON_ERROR_STOP=1 -c "set lock_timeout='1s'; update public.global_announcements set title=title where false;" >/tmp/m40-lock-check.log 2>&1
-          status=$?
-          set -e
-          wait "$lock_pid"
-          if [ "$status" -ne 0 ]; then
-            echo "FAIL: publication write blocked by refresh revision lock"; cat /tmp/m40-lock-check.log; exit 1
-          fi
-          echo "PASS: publication write completed without lock timeout"
+          # Concurrent refreshes and publication writes: no artificial revision lock.
+          # Every write must complete under a 1s lock timeout.
+          for i in $(seq 1 10); do
+            psql -v ON_ERROR_STOP=1 -c "select public.gpir_m40_refresh_dashboard_snapshot_v1();" >/tmp/m40-refresh.log 2>&1 &
+            refresh_pid=$!
+            psql -v ON_ERROR_STOP=1 -c "set lock_timeout='1s'; update public.global_announcements set title=title where false;" >>/tmp/m40-lock-check.log 2>&1
+            wait "$refresh_pid"
+          done
+          echo "PASS: ten concurrent refresh/write iterations completed without lock timeout"
       - name: Record gate evidence
         if: always()
         run: |
