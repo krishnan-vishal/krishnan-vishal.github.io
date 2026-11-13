@@ -262,12 +262,13 @@ function renderResearchModules(modules) {
   const sections = modules.map((module, index) => {
     const number = module.moduleNumber || String(index + 1);
     const id = `research-module-${escapeHtml(number)}`;
-    const body = (module.sections || []).map(section => {
-      const heading = section.title ? `<h3>${escapeHtml(section.title)}</h3>` : '';
+    const body = (module.sections || []).map((section, sectionIndex) => {
       const content = section.body ? renderRichText(section.body)
         : section.text !== null && section.text !== undefined
-          ? `<p>${escapeHtml(section.text).replace(/\r?\n/g, '<br>')}</p>` : '';
-      return `${heading}${content}`;
+          ? `<p>${escapeHtml(section.text).replace(/\\r?\\n/g, '<br>')}</p>` : '';
+      if (!content.trim()) return '';
+      if (!section.title) return `<div class="gpir-research-module-prose">${content}</div>`;
+      return `<details class="gpir-research-subsection"><summary><span>${escapeHtml(section.title)}</span></summary><div class="gpir-research-subsection-body">${content}</div></details>`;
     }).join('');
     const modifier = /disclaimer/i.test(module.title || '') ? ' gpir-research-module--disclaimer' : '';
     const drillDown = module.drillDown || { eligible: true, status: 'UNRESOLVED' };
@@ -276,9 +277,10 @@ function renderResearchModules(modules) {
     const heading = route ? `<a href="${escapeHtml(route)}">${escapeHtml(module.title || `Module ${index + 1}`)}</a>` : escapeHtml(module.title || `Module ${index + 1}`);
     const sourceSha256 = module.provenance?.sourceSha256
       ? ` data-gpir-source-sha256="${escapeHtml(module.provenance.sourceSha256)}"` : '';
-    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><div class="gpir-research-module-content">${body}</div></section>`;
+    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><details class="gpir-research-chapter" ${index === 0 ? 'open' : ''}><summary>Explore chapter <span aria-hidden="true">⌄</span></summary><div class="gpir-research-module-content">${body}</div></details></section>`;
   }).join('');
-  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>`;
+  const navigationBehavior = `<script>(function(){function openTarget(){var id=decodeURIComponent(location.hash.slice(1));if(!id||!id.startsWith('research-module-'))return;var target=document.getElementById(id);if(!target)return;var disclosure=target.querySelector('.gpir-research-chapter');if(disclosure)disclosure.open=true;}window.addEventListener('hashchange',openTarget);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openTarget,{once:true});else openTarget();})();</script>`;
+  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>${navigationBehavior}`;
 }
 
 function renderHistoricalEditions(editions) {
