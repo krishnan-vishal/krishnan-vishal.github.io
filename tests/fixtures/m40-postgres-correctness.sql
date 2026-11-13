@@ -39,6 +39,7 @@ begin
      or first_page->'monthly' <> '{"2026-01":3}'::jsonb
      or first_page->'primaryThemes' <> '{"ai":2,"regulatory":1}'::jsonb
      or first_page->'dailyThemes' <> '{"2026-01-01":{"regulatory":1},"2026-01-02":{"ai":2}}'::jsonb
+     or first_page->'weeklyThemes' <> '{"2025-12-29":{"ai":2,"regulatory":1}}'::jsonb
      or first_page->'regionThemes' <> '{"apac":{"ai":1},"europe":{"ai":1},"unclassified":{"regulatory":1}}'::jsonb
      or (first_page - array['records','limit','offset','hasMore','nextOffset'])
         <> (next_page - array['records','limit','offset','hasMore','nextOffset'])
@@ -70,6 +71,30 @@ begin
   if (result->>'total')::integer <> 2 or result->'topics' <> '{"aml":2}'::jsonb
      or result->'themes' <> '{"aml":2}'::jsonb then
     raise exception 'updated classification mismatch: %', result;
+  end if;
+end $$;
+reset role;
+
+insert into public.global_announcements(id,source_id,title,summary_narration,canonical_url,published_at,topic_headers,publication_status)
+values ('00000000-0000-0000-0000-000000000005','green','Agentic AI payment agents','summary','https://example.test/5','2026-02-01 12:00+00',array['Payments'],'approved'),
+       ('00000000-0000-0000-0000-000000000006','green','AI payment','summary','https://example.test/6','2026-02-02 12:00+00',array['Payments'],'approved'),
+       ('00000000-0000-0000-0000-000000000007','green','Bank update','summary','https://example.test/7','2026-02-03 12:00+00',array['REGULATION'],'approved');
+set role service_role;
+do $$
+declare result jsonb;
+begin
+  result := public.gpir_m40_repository_query_v2('announcements',array['payments','regulatory'],
+    array['ai','regulatory'],null,null,null,'2026-02-01 00:00+00','2026-02-04 00:00+00',10,0);
+  if (result->>'total')::integer <> 3
+     or result->'dailyThemes' <> '{"2026-02-01":{"agentic":1,"ai":1},"2026-02-02":{"ai":1},"2026-02-03":{"regulatory":1}}'::jsonb
+     or result->'weeklyThemes' <> '{"2026-01-26":{"agentic":1,"ai":1},"2026-02-02":{"ai":1,"regulatory":1}}'::jsonb then
+    raise exception 'daily/weekly theme rollup mismatch: %', result;
+  end if;
+  result := public.gpir_m40_repository_query_v2('announcements',array['fraud'],null,
+    null,null,null,'2026-02-01 00:00+00','2026-02-04 00:00+00',10,0);
+  if (result->>'total')::integer <> 0 or result->'dailyThemes' <> '{}'::jsonb
+     or result->'weeklyThemes' <> '{}'::jsonb then
+    raise exception 'empty theme rollup mismatch: %', result;
   end if;
 end $$;
 reset role;

@@ -410,6 +410,11 @@ begin
         select day, theme_mask, n from rollup where day is not null
       ), dim_rollup as (
         select category, region_key, topic_mask, theme_mask, n from rollup where day is null
+      ), daily_theme_counts as materialized (
+        select r.day, d.theme_id, sum(r.n)::integer as n
+        from day_rollup r
+        join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+        group by r.day, d.theme_id
       )
       select jsonb_build_object('status','OK','kind','announcements',
         'total',coalesce((select sum(n) from dim_rollup),0)::integer,
@@ -436,13 +441,11 @@ begin
           select to_char(day,'YYYY-MM') bucket,sum(n)::integer n from day_rollup group by 1) x),'{}'::jsonb),
         'dailyThemes',coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
           select bucket,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (
-            select r.day::text bucket,d.theme_id,sum(r.n)::integer n from day_rollup r
-            join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
-            group by 1,2) i group by bucket) x),'{}'::jsonb),
+            select day::text bucket,theme_id,n from daily_theme_counts
+          ) i group by bucket) x),'{}'::jsonb),
         'weeklyThemes',coalesce((select jsonb_object_agg(bucket,theme_counts order by bucket) from (
           select bucket,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (
-            select date_trunc('week',r.day)::date::text bucket,d.theme_id,sum(r.n)::integer n from day_rollup r
-            join public.gpir_m40_theme_dictionary() d on r.theme_mask & (1 << d.bit_position) <> 0
+            select date_trunc('week',day)::date::text bucket,theme_id,sum(n)::integer n from daily_theme_counts
             group by 1,2) i group by bucket) x),'{}'::jsonb),
         'regionThemes',coalesce((select jsonb_object_agg(region_key,theme_counts order by region_key) from (
           select region_key,jsonb_object_agg(theme_id,n order by theme_id) theme_counts from (

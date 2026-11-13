@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M40 dashboard rollup continuation — 2026-11-13
+
+- **Objective:** Reduce repeated dashboard aggregation on PR #574 without changing exact results, filtering, regional classification, grants or reader RPCs.
+- **Evidence:** On `da85cce`, benchmark 43362611541 failed with dashboard p95 12,614.73 ms at 100 readers; cards and cursor passed with zero errors. The unfiltered nested plan showed joined-row grouping at 747 ms and the grouping-sets rollup at 832 ms, with daily and weekly theme JSON subplans at 30 and 15 ms.
+- **Change and correctness:** Materialize daily theme counts once and reuse them for both daily and weekly JSON. The SQL fixture covers multiple themes, week boundaries, OR filters and empty results. Four complete 500,000-row responses matched the original implementation, independent count and pagination checks and service-role grants passed, and 13 focused Node tests passed.
+- **Local gate:** The existing benchmark failed on isolated PostgreSQL 16.15 with two CPUs: at 100 readers dashboard p95 9,604.14 ms for 62 successful requests with 38 timeouts, cards 4,740.17 ms and cursor 5,455.03 ms with zero errors. Dashboard p95 excludes failures. The local unfiltered plan still spent 991 ms in grouping and 1,114 ms through rollup. This host is not comparable to the four-CPU Actions runner; Actions evidence for this correction is pending. No production deployment or merge was performed.
+
 ## M40 reader acceptance continuation — 2026-11-12
 
 - **Objective:** Complete isolated authenticated cursor navigation acceptance before optimizing dashboard aggregates on PR #574.
