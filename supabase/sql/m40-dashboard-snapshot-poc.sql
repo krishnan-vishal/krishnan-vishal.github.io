@@ -63,11 +63,9 @@ declare
   v_payload jsonb;
   v_revision bigint;
   v_current_revision bigint;
-  v_attempt integer;
 begin
   -- Compute outside the revision lock so ingestion writes never wait for aggregation.
-  -- If a write commits during computation, discard the obsolete result and retry.
-  for v_attempt in 1..3 loop
+  -- If a write commits during computation, discard the obsolete result.
     select revision into v_revision
     from public.gpir_m40_dashboard_revision_v1
     where snapshot_key = 'announcements:unfiltered';
@@ -85,10 +83,7 @@ begin
           revision = excluded.revision;
       return v_payload;
     end if;
-    -- Release row lock before retry: this block is a subtransaction.
-    -- A stale snapshot must never be published as current.
-    raise notice 'M40 snapshot refresh revision changed; retry %', v_attempt;
-  end loop;
+    -- A concurrent write invalidated the calculation; fail closed, do not publish.
   -- A failed refresh leaves the prior snapshot invalid by revision and forces exact RPC.
   return null;
 end $$;
