@@ -15,7 +15,10 @@ begin
   if actual is distinct from expected then
     raise exception 'M40_SNAPSHOT_EXACTNESS_FAILURE';
   end if;
-  if public.gpir_m40_read_dashboard_snapshot_v1(interval '0 seconds') is not null then
+  update public.gpir_m40_dashboard_snapshot_v1
+  set refreshed_at = statement_timestamp() - interval '10 minutes'
+  where snapshot_key = 'announcements:unfiltered';
+  if public.gpir_m40_read_dashboard_snapshot_v1(interval '5 minutes') is not null then
     raise exception 'M40_SNAPSHOT_STALENESS_FAILURE';
   end if;
 end $$;
