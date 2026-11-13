@@ -1,6 +1,8 @@
 -- Run only in the isolated benchmark database after the M40 data fixture is populated.
 -- Fail on any payload mismatch or access-control regression.
 begin;
+-- Isolated fixture grants only: production permissions remain unchanged.
+grant update on public.source_registry to service_role;
 set local role service_role;
 do $$
 declare
