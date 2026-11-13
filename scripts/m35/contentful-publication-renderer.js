@@ -233,7 +233,7 @@ function askGpirHref(items, title = '') {
 }
 
 function renderTopicContext(items, title = '') {
-  if (!Array.isArray(items) || !items.length) return '';
+  if (!Array.isArray(items) || !items.length) return `<nav class="gpir-topic-context" aria-label="Topic context"><a class="gpir-topic-ask" href="${escapeHtml(askGpirHref([], title))}">ASK GPIR about this topic</a></nav>`;
   const content = items.map((item, index) => {
     const label = escapeHtml(item.label);
     const href = safeHref(item.href);
@@ -256,12 +256,12 @@ function renderPrimaryDashboard(dashboard) {
 function renderResearchModules(modules) {
   if (!Array.isArray(modules) || !modules.length) return '';
   const navigation = modules.map((module, index) => {
-    const id = `research-module-${escapeHtml(module.moduleNumber || String(index + 1))}`;
+    const id = `research-module-${index + 1}`;
     return `<li><a href="#${id}"><span>${escapeHtml(module.moduleNumber || String(index + 1))}</span>${escapeHtml(module.title || `Module ${index + 1}`)}</a></li>`;
   }).join('');
   const sections = modules.map((module, index) => {
     const number = module.moduleNumber || String(index + 1);
-    const id = `research-module-${escapeHtml(number)}`;
+    const id = `research-module-${index + 1}`;
     const body = (module.sections || []).map((section, sectionIndex) => {
       const content = section.body ? renderRichText(section.body)
         : section.text !== null && section.text !== undefined
@@ -279,8 +279,7 @@ function renderResearchModules(modules) {
       ? ` data-gpir-source-sha256="${escapeHtml(module.provenance.sourceSha256)}"` : '';
     return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><details class="gpir-research-chapter" ${index === 0 ? 'open' : ''}><summary>Explore chapter <span aria-hidden="true">⌄</span></summary><div class="gpir-research-module-content">${body}</div></details></section>`;
   }).join('');
-  const navigationBehavior = `<script>(function(){function openTarget(){var id=decodeURIComponent(location.hash.slice(1));if(!id||!id.startsWith('research-module-'))return;var target=document.getElementById(id);if(!target)return;var disclosure=target.querySelector('.gpir-research-chapter');if(disclosure)disclosure.open=true;}window.addEventListener('hashchange',openTarget);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openTarget,{once:true});else openTarget();})();</script>`;
-  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>${navigationBehavior}`;
+  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>`;
 }
 
 function renderHistoricalEditions(editions) {
