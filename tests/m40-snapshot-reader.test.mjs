@@ -26,7 +26,7 @@ function mockFetch(calls,{fresh=true,pageOk=true}={}) {
     if (rpc === 'gpir_m40_repository_records_v1')
       return {ok:pageOk,json:async()=>page};
     if (rpc === 'gpir_m40_repository_query_v2')
-      return {ok:true,json:async()=>exact};
+      return {ok:true,json:async()=>({...exact,kind:JSON.parse(init.body).p_kind})};
     throw Error('Unexpected RPC '+rpc);
   };
 }
