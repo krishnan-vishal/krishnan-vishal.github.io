@@ -2,7 +2,7 @@ import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-
 import {
   EXECUTIVE_THEME_IDS, GEOGRAPHY_FILTER_KEYS, PREMIUM_THEMES, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
   buildRegionThemeMatrix, buildRegionalActivity, buildShareUrl, buildSummaryPoints, buildThemeDistribution, buildThemeMomentum, buildThemeWeekly,
-  buildTimelineEvents, buildTrendByTheme, classifyThemeIds, compareCounts, distributionTable, geographyTable, heatmapTable, isExecutiveEligible,
+  buildServerAggregateModels, buildTimelineEvents, buildTrendByTheme, classifyThemeIds, compareCounts, distributionTable, geographyTable, heatmapTable, isExecutiveEligible,
   matchesGeography, momentumTable, periodLabel, primaryThemeId, referenceClass, sparklineSvg, themeById, themeChipMarkup, trendTable
 } from './smart-presentation.mjs';
 import {
@@ -144,6 +144,69 @@ export function normalizeSmartRecords(value) {
     record.themeIds = classifyThemeIds(record);
     return [record];
   }).sort((left, right) => right.publishedAt.localeCompare(left.publishedAt));
+}
+
+export function normalizeM40Records(value) {
+  if (value?.status !== 'OK' || !Array.isArray(value.records)) return [];
+  return value.records.flatMap(item => {
+    const publishedAt = Date.parse(item?.published_at || '');
+    const url = safeHttps(item?.canonical_url);
+    const title = clean(item?.title, 240);
+    const summary = clean(item?.summary, 2000);
+    if (!Number.isFinite(publishedAt) || !url || !title || summary.length < 40) return [];
+    return [{
+      id: clean(item.id,100), title, summary, url,
+      publishedAt: new Date(publishedAt).toISOString(), category: clean(item.category,100) || 'Payments',
+      topics: Array.isArray(item.topic_headers) ? item.topic_headers.map(value => clean(value,100)).filter(Boolean) : [],
+      topicIds: Array.isArray(item.topic_ids) ? item.topic_ids.map(value => clean(value,60)).filter(Boolean) : [],
+      themeIds: Array.isArray(item.theme_ids) ? item.theme_ids.map(value => clean(value,60)).filter(Boolean) : [],
+      country: clean(item.country,100), region: Array.isArray(item.region_tags) ? clean(item.region_tags[0],100) : '',
+      geography: clean(item.geography,180), regionKey: clean(item.region_key,30),
+      sourceName: clean(item.source_name,140) || 'Authoritative source',
+      sourceTrustTier: clean(item.trust_tier,20), lifecycle: 'ARCHIVED', outcomeStatus: ''
+    }];
+  }).sort((left,right) => right.publishedAt.localeCompare(left.publishedAt) || left.id.localeCompare(right.id));
+}
+
+export function m40Query(state, bounds, { view = 'cards', limit = 10, offset = 0 } = {}) {
+  const query = new URLSearchParams({ view, kind:'announcements', start:new Date(bounds.start).toISOString(),
+    end:new Date(bounds.end).toISOString(), limit:String(limit), offset:String(offset) });
+  [...state.topics].forEach(topic => query.append('topic',topic));
+  [...state.themes].forEach(theme => query.append('theme',theme));
+  if (state.geography !== 'all') query.set('region',state.geography);
+  return query;
+}
+
+export async function fetchM40Aggregate(fetchImpl, origin, state, bounds, options) {
+  const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?${m40Query(state,bounds,options)}`,
+    {cache:'no-store',headers:{accept:'application/json'}});
+  if (!response.ok) throw new Error('M40_AGGREGATE_UNAVAILABLE');
+  const payload = await response.json();
+  const maps = ['categories','topics','themes','primaryThemes','regions','daily','weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
+  if (payload?.status !== 'OK' || !Number.isInteger(payload.total) || !Array.isArray(payload.records) ||
+      maps.some(key => !payload[key] || typeof payload[key] !== 'object' || Array.isArray(payload[key])))
+    throw new Error('M40_AGGREGATE_INVALID');
+  return payload;
+}
+
+
+// Historical evidence pages use the service-governed keyset route; totals stay with aggregates.
+export async function fetchM40HistoryCursor(fetchImpl, origin, state, bounds, cursor = null) {
+  const query = m40Query(state,bounds,{view:'history-cursor',limit:10,offset:0});
+  query.delete('offset');
+  if (cursor) {
+    query.set('afterTime',cursor.publishedAt);
+    query.set('afterId',cursor.id);
+  }
+  const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?${query}`,
+    {cache:'no-store',headers:{accept:'application/json'}});
+  if (!response.ok) throw new Error('M40_HISTORY_UNAVAILABLE');
+  const payload = await response.json();
+  if (payload?.status !== 'OK' || payload.kind !== 'announcements' || !Array.isArray(payload.records) ||
+      payload.records.length > 10 || typeof payload.hasMore !== 'boolean' ||
+      (payload.hasMore && (!payload.nextCursor?.publishedAt || !payload.nextCursor?.id)))
+    throw new Error('M40_HISTORY_INVALID');
+  return payload;
 }
 
 export function normalizeLiveAlerts(value, historical) {
@@ -354,9 +417,9 @@ function endpointOrigin(global) {
   } catch { return null; }
 }
 
-export async function fetchHistory(fetchImpl, origin) {
+export async function fetchHistory(fetchImpl, origin, { maxPages = 51 } = {}) {
   const records = [];
-  for (let offset = 0; offset <= 50000; offset += 1000) {
+  for (let offset = 0; offset < maxPages * 1000; offset += 1000) {
     const response = await fetchImpl(`${origin}${INTELLIGENCE_PATH}&offset=${offset}`, { cache: 'no-store', headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error('INTELLIGENCE_UNAVAILABLE');
     const payload = await response.json();
@@ -364,6 +427,7 @@ export async function fetchHistory(fetchImpl, origin) {
     records.push(...page);
     if (records.length >= Number(payload.total || 0) || page.length < 1000) return records;
   }
+  if (maxPages < 51) return records;
   throw new Error('INTELLIGENCE_PAGE_LIMIT');
 }
 
@@ -486,13 +550,19 @@ function renderExecutive(root, models, state) {
 }
 
 function themeTileMarkup(row, series, selected) {
-  const spoken = `${row.short}: ${plural(row.current, 'verified development')} in the selected period, ${row.previous} in the preceding period, ${row.change.isNew ? 'new' : row.change.deltaLabel}, ${plural(row.sources, 'source')}`;
-  return `<button type="button" class="smp-tile" style="--theme-color:${row.color}" data-theme-tile="${row.id}" aria-pressed="${selected}" aria-label="${escapeHtml(`Filter by ${spoken}`)}"><span class="smp-tile-name"><i aria-hidden="true"></i>${escapeHtml(row.short)}</span><strong>${row.current}</strong><span class="smp-delta" data-direction="${row.change.direction}">${escapeHtml(row.change.isNew ? `New (${row.change.deltaLabel})` : row.change.label)}</span>${row.current || row.previous ? sparklineSvg(series, row.color) : ''}<small>${row.current ? `${plural(row.sources, 'source')} · prior ${row.previous}` : 'No verified evidence in this period'}</small></button>`;
+  const sourceLabel = row.sources == null ? 'exact server aggregate' : plural(row.sources,'source');
+  const spoken = `${row.short}: ${plural(row.current, 'verified development')} in the selected period, ${row.previous} in the preceding period, ${row.change.isNew ? 'new' : row.change.deltaLabel}, ${sourceLabel}`;
+  return `<button type="button" class="smp-tile" style="--theme-color:${row.color}" data-theme-tile="${row.id}" aria-pressed="${selected}" aria-label="${escapeHtml(`Filter by ${spoken}`)}"><span class="smp-tile-name"><i aria-hidden="true"></i>${escapeHtml(row.short)}</span><strong>${row.current}</strong><span class="smp-delta" data-direction="${row.change.direction}">${escapeHtml(row.change.isNew ? `New (${row.change.deltaLabel})` : row.change.label)}</span>${row.current || row.previous ? sparklineSvg(series, row.color) : ''}<small>${row.current ? `${sourceLabel} · prior ${row.previous}` : 'No verified evidence in this period'}</small></button>`;
 }
 
 function renderThemeTiles(root, rows, scopeRecords, state, now) {
   root.querySelector('[data-smart-theme-tiles]').innerHTML = rows.map(row =>
     themeTileMarkup(row, buildThemeWeekly(scopeRecords, row.id, now), state.themes.has(row.id))).join('');
+}
+
+function renderServerThemeTiles(root, models, state) {
+  root.querySelector('[data-smart-theme-tiles]').innerHTML = models.allThemes.map(row =>
+    themeTileMarkup(row, models.themeSeries[row.id] || [], state.themes.has(row.id))).join('');
 }
 
 function setSummary(root, name, text) {
@@ -579,6 +649,22 @@ function renderHeatmap(root, records, now, heat) {
     return `<button type="button" class="smi-heat-cell" style="--theme-color:${row.topic.color};--theme-ink:${row.topic.ink}" data-level="${level(count)}" data-heat-topic="${row.topic.id}" data-heat-week="${week}" data-heat-row="${rowIndex}" data-heat-col="${index}" aria-pressed="${isSelected}" aria-label="${escapeHtml(label)}" tabindex="${`${row.topic.id}|${week}` === tabStop ? 0 : -1}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(week)} · ${count} qualifying signal${count === 1 ? '' : 's'}">${count || ''}</button>`;
   }).join('')}`).join('')}`;
   renderHeatDetail(root, records, selected, now);
+}
+
+function renderServerHeatmap(root, aggregate, now) {
+  const target = root.querySelector('[data-smart-heatmap]');
+  const lastWeek = utcWeekStart(now);
+  const weeks = Array.from({length:12},(_,index)=>lastWeek-(11-index)*7*DAY);
+  const rows = PREMIUM_THEMES.map(topic => ({topic,counts:weeks.map(week =>
+    Number(aggregate?.weeklyThemes?.[isoDay(week)]?.[topic.id] || 0))}));
+  const max = Math.max(0,...rows.flatMap(row=>row.counts));
+  const level = count => !count || !max ? 0 : Math.min(4,Math.ceil((count/max)*4));
+  target.innerHTML = `<span></span>${weeks.map(week=>`<span class="smi-week">${WEEK_FORMAT.format(new Date(week))}</span>`).join('')}${rows.map(row=>`<span class="smi-row-label" style="--theme-color:${row.topic.color}">${escapeHtml(row.topic.short)}</span>${row.counts.map((count,index)=>`<span class="smi-heat-cell" data-aggregate-static="true" data-level="${level(count)}" style="--theme-color:${row.topic.color};--theme-ink:${row.topic.ink}" aria-label="${escapeHtml(`${row.topic.label}, week of ${isoDay(weeks[index])}: ${count} verified development${count===1?'':'s'}`)}" title="${escapeHtml(row.topic.label)} · week of ${isoDay(weeks[index])} · ${count}">${count||''}</span>`).join('')}`).join('')}`;
+  const detail = root.querySelector('[data-smart-heat-detail]');
+  if (detail) {
+    detail.dataset.state='idle';
+    detail.innerHTML='<p class="smi-heat-note">Exact server-calculated weekly counts across the complete matching dataset. Use the governed evidence pagination to retrieve additional records on request.</p>';
+  }
 }
 
 function heatRecordList(records) {
@@ -765,19 +851,33 @@ export async function initializeSmartIntelligence({ global = window,
       target.textContent = 'Live announcements are temporarily unavailable. Historical records remain separate.';
     }
   });
-  const [historyResult, liveResult, editorialResult, routesResult] = await Promise.allSettled([
-    fetchHistory(fetchImpl, origin),
+  // Exact server-calculated summary and bounded evidence page. All filters are sent as
+  // governed taxonomy/theme IDs; the RPC applies OR semantics within each selected set.
+  const governedSummary = document.createElement('section');
+  governedSummary.className = 'smi-governed-summary';
+  governedSummary.setAttribute('aria-live', 'polite');
+  governedSummary.textContent = 'Loading exact filtered repository totals…';
+  root.prepend(governedSummary);
+  const cardsPanel = document.createElement('section');
+  cardsPanel.className = 'smi-governed-cards';
+  cardsPanel.setAttribute('aria-live', 'polite');
+  cardsPanel.textContent = 'Loading bounded governed Smart Card evidence…';
+  root.prepend(cardsPanel);
+  let dashboardSequence = 0;
+  let cardsOffset = 0;
+  let historyCursors = [null];
+  let historyPageIndex = 0;
+  let currentHistoryPage = null;
+  const [liveResult, editorialResult, routesResult] = await Promise.allSettled([
     livePromise,
     fetchImpl(EDITORIAL_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
     fetchImpl(GOVERNED_ROUTES_PATH, { cache: 'no-store' }).then(async response => response.ok ? response.json() : null)
   ]);
   const status = root.querySelector('[data-smart-status]');
-  if (historyResult.status !== 'fulfilled') {
-    root.dataset.state = 'unavailable';
-    status.textContent = 'Governed historical intelligence is temporarily unavailable. No analytical values have been inferred.';
-    return false;
-  }
-  let records = historyResult.value;
+  let records = [];
+  let currentAggregate = null;
+  let previousAggregate = null;
+  let trendAggregate = null;
   let liveRecords = liveResult.status === 'fulfilled' ? normalizeLiveAlerts(liveResult.value, records) : [];
   const editorial = editorialResult.status === 'fulfilled' ? normalizeEditorial(editorialResult.value) : [];
   const governedRoutes = routesResult.status === 'fulfilled' ? normalizeGovernedRoutes(routesResult.value) : [];
@@ -798,59 +898,104 @@ export async function initializeSmartIntelligence({ global = window,
     })();
   };
 
-  const executiveRecords = () => records.filter(isExecutiveEligible);
   let charts = null;
 
-  const render = () => {
+  const render = async (nextOffset = cardsOffset, navigation = null) => {
+    const sequence = ++dashboardSequence;
     const requestNow = now();
     const bounds = periodBounds(state.period, requestNow, state.customStart, state.customEnd);
-    const industry = executiveRecords();
-    const filters = { geography: state.geography, topics: [...state.topics], themes: [...state.themes] };
-    const scopeFilters = { geography: state.geography, topics: [...state.topics] };
-    const current = filterSmartRecords(industry, { bounds, ...filters });
-    const previousBounds = { start: bounds.previousStart, end: bounds.previousEnd };
-    const previous = filterSmartRecords(industry, { bounds: previousBounds, ...filters });
-    const scoped = filterSmartRecords(industry, { bounds, ...scopeFilters });
-    const scopedPrevious = filterSmartRecords(industry, { bounds: previousBounds, ...scopeFilters });
-    const regionScope = filterSmartRecords(industry, { bounds, ...filters, geography: 'all' });
-    const matrixScope = filterSmartRecords(industry, { bounds, topics: filters.topics, geography: 'all' });
-    const trendScope = filterSmartRecords(industry, { bounds: { start: HISTORY_FLOOR, end: requestNow + 1 }, ...scopeFilters });
-    const referenceRecords = filterSmartRecords(records.filter(record => !isExecutiveEligible(record)), { bounds, geography: state.geography });
-    const historicalContext = industry.filter(record => matchesGeography(record, state.geography));
     const contextKey = [state.period, state.geography, state.customStart, state.customEnd, [...state.topics], [...state.themes]].join('|');
     if (contextKey !== state.contextKey) {
       state.contextKey = contextKey;
       state.visible = global.matchMedia?.('(max-width: 640px)').matches ? 3 : 4;
+      nextOffset = 0;
+      historyCursors = [null]; historyPageIndex = 0; currentHistoryPage = null;
+      currentAggregate = null; previousAggregate = null; trendAggregate = null;
+      state.loadedContextKey = null;
     }
+    cardsOffset = nextOffset;
     periodSelect.value = state.period;
     geo.value = state.geography;
     syncThemeControls();
     root.querySelector('[data-smart-custom]').hidden = state.period !== 'CUSTOM';
     root.querySelector('[data-smart-asof]').textContent = `As of ${new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(requestNow))} UTC`;
+    governedSummary.textContent = 'Loading exact filtered repository totals…';
+    cardsPanel.textContent = 'Loading bounded governed Smart Card evidence…';
+    status.textContent = 'Loading server-calculated dashboard aggregates…';
+    updateAskLinks(root,state);
+    updateUrl(global,state);
+    const previousBounds = {start:bounds.previousStart,end:bounds.previousEnd};
+    const trendBounds = {start:utcWeekStart(requestNow)-11*7*DAY,end:requestNow+1};
+    try {
+      // Navigate historical evidence without recomputing exact aggregate totals.
+      if (navigation && currentAggregate && previousAggregate && trendAggregate) {
+        const targetIndex = navigation === 'next' ? historyPageIndex + 1 : Math.max(0,historyPageIndex - 1);
+        if (navigation === 'next' && !currentHistoryPage?.hasMore) return;
+        const cursor = navigation === 'next' ? currentHistoryPage.nextCursor : historyCursors[targetIndex];
+        const page = await fetchM40HistoryCursor(fetchImpl,origin,state,bounds,cursor);
+        if (sequence !== dashboardSequence) return;
+        historyPageIndex = targetIndex;
+        historyCursors[targetIndex] = cursor;
+        currentHistoryPage = page;
+      } else if (!currentAggregate || !previousAggregate || !trendAggregate || !currentHistoryPage || contextKey !== state.loadedContextKey) {
+        [currentAggregate,previousAggregate,trendAggregate,currentHistoryPage] = await Promise.all([
+          fetchM40Aggregate(fetchImpl,origin,state,bounds,{view:'cards',limit:10,offset:0}),
+          fetchM40Aggregate(fetchImpl,origin,state,previousBounds,{view:'aggregate',limit:1,offset:0}),
+          fetchM40Aggregate(fetchImpl,origin,state,trendBounds,{view:'aggregate',limit:1,offset:0}),
+          fetchM40HistoryCursor(fetchImpl,origin,state,bounds,null)
+        ]);
+        if (sequence !== dashboardSequence) return;
+        historyPageIndex = 0; historyCursors = [null];
+        state.loadedContextKey = contextKey;
+      }
+      cardsOffset = historyPageIndex * 10;
+      records = normalizeM40Records(currentHistoryPage);
+      if (liveResult.status === 'fulfilled') liveRecords = normalizeLiveAlerts(liveResult.value,records);
+    } catch {
+      if (sequence !== dashboardSequence) return;
+      root.dataset.state='unavailable';
+      governedSummary.textContent='Filtered repository totals temporarily unavailable; no values have been estimated.';
+      cardsPanel.textContent='Governed Smart Card evidence is temporarily unavailable; no records have been inferred.';
+      status.textContent='Server-calculated intelligence is unavailable. Existing live alerts remain independent.';
+      return;
+    }
+    const models=buildServerAggregateModels({current:currentAggregate,previous:previousAggregate,
+      trend:trendAggregate,records,now:requestNow,period:state.period});
+    const heading=document.createElement('strong');
+    heading.textContent=`Verified dated announcements: ${currentAggregate.total.toLocaleString()}`;
+    const context=document.createElement('span');
+    context.textContent=' · Exact server aggregate for every selected topic (OR), theme, geography and timestamp boundary.';
+    governedSummary.replaceChildren(heading,context);
+    const cardHeading=document.createElement('h2');
+    cardHeading.textContent=`Governed Smart Card evidence — ${currentAggregate.total.toLocaleString()} exact matches`;
+    const page=document.createElement('span');
+    page.textContent=currentAggregate.total ? ` Showing ${cardsOffset+1}–${cardsOffset+records.length}.` : ' No matching evidence.';
+    const controls=document.createElement('div');
+    const previousButton=document.createElement('button');
+    previousButton.type='button'; previousButton.textContent='Previous'; previousButton.disabled=historyPageIndex===0;
+    previousButton.addEventListener('click',()=>{void render(cardsOffset,'previous');});
+    const nextButton=document.createElement('button');
+    nextButton.type='button'; nextButton.textContent='Next'; nextButton.disabled=!currentHistoryPage?.hasMore;
+    nextButton.addEventListener('click',()=>{void render(cardsOffset,'next');});
+    controls.append(previousButton,nextButton);
+    cardsPanel.replaceChildren(cardHeading,page,controls);
     const liveCount = renderLive(root, liveRecords, state, requestNow);
     document.querySelectorAll('[data-smart-alerts-dot]').forEach(dot => { dot.hidden = !liveCount; });
     renderAlertFocus(root, liveRecords, records, state, requestNow, topicIntel.get(state.alertId));
     loadTopicIntelligence(state.alertId);
-    renderTopSignal(root, current);
-    const trend = buildTrendByTheme(trendScope, requestNow);
-    const momentum = buildThemeMomentum(scoped, scopedPrevious);
-    const featured = EXECUTIVE_THEME_IDS.map(id => momentum.find(row => row.id === id));
-    const distribution = buildThemeDistribution(scoped);
-    const donut = buildExecutiveDonut(distribution);
-    const regional = buildRegionalActivity(regionScope);
-    const matrix = buildRegionThemeMatrix(matrixScope);
-    const kpis = buildExecutiveKpis({ scoped, previous: scopedPrevious, current, previousCurrent: previous });
-    renderExecutive(root, { kpis, donut, matrix, period: state.period, momentum: featured, events: buildTimelineEvents(current),
-      summary: buildSummaryPoints({ kpis, regional, current, scoped, period: state.period }) }, state);
-    renderThemeTiles(root, momentum, historicalContext, state, requestNow);
-    renderAnalytics(root, { trend, momentum: featured, distribution, donut, regional, coverage: buildGeographyCoverage(regionScope), matrix });
-    charts.render({ trend, momentum: featured, donut, regional, options: {
-      weekly: trendChartOption(trend), momentum: momentumChartOption(featured), distribution: donutChartOption(donut), geography: mapChartOption(regional) },
-    points: { weekly: trendPoints(trend), momentum: momentumPoints(featured), distribution: donutPoints(donut), geography: mapPoints(regional) } });
+    renderTopSignal(root,records);
+    renderExecutive(root,models,state);
+    renderServerThemeTiles(root,models,state);
+    renderAnalytics(root,models);
+    charts.render({trend:models.trend,momentum:models.momentum,donut:models.donut,regional:models.regional,options:{
+      weekly:trendChartOption(models.trend),momentum:momentumChartOption(models.momentum),
+      distribution:donutChartOption(models.donut),geography:mapChartOption(models.regional)},points:{
+      weekly:trendPoints(models.trend),momentum:momentumPoints(models.momentum),
+      distribution:donutPoints(models.donut),geography:mapPoints(models.regional)}});
     renderCompareWindow(root, bounds);
-    renderHeatmap(root, historicalContext, requestNow, state.heat);
-    renderTimeline(root, current, state);
-    renderReference(root, referenceRecords);
+    renderServerHeatmap(root,trendAggregate,requestNow);
+    renderTimeline(root,records,state);
+    renderReference(root,[]);
     const subject = clean(params.get('subject'), 20).toUpperCase();
     const related = /^[A-Z]{3}\/[A-Z]{3}$/.test(subject) ? editorial.filter(item => item.pair === subject) : [];
     const queryTerms = [...state.topics].map(id => SMART_TOPICS.find(topic => topic.id === id)?.label || '').filter(Boolean);
@@ -859,7 +1004,7 @@ export async function initializeSmartIntelligence({ global = window,
     const editorialTarget = root.querySelector('[data-smart-editorial]');
     editorialTarget.hidden = !publications.length;
     editorialTarget.innerHTML = publications.length ? `<p class="smi-kicker">PUBLISHED GPIR RESEARCH</p>${publications.map(item => `<article><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary)}</p><a href="${escapeHtml(item.url)}">Read Published Research</a></article>`).join('')}` : '';
-    status.textContent = `${plural(current.length, 'verified industry development')} shown from ${industry.length} archived industry record${industry.length === 1 ? '' : 's'}; ${plural(records.length - industry.length, 'reference record')} kept separate for audit. Live alerts remain restricted to 12 hours.`;
+    status.textContent=`Exact totals and charts cover all ${currentAggregate.total.toLocaleString()} matching governed announcements. The browser holds only this ${records.length}-record evidence page; further history loads only with Previous/Next. Live alerts remain an independent 12-hour feed.`;
     updateAskLinks(root, state);
     updateUrl(global, state);
     root.dataset.state = 'ready';
@@ -1029,25 +1174,25 @@ export async function initializeSmartIntelligence({ global = window,
     state.heat = topicId ? { topicId, weekStart } : null;
     heatCells().forEach(cell => cell.setAttribute('aria-pressed',
       String(Boolean(state.heat) && cell.dataset.heatTopic === topicId && Number(cell.dataset.heatWeek) === weekStart)));
-    renderHeatDetail(root, executiveRecords().filter(record => matchesGeography(record, state.geography)), state.heat, now());
+    renderHeatDetail(root, records, state.heat, now());
     if (state.heat) heatDetail?.scrollIntoView?.({ block: 'nearest' });
   };
   heatmapEl?.addEventListener('click', event => {
     const cell = event.target.closest?.('.smi-heat-cell');
-    if (!cell) return;
+    if (!cell || cell.dataset.aggregateStatic) return;
     const week = Number(cell.dataset.heatWeek);
     const same = state.heat?.topicId === cell.dataset.heatTopic && state.heat.weekStart === week;
     setHeat(same ? '' : cell.dataset.heatTopic, week);
   });
   heatmapEl?.addEventListener('focusin', event => {
     const cell = event.target.closest?.('.smi-heat-cell');
-    if (!cell) return;
+    if (!cell || cell.dataset.aggregateStatic) return;
     heatCells().forEach(item => { item.tabIndex = -1; });
     cell.tabIndex = 0;
   });
   heatmapEl?.addEventListener('keydown', event => {
     const cell = event.target.closest?.('.smi-heat-cell');
-    if (!cell) return;
+    if (!cell || cell.dataset.aggregateStatic) return;
     if (event.key === 'Escape' && state.heat) { event.preventDefault(); setHeat(''); return; }
     const moves = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0], Home: [0, -Infinity], End: [0, Infinity] };
     const move = moves[event.key];
@@ -1103,23 +1248,20 @@ export async function initializeSmartIntelligence({ global = window,
     topicControls.querySelectorAll('input').forEach(input => { input.checked = false; });
     state.topics.clear(); state.themes.clear(); state.geography = 'all'; syncThemeControls(); render();
   });
-  render();
+  await render();
   // Periodically refresh the same governed sources. No parallel publication pipeline.
   let refreshing = false;
   const refresh = async () => {
     if (refreshing) return;
     refreshing = true;
     try {
-      const [historical, live] = await Promise.allSettled([
-        fetchHistory(fetchImpl, origin),
-        fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
-          .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); })
-      ]);
-      if (historical.status === 'fulfilled') records = historical.value;
+      const live = await Promise.resolve(fetchImpl(`${origin}${LIVE_PATH}`, { cache: 'no-store', headers: { accept: 'application/json' } })
+        .then(async response => { if (!response.ok) throw new Error('LIVE_UNAVAILABLE'); return response.json(); }))
+        .then(value => ({status:'fulfilled',value}), reason => ({status:'rejected',reason}));
       if (live.status === 'fulfilled') liveRecords = normalizeLiveAlerts(live.value, records);
       // Only transient failures are retried; a subscription denial is kept for the session.
       clearTransientTopicIntel();
-      render();
+      await render(cardsOffset);
     } finally { refreshing = false; }
   };
   if (typeof global.setInterval === 'function') global.setInterval(() => { void refresh(); }, 10 * 60 * 1000);

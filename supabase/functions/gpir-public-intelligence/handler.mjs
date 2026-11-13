@@ -1,5 +1,5 @@
 import { isOfficialUrl, isWithinLiveWindow } from '../_shared/gpir-intelligence-validation.mjs';
-import { buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
+import { TOPIC_TAXONOMY, buildTopicContext, classifyDevelopment, groupRelayItems } from '../_shared/gpir-topic-intelligence.mjs';
 import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
 
 export const PUBLIC_REPOSITORY_WINDOW_DAYS = 15;
@@ -12,6 +12,14 @@ export const HYPERSWITCH_SOURCE_ID = 'HYPERSWITCH-OSS-001';
 export const REFERENCE_SOURCE_IDS = Object.freeze([
   BIS_SOURCE_ID, RPW_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
 ]);
+export const M40_THEME_IDS = Object.freeze([
+  'cross-border', 'real-time', 'infrastructure', 'ai', 'agentic', 'web3',
+  'aml', 'fraud', 'regulatory', 'cbdc', 'wallets', 'partnerships'
+]);
+export const M40_REGION_IDS = Object.freeze([
+  'global', 'apac', 'europe', 'americas', 'mea', 'na', 'latam', 'gcc', 'afr', 'unclassified'
+]);
+export const M40_TOPIC_IDS = Object.freeze(TOPIC_TAXONOMY.map(topic => topic.id));
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
 const DEFAULT_ORIGINS = Object.freeze([
@@ -389,35 +397,119 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
     }
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
-    // Existing topicContext entitlement check above must run before any aggregate access.
-    if (requestUrl.searchParams.get('view') === 'aggregate') {
+    // Both views use one RPC contract, so dashboard totals and Smart Card pages cannot drift.
+    const m40View = requestUrl.searchParams.get('view');
+    if (m40View === 'cards' || m40View === 'aggregate' || m40View === 'history-records' || m40View === 'history-cursor') {
       if (!config) return response(503, { status: 'ERROR', code: 'REPOSITORY_CONFIGURATION_REQUIRED' }, origin, env);
       const kind = requestUrl.searchParams.get('kind') || 'announcements';
-      const topic = requestUrl.searchParams.get('topic') || null;
+      const topics = requestUrl.searchParams.getAll('topic');
+      const themes = requestUrl.searchParams.getAll('theme');
+      const categories = requestUrl.searchParams.getAll('category');
       const region = requestUrl.searchParams.get('region') || null;
-      const from = requestUrl.searchParams.get('from') || null;
-      const to = requestUrl.searchParams.get('to') || null;
-      if (!['announcements', 'statistics'].includes(kind) ||
-          [topic,region].some(value => value && (value.length > 120 || /[<>]/.test(value))) ||
-          [from,to].some(value => value && !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) ||
-          offset > 1000000) return response(400,{status:'ERROR',code:'INVALID_AGGREGATE_FILTER'},origin,env);
+      const query = String(requestUrl.searchParams.get('q') || '').trim() || null;
+      let start = requestUrl.searchParams.get('start') || null;
+      let end = requestUrl.searchParams.get('end') || null;
+      const from = requestUrl.searchParams.get('from');
+      const to = requestUrl.searchParams.get('to');
+      if (!start && /^\d{4}-\d{2}-\d{2}$/.test(from || '')) start = `${from}T00:00:00.000Z`;
+      if (!end && /^\d{4}-\d{2}-\d{2}$/.test(to || '')) end = new Date(Date.parse(`${to}T00:00:00.000Z`) + 86400000).toISOString();
+      const rawLimit = Number(requestUrl.searchParams.get('limit') || 25);
+      const rawOffset = Number(requestUrl.searchParams.get('offset') || 0);
+      const validTimestamp = value => value === null || (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)));
+      const safeList = (values, maximum) => values.length <= maximum && values.every(value =>
+        value && value.length <= 120 && !/[<>\u0000-\u001f\u007f-\u009f]/.test(value));
+      if (!['announcements','statistics'].includes(kind) || !safeList(topics,24) ||
+          !safeList(themes,12) || !safeList(categories,24) ||
+          topics.some(value => !M40_TOPIC_IDS.includes(value)) ||
+          themes.some(value => !M40_THEME_IDS.includes(value)) ||
+          (region && !M40_REGION_IDS.includes(region)) ||
+          (query && (query.length > 120 || /[<>\u0000-\u001f\u007f-\u009f]/.test(query))) ||
+          !validTimestamp(start) || !validTimestamp(end) ||
+          (start && end && Date.parse(start) >= Date.parse(end)) ||
+          !Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 100 ||
+          !Number.isInteger(rawOffset) || rawOffset < 0 || rawOffset > 1000000 ||
+          (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) || (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)))
+        return response(400,{status:'ERROR',code:m40View === 'cards' ? 'INVALID_CARD_FILTER' : 'INVALID_AGGREGATE_FILTER'},origin,env);
+      if ((m40View === 'history-records' || m40View === 'history-cursor') && kind !== 'announcements')
+        return response(400,{status:'ERROR',code:'INVALID_HISTORY_KIND'},origin,env);
+      const afterTime = requestUrl.searchParams.get('afterTime');
+      const afterId = requestUrl.searchParams.get('afterId');
+      if (m40View === 'history-cursor' && ((afterTime === null) !== (afterId === null) ||
+          (afterTime !== null && (!validTimestamp(afterTime) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(afterId)))))
+        return response(400,{status:'ERROR',code:'INVALID_HISTORY_CURSOR'},origin,env);
       try {
         const headers = new Headers();
         headers.set('apikey', config.key);
         headers.set('authorization', `Bearer ${config.key}`);
         headers.set('content-type', 'application/json');
         headers.set('accept', 'application/json');
-        const result = await fetchImpl(`${config.url}/rest/v1/rpc/gpir_m40_repository_query`, {
-          method: 'POST', headers, body: JSON.stringify({ p_kind: kind, p_topic: topic, p_region: region,
-            p_from: from, p_to: to, p_limit: Math.min(limit, 100), p_offset: offset })
+        // M40 opt-in POC: only the unfiltered announcement aggregate is snapshot-eligible.
+        // No automatic refresh/invalidation exists yet: disabled by default and never deployed
+        // until a governed refresh path and freshness acceptance are independently verified.
+        if (env.M40_SNAPSHOT_READ_ENABLED === 'true' && m40View === 'aggregate' &&
+            kind === 'announcements' && !topics.length && !themes.length &&
+            !categories.length && !region && !query && !start && !end) {
+          try {
+            const snapshotResponse = await fetchImpl(
+              `${config.url}/rest/v1/rpc/gpir_m40_read_dashboard_snapshot_v1`, {
+                method:'POST',headers,body:JSON.stringify({p_max_age:'30 seconds'})
+              });
+            if (snapshotResponse.ok) {
+              const snapshot = await snapshotResponse.json();
+              const required = ['categories','topics','themes','primaryThemes','regions','daily',
+                'weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
+              if (snapshot?.status === 'OK' && snapshot.kind === kind &&
+                  Number.isInteger(snapshot.total) && required.every(key =>
+                    snapshot[key] && typeof snapshot[key] === 'object' && !Array.isArray(snapshot[key]))) {
+                const pageResponse = await fetchImpl(
+                  `${config.url}/rest/v1/rpc/gpir_m40_repository_records_v1`, {
+                    method:'POST',headers,body:JSON.stringify({
+                      p_kind:kind,p_topics:null,p_themes:null,p_categories:null,
+                      p_region:null,p_query:null,p_start:null,p_end:null,
+                      p_limit:rawLimit,p_offset:rawOffset
+                    })
+                  });
+                if (pageResponse.ok) {
+                  const page = await pageResponse.json();
+                  if (page?.status === 'OK' && page.kind === kind &&
+                      Array.isArray(page.records) && page.limit === rawLimit &&
+                      page.offset === rawOffset && typeof page.hasMore === 'boolean') {
+                    return response(200,{
+                      ...snapshot,limit:rawLimit,offset:rawOffset,
+                      hasMore:rawOffset + rawLimit < snapshot.total,
+                      nextOffset:rawOffset + rawLimit < snapshot.total ? rawOffset + rawLimit : null,
+                      records:page.records,generatedAt:new Date(requestNow).toISOString()
+                    },origin,env,{private:true});
+                  }
+                }
+              }
+            }
+          } catch {
+            // Snapshot failures must never bypass the exact governed RPC.
+          }
+        }
+        const rpcName = m40View === 'history-cursor' ? 'gpir_m40_repository_cursor_v1' :
+          m40View === 'history-records' ? 'gpir_m40_repository_records_v1' : 'gpir_m40_repository_query_v2';
+        const result = await fetchImpl(`${config.url}/rest/v1/rpc/${rpcName}`, {
+          method:'POST', headers, body:JSON.stringify({
+            p_kind:kind,p_topics:topics.length ? topics : null,
+            p_themes:themes.length ? themes : null,p_categories:categories.length ? categories : null,
+            p_region:region,p_query:query,p_start:start,p_end:end,p_limit:rawLimit,
+            ...(m40View === 'history-cursor' ? {p_after_time:afterTime,p_after_id:afterId} : {p_offset:rawOffset})
+          })
         });
-        if (!result.ok) throw new Error('AGGREGATE_RPC_UNAVAILABLE');
+        if (!result.ok) throw new Error('M40_RPC_UNAVAILABLE');
         const data = await result.json();
-        if (data?.status !== 'OK' || !Array.isArray(data.records) || !Number.isInteger(data.total))
-          throw new Error('AGGREGATE_CONTRACT_INVALID');
-        return response(200, { ...data, generatedAt: new Date(requestNow).toISOString() }, origin, env);
+        const objects = ['categories','topics','themes','primaryThemes','regions','daily','weekly','monthly','dailyThemes','weeklyThemes','regionThemes'];
+        if (data?.status !== 'OK' || data.kind !== kind || !Array.isArray(data.records) ||
+            (!['history-records','history-cursor'].includes(m40View) && !Number.isInteger(data.total)) ||
+            !Number.isInteger(data.limit) || (m40View !== 'history-cursor' && !Number.isInteger(data.offset)) ||
+            typeof data.hasMore !== 'boolean' ||
+            (!['history-records','history-cursor'].includes(m40View) && objects.some(key => !data[key] || typeof data[key] !== 'object' || Array.isArray(data[key]))))
+          throw new Error('M40_CONTRACT_INVALID');
+        return response(200,{...data,generatedAt:new Date(requestNow).toISOString()},origin,env,{private:true});
       } catch {
-        return response(503,{status:'ERROR',code:'AGGREGATE_UNAVAILABLE'},origin,env);
+        return response(503,{status:'ERROR',code:m40View === 'cards' ? 'CARDS_UNAVAILABLE' : ['history-records','history-cursor'].includes(m40View) ? 'HISTORY_UNAVAILABLE' : 'AGGREGATE_UNAVAILABLE'},origin,env);
       }
     }
     try {

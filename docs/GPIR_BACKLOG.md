@@ -7,6 +7,13 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M40 repository aggregate concurrency gate
+
+| ID | Requirement | Status | Dependency | Outcome |
+|---|---|---|---|---|
+| M40-READER-CURSOR-ACCEPTANCE | Deploy the existing records-only and cursor RPCs and Edge Function to the approved isolated test project, then verify authenticated filtered navigation and service-role-only access | BLOCKED | Restore scoped project management, database connectivity and authenticated reader access | On 2026-11-12 the test project was identified, but both database pooler ports timed out and management tokens returned HTTP 403/401. Compatibility and deployment were not verified; no production deployment occurred. The 2026-11-13 owner request explicitly authorized continued dashboard optimization, not deployment or release. |
+| M40-AGGREGATE-PERFORMANCE | Exact governed 500,000-record benchmark at 10/25/50/100 readers; dashboard and cards p95 at most 3 seconds, cursor p95 at most 5 seconds at 100 readers, zero errors; report legacy offset separately | BLOCKED | Reader cursor acceptance, passing benchmark and security checks, operational review and owner approval | PR #574 remains blocked for release. Run 43364458540 on `40c7170` failed dashboard p95 at 17,467.07 ms, with cards 1,703.90 ms and cursor 1,941.39 ms, zero errors. Run 43362611541 on `da85cce` failed dashboard p95 at 12,614.73 ms; the subsequent local two-CPU benchmark also failed. See project status. Run 43191611260 recorded legacy offset p95 18,606.15 ms; run 43179746444 and its historical errors remain documented in the master log. |
+
 ## M39 Gate 2 recovery
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
