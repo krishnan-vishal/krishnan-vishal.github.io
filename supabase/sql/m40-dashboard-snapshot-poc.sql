@@ -5,8 +5,52 @@ create table if not exists public.gpir_m40_dashboard_snapshot_v1 (
   snapshot_key text primary key check (snapshot_key = 'announcements:unfiltered'),
   payload jsonb not null,
   refreshed_at timestamptz not null,
+  revision bigint not null default 0,
   check (jsonb_typeof(payload) = 'object')
 );
+-- Single transactional revision is bumped by every relevant write statement.
+-- Refresh locks this row, preventing publication/source changes from racing the snapshot.
+create table if not exists public.gpir_m40_dashboard_revision_v1 (
+  snapshot_key text primary key check (snapshot_key = 'announcements:unfiltered'),
+  revision bigint not null default 0
+);
+insert into public.gpir_m40_dashboard_revision_v1(snapshot_key,revision)
+values ('announcements:unfiltered',0)
+on conflict do nothing;
+revoke all on public.gpir_m40_dashboard_revision_v1 from public,anon,authenticated;
+revoke all on public.gpir_m40_dashboard_revision_v1 from service_role;
+grant select on public.gpir_m40_dashboard_revision_v1 to service_role;
+
+create or replace function public.gpir_m40_invalidate_dashboard_snapshot_v1()
+returns trigger language plpgsql security definer
+set search_path = public, pg_temp
+as $
+begin
+  update public.gpir_m40_dashboard_revision_v1
+  set revision = revision + 1
+  where snapshot_key = 'announcements:unfiltered';
+  return null;
+end $;
+revoke all on function public.gpir_m40_invalidate_dashboard_snapshot_v1()
+  from public,anon,authenticated;
+
+-- Statement-level triggers avoid per-row work during bulk ingestion.
+-- The trigger and originating write commit or roll back together.
+drop trigger if exists gpir_m40_invalidate_announcements on public.global_announcements;
+create trigger gpir_m40_invalidate_announcements
+after insert or update or delete or truncate on public.global_announcements
+for each statement execute function public.gpir_m40_invalidate_dashboard_snapshot_v1();
+
+drop trigger if exists gpir_m40_invalidate_sources on public.source_registry;
+create trigger gpir_m40_invalidate_sources
+after insert or update or delete or truncate on public.source_registry
+for each statement execute function public.gpir_m40_invalidate_dashboard_snapshot_v1();
+
+drop trigger if exists gpir_m40_invalidate_topics on public.gpir_intelligence_topics;
+create trigger gpir_m40_invalidate_topics
+after insert or update or delete or truncate on public.gpir_intelligence_topics
+for each statement execute function public.gpir_m40_invalidate_dashboard_snapshot_v1();
+
 revoke all on public.gpir_m40_dashboard_snapshot_v1 from public, anon, authenticated;
 revoke all on public.gpir_m40_dashboard_snapshot_v1 from service_role;
 grant select, insert, update on public.gpir_m40_dashboard_snapshot_v1 to service_role;
@@ -17,15 +61,21 @@ set search_path = public, pg_temp
 as $$
 declare
   v_payload jsonb;
+  v_revision bigint;
 begin
+  -- Lock serializes refresh with eligibility changes, avoiding a stale snapshot race.
+  select revision into v_revision
+  from public.gpir_m40_dashboard_revision_v1
+  where snapshot_key = 'announcements:unfiltered' for update;
   -- Compute once using the existing governed exact implementation.
   v_payload := public.gpir_m40_repository_query_v2(
     'announcements',null,null,null,null,null,null,null,1,0
   ) - 'records' - 'limit' - 'offset' - 'hasMore' - 'nextOffset';
-  insert into public.gpir_m40_dashboard_snapshot_v1(snapshot_key,payload,refreshed_at)
-  values ('announcements:unfiltered',v_payload,clock_timestamp())
+  insert into public.gpir_m40_dashboard_snapshot_v1(snapshot_key,payload,refreshed_at,revision)
+  values ('announcements:unfiltered',v_payload,clock_timestamp(),v_revision)
   on conflict (snapshot_key) do update
-  set payload = excluded.payload, refreshed_at = excluded.refreshed_at;
+  set payload = excluded.payload, refreshed_at = excluded.refreshed_at,
+      revision = excluded.revision;
   return v_payload;
 end $$;
 
@@ -42,9 +92,11 @@ begin
     raise exception 'INVALID_SNAPSHOT_MAX_AGE' using errcode = '22023';
   end if;
   select payload into v_payload
-  from public.gpir_m40_dashboard_snapshot_v1
-  where snapshot_key = 'announcements:unfiltered'
-    and refreshed_at >= statement_timestamp() - p_max_age;
+  from public.gpir_m40_dashboard_snapshot_v1 s
+  join public.gpir_m40_dashboard_revision_v1 r
+    on r.snapshot_key = s.snapshot_key and r.revision = s.revision
+  where s.snapshot_key = 'announcements:unfiltered'
+    and s.refreshed_at >= statement_timestamp() - p_max_age;
   -- NULL means caller must use the exact governed RPC, never stale data.
   return v_payload;
 end $$;
