@@ -277,9 +277,9 @@ function renderResearchModules(modules) {
     const heading = route ? `<a href="${escapeHtml(route)}">${escapeHtml(module.title || `Module ${index + 1}`)}</a>` : escapeHtml(module.title || `Module ${index + 1}`);
     const sourceSha256 = module.provenance?.sourceSha256
       ? ` data-gpir-source-sha256="${escapeHtml(module.provenance.sourceSha256)}"` : '';
-    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><details class="gpir-research-chapter" ${index === 0 ? 'open' : ''}><summary>Explore chapter <span aria-hidden="true">⌄</span></summary><div class="gpir-research-module-content">${body}</div></details></section>`;
+    return `<section id="${id}" class="gpir-research-module${modifier}" aria-labelledby="${id}-title" data-gpir-module-id="${id}"${sourceSha256}><header><span>Module ${escapeHtml(number)}</span><h2 id="${id}-title"${drillDownMetadata}>${heading}</h2></header><details class="gpir-research-chapter" open><summary>Explore chapter <span aria-hidden="true">⌄</span></summary><div class="gpir-research-module-content">${body}</div></details></section>`;
   }).join('');
-  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Research modules</h2><ol>${navigation}</ol></nav>${sections}</div>`;
+  return `<div class="gpir-research-modules"><nav class="gpir-research-module-nav" aria-label="Research modules"><h2>Explore research chapters</h2><p class="gpir-research-nav-hint">Select a chapter to read its research.</p><ol>${navigation}</ol></nav>${sections}</div>`;
 }
 
 function renderHistoricalEditions(editions) {
