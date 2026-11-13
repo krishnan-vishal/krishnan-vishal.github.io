@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 global typography, topic continuity and ASK GPIR integration
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M39-CONTENT-UNIFORMITY | 2026-11-13 | Normalize shared long-form typography and whitespace; preserve governed topic continuity; expose topic-aware ASK GPIR navigation across the homepage, publications and archive | READER EXPERIENCE, CONTENTFUL, INTELLIGENCE, RELEASE | High | IN PROGRESS | PR #575 checks, owner review/merge, existing Pages production workflow and one post-deployment live verification | Consolidated implementation is on the existing publication-layout PR. Shared tokens, Rich Text empty-paragraph suppression, responsive chapter/publication rhythm, contextual ASK GPIR links and explicit current/archive/research response groupings are implemented. The existing topic registry, historical API, 12-hour alert lifecycle, publication identities, access controls and entitlements are unchanged. Focused tests and validators pass; release evidence and owner-controlled publication remain pending. |
+
 ## M40 repository aggregate concurrency gate
 
 | ID | Requirement | Status | Dependency | Outcome |

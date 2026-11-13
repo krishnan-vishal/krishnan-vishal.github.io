@@ -36,6 +36,20 @@ test('homepage, governed publications and archive cards expose contextual ASK GP
   assert.match(archive, /record\.topicIds\.join/);
 });
 
+test('existing static publication shells load the shared topic-aware ASK GPIR module', () => {
+  const rootPages = fs.readdirSync(root, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map(entry => path.join(root, entry.name, 'index.html'))
+    .filter(filePath => fs.existsSync(filePath))
+    .filter(filePath => fs.readFileSync(filePath, 'utf8').includes('class="gpir-publication"'));
+  assert.ok(rootPages.length >= 35, 'expected the governed publication estate');
+  for (const filePath of rootPages) {
+    assert.match(fs.readFileSync(filePath, 'utf8'),
+      /<script type="module" src="\/assets\/js\/gpir-protected-publication\.mjs"><\/script>/,
+      path.relative(root, filePath));
+  }
+});
+
 test('ASK GPIR reuses historical intelligence and published search with explicit lifecycle labels', () => {
   const assistant = read('assets/js/script.js');
   assert.match(assistant, /gpir-public-intelligence\?scope=history&limit=1000/);

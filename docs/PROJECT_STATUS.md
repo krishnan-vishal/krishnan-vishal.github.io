@@ -2,6 +2,14 @@
 
 ## Current handoff
 
+### M39 global typography, topic continuity and ASK GPIR integration (PR #575)
+
+- **Scope:** continued the existing `fix/m35-publication-chapter-layout-20261113` branch and PR #575 rather than opening a parallel implementation. Shared content tokens now govern H1-H6, body, label, table and caption typography; chapter and Contentful publication rhythm is left-aligned, responsive and protected from duplicate empty-paragraph/list margins.
+- **Topic and ASK continuity:** the homepage, governed publication topic context and historical archive expose ASK GPIR links. ASK GPIR reuses the existing Contentful search index and approved `gpir-public-intelligence?scope=history` API, matches existing topic IDs, and separates current 12-hour intelligence, archived/superseded intelligence and published research while retaining source links and dates.
+- **Governance boundary:** no editorial text, Contentful identity, Supabase row/schema/RLS policy, authentication, subscription/payment entitlement, intelligence threshold or Global Alerts 12-hour rule changed. Alert expiry remains a LIVE-to-ARCHIVED transition rather than deletion, and research lifecycle remains independent.
+- **Validation:** 52 affected lifecycle, navigation, renderer and presentation tests pass. `validate-content` passes for 15 announcements, 14 candidates, 6 countries, 113 trusted sources and 57 registry records; `validate-links` passes for 279 HTML files; syntax and `git diff --check` pass. A broader historical M36 run has three environment failures because untracked evidence artifacts are absent, while all M39-affected assertions pass independently.
+- **Checkpoint:** implementation commit `50a66af` is pushed to the existing branch. Before/after desktop and mobile review evidence, final documentation commit, PR checks, owner review/merge, production deployment and one live verification remain pending.
+
 ### M40 repository aggregate performance (PR #574)
 
 - **Actions correction result:** Run 43364458540 on `40c7170` failed the 500,000-row gate. At 100 readers dashboard p95 was 17,467.07 ms, cards 1,703.90 ms and cursor 1,941.39 ms, each with zero errors. Exact count, 24-hour and topic-OR comparisons, pagination and listed grants passed. The unfiltered nested plan took 1,219 ms overall, including 896 ms in joined-row grouping and 1,016 ms through the grouping-sets rollup; daily theme counts took 21 ms. These timings overlap and are not additive. The benchmark gate remains blocked; no release or deployment is approved.
