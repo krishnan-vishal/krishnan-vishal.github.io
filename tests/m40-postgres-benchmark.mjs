@@ -156,6 +156,24 @@ analyze public.global_announcements;
 analyze public.gpir_intelligence_topics;
 `, { timeout: 600000 });
 
+if (process.env.M40_SNAPSHOT_ONLY === 'true') {
+    stage = 'snapshot POC installation and focused correctness';
+    runFile('supabase/sql/m40-dashboard-snapshot-poc.sql');
+    runFile('tests/fixtures/m40-dashboard-snapshot-poc-test.sql', { timeout: 600000 });
+    const evidence = {
+        status: 'PASS', stage: 'snapshot-only',
+        generatedAt: new Date().toISOString(), records: recordCount,
+        checks: ['exact JSON payload', 'stale snapshot rejection', 'anon/authenticated privilege restrictions'],
+        note: 'Isolated benchmark fixture only; no API integration or production deployment'
+    };
+    writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify(evidence,null,2)+'\n');
+    writeFileSync(path.join(artifactRoot,'benchmark-report.md'),
+        '# M40 snapshot focused test\n\n**Status:** PASS\n\n' +
+        'Exactness, staleness and restricted access passed on isolated synthetic data.\n');
+    console.log('M40 snapshot focused test PASS: exactness, staleness and restricted access');
+    process.exit(0);
+}
+
 const rowCount = Number(runSql('select count(*) from public.global_announcements;'));
 assert.equal(rowCount, recordCount, 'benchmark must contain exactly the requested governed record count');
 
