@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createPublicIntelligenceHandler } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
 
 const base = {
-  SUPABASE_URL:'https://example.supabase.co',
+  SUPABASE_URL:'https://qlnvhfapctcpzqyuhhth.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY:'test-only-server-secret'
 };
 const dimensions = {
