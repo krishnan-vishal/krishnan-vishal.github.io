@@ -1,0 +1,74 @@
+name: M40 consolidated production-readiness gate
+on:
+  pull_request:
+    paths:
+      - 'tests/m40-consolidated-edge-gate.test.mjs'
+      - 'tests/fixtures/m40-consolidated-release-gate.sql'
+      - 'supabase/sql/m40-dashboard-snapshot-poc.sql'
+      - 'supabase/functions/gpir-public-intelligence/**'
+      - '.github/workflows/m40-consolidated-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  consolidated-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gate 1 — isolated snapshot freshness, write invalidation, permissions
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/fixtures/m40-postgres-benchmark-schema.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/sql/m40-governed-repository-aggregates-v2.sql
+          psql -v ON_ERROR_STOP=1 -f tests/fixtures/m40-consolidated-release-gate.sql
+      - name: Gate 2 — Edge API routing, fallback, security and HTTP caching
+        run: node --test tests/m40-consolidated-edge-gate.test.mjs
+      - name: Gate 3 — refresh/write lock contention (bounded)
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "select public.gpir_m40_refresh_dashboard_snapshot_v1();" >/dev/null
+          # A held refresh revision lock must not silently block a publication write indefinitely.
+          psql -v ON_ERROR_STOP=1 -c "begin; select revision from public.gpir_m40_dashboard_revision_v1 for update; select pg_sleep(2); commit;" >/tmp/m40-lock-holder.log 2>&1 &
+          lock_pid=$!
+          sleep 0.5
+          set +e
+          psql -v ON_ERROR_STOP=1 -c "set lock_timeout='1s'; update public.global_announcements set title=title where false;" >/tmp/m40-lock-check.log 2>&1
+          status=$?
+          set -e
+          wait "$lock_pid"
+          if [ "$status" -eq 0 ]; then
+            echo "FAIL: publication update bypassed refresh lock contention check"; exit 1
+          fi
+          grep -q 'lock timeout' /tmp/m40-lock-check.log
+          echo "PASS: contention detected, not silently ignored; refresh/write serialization requires deployment review"
+      - name: Record gate evidence
+        if: always()
+        run: |
+          mkdir -p gate-artifacts/m40
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > gate-artifacts/m40/run.txt
+          cp /tmp/m40-lock-check.log gate-artifacts/m40/lock-check.log 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m40-consolidated-gate-${{ github.run_id }}
+          path: gate-artifacts/m40/
+          retention-days: 14
