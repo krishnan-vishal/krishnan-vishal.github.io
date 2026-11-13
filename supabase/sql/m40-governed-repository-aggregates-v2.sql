@@ -382,10 +382,18 @@ begin
         join public.source_registry s on s.source_id = b.source_id and s.source_status = 'GREEN'
         left join public.gpir_intelligence_topics g on g.announcement_id = b.id
         group by 1, 2, 3, 4, 5, 6, 7
+      ), region_keys as materialized (
+        select distinct geography, country, region_tags from grouped
+      ), region_lookup as materialized (
+        select geography, country, region_tags,
+               public.gpir_m40_region_key(geography, nullif(country, ''), region_tags) as region_key
+        from region_keys
       ), classified_keys as materialized (
-        select b.day, b.category, b.topic_mask, b.theme_mask, b.n,
-               public.gpir_m40_region_key(b.geography, nullif(b.country, ''), b.region_tags) as region_key
+        select b.day, b.category, b.topic_mask, b.theme_mask, b.n, r.region_key
         from grouped b
+        join region_lookup r on r.geography = b.geography
+                            and r.country = b.country
+                            and r.region_tags = b.region_tags
       ), classified as (
         select b.day, b.category, b.topic_mask, b.theme_mask, b.region_key, b.n
         from classified_keys b
