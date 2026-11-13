@@ -19,7 +19,7 @@ values ('announcements:unfiltered',0)
 on conflict do nothing;
 revoke all on public.gpir_m40_dashboard_revision_v1 from public,anon,authenticated;
 revoke all on public.gpir_m40_dashboard_revision_v1 from service_role;
-grant select on public.gpir_m40_dashboard_revision_v1 to service_role;
+grant select, update on public.gpir_m40_dashboard_revision_v1 to service_role;
 
 create or replace function public.gpir_m40_invalidate_dashboard_snapshot_v1()
 returns trigger language plpgsql security definer
