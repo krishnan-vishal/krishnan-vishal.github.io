@@ -14,6 +14,13 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## M39 global typography, topic continuity and ASK GPIR integration — 2026-11-13
+
+- **Objective:** normalize GPIR chapter/publication typography and whitespace, preserve the governed topic graph across fresh intelligence, research and archives, and expose contextual ASK GPIR navigation without redesigning architecture or changing publication access.
+- **Implementation:** centralized reusable long-form type/spacing tokens; normalized H1-H6, paragraphs, lists, tables and captions across chapter and Contentful publication surfaces; suppressed Rich Text whitespace-only paragraphs; added responsive homepage/publication/archive ASK GPIR entry points; and grouped deterministic ASK responses into current 12-hour intelligence, archived/superseded intelligence and published research using existing approved sources.
+- **Preservation:** no CMS content or identity, canonical route, Supabase schema/record/RLS policy, authentication, payment/subscription entitlement, alert threshold or topic registry was changed. Expired alerts remain governed archive records; published research is not treated as alert-expiry content.
+- **Evidence:** 53 affected tests pass, along with content validation, the continuous-intelligence recovery contract and 279-page internal-link validation. Syntax and diff checks pass. Three failures in a broader historical M36 run are missing local/untracked evidence artifacts, not affected behavior; the corresponding M39 assertions pass in focused runs. Commits `50a66af` and `f146ade` are confirmed on PR #575. Cloudflare preview deployment and the required security/content workflow pass; 1440×1000 and 390×844 browser acceptance finds no horizontal overflow and confirms the topic-aware ASK link. Owner merge, production deployment and one live verification remain pending.
+
 ## M40 dashboard rollup continuation — 2026-11-13
 
 - **Objective:** Reduce repeated dashboard aggregation on PR #574 without changing exact results, filtering, regional classification, grants or reader RPCs.

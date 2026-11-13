@@ -101,6 +101,28 @@
 
 }
 
+.ask-gpir-btn{
+
+    border:1px solid #D4AF37;
+
+    background:transparent;
+
+    color:#D4AF37;
+
+}
+
+.main-nav a.ask-gpir-btn{
+
+    color:#ffffff;
+
+}
+
+.main-nav a.ask-gpir-btn:hover{
+
+    color:#071A2F;
+
+}
+
 
 /* ----------------------------------------------------------
    CONTAINER
@@ -2618,6 +2640,10 @@ button.ticker-card{
     .header.nav-open .header-tools{
 
         display:flex;
+
+        flex-direction:column;
+
+        align-items:stretch;
 
         padding:12px 24px 24px;
     }

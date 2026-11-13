@@ -1633,7 +1633,7 @@ function initializeReaderAssistant(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
-    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?limit=100";
+    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&limit=1000";
     let contextPromise = null;
 
     // Each dataset settles independently (never rejects the shared
@@ -1756,32 +1756,54 @@ function initializeReaderAssistant(){
         const requestedLocation = [...new Set([...records.flatMap(record => [record.country, record.region]).filter(Boolean), ...registryLocations, "Australia", "Brazil", "GCC"])]
             .sort((left, right) => right.length - left.length)
             .find(location => normalized.includes(location.toLowerCase()));
-        const queryTokens = normalized.split(/[^\p{L}\p{N}&-]+/u).filter(token => token.length > 2 && !["the","and","for","show","latest","recent","announcement","announcements","update","updates","change","changes"].includes(token));
+        const queryTokens = normalized.split(/[^\p{L}\p{N}&-]+/u).filter(token => token.length > 2 && !["the","and","for","show","latest","recent","current","historical","archive","archived","intelligence","record","records","announcement","announcements","update","updates","change","changes","published","validated"].includes(token));
+        const requestsCurrent = /\b(current|live|latest(?:\s+12)?)\b/.test(normalized);
+        const requestsArchive = /\b(historical|archive|archived|superseded)\b/.test(normalized);
         let matches = records.filter(record => {
             const displayStatus = record.displayLifecycleStatus || record.lifecycleStatus;
-            if((normalized.includes("historical") || normalized.includes("archive")) && displayStatus !== "ARCHIVED" && displayStatus !== "HISTORICAL") return false;
-            if((normalized.includes("live") || normalized.includes("latest 24")) && displayStatus !== "LIVE") return false;
+            if(requestsArchive && !requestsCurrent && displayStatus !== "ARCHIVED" && displayStatus !== "HISTORICAL") return false;
+            if(requestsCurrent && !requestsArchive && displayStatus !== "LIVE") return false;
             if(requestedLocation && !`${record.country} ${record.region}`.toLowerCase().includes(requestedLocation.toLowerCase())) return false;
             if(monthIndex !== -1 && record.publicationMonth !== String(monthIndex + 1).padStart(2, "0")) return false;
             if(yearMatch && record.publicationYear !== yearMatch[1]) return false;
-            if(/\b(historical|archive|live|latest 24)\b/.test(normalized) && queryTokens.every(token => ["show","historical","archive","live"].includes(token))) return true;
-            const text = [record.headline, record.title, record.tickerHeadline, record.summary, record.whyItMatters, record.country, record.region, record.category, record.subcategory, record.subCategory, record.eventType, record.organisation, record.sourceName, record.gpirSection, record.gpirSubsection, ...(record.tags || []), ...(record.keywords || [])].filter(Boolean).join(" ").toLowerCase();
+            if((requestsCurrent || requestsArchive) && queryTokens.length === 0) return true;
+            const text = [record.headline, record.title, record.tickerHeadline, record.summary, record.whyItMatters, record.country, record.region, record.category, record.subcategory, record.subCategory, record.eventType, record.organisation, record.sourceName, record.gpirSection, record.gpirSubsection, ...(record.topicIds || []), ...(record.tags || []), ...(record.keywords || [])].filter(Boolean).join(" ").toLowerCase();
             record.__askScore = queryTokens.reduce((score, token) => score + (text.includes(token) ? 1 : 0), 0);
             return queryTokens.length === 0 || record.__askScore >= Math.max(1, Math.ceil(queryTokens.length * 0.6));
         });
         matches.sort((a, b) => (b.__askScore || 0) - (a.__askScore || 0) || (b.publicationDate || b.publishedDate || "").localeCompare(a.publicationDate || a.publishedDate || ""));
         if(normalized.includes("recent") || normalized.includes("latest")) matches = matches.slice(0, 6);
         const rootPrefix = dataPrefix.replace(/assets\/data\/$/, "");
-        if(!matches.length){
-            answer.innerHTML = "<p>No validated GPIR announcement record is available for this query. Related research publications and repository results may still be available below.</p>";
-            return true;
-        }
-        const items = matches.map(record => {
+        const announcementItems = items => items.map(record => {
             const source = record.source && record.source.url ? ` · <a href="${escape(record.source.url)}" target="_blank" rel="noopener noreferrer">Original source</a>` : "";
             const destination = record.pageUrl || record.canonicalUrl || (record.source && record.source.url) || (rootPrefix + "pages/intelligence/" + record.id + ".html");
-            return `<li><a href="${escape(destination)}"${/^https:\/\//i.test(destination) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
+            return `<li><a href="${escape(destination)}"${/^https:\/\//i.test(destination) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escape(record.headline || record.title)}</a><small>${escape([record.country, record.region, record.category, record.publicationDate || record.publishedDate || record.publishedAt, record.publicationStatus, record.displayLifecycleStatus || record.lifecycleStatus].filter(Boolean).join(" · "))}${source}</small><p>${escape(record.summary || "Summary unavailable in the published record.")}</p></li>`;
         }).join("");
-        answer.innerHTML = `<h3>Published announcements</h3><ul>${items}</ul><p class="gpir-assistant-source-note">Results are deterministic retrieval from the authoritative read-only intelligence repository; no factual summary was generated in the browser.</p>`;
+        const current = matches.filter(record => (record.displayLifecycleStatus || record.lifecycleStatus) === "LIVE");
+        const archived = matches.filter(record => !current.includes(record));
+        const renderAnswer = research => {
+            const announcementMarkup = [
+                current.length ? `<h4>Current intelligence · latest 12 hours</h4><ul>${announcementItems(current)}</ul>` : "",
+                archived.length ? `<h4>Archived or superseded intelligence</h4><ul>${announcementItems(archived)}</ul>` : ""
+            ].join("");
+            const researchMarkup = research.length ? `<h4>Published research</h4><ul>${resultLinks(research)}</ul>` : "";
+            const empty = !announcementMarkup && !researchMarkup
+                ? "<p>No validated GPIR announcement or published research record is available for this query.</p>" : "";
+            answer.innerHTML = `<h3>Governed GPIR topic results</h3>${announcementMarkup}${researchMarkup}${empty}<p class="gpir-assistant-source-note">Current and archived records are retrieved from the authoritative read-only intelligence repository. Published research comes from the existing GPIR search index; access conditions continue to apply. No factual summary was generated in the browser.</p>`;
+        };
+        renderAnswer([]);
+        if(window.GPIRContentSearch){
+            window.GPIRContentSearch.load().then(() => {
+                const found = window.GPIRContentSearch.search(normalized, { limit: 12 });
+                const research = found.results.filter(result => result.type !== "Global Announcement")
+                    .slice(0, 6).map(result => ({
+                        title: result.pageTitle + (result.sectionTitle && result.sectionTitle !== result.pageTitle ? " — " + result.sectionTitle : ""),
+                        href: result.href,
+                        meta: [result.type, result.category, result.country].filter(Boolean).join(" · ")
+                    }));
+                renderAnswer(research);
+            }).catch(() => renderAnswer([]));
+        }
         return true;
     };
 
@@ -1790,7 +1812,7 @@ function initializeReaderAssistant(){
         if(!normalized) return;
         answer.innerHTML = "<p>Looking through the published GPIR index…</p>";
 
-        const looksLikeAnnouncementQuery = /\b(announcements?|regulation|regulatory|licen[cs](?:e|ing)|stablecoin|aml|cft|sanction|payments?|remittance|cross-border|pix|cbdc|fintech)\b/.test(normalized) && /\b(latest|recent|update|change|expansion|launch|regulation|licen[cs](?:e|ing)|september|august|20\d{2}|india|singapore|australia|brazil|gcc|uae|qatar|rbi)\b/.test(normalized);
+        const looksLikeAnnouncementQuery = /\b(announcements?|regulation|regulatory|licen[cs](?:e|ing)|stablecoin|aml|cft|sanction|payments?|remittance|cross-border|pix|cbdc|fintech)\b/.test(normalized) && /\b(current|historical|archive|archived|superseded|latest|recent|update|change|expansion|launch|regulation|licen[cs](?:e|ing)|september|august|20\d{2}|india|singapore|australia|brazil|gcc|uae|qatar|rbi)\b/.test(normalized);
         if(/\bannouncements?\b/.test(normalized) || looksLikeAnnouncementQuery){
             loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(error => {
                 // loadContext() no longer rejects on a single dataset failure;

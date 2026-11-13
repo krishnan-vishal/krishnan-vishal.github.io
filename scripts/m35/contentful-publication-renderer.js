@@ -190,7 +190,10 @@ function renderRichText(node) {
   if (node.nodeType === 'gpir-market-grid') return renderMarketGrid(node);
   if (node.nodeType === 'gpir-empty-structured-data') return renderEmptyStructuredData(node);
   if (node.nodeType === 'gpir-tier-matrix') return renderTierMatrix(node);
-  if (node.nodeType === 'paragraph') return children ? `<p>${children}</p>` : '';
+  if (node.nodeType === 'paragraph') {
+    const meaningful = children.replace(/<br\s*\/?\s*>/gi, '').replace(/&nbsp;/gi, ' ').trim();
+    return meaningful ? `<p>${children}</p>` : '';
+  }
   if (headings[node.nodeType]) return renderHeading(node, headings[node.nodeType], children);
   if (node.nodeType === 'unordered-list') return `<ul>${children}</ul>`;
   if (node.nodeType === 'ordered-list') return `<ol>${children}</ol>`;
@@ -222,7 +225,14 @@ function metadataRows(publication) {
     `<div class="gpir-publication-meta-item"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
 }
 
-function renderTopicContext(items) {
+function askGpirHref(items, title = '') {
+  const labels = (items || []).map(item => item?.label).filter(Boolean);
+  const subject = [...labels, title].filter(Boolean).join(' · ');
+  const query = `Show published research and validated current and archived intelligence for ${subject || 'this GPIR topic'}`;
+  return `/?ask=${encodeURIComponent(query)}#gpir-search`;
+}
+
+function renderTopicContext(items, title = '') {
   if (!Array.isArray(items) || !items.length) return '';
   const content = items.map((item, index) => {
     const label = escapeHtml(item.label);
@@ -230,7 +240,7 @@ function renderTopicContext(items) {
     const value = href ? `<a href="${escapeHtml(href)}">${label}</a>` : `<span>${label}</span>`;
     return `<li${index === items.length - 1 ? ' aria-current="page"' : ''}>${value}</li>`;
   }).join('');
-  return `<nav class="gpir-topic-context" aria-label="Topic context"><ol>${content}</ol></nav>`;
+  return `<nav class="gpir-topic-context" aria-label="Topic context"><ol>${content}</ol><a class="gpir-topic-ask" href="${escapeHtml(askGpirHref(items, title))}">ASK GPIR about this topic</a></nav>`;
 }
 
 function renderPrimaryDashboard(dashboard) {
@@ -307,7 +317,7 @@ function renderPublicationPage(publication, options = {}) {
       ? `${publication.title} — governed GPIR research publication. Authentication required.`
       : publication.summary || `${publication.title} — GPIR publication.`);
   const publicMetadata = metadataRows(publication);
-  const topicContext = renderTopicContext(publication.topicContext);
+  const topicContext = renderTopicContext(publication.topicContext, publication.title);
   const researchBody = publication.researchModules?.length
     ? renderResearchModules(publication.researchModules)
     : `<article class="gpir-publication-body">${renderRichText(publication.body)}</article>`;
@@ -335,7 +345,7 @@ function renderNotFoundPage() {
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>404 | GPIR | FINTECHOISIS</title><link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/contentful-publication.css"></head><body><main class="gpir-not-found"><h1>404</h1><h2>Publication not found</h2><p>The requested GPIR publication route is not available.</p><a href="/">Return home</a></main></body></html>';
 }
 
-module.exports = { escapeHtml, renderNotFoundPage, renderPublicationPage,
+module.exports = { askGpirHref, escapeHtml, renderNotFoundPage, renderPublicationPage,
   renderPublicationPageWithProvider, renderPrimaryDashboard, renderResearchModules,
   renderRichText, renderTopicContext, safeHref, tablePresentation,
   PROTECTED_PUBLICATION_ENDPOINT };

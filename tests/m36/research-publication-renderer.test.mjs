@@ -3,13 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { createRequire } from 'node:module';
-import { modulesFromRichText as browserModules } from '../../assets/js/gpir-protected-publication.mjs';
+import { modulesFromRichText as browserModules, publicationAskHref } from '../../assets/js/gpir-protected-publication.mjs';
 import { normalizedPayload } from '../../supabase/functions/gpir-protected-publication/handler.mjs';
 
 const require = createRequire(import.meta.url);
 const { adaptPublication } = require('../../scripts/m35/contentful-publication-adapter');
 const { controlledValidationAuthorization } = require('../../scripts/m35/contentful-auth-boundary');
-const { renderPublicationPage } = require('../../scripts/m35/contentful-publication-renderer');
+const { renderPublicationPage, renderRichText } = require('../../scripts/m35/contentful-publication-renderer');
 const { normalizeResearchModules } = require('../../scripts/m35/research-publication-model');
 
 const ownerAlt = 'GPIR Stablecoins Global Money Movements Intelligence dashboard covering cross-border payments, remittances, trade, treasury and financial inclusion, with C2C corridors, stablecoin networks, FX and off-ramping, regulation, AML and 2026–2035 outlook.';
@@ -90,6 +90,18 @@ test('authorized renderer emits module navigation, responsive dashboard and exac
   assert.match(html, /class="gpir-dashboard-link"/);
   assert.match(html, /class="gpir-dashboard-open">Open high-resolution view/);
   assert.match(html, /<body class="gpir-publication-page">/);
+  assert.match(html, /class="gpir-topic-ask"/);
+  assert.match(html, /ASK GPIR about this topic/);
+});
+
+test('Rich Text presentation suppresses whitespace-only paragraphs without changing authored text', () => {
+  const html = renderRichText({ nodeType: 'document', data: {}, content: [
+    { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: '   ', marks: [], data: {} }] },
+    { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: 'Governed text.', marks: [], data: {} }] }
+  ] });
+  assert.equal(html, '<p>Governed text.</p>');
+  assert.match(publicationAskHref(['Stablecoins', 'Cross-Border Payments'], 'C2C'),
+    /\?ask=.*current.*archived.*Stablecoins/i);
 });
 
 test('missing dashboard is tolerated without empty dashboard markup', () => {
@@ -196,8 +208,8 @@ test('responsive and keyboard-focus CSS includes narrow viewport safeguards', ()
   assert.match(css, /max-width:\s*480px/);
   assert.match(css, /overflow-x:\s*auto/);
   assert.match(css, /var\(--hero-light-bg/);
-  assert.match(css, /--gpir-font-headline:'Calibri Light', Calibri, Arial, sans-serif/);
-  assert.match(css, /--gpir-font-body:Arial, Helvetica, sans-serif/);
+  assert.match(css, /--gpir-font-headline:var\(--gpir-content-font-heading/);
+  assert.match(css, /--gpir-font-body:var\(--gpir-content-font-body/);
   assert.match(css, /grid-template-columns:auto minmax\(0, 1fr\)/);
   assert.match(css, /position:sticky/);
   assert.match(css, /max-height:48px/);
