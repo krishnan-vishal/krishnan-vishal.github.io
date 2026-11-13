@@ -1404,9 +1404,18 @@ body.gpir-publication-page {
 @media(max-width:420px){.gpir-research-module-nav ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}.gpir-research-module-nav a{font-size:.77rem;min-height:84px}}
 
 /* Contextual ASK GPIR: existing governed homepage search displayed in-place. */
-.gpir-publication-ask-dialog{width:min(1000px,96vw);height:min(820px,92dvh);max-width:none;max-height:none;margin:auto;padding:0;border:1px solid #c9d3df;border-radius:16px;background:#fff;box-shadow:0 24px 80px rgba(6,25,51,.3);overflow:hidden}
+.gpir-publication-ask-dialog{width:min(820px,94vw);height:min(760px,88dvh);max-width:none;max-height:none;margin:auto;padding:0;border:1px solid #c9d3df;border-radius:16px;background:#fff;box-shadow:0 24px 80px rgba(6,25,51,.3);overflow:hidden;color:#102747}
 .gpir-publication-ask-dialog::backdrop{background:rgba(7,25,50,.55)}
-.gpir-publication-ask-header{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#102747;color:#fff;font:600 .92rem system-ui,sans-serif}
+.gpir-publication-ask-header{height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;background:#102747;color:#fff;font:600 .95rem system-ui,sans-serif}
 .gpir-publication-ask-header button{border:1px solid #a7b5c8;border-radius:8px;background:#fff;color:#102747;padding:7px 13px;cursor:pointer;font:600 .82rem system-ui,sans-serif}
-.gpir-publication-ask-frame{display:block;width:100%;height:calc(100% - 54px);border:0;background:#fff}
-@media(max-width:640px){.gpir-publication-ask-dialog{width:100vw;height:100dvh;border:0;border-radius:0}.gpir-publication-ask-header{height:52px}.gpir-publication-ask-frame{height:calc(100% - 52px)}}
+.gpir-publication-ask-body{height:calc(100% - 56px);overflow-y:auto;padding:22px;font:400 1rem/1.5 system-ui,sans-serif}
+.gpir-publication-ask-body label{display:block;margin-bottom:10px;font-weight:650}
+.gpir-publication-ask-body input{box-sizing:border-box;width:100%;border:1px solid #c7d2df;border-radius:10px;padding:13px 15px;font:inherit;color:#102747;background:#fff}
+.gpir-publication-ask-status{margin:16px 0 8px;color:#65748a;font-size:.9rem}
+.gpir-publication-ask-results{display:grid;gap:9px}
+.gpir-publication-ask-result{display:grid;gap:4px;padding:14px 16px;border:1px solid #e0e6ee;border-radius:10px;background:#f9fbfd;color:#102747;text-decoration:none}
+.gpir-publication-ask-result:hover,.gpir-publication-ask-result:focus-visible{border-color:#b58a30;background:#fffaf0}
+.gpir-publication-ask-result strong{font-size:.96rem;line-height:1.35}
+.gpir-publication-ask-result small{color:#a07927;font-size:.77rem}
+.gpir-publication-ask-result span{font-size:.86rem;color:#53647b;line-height:1.45}
+@media(max-width:640px){.gpir-publication-ask-dialog{width:100vw;height:100dvh;border:0;border-radius:0}.gpir-publication-ask-body{padding:16px}}
