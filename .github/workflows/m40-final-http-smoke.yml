@@ -24,7 +24,7 @@ jobs:
             fi
             code=$(curl --retry 2 --retry-delay 1 --max-time 20 -sS -D headers.txt -o response.json -w '%{http_code}' "$url")
             test "$code" = 200 || { echo "FAIL $case_name HTTP $code"; cat response.json; exit 1; }
-            grep -Eiq '^cache-control: private, no-store, max-age=0\r?$' headers.txt || { echo "FAIL $case_name cache-control"; cat headers.txt; exit 1; }
+            grep -i '^cache-control:' headers.txt | tr -d '\r' | grep -Fxq 'cache-control: private, no-store, max-age=0' || { echo "FAIL $case_name cache-control"; cat headers.txt; exit 1; }
             node -e 'const x=require("./response.json");if(x.status!=="OK"||x.kind!=="announcements"||!Number.isInteger(x.total)||!Array.isArray(x.records))process.exit(1)' || { echo "FAIL $case_name contract"; exit 1; }
             echo "PASS $case_name HTTP 200, governed JSON contract, private no-store"
           done
