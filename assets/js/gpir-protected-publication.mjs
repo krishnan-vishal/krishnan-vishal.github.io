@@ -36,10 +36,33 @@ function appendRichText(document, parent, node) {
   if (!node || typeof node !== 'object') return;
   if (node.nodeType === 'text') { parent.append(document.createTextNode(node.value || '')); return; }
   const tags = { paragraph: 'p', 'heading-1': 'h2', 'heading-2': 'h2', 'heading-3': 'h3',
-    'heading-4': 'h4', 'unordered-list': 'ul', 'ordered-list': 'ol', 'list-item': 'li', blockquote: 'blockquote' };
+    'heading-4': 'h4', 'heading-5': 'h5', 'heading-6': 'h6', 'unordered-list': 'ul',
+    'ordered-list': 'ol', 'list-item': 'li', blockquote: 'blockquote' };
   const element = node.nodeType === 'document' ? parent : document.createElement(tags[node.nodeType] || 'div');
   for (const child of node.content || []) appendRichText(document, element, child);
-  if (element !== parent) parent.append(element);
+  if (element !== parent && (node.nodeType !== 'paragraph' || element.textContent.trim())) parent.append(element);
+}
+
+export function publicationAskHref(labels, title = '') {
+  const subject = [...(labels || []), title].map(value => String(value || '').trim()).filter(Boolean).join(' · ');
+  const query = `Show published research and validated current and archived intelligence for ${subject || 'this GPIR topic'}`;
+  return `/?ask=${encodeURIComponent(query)}#gpir-search`;
+}
+
+export function installPublicationAskLink(document = globalThis.document) {
+  const main = document?.querySelector?.('.gpir-publication');
+  const hero = main?.querySelector?.('.gpir-publication-hero .container');
+  if (!main || !hero || hero.querySelector('.gpir-topic-ask')) return false;
+  const labels = [...hero.querySelectorAll('.gpir-topic-context li')]
+    .map(item => item.textContent.trim()).filter(Boolean);
+  const title = hero.querySelector('h1')?.textContent.trim() || '';
+  const link = document.createElement('a');
+  link.className = 'gpir-topic-ask';
+  link.href = publicationAskHref(labels, title);
+  link.textContent = 'ASK GPIR about this topic';
+  const topic = hero.querySelector('.gpir-topic-context');
+  if (topic) topic.append(link); else hero.append(link);
+  return true;
 }
 
 function richTextValue(node) {
@@ -188,7 +211,10 @@ export async function hydrateProtectedPublication({ document = globalThis.docume
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', () => { void hydrateProtectedPublication(); });
+  window.addEventListener('DOMContentLoaded', () => {
+    installPublicationAskLink(document);
+    void hydrateProtectedPublication();
+  });
 }
 
 export { validSession };

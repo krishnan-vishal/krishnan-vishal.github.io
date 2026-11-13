@@ -67,7 +67,7 @@
 
     background:var(--hero-light-bg);
 
-    padding:56px 0 64px;
+    padding:clamp(40px,5vw,56px) 0 clamp(44px,5vw,56px);
 
     color:var(--hero-navy);
 
@@ -101,9 +101,9 @@
 
 .chapter-hero h1{
 
-    font-family:var(--font-editorial);
+    font-family:var(--gpir-content-font-heading,var(--font-editorial));
 
-    font-size:clamp(2.2rem,4vw,3rem);
+    font-size:var(--gpir-content-h1,clamp(2rem,3vw + 1rem,3.25rem));
 
     line-height:1.12;
 
@@ -117,15 +117,15 @@
 
 .chapter-hero-intro{
 
-    max-width:760px;
+    max-width:var(--gpir-content-measure,82ch);
 
-    font-size:17px;
+    font-size:var(--gpir-content-body,1rem);
 
-    line-height:1.8;
+    line-height:var(--gpir-content-leading,1.68);
 
     color:var(--hero-light-body);
 
-    margin-bottom:36px;
+    margin-bottom:24px;
 
 }
 
@@ -323,7 +323,7 @@
 
     background:var(--hero-light-bg);
 
-    padding:56px 0 90px;
+    padding:clamp(36px,5vw,56px) 0 clamp(56px,7vw,80px);
 
 }
 
@@ -407,9 +407,9 @@ body.announcement-archive-page .chapter-body{padding:16px 0 28px}
 
     display:grid;
 
-    grid-template-columns:240px minmax(0,1fr);
+    grid-template-columns:220px minmax(0,1fr);
 
-    gap:56px;
+    gap:clamp(32px,4vw,56px);
 
     align-items:start;
 
@@ -499,7 +499,9 @@ body.announcement-archive-page .chapter-body{padding:16px 0 28px}
 
 .chapter-content{
 
-    max-width:800px;
+    width:100%;
+
+    max-width:1040px;
 
     min-width:0;
 
@@ -509,9 +511,9 @@ body.announcement-archive-page .chapter-body{padding:16px 0 28px}
 
 .chapter-content section{
 
-    padding:0 0 48px;
+    padding:0 0 var(--gpir-content-space-xl,36px);
 
-    margin-bottom:48px;
+    margin-bottom:var(--gpir-content-space-xl,36px);
 
     border-bottom:1px solid var(--hero-light-border);
 
@@ -540,13 +542,13 @@ body.announcement-archive-page .chapter-body{padding:16px 0 28px}
 
 .chapter-content h2{
 
-    font-family:var(--font-editorial);
+    font-family:var(--gpir-content-font-heading,var(--font-editorial));
 
-    font-size:1.7rem;
+    font-size:var(--gpir-content-h2,1.75rem);
 
     color:var(--hero-navy);
 
-    margin-bottom:18px;
+    margin:0 0 var(--gpir-content-space-md,1rem);
 
     scroll-margin-top:100px;
 
@@ -568,35 +570,55 @@ body.legal-page .chapter-content h2{
 
 .chapter-content h3{
 
-    font-family:var(--font-editorial);
+    font-family:var(--gpir-content-font-heading,var(--font-editorial));
 
-    font-size:1.25rem;
+    font-size:var(--gpir-content-h3,1.25rem);
 
     color:var(--hero-navy);
 
-    margin:28px 0 14px;
+    margin:var(--gpir-content-space-lg,1.5rem) 0 var(--gpir-content-space-sm,.75rem);
+
+}
+
+.chapter-content h4,
+.chapter-content h5,
+.chapter-content h6{
+
+    margin:var(--gpir-content-space-lg,1.5rem) 0 var(--gpir-content-space-xs,.5rem);
+
+    color:var(--hero-navy);
+
+    font-family:var(--gpir-content-font-heading,var(--font-editorial));
+
+    font-size:var(--gpir-content-h4,1rem);
+
+    line-height:1.35;
 
 }
 
 .chapter-content p{
 
-    font-size:15.5px;
+    max-width:var(--gpir-content-measure,82ch);
 
-    line-height:1.85;
+    font-family:var(--gpir-content-font-body,var(--font-primary));
+
+    font-size:var(--gpir-content-body,1rem);
+
+    line-height:var(--gpir-content-leading,1.68);
 
     color:var(--hero-light-body);
 
-    text-align:justify;
+    text-align:left;
 
-    text-align-last:left;
-
-    margin-bottom:16px;
+    margin-bottom:var(--gpir-content-space-md,1rem);
 
 }
 
 .chapter-content ul{
 
-    margin:0 0 16px;
+    max-width:var(--gpir-content-measure,82ch);
+
+    margin:0 0 var(--gpir-content-space-md,1rem);
 
     padding-left:20px;
 
@@ -606,11 +628,24 @@ body.legal-page .chapter-content h2{
 
 .chapter-content ul li{
 
-    font-size:15px;
+    font-size:var(--gpir-content-body,1rem);
 
-    line-height:1.8;
+    line-height:var(--gpir-content-leading,1.68);
 
-    margin-bottom:6px;
+    margin-bottom:var(--gpir-content-space-xs,.5rem);
+
+}
+
+.chapter-content p:empty{
+
+    display:none;
+
+}
+
+.chapter-content li > p,
+.chapter-content section > :last-child{
+
+    margin-bottom:0;
 
 }
 
@@ -624,7 +659,7 @@ body.legal-page .chapter-content h2{
 
     max-width:100%;
 
-    margin:20px 0 28px;
+    margin:var(--gpir-content-space-md,1rem) 0 var(--gpir-content-space-lg,1.5rem);
 
     border:1px solid var(--hero-light-border);
 
@@ -638,7 +673,7 @@ body.legal-page .chapter-content h2{
 
     border-collapse:collapse;
 
-    font-size:14px;
+    font-size:var(--gpir-content-small,.875rem);
 
     white-space:nowrap;
 
@@ -684,13 +719,13 @@ body.legal-page .chapter-content h2{
 
 .chapter-table-caption{
 
-    font-size:12.5px;
+    font-size:var(--gpir-content-small,.875rem);
 
     color:#8A94A6;
 
     font-style:italic;
 
-    margin:-16px 0 28px;
+    margin:-.75rem 0 var(--gpir-content-space-lg,1.5rem);
 
 }
 

@@ -83,13 +83,14 @@ test('shared typography, metadata and contained-table protocol is reusable', () 
   assert.match(css, /\.gpir-publication-table-region:focus-visible/);
 });
 
-test('canonical 16/14/12 typography and governed font stacks are centralized', () => {
+test('shared GPIR long-form typography tokens and governed font stacks are centralized', () => {
   const css = fs.readFileSync(path.join(root, 'assets/css/contentful-publication.css'), 'utf8');
-  assert.match(css, /--gpir-font-headline:'Calibri Light', Calibri, Arial, sans-serif/);
-  assert.match(css, /--gpir-font-body:Arial, Helvetica, sans-serif/);
-  assert.match(css, /--gpir-size-primary:1rem/);
-  assert.match(css, /--gpir-size-secondary:\.875rem/);
-  assert.match(css, /--gpir-size-body:\.75rem/);
+  const variables = fs.readFileSync(path.join(root, 'assets/css/variables.css'), 'utf8');
+  assert.match(css, /--gpir-font-headline:var\(--gpir-content-font-heading/);
+  assert.match(css, /--gpir-font-body:var\(--gpir-content-font-body/);
+  assert.match(css, /--gpir-size-body:var\(--gpir-content-body/);
+  assert.match(variables, /--gpir-content-h1:/);
+  assert.match(variables, /--gpir-content-measure:\s*82ch/);
   assert.doesNotMatch(css, /--gpir-type-(?:title|module|h2|h3|h4|body):clamp\(/);
   assert.match(css, /\.gpir-publication-hero h1[\s\S]*font-family:var\(--gpir-font-headline\)/);
   assert.match(css, /\.gpir-publication \{[\s\S]*font-family:var\(--gpir-font-body\)/);
