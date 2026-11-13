@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -332,6 +332,36 @@ for (const [name,expression] of Object.entries(plans)) {
     const plan = runSql(`set statement_timeout='60s'; set role service_role;
         explain (analyze,buffers,settings,format json) select ${expression};`,{timeout:90000});
     writeFileSync(path.join(planRoot,`${name}.json`),plan+'\n');
+}
+
+// Diagnostic only: EXPLAIN of a PL/pgSQL function hides its nested SQL.
+// auto_explain logs the actual inner plans without altering the governed RPC.
+// Missing auto_explain is reported explicitly and never weakens the benchmark gate.
+stage = 'nested aggregate query plans';
+for (const [name,expression] of Object.entries({
+    dashboardSingle24h:dashboardQueries[0],
+    dashboardMultiMonthlyRegion:dashboardQueries[1],
+    dashboardThemeHistorical:dashboardQueries[2],
+    dashboardUnfiltered:dashboardQueries[4]
+})) {
+    const diagnosticSql = `load 'auto_explain';
+      set client_min_messages='log';
+      set auto_explain.log_min_duration='0ms';
+      set auto_explain.log_analyze=on;
+      set auto_explain.log_buffers=on;
+      set auto_explain.log_nested_statements=on;
+      set auto_explain.log_format='json';
+      set statement_timeout='20s';
+      set role service_role;
+      select ${expression};`;
+    const diagnostic = spawnSync('psql',[...psqlArgs(),'-c',diagnosticSql],{
+        env:baseEnv,encoding:'utf8',timeout:30000,maxBuffer:32*1024*1024
+    });
+    const output = diagnostic.stderr || '';
+    writeFileSync(path.join(planRoot,`${name}-nested.log`),output+'\\n');
+    if (diagnostic.status !== 0) {
+        console.warn(`Nested plan diagnostic ${name} unavailable: ${output.slice(0,300)}`);
+    }
 }
 
 for (const concurrency of [10,25,50,100]) {
