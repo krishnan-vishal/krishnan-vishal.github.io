@@ -331,6 +331,49 @@ async function runWave(group, concurrency, queries) {
     };
 }
 
+// Dedicated snapshot workload: unchanged filtered paths are not represented as cached.
+if (process.env.M40_SNAPSHOT_BENCHMARK === 'true') {
+    stage = 'snapshot-enabled isolated performance';
+    runFile('supabase/sql/m40-dashboard-snapshot-poc.sql');
+    runFile('tests/fixtures/m40-dashboard-snapshot-poc-test.sql',{timeout:600000});
+    // The test fixture rolls back, so create a fresh committed snapshot for timing.
+    runSql('set role service_role; select public.gpir_m40_refresh_dashboard_snapshot_v1();',{timeout:120000});
+    const snapshotExpression = `(select s.payload || p.page
+      from (select public.gpir_m40_read_dashboard_snapshot_v1(interval '30 seconds') payload) s
+      cross join lateral (select ${recordsRpc({limit:10,offset:0})} page) p)`;
+    const expected = jsonResult(rpc({limit:10}));
+    const observed = jsonResult(snapshotExpression);
+    assert.equal(observed.total,expected.total,'snapshot totals must match exact RPC');
+    assert.deepEqual(observed.records.map(x=>x.id),expected.records.map(x=>x.id),
+      'snapshot bounded records must match exact RPC');
+    const waves = [];
+    for (const concurrency of concurrencyLevels) {
+        // Exclude refresh cost from reader latency; refresh is measured separately.
+        const refreshStart=performance.now();
+        runSql('set role service_role; select public.gpir_m40_refresh_dashboard_snapshot_v1();',{timeout:120000});
+        const refreshMs=performance.now()-refreshStart;
+        const wave=await runWave('dashboardSnapshotUnfiltered',concurrency,[snapshotExpression]);
+        waves.push({...wave,refreshMs:Math.round(refreshMs*100)/100});
+        console.log(`Snapshot workload completed concurrency ${concurrency}`);
+    }
+    const failures=waves.filter(w=>w.errors||w.p95Ms===null||w.p95Ms>3000);
+    const evidence={status:failures.length?'FAIL':'PASS',mode:'snapshot-unfiltered',
+      generatedAt:new Date().toISOString(),recordCount,eligibleRecordCount:total,
+      targetP95Ms:3000,waves,failures,
+      scope:'Unfiltered announcements snapshot + bounded records; filtered RPC unchanged'};
+    writeFileSync(path.join(artifactRoot,'benchmark-results.json'),JSON.stringify(evidence,null,2)+'\\n');
+    const report=['# M40 isolated snapshot performance benchmark','',
+      `**Status:** ${evidence.status}`,`Records: ${recordCount}; eligible: ${total}`,'',
+      '| Readers | p50 ms | p95 ms | Refresh ms | Errors |',
+      '|---:|---:|---:|---:|---:|',
+      ...waves.map(w=>`| ${w.concurrency} | ${w.p50Ms.toFixed(2)} | ${w.p95Ms.toFixed(2)} | ${w.refreshMs} | ${w.errors} |`),
+      '', 'Only unfiltered snapshot reads are measured; filtered queries continue through the governed exact RPC.'];
+    writeFileSync(path.join(artifactRoot,'benchmark-report.md'),report.join('\\n')+'\\n');
+    console.log(report.join('\\n'));
+    if(failures.length)process.exitCode=1;
+    process.exit(0);
+}
+
 console.log('Warming representative query paths...');
 stage = 'warmup';
 for (const [group,queries] of [['dashboardAggregates',dashboardQueries],['filteredSmartCards',cardQueries],
