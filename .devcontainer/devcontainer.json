@@ -1,0 +1,22 @@
+{
+  "name": "GPIR Payload CMS",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "postCreateCommand": "cd apps/gpir-cms && npm ci",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "GPIR Payload Admin", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "saoudrizwan.claude-dev",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "NODE_OPTIONS": "--enable-source-maps"
+  }
+}
