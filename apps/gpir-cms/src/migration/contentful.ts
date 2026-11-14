@@ -37,3 +37,36 @@ export function contentfulErrorMessage(status: number, body: any): string {
   }
   return `Contentful Management API failed with HTTP ${status} (${id}).`
 }
+
+/** Classify by exported editorial metadata, never by a Contentful entry-ID prefix. */
+export function classifyContentfulEntries(rawEntries: any[], locale: string) {
+  const researchTypes = new Set(['Research Publication', 'Research Chapter', 'Country Intelligence', 'Regional Directory'])
+  const alertTypes = new Set(['Global Alert', 'Global Alerts', 'Global Announcement', 'Global Announcements', 'T3 Alert', 'T3 Announcement'])
+  const research: ReturnType<typeof normalizeManagementEntry>[] = []
+  const alerts: ReturnType<typeof normalizeManagementEntry>[] = []
+  const otherContentTypes: { entryId: string; contentType: string }[] = []
+  const unclassified: { entryId: string; publicationType: unknown; contentType: string; reason: string }[] = []
+  for (const raw of rawEntries) {
+    const entryId = String(raw?.sys?.id || '')
+    const contentType = String(raw?.sys?.contentType?.sys?.id || '')
+    if (contentType !== 'gpirPublication') {
+      otherContentTypes.push({ entryId, contentType })
+      continue
+    }
+    const entry = normalizeManagementEntry(raw, locale)
+    const type = String(entry.fields.publicationType || '').trim()
+    if (researchTypes.has(type)) {
+      if (typeof entry.fields.canonicalUrlCandidate !== 'string' || !entry.fields.canonicalUrlCandidate.trim()) {
+        unclassified.push({ entryId, publicationType: type, contentType, reason: 'Research publication lacks canonical path' })
+      } else research.push(entry)
+    } else if (alertTypes.has(type)) {
+      alerts.push(entry)
+    } else {
+      unclassified.push({ entryId, publicationType: type || null, contentType, reason: 'No recognized publicationType in exported metadata' })
+    }
+  }
+  return { research, alerts, otherContentTypes, unclassified, counts: {
+    total: rawEntries.length, research: research.length, alerts: alerts.length,
+    otherContentTypes: otherContentTypes.length, unclassified: unclassified.length,
+  } }
+}
