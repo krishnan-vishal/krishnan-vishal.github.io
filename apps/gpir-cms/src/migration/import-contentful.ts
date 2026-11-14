@@ -114,7 +114,10 @@ async function main() {
         publicationType: fields.publicationType, canonicalUrlCandidate: route, canonicalUrl: `https://fintechoisis.com${route}`,
         publicationDate: fields.publicationDate || null, dataCutOffDate: fields.dataCutOffDate || null,
         editionLabel: fields.editionLabel || null, executiveSummary: fields.executiveSummary,
-        editorialBody: contentfulToLexical({ nodeType: 'document', data: {}, content: [] }),
+        // Required Lexical field needs a valid paragraph while pass two resolves source links.
+        editorialBody: contentfulToLexical({ nodeType: 'document', data: {}, content: [
+          { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: '', marks: [], data: {} }] },
+        ] }),
         contentfulSourceBody: fields.editorialBody, regionLabel: regionName || null,
         countryMarket: countryName || null, directionScope: fields.directionScope || null,
         useCasePaymentCategory: fields.useCasePaymentCategory || null, editorialMetadata: metadata.id,
