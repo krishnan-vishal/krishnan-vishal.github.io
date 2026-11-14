@@ -75,9 +75,11 @@ async function main() {
     const publicationId = String(fields.gpirPublicationId || '').trim()
     const regionName = String(fields.region || '').trim()
     const countryName = String(fields.countryMarket || '').trim()
+    // FX pair labels are editorial metadata, never country identities.
+    const currencyPair = /^[A-Z]{3}\/[A-Z]{3}$/.test(countryName)
     const route = canonicalPath(fields.canonicalUrlCandidate)
     if (regionName) await reference('regions', `region:${slugify(regionName)}`, { canonicalId: `region:${slugify(regionName)}`, name: regionName, slug: slugify(regionName), status: 'ACTIVE', sourceModel: { source: 'contentful', value: regionName } })
-    if (countryName) {
+    if (countryName && !currencyPair) {
       const region = regionName ? referenceIds.get(`regions:region:${slugify(regionName)}`) : null
       if (!region) throw new Error(`Country ${countryName} has no resolvable region.`)
       await reference('countries', `country:${slugify(countryName)}`, { canonicalId: `country:${slugify(countryName)}`, name: countryName, slug: slugify(countryName), region, status: 'ACTIVE', sourceModel: { source: 'contentful', value: countryName } })
@@ -131,7 +133,9 @@ async function main() {
     const publication = (await payload.find({ collection: 'research-publications', where: { contentfulEntryId: { equals: entry.entryId } }, limit: 1, overrideAccess: true })).docs[0]
     if (!publication) throw new Error(`Pass-two publication missing for ${entry.entryId}.`)
     const regionId = fields.region ? referenceIds.get(`regions:region:${slugify(fields.region)}`) : null
-    const countryId = fields.countryMarket ? referenceIds.get(`countries:country:${slugify(fields.countryMarket)}`) : null
+    const countryMarket = String(fields.countryMarket || '').trim()
+    const countryId = countryMarket && !/^[A-Z]{3}\/[A-Z]{3}$/.test(countryMarket)
+      ? referenceIds.get(`countries:country:${slugify(countryMarket)}`) : null
     const chapterId = fields.publicationType === 'Research Chapter' ? referenceIds.get(`chapters:chapter:${fields.gpirPublicationId}`) : null
     const assetId = contentfulLinkId(fields.dashboardAsset)
     const media = assetId ? (await payload.find({ collection: 'media', where: { contentfulAssetId: { equals: assetId } }, limit: 1, overrideAccess: true })).docs[0] : null
