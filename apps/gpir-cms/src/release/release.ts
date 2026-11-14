@@ -89,7 +89,25 @@ export function legacyRecord(publication: any) {
 }
 
 export function buildReleaseBundle(publications: any[], decisions: ReleaseDecision[], generatedAt: string) {
-  const records = publications.map(legacyRecord).sort((a, b) => a.entryId.localeCompare(b.entryId, 'en'))
+  // Never let an ineligible, unmatched, or migration-blocked publication enter a
+  // delivery artifact. A decision is valid only for the exact GPIR/Supabase pair.
+  if (publications.length !== decisions.length) throw new Error('Release decision count mismatch.')
+  const seen = new Set<string>()
+  const eligible = publications.filter((publication, index) => {
+    const decision = decisions[index]
+    if (!decision || decision.identity !== publication.gpirPublicationId ||
+        decision.supabaseRecordId !== publication.supabaseRecordId ||
+        decision.route !== publication.canonicalUrlCandidate) {
+      throw new Error('Release decision identity mismatch.')
+    }
+    if (seen.has(decision.identity)) throw new Error('Duplicate release decision identity.')
+    seen.add(decision.identity)
+    return decision.releaseEligible === true &&
+      publication.migrationStatus !== 'MIGRATION_BLOCKED' &&
+      publication.validationStatus === 'PASS' &&
+      publication._status === 'published'
+  })
+  const records = eligible.map(legacyRecord).sort((a, b) => a.entryId.localeCompare(b.entryId, 'en'))
   return {
     artifact: {
       schemaVersion: '1.0.0',
