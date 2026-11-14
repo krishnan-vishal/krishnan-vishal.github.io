@@ -105,6 +105,7 @@ async function main() {
       // Migration is draft-only: never call release authority or infer an access entitlement.
       // The restrictive placeholder remains blocked until a separately authorized release
       // process resolves Supabase access classification and approves publication.
+      try {
       await payload.create({ collection: 'research-publications', draft: true, overrideAccess: true, data: {
         _status: 'draft', gpirPublicationId: publicationId, editionLineageId: fields.editionLineageId,
         supabaseRecordId: fields.supabaseRecordId, contentfulEntryId: entry.entryId,
@@ -116,7 +117,7 @@ async function main() {
         editionLabel: fields.editionLabel || null, executiveSummary: fields.executiveSummary,
         // Required Lexical field needs a valid paragraph while pass two resolves source links.
         editorialBody: contentfulToLexical({ nodeType: 'document', data: {}, content: [
-          { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: '', marks: [], data: {} }] },
+          { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: 'Migration draft awaiting source editorial hydration.', marks: [], data: {} }] },
         ] }),
         contentfulSourceBody: fields.editorialBody, regionLabel: regionName || null,
         countryMarket: countryName || null, directionScope: fields.directionScope || null,
@@ -125,6 +126,10 @@ async function main() {
         sourceHash: sha256(entry), sourceLineage: { source: 'contentful', entryId: entry.entryId, sys: entry.sys },
         contentfulSourceRecord: entry,
       } as any })
+      } catch (error: any) {
+        const details = Array.isArray(error?.data?.errors) ? JSON.stringify(error.data.errors) : String(error?.message || error)
+        throw new Error(`Draft import failed for Contentful entry ${entry.entryId} (GPIR ${publicationId}): ${details}`)
+      }
     }
     state.pass1.push(entry.entryId); await save(stateFile, state)
   }
@@ -158,9 +163,15 @@ async function main() {
       (kind, id) => resolvedLinks.get(`${kind}:${id}`) || null,
       (kind, id) => unresolved.push(`${kind}:${id}`))
     if (unresolved.length) throw new Error(`Unresolved Rich Text links for ${entry.entryId}: ${[...new Set(unresolved)].join(', ')}`)
+    // A blank source cannot satisfy the required editor field. Preserve a visible
+    // migration-only placeholder and keep the record release-blocked.
+    const hydratedBody = editorialBody.root?.children?.length ? editorialBody
+      : contentfulToLexical({ nodeType: 'document', data: {}, content: [
+          { nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: 'Source editorial body unavailable in migration backup.', marks: [], data: {} }] },
+        ] })
     await payload.update({ collection: 'research-publications', id: publication.id, draft: true, overrideAccess: true, data: {
       regions: regionId ? [regionId] : [], countries: countryId ? [countryId] : [], chapters: chapterId ? [chapterId] : [],
-      dashboardAsset: media?.id || null, editorialBody, migrationStatus: 'MIGRATION_BLOCKED',
+      dashboardAsset: media?.id || null, editorialBody: hydratedBody, migrationStatus: 'MIGRATION_BLOCKED',
     } as any })
     state.pass2.push(entry.entryId); await save(stateFile, state)
   }
