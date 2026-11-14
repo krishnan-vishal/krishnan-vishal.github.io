@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '../payload.config'
 import { canonicalPath, identityConflicts } from '../lib/identity'
 import { collectContentfulLinks, contentfulToLexical } from '../lib/richText'
-import { contentfulLinkId, normalizeManagementEntry, sha256, slugify } from './contentful'
+import { classifyContentfulEntries, contentfulLinkId, sha256, slugify } from './contentful'
 import { releaseDecision } from '../release/release'
 
 type State = { pass1: string[]; pass2: string[]; media: string[] }
@@ -33,8 +33,10 @@ async function main() {
   ])
   const locale = locales.find((item: any) => item.default)?.code || locales[0]?.code
   if (!locale) throw new Error('Contentful export has no locale.')
-  const entries = rawEntries.filter((entry: any) => entry.sys?.contentType?.sys?.id === 'gpirPublication')
-    .map((entry: any) => normalizeManagementEntry(entry, locale))
+  const classified = classifyContentfulEntries(rawEntries, locale)
+  process.stdout.write(`CONTENTFUL_CLASSIFICATION ${JSON.stringify({ counts: classified.counts, alerts: classified.alerts.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes })}\n`)
+  if (classified.unclassified.length) throw new Error('Contentful classification blocked: unclassified entries require governed review.')
+  const entries = classified.research
   const stateFile = path.resolve(option('checkpoint') || path.join(backup, 'import-checkpoint.json'))
   const state = await loadState(stateFile)
   const payload = await getPayload({ config })
@@ -155,7 +157,7 @@ async function main() {
     } as any })
     state.pass2.push(entry.entryId); await save(stateFile, state)
   }
-  process.stdout.write(`${JSON.stringify({ source: entries.length, pass1: state.pass1.length, pass2: state.pass2.length, media: state.media.length })}\n`)
+  process.stdout.write(`${JSON.stringify({ source: entries.length, classification: classified.counts, pass1: state.pass1.length, pass2: state.pass2.length, media: state.media.length })}\n`)
 }
 
 main().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1 })
