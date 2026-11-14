@@ -34,8 +34,10 @@ export async function releaseDecision(publication: any, env: Record<string, stri
   const key = String(env.GPIR_SUPABASE_SECRET_KEY || '')
   if (!/^https:\/\//.test(url) || !key) throw new Error('Supabase release authority is not configured.')
   const headers = new Headers({ 'content-type': 'application/json' })
-  headers.set('authorization', `Bearer ${key}`)
+  // Supabase sb_secret_* keys authenticate through apikey, not JWT Bearer.
+  // Legacy JWT service-role keys retain their existing Bearer behavior.
   headers.set('apikey', key)
+  if (!key.startsWith('sb_secret_')) headers.set('authorization', `Bearer ${key}`)
   const response = await fetchImpl(`${url}/rest/v1/rpc/gpir_publication_release_decision`, {
     method: 'POST',
     headers,
