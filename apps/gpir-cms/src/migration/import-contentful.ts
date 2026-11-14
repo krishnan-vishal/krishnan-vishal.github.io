@@ -34,7 +34,7 @@ async function main() {
   const locale = locales.find((item: any) => item.default)?.code || locales[0]?.code
   if (!locale) throw new Error('Contentful export has no locale.')
   const classified = classifyContentfulEntries(rawEntries, locale)
-  process.stdout.write(`CONTENTFUL_CLASSIFICATION ${JSON.stringify({ counts: classified.counts, alerts: classified.alerts.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes })}\n`)
+  process.stdout.write(`CONTENTFUL_CLASSIFICATION ${JSON.stringify({ counts: classified.counts, alerts: classified.alerts.map(e => e.entryId), t3Intelligence: classified.t3Intelligence.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes })}\n`)
   if (classified.unclassified.length) throw new Error('Contentful classification blocked: unclassified entries require governed review.')
   const entries = classified.research
   const stateFile = path.resolve(option('checkpoint') || path.join(backup, 'import-checkpoint.json'))
