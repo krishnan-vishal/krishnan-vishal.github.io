@@ -19,6 +19,7 @@ export const releaseEndpoint: Endpoint = {
       and: [
         { _status: { equals: 'published' } },
         { validationStatus: { equals: 'PASS' } },
+        { migrationStatus: { not_equals: 'MIGRATION_BLOCKED' } },
       ],
     }
     if (Array.isArray(input.publicationIds) && input.publicationIds.length) {
@@ -26,7 +27,13 @@ export const releaseEndpoint: Endpoint = {
     }
     if (mode === 'ARCHIVE') where.and.push({ publicationStatus: { in: ['HISTORICAL', 'ARCHIVED'] } })
     const result = await req.payload.find({ collection: 'research-publications', where, limit: 1000, depth: 1, req, overrideAccess: false })
-    const decisions = await Promise.all(result.docs.map((publication) => releaseDecision(publication, process.env)))
+    // An unavailable or ambiguous Supabase authority must never yield an artifact.
+    let decisions
+    try {
+      decisions = await Promise.all(result.docs.map((publication) => releaseDecision(publication, process.env)))
+    } catch {
+      return Response.json({ error: 'RELEASE_AUTHORITY_UNAVAILABLE' }, { status: 503 })
+    }
     const generatedAt = new Date().toISOString()
     const bundle = buildReleaseBundle(result.docs, decisions, generatedAt)
     const secret = String(process.env.GPIR_RELEASE_SIGNING_SECRET || '')
@@ -39,7 +46,7 @@ export const releaseEndpoint: Endpoint = {
       data: {
         artifactId,
         mode,
-        recordCount: result.docs.length,
+        recordCount: bundle.artifact.recordCount,
         artifactSha256: signed.sha256,
         signingKeyId: 'GPIR_RELEASE_SIGNING_SECRET',
         actorId: String((req.user as { id?: unknown }).id || 'unknown'),
