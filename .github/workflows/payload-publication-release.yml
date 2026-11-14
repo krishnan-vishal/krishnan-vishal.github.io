@@ -1,0 +1,85 @@
+name: M41 Payload governed publication proposal
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: PREVIEW only inspects; RELEASE stages an owner-reviewed PR; ARCHIVE stages historical state.
+        required: true
+        default: PREVIEW
+        type: choice
+        options: [PREVIEW, RELEASE, ARCHIVE]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: gpir-payload-governed-release
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    environment: ${{ inputs.mode == 'PREVIEW' && 'payload-preview' || 'payload-production-cutover' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+      PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+      PAYLOAD_RELEASE_CUTOVER_ENABLED: ${{ vars.PAYLOAD_RELEASE_CUTOVER_ENABLED }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/gpir-cms/package-lock.json
+      - name: Require explicit cutover authorization
+        if: inputs.mode != 'PREVIEW'
+        run: test "$PAYLOAD_RELEASE_CUTOVER_ENABLED" = "true"
+      - run: npm ci
+        working-directory: apps/gpir-cms
+      - name: Obtain signed, Supabase-authorized release bundle
+        run: npm run release:fetch -- --mode=${{ inputs.mode }} --output=../../.generated/payload
+        working-directory: apps/gpir-cms
+      - name: Render through the existing production-safe publication path
+        if: inputs.mode != 'PREVIEW'
+        run: >-
+          node scripts/m35/render-contentful-publications.js
+          --input=.generated/payload/payload-publications.json
+          --output=.generated/payload/production-site
+          --release-decisions=.generated/payload/release-decisions.json
+      - name: Preserve FX editorial bridge
+        if: inputs.mode != 'PREVIEW'
+        run: node scripts/m39/build-fx-editorial-bridge.js .generated/payload/payload-publications.json .generated/m39/fx-editorial-public.json
+      - name: Validate affected publication and FX contracts
+        run: |
+          npm --prefix apps/gpir-cms test
+          node --test tests/m35/contentful-frontend-activation.test.js tests/m35/contentful-release-staging.test.cjs tests/m39/fx-contentful-editorial-bridge.test.cjs
+      - name: Stage without overwriting existing GPIR routes
+        if: inputs.mode != 'PREVIEW'
+        run: node scripts/m35/stage-contentful-release.js .generated/payload/production-site .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: payload-release-${{ inputs.mode }}-${{ github.run_id }}
+          path: |
+            .generated/payload/
+            .generated/m39/fx-editorial-public.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Propose reviewed route changes
+        if: inputs.mode != 'PREVIEW'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          branch: automation/payload-governed-publication-routes
+          delete-branch: true
+          commit-message: 'M41: stage Supabase-authorized Payload publication routes'
+          title: 'M41: propose governed Payload publication routes'
+          body: |
+            Generated only through the authenticated Payload release service and per-record Supabase release decisions.
+            Existing routes are preserved, not overwritten. Merge and deployment remain owner-controlled.
+          add-paths: |
+            .generated/payload/
+            .generated/m39/fx-editorial-public.json
+            **/index.html

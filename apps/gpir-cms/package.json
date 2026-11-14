@@ -1,0 +1,50 @@
+{
+  "name": "@gpir/payload-cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "payload": "cross-env PAYLOAD_CONFIG_PATH=src/payload.config.ts payload",
+    "generate:types": "npm run payload -- generate:types",
+    "generate:importmap": "npm run payload -- generate:importmap",
+    "migrate": "npm run payload -- migrate",
+    "migrate:status": "npm run payload -- migrate:status",
+    "migrate:create": "npm run payload -- migrate:create",
+    "contentful:export": "tsx src/migration/export-contentful.ts",
+    "contentful:import": "tsx src/migration/import-contentful.ts",
+    "contentful:reconcile": "tsx src/migration/reconcile.ts",
+    "release:fetch": "tsx src/release/fetch-release.ts",
+    "cloud:preflight": "node scripts/cloud-preflight.mjs",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.93.0",
+    "@payloadcms/next": "3.93.0",
+    "@payloadcms/richtext-lexical": "3.93.0",
+    "@payloadcms/storage-s3": "3.93.0",
+    "cross-env": "10.1.0",
+    "graphql": "16.11.0",
+    "next": "16.4.6",
+    "payload": "3.93.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "dompurify": "3.4.17"
+  }
+}

@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { buildReleaseBundle, legacyRecord, releaseDecision, signArtifact } from '../src/release/release'
+
+const publication = {
+  id: 'doc-1', contentfulEntryId: 'entry-1', gpirPublicationId: 'VK-GPIR-P-000000000001-8',
+  editionLineageId: 'VK-GPIR-L-000000000001-0', supabaseRecordId: '11111111-1111-4111-8111-111111111111',
+  publicationTitle: 'Research', slug: 'research', publicationType: 'Research Publication', publicationStatus: 'CURRENT',
+  canonicalUrlCandidate: '/research/', executiveSummary: 'Summary', editorialBody: { root: { children: [] } },
+  sourceValidationSummary: 'PASS', validationStatus: 'PASS', migrationStatus: 'RECONCILED', accessClass: 'ENTITLED',
+}
+
+test('release records preserve production adapter identities and remain Supabase-gated', () => {
+  const record = legacyRecord(publication)
+  assert.equal(record.entryId, 'entry-1')
+  assert.equal(record.fields.gpirPublicationId, publication.gpirPublicationId)
+  assert.equal(record.presentation.accessClass, 'ENTITLED')
+  const bundle = buildReleaseBundle([publication], [{ identity: publication.gpirPublicationId, supabaseRecordId: publication.supabaseRecordId,
+    route: '/research/', accessClass: 'ENTITLED', releaseEligible: false, reviewState: 'OWNER_REVIEW', policyStatus: 'ACTIVE' }], '2026-11-14T00:00:00.000Z')
+  assert.equal(bundle.artifact.recordCount, 1)
+  assert.equal(bundle.decisions.decisions[0].releaseEligible, false)
+})
+
+test('release signatures are deterministic and cover the complete bundle', () => {
+  const secret = 'x'.repeat(32)
+  const first = signArtifact({ b: 2, a: 1 }, secret)
+  const second = signArtifact({ a: 1, b: 2 }, secret)
+  assert.deepEqual(first, second)
+  assert.notEqual(first.sha256, signArtifact({ a: 1, b: 3 }, secret).sha256)
+})
+
+test('every release decision is bound to the exact GPIR and Supabase identity pair', async () => {
+  let requestBody: any
+  const decision = await releaseDecision(publication, {
+    SUPABASE_URL: 'https://project.supabase.co', GPIR_SUPABASE_SECRET_KEY: 'server-secret',
+  }, async (_url, init) => {
+    requestBody = JSON.parse(String(init?.body))
+    return new Response(JSON.stringify([{ access_class: 'ENTITLED', release_eligible: true, review_state: 'EVIDENCED', policy_status: 'ACTIVE' }]), { status: 200 })
+  })
+  assert.deepEqual(requestBody, { p_publication_id: publication.gpirPublicationId, p_supabase_record_id: publication.supabaseRecordId })
+  assert.equal(decision.releaseEligible, true)
+  assert.equal(decision.accessClass, 'ENTITLED')
+})
+
+test('release fails closed when Supabase authority is unavailable', async () => {
+  await assert.rejects(() => releaseDecision(publication, {
+    SUPABASE_URL: 'https://project.supabase.co', GPIR_SUPABASE_SECRET_KEY: 'server-secret',
+  }, async () => new Response('{}', { status: 503 })), /authority unavailable/)
+})
