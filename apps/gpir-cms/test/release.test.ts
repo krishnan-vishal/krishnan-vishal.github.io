@@ -80,3 +80,28 @@ test('release authority rejects HTTP 404 and access-class mismatches', async () 
     async () => new Response(JSON.stringify([{ access_class: 'PUBLIC', release_eligible: true }]), { status: 200 })),
   /Access classification mismatch/)
 })
+
+test('new Supabase secret keys use apikey without JWT authorization', async () => {
+  let headers: Headers | undefined
+  await releaseDecision(publication, {
+    SUPABASE_URL: 'https://project.supabase.co', GPIR_SUPABASE_SECRET_KEY: 'sb_secret_test_value',
+  }, async (_url, init) => {
+    headers = new Headers(init?.headers)
+    return new Response(JSON.stringify([{ access_class: 'ENTITLED', release_eligible: false,
+      review_state: 'OWNER_REVIEW', policy_status: 'ACTIVE' }]), { status: 200 })
+  })
+  assert.equal(headers?.get('apikey'), 'sb_secret_test_value')
+  assert.equal(headers?.has('authorization'), false)
+})
+
+test('legacy Supabase JWT credentials retain authorization header', async () => {
+  let headers: Headers | undefined
+  await releaseDecision(publication, {
+    SUPABASE_URL: 'https://project.supabase.co', GPIR_SUPABASE_SECRET_KEY: 'legacy-service-jwt',
+  }, async (_url, init) => {
+    headers = new Headers(init?.headers)
+    return new Response(JSON.stringify([{ access_class: 'ENTITLED', release_eligible: false,
+      review_state: 'OWNER_REVIEW', policy_status: 'ACTIVE' }]), { status: 200 })
+  })
+  assert.equal(headers?.get('authorization'), 'Bearer legacy-service-jwt')
+})
