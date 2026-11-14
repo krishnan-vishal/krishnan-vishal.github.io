@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { getPayload } from 'payload'
 import config from '../payload.config'
-import { normalizeManagementEntry } from './contentful'
+import { classifyContentfulEntries } from './contentful'
 
 function option(name: string) { const prefix = `--${name}=`; return process.argv.slice(2).find((item) => item.startsWith(prefix))?.slice(prefix.length) }
 async function json(file: string) { return JSON.parse(await readFile(file, 'utf8')) }
@@ -14,7 +14,8 @@ async function main() {
   const output = path.resolve(option('output') || path.join(backup, 'reconciliation-report.json'))
   const [locales, rawEntries] = await Promise.all([json(path.join(backup, 'locales.json')), json(path.join(backup, 'entries.json'))])
   const locale = locales.find((item: any) => item.default)?.code || locales[0]?.code
-  const source = rawEntries.filter((entry: any) => entry.sys?.contentType?.sys?.id === 'gpirPublication').map((entry: any) => normalizeManagementEntry(entry, locale))
+  const classified = classifyContentfulEntries(rawEntries, locale)
+  const source = classified.research
   const payload = await getPayload({ config })
   const target = await payload.find({ collection: 'research-publications', limit: 1000, depth: 0, overrideAccess: true, draft: true })
   const duplicate = (field: string) => {
@@ -32,8 +33,8 @@ async function main() {
   })
   const unresolved = target.docs.filter((doc: any) => doc.migrationStatus !== 'RECONCILED').map((doc: any) => doc.contentfulEntryId || doc.id)
   const duplicates = ['gpirPublicationId', 'supabaseRecordId', 'contentfulEntryId', 'canonicalUrlCandidate'].flatMap(duplicate)
-  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs }, missing, mismatched, duplicates, unresolved,
-    status: !missing.length && !mismatched.length && !duplicates.length && !unresolved.length && source.length === target.totalDocs ? 'PASS' : 'FAIL' }
+  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs, classification: classified.counts }, classification: { alerts: classified.alerts.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes }, missing, mismatched, duplicates, unresolved,
+    status: !classified.unclassified.length && !missing.length && !mismatched.length && !duplicates.length && !unresolved.length && source.length === target.totalDocs ? 'PASS' : 'FAIL' }
   await mkdir(path.dirname(output), { recursive: true, mode: 0o700 })
   await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
   process.stdout.write(`${JSON.stringify({ report: output, status: report.status, counts: report.counts })}\n`)
