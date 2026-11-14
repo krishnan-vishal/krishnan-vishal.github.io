@@ -5,7 +5,6 @@ import config from '../payload.config'
 import { canonicalPath, identityConflicts } from '../lib/identity'
 import { collectContentfulLinks, contentfulToLexical } from '../lib/richText'
 import { classifyContentfulEntries, contentfulLinkId, sha256, slugify } from './contentful'
-import { releaseDecision } from '../release/release'
 
 type State = { pass1: string[]; pass2: string[]; media: string[] }
 const defaultState: State = { pass1: [], pass2: [], media: [] }
@@ -103,13 +102,14 @@ async function main() {
       throw new Error(`Publication identity conflict for ${entry.entryId}: ${conflicts.join('; ')}`)
     }
     if (!existing.totalDocs) {
-      const decision = await releaseDecision({ gpirPublicationId: publicationId, supabaseRecordId: fields.supabaseRecordId,
-        canonicalUrlCandidate: route }, process.env)
+      // Migration is draft-only: never call release authority or infer an access entitlement.
+      // The restrictive placeholder remains blocked until a separately authorized release
+      // process resolves Supabase access classification and approves publication.
       await payload.create({ collection: 'research-publications', draft: true, overrideAccess: true, data: {
         _status: 'draft', gpirPublicationId: publicationId, editionLineageId: fields.editionLineageId,
         supabaseRecordId: fields.supabaseRecordId, contentfulEntryId: entry.entryId,
-        publicationStatus: fields.publicationStatus || 'HISTORICAL', accessClass: decision.accessClass,
-        validationStatus: fields.validationStatus || 'WARN', migrationStatus: 'IMPORTED',
+        publicationStatus: fields.publicationStatus || 'HISTORICAL', accessClass: 'ENTITLED',
+        validationStatus: 'WARN', migrationStatus: 'MIGRATION_BLOCKED',
         publicationTitle: fields.publicationTitle, slug: fields.slug || slugify(fields.publicationTitle),
         publicationType: fields.publicationType, canonicalUrlCandidate: route, canonicalUrl: `https://fintechoisis.com${route}`,
         publicationDate: fields.publicationDate || null, dataCutOffDate: fields.dataCutOffDate || null,
@@ -157,11 +157,11 @@ async function main() {
     if (unresolved.length) throw new Error(`Unresolved Rich Text links for ${entry.entryId}: ${[...new Set(unresolved)].join(', ')}`)
     await payload.update({ collection: 'research-publications', id: publication.id, draft: true, overrideAccess: true, data: {
       regions: regionId ? [regionId] : [], countries: countryId ? [countryId] : [], chapters: chapterId ? [chapterId] : [],
-      dashboardAsset: media?.id || null, editorialBody, migrationStatus: 'RECONCILED',
+      dashboardAsset: media?.id || null, editorialBody, migrationStatus: 'MIGRATION_BLOCKED',
     } as any })
     state.pass2.push(entry.entryId); await save(stateFile, state)
   }
-  process.stdout.write(`${JSON.stringify({ source: entries.length, classification: classified.counts, pass1: state.pass1.length, pass2: state.pass2.length, media: state.media.length })}\n`)
+  process.stdout.write(`${JSON.stringify({ source: entries.length, releaseAuthority: 'DEFERRED_DRAFT_ONLY', classification: classified.counts, pass1: state.pass1.length, pass2: state.pass2.length, media: state.media.length })}\n`)
 }
 
 main().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1 })
