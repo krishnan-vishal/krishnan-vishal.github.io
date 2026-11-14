@@ -31,9 +31,10 @@ async function main() {
     const fields = ['gpirPublicationId', 'editionLineageId', 'supabaseRecordId', 'canonicalUrlCandidate']
     return fields.filter((field) => doc[field] !== entry.fields[field]).map((field) => ({ entryId: entry.entryId, field, source: entry.fields[field], target: doc[field] }))
   })
-  const unresolved = target.docs.filter((doc: any) => doc.migrationStatus !== 'RECONCILED').map((doc: any) => doc.contentfulEntryId || doc.id)
+  const unresolved = target.docs.filter((doc: any) => !['RECONCILED', 'MIGRATION_BLOCKED'].includes(doc.migrationStatus)).map((doc: any) => doc.contentfulEntryId || doc.id)
+  const releaseBlocked = target.docs.filter((doc: any) => doc.migrationStatus === 'MIGRATION_BLOCKED').map((doc: any) => doc.contentfulEntryId || doc.id)
   const duplicates = ['gpirPublicationId', 'supabaseRecordId', 'contentfulEntryId', 'canonicalUrlCandidate'].flatMap(duplicate)
-  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs, classification: classified.counts }, classification: { alerts: classified.alerts.map(e => e.entryId), t3Intelligence: classified.t3Intelligence.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes }, missing, mismatched, duplicates, unresolved,
+  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs, classification: classified.counts }, classification: { alerts: classified.alerts.map(e => e.entryId), t3Intelligence: classified.t3Intelligence.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes }, missing, mismatched, duplicates, unresolved, releaseBlocked, releaseAuthority: 'DEFERRED_DRAFT_ONLY',
     status: !classified.unclassified.length && !missing.length && !mismatched.length && !duplicates.length && !unresolved.length && source.length === target.totalDocs ? 'PASS' : 'FAIL' }
   await mkdir(path.dirname(output), { recursive: true, mode: 0o700 })
   await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
