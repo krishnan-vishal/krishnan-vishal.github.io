@@ -2,11 +2,16 @@
 .wrangler/
 .migration-data/
 apps/gpir-cms/.next/
+apps/gpir-cms/.npm-cache/
+apps/gpir-cms/.open-next/
 apps/gpir-cms/node_modules/
+apps/gpir-cms/node_modules.*/
 apps/gpir-cms/media/
 apps/gpir-cms/payload-types.ts
 apps/gpir-cms/src/payload-generated.schema.ts
 apps/gpir-cms/tsconfig.tsbuildinfo
+apps/gpir-cms/cloudflare-env.d.ts
+apps/gpir-cms/.dev.vars*
 supabase/.temp/
 apps/gpir-cms/.env*
 !apps/gpir-cms/.env.example
