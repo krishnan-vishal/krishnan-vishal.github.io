@@ -33,7 +33,7 @@ async function main() {
   })
   const unresolved = target.docs.filter((doc: any) => doc.migrationStatus !== 'RECONCILED').map((doc: any) => doc.contentfulEntryId || doc.id)
   const duplicates = ['gpirPublicationId', 'supabaseRecordId', 'contentfulEntryId', 'canonicalUrlCandidate'].flatMap(duplicate)
-  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs, classification: classified.counts }, classification: { alerts: classified.alerts.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes }, missing, mismatched, duplicates, unresolved,
+  const report = { generatedAt: new Date().toISOString(), counts: { source: source.length, target: target.totalDocs, classification: classified.counts }, classification: { alerts: classified.alerts.map(e => e.entryId), t3Intelligence: classified.t3Intelligence.map(e => e.entryId), unclassified: classified.unclassified, otherContentTypes: classified.otherContentTypes }, missing, mismatched, duplicates, unresolved,
     status: !classified.unclassified.length && !missing.length && !mismatched.length && !duplicates.length && !unresolved.length && source.length === target.totalDocs ? 'PASS' : 'FAIL' }
   await mkdir(path.dirname(output), { recursive: true, mode: 0o700 })
   await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 })
