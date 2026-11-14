@@ -1,0 +1,36 @@
+name: M41 Contentful migration backup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    environment: contentful-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/gpir-cms/package-lock.json
+      - run: npm ci
+        working-directory: apps/gpir-cms
+      - name: Export models, entries, asset metadata and media binaries
+        run: npm run contentful:export -- --output="$RUNNER_TEMP/gpir-contentful-backup"
+        working-directory: apps/gpir-cms
+      - name: Upload restricted migration backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-contentful-migration-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/gpir-contentful-backup/
+          if-no-files-found: error
+          retention-days: 7

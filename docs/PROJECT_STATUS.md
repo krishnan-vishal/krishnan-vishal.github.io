@@ -2,6 +2,15 @@
 
 ## Current handoff
 
+### M41 Payload CMS migration and cloud development handover
+
+- **Objective / branch:** replace Contentful with an isolated Payload editorial service on `codex/gpir-payload-cms-migration-20261114` while preserving the current static production and Supabase authorities.
+- **Implemented:** separate pinned Next.js/Payload app in `apps/gpir-cms`; PostgreSQL adapter uses schema `payload`, UUID IDs and `push: false`; collections cover publications, chapters, countries, regions, editorial metadata, media, users and append-only release events. GPIR/lineage/Supabase/Contentful/canonical identities are unique and forward-correction-only.
+- **Migration and release:** secure Contentful model/entry/media exporter; restartable two-pass idempotent importer; pass-two Rich Text relationship resolution; reconciliation report; Supabase schema/role-isolation migration; Supabase Storage S3 adapter; per-record Supabase-authorized and HMAC-signed release bundle; manual-only backup/release workflows that preserve existing routes and can only propose a PR.
+- **Production preservation:** no public HTML, Contentful runtime, Supabase Edge Function, alert threshold, 12-hour expiry rule, authentication, entitlement, ASK GPIR, FX, Smart Intelligence, My GPIR, Cloudflare config or production data was changed. Payload cutover remains disabled.
+- **Validation:** 12 CMS governance/migration/release tests pass; TypeScript passed after corrections; Payload type generation passed; 51 existing Contentful renderer/staging, FX bridge, navigation, Smart Intelligence and Global Alerts 12-hour tests pass; `git diff --check` passed. Dependency audit has no critical advisory after Next.js 16.4.6 and DOMPurify 3.4.17; three upstream Payload Lexical `happy-dom` high advisories remain.
+- **Blockers / next action:** the available Contentful token returns `OrganizationAccessGrantRequired`; no approved non-production Payload database login or S3/release secrets exist; the generated initial Payload collection migration therefore remains pending and production was not mutated. Grant the Contentful organization token and provision an approved non-production database, then export, generate/review DDL, import and reconcile. Owner authorization remains required for cutover and later Contentful retirement. Detailed handover: `docs/M41-PAYLOAD-CMS-MIGRATION.md`.
+
 ### M39 global typography, topic continuity and ASK GPIR integration (PR #575)
 
 - **Scope:** continued the existing `fix/m35-publication-chapter-layout-20261113` branch and PR #575 rather than opening a parallel implementation. Shared content tokens now govern H1-H6, body, label, table and caption typography; chapter and Contentful publication rhythm is left-aligned, responsive and protected from duplicate empty-paragraph/list margins.
