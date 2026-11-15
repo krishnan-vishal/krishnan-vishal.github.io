@@ -20,6 +20,9 @@ const storageConfigured = ['S3_BUCKET', 'S3_ENDPOINT', 'S3_REGION', 'S3_ACCESS_K
   .every((name) => Boolean(process.env[name]))
 
 export default buildConfig({
+  // Payload's supported setting for production Workers' PBKDF2 limit.
+  // Existing 600k hashes require one successful Node login to rehash at 100k.
+  auth: { passwordHashIterations: 100000 },
   admin: { user: Users.slug, meta: { titleSuffix: '— GPIR Editorial' } },
   collections: [Users, Regions, Countries, Chapters, EditorialMetadata, Media, ResearchPublications, ReleaseEvents],
   editor: lexicalEditor(),

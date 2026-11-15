@@ -125,3 +125,35 @@ covered by real Lexical HTML import, JSON restoration and HTML export. The audit
 still reports reviewed low/moderate findings through Payload/deepmerge and
 migration/build tools (drizzle/esbuild and adapter glob/minimatch); these are not
 suppressed or represented as zero vulnerabilities.
+
+
+## Production Worker password compatibility
+
+Payload 3.93 defaults to 600,000 PBKDF2-SHA256 iterations. Production Workers
+reject more than 100,000; local Node and local workerd do not reproduce that
+production limit. The CMS now sets Payload's documented
+`auth.passwordHashIterations: 100000`. Existing 600k hashes cannot be verified
+on the edge merely by changing configuration.
+
+Use the existing password in a private Node login to trigger Payload's normal
+verified, compare-and-swap rehash. The helper uses Enquirer's masked password
+prompt and Payload's real `login` API with `overrideAccess:false`. It does not
+reset a password, manually write hashes, unlock accounts, alter roles or print
+passwords/salts/hashes/tokens. It independently reads only a compatibility
+boolean from the authenticated user's row and confirms validated database TLS.
+
+```bash
+node --import tsx --env-file=/absolute/path/to/existing/.env scripts/prepare-worker-auth.mjs /absolute/path/to/existing/prod-ca-2021.crt
+```
+
+After `AUTH_CONVERSION_VERIFIED`, run the guarded production release command
+above, then authenticate on the live origin. Keep any user-entered credentials
+in the Codespace terminal; share only the helper's final JSON. Email delivery
+is not configured, so this flow does not depend on password-reset email.
+
+The Worker database transport uses native `node:net.Socket` instances on the
+current Node-compatible runtime to avoid pg-cloudflare 1.4.1's clean-end read
+rejection. It retains one-use connections and Hyperdrive origin verify-full.
+A real workerd test checks separate requests, orderly termination, propagation
+of a genuine connection failure, and recovery on a new request. No global
+unhandled-rejection suppression is installed.

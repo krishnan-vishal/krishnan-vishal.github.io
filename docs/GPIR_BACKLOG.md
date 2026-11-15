@@ -555,3 +555,10 @@ with status `SUPERSEDED`; they are not silently removed.
 - VERIFIED: Worker preview admin loads and editorial login opens populated Research Publications (owner screenshots). Binding-head CI passed.
 - VERIFIED LOCALLY: Happy DOM security patch removes all high/critical audit findings; 30 tests, TypeScript and Worker build pass. Remaining 8 moderate/9 low findings reviewed and tracked.
 - PENDING: execute guarded CMS-only release helper in authenticated Codespace, capture actual deployment version/URL and live smoke evidence, then verify live editorial login. PR #580 remains the only correction vehicle; no content cutover or migration authorized by these checks.
+
+
+### 2026-11-15 — M41 authentication acceptance reopened
+
+- BLOCKED on current production 68f6cb2: owner logs confirm unsupported stored PBKDF2 iterations; public HTTP 200 is not authentication success.
+- IMPLEMENTED on PR #580 only: documented Worker password-hash setting, private verified existing-password rehash helper, and native database socket lifecycle correction. 34 tests, TypeScript, Worker build pass; no high/critical audit findings.
+- NEXT: current-head CI, private Node login/conversion using existing credentials, guarded redeployment, then live authentication/collection acceptance. Preserve original Codespace work and saved configuration stash. No source/content migration or main merge authorized by this correction.

@@ -1,4 +1,6 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare'
+import { Socket } from 'node:net'
+import type { PoolConfig } from 'pg'
 
 type DatabaseEnvironment = Record<string, string | undefined>
 type HyperdriveBinding = { connectionString: string }
@@ -9,13 +11,19 @@ export function databasePoolOptions(options: {
   worker: boolean
   environment: DatabaseEnvironment
   hyperdrive?: HyperdriveBinding
-}) {
+}): PoolConfig & { connectionString: string; maxUses: number; connectionTimeoutMillis: number } {
   const common = { maxUses: 1, connectionTimeoutMillis: 15000 }
   if (options.worker) {
     if (!options.hyperdrive?.connectionString) {
       throw new Error('M41 CMS requires the HYPERDRIVE binding; direct Worker database fallback is prohibited.')
     }
-    return { ...common, connectionString: options.hyperdrive.connectionString }
+    return {
+      ...common,
+      connectionString: options.hyperdrive.connectionString,
+      // Use Workers' supported Node socket lifecycle instead of pg-cloudflare
+      // 1.4.1's clean-end read rejection. Hyperdrive still verifies origin TLS.
+      stream: () => new Socket(),
+    }
   }
 
   const uri = new URL(options.environment.PAYLOAD_DATABASE_URI || '')

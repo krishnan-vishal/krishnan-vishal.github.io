@@ -117,7 +117,7 @@ try {
   const me = await fetch(publicUrl + '/api/users/me', { signal: AbortSignal.timeout(20000) })
   if (!me.ok || (await me.json()).user !== null) throw new Error('Anonymous user/session check did not pass.')
   const evidence = {
-    status: 'DEPLOYED_LIVE_LOGIN_VERIFIED', editorialLiveLogin: 'PENDING_OWNER_VERIFICATION',
+    status: 'DEPLOYED_PUBLIC_SMOKE_VERIFIED', editorialLiveLogin: 'PENDING_OWNER_VERIFICATION',
     sha, deploymentVersion: deploymentVersion || 'not reported by CLI', publicUrl, adminUrl: publicUrl + '/admin',
     adminHTTP: admin.status, anonymousUser: null, audit, workflows,
     hyperdriveId: binding.id, caId: expectedCaId, sslmode: 'verify-full', queryCaching: 'disabled',
