@@ -17,7 +17,43 @@ async function main() {
   const client: any = payload
   let restored = 0
   let preserved = 0
-  for (const record of records) {
+  // References precede native research. Files are recovered from verified BCP
+  // bytes into the existing storage adapter, never from a caller-selected URL.
+  const normalize = (doc: any) => {
+    const data = { ...doc }
+    delete data.createdAt; delete data.updatedAt
+    for (const key of ['dashboardAsset', 'editorialMetadata', 'region']) if (data[key] && typeof data[key] === 'object') data[key] = data[key].id
+    for (const key of ['regions', 'countries', 'chapters']) if (Array.isArray(data[key])) data[key] = data[key].map((item: any) => typeof item === 'object' ? item.id : item)
+    return data
+  }
+  const references = records.filter((item: any) => item.sourcePayload?.kind === 'payload-reference')
+  for (const collection of ['regions', 'countries', 'chapters', 'editorial-metadata', 'media', 'research-publications']) {
+    const group = collection === 'research-publications' ? records.filter((item: any) => item.sourcePayload?.kind === 'native-research') : references.filter((item: any) => item.sourcePayload.collection === collection)
+    for (const record of group) {
+      const original = record.sourcePayload.document
+      const data = normalize(original)
+      const published = collection === 'research-publications' ? record.sourcePayload.publishedDocument : null
+      const existing = await client.find({ collection, where: { id: { equals: original.id } }, limit: 2, depth: 0, overrideAccess: true, ...(collection === 'research-publications' ? { draft: true } : {}) })
+      if (existing.totalDocs) {
+        if (existing.totalDocs !== 1 || stableJson(normalize(existing.docs[0])) !== stableJson(data)) throw new Error('Recovery target conflicts with existing work; no overwrite performed.')
+        preserved++; continue
+      }
+      let file
+      if (collection === 'media') {
+        const stored = records.find((item: any) => item.sourcePayload?.kind === 'media-bytes' && item.sourcePayload.mediaId === original.id)?.sourcePayload
+        if (!stored) throw new Error('Recovery media bytes missing.')
+        const bytes = Buffer.from(stored.body, 'base64')
+        if (sha256(bytes) !== stored.sha256 || (original.sourceSha256 && stored.sha256 !== original.sourceSha256)) throw new Error('Recovery media digest mismatch.')
+        file = { data: bytes, mimetype: original.mimeType, name: original.filename, size: bytes.length }
+      }
+      await client.create({ collection, data: published ? normalize(published) : data, ...(file ? { file } : {}),
+        ...(collection === 'research-publications' ? { draft: published ? false : original._status !== 'published' } : {}),
+        overrideAccess: true, context: { m41VerifiedRecovery: true } })
+      if (published && stableJson(normalize(published)) !== stableJson(data)) await client.update({ collection, id: original.id, data, draft: true, overrideAccess: true, context: { m41VerifiedRecovery: true } })
+      restored++
+    }
+  }
+  for (const record of records.filter((item: any) => !['native-research', 'payload-reference', 'media-bytes'].includes(item.sourcePayload?.kind))) {
     const existing = await client.find({ collection: 'editorial-metadata', where: { sourceRecordKey: { equals: record.sourceRecordKey } }, limit: 2, depth: 0, overrideAccess: true })
     if (existing.totalDocs > 1) throw new Error('Recovery identity is ambiguous.')
     if (existing.docs[0]) {

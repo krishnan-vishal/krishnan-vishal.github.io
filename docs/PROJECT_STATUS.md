@@ -2,6 +2,21 @@
 
 ## Current handoff
 
+### 2026-11-15 — M41 source contract and controlled release handover prepared
+
+PR #580 only. Resolved the native-research/mirror authority gap: reviewed native
+records take over the same identity, withdrawal cannot revive the migrated copy,
+and a Supabase-governed edition preparer updates existing content slots without
+replacing the shell or engine code. Protected lookup now supports Payload after
+Supabase entitlement ALLOW. Coverage: 835 managed / 93 protected files. 84 focused
+tests, TypeScript, Worker build and public inventory pass. One private runner and
+[handover](M41-PRODUCTION-HANDOVER.md) are prepared. Execution here stopped at
+preflight: private env/CA and authenticated deployment access are unavailable.
+No production migration, source switch or real BCP recovery claimed. M41 remains
+OPEN pending live evidence; accepted infrastructure baseline 10b8114 is retained.
+Contentful remains intact.
+
+
 ### 2026-11-15 — M41 full cutover continuation, PR #580 only
 
 Infrastructure/admin acceptance at `10b8114` is retained. Full cutover remains

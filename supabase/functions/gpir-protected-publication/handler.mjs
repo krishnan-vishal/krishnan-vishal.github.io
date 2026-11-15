@@ -26,6 +26,13 @@ function providerError(reason, origin) {
 }
 
 function configuration(env) {
+  if (env.GPIR_EDITORIAL_SOURCE === 'payload') {
+    const origin = String(env.PAYLOAD_PUBLIC_SERVER_URL || '').replace(/\/$/, '');
+    if (!/^https:\/\/[^/]+$/.test(origin) || !env.PAYLOAD_RELEASE_API_KEY || !env.SUPABASE_URL || !env.GPIR_SUPABASE_PUBLISHABLE_KEY) return null;
+    return { SUPABASE_URL: env.SUPABASE_URL, GPIR_SUPABASE_PUBLISHABLE_KEY: env.GPIR_SUPABASE_PUBLISHABLE_KEY,
+      GPIR_EDITORIAL_SOURCE: 'payload', PAYLOAD_PUBLIC_SERVER_URL: origin, PAYLOAD_RELEASE_API_KEY: env.PAYLOAD_RELEASE_API_KEY };
+  }
+  if (env.GPIR_EDITORIAL_SOURCE && env.GPIR_EDITORIAL_SOURCE !== 'contentful') return null;
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY',
     'CONTENTFUL_SPACE_ID', 'CONTENTFUL_ENVIRONMENT', 'CONTENTFUL_DELIVERY_TOKEN'];
   const values = Object.fromEntries(names.map(name => [name, env[name]?.trim()]));
@@ -154,9 +161,13 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
       `/environments/${encodeURIComponent(config.CONTENTFUL_ENVIRONMENT)}/entries?${query}`;
     let contentfulResponse;
     try {
-      contentfulResponse = await fetchImpl(contentfulUrl, {
-        headers: { authorization: `Bearer ${config.CONTENTFUL_DELIVERY_TOKEN}` }
-      });
+      contentfulResponse = config.GPIR_EDITORIAL_SOURCE === 'payload'
+        ? await fetchImpl(`${config.PAYLOAD_PUBLIC_SERVER_URL}/api/release/editorial-entries`, {
+          method: 'POST', redirect: 'error',
+          headers: { authorization: `users API-Key ${config.PAYLOAD_RELEASE_API_KEY}`, 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'publication', publicationId: input.publicationId, supabaseRecordId: input.supabaseRecordId })
+        })
+        : await fetchImpl(contentfulUrl, { headers: { authorization: `Bearer ${config.CONTENTFUL_DELIVERY_TOKEN}` } });
     } catch { return providerError('CONTENT_PROVIDER_ERROR', origin); }
     if (!contentfulResponse.ok) return providerError('CONTENT_PROVIDER_ERROR', origin);
     let collection;

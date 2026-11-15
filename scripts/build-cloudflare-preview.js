@@ -15,6 +15,7 @@ const ROOT_FILES = [
   "404.html",
   "index.html",
   "robots.txt",
+  "routes.json",
   "site.webmanifest",
   "sitemap.xml",
 ];
@@ -274,7 +275,13 @@ async function main() {
   copyTree("assets/data/fx", (publicPath) => path.extname(publicPath).toLowerCase() === ".json");
   for (const browserScript of PUBLIC_BROWSER_SCRIPTS) copyFile(browserScript);
 
-  const contentSource = process.env.GPIR_CONTENT_SOURCE || 'repository';
+  const lockPath = path.join(ROOT, 'gpir-content-source.json');
+  const locked = fs.existsSync(lockPath) ? JSON.parse(fs.readFileSync(lockPath, 'utf8')) : null;
+  if (locked && (locked.source !== 'payload' || !/^[a-f0-9]{64}$/.test(locked.snapshot || ''))) throw new Error('Invalid committed CMS source lock.');
+  if (locked && process.env.GPIR_CONTENT_SOURCE && process.env.GPIR_CONTENT_SOURCE !== 'payload') throw new Error('Committed Payload primary cannot fall back to repository content.');
+  if (locked && process.env.GPIR_PAYLOAD_SITE_SNAPSHOT && process.env.GPIR_PAYLOAD_SITE_SNAPSHOT !== locked.snapshot) throw new Error('Build snapshot differs from committed primary edition.');
+  if (locked) process.env.GPIR_PAYLOAD_SITE_SNAPSHOT = locked.snapshot;
+  const contentSource = locked?.source || process.env.GPIR_CONTENT_SOURCE || 'repository';
   if (!['repository', 'payload'].includes(contentSource)) throw new Error('Invalid GPIR_CONTENT_SOURCE.');
   if (contentSource === 'payload') {
     const marker = await require('./m41/payload-site.cjs').materialize(OUTPUT_ROOT);

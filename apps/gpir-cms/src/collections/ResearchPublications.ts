@@ -1,17 +1,18 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import { recordNativeAdoption } from '../release/editorial-source'
 import { APIError } from 'payload'
 import { adminOnly, editorialWrite, releaseRead, reviewerFieldWrite, roleOf } from '../lib/access'
 import { assertImmutableIdentity, canonicalPath, GPIR_LINEAGE_ID, GPIR_PUBLICATION_ID, UUID } from '../lib/identity'
 
 const enforceGovernance: CollectionBeforeChangeHook = ({ data, originalDoc, operation, req }) => {
-  const next = { ...data }
+  const next = { ...originalDoc, ...data }
   if (next.canonicalUrlCandidate) {
     next.canonicalUrlCandidate = canonicalPath(next.canonicalUrlCandidate)
     next.canonicalUrl = `https://fintechoisis.com${next.canonicalUrlCandidate}`
   }
   if (operation === 'update') assertImmutableIdentity(next, originalDoc as Record<string, unknown>)
   if (next._status === 'published') {
-    if (!['admin', 'reviewer'].includes(roleOf(req.user) || '')) {
+    if (!(req.context?.m41VerifiedRecovery === true && !req.user) && !['admin', 'reviewer'].includes(roleOf(req.user) || '')) {
       throw new APIError('Only a reviewer can approve a Payload publication version.', 403)
     }
     if (next.validationStatus !== 'PASS') {
@@ -30,7 +31,7 @@ export const ResearchPublications: CollectionConfig = {
   },
   access: { create: editorialWrite, read: releaseRead, update: editorialWrite, delete: adminOnly, readVersions: releaseRead },
   versions: { maxPerDoc: 100, drafts: { validate: true } },
-  hooks: { beforeChange: [enforceGovernance] },
+  hooks: { beforeChange: [enforceGovernance], afterChange: [recordNativeAdoption] },
   fields: [
     {
       type: 'tabs',

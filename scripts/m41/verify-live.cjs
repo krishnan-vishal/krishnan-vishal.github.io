@@ -10,7 +10,7 @@ async function main() {
         const url = new URL('/' + file.split('/').map(encodeURIComponent).join('/'), origin);
         url.searchParams.set('m41', source.manifest.snapshot);
         const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(60000) });
-        if (!response.ok || !['www.fintechoisis.com', 'fintechoisis.com'].includes(new URL(response.url).hostname)) throw new Error(`Live verification failed: ${file} (HTTP ${response.status})`);
+        if ((!response.ok && !(file === '404.html' && response.status === 404)) || !['www.fintechoisis.com', 'fintechoisis.com'].includes(new URL(response.url).hostname)) throw new Error(`Live verification failed: ${file} (HTTP ${response.status})`);
         return Buffer.from(await response.arrayBuffer());
     }
     const marker = JSON.parse((await bytes('assets/data/cms-source.json')).toString('utf8'));

@@ -31,14 +31,26 @@ async function client(env, fetchImpl = fetch) {
         if (site.sha256(site.canonical(doc.sourcePayload)) !== doc.sourceHash) throw new Error('Payload managed content was changed outside its immutable snapshot.');
         return { sourceRecordKey: key, sourceHash: doc.sourceHash, sourcePayload: doc.sourcePayload };
     }
-    return { manifest, record, request };
+    async function mediaBytes(media) {
+        const response = await fetchImpl(`${config.origin}/api/media/file/${encodeURIComponent(media.filename)}`, {
+            redirect: 'error', signal: AbortSignal.timeout(60000), headers: { authorization: `users API-Key ${config.key}` } });
+        if (!response.ok) throw new Error('Payload media backup could not read source bytes.');
+        const bytes = Buffer.from(await response.arrayBuffer());
+        if (media.sourceSha256 && site.sha256(bytes) !== media.sourceSha256) throw new Error('Payload media differs from its preserved source digest.');
+        return bytes;
+    }
+    return { manifest, record, request, mediaBytes };
 }
 async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     const source = await client(env, fetchImpl);
     const current = site.inventory(outputRoot, source.manifest.sourceCommit);
     // This migration switches an exact, already-public edition. Content changes
     // require a new manifest/release; it never overwrites a newly changed engine.
-    if (site.canonical(current) !== site.canonical(source.manifest)) throw new Error('Public baseline changed since migration; reconcile before cutover.');
+    const covered = new Set(source.manifest.files.map(file => file.path));
+    if (current.files.some(file => !covered.has(file.path))) throw new Error('Payload does not cover every existing managed public path.');
+    // Current Git engine bytes are authoritative and are never overwritten by
+    // CMS content. New editorial editions may differ from obsolete Git copies.
+    const engineBefore = site.canonical(current.protectedFiles);
     // Verify the entire source before replacing any output bytes.
     const pending = [];
     for (const item of source.manifest.files) {
@@ -48,9 +60,13 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
         site.verifyBytes(item, bytes);
         pending.push({ item, bytes });
     }
-    for (const { item, bytes } of pending) fs.writeFileSync(path.join(outputRoot, item.path), bytes);
+    for (const { item, bytes } of pending) {
+        fs.mkdirSync(path.dirname(path.join(outputRoot, item.path)), { recursive: true });
+        fs.writeFileSync(path.join(outputRoot, item.path), bytes);
+    }
+    if (site.canonical(site.inventory(outputRoot, source.manifest.sourceCommit).protectedFiles) !== engineBefore) throw new Error('A managed edition changed protected engine files.');
     const marker = { source: 'payload', snapshot: source.manifest.snapshot, sourceCommit: source.manifest.sourceCommit,
-        managedFiles: pending.length, protectedEngineFiles: source.manifest.protectedFiles.length };
+        managedFiles: pending.length, protectedEngineFiles: current.protectedFiles.length };
     fs.writeFileSync(path.join(outputRoot, 'assets/data/cms-source.json'), JSON.stringify(marker) + '\n');
     return marker;
 }

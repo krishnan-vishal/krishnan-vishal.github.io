@@ -578,3 +578,18 @@ unavailable. Native research edit-to-snapshot propagation and competing-authorit
 reconciliation remain ACTIONABLE implementation work before private RELEASE.
 Overall M41 remains IN PROGRESS; do not mark complete. No new PR, schema mutation,
 validation promotion or Contentful deletion. See M41-FULL-CUTOVER-REPORT.md.
+
+
+## 2026-11-15 — M41 native source contract and controlled release handover
+
+Continued PR #580 only. The source gap recorded at 42f9822 is resolved: native
+research authority/adoption, Supabase-gated immutable editions, protected-content
+Payload lookup, permanent source lock and fuller BCP reference/media/draft recovery.
+Existing Contentful content is never deleted or overwritten. One private runner
+and M41-PRODUCTION-HANDOVER.md check access/settings before production stages and
+preserve the original checkout/stashes. 84 focused tests, TypeScript, Worker build,
+scanner and public inventory pass; 835 managed / 93 protected files. Private run
+stopped at preflight because existing env/CA/deployment sessions are unavailable.
+No production deployment or actual BCP recovery claimed. Source/handover PREPARED;
+production cutover and reader acceptance OPEN / BLOCKED ON EXECUTION ACCESS.
+See M41-FULL-CUTOVER-REPORT.md.

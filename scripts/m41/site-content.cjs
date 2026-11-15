@@ -12,7 +12,7 @@ const canonical = value => JSON.stringify(stable(value));
 const ENGINE_DATA = new Set(['announcements.json', 'content-registry.json', 'search-index.json', 'source-health.json', 'trusted-sources.json']);
 function managed(file) {
     if (/\.(?:html|pdf|png|jpe?g|webp|gif|ico|svg|woff2?|ttf|otf)$/i.test(file)) return true;
-    if (file === 'assets/data/fx/editorial-public.json') return true;
+    if (file === 'routes.json' || file === 'assets/data/fx/editorial-public.json') return true;
     if (/^assets\/data\//.test(file)) return !file.startsWith('assets/data/fx/') && !ENGINE_DATA.has(path.posix.basename(file));
     return /^(?:robots\.txt|sitemap\.xml|site\.webmanifest)$/.test(file) || file.startsWith('assets/i18n/');
 }

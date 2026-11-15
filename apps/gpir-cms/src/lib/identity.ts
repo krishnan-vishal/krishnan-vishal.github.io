@@ -18,7 +18,7 @@ export function canonicalPath(value: unknown): string {
 
 export function assertImmutableIdentity(data: Record<string, unknown>, original: Record<string, unknown> | undefined) {
   if (!original) return
-  for (const field of ['gpirPublicationId', 'editionLineageId', 'supabaseRecordId', 'contentfulEntryId']) {
+  for (const field of ['gpirPublicationId', 'editionLineageId', 'supabaseRecordId', 'contentfulEntryId', 'canonicalUrlCandidate']) {
     if (original[field] != null && data[field] != null && data[field] !== original[field]) {
       throw new APIError(`${field} is immutable after assignment. Use a forward correction and lineage record.`, 409)
     }

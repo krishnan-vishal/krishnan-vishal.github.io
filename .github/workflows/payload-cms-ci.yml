@@ -6,6 +6,8 @@ on:
       - 'apps/gpir-cms/**'
       - 'scripts/m41/**'
       - 'scripts/build-cloudflare-preview.js'
+      - 'gpir-content-source.json'
+      - 'supabase/functions/gpir-protected-publication/**'
       - 'supabase/functions/_shared/gpir-contentful-editorial.mjs'
       - 'supabase/migrations/20261114020220_gpir_payload_schema_isolation.sql'
       - '.github/workflows/payload-*.yml'

@@ -67,6 +67,8 @@ export function legacyRecord(publication: any) {
       gpirPublicationId: publication.gpirPublicationId,
       editionLineageId: publication.editionLineageId,
       supabaseRecordId: publication.supabaseRecordId,
+      dashboardAsset: publication.dashboardAsset && typeof publication.dashboardAsset === 'object'
+        ? { sys: { type: 'Link', linkType: 'Asset', id: publication.dashboardAsset.contentfulAssetId || String(publication.dashboardAsset.id) } } : null,
       publicationTitle: publication.publicationTitle,
       slug: publication.slug,
       publicationType: publication.publicationType,

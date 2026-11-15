@@ -1,3 +1,4 @@
+import { researchTypes } from '../release/editorial-source'
 import { APIError } from 'payload'
 import { roleOf } from './access'
 import { sha256 } from '../migration/contentful'
@@ -17,6 +18,7 @@ export function guardEditorialRecord({ data, originalDoc, req }: any) {
     const old = originalDoc?.sourcePayload?.fields?.[field]
     if (old && value.fields[field] !== old) throw new APIError('Editorial governed identity cannot be replaced.', 409)
   }
+  if (originalDoc && researchTypes.has(originalDoc.sourcePayload?.fields?.publicationType) && req.user) throw new APIError('Research must be edited in Research Publications; this migrated edition is preserved read-only.', 409)
   if (originalDoc) value.sourceVersion = Number(originalDoc.sourcePayload?.sourceVersion || 1) + 1
   const trustedImport = req.context?.m41VerifiedDeliveryImport === true && !req.user
   if (value.published === true && !trustedImport) {

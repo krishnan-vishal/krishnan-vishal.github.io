@@ -13,18 +13,22 @@ async function main() {
   const root = path.resolve(option('site') || '../../.cloudflare-preview-dist')
   const output = path.resolve(option('report') || '../../.migration-data/m41-coverage.json')
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
-  const manifest = site.validateManifest(site.inventory(root, sourceCommit))
+  const initialManifest = site.validateManifest(site.inventory(root, sourceCommit))
   const backup = option('backup')
   if (!backup) throw new Error('A complete Contentful backup is required: --backup=PATH')
   const exportRoot = path.resolve(backup)
   const sourceFiles = ['manifest.json', 'entries.json', 'assets.json', 'locales.json', 'contentTypes.json', 'tags.json', 'editorInterfaces.json']
   const archives = await Promise.all(sourceFiles.map(async file => ({ name: file, value: JSON.parse(await readFile(path.join(exportRoot, file), 'utf8')) })))
+  const { snapshot: initialSnapshot, ...initialBody } = initialManifest
+  const body = { ...initialBody, contentfulExportSha256: site.sha256(site.canonical(archives)) }
+  const manifest = site.validateManifest({ ...body, snapshot: site.sha256(site.canonical(body)) })
   const locale = archives.find(item => item.name === 'locales.json')!.value.find((item: any) => item.default)?.code
   const space = process.env.CONTENTFUL_SPACE_ID
   const environment = process.env.CONTENTFUL_ENVIRONMENT
   const token = process.env.CONTENTFUL_DELIVERY_TOKEN
   if (!locale || !space || !environment || !token) throw new Error('Verified Contentful Delivery settings are required; management state cannot prove published bytes.')
   const published = new Map<string, any>()
+  const publishedAssets = new Map<string, any>()
   for (let skip = 0; ; ) {
     const url = `https://cdn.contentful.com/spaces/${encodeURIComponent(space)}/environments/${encodeURIComponent(environment)}/entries?limit=100&skip=${skip}&locale=${encodeURIComponent(locale)}`
     const response = await fetch(url, { headers: { authorization: `Bearer ${token}` }, redirect: 'error' })
@@ -32,6 +36,7 @@ async function main() {
     const page: any = await response.json()
     if (!Array.isArray(page.items) || !Number.isInteger(page.total)) throw new Error('Incomplete delivery snapshot.')
     for (const entry of page.items) published.set(entry.sys.id, entry)
+    for (const asset of page.includes?.Asset || []) publishedAssets.set(asset.sys.id, asset)
     skip += page.items.length
     if (skip >= page.total) break
     if (!page.items.length || skip > 100000) throw new Error('Delivery pagination incomplete.')
@@ -76,6 +81,7 @@ async function main() {
     const live = published.get(entry.sys.id)
     const draftFields = Object.fromEntries(Object.entries(entry.fields || {}).map(([key, value]: [string, any]) => [key, value?.[locale] ?? null]))
     const value = { kind: 'editorial-entry', entryId: entry.sys.id, contentType: entry.sys.contentType?.sys?.id,
+      deliveryIncludes: { Asset: [...publishedAssets.values()] },
       fields: live?.fields || draftFields, pendingSourceDraft: live ? draftFields : null,
       published: Boolean(live), archived: Boolean(entry.sys.archivedVersion), sourceVersion: entry.sys.version, sourceSys: entry.sys }
     const key = `m41:editorial:${entry.sys.id}`

@@ -1,4 +1,5 @@
 import type { Endpoint } from 'payload'
+import { allNative, nativeBackupRecords, referenceBackupRecords, resolvedEditorialRecords } from './editorial-source'
 import { roleOf } from '../lib/access'
 
 export const editorialEndpoint: Endpoint = {
@@ -8,7 +9,7 @@ export const editorialEndpoint: Endpoint = {
     let input: any
     try { input = await req.json!() } catch { return Response.json({ error: 'INVALID_JSON' }, { status: 400 }) }
     const action = input.action || 'published'
-    if (!['published', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
+    if (!['published', 'publication', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
     const client: any = req.payload
     const namespace = { sourceRecordKey: { contains: 'm41:editorial:' } }
     // Payload JSON fields are not portable nested-query targets in SQL adapters.
@@ -22,9 +23,19 @@ export const editorialEndpoint: Endpoint = {
       if (++page > 100) return Response.json({ error: 'EDITORIAL_LIMIT_EXCEEDED' }, { status: 503 })
     }
     const values = docs.filter(doc => doc.sourcePayload?.kind === 'editorial-entry')
-    const output = (doc: any) => ({ entryId: doc.sourcePayload.entryId, updatedAt: doc.updatedAt, fields: doc.sourcePayload.fields })
-    if (action === 'published') return Response.json({ items: values.filter(doc => doc.sourcePayload.published === true).map(output) })
-    if (action === 'export') return Response.json({ records: values.map(doc => ({ sourceRecordKey: doc.sourceRecordKey, sourceHash: doc.sourceHash, sourcePayload: doc.sourcePayload })) })
+    if (['published', 'publication', 'export'].includes(action)) {
+      const native = await allNative(client, req)
+      const adoption: any = await client.find({ collection: 'editorial-metadata', where: { sourceRecordKey: { contains: 'm41:adopted:' } }, limit: 10000, depth: 0, req, overrideAccess: false })
+      if (adoption.hasNextPage) throw new Error('Native adoption inventory incomplete.')
+      if (action === 'export') return Response.json({ records: [...values, ...adoption.docs].map(doc => ({ sourceRecordKey: doc.sourceRecordKey, sourceHash: doc.sourceHash, sourcePayload: doc.sourcePayload })).concat(nativeBackupRecords(await allNative(client, req, true), native), await referenceBackupRecords(client, req)) })
+      const items = resolvedEditorialRecords(values, native, new Set(adoption.docs.map((doc: any) => doc.sourcePayload.entryId)))
+      if (action === 'published') return Response.json({ items })
+      if (typeof input.publicationId !== 'string' || typeof input.supabaseRecordId !== 'string') return Response.json({ error: 'INVALID_IDENTITY' }, { status: 400 })
+      const matched = items.filter(item => item.fields.gpirPublicationId === input.publicationId)
+      if (matched.some(item => item.fields.supabaseRecordId !== input.supabaseRecordId)) return Response.json({ error: 'CONTENT_IDENTITY_MISMATCH' }, { status: 409 })
+      const assets = matched.flatMap(item => item.includes?.Asset || [])
+      return Response.json({ items: matched.map(item => ({ sys: { id: item.entryId }, fields: item.fields })), includes: { Asset: assets } })
+    }
     const own = values.find(doc => doc.sourcePayload.entryId === input.id)
     const legacy = (doc: any) => doc ? { sys: { id: doc.sourcePayload.entryId, version: doc.sourcePayload.sourceVersion || 1,
       ...(doc.sourcePayload.published ? { publishedVersion: doc.sourcePayload.sourceVersion || 1 } : {}),
