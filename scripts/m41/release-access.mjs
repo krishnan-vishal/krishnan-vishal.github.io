@@ -105,3 +105,15 @@ export async function existingCoreReleaseKey(env, coreURL, fetchImpl = fetch, re
   }
   throw new Error(`No existing private release key authenticated the unchanged GPIR Core project ${coreRef}. CMS credentials were not substituted and no key was created.`)
 }
+
+// Existing environments are never PUT: GitHub PUT can alter deployment protections.
+export function githubEnvironmentPlan(inventory, permissions) {
+  if (!Array.isArray(inventory)) throw new Error('GitHub environment inventory is unavailable; no release configuration changed.')
+  const names = new Set(inventory.map(item => item.name))
+  for (const name of ['contentful-production', 'payload-preview']) {
+    if (!names.has(name)) throw new Error(`Existing GitHub environment ${name} is missing; existing release settings must be preserved.`)
+  }
+  const create = names.has('payload-production-cutover') ? [] : ['payload-production-cutover']
+  if (create.length && permissions?.admin !== true) throw new Error('GitHub repository administration access is required to create the missing payload-production-cutover environment. Existing gh authentication lacks this permission; no CMS or website changes performed.')
+  return { existing: [...names], create }
+}

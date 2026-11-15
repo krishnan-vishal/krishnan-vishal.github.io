@@ -151,3 +151,18 @@ stages are never reset or blindly re-imported. The repository's pinned Supabase
 CLI v2.121.0 is retained instead of using incompatible global v3 flags.
 
 Core release authority reuses an existing private key first. If none authenticates Core, the already-authenticated pinned Supabase CLI may read existing Core API keys (`projects api-keys --reveal --output json`); captured output is withheld, all returned keys are redacted, and the selected service key must pass a read-only Core request. No API key is created or rotated. An explicit Core key is never silently substituted.
+
+
+## M41 — missing GitHub cutover environment corrected (2026-11-15)
+
+Owner's 038b16e attempt passed CMS/Core separation, then stopped at preflight with
+HTTP 404, stages=[] and zero Contentful writes. Read-only repository environment
+inventory confirms contentful-production and payload-preview exist, while
+payload-production-cutover is absent. Runner now inventories environments instead
+of GET-probing a not-yet-created environment; missing cutover setup requires the
+existing gh identity to have repository administration permission. After all
+preflight/CI gates and --execute, it provisions only the missing cutover environment,
+rechecking existence first. Existing environments and protections receive no PUT.
+22 access/resume/environment tests and unchanged secret scan pass. Existing safe
+preflight worktree resumes with the same complete batch. PR #580 only; no production
+migration/deployment/live acceptance claimed; Contentful unchanged. M41 stays OPEN.

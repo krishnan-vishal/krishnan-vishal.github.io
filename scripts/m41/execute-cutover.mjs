@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -89,7 +89,17 @@ try {
   report.projects = boundaries
   console.log(`M41: CMS connection ${boundaries.cmsProjectRef}; unchanged GPIR Core target ${project}`)
   run('gh', ['auth', 'status'])
-  for (const environment of ['contentful-production', 'payload-preview', 'payload-production-cutover']) api(`environments/${environment}`)
+  let githubRepository, environmentInventory
+  try {
+    githubRepository = JSON.parse(run('gh', ['api', `repos/${repository}`]))
+    environmentInventory = JSON.parse(api('environments?per_page=100'))
+  } catch {
+    throw new Error('GitHub preflight could not read repository metadata or GET /repos/' + repository + '/environments. Check the existing gh session repository access; no production changes performed.')
+  }
+  if (!Array.isArray(environmentInventory.environments) || environmentInventory.total_count > environmentInventory.environments.length) throw new Error('GitHub environment inventory is incomplete; no release configuration changed.')
+  const environmentPlan = githubEnvironmentPlan(environmentInventory.environments, githubRepository.permissions)
+  report.githubEnvironmentPlan = environmentPlan
+  console.log('M41: GitHub environment inventory verified; missing release environments: ' + (environmentPlan.create.join(', ') || 'none'))
   run('git', ['diff', '--quiet', 'HEAD'])
   const unknown = run('git', ['ls-files', '--others', '--exclude-standard']).trim()
   if (unknown) throw new Error('Use a clean isolated checkout; uncommitted/untracked work must be preserved.')
@@ -145,6 +155,17 @@ try {
   }
   temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'gpir-m41-release-'))
   fs.mkdirSync(output, { recursive: true, mode: 0o700 })
+  if (environmentPlan.create.length) {
+    step('provision the missing GitHub cutover environment without modifying existing protections')
+    for (const environment of environmentPlan.create) {
+      const fresh = JSON.parse(api('environments?per_page=100'))
+      if (!Array.isArray(fresh.environments) || fresh.total_count > fresh.environments.length) throw new Error('GitHub environment recheck was incomplete; no environment PUT performed.')
+      if (fresh.environments.some(item => item.name === environment)) continue
+      const created = JSON.parse(api(`environments/${environment}`, ['--method', 'PUT', '--input', '-'], '{}'))
+      if (created.name !== environment) throw new Error('GitHub did not confirm the expected cutover environment.')
+      report.githubEnvironmentCreated = [...(report.githubEnvironmentCreated || []), environment]
+    }
+  }
   step('pause the existing editorial draft writer during the primary-source switch')
   const draftWorkflow = 'm40-contentful-editorial-draft-handoff.yml'
   const priorWorkflow = JSON.parse(api(`actions/workflows/${draftWorkflow}`))

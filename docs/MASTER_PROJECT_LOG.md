@@ -3058,3 +3058,18 @@ Separate server-only runtime fields prevent CMS credentials/URLs from redirectin
 Core functions or publication decisions. Resume supports any clean pre-production
 PR ancestor, preserving work; pinned CLI remains v2.121.0. Eighteen focused tests
 pass. PR #580 only; migration/live cutover still pending private execution.
+
+
+## M41 — missing GitHub cutover environment corrected (2026-11-15)
+
+Owner's 038b16e attempt passed CMS/Core separation, then stopped at preflight with
+HTTP 404, stages=[] and zero Contentful writes. Read-only repository environment
+inventory confirms contentful-production and payload-preview exist, while
+payload-production-cutover is absent. Runner now inventories environments instead
+of GET-probing a not-yet-created environment; missing cutover setup requires the
+existing gh identity to have repository administration permission. After all
+preflight/CI gates and --execute, it provisions only the missing cutover environment,
+rechecking existence first. Existing environments and protections receive no PUT.
+22 access/resume/environment tests and unchanged secret scan pass. Existing safe
+preflight worktree resumes with the same complete batch. PR #580 only; no production
+migration/deployment/live acceptance claimed; Contentful unchanged. M41 stays OPEN.

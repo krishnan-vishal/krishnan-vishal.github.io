@@ -163,3 +163,19 @@ test('wrong CMS key can reuse an existing Core CLI key without key creation', as
 test('explicit Core key failure never triggers a different credential lookup', async () => {
   await assert.rejects(existingCoreReleaseKey({ GPIR_CORE_SUPABASE_SECRET_KEY: 'invalid-fixture' }, 'https://coreproject.supabase.co', async () => { throw Error('Unexpected request') }, () => {}, async () => { throw Error('Unexpected key lookup') }), /No existing private release key/)
 })
+
+
+test('missing cutover environment is a provisioning plan rather than a failed existence probe', async () => {
+  const { githubEnvironmentPlan } = await import('../../scripts/m41/release-access.mjs')
+  const existing = [{ name: 'contentful-production', protection_rules: ['fixture'] }, { name: 'payload-preview' }]
+  const before = JSON.stringify(existing)
+  assert.deepEqual(githubEnvironmentPlan(existing, { admin: true }).create, ['payload-production-cutover'])
+  assert.equal(JSON.stringify(existing), before)
+  assert.deepEqual(githubEnvironmentPlan([...existing, { name: 'payload-production-cutover' }], {}).create, [])
+})
+test('missing cutover environment requires admin and never recreates a missing existing environment', async () => {
+  const { githubEnvironmentPlan } = await import('../../scripts/m41/release-access.mjs')
+  assert.throws(() => githubEnvironmentPlan([{ name: 'contentful-production' }, { name: 'payload-preview' }], { admin: false }), /administration access/)
+  assert.throws(() => githubEnvironmentPlan([{ name: 'payload-preview' }], { admin: true }), /contentful-production is missing/)
+  assert.throws(() => githubEnvironmentPlan(null, { admin: true }), /inventory is unavailable/)
+})
