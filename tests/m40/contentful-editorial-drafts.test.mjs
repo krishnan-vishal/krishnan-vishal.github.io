@@ -157,3 +157,17 @@ test('the sync never publishes, approves or touches Contentful publication endpo
     assert.ok(seen.every(line => !/published|archived/.test(line)));
     assert.ok(seen.filter(line => line.startsWith('PUT')).every(line => /\/entries\/gpir-t3-[0-9a-f-]+$/.test(line)));
 });
+
+test('read-only Contentful mode blocks draft writes before any Contentful request', async () => {
+    const state = world({ candidates: [candidate(1)] });
+    let contentfulCalls = 0;
+    const fetchImpl = async (url, init) => {
+        if (new URL(url).hostname.endsWith('contentful.com')) contentfulCalls++;
+        return state.fetch(url, init);
+    };
+    await assert.rejects(syncEditorialDrafts({ env: { ...env, GPIR_CONTENTFUL_READ_ONLY: 'true' }, fetchImpl, now: NOW }), /read-only/);
+    const preview = await syncEditorialDrafts({ env: { ...env, GPIR_CONTENTFUL_READ_ONLY: 'true' }, fetchImpl, now: NOW, dryRun: true });
+    assert.equal(preview.results[0].outcome, 'PLANNED');
+    assert.equal(contentfulCalls, 0);
+    assert.equal(state.writes.length, 0);
+});

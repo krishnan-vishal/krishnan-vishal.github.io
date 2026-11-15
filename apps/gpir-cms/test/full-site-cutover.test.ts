@@ -74,7 +74,7 @@ test('Payload source fails closed on missing source, invalid signature and insec
 test('BCP sync is idempotent and verifies recovery by reading Contentful', async () => {
   const entries = new Map<string, any>()
   let writes = 0
-  const env = { CONTENTFUL_SPACE_ID: 'test-space', CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test-management' }
+  const env = { GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true', CONTENTFUL_SPACE_ID: 'test-space', CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test-management' }
   const fake = async (url: string, options: any) => {
     const route = new URL(url).pathname.split('/environments/test')[1]
     if (route === '/locales') return Response.json({ items: [{ default: true, code: 'en-US' }] })
@@ -93,4 +93,10 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
   const initial = writes
   assert.deepEqual(await bcp.sync(records, snapshot, env, fake), records)
   assert.equal(writes, initial)
+})
+
+test('Contentful BCP writes are denied by default before any network request', async () => {
+  let calls = 0
+  await assert.rejects(bcp.sync([], '0'.repeat(64), {}, async () => { calls++; return Response.json({}) }), /read-only/)
+  assert.equal(calls, 0)
 })

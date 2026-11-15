@@ -178,7 +178,9 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     const publication = normalizedPayload(collection.items[0], input.publicationId,
       input.supabaseRecordId, collection);
     if (!publication) return denied(403, 'CONTENT_IDENTITY_MISMATCH', origin);
-    return response(200, { status: 'ALLOW', publication }, origin);
+    const delivered = response(200, { status: 'ALLOW', publication }, origin);
+    delivered.headers.set('x-gpir-editorial-source', config.GPIR_EDITORIAL_SOURCE === 'payload' ? 'payload' : 'contentful');
+    return delivered;
   };
 }
 

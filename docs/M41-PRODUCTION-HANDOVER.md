@@ -1,90 +1,109 @@
-# M41 — controlled production cutover handover
+# M41 — private primary cutover handover
 
-**Source implementation is prepared in PR #580. Live cutover is not yet verified.**
-Use PR #580 only. No new PR, password conversion, schema change, validation
-relaxation, Contentful deletion, reset, or stash clearing is authorized by this run.
+**Resume from the prepared PR #580 source. Production cutover is not yet verified.**
+Latest owner direction: Payload primary now; Contentful entirely unchanged and
+retained as the existing BCP baseline. No Contentful writes, new recovery objects,
+model changes, synchronization gate, deletion or retirement during this release.
 
-## One private execution block
+## Exact execution blocker in the agent workspace
 
-Run in the existing authenticated Codespace terminal. This creates a separate
-worktree and leaves the existing release checkout, its uncommitted work and all
-saved stashes intact. Existing private env/CA paths are used without printing or
-committing their contents.
+The following do not exist here:
+
+- `/workspaces/m41-pr580-release`
+- `/workspaces/m41-payload/apps/gpir-cms/.env`
+- `/workspaces/m41-payload/apps/gpir-cms/prod-ca-2021.crt`
+
+`gh auth status` and `wrangler whoami` both report unauthenticated. This process has
+no Payload, Contentful, Supabase, Cloudflare or GitHub private settings. The release
+runner was attempted and stopped at preflight with `stages: []`; no production
+change was performed. Connected GitHub access can update PR #580 but cannot execute
+commands in the owner's Codespace. Never send credentials through chat.
+
+## One complete command batch
+
+Run once in the existing authenticated Codespace terminal. This fetches the saved
+checkpoint and creates a new worktree, preserving the existing release checkout,
+uncommitted changes and all stashes. Existing private env/CA paths are read locally;
+their contents are neither printed nor committed.
 
 ```bash
-git -C /workspaces/m41-pr580-release fetch origin fix/m41-cloudflare-sharp-admin-runtime-20261115
+bash <<'GPIR_M41'
+set -euo pipefail
+gpir_release_repo=/workspaces/m41-pr580-release
+git -C "$gpir_release_repo" fetch origin fix/m41-cloudflare-sharp-admin-runtime-20261115
 gpir_release_dir=$(mktemp -d /workspaces/m41-full-cutover-XXXXXX)
-git -C /workspaces/m41-pr580-release worktree add --detach "$gpir_release_dir" FETCH_HEAD
+git -C "$gpir_release_repo" worktree add --detach "$gpir_release_dir" FETCH_HEAD
 cd "$gpir_release_dir"
 node scripts/m41/execute-cutover.mjs --execute
+GPIR_M41
 ```
 
-Before production changes, the runner checks required setting names, the existing
-Payload API-key role, Contentful read access, GitHub environments, Cloudflare
-identity, actual Supabase function JWT policies, clean checkout and exact-head CI.
-Missing settings are reported together; values are redacted. Existing Git, gh and
-Supabase CLI sessions and Node >=24.22.1 are required. The existing scoped
-Cloudflare API token/account settings must be available privately. No credentials
-are created, roles broadened, or credentials requested in chat. Without `--execute`
-the command only checks readiness and installs the pinned dependencies.
+The runner checks all required settings together, the existing API-key role,
+Contentful read access, GitHub environments, Cloudflare identity, actual existing
+Supabase JWT policies, a clean checkout and exact-head CI before production changes.
+Existing Git, gh and Supabase CLI sessions, Node >=24.22.1 and existing scoped
+Cloudflare token/account settings must be available privately. It does not create
+credentials, broaden roles, convert passwords, alter schemas or weaken TLS.
 
-## Implemented release sequence
+## Implemented controlled release
 
-1. Deploy the changed CMS endpoints with the existing guarded Worker release,
-   preserving Hyperdrive verify-full, CA, accounts and passwords.
-2. Export Contentful read-only. Exclude only this tool's own recovery objects from
-   that source export to avoid recursive backups; retain every managed source type.
-3. Import all allowlisted website content and source editorial states without
-   promoting draft/WARN records or replacing Supabase identities/release decisions.
-4. Prepare an immutable edition from reviewed native research and fresh Supabase
-   decisions. Preserve existing routes, page shell, navigation, scripts and media.
-5. Sync additive Contentful recovery objects, read them back and independently
-   reconstruct all managed files in a new private directory before switching.
-6. Configure the existing GitHub environments and deploy only the existing
-   `gpir-intelligence-publish` and `gpir-protected-publication` consumers with their
-   actual existing JWT policies and original Supabase checks intact.
-7. Commit the non-secret source lock to PR #580's branch; await current-head CI;
-   make the existing PR ready and merge through GitHub's normal API. No bypass,
-   forced push, additional PR or branch deletion occurs. Owner authorized cutover.
-8. Build from Payload, deploy the existing website Worker and verify live bytes
-   against the selected complete Payload inventory, plus anonymous access denial.
-9. Save commits, deployment versions, coverage, recovery snapshot and live evidence
-   in `.migration-data/m41-cutover/consolidated-report.json` and PR #580's body.
+1. Pause/cancel only the existing editorial draft writer during the switch so the
+   old Contentful writer cannot compete. Global Alerts ingestion/publication cron,
+   thresholds and expiry/archival rules are unchanged.
+2. Deploy changed CMS endpoints using the existing guarded Worker release, preserving
+   Hyperdrive verify-full, trusted CA, accounts and passwords.
+3. Export Contentful using read requests only; use that source input to import all
+   allowlisted content and editorial states. Existing Contentful content stays intact.
+4. Prepare immutable Payload editions from reviewed native research and fresh
+   Supabase decisions. Draft/WARN records are never bulk promoted.
+5. Record the existing Contentful export, original Payload snapshot and previous
+   repository commit as the recovery baseline. **Do not synchronize or write BCP.**
+6. Configure existing GitHub environments for Payload primary. Deploy only the
+   existing `gpir-intelligence-publish` and `gpir-protected-publication` consumers
+   with their actual existing JWT policies and original Supabase checks retained.
+7. Commit the non-secret primary-source lock to PR #580 only; wait for current-head
+   CI; make that PR ready and merge using GitHub's normal API without a bypass.
+   Re-enable the draft workflow only if it was originally active, now with Payload
+   selected and Contentful writes blocked. No new PR or branch deletion occurs.
+8. Build all managed bytes from Payload, deploy the existing website Worker and
+   verify actual live bytes against the complete selected Payload inventory.
+9. Record deployment versions, commits, coverage, recovery baseline and anonymous
+   protected-access denial in `.migration-data/m41-cutover/consolidated-report.json`
+   and PR #580's body.
 
-Existing Contentful publications, assets, models and history remain intact. New
-unpublished recovery objects are additive; this is not Contentful retirement.
+## Evidence and limitations
 
-## Editing and durable source selection
+Success status is `LIVE_STATIC_CUTOVER_VERIFIED_CONTENTFUL_UNCHANGED`. It requires
+actual public byte verification, not just tests, login, imported counts or a runner.
+It does not claim an authenticated reader session unless the existing private
+`GPIR_ACCEPTANCE_READER_TOKEN` is available and its real protected read returns
+ALLOW with the `x-gpir-editorial-source: payload` response header. A privately
+configured authorized publication ID/record ID may select that test record; no
+credentials should be sent through chat. Without that existing session, the report
+explicitly leaves the protected-reader observation outstanding. Final live reader
+and dashboard acceptance remains necessary for full completion.
 
-Research Publications is the sole research editing authority. Migrated research
-mirrors are read-only preservation copies. Native review takes over the same
-identity; unpublishing cannot resurrect a superseded migrated edition. Imported
-drafts are never bulk labelled PASS. The existing delivered edition is retained
-until legitimate native review.
+`BLOCKED_NOT_COMPLETE` records the exact failed stage and completed stages. Preserve
+that report and the isolated checkout. If failure is after merge/deployment, resume
+the recorded stage rather than blindly repeating the initial import.
 
-`prepare-site-release.ts` produces subsequent immutable site editions from approved
-native content and fresh Supabase decisions. Only the existing identity-bound
-content slot and its FX/route metadata change. Protected reading continues through
-Supabase session/entitlement verification before Payload is contacted.
+The source lock prevents a future build from silently reverting to repository or
+Contentful primary. Missing private build settings fail closed. GitHub's existing
+Payload release workflow uses configured settings; any independent Cloudflare
+Git-build trigger also needs those settings. This runner does not reconfigure that
+separate Git integration.
 
-The committed `gpir-content-source.json` prevents silent fallback to repository or
-Contentful primary. Builds missing private Payload settings fail closed and retain
-the last good site. The existing GitHub release workflow uses configured settings.
-Any separate Cloudflare Git-build trigger needs the same private build settings;
-the runner does not claim to reconfigure Cloudflare's Git integration.
+## Recovery path
 
-## Acceptance and recovery
+Contentful retains its original pre-cutover state and assets, without modification.
+The private read-only export and original immutable Payload site snapshot preserve
+the migration baseline. Existing Git/Cloudflare deployment history remains intact.
+A controlled rollback can restore the previous website release and select
+`GPIR_EDITORIAL_SOURCE=contentful` for the existing protected/publication readers;
+their Contentful read adapters and original secrets are retained.
 
-Success status `LIVE_STATIC_CUTOVER_AND_BCP_VERIFIED` requires actual public byte
-verification and actual Contentful read-back/reconstruction. It does not assert a
-real authenticated reader session was exercised. Final live reader/dashboard/
-protected-content observation is still required before marking overall M41 complete.
-
-Failure status `BLOCKED_NOT_COMPLETE` records the exact stage and completed stages.
-If failure occurs after merge/deployment, preserve the report and isolated checkout
-and resume that recorded stage; do not blindly rerun the initial import.
-
-`recover-site.cjs` reconstructs content and private recovery records into a new
-directory. `restore-bcp.ts` restores reference/media records, the published native
-edition and pending draft, and metadata. Conflicting target records are rejected.
-Neither recovery command publishes a website or changes entitlements.
+Future Payload edits are **not** synchronized to Contentful in this release. BCP
+synchronization tools remain separately available but reject writes by default and
+must not be enabled without separate owner authorization. Their execution is not a
+cutover prerequisite. This is the explicit recovery freshness limitation of leaving
+Contentful entirely unchanged.

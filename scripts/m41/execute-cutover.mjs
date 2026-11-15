@@ -19,7 +19,7 @@ const caId = 'e2ccb563-d674-46e2-92aa-f96417ee9bcc'
 const output = path.join(root, '.migration-data/m41-cutover')
 let stage = 'preflight'
 let temporary
-const report = { status: 'NOT_EXECUTED', repository, pr: 580, stages: [], contentfulDeleted: 0, contentfulExistingEntriesModified: 0 }
+const report = { status: 'NOT_EXECUTED', repository, pr: 580, stages: [], contentfulDeleted: 0, contentfulExistingEntriesModified: 0, contentfulWrites: 0 }
 let sensitive = []
 function redact(value) {
   let text = String(value)
@@ -72,9 +72,10 @@ try {
   const unknown = run('git', ['ls-files', '--others', '--exclude-standard']).trim()
   if (unknown) throw new Error('Use a clean isolated checkout; uncommitted/untracked work must be preserved.')
   const sha = run('git', ['rev-parse', 'HEAD']).trim()
-  const pr = JSON.parse(gh(['pr', 'view', '580', '--json', 'headRefOid,headRefName,state,isDraft']))
+  const pr = JSON.parse(gh(['pr', 'view', '580', '--json', 'headRefOid,headRefName,state,isDraft,baseRefOid']))
   if (pr.headRefName !== branch || pr.headRefOid !== sha || pr.state !== 'OPEN') throw new Error('The isolated checkout must exactly match open PR #580.')
   report.implementationCommit = sha
+  report.previousRepositoryCommit = pr.baseRefOid
   // Install the unchanged lockfile, then verify actual deployment identities.
   run('npm', ['ci'], { cwd: app })
   wrangler(['whoami'])
@@ -99,6 +100,14 @@ try {
   }
   temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'gpir-m41-release-'))
   fs.mkdirSync(output, { recursive: true, mode: 0o700 })
+  step('pause the existing editorial draft writer during the primary-source switch')
+  const draftWorkflow = 'm40-contentful-editorial-draft-handoff.yml'
+  const priorWorkflow = JSON.parse(api(`actions/workflows/${draftWorkflow}`))
+  report.draftWorkflowWasActive = priorWorkflow.state === 'active'
+  if (report.draftWorkflowWasActive) gh(['workflow', 'disable', draftWorkflow])
+  const pendingDrafts = JSON.parse(api(`actions/workflows/${draftWorkflow}/runs?per_page=30`)).workflow_runs || []
+  for (const run of pendingDrafts.filter(item => ['queued', 'in_progress', 'waiting', 'pending', 'requested'].includes(item.status))) gh(['run', 'cancel', String(run.id)])
+  report.draftWorkflowPaused = true
   step('deploy the new CMS endpoints using the existing guarded Worker release')
   run(process.execPath, ['scripts/release-cms.mjs', cmsOrigin, caId], { cwd: app })
   report.cms = readJson(path.join(app, '.wrangler/m41-production-evidence.json'))
@@ -116,19 +125,17 @@ try {
   report.researchEdition = readJson(editionReport)
   process.env.GPIR_PAYLOAD_SITE_SNAPSHOT = report.researchEdition.snapshot
   process.env.GPIR_CONTENT_SOURCE = 'payload'
-  step('prove Contentful BCP synchronization and independent byte recovery before switching production')
-  const bcpReport = path.join(output, 'bcp-recovery.json')
-  run(process.execPath, ['scripts/m41/sync-site-bcp.cjs', bcpReport])
-  report.bcp = readJson(bcpReport)
-  run(process.execPath, ['scripts/m41/recover-site.cjs', report.bcp.recoverySnapshot, path.join(temporary, 'recovered')])
-  report.recovery = readJson(path.join(temporary, 'recovered/recovery-evidence.json'))
+  report.recovery = { mode: 'EXISTING_CONTENTFUL_READ_ONLY_BASELINE', contentfulExport: backup,
+    previousPayloadSnapshot: report.coverage.snapshot, previousRepositoryCommit: report.previousRepositoryCommit, currentPayloadSnapshot: process.env.GPIR_PAYLOAD_SITE_SNAPSHOT,
+    bcpSynchronization: 'DEFERRED_NOT_A_CUTOVER_GATE', contentfulWrites: 0 }
   step('configure existing GitHub release and draft environments for Payload primary')
   for (const environment of ['contentful-production', 'payload-preview', 'payload-production-cutover']) {
-    const variables = { GPIR_EDITORIAL_SOURCE: 'payload', PAYLOAD_PUBLIC_SERVER_URL: cmsOrigin, GPIR_PAYLOAD_SITE_SNAPSHOT: process.env.GPIR_PAYLOAD_SITE_SNAPSHOT,
+    const variables = { GPIR_CONTENTFUL_READ_ONLY: 'true', GPIR_EDITORIAL_SOURCE: 'payload', PAYLOAD_PUBLIC_SERVER_URL: cmsOrigin, GPIR_PAYLOAD_SITE_SNAPSHOT: process.env.GPIR_PAYLOAD_SITE_SNAPSHOT,
       CONTENTFUL_SPACE_ID: process.env.CONTENTFUL_SPACE_ID, CONTENTFUL_ENVIRONMENT: process.env.CONTENTFUL_ENVIRONMENT, CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID }
     if (environment === 'payload-production-cutover') variables.PAYLOAD_RELEASE_CUTOVER_ENABLED = 'true'
     for (const [name, value] of Object.entries(variables)) gh(['variable', 'set', name, '--env', environment, '--body', value])
-    for (const name of ['PAYLOAD_RELEASE_API_KEY', 'GPIR_RELEASE_SIGNING_SECRET', 'CONTENTFUL_MANAGEMENT_TOKEN', 'CLOUDFLARE_API_TOKEN']) gh(['secret', 'set', name, '--env', environment], process.env[name])
+    const secretNames = environment === 'contentful-production' ? ['PAYLOAD_RELEASE_API_KEY'] : ['PAYLOAD_RELEASE_API_KEY', 'GPIR_RELEASE_SIGNING_SECRET', 'CLOUDFLARE_API_TOKEN']
+    for (const name of secretNames) gh(['secret', 'set', name, '--env', environment], process.env[name])
   }
   step('deploy only the two existing editorial consumers, preserving their JWT policies')
   for (const target of targets) supabase(['functions', 'deploy', target.name, '--project-ref', project, '--use-api', ...(target.verifyJwt ? [] : ['--no-verify-jwt'])])
@@ -151,6 +158,8 @@ try {
   const merged = JSON.parse(api('pulls/580/merge', ['--method', 'PUT', '--input', mergeInput]))
   if (merged.merged !== true) throw new Error('GitHub did not merge PR #580; no website deployment attempted.')
   report.mergeCommit = merged.sha
+  if (report.draftWorkflowWasActive) gh(['workflow', 'enable', draftWorkflow])
+  report.draftWorkflowPaused = !report.draftWorkflowWasActive
   step('build from Payload and deploy through the existing website Worker')
   run(process.execPath, ['scripts/build-cloudflare-preview.js'])
   const deployed = wrangler(['deploy', '--config', 'wrangler.jsonc'])
@@ -162,8 +171,22 @@ try {
   const denied = await fetch(`${process.env.SUPABASE_URL}/functions/v1/gpir-protected-publication`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ publicationId: 'VK-GPIR-P-000000000001-8', supabaseRecordId: '8ea94d2b-3254-4ddc-a50a-f10444b252f4' }) })
   if (![401, 403].includes(denied.status)) throw new Error('Anonymous protected-publication request did not fail closed.')
   report.anonymousProtectedHTTP = denied.status
-  report.status = 'LIVE_STATIC_CUTOVER_AND_BCP_VERIFIED'
-  report.authenticatedReaderAcceptance = 'NOT_CLAIMED_BY_STATIC_BYTE_AND_ANONYMOUS_CHECKS'
+  report.status = 'LIVE_STATIC_CUTOVER_VERIFIED_CONTENTFUL_UNCHANGED'
+  report.authenticatedReaderAcceptance = 'NOT_PERFORMED_NO_EXISTING_PRIVATE_READER_SESSION'
+  if (process.env.GPIR_ACCEPTANCE_READER_TOKEN) {
+    const publicationId = process.env.GPIR_ACCEPTANCE_PUBLICATION_ID || 'VK-GPIR-P-000000000001-8'
+    const supabaseRecordId = process.env.GPIR_ACCEPTANCE_RECORD_ID || '8ea94d2b-3254-4ddc-a50a-f10444b252f4'
+    const protectedRead = await fetch(`${process.env.SUPABASE_URL}/functions/v1/gpir-protected-publication`, {
+      method: 'POST', redirect: 'error', signal: AbortSignal.timeout(30000),
+      headers: { authorization: `Bearer ${process.env.GPIR_ACCEPTANCE_READER_TOKEN}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ publicationId, supabaseRecordId }) })
+    const delivered = await protectedRead.json().catch(() => ({}))
+    report.authenticatedReaderHTTP = protectedRead.status
+    report.protectedEditorialSource = protectedRead.headers.get('x-gpir-editorial-source')
+    report.authenticatedReaderAcceptance = protectedRead.ok && delivered.status === 'ALLOW' &&
+      delivered.publication?.identity === publicationId && delivered.publication?.supabaseRecordId === supabaseRecordId &&
+      report.protectedEditorialSource === 'payload' ? 'LIVE_PAYLOAD_PROTECTED_READ_VERIFIED' : 'NOT_ACCEPTED_EXISTING_SESSION_OR_ENTITLEMENT_OR_SOURCE'
+  }
   jsonFile(path.join(output, 'consolidated-report.json'), report)
   const current = JSON.parse(gh(['pr', 'view', '580', '--json', 'body'])).body
   const bodyFile = path.join(temporary, 'handover.md')

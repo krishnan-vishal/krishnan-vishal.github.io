@@ -255,6 +255,7 @@ test('Payload primary content is fetched only after the existing Supabase entitl
   const result = await createProtectedPublicationHandler({ env: selected, fetchImpl })(edgeRequest());
   assert.equal(result.status, 200);
   assert.equal(calls.length, 3);
+  assert.equal(result.headers.get('x-gpir-editorial-source'), 'payload');
   assert.ok(!calls.some(call => call.url.includes('contentful.com')));
   const deniedFetch = async (url) => {
     assert.ok(!url.includes('cms.example'));

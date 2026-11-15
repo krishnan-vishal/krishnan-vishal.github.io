@@ -2,6 +2,20 @@
 
 ## Current handoff
 
+### 2026-11-15 — M41 resume; Contentful strictly read-only; primary cutover first
+
+Resumed checkpoint 2844a41 in PR #580 only; its CMS validation/build and security
+runs both passed. Owner now explicitly requires Contentful unchanged and BCP sync
+deferred. Runner and workflows no longer perform BCP writes or make synchronization
+a cutover gate; separate BCP sync denies writes by default. Existing draft writer
+is paused for the switch and resumes only with Payload selected/read-only Contentful.
+Private execution was attempted and blocked at preflight: release checkout, env/CA,
+CLI authentication and private settings are absent here. stages=[]; no production
+change. Exact blocker and one complete Codespace batch are in
+[M41 handover](M41-PRODUCTION-HANDOVER.md). Source inventory remains 835 managed /
+93 engine/style/generated files. Migration/cutover/live acceptance remain OPEN.
+
+
 ### 2026-11-15 — M41 source contract and controlled release handover prepared
 
 PR #580 only. Resolved the native-research/mirror authority gap: reviewed native

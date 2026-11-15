@@ -30,8 +30,7 @@ jobs:
     timeout-minutes: 10
     environment: contentful-production
     env:
-      GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
-      GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT }}
+      GPIR_CONTENTFUL_READ_ONLY: 'true'
       GPIR_EDITORIAL_SOURCE: ${{ vars.GPIR_EDITORIAL_SOURCE }}
       PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
       PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
@@ -39,7 +38,6 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
-      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,9 +53,6 @@ jobs:
           node scripts/m40/sync-contentful-editorial-drafts.mjs
           ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') && '--dry-run' || '' }}
           --report=m40-draft-handoff-report.json
-      - name: Synchronize Payload editorial changes to Contentful recovery storage
-        if: env.GPIR_EDITORIAL_SOURCE == 'payload'
-        run: node scripts/m41/sync-site-bcp.cjs .migration-data/m41-bcp-recovery.json
       - name: Upload credential-free handoff report
         if: always()
         uses: actions/upload-artifact@v4

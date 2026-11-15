@@ -3021,3 +3021,18 @@ stopped at preflight because existing env/CA/deployment sessions are unavailable
 No production deployment or actual BCP recovery claimed. Source/handover PREPARED;
 production cutover and reader acceptance OPEN / BLOCKED ON EXECUTION ACCESS.
 See M41-FULL-CUTOVER-REPORT.md.
+
+
+## 2026-11-15 — M41 resume: Contentful unchanged, primary cutover priority
+
+Resumed saved checkpoint 2844a41/PR #580, without repeating implementation. Both
+checkpoint CI workflows passed. Owner clarified zero Contentful changes and no
+BCP synchronization delay. Removed sync from the runner and both relevant workflow
+paths, added read-only draft guard and deny-by-default BCP writes with two tests.
+Recovery retains unchanged Contentful baseline, read-only export, original Payload
+snapshot and previous Git/Worker release history. Future Payload-to-Contentful sync
+is deferred; no false synchronized-BCP claim. Runner attempted here; stopped at
+preflight with stages=[] because the authenticated Codespace checkout/private env/CA
+and deployment sessions are unavailable. No production change or Contentful write.
+One complete private command batch and exact blocker are recorded in the handover.
+M41 remains OPEN until actual deployment/live evidence; PR #580 only.

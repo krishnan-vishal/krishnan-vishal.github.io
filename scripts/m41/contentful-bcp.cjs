@@ -82,6 +82,7 @@ function management(env, fetchImpl = fetch) {
     return { ensureModel, store, read };
 }
 async function sync(records, snapshot, env, fetchImpl = fetch) {
+    if (env.GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED !== 'true') throw new Error('Contentful is read-only. BCP synchronization needs separate explicit authorization and is not a primary-cutover gate.');
     const remote = management(env, fetchImpl);
     const locale = await remote.ensureModel();
     const archive = pack(records);
