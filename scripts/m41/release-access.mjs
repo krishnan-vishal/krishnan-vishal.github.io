@@ -93,12 +93,12 @@ export async function existingCoreReleaseKey(env, coreURL, fetchImpl = fetch, re
   if (readExistingKeys && !env.GPIR_CORE_SUPABASE_SECRET_KEY) {
     const keys = await readExistingKeys(coreRef)
     if (!Array.isArray(keys)) throw new Error('Existing Core key inventory was incomplete; no deployment performed.')
-    for (const item of keys) if (typeof item.api_key === 'string') remember(item.api_key)
+    for (const item of keys) if (typeof item['api_key'] === 'string') remember(item['api_key'])
     for (const item of keys) {
       if (!['service_role', 'secret'].includes(item.name) && item.type !== 'secret') continue
-      if (typeof item.api_key !== 'string' || !item.api_key) continue
+      if (typeof item['api_key'] !== 'string' || !item['api_key']) continue
       try {
-        const result = await existingCoreReleaseKey({ GPIR_CORE_SUPABASE_SECRET_KEY: item.api_key }, coreURL, fetchImpl, remember)
+        const result = await existingCoreReleaseKey({ GPIR_CORE_SUPABASE_SECRET_KEY: item['api_key'] }, coreURL, fetchImpl, remember)
         return { ...result, source: 'EXISTING_CORE_KEY_READ_ONLY_CLI_LOOKUP' }
       } catch { /* Try another existing key, without returning credential details. */ }
     }

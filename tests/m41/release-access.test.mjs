@@ -154,7 +154,7 @@ test('wrong CMS key can reuse an existing Core CLI key without key creation', as
     return Response.json([])
   }, value => remembered.push(value), async ref => {
     inventoryReads++; assert.equal(ref, 'coreproject')
-    return [{ name: 'anon', api_key: 'fixture-public' }, { name: 'service_role', api_key: key }]
+    return [{ name: 'anon', 'api_key': 'fixture-public' }, { name: 'service_role', 'api_key': key }]
   })
   assert.equal(inventoryReads, 1)
   assert.equal(result.source, 'EXISTING_CORE_KEY_READ_ONLY_CLI_LOOKUP')

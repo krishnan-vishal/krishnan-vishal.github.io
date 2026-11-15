@@ -119,7 +119,7 @@ try {
     const raw = supabase(['projects', 'api-keys', '--project-ref', coreRef, '--reveal', '--output', 'json'], { privateOutput: true })
     let keys
     try { keys = JSON.parse(raw) } catch { throw new Error('Existing Core key inventory was unreadable; response withheld.') }
-    if (Array.isArray(keys)) for (const item of keys) if (typeof item.api_key === 'string') sensitive.push(item.api_key)
+    if (Array.isArray(keys)) for (const item of keys) if (typeof item['api_key'] === 'string') sensitive.push(item['api_key'])
     return keys
   })
   process.env.GPIR_CORE_SUPABASE_SECRET_KEY = coreAccess.key
