@@ -532,3 +532,9 @@ with status `SUPERSEDED`; they are not silently removed.
 - Acceptance still required: live Contentful backup; reviewed generated Payload collection migration; non-production database import/reconciliation; end-to-end create/update/release/retrieve/archive acceptance; owner-approved cutover, rollback window and separate Contentful retirement approval.
 - Blockers: Contentful organization grant; approved database/runtime/migrator logins; S3/Payload/release secrets; upstream Payload Lexical `happy-dom` high advisories; owner cutover authorization.
 - Next executable action: grant the Contentful management token and provision the non-production Payload database, then follow `docs/M41-PAYLOAD-CMS-MIGRATION.md`.
+
+
+### 2026-11-15 — M41 PR #580 release continuation
+
+- IN PROGRESS: same-PR Worker build correction implemented and locally verified (17 tests, TypeScript, complete OpenNext bundle).
+- BLOCKED: production TLS/database/admin/login/deployment acceptance requires authenticated Cloudflare runtime and private settings; current workspace preflight is 0/11. Three high upstream Happy DOM/Lexical/Payload audit findings remain for remediation/compatibility review. See corresponding master-log entry. No new PR or production cutover performed.

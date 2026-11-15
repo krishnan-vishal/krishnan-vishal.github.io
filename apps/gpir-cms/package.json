@@ -22,7 +22,8 @@
     "contentful:reconcile": "tsx src/migration/reconcile.ts",
     "release:fetch": "tsx src/release/fetch-release.ts",
     "cloud:preflight": "node scripts/cloud-preflight.mjs",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test": "node --import tsx --test test/*.test.ts",
+    "build:worker": "npm run generate:importmap && opennextjs-cloudflare build"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.93.0",
@@ -38,11 +39,13 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.17",
     "@types/node": "24.10.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "tsx": "4.23.15",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "wrangler": "4.162.0"
   },
   "overrides": {
     "dompurify": "3.4.17"
