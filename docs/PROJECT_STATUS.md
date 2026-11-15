@@ -2,6 +2,19 @@
 
 ## Current handoff
 
+### M41 — separate verified CMS and GPIR Core projects; resume any safe checkpoint
+
+Owner's 1e41d42 attempt stopped at preflight (stages=[]); no production changes.
+Removed the erroneous requirement that the CMS project equal the public Core
+project. CMS URL/database/Hyperdrive remain verified together; Core function and
+release-authority targets come from the unchanged public website configuration.
+Existing Core authority is checked read-only, kept server-only and excluded from
+build settings. Eighteen focused access/isolation tests pass. The resume helper
+accepts clean PR ancestors with no production stages, including 1e41d42. No reset,
+new checkout, Contentful write, schema/identity/entitlement change or forced PASS.
+PR #580 only. Actual private cutover and live acceptance remain pending.
+
+
 ### M41 — owner preflight reached; reuse existing access instead of mandatory variables
 
 Owner ran 1c353a2 in Codespace; stages=[] and no production changes. Missing explicit

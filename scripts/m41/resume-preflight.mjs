@@ -3,22 +3,32 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 const repository = process.argv[2] || '/workspaces/m41-pr580-release'
-const checkpoint = '1c353a2db241ec481fd2eb6f62087fa20b151d86'
+export function eligiblePreflightCheckpoint({ directory, clean, ancestor, report, outputExists }) {
+  if (!directory?.startsWith('/workspaces/m41-full-cutover-') || !clean || !ancestor) return false
+  if (!report) return !outputExists
+  return report.failedStage === 'preflight' && Array.isArray(report.stages) && report.stages.length === 0
+}
 function git(directory, args, capture = true) {
   const result = spawnSync('git', ['-C', directory, ...args], { encoding: 'utf8', ...(capture ? { stdio: ['ignore', 'pipe', 'pipe'] } : { stdio: 'inherit' }) })
   if (result.status !== 0) throw new Error('Git resume operation failed; existing files and stashes were not discarded.')
   return result.stdout || ''
 }
+async function main() {
 try {
+  const target = git(repository, ['rev-parse', 'FETCH_HEAD']).trim()
   const blocks = git(repository, ['worktree', 'list', '--porcelain']).trim().split(/\n\n+/)
   const candidates = blocks.flatMap(block => {
     const directory = block.match(/^worktree (.+)$/m)?.[1]
     const sha = block.match(/^HEAD ([a-f0-9]+)$/m)?.[1]
-    if (!directory?.startsWith('/workspaces/m41-full-cutover-') || sha !== checkpoint) return []
-    if (git(directory, ['status', '--porcelain']).trim()) return []
-    const report = path.join(directory, '.migration-data/m41-cutover/consolidated-report.json')
-    if (fs.existsSync(report) && JSON.parse(fs.readFileSync(report, 'utf8')).stages?.length) return []
+    if (!directory?.startsWith('/workspaces/m41-full-cutover-') || !sha) return []
+    const clean = !git(directory, ['status', '--porcelain']).trim()
+    const history = spawnSync('git', ['-C', repository, 'merge-base', '--is-ancestor', sha, target])
+    const output = path.join(directory, '.migration-data/m41-cutover')
+    const reportFile = path.join(output, 'consolidated-report.json')
+    const report = fs.existsSync(reportFile) ? JSON.parse(fs.readFileSync(reportFile, 'utf8')) : null
+    if (!eligiblePreflightCheckpoint({ directory, clean, ancestor: history.status === 0, report, outputExists: fs.existsSync(output) })) return []
     return [directory]
   }).sort((a,b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)
   if (!candidates.length) throw new Error('No unchanged preflight checkpoint found. All existing work was preserved; do not restart the import blindly.')
@@ -32,3 +42,6 @@ try {
   console.error(error.message)
   process.exitCode = 1
 }
+
+}
+if (process.argv[1] === '-' || (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))) await main()

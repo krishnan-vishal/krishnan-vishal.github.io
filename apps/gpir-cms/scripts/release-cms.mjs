@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { productionSettings, requireSuccessfulCI, runtimeKeys } from './release-config.mjs'
+import { productionSettings, requireSuccessfulCI, runtimeKeys, optionalRuntimeKeys } from './release-config.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from './hyperdrive-config.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -14,7 +14,7 @@ let temporaryDirectory
 let sha
 let deploymentVersion
 let publicUrl
-const sensitive = runtimeKeys.map(key => process.env[key]).filter(Boolean)
+const sensitive = [...runtimeKeys, ...optionalRuntimeKeys].map(key => process.env[key]).filter(Boolean)
 if (process.env.PAYLOAD_DATABASE_URI) {
   sensitive.push(process.env.PAYLOAD_DATABASE_URI)
   try {
@@ -76,7 +76,7 @@ try {
 
   progress('build isolated CMS Worker')
   const buildEnvironment = { ...process.env }
-  for (const key of runtimeKeys) delete buildEnvironment[key]
+  for (const key of [...runtimeKeys, ...optionalRuntimeKeys]) delete buildEnvironment[key]
   delete buildEnvironment.PAYLOAD_DATABASE_CA_CERT
   buildEnvironment.PAYLOAD_DATABASE_URI = 'postgresql://build_only:build_only@localhost:5432/postgres'
   buildEnvironment.PAYLOAD_SECRET = 'build-only-placeholder-not-a-production-secret'

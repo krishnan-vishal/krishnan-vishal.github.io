@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -28,9 +28,10 @@ function redact(value) {
   for (const secret of sensitive.filter(value => value.length > 5).sort((a,b) => b.length - a.length)) text = text.replaceAll(secret, '[redacted]')
   return text.replace(/postgres(?:ql)?:\/\/[^\s"'<>]+/gi, '[database URI redacted]')
 }
-function run(command, args, { cwd = root, input, environment = process.env, timeout = 30 * 60 * 1000 } = {}) {
+function run(command, args, { cwd = root, input, environment = process.env, timeout = 30 * 60 * 1000, privateOutput = false } = {}) {
   const result = spawnSync(command, args, { cwd, input, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout,
     env: { ...environment, CI: 'true', NO_COLOR: '1', WRANGLER_LOG_SANITIZE: 'true', WRANGLER_WRITE_LOGS: 'false', WRANGLER_SEND_METRICS: 'false' } })
+  if (result.status !== 0 && privateOutput) throw new Error('Existing Core key lookup was denied; output withheld and no deployment performed.')
   if (result.status !== 0) throw new Error(redact(`${command} failed: ${result.stderr || result.stdout || result.error?.message || 'no details'}`).slice(-5000))
   return result.stdout
 }
@@ -41,17 +42,18 @@ function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')) }
 function jsonFile(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 }); fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { mode: 0o600 }) }
 function wrangler(args, environment = process.env) { return run(process.execPath, [path.join(app, 'node_modules/wrangler/bin/wrangler.js'), ...args], { environment }) }
 let supabaseInvocation
-function supabase(args) {
+function supabase(args, options = {}) {
   if (!supabaseInvocation) {
     if (process.env.GPIR_SUPABASE_CLI) supabaseInvocation = [process.env.GPIR_SUPABASE_CLI]
     else {
       const available = spawnSync('supabase', ['--version'], { encoding: 'utf8', timeout: 20000 })
       if (available.error?.code === 'ENOENT') supabaseInvocation = ['npx', '--yes', 'supabase@2.121.0']
-      else if (available.status === 0) supabaseInvocation = ['supabase']
+      else if (available.status === 0 && /\b2\.121\.0\b/.test(available.stdout || '')) supabaseInvocation = ['supabase']
+      else if (available.status === 0) supabaseInvocation = ['npx', '--yes', 'supabase@2.121.0']
       else throw new Error('Existing Supabase CLI could not start; no deployment attempted.')
     }
   }
-  return run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args])
+  return run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args], options)
 }
 async function checks(sha) {
   for (let attempt = 0; attempt < 80; attempt++) {
@@ -78,8 +80,14 @@ try {
   const uri = new URL(process.env.PAYLOAD_DATABASE_URI)
   sensitive.push(uri.password, decodeURIComponent(uri.password))
   productionSettings(process.env, cmsOrigin)
-  const project = new URL(process.env.SUPABASE_URL).hostname.split('.')[0]
-  if (project !== 'qlnvhfapctcpzqyuhhth') throw new Error('Unexpected Supabase project; no changes made.')
+  const boundaries = supabaseProjectBoundaries(process.env, fs.readFileSync(path.join(root, 'assets/js/gpir-supabase-public-config.js'), 'utf8'))
+  // CMS/Storage keep their private project. The public website remains the
+  // authority for Core functions, publication decisions and entitlements.
+  const project = boundaries.coreProjectRef
+  const coreURL = boundaries.coreSupabaseURL
+  process.env.GPIR_CORE_SUPABASE_URL = coreURL
+  report.projects = boundaries
+  console.log(`M41: CMS connection ${boundaries.cmsProjectRef}; unchanged GPIR Core target ${project}`)
   run('gh', ['auth', 'status'])
   for (const environment of ['contentful-production', 'payload-preview', 'payload-production-cutover']) api(`environments/${environment}`)
   run('git', ['diff', '--quiet', 'HEAD'])
@@ -107,6 +115,15 @@ try {
   const delivery = await existingContentfulDeliveryToken(process.env, fetch, value => sensitive.push(value))
   process.env.CONTENTFUL_DELIVERY_TOKEN = delivery.token
   report.contentfulDeliveryAccess = delivery.source
+  const coreAccess = await existingCoreReleaseKey(process.env, coreURL, fetch, value => sensitive.push(value), coreRef => {
+    const raw = supabase(['projects', 'api-keys', '--project-ref', coreRef, '--reveal', '--output', 'json'], { privateOutput: true })
+    let keys
+    try { keys = JSON.parse(raw) } catch { throw new Error('Existing Core key inventory was unreadable; response withheld.') }
+    if (Array.isArray(keys)) for (const item of keys) if (typeof item.api_key === 'string') sensitive.push(item.api_key)
+    return keys
+  })
+  process.env.GPIR_CORE_SUPABASE_SECRET_KEY = coreAccess.key
+  report.coreReleaseAccess = coreAccess.source
   const functions = JSON.parse(supabase(['functions', 'list', '--project-ref', project, '--output', 'json']))
   const targets = ['gpir-intelligence-publish', 'gpir-protected-publication'].map(name => {
     const value = functions.find(item => item.slug === name || item.name === name)
@@ -197,7 +214,7 @@ try {
   const liveReport = path.join(output, 'live-verification.json')
   run(process.execPath, ['scripts/m41/verify-live.cjs', liveReport])
   report.live = readJson(liveReport)
-  const denied = await fetch(`${process.env.SUPABASE_URL}/functions/v1/gpir-protected-publication`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ publicationId: 'VK-GPIR-P-000000000001-8', supabaseRecordId: '8ea94d2b-3254-4ddc-a50a-f10444b252f4' }) })
+  const denied = await fetch(`${coreURL}/functions/v1/gpir-protected-publication`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ publicationId: 'VK-GPIR-P-000000000001-8', supabaseRecordId: '8ea94d2b-3254-4ddc-a50a-f10444b252f4' }) })
   if (![401, 403].includes(denied.status)) throw new Error('Anonymous protected-publication request did not fail closed.')
   report.anonymousProtectedHTTP = denied.status
   report.status = 'LIVE_STATIC_CUTOVER_VERIFIED_CONTENTFUL_UNCHANGED'
@@ -205,7 +222,7 @@ try {
   if (process.env.GPIR_ACCEPTANCE_READER_TOKEN) {
     const publicationId = process.env.GPIR_ACCEPTANCE_PUBLICATION_ID || 'VK-GPIR-P-000000000001-8'
     const supabaseRecordId = process.env.GPIR_ACCEPTANCE_RECORD_ID || '8ea94d2b-3254-4ddc-a50a-f10444b252f4'
-    const protectedRead = await fetch(`${process.env.SUPABASE_URL}/functions/v1/gpir-protected-publication`, {
+    const protectedRead = await fetch(`${coreURL}/functions/v1/gpir-protected-publication`, {
       method: 'POST', redirect: 'error', signal: AbortSignal.timeout(30000),
       headers: { authorization: `Bearer ${process.env.GPIR_ACCEPTANCE_READER_TOKEN}`, 'content-type': 'application/json' },
       body: JSON.stringify({ publicationId, supabaseRecordId }) })

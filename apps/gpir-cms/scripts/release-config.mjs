@@ -3,6 +3,8 @@ export const runtimeKeys = [
   'S3_BUCKET', 'S3_ENDPOINT', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY',
 ]
 
+export const optionalRuntimeKeys = ['GPIR_CORE_SUPABASE_URL', 'GPIR_CORE_SUPABASE_SECRET_KEY']
+
 export function productionSettings(environment, publicUrl) {
   const url = new URL(publicUrl)
   if (url.protocol !== 'https:' || !/^gpir-payload-cms\.[a-z0-9-]+\.workers\.dev$/.test(url.hostname) ||
@@ -12,7 +14,8 @@ export function productionSettings(environment, publicUrl) {
   const missing = runtimeKeys.filter(key => !environment[key])
   if (missing.length) throw new Error('Missing private runtime settings: ' + missing.join(', '))
   if (environment.NODE_TLS_REJECT_UNAUTHORIZED === '0') throw new Error('TLS verification must remain enabled.')
-  return { ...Object.fromEntries(runtimeKeys.map(key => [key, environment[key]])), PAYLOAD_PUBLIC_SERVER_URL: url.origin }
+  return { ...Object.fromEntries(runtimeKeys.map(key => [key, environment[key]])),
+    ...Object.fromEntries(optionalRuntimeKeys.filter(key => environment[key]).map(key => [key, environment[key]])), PAYLOAD_PUBLIC_SERVER_URL: url.origin }
 }
 
 export function requireSuccessfulCI(runs, sha) {

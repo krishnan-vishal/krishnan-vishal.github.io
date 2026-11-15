@@ -104,3 +104,15 @@ prints a token and does not copy an OAuth session to GitHub secrets. Eleven new
 focused access-resolution tests pass; previous migration/build checks are retained.
 The handover resumes the clean failed worktree rather than creating another one.
 Real private execution and live acceptance remain pending; no new deployment is claimed.
+
+## Owner's second preflight — CMS/Core isolation fix
+
+Owner resumed 1e41d42; stages=[]; stopped at the runner's old hard-coded project
+check. No production or Contentful changes occurred. The correction separates
+verified CMS database/Hyperdrive configuration from the Core target derived from
+the unchanged website configuration. Core functions and release decisions stay
+on Core; the CMS URL and credentials are not rewritten. Existing Core credentials
+are verified read-only and kept server-only. Eighteen access/isolation tests pass;
+resume selection no longer pins a single historic commit. Actual private execution
+and live acceptance remain outstanding. No guard was simply removed to force a
+deployment and no project, schema, authentication or entitlement was migrated.

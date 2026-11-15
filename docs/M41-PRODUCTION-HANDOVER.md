@@ -129,3 +129,25 @@ does not block the authorized private-session cutover.
 
 Vendor references: [Wrangler authentication](https://developers.cloudflare.com/workers/wrangler/commands/general/),
 [read existing Delivery API keys](https://www.contentful.com/developers/docs/references/content-management-api/api-keys/get-all-delivery-api-keys/).
+
+## Supabase project-boundary correction
+
+The owner resumed at 1e41d42 and stopped with stages=[] on the former hard-coded
+project check. That guard conflated the private CMS database project with GPIR
+Core. The corrected runner validates the CMS URL against its database URI and
+existing Hyperdrive origin/CA, while deriving the unchanged Core API/function
+project from the committed browser configuration. It does not redirect Core to
+the CMS project, overwrite the private CMS URL or move identities/entitlements.
+
+Core release credentials are selected only from existing private settings and
+verified using a read-only Core request. They remain separate from CMS connection
+credentials, are deployed only as server secrets and are removed from build-time
+settings. Missing or wrong-project authority still blocks safely; no key is made.
+
+The resume helper now accepts any clean ancestor checkpoint of this PR that has
+not reached a production stage. It does not depend on the old 1c353a2 commit and
+will resume the reported 1e41d42 worktree. Dirty worktrees or recorded production
+stages are never reset or blindly re-imported. The repository's pinned Supabase
+CLI v2.121.0 is retained instead of using incompatible global v3 flags.
+
+Core release authority reuses an existing private key first. If none authenticates Core, the already-authenticated pinned Supabase CLI may read existing Core API keys (`projects api-keys --reveal --output json`); captured output is withheld, all returned keys are redacted, and the selected service key must pass a read-only Core request. No API key is created or rotated. An explicit Core key is never silently substituted.

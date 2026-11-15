@@ -30,8 +30,8 @@ export function signArtifact(value: unknown, secret: string) {
 }
 
 export async function releaseDecision(publication: any, env: Record<string, string | undefined>, fetchImpl: typeof fetch = fetch): Promise<ReleaseDecision> {
-  const url = String(env.SUPABASE_URL || '').replace(/\/$/, '')
-  const key = String(env.GPIR_SUPABASE_SECRET_KEY || '')
+  const url = String(env.GPIR_CORE_SUPABASE_URL || env.SUPABASE_URL || '').replace(/\/$/, '')
+  const key = String(env.GPIR_CORE_SUPABASE_SECRET_KEY || env.GPIR_SUPABASE_SECRET_KEY || '')
   if (!/^https:\/\//.test(url) || !key) throw new Error('Supabase release authority is not configured.')
   const headers = new Headers({ 'content-type': 'application/json' })
   // Supabase sb_secret_* keys authenticate through apikey, not JWT Bearer.

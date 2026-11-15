@@ -618,3 +618,15 @@ new token creation, reuse authenticated Wrangler/verified Hyperdrive account and
 GET-only lookup of an existing Delivery key. OAuth stays local; no credentials are
 logged. Eleven focused tests pass. Handover resumes the clean failed worktree and
 preserves originals/stashes. PR #580 only. Actual cutover/live evidence still pending.
+
+
+## M41 — owner preflight project mismatch and CMS/Core boundary correction
+
+Owner's 1e41d42 run: BLOCKED_NOT_COMPLETE, stages=[], no production/Contentful
+changes. The old guard incorrectly required CMS and Core projects to be identical.
+Corrected private CMS URL/DB/Hyperdrive validation plus independent Core target
+from committed public configuration; existing Core authority checked read-only.
+Separate server-only runtime fields prevent CMS credentials/URLs from redirecting
+Core functions or publication decisions. Resume supports any clean pre-production
+PR ancestor, preserving work; pinned CLI remains v2.121.0. Eighteen focused tests
+pass. PR #580 only; migration/live cutover still pending private execution.

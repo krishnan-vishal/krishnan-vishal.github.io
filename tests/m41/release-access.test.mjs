@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { existingCloudflareAccount, existingContentfulDeliveryToken } from '../../scripts/m41/release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries } from '../../scripts/m41/release-access.mjs'
+import { eligiblePreflightCheckpoint } from '../../scripts/m41/resume-preflight.mjs'
 const env = { CONTENTFUL_SPACE_ID: 'fixture-space', CONTENTFUL_ENVIRONMENT: 'master', CONTENTFUL_MANAGEMENT_TOKEN: 'fixture-management-value' }
 const accountA = 'a'.repeat(32), accountB = 'b'.repeat(32)
 const key = (id, accessToken, environment = 'master') => ({ sys: { id }, accessToken, environments: [{ sys: { id: environment } }] })
@@ -86,4 +87,79 @@ test('an existing account setting is respected and still verified', async () => 
 test('missing or invalid account metadata never causes an account guess', async () => {
   await assert.rejects(existingCloudflareAccount({}, {}, async () => true), /no account was guessed/)
   await assert.rejects(existingCloudflareAccount({ CLOUDFLARE_ACCOUNT_ID: 'invalid' }, {}, async () => true), /no account was guessed/)
+})
+
+const cmsEnv = { SUPABASE_URL: 'https://cmsproject.supabase.co', PAYLOAD_DATABASE_URI: 'postgresql://runtime:fixture@db.cmsproject.supabase.co:5432/postgres' }
+const publicConfig = "window.GPIR_SUPABASE_PUBLIC_CONFIG = {url:'https://coreproject.supabase.co'}"
+test('CMS and GPIR Core projects remain independently pinned without changing private CMS configuration', () => {
+  const supplied = { ...cmsEnv }
+  const value = supabaseProjectBoundaries(supplied, publicConfig)
+  assert.equal(value.cmsProjectRef, 'cmsproject')
+  assert.equal(value.coreProjectRef, 'coreproject')
+  assert.deepEqual(supplied, cmsEnv)
+})
+test('CMS URL and database mismatch fail before deployment', () => {
+  assert.throws(() => supabaseProjectBoundaries({ ...cmsEnv, PAYLOAD_DATABASE_URI: 'postgresql://runtime:fixture@db.otherproject.supabase.co/postgres' }, publicConfig), /Database host does not match/)
+})
+test('Core cannot be redirected by the private CMS environment', () => {
+  assert.throws(() => supabaseProjectBoundaries({ ...cmsEnv, GPIR_CORE_SUPABASE_URL: 'https://cmsproject.supabase.co' }, publicConfig), /no Core target was redirected/)
+  assert.throws(() => supabaseProjectBoundaries(cmsEnv, ''), /exactly one Core/)
+})
+test('existing release credentials are authenticated against Core using a read-only request', async () => {
+  const original = { GPIR_SUPABASE_SECRET_KEY: 'sb_secret_fixture_core' }
+  const result = await existingCoreReleaseKey(original, 'https://coreproject.supabase.co', async (url, options) => {
+    assert.equal(url, 'https://coreproject.supabase.co/rest/v1/source_registry?select=source_id&limit=1')
+    assert.equal(options.method, 'GET')
+    assert.equal(options.headers.get('apikey'), original.GPIR_SUPABASE_SECRET_KEY)
+    assert.equal(options.headers.has('authorization'), false)
+    return Response.json([{ source_id: 'fixture' }])
+  })
+  assert.equal(result.source, 'GPIR_SUPABASE_SECRET_KEY')
+  assert.equal(original.GPIR_CORE_SUPABASE_SECRET_KEY, undefined)
+})
+test('invalid or wrong-project credentials do not become Core credentials', async () => {
+  await assert.rejects(existingCoreReleaseKey({ GPIR_SUPABASE_SECRET_KEY: 'sb_secret_fixture_cms' }, 'https://coreproject.supabase.co', async () => new Response('', { status: 401 })), /No existing private release key/)
+  const key = 'header.' + Buffer.from(JSON.stringify({ role: 'service_role', ref: 'cmsproject' })).toString('base64url') + '.fixture'
+  await assert.rejects(existingCoreReleaseKey({ GPIR_SUPABASE_SECRET_KEY: key }, 'https://coreproject.supabase.co', () => { throw Error('Must not probe a known wrong-project key') }), /No existing private release key/)
+})
+test('resume accepts any clean PR ancestor stopped before production, not one hard-coded commit', () => {
+  const good = { directory: '/workspaces/m41-full-cutover-fixture', clean: true, ancestor: true, report: { failedStage: 'preflight', stages: [] }, outputExists: true }
+  assert.equal(eligiblePreflightCheckpoint(good), true)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: null, outputExists: false }), true)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, clean: false }), false)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, ancestor: false }), false)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: { stages: ['deploy'], failedStage: 'deployment' } }), false)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: null }), false)
+})
+
+test('CMS runtime settings keep separate Core credentials private and exclude raw database configuration', async () => {
+  const { productionSettings, runtimeKeys } = await import('../../apps/gpir-cms/scripts/release-config.mjs')
+  const supplied = { ...Object.fromEntries(runtimeKeys.map(name => [name, 'fixture-private'])), ...cmsEnv,
+    GPIR_CORE_SUPABASE_URL: 'https://coreproject.supabase.co', GPIR_CORE_SUPABASE_SECRET_KEY: 'sb_secret_fixture_core' }
+  const settings = productionSettings(supplied, 'https://gpir-payload-cms.fixture.workers.dev')
+  assert.equal(settings.SUPABASE_URL, cmsEnv.SUPABASE_URL)
+  assert.equal(settings.GPIR_CORE_SUPABASE_URL, 'https://coreproject.supabase.co')
+  assert.equal(settings.GPIR_CORE_SUPABASE_SECRET_KEY, 'sb_secret_fixture_core')
+  assert.equal('PAYLOAD_DATABASE_URI' in settings, false)
+  assert.equal('PAYLOAD_DATABASE_CA_CERT' in settings, false)
+})
+
+test('wrong CMS key can reuse an existing Core CLI key without key creation', async () => {
+  const remembered = []
+  let inventoryReads = 0
+  const key = 'header.' + Buffer.from(JSON.stringify({ role: 'service_role', ref: 'coreproject' })).toString('base64url') + '.fixture'
+  const result = await existingCoreReleaseKey({ GPIR_SUPABASE_SECRET_KEY: 'invalid-cms-fixture' }, 'https://coreproject.supabase.co', async (url, options) => {
+    assert.equal(options.method, 'GET')
+    assert.equal(options.headers.get('apikey'), key)
+    return Response.json([])
+  }, value => remembered.push(value), async ref => {
+    inventoryReads++; assert.equal(ref, 'coreproject')
+    return [{ name: 'anon', api_key: 'fixture-public' }, { name: 'service_role', api_key: key }]
+  })
+  assert.equal(inventoryReads, 1)
+  assert.equal(result.source, 'EXISTING_CORE_KEY_READ_ONLY_CLI_LOOKUP')
+  assert.ok(remembered.includes(key))
+})
+test('explicit Core key failure never triggers a different credential lookup', async () => {
+  await assert.rejects(existingCoreReleaseKey({ GPIR_CORE_SUPABASE_SECRET_KEY: 'invalid-fixture' }, 'https://coreproject.supabase.co', async () => { throw Error('Unexpected request') }, () => {}, async () => { throw Error('Unexpected key lookup') }), /No existing private release key/)
 })
