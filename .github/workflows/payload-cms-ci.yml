@@ -30,3 +30,34 @@ jobs:
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts
+
+  worker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/gpir-cms
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/gpir-cms/package-lock.json
+      - run: npm ci
+      - name: Build Payload Next.js app
+        run: npm run build
+        env:
+          PAYLOAD_DATABASE_URI: postgresql://build_only:build_only@localhost:5432/postgres
+          PAYLOAD_SECRET: build-only-placeholder-not-a-production-secret
+          PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
+      - name: Build isolated Cloudflare Worker
+        run: npx --yes @opennextjs/cloudflare build
+        env:
+          PAYLOAD_DATABASE_URI: postgresql://build_only:build_only@localhost:5432/postgres
+          PAYLOAD_SECRET: build-only-placeholder-not-a-production-secret
+          PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
+      - name: Confirm Worker entrypoint and assets
+        run: |
+          test -f .open-next/worker.js
+          test -d .open-next/assets
