@@ -4,7 +4,6 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
-import sharp from 'sharp'
 import { Chapters } from './collections/Chapters'
 import { Countries } from './collections/Countries'
 import { EditorialMetadata } from './collections/EditorialMetadata'
@@ -53,6 +52,5 @@ export default buildConfig({
       },
     }),
   ],
-  sharp,
   typescript: { outputFile: path.resolve(dirname, '../payload-types.ts') },
 })
