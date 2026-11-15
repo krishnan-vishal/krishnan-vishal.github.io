@@ -32,6 +32,14 @@ export default buildConfig({
       connectionString: process.env.PAYLOAD_DATABASE_URI || '',
       // Workers cannot safely reuse a PostgreSQL connection across requests.
       maxUses: 1,
+      // Supply the sandbox Supabase root CA via a private Worker environment binding.
+      // Preserve certificate and hostname verification; never disable TLS checks.
+      ...(process.env.PAYLOAD_DATABASE_CA_CERT
+        ? { ssl: {
+            ca: process.env.PAYLOAD_DATABASE_CA_CERT.replace(/\\n/g, '\n'),
+            rejectUnauthorized: true,
+          } }
+        : {}),
     },
     schemaName: 'payload',
     idType: 'uuid',
