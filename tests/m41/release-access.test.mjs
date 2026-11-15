@@ -197,3 +197,18 @@ test('private Supabase failures classify auth, permission, compatibility and net
     assert.equal(JSON.stringify(result).includes(fixture), false)
   }
 })
+
+
+test('setup-only environment failure resumes while any later production evidence blocks retry', () => {
+  const stage = 'provision the missing GitHub cutover environment without modifying existing protections'
+  const good = { directory: '/workspaces/m41-full-cutover-fixture', clean: true, ancestor: true, outputExists: true,
+    report: { status: 'BLOCKED_NOT_COMPLETE', failedStage: stage, stages: [stage], contentfulWrites: 0 } }
+  assert.equal(eligiblePreflightCheckpoint(good), true)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: { ...good.report, githubEnvironmentCreated: ['payload-production-cutover'] } }), true)
+  for (const key of ['cms', 'coverage', 'researchEdition', 'releaseCommit', 'mergeCommit', 'website', 'live', 'draftWorkflowPaused', 'draftWorkflowWasActive']) {
+    assert.equal(eligiblePreflightCheckpoint({ ...good, report: { ...good.report, [key]: false } }), false)
+  }
+  assert.equal(eligiblePreflightCheckpoint({ ...good, clean: false }), false)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: { ...good.report, contentfulWrites: 1 } }), false)
+  assert.equal(eligiblePreflightCheckpoint({ ...good, report: { ...good.report, stages: [stage, 'deploy'] } }), false)
+})

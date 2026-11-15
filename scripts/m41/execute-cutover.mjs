@@ -175,7 +175,10 @@ try {
       const fresh = JSON.parse(api('environments?per_page=100'))
       if (!Array.isArray(fresh.environments) || fresh.total_count > fresh.environments.length) throw new Error('GitHub environment recheck was incomplete; no environment PUT performed.')
       if (fresh.environments.some(item => item.name === environment)) continue
-      const created = JSON.parse(api(`environments/${environment}`, ['--method', 'PUT', '--input', '-'], '{}'))
+      let created
+      try { created = JSON.parse(api(`environments/${environment}`, ['--method', 'PUT', '--input', '-'], '{}')) } catch {
+        throw new Error('GitHub could not provision payload-production-cutover using the current credential. Repository admin metadata does not prove token administration permission. Authenticate gh through the owner browser login with repo/workflow access, select that session instead of the Codespaces integration token, then resume this setup-only checkpoint. No CMS deployment or content migration started.')
+      }
       if (created.name !== environment) throw new Error('GitHub did not confirm the expected cutover environment.')
       report.githubEnvironmentCreated = [...(report.githubEnvironmentCreated || []), environment]
     }

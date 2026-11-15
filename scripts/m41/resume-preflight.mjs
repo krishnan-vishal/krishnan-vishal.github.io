@@ -8,7 +8,13 @@ const repository = process.argv[2] || '/workspaces/m41-pr580-release'
 export function eligiblePreflightCheckpoint({ directory, clean, ancestor, report, outputExists }) {
   if (!directory?.startsWith('/workspaces/m41-full-cutover-') || !clean || !ancestor) return false
   if (!report) return !outputExists
-  return report.failedStage === 'preflight' && Array.isArray(report.stages) && report.stages.length === 0
+  if (!Array.isArray(report.stages)) return false
+  if (report.failedStage === 'preflight' && report.stages.length === 0) return true
+  const setupOnly = 'provision the missing GitHub cutover environment without modifying existing protections'
+  const laterEvidence = ['cms', 'coverage', 'researchEdition', 'releaseCommit', 'mergeCommit', 'website', 'live', 'draftWorkflowPaused', 'draftWorkflowWasActive']
+  return report.status === 'BLOCKED_NOT_COMPLETE' && report.failedStage === setupOnly &&
+    report.stages.length === 1 && report.stages[0] === setupOnly && report.contentfulWrites === 0 &&
+    laterEvidence.every(key => !Object.hasOwn(report, key))
 }
 function git(directory, args, capture = true) {
   const result = spawnSync('git', ['-C', directory, ...args], { encoding: 'utf8', ...(capture ? { stdio: ['ignore', 'pipe', 'pipe'] } : { stdio: 'inherit' }) })
@@ -31,9 +37,9 @@ try {
     if (!eligiblePreflightCheckpoint({ directory, clean, ancestor: history.status === 0, report, outputExists: fs.existsSync(output) })) return []
     return [directory]
   }).sort((a,b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)
-  if (!candidates.length) throw new Error('No unchanged preflight checkpoint found. All existing work was preserved; do not restart the import blindly.')
+  if (!candidates.length) throw new Error('No unchanged preflight or setup-only checkpoint found. All existing work was preserved; do not restart the import blindly.')
   const directory = candidates[0]
-  console.log('M41: resuming the existing preflight worktree')
+  console.log('M41: resuming the existing safe release worktree')
   git(directory, ['fetch', 'origin', 'fix/m41-cloudflare-sharp-admin-runtime-20261115'], false)
   git(directory, ['merge', '--ff-only', 'FETCH_HEAD'], false)
   const run = spawnSync(process.execPath, ['scripts/m41/execute-cutover.mjs', '--execute'], { cwd: directory, stdio: 'inherit', env: process.env })

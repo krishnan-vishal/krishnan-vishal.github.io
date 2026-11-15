@@ -182,3 +182,21 @@ can refresh management login with `env -u CI -u SUPABASE_ACCESS_TOKEN npx --yes
 supabase@2.121.0 login --no-browser </dev/tty`, then run the existing resume batch.
 No project keys created/rotated, schema changes or weakened source/entitlement
 checks. PR #580 only. M41 remains OPEN pending actual private migration/live cutover.
+
+
+## M41 — GitHub integration permission blocker; safe setup-only resume
+
+Owner's 8d89b9b run passed Contentful, existing Core key lookup and both source CI
+checks. First execution stage, creation of payload-production-cutover, received
+HTTP 403 Resource not accessible by integration. No CMS deployment, draft writer
+pause, migration or Contentful write occurred. Repository admin metadata did not
+prove that the Codespaces integration credential held Administration write access.
+Use the owner's interactive GitHub browser login (`gh auth login --hostname
+github.com --web --git-protocol https --scopes repo,workflow </dev/tty`) with
+GH_TOKEN/GITHUB_TOKEN unset, then privately select that stored login as GH_TOKEN
+for the existing resume command. Do not print credentials or change private env.
+Resume now accepts this exact setup-only failure with no later deployment/content
+or draft-writer evidence; it still rejects partially executed production releases.
+24 focused access/resume tests, syntax and unchanged secret scan pass locally.
+PR #580 only. Existing environment protections and Contentful remain unchanged;
+actual migration/live cutover pending. M41 remains OPEN.
