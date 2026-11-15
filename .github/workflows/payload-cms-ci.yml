@@ -26,6 +26,8 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
+      - name: Reject high and critical dependency findings
+        run: npm audit --audit-level=high
       - run: npm run test
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled

@@ -93,3 +93,35 @@ Hyperdrive creation alone is not CMS production completion.
 References: Cloudflare Hyperdrive TLS certificates, Supabase integration and
 node-postgres guides; OpenNext bindings guide. Hyperdrive uses the Supabase
 direct endpoint instead of stacking the existing Supabase session pooler.
+
+
+## Isolated CMS production release
+
+After owner acceptance of the Worker preview login and Research Publications,
+run the release helper from this app directory at the final PR #580 commit:
+
+```bash
+node --env-file=/absolute/path/to/existing/.env scripts/release-cms.mjs https://gpir-payload-cms.YOUR-SUBDOMAIN.workers.dev VERIFIED_CA_UUID
+```
+
+The helper requires both current-commit GitHub workflows to have passed, a clean
+tracked application source, the verified Hyperdrive origin/CA/TLS/caching policy,
+all private runtime settings, passing tests/TypeScript, no high/critical audit
+findings, and a successful Worker build/dry run. It uploads secrets atomically
+with the CMS Worker version via a restrictive temporary JSON file, removes that
+file afterwards, and never uploads the raw origin URI or CA as runtime secrets.
+The public origin is set specifically for production CORS, CSRF and cookies.
+The website Worker and custom domains cannot be deployment targets of this helper.
+
+It then verifies the live admin login form and absence of an anonymous user,
+records non-secret evidence in `.wrangler/m41-production-evidence.json`, and
+reports editorial LIVE authentication as pending. The owner must still sign in
+on the resulting public CMS origin and confirm collection access before final
+production acceptance. A failure explicitly reports whether deployment already
+occurred; do not assume a failed post-deploy smoke check means no version changed.
+
+Happy DOM is overridden to the security-patched 21.0.4 release. Compatibility is
+covered by real Lexical HTML import, JSON restoration and HTML export. The audit
+still reports reviewed low/moderate findings through Payload/deepmerge and
+migration/build tools (drizzle/esbuild and adapter glob/minimatch); these are not
+suppressed or represented as zero vulnerabilities.

@@ -16,5 +16,6 @@
       "id": "4398c601c5dc4e39bb2b35f76ff72845",
       "remote": true
     }
-  ]
+  ],
+  "workers_dev": true
 }

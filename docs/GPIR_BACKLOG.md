@@ -548,3 +548,10 @@ with status `SUPERSEDED`; they are not silently removed.
 ### 2026-11-15 — M41 actual binding reconciled
 
 - Hyperdrive setup VERIFIED by owner-provided command result: correct origin, selected CA, verify-full and disabled caching. CMS binding ID recorded on PR #580; source e072eb7 CI passed. Pending final binding-head CI and Worker admin/authentication/live-deployment acceptance. No database schema or public website change.
+
+
+### 2026-11-15 — M41 preview authenticated; final production command prepared
+
+- VERIFIED: Worker preview admin loads and editorial login opens populated Research Publications (owner screenshots). Binding-head CI passed.
+- VERIFIED LOCALLY: Happy DOM security patch removes all high/critical audit findings; 30 tests, TypeScript and Worker build pass. Remaining 8 moderate/9 low findings reviewed and tracked.
+- PENDING: execute guarded CMS-only release helper in authenticated Codespace, capture actual deployment version/URL and live smoke evidence, then verify live editorial login. PR #580 remains the only correction vehicle; no content cutover or migration authorized by these checks.
