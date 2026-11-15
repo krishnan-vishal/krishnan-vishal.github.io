@@ -13,6 +13,7 @@ import { ReleaseEvents } from './collections/ReleaseEvents'
 import { ResearchPublications } from './collections/ResearchPublications'
 import { Users } from './collections/Users'
 import { releaseEndpoint } from './release/endpoint'
+import { cmsDatabasePool } from './lib/database'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const storageConfigured = ['S3_BUCKET', 'S3_ENDPOINT', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY']
@@ -28,19 +29,7 @@ export default buildConfig({
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   csrf: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   db: postgresAdapter({
-    pool: {
-      connectionString: process.env.PAYLOAD_DATABASE_URI || '',
-      // Workers cannot safely reuse a PostgreSQL connection across requests.
-      maxUses: 1,
-      // Supply the sandbox Supabase root CA via a private Worker environment binding.
-      // Preserve certificate and hostname verification; never disable TLS checks.
-      ...(process.env.PAYLOAD_DATABASE_CA_CERT
-        ? { ssl: {
-            ca: process.env.PAYLOAD_DATABASE_CA_CERT.replace(/\\n/g, '\n'),
-            rejectUnauthorized: true,
-          } }
-        : {}),
-    },
+    pool: cmsDatabasePool(),
     schemaName: 'payload',
     idType: 'uuid',
     push: false,
