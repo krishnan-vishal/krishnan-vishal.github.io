@@ -34,6 +34,8 @@ jobs:
       - name: Reject high and critical dependency findings
         run: npm audit --audit-level=high
       - run: npm run test
+      - name: Verify existing-session release access
+        run: node --test ../../tests/m41/release-access.test.mjs
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts

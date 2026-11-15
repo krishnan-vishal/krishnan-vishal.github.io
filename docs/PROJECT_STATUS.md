@@ -2,6 +2,17 @@
 
 ## Current handoff
 
+### M41 — owner preflight reached; reuse existing access instead of mandatory variables
+
+Owner ran 1c353a2 in Codespace; stages=[] and no production changes. Missing explicit
+Delivery/Cloudflare token/account variables were unnecessary runner prerequisites.
+Corrected: existing Wrangler login plus known Hyperdrive verification selects the
+account; GET-only management lookup reuses an existing Delivery key privately.
+Eleven new focused tests pass. No credentials created, printed or OAuth sessions
+copied into GitHub. Resume the clean failed worktree using the revised handover.
+PR #580 only; Contentful read-only; primary migration/live cutover still pending.
+
+
 ### 2026-11-15 — M41 resume; Contentful strictly read-only; primary cutover first
 
 Resumed checkpoint 2844a41 in PR #580 only; its CMS validation/build and security

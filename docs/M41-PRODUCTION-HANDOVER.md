@@ -21,9 +21,10 @@ commands in the owner's Codespace. Never send credentials through chat.
 
 ## One complete command batch
 
-Run once in the existing authenticated Codespace terminal. This fetches the saved
-checkpoint and creates a new worktree, preserving the existing release checkout,
-uncommitted changes and all stashes. Existing private env/CA paths are read locally;
+Run once in the existing authenticated Codespace terminal. This selects and
+fast-forwards the clean worktree from the reported preflight failure. It does not
+create another checkout or repeat an import; production stages have not started.
+Existing release checkout, uncommitted changes and all stashes are preserved. Existing private env/CA paths are read locally;
 their contents are neither printed nor committed.
 
 ```bash
@@ -31,18 +32,19 @@ bash <<'GPIR_M41'
 set -euo pipefail
 gpir_release_repo=/workspaces/m41-pr580-release
 git -C "$gpir_release_repo" fetch origin fix/m41-cloudflare-sharp-admin-runtime-20261115
-gpir_release_dir=$(mktemp -d /workspaces/m41-full-cutover-XXXXXX)
-git -C "$gpir_release_repo" worktree add --detach "$gpir_release_dir" FETCH_HEAD
-cd "$gpir_release_dir"
-node scripts/m41/execute-cutover.mjs --execute
+git -C "$gpir_release_repo" show FETCH_HEAD:scripts/m41/resume-preflight.mjs | node --input-type=module - "$gpir_release_repo"
 GPIR_M41
 ```
 
 The runner checks all required settings together, the existing API-key role,
 Contentful read access, GitHub environments, Cloudflare identity, actual existing
 Supabase JWT policies, a clean checkout and exact-head CI before production changes.
-Existing Git/gh and Supabase authentication, Node >=24.22.1 and existing scoped
-Cloudflare token/account settings must be available privately. If Supabase CLI is
+Existing Git/gh and Supabase authentication, Node >=24.22.1 and the existing
+Cloudflare login must be available privately. The runner reuses Wrangler login
+and discovers the account using the existing verified Hyperdrive binding. A
+separate CLOUDFLARE_API_TOKEN or explicit account ID is not required for this
+private release. An existing Contentful Delivery key is recovered using read-only
+management requests when not already configured. No key is created or printed. If Supabase CLI is
 not installed globally, the runner uses the same pinned 2.121.0 CLI as the existing
 repository deployment workflow through npx; no application dependency is changed. It does not create
 credentials, broaden roles, convert passwords, alter schemas or weaken TLS.
@@ -109,3 +111,21 @@ synchronization tools remain separately available but reject writes by default a
 must not be enabled without separate owner authorization. Their execution is not a
 cutover prerequisite. This is the explicit recovery freshness limitation of leaving
 Contentful entirely unchanged.
+
+## Reported preflight correction
+
+The owner executed checkpoint 1c353a2 and the runner stopped with stages=[] because
+CONTENTFUL_DELIVERY_TOKEN, CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID were not
+explicitly set. Those three settings are no longer mandatory. The runner uses
+existing Wrangler authentication (without extracting/exporting OAuth credentials),
+verifies the account against the known CMS binding, and reads an existing Delivery
+key with the management token. All credential values remain in private process
+memory and are registered for error redaction. API-key lookup uses GET only.
+
+An interactive Wrangler session is not copied into GitHub secrets. Existing GitHub
+Cloudflare secrets are left intact if no explicit API token is supplied; future
+headless deployments still need an appropriate pre-existing CI credential. This
+does not block the authorized private-session cutover.
+
+Vendor references: [Wrangler authentication](https://developers.cloudflare.com/workers/wrangler/commands/general/),
+[read existing Delivery API keys](https://www.contentful.com/developers/docs/references/content-management-api/api-keys/get-all-delivery-api-keys/).

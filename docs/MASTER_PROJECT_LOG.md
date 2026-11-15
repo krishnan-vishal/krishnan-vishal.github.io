@@ -3036,3 +3036,13 @@ preflight with stages=[] because the authenticated Codespace checkout/private en
 and deployment sessions are unavailable. No production change or Contentful write.
 One complete private command batch and exact blocker are recorded in the handover.
 M41 remains OPEN until actual deployment/live evidence; PR #580 only.
+
+
+## M41 — owner preflight evidence and existing-session access fix
+
+Owner ran 1c353a2; stages=[]; missing three explicit Delivery/Cloudflare settings.
+No production or Contentful changes. Removed those mandatory variable requirements: exclude
+new token creation, reuse authenticated Wrangler/verified Hyperdrive account and
+GET-only lookup of an existing Delivery key. OAuth stays local; no credentials are
+logged. Eleven focused tests pass. Handover resumes the clean failed worktree and
+preserves originals/stashes. PR #580 only. Actual cutover/live evidence still pending.

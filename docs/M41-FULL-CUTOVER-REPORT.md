@@ -91,3 +91,16 @@ history receive no writes or deletions. Automatic BCP sync is removed from both
 release and scheduled-draft workflows; BCP writes are denied by default. The original
 Contentful edition is the retained BCP baseline. Subsequent Payload edits are not
 synchronized until separately authorized; that work does not delay primary cutover.
+
+## Owner-executed preflight / existing-access correction
+
+The owner ran the provided batch in Codespace at 1c353a2. It created its worktree
+and stopped with stages=[] on three explicit variables: CONTENTFUL_DELIVERY_TOKEN,
+CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. No production migration/deployment
+or Contentful write occurred. The runner now reuses existing Wrangler login,
+selects only the account verified by the known Hyperdrive binding, and reuses an
+existing Delivery key through GET-only management access. It never creates or
+prints a token and does not copy an OAuth session to GitHub secrets. Eleven new
+focused access-resolution tests pass; previous migration/build checks are retained.
+The handover resumes the clean failed worktree rather than creating another one.
+Real private execution and live acceptance remain pending; no new deployment is claimed.

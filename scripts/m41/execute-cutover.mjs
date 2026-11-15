@@ -5,6 +5,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
+import { existingCloudflareAccount, existingContentfulDeliveryToken } from './release-access.mjs'
+import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -37,7 +39,7 @@ function gh(args, input) { return run('gh', [...args, '--repo', repository], { i
 function api(route, extra = [], input) { return run('gh', ['api', `repos/${repository}/${route}`, ...extra], { input }) }
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')) }
 function jsonFile(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 }); fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { mode: 0o600 }) }
-function wrangler(args) { return run(process.execPath, [path.join(app, 'node_modules/wrangler/bin/wrangler.js'), ...args]) }
+function wrangler(args, environment = process.env) { return run(process.execPath, [path.join(app, 'node_modules/wrangler/bin/wrangler.js'), ...args], { environment }) }
 let supabaseInvocation
 function supabase(args) {
   if (!supabaseInvocation) {
@@ -69,7 +71,7 @@ try {
   process.env.PAYLOAD_PUBLIC_SERVER_URL = cmsOrigin
   const required = ['PAYLOAD_DATABASE_URI', 'PAYLOAD_SECRET', 'SUPABASE_URL', 'GPIR_SUPABASE_SECRET_KEY', 'GPIR_RELEASE_SIGNING_SECRET',
     'S3_BUCKET', 'S3_ENDPOINT', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY', 'CONTENTFUL_SPACE_ID', 'CONTENTFUL_ENVIRONMENT',
-    'CONTENTFUL_DELIVERY_TOKEN', 'CONTENTFUL_MANAGEMENT_TOKEN', 'PAYLOAD_RELEASE_API_KEY', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID']
+    'CONTENTFUL_MANAGEMENT_TOKEN', 'PAYLOAD_RELEASE_API_KEY']
   const missing = required.filter(name => !process.env[name])
   if (missing.length) throw new Error('Missing settings (all checked before any production change): ' + missing.join(', '))
   sensitive = Object.entries(process.env).filter(([key]) => /SECRET|TOKEN|PASSWORD|KEY|DATABASE_URI/.test(key)).map(([,value]) => value)
@@ -90,7 +92,21 @@ try {
   report.previousRepositoryCommit = pr.baseRefOid
   // Install the unchanged lockfile, then verify actual deployment identities.
   run('npm', ['ci'], { cwd: app })
-  wrangler(['whoami'])
+  const identity = parseCliJson(wrangler(['whoami', '--json']))
+  const binding = readJson(path.join(app, 'wrangler.jsonc')).hyperdrive.find(item => item.binding === 'HYPERDRIVE')
+  const account = await existingCloudflareAccount(process.env, identity, async accountId => {
+    try {
+      const configured = parseCliJson(wrangler(['hyperdrive', 'get', binding.id], { ...process.env, CLOUDFLARE_ACCOUNT_ID: accountId }))
+      validateHyperdrive(configured, directSupabaseOrigin(process.env), caId)
+      return true
+    } catch { return false }
+  })
+  process.env.CLOUDFLARE_ACCOUNT_ID = account.accountId
+  report.cloudflareAccount = account
+  report.cloudflareAuthentication = process.env.CLOUDFLARE_API_TOKEN ? 'EXISTING_API_TOKEN' : 'EXISTING_WRANGLER_SESSION'
+  const delivery = await existingContentfulDeliveryToken(process.env, fetch, value => sensitive.push(value))
+  process.env.CONTENTFUL_DELIVERY_TOKEN = delivery.token
+  report.contentfulDeliveryAccess = delivery.source
   const functions = JSON.parse(supabase(['functions', 'list', '--project-ref', project, '--output', 'json']))
   const targets = ['gpir-intelligence-publish', 'gpir-protected-publication'].map(name => {
     const value = functions.find(item => item.slug === name || item.name === name)
@@ -98,8 +114,8 @@ try {
     return { name, verifyJwt: value.verify_jwt }
   })
   const identityResponse = await fetch(`${cmsOrigin}/api/users/me`, { headers: { authorization: `users API-Key ${process.env.PAYLOAD_RELEASE_API_KEY}` }, redirect: 'error', signal: AbortSignal.timeout(20000) })
-  const identity = identityResponse.ok ? await identityResponse.json() : null
-  if (!['admin', 'release-service'].includes(identity?.user?.role)) throw new Error('Existing Payload API key must authenticate the authorized release role before production changes.')
+  const cmsIdentity = identityResponse.ok ? await identityResponse.json() : null
+  if (!['admin', 'release-service'].includes(cmsIdentity?.user?.role)) throw new Error('Existing Payload API key must authenticate the authorized release role before production changes.')
   const contentfulBase = `/spaces/${encodeURIComponent(process.env.CONTENTFUL_SPACE_ID)}/environments/${encodeURIComponent(process.env.CONTENTFUL_ENVIRONMENT)}`
   for (const [host, name] of [['api.contentful.com', 'CONTENTFUL_MANAGEMENT_TOKEN'], ['cdn.contentful.com', 'CONTENTFUL_DELIVERY_TOKEN']]) {
     const response = await fetch(`https://${host}${contentfulBase}/entries?limit=1`, { headers: { authorization: `Bearer ${process.env[name]}` }, redirect: 'error', signal: AbortSignal.timeout(20000) })
@@ -146,9 +162,10 @@ try {
       CONTENTFUL_SPACE_ID: process.env.CONTENTFUL_SPACE_ID, CONTENTFUL_ENVIRONMENT: process.env.CONTENTFUL_ENVIRONMENT, CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID }
     if (environment === 'payload-production-cutover') variables.PAYLOAD_RELEASE_CUTOVER_ENABLED = 'true'
     for (const [name, value] of Object.entries(variables)) gh(['variable', 'set', name, '--env', environment, '--body', value])
-    const secretNames = environment === 'contentful-production' ? ['PAYLOAD_RELEASE_API_KEY'] : ['PAYLOAD_RELEASE_API_KEY', 'GPIR_RELEASE_SIGNING_SECRET', 'CLOUDFLARE_API_TOKEN']
+    const secretNames = environment === 'contentful-production' ? ['PAYLOAD_RELEASE_API_KEY'] : ['PAYLOAD_RELEASE_API_KEY', 'GPIR_RELEASE_SIGNING_SECRET', ...(process.env.CLOUDFLARE_API_TOKEN ? ['CLOUDFLARE_API_TOKEN'] : [])]
     for (const name of secretNames) gh(['secret', 'set', name, '--env', environment], process.env[name])
   }
+  report.futureCloudflareWorkflowCredential = process.env.CLOUDFLARE_API_TOKEN ? 'EXISTING_API_TOKEN_CONFIGURED' : 'EXISTING_GITHUB_SECRET_UNCHANGED; WRANGLER_OAUTH_NOT_EXPORTED'
   step('deploy only the two existing editorial consumers, preserving their JWT policies')
   for (const target of targets) supabase(['functions', 'deploy', target.name, '--project-ref', project, '--use-api', ...(target.verifyJwt ? [] : ['--no-verify-jwt'])])
   const secretsFile = path.join(temporary, 'editorial.env')
