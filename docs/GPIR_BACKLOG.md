@@ -543,3 +543,8 @@ with status `SUPERSEDED`; they are not silently removed.
 ### 2026-11-15 — M41 Worker UnknownIssuer correction
 
 - IN PROGRESS, PR #580 only: owner-approved Hyperdrive transport and secure setup helper implemented; Node TLS success is distinct from Worker acceptance. Worker build and 27 local tests pass. Pending authenticated resource creation, actual binding ID, admin/login validation and CMS deployment. Public website, Supabase schema, Contentful and original migration work are preserved.
+
+
+### 2026-11-15 — M41 actual binding reconciled
+
+- Hyperdrive setup VERIFIED by owner-provided command result: correct origin, selected CA, verify-full and disabled caching. CMS binding ID recorded on PR #580; source e072eb7 CI passed. Pending final binding-head CI and Worker admin/authentication/live-deployment acceptance. No database schema or public website change.
