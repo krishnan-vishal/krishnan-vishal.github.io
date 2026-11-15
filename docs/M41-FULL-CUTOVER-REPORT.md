@@ -131,3 +131,19 @@ rechecking existence first. Existing environments and protections receive no PUT
 22 access/resume/environment tests and unchanged secret scan pass. Existing safe
 preflight worktree resumes with the same complete batch. PR #580 only; no production
 migration/deployment/live acceptance claimed; Contentful unchanged. M41 stays OPEN.
+
+
+## M41 — Contentful access passed; private Supabase management lookup blocked
+
+Owner execution at 81709cb successfully reused the existing Contentful Delivery
+key read-only, then stopped at Core key lookup (stages=[], no production or
+Contentful writes). Prior error handling concealed the failure category. Runner
+now reports only fixed, credential-free authentication/permission/compatibility/
+network categories, never raw key command output. If an environment PAT is rejected,
+it may reuse an existing stored CLI login; subsequent deployment keeps that same
+management session. Pinned CLI 2.121.0 key and interactive login flags were checked.
+23 focused tests and unchanged secret scan pass locally. The private continuation
+can refresh management login with `env -u CI -u SUPABASE_ACCESS_TOKEN npx --yes
+supabase@2.121.0 login --no-browser </dev/tty`, then run the existing resume batch.
+No project keys created/rotated, schema changes or weakened source/entitlement
+checks. PR #580 only. M41 remains OPEN pending actual private migration/live cutover.

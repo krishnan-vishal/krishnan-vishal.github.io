@@ -179,3 +179,21 @@ test('missing cutover environment requires admin and never recreates a missing e
   assert.throws(() => githubEnvironmentPlan([{ name: 'payload-preview' }], { admin: true }), /contentful-production is missing/)
   assert.throws(() => githubEnvironmentPlan(null, { admin: true }), /inventory is unavailable/)
 })
+
+
+test('private Supabase failures classify auth, permission, compatibility and network without leaking output', async () => {
+  const { privateSupabaseFailure } = await import('../../scripts/m41/release-access.mjs')
+  const fixture = 'fixture-sensitive-never-return'
+  for (const [stderr, code] of [
+    ['Access token not provided. Run supabase login.', 'CLI_AUTHENTICATION'],
+    ['HTTP 401 Unauthorized', 'CLI_AUTHENTICATION'],
+    ['HTTP 403 Forbidden', 'CLI_PERMISSION'],
+    ['unknown flag: --reveal', 'CLI_COMPATIBILITY'],
+    ['TLS certificate verification failed', 'CLI_CONNECTION'],
+    ['unclassified failure', 'CLI_KEY_LOOKUP_FAILED']
+  ]) {
+    const result = privateSupabaseFailure({ stderr: stderr + fixture, stdout: fixture })
+    assert.equal(result.code, code)
+    assert.equal(JSON.stringify(result).includes(fixture), false)
+  }
+})

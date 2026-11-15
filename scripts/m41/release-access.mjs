@@ -117,3 +117,13 @@ export function githubEnvironmentPlan(inventory, permissions) {
   if (create.length && permissions?.admin !== true) throw new Error('GitHub repository administration access is required to create the missing payload-production-cutover environment. Existing gh authentication lacks this permission; no CMS or website changes performed.')
   return { existing: [...names], create }
 }
+
+// Return fixed messages only: CLI stdout/stderr can contain unrevealed credentials.
+export function privateSupabaseFailure(result) {
+  const diagnostic = String(result.stderr || '') + '\n' + String(result.stdout || '')
+  if (/unknown (?:flag|command)|unrecognized|unexpected argument/i.test(diagnostic)) return { code: 'CLI_COMPATIBILITY', message: 'Supabase CLI rejected the key-lookup command. No key output was disclosed; no deployment performed.' }
+  if (/\b403\b|forbidden|insufficient|not authorized|permission denied/i.test(diagnostic)) return { code: 'CLI_PERMISSION', message: 'Supabase management access lacks permission to read existing GPIR Core keys. Use an existing owner/admin CLI login for Core; no keys created or disclosed.' }
+  if (/\b401\b|unauthorized|access token not provided|not logged in|supabase login|invalid.*(?:access )?token|token.*expired/i.test(diagnostic)) return { code: 'CLI_AUTHENTICATION', message: 'Supabase CLI management authentication is missing or rejected. Run npx --yes supabase@2.121.0 login interactively in the authenticated Codespace, then resume. Project service keys do not authenticate the management CLI.' }
+  if (/timeout|timed out|ENOTFOUND|ECONN|fetch failed|network|TLS|certificate/i.test(diagnostic + ' ' + result.error?.code)) return { code: 'CLI_CONNECTION', message: 'Supabase management key lookup failed at the network/TLS layer; verification remains enabled. No key output disclosed or deployment performed.' }
+  return { code: 'CLI_KEY_LOOKUP_FAILED', message: 'Supabase management key lookup failed for an unclassified reason; credential-bearing output withheld. No deployment performed.' }
+}

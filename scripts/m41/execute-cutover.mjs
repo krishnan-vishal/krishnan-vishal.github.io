@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -31,7 +31,10 @@ function redact(value) {
 function run(command, args, { cwd = root, input, environment = process.env, timeout = 30 * 60 * 1000, privateOutput = false } = {}) {
   const result = spawnSync(command, args, { cwd, input, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout,
     env: { ...environment, CI: 'true', NO_COLOR: '1', WRANGLER_LOG_SANITIZE: 'true', WRANGLER_WRITE_LOGS: 'false', WRANGLER_SEND_METRICS: 'false' } })
-  if (result.status !== 0 && privateOutput) throw new Error('Existing Core key lookup was denied; output withheld and no deployment performed.')
+  if (result.status !== 0 && privateOutput) {
+    const failure = privateSupabaseFailure(result)
+    throw Object.assign(new Error(failure.message), { code: failure.code })
+  }
   if (result.status !== 0) throw new Error(redact(`${command} failed: ${result.stderr || result.stdout || result.error?.message || 'no details'}`).slice(-5000))
   return result.stdout
 }
@@ -42,6 +45,7 @@ function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')) }
 function jsonFile(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 }); fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { mode: 0o600 }) }
 function wrangler(args, environment = process.env) { return run(process.execPath, [path.join(app, 'node_modules/wrangler/bin/wrangler.js'), ...args], { environment }) }
 let supabaseInvocation
+let supabaseEnvironment
 function supabase(args, options = {}) {
   if (!supabaseInvocation) {
     if (process.env.GPIR_SUPABASE_CLI) supabaseInvocation = [process.env.GPIR_SUPABASE_CLI]
@@ -53,7 +57,17 @@ function supabase(args, options = {}) {
       else throw new Error('Existing Supabase CLI could not start; no deployment attempted.')
     }
   }
-  return run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args], options)
+  const invoke = environment => run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args], { ...options, environment })
+  try { return invoke(supabaseEnvironment || process.env) } catch (error) {
+    if (error.code !== 'CLI_AUTHENTICATION' || supabaseEnvironment || !process.env.SUPABASE_ACCESS_TOKEN) throw error
+    // An expired env PAT must not shadow an existing authenticated CLI login.
+    const storedLogin = { ...process.env }
+    delete storedLogin.SUPABASE_ACCESS_TOKEN
+    const result = invoke(storedLogin)
+    supabaseEnvironment = storedLogin
+    report.supabaseManagementAuthentication = 'EXISTING_STORED_CLI_LOGIN'
+    return result
+  }
 }
 async function checks(sha) {
   for (let attempt = 0; attempt < 80; attempt++) {
