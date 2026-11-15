@@ -41,8 +41,10 @@ GPIR_M41
 The runner checks all required settings together, the existing API-key role,
 Contentful read access, GitHub environments, Cloudflare identity, actual existing
 Supabase JWT policies, a clean checkout and exact-head CI before production changes.
-Existing Git, gh and Supabase CLI sessions, Node >=24.22.1 and existing scoped
-Cloudflare token/account settings must be available privately. It does not create
+Existing Git/gh and Supabase authentication, Node >=24.22.1 and existing scoped
+Cloudflare token/account settings must be available privately. If Supabase CLI is
+not installed globally, the runner uses the same pinned 2.121.0 CLI as the existing
+repository deployment workflow through npx; no application dependency is changed. It does not create
 credentials, broaden roles, convert passwords, alter schemas or weaken TLS.
 
 ## Implemented controlled release

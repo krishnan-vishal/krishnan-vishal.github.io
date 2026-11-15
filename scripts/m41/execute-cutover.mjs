@@ -38,7 +38,19 @@ function api(route, extra = [], input) { return run('gh', ['api', `repos/${repos
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')) }
 function jsonFile(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 }); fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { mode: 0o600 }) }
 function wrangler(args) { return run(process.execPath, [path.join(app, 'node_modules/wrangler/bin/wrangler.js'), ...args]) }
-function supabase(args) { return run(process.env.GPIR_SUPABASE_CLI || 'supabase', args) }
+let supabaseInvocation
+function supabase(args) {
+  if (!supabaseInvocation) {
+    if (process.env.GPIR_SUPABASE_CLI) supabaseInvocation = [process.env.GPIR_SUPABASE_CLI]
+    else {
+      const available = spawnSync('supabase', ['--version'], { encoding: 'utf8', timeout: 20000 })
+      if (available.error?.code === 'ENOENT') supabaseInvocation = ['npx', '--yes', 'supabase@2.121.0']
+      else if (available.status === 0) supabaseInvocation = ['supabase']
+      else throw new Error('Existing Supabase CLI could not start; no deployment attempted.')
+    }
+  }
+  return run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args])
+}
 async function checks(sha) {
   for (let attempt = 0; attempt < 80; attempt++) {
     const runs = JSON.parse(api(`actions/runs?head_sha=${sha}&event=pull_request&per_page=30`)).workflow_runs
