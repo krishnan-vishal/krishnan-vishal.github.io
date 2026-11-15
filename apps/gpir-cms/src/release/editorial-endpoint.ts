@@ -1,0 +1,52 @@
+import type { Endpoint } from 'payload'
+import { roleOf } from '../lib/access'
+
+export const editorialEndpoint: Endpoint = {
+  path: '/release/editorial-entries', method: 'post',
+  handler: async req => {
+    if (!['admin', 'release-service'].includes(roleOf(req.user) || '')) return Response.json({ error: 'SERVICE_ROLE_REQUIRED' }, { status: 403 })
+    let input: any
+    try { input = await req.json!() } catch { return Response.json({ error: 'INVALID_JSON' }, { status: 400 }) }
+    const action = input.action || 'published'
+    if (!['published', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
+    const client: any = req.payload
+    const namespace = { sourceRecordKey: { contains: 'm41:editorial:' } }
+    // Payload JSON fields are not portable nested-query targets in SQL adapters.
+    // Query the indexed namespace and filter the small paginated estate in memory.
+    const docs: any[] = []
+    let page = 1
+    for (;;) {
+      const result = await client.find({ collection: 'editorial-metadata', where: namespace, limit: 100, page, depth: 0, req, overrideAccess: false, sort: 'sourceRecordKey' })
+      docs.push(...result.docs)
+      if (!result.hasNextPage) break
+      if (++page > 100) return Response.json({ error: 'EDITORIAL_LIMIT_EXCEEDED' }, { status: 503 })
+    }
+    const values = docs.filter(doc => doc.sourcePayload?.kind === 'editorial-entry')
+    const output = (doc: any) => ({ entryId: doc.sourcePayload.entryId, updatedAt: doc.updatedAt, fields: doc.sourcePayload.fields })
+    if (action === 'published') return Response.json({ items: values.filter(doc => doc.sourcePayload.published === true).map(output) })
+    if (action === 'export') return Response.json({ records: values.map(doc => ({ sourceRecordKey: doc.sourceRecordKey, sourceHash: doc.sourceHash, sourcePayload: doc.sourcePayload })) })
+    const own = values.find(doc => doc.sourcePayload.entryId === input.id)
+    const legacy = (doc: any) => doc ? { sys: { id: doc.sourcePayload.entryId, version: doc.sourcePayload.sourceVersion || 1,
+      ...(doc.sourcePayload.published ? { publishedVersion: doc.sourcePayload.sourceVersion || 1 } : {}),
+      ...(doc.sourcePayload.archived ? { archivedVersion: doc.sourcePayload.sourceVersion || 1 } : {}) },
+      fields: Object.fromEntries(Object.entries(doc.sourcePayload.fields).map(([key, value]) => [key, { 'en-US': value }])) } : null
+    if (action === 'entry') return Response.json({ entry: legacy(own) })
+    if (action === 'search') {
+      if (!['supabaseRecordId', 'legacySourceUrl'].includes(input.field)) return Response.json({ error: 'INVALID_FIELD' }, { status: 400 })
+      return Response.json({ items: values.filter(doc => doc.sourcePayload.fields[input.field] === input.value).map(legacy) })
+    }
+    // This machine route can only create/refresh untouched DRAFTS. A machine
+    // cannot set PASS, a governed publication ID, or any published version.
+    if (!/^gpir-t3-[a-f0-9-]{36}$/i.test(input.id || '')) return Response.json({ error: 'INVALID_DRAFT_ID' }, { status: 400 })
+    const allowed = new Set(['supabaseRecordId', 'legacySourceUrl', 'publicationTitle', 'publicationDate', 'sourceValidationSummary', 'region', 'countryMarket'])
+    const fields = Object.fromEntries(Object.entries(input.fields || {}).map(([key, value]: [string, any]) => [key, value?.['en-US']]))
+    if (!Object.keys(fields).length || Object.keys(fields).some(key => !allowed.has(key)) || input.id !== `gpir-t3-${fields.supabaseRecordId}`) return Response.json({ error: 'UNSAFE_DRAFT_FIELDS' }, { status: 400 })
+    if (own && (action === 'create' || own.sourcePayload.published || own.sourcePayload.archived || own.sourcePayload.sourceVersion !== 1)) return Response.json({ entry: { conflict: true } })
+    const data = { sourceRecordKey: `m41:editorial:${input.id}`, sourceValidationSummary: String(fields.sourceValidationSummary || 'Draft pending editorial review.'),
+      sourcePayload: { kind: 'editorial-entry', entryId: input.id, contentType: 'gpirPublication', fields, published: false, sourceVersion: own ? 2 : 1 } }
+    // Explicit override is restricted to these bounded draft fields. Approval hook
+    // still runs and role is retained in the request; publishing is impossible here.
+    const saved = own ? await client.update({ collection: 'editorial-metadata', id: own.id, data, req, overrideAccess: true }) : await client.create({ collection: 'editorial-metadata', data, req, overrideAccess: true })
+    return Response.json({ entry: legacy(saved) })
+  },
+}

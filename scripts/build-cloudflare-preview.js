@@ -252,7 +252,7 @@ function verifyOutput() {
   );
 }
 
-function main() {
+async function main() {
   assertSafeOutputPath();
   fs.rmSync(OUTPUT_ROOT, { recursive: true, force: true });
   if (process.argv.includes("--clean")) {
@@ -274,7 +274,13 @@ function main() {
   copyTree("assets/data/fx", (publicPath) => path.extname(publicPath).toLowerCase() === ".json");
   for (const browserScript of PUBLIC_BROWSER_SCRIPTS) copyFile(browserScript);
 
+  const contentSource = process.env.GPIR_CONTENT_SOURCE || 'repository';
+  if (!['repository', 'payload'].includes(contentSource)) throw new Error('Invalid GPIR_CONTENT_SOURCE.');
+  if (contentSource === 'payload') {
+    const marker = await require('./m41/payload-site.cjs').materialize(OUTPUT_ROOT);
+    console.log(`Payload primary content: ${marker.managedFiles} files; snapshot ${marker.snapshot}.`);
+  }
   verifyOutput();
 }
 
-main();
+main().catch(error => { console.error(error.message); process.exitCode = 1; });

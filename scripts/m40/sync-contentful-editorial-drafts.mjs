@@ -117,6 +117,24 @@ export function buildDraftFields({ candidate, source, audit }) {
 
 function contentfulClient(env, fetchImpl) {
     const read = name => String(env[name] || '').trim();
+    if (read('GPIR_EDITORIAL_SOURCE') && !['payload', 'contentful'].includes(read('GPIR_EDITORIAL_SOURCE'))) throw new Error('Invalid editorial source.');
+    if (read('GPIR_EDITORIAL_SOURCE') === 'payload') {
+        const origin = read('PAYLOAD_PUBLIC_SERVER_URL');
+        const key = read('PAYLOAD_RELEASE_API_KEY');
+        if (!/^https:\/\/[^/]+$/.test(origin) || !key) throw new Error('Payload editorial configuration is required.');
+        async function action(input) {
+            const response = await fetchImpl(`${origin}/api/release/editorial-entries`, { method: 'POST', redirect: 'error',
+                headers: { authorization: `users API-Key ${key}`, 'content-type': 'application/json' }, body: JSON.stringify(input) });
+            if (!response.ok) throw new Error(`Payload editorial draft request failed: HTTP ${response.status}`);
+            return response.json();
+        }
+        return {
+            entry: async id => (await action({ action: 'entry', id })).entry,
+            search: async (field, value) => (await action({ action: 'search', field, value })).items,
+            create: async (id, fields) => (await action({ action: 'create', id, fields })).entry,
+            update: async (entry, fields) => (await action({ action: 'update', id: entry.sys.id, fields })).entry
+        };
+    }
     const space = read('CONTENTFUL_SPACE_ID');
     const environment = read('CONTENTFUL_ENVIRONMENT');
     const token = read('CONTENTFUL_MANAGEMENT_TOKEN');

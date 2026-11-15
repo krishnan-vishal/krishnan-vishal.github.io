@@ -2,6 +2,20 @@
 
 ## Current handoff
 
+### 2026-11-15 — M41 full cutover continuation, PR #580 only
+
+Infrastructure/admin acceptance at `10b8114` is retained. Full cutover remains
+**IN PROGRESS / NOT COMPLETE**. Added full allowlisted-site inventory/import,
+signed Payload snapshot delivery, existing alert/draft editorial adapters, and
+immutable Contentful BCP sync/recovery source. Local inventory: 834 managed files
+and 93 protected engine/style/generated files. Ten new tests, 24 relevant existing
+tests, TypeScript and Worker build pass. No private import, production deployment,
+source switch or real BCP recovery was performed. Native research edit-to-snapshot
+propagation and avoiding competing native/mirrored editorial authorities remain
+implementation work; this must be resolved before RELEASE. Authenticated Codespace
+and deployment settings are unavailable here. Full evidence and remaining acceptance:
+[M41 full cutover report](M41-FULL-CUTOVER-REPORT.md).
+
 ### M41 Payload CMS migration and cloud development handover
 
 - **Objective / branch:** replace Contentful with an isolated Payload editorial service on `codex/gpir-payload-cms-migration-20261114` while preserving the current static production and Supabase authorities.

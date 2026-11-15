@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'apps/gpir-cms/**'
+      - 'scripts/m41/**'
+      - 'scripts/build-cloudflare-preview.js'
+      - 'supabase/functions/_shared/gpir-contentful-editorial.mjs'
       - 'supabase/migrations/20261114020220_gpir_payload_schema_isolation.sql'
       - '.github/workflows/payload-*.yml'
   workflow_dispatch:

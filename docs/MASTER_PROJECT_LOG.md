@@ -2992,3 +2992,17 @@ M23.1 scheduled discovery failures are separately evidenced by [run 34180581113]
 - Release status: CORRECTION PREPARED, not yet production accepted. Run the private existing-account helper in the authenticated Codespace, then the guarded release of the exact new commit after CI passes. Verify actual live editorial sign-in and Research Publications, and check that normal requests no longer produce the teardown rejection. Public smoke status was renamed to DEPLOYED_PUBLIC_SMOKE_VERIFIED to distinguish it from editorial authentication.
 
 - CI follow-up: reviewed two synthetic authentication fixture literals through the existing exact path/line/rule/fingerprint allowlist; scanner patterns and scope remain unchanged. Private prompt data is passed directly and cleared without assignment matches. Scanner regression expectations include the two reviewed fixtures.
+
+
+## 2026-11-15 — M41 full content cutover continuation, PR #580
+
+Owner authorized full migration/cutover with Contentful BCP; existing infrastructure
+acceptance retained. Added managed-site import/signed delivery, preserved-engine
+editorial adapters and immutable Contentful recovery tooling to the existing branch.
+10 new tests, 24 existing relevant tests, TypeScript and Worker build pass locally.
+834 managed / 93 protected files inventoried. Production migration, source switch
+and real BCP sync/recovery NOT RUN: authenticated Codespace/deployment access is
+unavailable. Native research edit-to-snapshot propagation and competing-authority
+reconciliation remain ACTIONABLE implementation work before private RELEASE.
+Overall M41 remains IN PROGRESS; do not mark complete. No new PR, schema mutation,
+validation promotion or Contentful deletion. See M41-FULL-CUTOVER-REPORT.md.
