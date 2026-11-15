@@ -45,6 +45,12 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
+      - name: Generate Payload import map
+        run: npm run generate:importmap
+        env:
+          PAYLOAD_DATABASE_URI: postgresql://build_only:build_only@localhost:5432/postgres
+          PAYLOAD_SECRET: build-only-placeholder-not-a-production-secret
+          PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
       - name: Build Payload Next.js app
         run: npm run build
         env:
