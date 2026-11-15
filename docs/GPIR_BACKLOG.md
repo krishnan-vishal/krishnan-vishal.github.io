@@ -562,3 +562,5 @@ with status `SUPERSEDED`; they are not silently removed.
 - BLOCKED on current production 68f6cb2: owner logs confirm unsupported stored PBKDF2 iterations; public HTTP 200 is not authentication success.
 - IMPLEMENTED on PR #580 only: documented Worker password-hash setting, private verified existing-password rehash helper, and native database socket lifecycle correction. 34 tests, TypeScript, Worker build pass; no high/critical audit findings.
 - NEXT: current-head CI, private Node login/conversion using existing credentials, guarded redeployment, then live authentication/collection acceptance. Preserve original Codespace work and saved configuration stash. No source/content migration or main merge authorized by this correction.
+
+- CI follow-up: reviewed two synthetic authentication fixture literals through the existing exact path/line/rule/fingerprint allowlist; scanner patterns and scope remain unchanged. Private prompt data is passed directly and cleared without assignment matches. Scanner regression expectations include the two reviewed fixtures.

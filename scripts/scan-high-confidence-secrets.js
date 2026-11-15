@@ -24,6 +24,8 @@ const RULES = Object.freeze([
 // Exact reviewed source lines only. A path, line, rule, or content change makes
 // the finding unapproved and fails the scan. Fingerprints contain no values.
 const FALSE_POSITIVE_ALLOWLIST = Object.freeze([
+  ['apps/gpir-cms/test/auth-runtime.test.ts', 8, 'GENERIC_PASSWORD_ASSIGNMENT', 'd8c692313a2670ec96647ea8112d2cdb51e3453399dd1a07752dbf653747b75f', 'Synthetic authentication fixture only; not used for any live account or external login.'],
+  ['apps/gpir-cms/test/auth-runtime.test.ts', 29, 'GENERIC_PASSWORD_ASSIGNMENT', 'b763f29eebf9f551a6dd688914450154f7cdb2284a1966de9b3d467c51f1a559', 'Synthetic authentication fixture only; not used for any live account or external login.'],
   ['assets/js/gpir-password-recovery.js', 61, 'GENERIC_PASSWORD_ASSIGNMENT', 'b3e642eba6fb881dda19bf422282e1592316862baefecc5eecb404bdb2af7639', 'Passes reader-entered recovery input to Supabase updateUser at runtime; no embedded credential.'],
   ['assets/js/gpir-reader-auth.js', 131, 'GENERIC_PASSWORD_ASSIGNMENT', 'd3f1f3c2706a0dee86afeeb0612c582c2211c5268f0bf220203a253af8e4ea9d', 'Reads a password field from FormData; no literal value.'],
   ['scripts/m36/validate-stablecoins-c2c-real-edge.js', 74, 'GENERIC_API_KEY_ASSIGNMENT', '52958f768cfae44c204daec2234e22b710b69f3e332accfebe5ad291b82a06b3', 'Uses an environment-supplied secret variable as a request header.'],

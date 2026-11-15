@@ -25,10 +25,10 @@ try {
   ])
   payload = await getPayload({ config })
   const result = await payload.login({
-    collection: 'users', data: { email: credentials.email, password: credentials.password },
+    collection: 'users', data: credentials,
     overrideAccess: false, depth: 0,
   })
-  credentials.password = ''
+  delete credentials.password
   if (!['admin', 'editor', 'reviewer'].includes(result.user.role)) throw new Error('The authenticated account does not have an editorial role.')
   stage = 'verify compatible hash after normal Payload login'
   client = new pg.Client(databasePoolOptions({ worker: false, environment: process.env }))
@@ -49,7 +49,7 @@ try {
   console.error(JSON.stringify({ status: 'FAILED', stage, code: error?.name || 'AUTH_COMPATIBILITY_ERROR',
     message: 'Existing-account compatibility preparation did not complete. No password, hash, salt or token was printed; no deployment attempted.' }))
 } finally {
-  if (credentials) credentials.password = ''
+  if (credentials) delete credentials.password
   if (client) await client.end().catch(() => {})
   if (payload) await payload.destroy().catch(() => {})
 }
