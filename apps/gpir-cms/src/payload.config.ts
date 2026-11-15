@@ -28,7 +28,11 @@ export default buildConfig({
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   csrf: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   db: postgresAdapter({
-    pool: { connectionString: process.env.PAYLOAD_DATABASE_URI || '' },
+    pool: {
+      connectionString: process.env.PAYLOAD_DATABASE_URI || '',
+      // Workers cannot safely reuse a PostgreSQL connection across requests.
+      maxUses: 1,
+    },
     schemaName: 'payload',
     idType: 'uuid',
     push: false,
