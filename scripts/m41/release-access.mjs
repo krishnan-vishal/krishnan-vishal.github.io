@@ -4,6 +4,22 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 
+// Current workflow state controls today's API call. Restore intent controls only
+// the later source-switch completion; it must never cause a second disable call.
+export function pauseEditorialDraftWriter({ readState, disable, previouslyActive = false, restoreAuthorized = false }) {
+  const state = readState()
+  if (!['active', 'disabled_manually'].includes(state)) throw new Error('Editorial draft workflow has an unexpected state; original lifecycle preserved.')
+  if (state === 'active') {
+    try { disable() } catch (error) {
+      // Another actor may have paused it after our first GET. Accept only the
+      // desired observed state; preserve genuine permission/service errors.
+      if (readState() !== 'disabled_manually') throw error
+    }
+  }
+  return { observedState: state, wasActive: previouslyActive || state === 'active',
+    restoreAfterMerge: previouslyActive || state === 'active' || restoreAuthorized, paused: true }
+}
+
 // The exporter commits manifest.json last. Reuse a saved export only after every
 // JSON and downloaded media byte matches that manifest and the selected source.
 export function verifiedContentfulExport(directory, source) {

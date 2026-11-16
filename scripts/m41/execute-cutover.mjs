@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession, verifiedContentfulExport } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession, verifiedContentfulExport, pauseEditorialDraftWriter } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -230,14 +230,22 @@ try {
   }
   step('pause the existing editorial draft writer during the primary-source switch')
   const draftWorkflow = 'm40-contentful-editorial-draft-handoff.yml'
-  const priorWorkflow = JSON.parse(api(`actions/workflows/${draftWorkflow}`))
-  report.draftWorkflowWasActive = priorWorkflow.state === 'active' ||
-    (resumeCMSVersion && process.argv.includes('--restore-draft-writer') && priorWorkflow.state === 'disabled_manually')
-  if (!['active', 'disabled_manually'].includes(priorWorkflow.state)) throw new Error('Editorial draft workflow has an unexpected state; its original lifecycle must be reconciled.')
+  const draftPlan = pauseEditorialDraftWriter({
+    readState: () => JSON.parse(api(`actions/workflows/${draftWorkflow}`)).state,
+    disable: () => gh(['workflow', 'disable', draftWorkflow]),
+    previouslyActive: priorReport?.draftWorkflowWasActive === true,
+    restoreAuthorized: Boolean(resumeCMSVersion) && process.argv.includes('--restore-draft-writer')
+  })
+  report.draftWorkflowWasActive = draftPlan.wasActive
+  report.draftWorkflowObservedState = draftPlan.observedState
+  report.draftWorkflowRestoreRequired = draftPlan.restoreAfterMerge
   report.restoreDraftWriterAuthorized = process.argv.includes('--restore-draft-writer')
-  if (report.draftWorkflowWasActive) gh(['workflow', 'disable', draftWorkflow])
   const pendingDrafts = JSON.parse(api(`actions/workflows/${draftWorkflow}/runs?per_page=30`)).workflow_runs || []
-  for (const run of pendingDrafts.filter(item => ['queued', 'in_progress', 'waiting', 'pending', 'requested'].includes(item.status))) gh(['run', 'cancel', String(run.id)])
+  for (const queued of pendingDrafts.filter(item => ['queued', 'in_progress', 'waiting', 'pending', 'requested'].includes(item.status))) {
+    try { gh(['run', 'cancel', String(queued.id)]) } catch (error) {
+      if (JSON.parse(api(`actions/runs/${queued.id}`)).status !== 'completed') throw error
+    }
+  }
   report.draftWorkflowPaused = true
   step('deploy the new CMS endpoints using the existing guarded Worker release')
   if (resumeCMSVersion) console.log('M41: verified existing CMS deployment reused; no install, build or CMS redeployment')
@@ -294,8 +302,12 @@ try {
   const merged = JSON.parse(api('pulls/580/merge', ['--method', 'PUT', '--input', mergeInput]))
   if (merged.merged !== true) throw new Error('GitHub did not merge PR #580; no website deployment attempted.')
   report.mergeCommit = merged.sha
-  if (report.draftWorkflowWasActive) gh(['workflow', 'enable', draftWorkflow])
-  report.draftWorkflowPaused = !report.draftWorkflowWasActive
+  if (report.draftWorkflowRestoreRequired) {
+    const state = JSON.parse(api(`actions/workflows/${draftWorkflow}`)).state
+    if (state === 'disabled_manually') gh(['workflow', 'enable', draftWorkflow])
+    else if (state !== 'active') throw new Error('Editorial writer cannot be restored from an unexpected lifecycle state.')
+  }
+  report.draftWorkflowPaused = !report.draftWorkflowRestoreRequired
   step('build from Payload and deploy through the existing website Worker')
   run(process.execPath, ['scripts/build-cloudflare-preview.js'])
   const deployed = wrangler(['deploy', '--config', 'wrangler.jsonc'])

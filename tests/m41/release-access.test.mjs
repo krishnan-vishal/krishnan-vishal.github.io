@@ -333,3 +333,37 @@ test('saved export reuse verifies JSON and media against the completed source ma
     assert.throws(() => verifiedContentfulExport(directory, source))
   } finally { fs.rmSync(directory, { recursive: true, force: true }) }
 })
+
+test('already paused draft writer is reused even when restoration after merge is authorized', async () => {
+  const { pauseEditorialDraftWriter } = await import('../../scripts/m41/release-access.mjs')
+  let disables = 0
+  const result = pauseEditorialDraftWriter({ readState: () => 'disabled_manually', disable: () => { disables++ }, restoreAuthorized: true })
+  assert.equal(disables, 0)
+  assert.equal(result.paused, true)
+  assert.equal(result.wasActive, false)
+  assert.equal(result.restoreAfterMerge, true)
+  const untouched = pauseEditorialDraftWriter({ readState: () => 'disabled_manually', disable: () => { throw Error('must not disable') } })
+  assert.equal(untouched.restoreAfterMerge, false)
+})
+
+test('active draft writer is paused once and its original restore intent survives continuation', async () => {
+  const { pauseEditorialDraftWriter } = await import('../../scripts/m41/release-access.mjs')
+  let state = 'active', disables = 0
+  const options = { readState: () => state, disable: () => { disables++; state = 'disabled_manually' } }
+  const first = pauseEditorialDraftWriter(options)
+  const second = pauseEditorialDraftWriter({ ...options, previouslyActive: first.wasActive })
+  assert.equal(disables, 1)
+  assert.equal(second.wasActive, true)
+  assert.equal(second.restoreAfterMerge, true)
+})
+
+test('pause handles concurrent completion but preserves real workflow failures and unknown states', async () => {
+  const { pauseEditorialDraftWriter } = await import('../../scripts/m41/release-access.mjs')
+  let state = 'active'
+  const paused = pauseEditorialDraftWriter({ readState: () => state, disable: () => {
+    state = 'disabled_manually'; throw Error('fixture-already-paused')
+  } })
+  assert.equal(paused.paused, true)
+  assert.throws(() => pauseEditorialDraftWriter({ readState: () => 'active', disable: () => { throw Error('fixture-permission-denied') } }), /permission-denied/)
+  assert.throws(() => pauseEditorialDraftWriter({ readState: () => 'disabled_inactivity', disable: () => { throw Error('must not mutate') } }), /unexpected state/)
+})

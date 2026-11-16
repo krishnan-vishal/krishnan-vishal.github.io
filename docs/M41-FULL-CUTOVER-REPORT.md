@@ -266,3 +266,36 @@ evidence. CMS version 92fab47e reused; generated files, private exports, origina
 reports and stashes preserved. No Contentful change or new CMS deployment.
 M41 remains OPEN until migration/source switch and actual public/protected live
 Payload delivery are evidenced.
+
+
+## 2026-11-16 — confirmed export; already-paused writer continuation corrected
+
+Owner's `8363807` run verified and reused CMS version 92fab47e and the saved
+read-only Contentful export: 112 entries, 2 content types, 5 assets, 3 media files,
+1 locale; all six JSON archives and three media hashes passed. ExportedAt:
+2026-11-15T13:35:00.996Z; manifest SHA-256:
+3236fd0e3581a84263c44010a980d22de95167cdc679ee3cf6ea4f41fb817f7b.
+GitHub, Cloudflare and Core stored-login/key authority also passed.
+No new import, CMS deployment or Contentful write occurred.
+
+The run stopped while pausing the editorial draft workflow: GitHub 403 explicitly
+said the workflow was already inactive. Confirmed runner defect: the earlier
+restore-after-merge authorization was incorrectly used as the current-state
+disable condition. This was an orchestration error, not a need to repeat CMS/export.
+
+The correction separates observed workflow state from later restore intent.
+An already manually disabled workflow needs no disable request. An active writer
+is paused once; a concurrent pause is accepted only after the desired disabled
+state is observed, while genuine failures remain errors. Original/authorized
+restore intent survives continuation and controls only the post-merge enable.
+A queued-run cancellation race is tolerated only if that exact run completed;
+post-merge restoration leaves an already-active workflow alone. Unknown lifecycle
+states still block. No workflow protection, content or subscription change.
+
+32 focused tests and runner syntax PASS locally, including already-paused,
+active-then-resume, concurrent pause, real denial and unexpected-state cases.
+Required current-head CI and private execution remain pending when this entry
+is authored. Same PR #580 and same guarded post-CMS continuation command.
+Completed CMS/export/access evidence is retained; all files and stashes preserved.
+M41 remains OPEN until migration/source switch and real public/protected live
+Payload delivery are evidenced. No full-completion claim.
