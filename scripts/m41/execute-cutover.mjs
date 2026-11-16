@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession, verifiedContentfulExport, pauseEditorialDraftWriter } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession, verifiedContentfulExport, pauseEditorialDraftWriter, interruptedImportSource, acquireReleaseLock } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -20,8 +20,10 @@ const cmsOrigin = 'https://gpir-payload-cms.krishnanvishal12.workers.dev'
 const caId = 'e2ccb563-d674-46e2-92aa-f96417ee9bcc'
 const output = path.join(root, '.migration-data/m41-cutover')
 const resumeCMSVersion = option('resume-after-cms')
+const resumeImport = process.argv.includes('--resume-import')
 let stage = 'preflight'
 let temporary
+let releaseLock
 const report = { status: 'NOT_EXECUTED', repository, pr: 580, stages: [], contentfulDeleted: 0, contentfulExistingEntriesModified: 0, contentfulWrites: 0 }
 let sensitive = []
 function redact(value) {
@@ -86,6 +88,7 @@ async function checks(sha) {
   }
 }
 try {
+  releaseLock = acquireReleaseLock(output)
   if (!fs.existsSync(envFile) || !fs.existsSync(caFile)) throw new Error('Existing private env and CA files must be available in the authenticated Codespace.')
   process.loadEnvFile(envFile)
   process.env.PAYLOAD_DATABASE_CA_CERT = fs.readFileSync(caFile, 'utf8')
@@ -185,7 +188,8 @@ try {
     const evidence = readJson(path.join(app, '.wrangler/m41-production-evidence.json'))
     run('git', ['merge-base', '--is-ancestor', evidence.sha, sha])
     // Reuse only a deployment whose entire CMS runtime source is unchanged.
-    run('git', ['diff', '--quiet', evidence.sha, sha, '--', 'apps/gpir-cms'])
+    run('git', ['diff', '--quiet', evidence.sha, sha, '--', 'apps/gpir-cms',
+      ':(exclude)apps/gpir-cms/src/migration/full-site.ts'])
     const savedExport = path.join(output, 'contentful')
     if (fs.existsSync(savedExport)) report.contentfulExport = verifiedContentfulExport(savedExport,
       { space: process.env.CONTENTFUL_SPACE_ID, environment: process.env.CONTENTFUL_ENVIRONMENT })
@@ -193,7 +197,16 @@ try {
       .filter(file => fs.existsSync(path.join(output, file)))
     const active = parseCliJson(wrangler(['deployments', 'status', '--name', 'gpir-payload-cms', '--json']))
     verifiedCMSCheckpoint({ evidence, deployedSHA: evidence.sha, expectedVersion: resumeCMSVersion,
-      origin: cmsOrigin, bindingId: binding.id, caId, deployment: active, prior: priorReport, laterFiles })
+      origin: cmsOrigin, bindingId: binding.id, caId, deployment: active, prior: priorReport, laterFiles, resumeImport })
+    if (resumeImport) {
+      report.importSourceCommit = interruptedImportSource(priorReport, report.contentfulExport)
+      run('git', ['merge-base', '--is-ancestor', report.importSourceCommit, sha])
+      const changed = run('git', ['diff', '--name-only', report.importSourceCommit, sha]).trim().split('\n').filter(Boolean)
+      const allowed = new Set(['scripts/m41/execute-cutover.mjs', 'scripts/m41/release-access.mjs', 'scripts/m41/resume-preflight.mjs',
+        'tests/m41/release-access.test.mjs', 'apps/gpir-cms/src/migration/full-site.ts',
+        'docs/M41-PRODUCTION-HANDOVER.md', 'docs/M41-FULL-CUTOVER-REPORT.md', 'docs/MASTER_PROJECT_LOG.md', 'docs/PROJECT_STATUS.md', 'docs/GPIR_BACKLOG.md'])
+      if (changed.some(file => !allowed.has(file))) throw new Error('Managed source inputs changed since the interrupted import; preserve and reconcile instead of producing a new edition.')
+    }
     const disk = fs.statfsSync(root)
     if (Number(disk.bavail) * Number(disk.bsize) < 1024 ** 3) throw new Error('Less than 1 GiB workspace capacity remains; preserve files and free only reviewed disposable build output before import.')
     report.cms = evidence
@@ -259,7 +272,8 @@ try {
   else run(process.execPath, ['--import', 'tsx', 'src/migration/export-contentful.ts', '--exclude-recovery', `--output=${backup}`], { cwd: app })
   run(process.execPath, ['scripts/build-cloudflare-preview.js'], { environment: { ...process.env, GPIR_CONTENT_SOURCE: 'repository' } })
   const migrationReport = path.join(output, 'content-coverage.json')
-  run(process.execPath, ['--import', 'tsx', 'src/migration/full-site.ts', `--backup=${backup}`, `--site=${path.join(root, '.cloudflare-preview-dist')}`, `--report=${migrationReport}`], { cwd: app })
+  run(process.execPath, ['--import', 'tsx', 'src/migration/full-site.ts', `--backup=${backup}`, `--site=${path.join(root, '.cloudflare-preview-dist')}`, `--report=${migrationReport}`, `--progress=${path.join(output, 'import-progress.json')}`,
+    ...(resumeImport ? [`--source-commit=${report.importSourceCommit}`] : [])], { cwd: app })
   report.coverage = readJson(migrationReport)
   process.env.GPIR_PAYLOAD_SITE_SNAPSHOT = report.coverage.snapshot
   step('prepare reviewer-approved native research as a new immutable Payload edition')
@@ -346,6 +360,7 @@ try {
   if (fs.existsSync(output)) jsonFile(path.join(output, resumeCMSVersion && stage === 'preflight' ? 'resume-preflight-failure.json' : 'consolidated-report.json'), report)
   console.error(JSON.stringify(report)); process.exitCode = 1
 } finally {
+  if (releaseLock) releaseLock()
   if (temporary) fs.rmSync(temporary, { recursive: true, force: true })
 }
 

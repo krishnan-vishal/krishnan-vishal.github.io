@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, rename } from 'node:fs/promises'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import path from 'node:path'
@@ -9,10 +9,23 @@ const require = createRequire(import.meta.url)
 const site = require('../../../../scripts/m41/site-content.cjs')
 const option = (name: string) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3)
 
+const progressFile = option('progress') ? path.resolve(option('progress')!) : null
+let progressState: Record<string, any> = {}
+async function progress(phase: string, details: Record<string, any> = {}) {
+  progressState = { ...progressState, ...details, phase, updatedAt: new Date().toISOString() }
+  if (!progressFile) return
+  await mkdir(path.dirname(progressFile), { recursive: true })
+  await writeFile(progressFile + '.tmp', JSON.stringify(progressState, null, 2) + '\n', { mode: 0o600 })
+  await rename(progressFile + '.tmp', progressFile)
+}
+
 async function main() {
   const root = path.resolve(option('site') || '../../.cloudflare-preview-dist')
   const output = path.resolve(option('report') || '../../.migration-data/m41-coverage.json')
-  const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+  const sourceCommit = option('source-commit') || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+  if (!/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error('Invalid pinned source commit.')
+  execFileSync('git', ['merge-base', '--is-ancestor', sourceCommit, 'HEAD'])
+  await progress('VERIFYING_INPUTS', { sourceCommit })
   const initialManifest = site.validateManifest(site.inventory(root, sourceCommit))
   const backup = option('backup')
   if (!backup) throw new Error('A complete Contentful backup is required: --backup=PATH')
@@ -31,7 +44,7 @@ async function main() {
   const publishedAssets = new Map<string, any>()
   for (let skip = 0; ; ) {
     const url = `https://cdn.contentful.com/spaces/${encodeURIComponent(space)}/environments/${encodeURIComponent(environment)}/entries?limit=100&skip=${skip}&locale=${encodeURIComponent(locale)}`
-    const response = await fetch(url, { headers: { authorization: `Bearer ${token}` }, redirect: 'error' })
+    const response = await fetch(url, { headers: { authorization: `Bearer ${token}` }, redirect: 'error', signal: AbortSignal.timeout(30000) })
     if (!response.ok) throw new Error('Cannot verify Contentful published estate.')
     const page: any = await response.json()
     if (!Array.isArray(page.items) || !Number.isInteger(page.total)) throw new Error('Incomplete delivery snapshot.')
@@ -41,7 +54,9 @@ async function main() {
     if (skip >= page.total) break
     if (!page.items.length || skip > 100000) throw new Error('Delivery pagination incomplete.')
   }
+  await progress('CONNECTING_DATABASE', { snapshot: manifest.snapshot, totalBlobs: manifest.files.length })
   const payload = await getPayload({ config })
+  try {
   const client: any = payload
   let created = 0
   let reconciled = 0
@@ -52,6 +67,7 @@ async function main() {
     if (existing.docs[0]) {
       if (existing.docs[0].sourceHash !== hash || site.sha256(site.canonical(existing.docs[0].sourcePayload)) !== hash) throw new Error(`Existing Payload content differs: ${key}`)
       reconciled++
+      if ((created + reconciled) % 25 === 0) await progress('RECONCILING_CONTENT', { created, reconciled })
       return
     }
     await client.create({ collection: 'editorial-metadata', overrideAccess: true, data: {
@@ -60,9 +76,11 @@ async function main() {
       migrationStatus: 'RECONCILED', migrationBatchId: manifest.snapshot, sourcePayload: value,
     } })
     created++
+    if ((created + reconciled) % 25 === 0) await progress('RECONCILING_CONTENT', { created, reconciled })
   }
   // Immutable content-addressed objects make retry safe and retain every prior edition.
   // Every published path comes from the existing public-build allowlist, not Git globbing.
+  await progress('RECONCILING_BLOBS', { created, reconciled })
   for (const item of manifest.files) {
     const bytes = await readFile(path.join(root, item.path))
     site.verifyBytes(item, bytes)
@@ -70,11 +88,13 @@ async function main() {
   }
   // Archive ALL Contentful types/locales/entry states, including unresolved/draft/WARN.
   // These are private records, not a public release queue. Original source IDs survive.
+  await progress('RECONCILING_SOURCE_ARCHIVE', { created, reconciled })
   for (const archive of archives) await immutable(`m41:archive:${manifest.snapshot}:${archive.name}`, { kind: 'contentful-export', ...archive })
   for (const entry of archives.find(item => item.name === 'entries.json')!.value) {
     if (!entry?.sys?.id) throw new Error('Source entry has no identity.')
     await immutable(`m41:entry:${entry.sys.id}:${site.sha256(site.canonical(entry))}`, { kind: 'contentful-entry', source: entry })
   }
+  await progress('RECONCILING_EDITORIAL', { created, reconciled })
   // Published mirrors use Delivery bytes, never unpublished Management revisions.
   // Every source draft is retained alongside the original management archive.
   for (const entry of archives.find(item => item.name === 'entries.json')!.value) {
@@ -108,6 +128,13 @@ async function main() {
   await mkdir(path.dirname(output), { recursive: true })
   await writeFile(output, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 })
   process.stdout.write(JSON.stringify(report) + '\n')
-  await payload.destroy()
+  await progress('COMPLETE', { created, reconciled, snapshot: manifest.snapshot })
+  } finally { await payload.destroy() }
 }
-main().catch(() => { process.stderr.write('Full-site migration failed; inspect the private execution context. No cutover performed.\n'); process.exitCode = 1 })
+main().catch(async (error) => {
+  const codes = ['23505', '42703', '42P01', '28P01', '42501', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND']
+  await progress('FAILED', { errorCode: codes.includes(error?.code) ? error.code : 'DETAILS_WITHHELD' }).catch(() => {})
+  process.stderr.write('Full-site migration failed; preserved import-progress.json records the last phase. No cutover performed.\n')
+  process.exitCode = 1
+})
+

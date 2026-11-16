@@ -3241,3 +3241,43 @@ is authored. Same PR #580 and same guarded post-CMS continuation command.
 Completed CMS/export/access evidence is retained; all files and stashes preserved.
 M41 remains OPEN until migration/source switch and real public/protected live
 Payload delivery are evidenced. No full-completion claim.
+
+
+## 2026-11-16 — interrupted import checkpoint; detached recovery
+
+Owner reports no release/import processes after the session timeout. The durable
+consolidated report is IN_PROGRESS at the Contentful-export/public-Payload-import
+stage, with pause and CMS stages entered; coverage, research-edition and live
+reports are absent. This does not prove that no database records were written.
+Completed CMS version 92fab47e, verified saved export (112 entries, 5 assets,
+3 media files), source checks and authentication remain established.
+
+Explicit --resume-import accepts only this known interrupted stage with the same
+verified export hash, no later coverage/research/live evidence and zero Contentful
+writes. It pins the original import source commit across further tooling commits.
+The runner checks ancestor history and permits only the reviewed runner, standalone
+importer, tests and handoff files to differ; changes to managed website inputs
+remain blocked. The immutable content-addressed importer reuses identical objects
+and refuses conflicts/duplicates, preserving possible partial records. It does
+not create another source edition simply because recovery tooling changed.
+
+The standalone CLI importer gains a pinned-source option, bounded Delivery fetch
+and atomic progress/error-phase JSON; it closes its Payload connection in finally.
+It is the sole excluded offline file in the CMS-runtime comparison: no Worker
+runtime/config/dependency change or CMS redeployment is included. Required remote
+TypeScript/Worker validation still applies.
+
+The existing bootstrap supports --background. It launches the same guarded runner
+detached, with private timestamped logs and saved PID/log metadata. An exclusive
+release lock blocks overlapping executions and archives stale/finished lock
+metadata instead of discarding it. Browser disconnect does not terminate this
+detached process; stopping/suspending the Codespace still does. All original work,
+stashes, source export and preceding reports remain preserved.
+
+35 focused tests and JavaScript executable syntax checks PASS locally. The three
+new tests cover source pin/export mismatch, explicit interrupted-stage limits and
+overlapping/stale execution locks. Local full-app TypeScript compiler unavailable;
+required remote validation/build must pass before private continuation.
+No private database import, website source switch or live acceptance performed
+from the agent workspace. M41 remains OPEN until actual public and protected
+Payload delivery are evidenced.

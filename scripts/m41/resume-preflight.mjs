@@ -2,7 +2,7 @@
 // pre-production checkpoint; do not reset, stash, create a worktree or delete work.
 import fs from 'node:fs'
 import path from 'node:path'
-import { spawnSync } from 'node:child_process'
+import { spawnSync, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 const repository = process.argv[2] || '/workspaces/m41-pr580-release'
 export function eligiblePreflightCheckpoint({ directory, clean, ancestor, report, outputExists }) {
@@ -33,8 +33,26 @@ try {
     git(repository, ['fetch', 'origin', 'fix/m41-cloudflare-sharp-admin-runtime-20261115'], false)
     git(repository, ['merge', '--ff-only', 'FETCH_HEAD'], false)
     console.log('M41: preserved existing checkout ' + before.slice(0, 7) + '; inspecting post-CMS continuation')
-    const run = spawnSync(process.execPath, ['scripts/m41/execute-cutover.mjs', '--execute', '--resume-after-cms=' + version, '--restore-draft-writer'],
-      { cwd: repository, stdio: 'inherit', env: process.env })
+    const args = ['scripts/m41/execute-cutover.mjs', '--execute', '--resume-after-cms=' + version, '--restore-draft-writer',
+      ...(process.argv.includes('--resume-import') ? ['--resume-import'] : [])]
+    if (process.argv.includes('--background')) {
+      const directory = path.join(repository, '.migration-data/m41-cutover')
+      fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
+      const log = path.join(directory, 'continuation-' + Date.now() + '.log')
+      const output = fs.openSync(log, 'ax', 0o600)
+      const child = spawn(process.execPath, args, { cwd: repository, detached: true, stdio: ['ignore', output, output], env: process.env })
+      child.on('error', () => { console.error('Background release could not launch; inspect the saved log.'); process.exitCode = 1 })
+      child.on('spawn', () => {
+        fs.closeSync(output)
+        child.unref()
+        const launch = { status: 'BACKGROUND_RELEASE_STARTED_NOT_COMPLETE', pid: child.pid, log,
+          progress: path.join(directory, 'import-progress.json'), report: path.join(directory, 'consolidated-report.json') }
+        fs.writeFileSync(path.join(directory, 'background-launch.json'), JSON.stringify(launch, null, 2) + '\n', { mode: 0o600 })
+        console.log(JSON.stringify(launch))
+      })
+      return
+    }
+    const run = spawnSync(process.execPath, args, { cwd: repository, stdio: 'inherit', env: process.env })
     process.exitCode = run.status ?? 1
     return
   }

@@ -4,6 +4,29 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 
+export function acquireReleaseLock(directory, alive = pid => {
+  try { process.kill(pid, 0); return true } catch (error) {
+    if (error.code === 'ESRCH') return false
+    throw error
+  }
+}) {
+  fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
+  const file = path.join(directory, 'release.lock')
+  const archive = reason => {
+    const target = path.join(directory, 'checkpoints')
+    fs.mkdirSync(target, { recursive: true, mode: 0o700 })
+    fs.renameSync(file, path.join(target, `${reason}-lock-${Date.now()}-${process.pid}.json`))
+  }
+  if (fs.existsSync(file)) {
+    const prior = JSON.parse(fs.readFileSync(file, 'utf8'))
+    if (!Number.isInteger(prior.pid) || prior.pid < 2 || alive(prior.pid)) throw new Error('Another release may be running; existing lock and checkpoints preserved.')
+    archive('interrupted')
+  }
+  fs.writeFileSync(file, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }) + '\n', { flag: 'wx', mode: 0o600 })
+  let released = false
+  return () => { if (!released) { archive('finished'); released = true } }
+}
+
 // Current workflow state controls today's API call. Restore intent controls only
 // the later source-switch completion; it must never cause a second disable call.
 export function pauseEditorialDraftWriter({ readState, disable, previouslyActive = false, restoreAuthorized = false }) {
@@ -104,18 +127,33 @@ export function verifiedNextBuildChanges(original, current) {
   return true
 }
 
-export function verifiedCMSCheckpoint({ evidence, deployedSHA, expectedVersion, origin, bindingId, caId, deployment, prior, laterFiles }) {
+export function interruptedImportSource(prior, verifiedExport) {
+  const stage = 'export Contentful read-only and import the complete public edition into Payload'
+  if (!['IN_PROGRESS', 'BLOCKED_NOT_COMPLETE'].includes(prior?.status) ||
+      (prior.currentStage || prior.failedStage) !== stage || prior.contentfulWrites !== 0 ||
+      prior.contentfulExport?.manifestSha256 !== verifiedExport?.manifestSha256 ||
+      verifiedExport?.status !== 'VERIFIED_READ_ONLY_EXPORT') throw new Error('The interrupted import checkpoint or saved source export does not match.')
+  const sha = prior.importSourceCommit || prior.implementationCommit
+  if (!/^[a-f0-9]{40}$/.test(sha || '')) throw new Error('Original import source commit is missing; no new snapshot was invented.')
+  return sha
+}
+
+export function verifiedCMSCheckpoint({ evidence, deployedSHA, expectedVersion, origin, bindingId, caId, deployment, prior, laterFiles, resumeImport = false }) {
   if (evidence?.status !== 'DEPLOYED_PUBLIC_SMOKE_VERIFIED' || evidence.sha !== deployedSHA ||
       evidence.deploymentVersion !== expectedVersion || evidence.publicUrl !== origin || evidence.adminHTTP !== 200 ||
       evidence.anonymousUser !== null || evidence.hyperdriveId !== bindingId || evidence.caId !== caId ||
       evidence.sslmode !== 'verify-full' || evidence.queryCaching !== 'disabled') throw new Error('Saved CMS deployment evidence does not match the selected checkpoint.')
   if (!Array.isArray(deployment?.versions) || deployment.versions.length !== 1 ||
       deployment.versions[0].version_id !== expectedVersion || deployment.versions[0].percentage !== 100) throw new Error('The recorded CMS version is not the sole active production deployment; no redeployment or import attempted.')
-  if (!prior || prior.status !== 'BLOCKED_NOT_COMPLETE' || prior.contentfulWrites !== 0 ||
+  const importStage = 'export Contentful read-only and import the complete public edition into Payload'
+  const importCheckpoint = resumeImport && ['IN_PROGRESS', 'BLOCKED_NOT_COMPLETE'].includes(prior?.status) &&
+    (prior.currentStage || prior.failedStage) === importStage
+  if (!prior || (!importCheckpoint && prior.status !== 'BLOCKED_NOT_COMPLETE') || prior.contentfulWrites !== 0 ||
       !Array.isArray(prior.stages) || prior.stages.some(name => ![
         'provision the missing GitHub cutover environment without modifying existing protections',
         'pause the existing editorial draft writer during the primary-source switch',
-        'deploy the new CMS endpoints using the existing guarded Worker release'
+        'deploy the new CMS endpoints using the existing guarded Worker release',
+        ...(importCheckpoint ? [importStage] : [])
       ].includes(name)) || ['coverage', 'researchEdition', 'releaseCommit', 'mergeCommit', 'live'].some(key => Object.hasOwn(prior, key)) || laterFiles.length) {
     throw new Error('Later or ambiguous migration evidence exists; preserve it and resume that stage explicitly instead of repeating import.')
   }

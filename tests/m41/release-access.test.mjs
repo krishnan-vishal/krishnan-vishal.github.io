@@ -367,3 +367,46 @@ test('pause handles concurrent completion but preserves real workflow failures a
   assert.throws(() => pauseEditorialDraftWriter({ readState: () => 'active', disable: () => { throw Error('fixture-permission-denied') } }), /permission-denied/)
   assert.throws(() => pauseEditorialDraftWriter({ readState: () => 'disabled_inactivity', disable: () => { throw Error('must not mutate') } }), /unexpected state/)
 })
+
+test('interrupted import keeps its original source edition and requires the same verified export', async () => {
+  const { interruptedImportSource } = await import('../../scripts/m41/release-access.mjs')
+  const verified = { status: 'VERIFIED_READ_ONLY_EXPORT', manifestSha256: 'fixture-export-hash' }
+  const prior = { status: 'IN_PROGRESS', currentStage: 'export Contentful read-only and import the complete public edition into Payload',
+    contentfulWrites: 0, implementationCommit: 'a'.repeat(40), contentfulExport: verified }
+  assert.equal(interruptedImportSource(prior, verified), 'a'.repeat(40))
+  assert.equal(interruptedImportSource({ ...prior, importSourceCommit: 'b'.repeat(40) }, verified), 'b'.repeat(40))
+  for (const change of [{ status: 'COMPLETE' }, { currentStage: 'merge' }, { contentfulWrites: 1 },
+    { implementationCommit: 'unknown' }, { contentfulExport: { ...verified, manifestSha256: 'changed' } }]) {
+    assert.throws(() => interruptedImportSource({ ...prior, ...change }, verified))
+  }
+})
+
+test('interrupted-import mode accepts only its known stage and continues to reject completed later phases', async () => {
+  const { verifiedCMSCheckpoint } = await import('../../scripts/m41/release-access.mjs')
+  const stage = 'export Contentful read-only and import the complete public edition into Payload'
+  const evidence = { status: 'DEPLOYED_PUBLIC_SMOKE_VERIFIED', sha: 'fixture-sha', deploymentVersion: 'fixture-version', publicUrl: 'https://fixture.example',
+    adminHTTP: 200, anonymousUser: null, hyperdriveId: 'fixture-binding', caId: 'fixture-ca', sslmode: 'verify-full', queryCaching: 'disabled' }
+  const good = { evidence, deployedSHA: evidence.sha, expectedVersion: evidence.deploymentVersion, origin: evidence.publicUrl,
+    bindingId: evidence.hyperdriveId, caId: evidence.caId, deployment: { versions: [{ version_id: evidence.deploymentVersion, percentage: 100 }] },
+    prior: { status: 'IN_PROGRESS', currentStage: stage, stages: [stage], contentfulWrites: 0 }, laterFiles: [], resumeImport: true }
+  assert.equal(verifiedCMSCheckpoint(good), true)
+  assert.throws(() => verifiedCMSCheckpoint({ ...good, resumeImport: false }))
+  assert.throws(() => verifiedCMSCheckpoint({ ...good, laterFiles: ['content-coverage.json'] }))
+  assert.throws(() => verifiedCMSCheckpoint({ ...good, prior: { ...good.prior, stages: [stage, 'merge'] } }))
+})
+
+test('background release lock blocks a second runner and preserves stale lock evidence', async () => {
+  const { acquireReleaseLock } = await import('../../scripts/m41/release-access.mjs')
+  const fs = await import('node:fs'), path = await import('node:path'), os = await import('node:os')
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gpir-lock-fixture-'))
+  try {
+    const release = acquireReleaseLock(directory)
+    assert.throws(() => acquireReleaseLock(directory), /Another release/)
+    release(); release()
+    assert.equal(fs.existsSync(path.join(directory, 'release.lock')), false)
+    fs.writeFileSync(path.join(directory, 'release.lock'), JSON.stringify({ pid: 99999999 }))
+    const next = acquireReleaseLock(directory, () => false)
+    assert.ok(fs.readdirSync(path.join(directory, 'checkpoints')).some(file => file.startsWith('interrupted-lock-')))
+    next()
+  } finally { fs.rmSync(directory, { recursive: true, force: true }) }
+})
