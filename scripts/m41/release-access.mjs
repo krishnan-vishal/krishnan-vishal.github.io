@@ -1,5 +1,63 @@
 import { directSupabaseOrigin } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { isDeepStrictEqual } from 'node:util'
+import fs from 'node:fs'
+import path from 'node:path'
+import { createHash } from 'node:crypto'
+
+// The exporter commits manifest.json last. Reuse a saved export only after every
+// JSON and downloaded media byte matches that manifest and the selected source.
+export function verifiedContentfulExport(directory, source) {
+  const digest = bytes => createHash('sha256').update(bytes).digest('hex')
+  const root = fs.realpathSync(directory)
+  const bytes = fs.readFileSync(path.join(root, 'manifest.json'))
+  const manifest = JSON.parse(bytes)
+  const names = ['contentTypes', 'editorInterfaces', 'locales', 'entries', 'assets', 'tags']
+  if (manifest.schemaVersion !== '1.0.0' || manifest.source?.space !== source.space ||
+      manifest.source?.environment !== source.environment || !Number.isFinite(Date.parse(manifest.exportedAt)) ||
+      !manifest.files || Object.keys(manifest.files).sort().join(',') !== [...names].sort().join(',')) throw new Error('Saved Contentful export source or manifest is incomplete; original files preserved.')
+  const archives = {}
+  for (const name of names) {
+    const content = fs.readFileSync(path.join(root, name + '.json'))
+    if (digest(content) !== manifest.files[name]) throw new Error('Saved Contentful export checksum mismatch; original files preserved.')
+    archives[name] = JSON.parse(content)
+    if (!Array.isArray(archives[name])) throw new Error('Saved Contentful export JSON is incomplete.')
+  }
+  for (const name of ['contentTypes', 'locales', 'entries', 'assets']) {
+    if (manifest.counts?.[name] !== archives[name].length) throw new Error('Saved Contentful export counts are incomplete.')
+    const ids = archives[name].map(item => item.sys?.id)
+    if (ids.some(id => typeof id !== 'string' || !id) || new Set(ids).size !== ids.length) throw new Error('Saved Contentful export identities are incomplete or duplicated.')
+  }
+  if (archives.contentTypes.some(item => item.sys?.id === 'gpirPayloadRecoveryV1') ||
+      archives.entries.some(item => item.sys?.contentType?.sys?.id === 'gpirPayloadRecoveryV1') ||
+      !archives.locales.some(item => item.default && item.code) ||
+      !Array.isArray(manifest.media) || manifest.counts.mediaFiles !== manifest.media.length) throw new Error('Saved Contentful export policy or media manifest is incomplete.')
+  const assetIDs = new Set(archives.assets.map(item => item.sys.id))
+  const localeCodes = new Set(archives.locales.map(item => item.code))
+  const expectedMedia = new Map()
+  for (const asset of archives.assets) for (const locale of localeCodes) {
+    const localized = asset.fields?.file
+    const file = localized && typeof localized === 'object' && !Array.isArray(localized) ?
+      (locale in localized ? localized[locale] : Object.values(localized)[0]) : localized
+    if (!file?.url) continue
+    const filename = path.basename(String(file.fileName || `${asset.sys.id}-${locale}`)).replace(/[^A-Za-z0-9._-]/g, '_')
+    expectedMedia.set(`media/${asset.sys.id}/${locale}/${filename}`, { assetId: asset.sys.id, locale, filename })
+  }
+  if (expectedMedia.size !== manifest.media.length) throw new Error('Saved export omits expected asset files.')
+  const paths = new Set()
+  for (const item of manifest.media) {
+    if (typeof item.relativePath !== 'string' || !item.relativePath.startsWith('media/') ||
+        item.relativePath.includes('\\') || item.relativePath.split('/').some(part => !part || part === '.' || part === '..') ||
+        paths.has(item.relativePath) || !assetIDs.has(item.assetId) || !localeCodes.has(item.locale) ||
+        !isDeepStrictEqual(expectedMedia.get(item.relativePath), { assetId: item.assetId, locale: item.locale, filename: item.filename })) throw new Error('Saved export media path or identity is invalid.')
+    const file = fs.realpathSync(path.join(root, item.relativePath))
+    if (!file.startsWith(root + path.sep)) throw new Error('Saved export media must remain inside its original backup.')
+    const content = fs.readFileSync(file)
+    if (content.length !== item.bytes || digest(content) !== item.sha256) throw new Error('Saved export media checksum mismatch; original files preserved.')
+    paths.add(item.relativePath)
+  }
+  return { status: 'VERIFIED_READ_ONLY_EXPORT', exportedAt: manifest.exportedAt, source: manifest.source,
+    counts: manifest.counts, manifestSha256: digest(bytes), jsonFilesVerified: names.length, mediaFilesVerified: paths.size }
+}
 
 // An environment PAT can be valid yet scoped to a different project (HTTP 403).
 // Retry only a read-only management request using an already stored CLI login.

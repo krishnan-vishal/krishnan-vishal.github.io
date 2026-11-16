@@ -283,3 +283,53 @@ test('management credential fallback never retries writes, selected sessions, un
     assert.equal(calls, expectedCalls)
   }
 })
+
+test('saved export reuse verifies JSON and media against the completed source manifest without writing', async () => {
+  const { verifiedContentfulExport } = await import('../../scripts/m41/release-access.mjs')
+  const fs = await import('node:fs'), path = await import('node:path'), os = await import('node:os')
+  const { createHash } = await import('node:crypto')
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gpir-export-fixture-'))
+  const hash = value => createHash('sha256').update(value).digest('hex')
+  const source = { space: 'fixture-space', environment: 'master' }
+  const arrays = { contentTypes: [{ sys: { id: 'research' } }], editorInterfaces: [],
+    locales: [{ sys: { id: 'en-US' }, code: 'en-US', default: true }],
+    entries: [{ sys: { id: 'entry-one', contentType: { sys: { id: 'research' } } } }],
+    assets: [{ sys: { id: 'asset-one' }, fields: { file: { 'en-US': { fileName: 'asset.svg', url: '//fixture.example/asset.svg' } } } }], tags: [] }
+  try {
+    const files = {}
+    for (const [name, value] of Object.entries(arrays)) {
+      const bytes = JSON.stringify(value)
+      fs.writeFileSync(path.join(directory, name + '.json'), bytes); files[name] = hash(bytes)
+    }
+    const relativePath = 'media/asset-one/en-US/asset.svg'
+    const media = Buffer.from('<svg/>')
+    fs.mkdirSync(path.dirname(path.join(directory, relativePath)), { recursive: true })
+    fs.writeFileSync(path.join(directory, relativePath), media)
+    const manifest = { schemaVersion: '1.0.0', exportedAt: '2026-11-15T13:35:01Z', source,
+      counts: { contentTypes: 1, entries: 1, assets: 1, mediaFiles: 1, locales: 1 }, files,
+      media: [{ assetId: 'asset-one', locale: 'en-US', filename: 'asset.svg', relativePath, bytes: media.length, sha256: hash(media) }] }
+    const save = value => fs.writeFileSync(path.join(directory, 'manifest.json'), JSON.stringify(value))
+    save(manifest)
+    const before = fs.statSync(path.join(directory, 'manifest.json')).mtimeMs
+    const good = verifiedContentfulExport(directory, source)
+    assert.equal(good.status, 'VERIFIED_READ_ONLY_EXPORT')
+    assert.equal(good.mediaFilesVerified, 1)
+    assert.equal(good.jsonFilesVerified, 6)
+    assert.equal(fs.statSync(path.join(directory, 'manifest.json')).mtimeMs, before)
+    assert.throws(() => verifiedContentfulExport(directory, { ...source, environment: 'other' }), /source or manifest/)
+    save({ ...manifest, counts: { ...manifest.counts, entries: 2 } })
+    assert.throws(() => verifiedContentfulExport(directory, source), /counts/)
+    save({ ...manifest, media: [], counts: { ...manifest.counts, mediaFiles: 0 } })
+    assert.throws(() => verifiedContentfulExport(directory, source), /omits expected/)
+    save({ ...manifest, media: [{ ...manifest.media[0], relativePath: '../outside.svg' }] })
+    assert.throws(() => verifiedContentfulExport(directory, source), /path or identity/)
+    save(manifest)
+    fs.writeFileSync(path.join(directory, relativePath), 'changed')
+    assert.throws(() => verifiedContentfulExport(directory, source), /media checksum/)
+    fs.writeFileSync(path.join(directory, relativePath), media)
+    fs.writeFileSync(path.join(directory, 'entries.json'), '[]')
+    assert.throws(() => verifiedContentfulExport(directory, source), /checksum/)
+    fs.unlinkSync(path.join(directory, 'manifest.json'))
+    assert.throws(() => verifiedContentfulExport(directory, source))
+  } finally { fs.rmSync(directory, { recursive: true, force: true }) }
+})

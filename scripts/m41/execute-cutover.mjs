@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession, verifiedContentfulExport } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -186,7 +186,10 @@ try {
     run('git', ['merge-base', '--is-ancestor', evidence.sha, sha])
     // Reuse only a deployment whose entire CMS runtime source is unchanged.
     run('git', ['diff', '--quiet', evidence.sha, sha, '--', 'apps/gpir-cms'])
-    const laterFiles = ['contentful', 'content-coverage.json', 'research-edition.json', 'live-verification.json']
+    const savedExport = path.join(output, 'contentful')
+    if (fs.existsSync(savedExport)) report.contentfulExport = verifiedContentfulExport(savedExport,
+      { space: process.env.CONTENTFUL_SPACE_ID, environment: process.env.CONTENTFUL_ENVIRONMENT })
+    const laterFiles = ['content-coverage.json', 'research-edition.json', 'live-verification.json']
       .filter(file => fs.existsSync(path.join(output, file)))
     const active = parseCliJson(wrangler(['deployments', 'status', '--name', 'gpir-payload-cms', '--json']))
     verifiedCMSCheckpoint({ evidence, deployedSHA: evidence.sha, expectedVersion: resumeCMSVersion,
@@ -196,7 +199,7 @@ try {
     report.cms = evidence
     report.resume = { mode: 'AFTER_VERIFIED_CMS_DEPLOYMENT', reusedCMSVersion: resumeCMSVersion,
       deployedSource: evidence.sha, generatedNextFilesPreserved: true, priorStatus: priorReport.status,
-      priorFailedStage: priorReport.failedStage }
+      priorFailedStage: priorReport.failedStage, reusedVerifiedExport: Boolean(report.contentfulExport) }
   }
   report.sourceChecks = await checks(sha)
   if (!process.argv.includes('--execute')) {
@@ -244,7 +247,8 @@ try {
   }
   step('export Contentful read-only and import the complete public edition into Payload')
   const backup = path.join(output, 'contentful')
-  run(process.execPath, ['--import', 'tsx', 'src/migration/export-contentful.ts', '--exclude-recovery', `--output=${backup}`], { cwd: app })
+  if (resumeCMSVersion && report.contentfulExport) console.log('M41: verified saved Contentful export reused unchanged; no repeat export')
+  else run(process.execPath, ['--import', 'tsx', 'src/migration/export-contentful.ts', '--exclude-recovery', `--output=${backup}`], { cwd: app })
   run(process.execPath, ['scripts/build-cloudflare-preview.js'], { environment: { ...process.env, GPIR_CONTENT_SOURCE: 'repository' } })
   const migrationReport = path.join(output, 'content-coverage.json')
   run(process.execPath, ['--import', 'tsx', 'src/migration/full-site.ts', `--backup=${backup}`, `--site=${path.join(root, '.cloudflare-preview-dist')}`, `--report=${migrationReport}`], { cwd: app })

@@ -746,3 +746,37 @@ Pinned CLI 2.121.0 retained; no dependency, schema, runtime CMS source or TLS ch
 Same post-CMS command and PR #580 only. CMS version 92fab47e remains the selected
 checkpoint; generated files and stashes preserved. Current-head CI/private
 continuation and actual public/protected live delivery remain required. M41 OPEN.
+
+
+## 2026-11-16 — existing Contentful export discovered; preserve and reuse
+
+Owner refreshed the existing Supabase CLI login. The next `c447d74` continuation
+verified stored-login management access and the existing Core release key using
+read-only requests. It then stopped on the partial-release guard, stages=[] and
+zero Contentful writes. Owner's directory inventory explains that guard: the
+saved Contentful export exists, with JSON archives at 13:34:59 UTC and the final
+manifest at 13:35:01 UTC on 15 November. No coverage/research-edition/live report
+was found. The old 13:23 failed report predates those later completed files.
+
+The post-CMS continuation now distinguishes a completed read-only export from
+later import/release evidence. Before accepting it, source/environment,
+manifest schema, six JSON checksums, identity/count integrity, exclusion of BCP
+recovery records, and all expected media paths/byte lengths/hashes are validated.
+Path traversal/symlink escape and omitted expected media are rejected. The saved
+export is reused in place without rewriting files or fetching another export.
+The original content-addressed immutable Payload importer still reconciles
+matching records and refuses conflicts/duplicate identities instead of
+overwriting any native/editorial changes. Coverage/research/live evidence still
+blocks ambiguous replay. No guard is simply disabled.
+
+29 focused tests and runner syntax PASS locally; the new saved-export test covers
+valid reuse with no writes, wrong source, counts, missing manifest, tampered JSON,
+tampered media, omitted assets and unsafe paths. Private export integrity is not
+claimed before the runner actually verifies those owner-side bytes.
+Current-head CI and private execution remain required.
+
+PR #580 only; same continuation command, no further login required by the latest
+evidence. CMS version 92fab47e reused; generated files, private exports, original
+reports and stashes preserved. No Contentful change or new CMS deployment.
+M41 remains OPEN until migration/source switch and actual public/protected live
+Payload delivery are evidenced.
