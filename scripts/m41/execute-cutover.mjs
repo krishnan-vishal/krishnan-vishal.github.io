@@ -91,6 +91,19 @@ try {
   releaseLock = acquireReleaseLock(output)
   if (!fs.existsSync(envFile) || !fs.existsSync(caFile)) throw new Error('Existing private env and CA files must be available in the authenticated Codespace.')
   process.loadEnvFile(envFile)
+  const managementFile = path.join(output, 'management-session.json')
+  if (fs.existsSync(managementFile)) {
+    let management
+    try { management = readJson(managementFile) } catch { throw new Error('Private management-session JSON is unreadable; contents withheld.') }
+    if (management.coreProjectRef !== 'qlnvhfapctcpzqyuhhth' || management.source !== 'EXISTING_GITHUB_DEPLOY_TOKEN_ENCRYPTED_HANDOFF' ||
+        typeof management.token !== 'string' || management.token.length < 20 || /\s/.test(management.token)) throw new Error('Private management-session identity is invalid; existing files preserved.')
+    process.env.SUPABASE_ACCESS_TOKEN = management.token
+    report.supabaseManagementAuthentication = management.source
+    supabaseEnvironment = { ...process.env }
+  } else if (!process.env.SUPABASE_ACCESS_TOKEN && process.env.GPIR_SUPABASE_DEPLOY_TOKEN) {
+    process.env.SUPABASE_ACCESS_TOKEN = process.env.GPIR_SUPABASE_DEPLOY_TOKEN
+    report.supabaseManagementAuthentication = 'EXISTING_GPIR_SUPABASE_DEPLOY_TOKEN'
+  }
   process.env.PAYLOAD_DATABASE_CA_CERT = fs.readFileSync(caFile, 'utf8')
   process.env.PAYLOAD_PUBLIC_SERVER_URL = cmsOrigin
   const required = ['PAYLOAD_DATABASE_URI', 'PAYLOAD_SECRET', 'SUPABASE_URL', 'GPIR_SUPABASE_SECRET_KEY', 'GPIR_RELEASE_SIGNING_SECRET',
@@ -203,7 +216,9 @@ try {
       run('git', ['merge-base', '--is-ancestor', report.importSourceCommit, sha])
       const changed = run('git', ['diff', '--name-only', report.importSourceCommit, sha]).trim().split('\n').filter(Boolean)
       const allowed = new Set(['scripts/m41/execute-cutover.mjs', 'scripts/m41/release-access.mjs', 'scripts/m41/resume-preflight.mjs',
-        'tests/m41/release-access.test.mjs', 'apps/gpir-cms/src/migration/full-site.ts',
+        'tests/m41/release-access.test.mjs', 'tests/m41/management-session.test.mjs',
+        'scripts/m41/management-session.mjs', 'scripts/m41/repair-management-access.mjs', '.github/workflows/payload-cms-ci.yml',
+        'apps/gpir-cms/src/migration/full-site.ts',
         'docs/M41-PRODUCTION-HANDOVER.md', 'docs/M41-FULL-CUTOVER-REPORT.md', 'docs/MASTER_PROJECT_LOG.md', 'docs/PROJECT_STATUS.md', 'docs/GPIR_BACKLOG.md'])
       if (changed.some(file => !allowed.has(file))) throw new Error('Managed source inputs changed since the interrupted import; preserve and reconcile instead of producing a new edition.')
     }

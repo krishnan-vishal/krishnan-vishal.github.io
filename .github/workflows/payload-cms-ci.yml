@@ -1,10 +1,12 @@
 name: M41 Payload CMS validation
+run-name: "M41 Payload CMS ${{ inputs.mode || 'VALIDATE' }} ${{ inputs.recovery_id || github.event.pull_request.number || github.sha }}"
 
 on:
   pull_request:
     paths:
       - 'apps/gpir-cms/**'
       - 'scripts/m41/**'
+      - 'tests/m41/**'
       - 'scripts/build-cloudflare-preview.js'
       - 'gpir-content-source.json'
       - 'supabase/functions/gpir-protected-publication/**'
@@ -12,12 +14,24 @@ on:
       - 'supabase/migrations/20261114020220_gpir_payload_schema_isolation.sql'
       - '.github/workflows/payload-*.yml'
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        default: VALIDATE
+        options: [VALIDATE, REPAIR_MANAGEMENT]
+      recipient_public_key:
+        type: string
+        required: false
+      recovery_id:
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 jobs:
   validate:
+    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'VALIDATE'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -35,12 +49,13 @@ jobs:
         run: npm audit --audit-level=high
       - run: npm run test
       - name: Verify existing-session release access
-        run: node --test ../../tests/m41/release-access.test.mjs
+        run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts
 
   worker-build:
+    if: github.event_name != 'workflow_dispatch' || inputs.mode == 'VALIDATE'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:
@@ -64,3 +79,34 @@ jobs:
         run: |
           test -f .open-next/worker.js
           test -d .open-next/assets
+
+  repair-management:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'REPAIR_MANAGEMENT' &&
+      github.actor == 'krishnan-vishal' &&
+      github.repository == 'krishnan-vishal/krishnan-vishal.github.io' &&
+      github.ref == 'refs/heads/fix/m41-cloudflare-sharp-admin-runtime-20261115'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Verify existing Core deployment credential and encrypt for owner workspace
+        run: node scripts/m41/repair-management-access.mjs --seal --output="$RUNNER_TEMP/m41-management-session"
+        env:
+          GPIR_SUPABASE_DEPLOY_TOKEN: ${{ secrets.GPIR_SUPABASE_DEPLOY_TOKEN }}
+          GPIR_RECOVERY_PUBLIC_KEY: ${{ inputs.recipient_public_key }}
+          GPIR_RECOVERY_ID: ${{ inputs.recovery_id }}
+      - name: Retain encrypted handoff only
+        uses: actions/upload-artifact@v4
+        with:
+          name: m41-management-session-${{ inputs.recovery_id }}
+          path: ${{ runner.temp }}/m41-management-session/management-envelope.json
+          if-no-files-found: error
+          retention-days: 1
+

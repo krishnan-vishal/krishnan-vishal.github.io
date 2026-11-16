@@ -434,3 +434,81 @@ Read import-progress.json for phase/counts and consolidated-report.json for stag
 outcomes. Preserve any failure report and partial database records; never use
 delete/reset or a fresh migration as recovery. Real authorized protected-reader
 acceptance remains mandatory for overall closure.
+
+
+## 2026-11-16 — existing deployment-token access repair, PR #580 only
+
+Owner requests fixing the runner's management access without repeating migration,
+credential submission, reconciliation or CMS deployment. Both isolated CLI
+contexts failed; missing environment/fallback files do not establish native
+credential-store state. The exact native-login rejection cause is unconfirmed.
+
+Repository evidence identifies an established deployment authority:
+`.github/workflows/gpir-p2-production-functions.yml` uses the repository secret
+`GPIR_SUPABASE_DEPLOY_TOKEN` for Core management. The private cutover runner
+did not consume that named credential and depended on a locally retrievable CLI
+login. This continuation wires the runner to an existing named deploy token or
+a verified private session recovered from that existing GitHub secret.
+
+Access-only repair is added to the existing payload-cms-ci workflow, restricted
+to explicit workflow_dispatch by krishnan-vishal on the exact PR #580 branch.
+Repair mode skips validation/Worker-build jobs and never runs migration or deploys
+P2/payment functions. It uses GET-only Core functions and API-key permission
+checks; response bodies/keys are discarded. No Supabase token/key is created,
+rotated, broadened or printed. The repository credential's current validity is
+not assumed: a non-200 permission check blocks and reports only safe HTTP status.
+
+An ephemeral RSA recipient key is generated privately in the existing ignored
+Codespace migration directory. Only its public key and random request ID are
+workflow inputs. GitHub encrypts the existing token with AES-256-GCM plus
+RSA-OAEP/SHA-256; only the authenticated encrypted envelope is retained as a
+one-day artifact. The private key never leaves the Codespace. Local decryption
+checks request/Core binding and one-hour handoff age, then repeats the actual
+read-only management checks before saving mode-0600 private management-session
+JSON. Logs/reports contain only request/run IDs, status and HTTP codes. Pending
+requests reuse the same private request/key instead of duplicate dispatch.
+
+The runner reads that ignored private session explicitly and reuses it for
+management commands; it no longer needs native keyring retrieval after successful
+repair. Original CMS .env, Contentful and migration database records are unchanged.
+The interrupted import remains pinned; its source-change allowlist names only the
+new reviewed access tooling/tests and existing CI workflow. No managed content or
+runtime CMS source changed.
+
+39 focused tests and JavaScript syntax PASS locally. Tests cover encrypted
+round-trip/no plaintext, wrong request/Core, stale handoff, ciphertext tamper,
+weak key rejection, safe 401/403/429 handling, read-only requests, owner-only
+workflow and build skipping. Workflow YAML parses; the existing CI workflow is
+present on main, supporting dispatch of the reviewed PR ref. Remote required CI
+must pass before owner-side access repair. GitHub secret presence/actual authority,
+encrypted handoff and private runner acceptance are NOT yet evidenced.
+
+M41 remains OPEN. This is an executable access-only correction, not deployment or
+migration completion. No Codespace run or manual workflow dispatch was performed
+from this agent workspace; private terminal execution is still required.
+
+### Access-only management repair (does not resume migration)
+
+Run once in the existing Codespace after current-head required checks pass.
+It reuses the owner GitHub login and the repository deployment credential; do not
+paste credentials into chat. It performs only management access repair and outputs
+MANAGEMENT_ACCESS_REPAIRED after both actual Core read checks succeed. It does not
+run CMS build, Contentful export, migration, reconciliation, merge or deployment.
+
+```bash
+bash <<'GPIR_M41_ACCESS'
+set -euo pipefail
+unset GH_TOKEN GITHUB_TOKEN
+export GH_TOKEN="$(gh auth token --hostname github.com)"
+gpir_release_repo=/workspaces/m41-full-cutover-suddBZ
+git -C "$gpir_release_repo" fetch origin fix/m41-cloudflare-sharp-admin-runtime-20261115
+git -C "$gpir_release_repo" merge --ff-only FETCH_HEAD
+node "$gpir_release_repo/scripts/m41/repair-management-access.mjs" --repair
+GPIR_M41_ACCESS
+```
+
+The private session is ignored by Git and protected mode 0600. Its token value,
+private recipient key and decrypted contents must never be copied into chat, Git
+or reports. If the existing repository secret is unavailable or lacks authority,
+the access-only job fails without creating credentials or rerunning migration.
+The failed GitHub job identifies the specific missing-secret/HTTP failure.
