@@ -1605,3 +1605,13 @@ remain protected under [ARCHITECTURE_GUARDRAIL.md](ARCHITECTURE_GUARDRAIL.md).
 - Confirmed the G1 scheduler was active but the publisher returned HTTP 503 because it built one audit URL containing the full 729-row queue. The repository now pages candidates and 50-ID audit lookups, retains atomic publication contracts and holds below-threshold candidates for governed review without unnecessary external fetches.
 - Final focused tests pass 35/35 after moving the existing accordion boundary to 1100px and preserving the generated 12-hour archive contract. Content validation passes and internal links pass across 155 HTML files. Local browser acceptance now confirms desktop navigation plus 1024px and 390px containment, and a compact, readable archive with no horizontal overflow at all three widths.
 - Implementation commit `d7a00aafcb685245bf5c3065769a835a65dbe29f` is pushed on `codex/m39-g1-production-correction`; PR #486 is open. Its initial `G1 R07 targeted tests` and `GPIR Security and Integrity` runs passed. A follow-up responsive/archive visual correction is being checkpointed on the same PR; current-head CI, merge, Production deployments, governed backfill execution and final live after-evidence remain pending.
+
+
+### Access-repair follow-up checks
+
+Normal validation runs retain the exact required `M41 Payload CMS validation`
+identity; only access-repair runs include the non-secret request ID in their title.
+An additional CLI test proves a missing repository credential reports its exact
+access-only stage without a network call or repeated login. The combined focused
+inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
+execution; no management-access or migration completion is claimed.

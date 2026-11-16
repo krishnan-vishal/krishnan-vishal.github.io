@@ -512,3 +512,13 @@ private recipient key and decrypted contents must never be copied into chat, Git
 or reports. If the existing repository secret is unavailable or lacks authority,
 the access-only job fails without creating credentials or rerunning migration.
 The failed GitHub job identifies the specific missing-secret/HTTP failure.
+
+
+### Access-repair follow-up checks
+
+Normal validation runs retain the exact required `M41 Payload CMS validation`
+identity; only access-repair runs include the non-secret request ID in their title.
+An additional CLI test proves a missing repository credential reports its exact
+access-only stage without a network call or repeated login. The combined focused
+inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
+execution; no management-access or migration completion is claimed.

@@ -2,6 +2,8 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 import fs from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { coreProjectRef, verifyManagementAccess, sealManagementSession, openManagementSession } from '../../scripts/m41/management-session.mjs'
 
 const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 3072,
@@ -57,4 +59,15 @@ test('workflow isolates credential repair to owner dispatch and skips CMS builds
   assert.match(source, /GPIR_SUPABASE_DEPLOY_TOKEN: \$\{\{ secrets.GPIR_SUPABASE_DEPLOY_TOKEN \}\}/)
   assert.match(source, /management-envelope.json/)
   assert.doesNotMatch(source, /path:.*(?:management-session\.json|private\.pem)/)
+})
+
+
+test('missing repository credential reports the exact access-only failure without a login loop or network call', () => {
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../../scripts/m41/repair-management-access.mjs', import.meta.url)), '--seal'],
+    { encoding: 'utf8', env: { ...process.env, GPIR_SUPABASE_DEPLOY_TOKEN: '' } })
+  assert.equal(result.status, 1)
+  const output = JSON.parse(result.stderr)
+  assert.equal(output.stage, 'verify existing repository deployment credential')
+  assert.match(output.message, /unavailable or malformed/)
+  assert.equal(result.stdout, '')
 })

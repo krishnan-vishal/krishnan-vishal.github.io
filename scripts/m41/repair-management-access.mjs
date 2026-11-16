@@ -26,6 +26,7 @@ function gh(args) {
   return result.stdout
 }
 async function seal() {
+  stage = 'verify existing repository deployment credential'
   const id = process.env.GPIR_RECOVERY_ID
   const publicPEM = Buffer.from(process.env.GPIR_RECOVERY_PUBLIC_KEY || '', 'base64').toString('utf8')
   const token = process.env.GPIR_SUPABASE_DEPLOY_TOKEN
@@ -113,7 +114,7 @@ try {
   else await repair()
 } catch (error) {
   // Never relay native crypto, HTTP or subprocess diagnostics containing tokens.
-  const safe = error.message.startsWith('Existing repository deployment credential') || error.message.startsWith('Existing-secret access-repair job') || error.message.startsWith('Access-repair job is still pending')
+  const safe = error.message.startsWith('Existing management credential') || error.message.startsWith('Existing repository deployment credential') || error.message.startsWith('Existing-secret access-repair job') || error.message.startsWith('Access-repair job is still pending')
   console.error(JSON.stringify({ status: 'MANAGEMENT_ACCESS_NOT_REPAIRED', stage, message: safe ? error.message : 'Access repair stopped; private request and existing work preserved. No credential values printed and no migration/deployment performed.' }))
   process.exitCode = 1
 }

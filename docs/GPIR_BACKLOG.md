@@ -905,3 +905,13 @@ encrypted handoff and private runner acceptance are NOT yet evidenced.
 M41 remains OPEN. This is an executable access-only correction, not deployment or
 migration completion. No Codespace run or manual workflow dispatch was performed
 from this agent workspace; private terminal execution is still required.
+
+
+### Access-repair follow-up checks
+
+Normal validation runs retain the exact required `M41 Payload CMS validation`
+identity; only access-repair runs include the non-secret request ID in their title.
+An additional CLI test proves a missing repository credential reports its exact
+access-only stage without a network call or repeated login. The combined focused
+inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
+execution; no management-access or migration completion is claimed.
