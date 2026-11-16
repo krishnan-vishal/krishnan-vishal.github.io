@@ -15,8 +15,9 @@ async function main() {
     }
     const marker = JSON.parse((await bytes('assets/data/cms-source.json')).toString('utf8'));
     if (marker.source !== 'payload' || marker.snapshot !== source.manifest.snapshot) throw new Error('Live website is not delivering the selected Payload snapshot.');
-    const pending = source.manifest.files.slice();
+    const pending = [...source.manifest.files, ...source.manifest.protectedFiles.map(item => ({ ...item, protected: true }))];
     let verified = 0;
+    let protectedVerified = 0;
     // Four bounded readers verify actual delivery bytes, including media, signed-out
     // pages and reader shells. This does not claim authenticated engine acceptance.
     await Promise.all(Array.from({ length: 4 }, async () => {
@@ -24,12 +25,14 @@ async function main() {
             const item = pending.shift();
             const file = item.path.endsWith('/index.html') ? item.path.slice(0, -10) : item.path;
             const content = await bytes(file);
-            site.verifyBytes(item, content);
-            verified++;
+            if (item.protected) {
+                if (site.sha256(content) !== item.sha256) throw new Error(`Preserved engine differs live: ${item.path}`);
+                protectedVerified++;
+            } else { site.verifyBytes(item, content); verified++; }
         }
     }));
     const report = { status: 'LIVE_PAYLOAD_BYTES_VERIFIED', origin, snapshot: source.manifest.snapshot,
-        sourceCommit: source.manifest.sourceCommit, managedFilesVerified: verified,
+        sourceCommit: source.manifest.sourceCommit, managedFilesVerified: verified, protectedEngineFilesVerified: protectedVerified,
         authenticatedEngineAcceptance: 'NOT_ASSERTED_BY_STATIC_BYTE_VERIFICATION' };
     const output = path.resolve(process.argv[2] || '.migration-data/m41-live-verification.json');
     fs.mkdirSync(path.dirname(output), { recursive: true });
@@ -38,3 +41,4 @@ async function main() {
 }
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });
 module.exports = { main };
+

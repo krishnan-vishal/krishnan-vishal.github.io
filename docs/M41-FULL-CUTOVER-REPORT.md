@@ -490,3 +490,50 @@ Full-app TypeScript/Worker/Integrity CI remains required before private executio
 No new secrets, variables, dependencies, services, schema/role/entitlement changes,
 Contentful writes, CMS rebuild or repeat export. The repaired session and original
 input/cursor remain. Actual final import/source switch/live acceptance pending.
+
+
+## 2026-11-16 — post-merge website recovery; no repeat import
+
+Owner-supplied private evidence confirms import completion: snapshot
+`f8f9a19b12292fb4395220076f4d87264b0fe7d70c02cd89b7f7d1b5330e5837`,
+835 managed files, 93 protected engine files, 112 Contentful entries, 5 assets,
+385 created and 682 reused operations. Source edition remains
+`7111f7fbaba174a0291ec3f1210566fc0ce0925f`.
+Contentful writes/modifications/deletions remain zero.
+
+PR #580 merged as `e5ed55a2b1e7260627dc27e37286db23a539aa9c`; source-lock
+commit `198dbb21cb2ee41634591be6477f4167ccc91daa`.
+The existing two editorial consumers were deployed. The website build failed on
+incomplete JSON at offsets 282624 and 380928; its completion marker is absent.
+One subsequent request returned HTTP 503. The later HTTP 200 header-only probe
+cancelled its body and did NOT prove complete JSON delivery. No observed Worker
+exception has established the transport truncation cause.
+
+The reader correction requests uncompressed JSON, consumes/parses the full body,
+and retries only transient read/JSON failures and HTTP 502/503/504, at most three
+attempts per request. HTTP 401/403/429, signature/hash mismatches and immutable
+content conflicts do not trigger broader fallback. Errors identify endpoint,
+immutable blob key, managed path, HTTP status, body size and attempt; never body,
+authorization header or credentials. Verified bytes are atomically cached under
+the signed snapshot, rehashed when reused, and retained if the build stops. Cache
+tampering fails closed and is preserved. Output replacement remains after all
+content verification. This is read recovery, not proof of the production cause
+or successful deployment.
+
+`scripts/m41/finish-website.mjs --background` is the post-merge continuation.
+It checks saved import/source-lock/PR merge identity, preserves the previous
+consolidated report, takes the existing release lock, and reuses existing private
+CMS credentials. It performs no import, export, management-access repair, merge,
+secret update, CMS build/deployment, or Supabase function/schema change.
+It builds the selected edition, deploys only the existing website Worker, and
+executes actual live byte checks for managed content AND the protected engine
+files. A selected snapshot already live is verified rather than redeployed.
+Existing reader acceptance is used only if a private reader token already exists;
+absence is recorded as protected acceptance pending, never a full completion.
+
+58 focused Node tests PASS locally, including seven response/cache tests and one
+post-merge identity test; changed JavaScript syntax PASS. These corrections are
+on the original working branch after PR #580 merged; they are not on main, and
+no new PR or main push is created. New remote CI and private continuation have
+not run. The existing validation workflow includes the new tests.
+M41 remains OPEN pending actual public and protected delivery evidence.
