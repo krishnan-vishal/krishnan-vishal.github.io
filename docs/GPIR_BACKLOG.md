@@ -719,3 +719,30 @@ config edits and partial import evidence. Current-head remote CI must pass befor
 private production continuation. Agent has connected GitHub access but no private
 Codespace terminal, credentials or reader session. No private import/live acceptance
 performed from this agent workspace; M41 remains OPEN.
+
+
+## 2026-11-16 — read-only Core management credential selection
+
+Owner's post-CMS continuation at `6e00295` passed repository environment inventory,
+existing Wrangler/Hyperdrive account and read-only Contentful access. It stopped
+at preflight on `CLI_PERMISSION` during existing Core key lookup; stages=[], zero
+Contentful writes, no new deployment or import. The previous release report is
+preserved; the new failure is in `resume-preflight-failure.json`.
+
+Confirmed source defect: fallback to an already authenticated stored Supabase CLI
+login handled an environment PAT's authentication refusal (401), but not its
+permission refusal (403). A token scoped outside Core can return 403; this is a
+possible cause, not a proven diagnosis of the private token. The corrected
+credential selector tries the existing stored CLI login once for either category,
+only during read-only key inventory or function listing. It never retries writes,
+changes roles/scopes, creates/rotates keys, mutates the parent environment or
+retries a selected session. A successful stored session is reused for later
+management commands; actual Core key authority must still pass the existing
+read-only Core request. A refusal of both sessions remains blocked.
+
+28 focused tests and runner syntax PASS locally. New tests cover 401/403 selection,
+parent-settings preservation, no write retry and bounded repeated refusal.
+Pinned CLI 2.121.0 retained; no dependency, schema, runtime CMS source or TLS change.
+Same post-CMS command and PR #580 only. CMS version 92fab47e remains the selected
+checkpoint; generated files and stashes preserved. Current-head CI/private
+continuation and actual public/protected live delivery remain required. M41 OPEN.

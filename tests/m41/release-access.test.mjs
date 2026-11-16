@@ -247,3 +247,39 @@ test('only the observed Next-generated semantic edits can accompany continuation
   assert.throws(() => verifiedNextBuildChanges(original, { ...actual, next: generated + 'import "other";' }))
   assert.throws(() => verifiedNextBuildChanges(original, { ...actual, config: actual.config.replace('"strict": true', '"strict": false') }))
 })
+
+test('read-only Core management lookup can reuse stored login after scoped environment PAT returns 401 or 403', async () => {
+  const { existingSupabaseManagementSession } = await import('../../scripts/m41/release-access.mjs')
+  for (const code of ['CLI_AUTHENTICATION', 'CLI_PERMISSION']) {
+    const env = { SUPABASE_ACCESS_TOKEN: 'fixture-scoped-management', KEEP_SETTING: 'fixture-preserved' }
+    const calls = []
+    const result = existingSupabaseManagementSession(selected => {
+      calls.push(selected)
+      if (selected.SUPABASE_ACCESS_TOKEN) throw Object.assign(new Error('fixture-denied'), { code })
+      return 'fixture-read-only-result'
+    }, env, { readOnly: true })
+    assert.equal(result.value, 'fixture-read-only-result')
+    assert.equal(result.usedStoredLogin, true)
+    assert.equal(calls.length, 2)
+    assert.equal(result.environment.SUPABASE_ACCESS_TOKEN, undefined)
+    assert.equal(result.environment.KEEP_SETTING, env.KEEP_SETTING)
+    assert.equal(env.SUPABASE_ACCESS_TOKEN, 'fixture-scoped-management')
+  }
+})
+
+test('management credential fallback never retries writes, selected sessions, unrelated failures or repeated refusals', async () => {
+  const { existingSupabaseManagementSession } = await import('../../scripts/m41/release-access.mjs')
+  for (const [env, options, code, expectedCalls] of [
+    [{ SUPABASE_ACCESS_TOKEN: 'fixture-scoped' }, {}, 'CLI_PERMISSION', 1],
+    [{ SUPABASE_ACCESS_TOKEN: 'fixture-scoped' }, { readOnly: true, sessionSelected: true }, 'CLI_PERMISSION', 1],
+    [{}, { readOnly: true }, 'CLI_PERMISSION', 1],
+    [{ SUPABASE_ACCESS_TOKEN: 'fixture-scoped' }, { readOnly: true }, 'CLI_CONNECTION', 1],
+    [{ SUPABASE_ACCESS_TOKEN: 'fixture-scoped' }, { readOnly: true }, 'CLI_PERMISSION', 2]
+  ]) {
+    let calls = 0
+    assert.throws(() => existingSupabaseManagementSession(() => {
+      calls++; throw Object.assign(new Error('fixture-denied'), { code })
+    }, env, options), /fixture-denied/)
+    assert.equal(calls, expectedCalls)
+  }
+})

@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint } from './release-access.mjs'
+import { existingCloudflareAccount, existingContentfulDeliveryToken, existingCoreReleaseKey, supabaseProjectBoundaries, githubEnvironmentPlan, privateSupabaseFailure, verifiedNextBuildChanges, verifiedCMSCheckpoint, existingSupabaseManagementSession } from './release-access.mjs'
 import { directSupabaseOrigin, parseCliJson, validateHyperdrive } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { requireSuccessfulCI, productionSettings } from '../../apps/gpir-cms/scripts/release-config.mjs'
 
@@ -62,17 +62,17 @@ function supabase(args, options = {}) {
       else throw new Error('Existing Supabase CLI could not start; no deployment attempted.')
     }
   }
-  const invoke = environment => run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args], { ...options, environment })
-  try { return invoke(supabaseEnvironment || process.env) } catch (error) {
-    if (error.code !== 'CLI_AUTHENTICATION' || supabaseEnvironment || !process.env.SUPABASE_ACCESS_TOKEN) throw error
-    // An expired env PAT must not shadow an existing authenticated CLI login.
-    const storedLogin = { ...process.env }
-    delete storedLogin.SUPABASE_ACCESS_TOKEN
-    const result = invoke(storedLogin)
-    supabaseEnvironment = storedLogin
+  const readOnly = (args[0] === 'projects' && args[1] === 'api-keys') ||
+    (args[0] === 'functions' && args[1] === 'list')
+  const invoke = environment => run(supabaseInvocation[0], [...supabaseInvocation.slice(1), ...args],
+    { ...options, ...(readOnly ? { privateOutput: true } : {}), environment })
+  const session = existingSupabaseManagementSession(invoke, supabaseEnvironment || process.env,
+    { readOnly, sessionSelected: Boolean(supabaseEnvironment) })
+  if (session.usedStoredLogin) {
+    supabaseEnvironment = session.environment
     report.supabaseManagementAuthentication = 'EXISTING_STORED_CLI_LOGIN'
-    return result
   }
+  return session.value
 }
 async function checks(sha) {
   for (let attempt = 0; attempt < 80; attempt++) {

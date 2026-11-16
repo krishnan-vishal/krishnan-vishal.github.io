@@ -1,6 +1,19 @@
 import { directSupabaseOrigin } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
 import { isDeepStrictEqual } from 'node:util'
 
+// An environment PAT can be valid yet scoped to a different project (HTTP 403).
+// Retry only a read-only management request using an already stored CLI login.
+// Never retry a production write or silently substitute a project service key.
+export function existingSupabaseManagementSession(invoke, environment, { readOnly = false, sessionSelected = false } = {}) {
+  try { return { value: invoke(environment), environment, usedStoredLogin: false } } catch (error) {
+    if (!readOnly || sessionSelected || !environment.SUPABASE_ACCESS_TOKEN ||
+        !['CLI_AUTHENTICATION', 'CLI_PERMISSION'].includes(error.code)) throw error
+    const stored = { ...environment }
+    delete stored.SUPABASE_ACCESS_TOKEN
+    return { value: invoke(stored), environment: stored, usedStoredLogin: true }
+  }
+}
+
 // Accept only the exact semantic changes made by the completed Next.js build.
 // These working files are preserved, never reset, stashed or committed by release.
 export function verifiedNextBuildChanges(original, current) {
