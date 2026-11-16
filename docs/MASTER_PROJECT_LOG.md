@@ -3107,3 +3107,43 @@ or draft-writer evidence; it still rejects partially executed production release
 24 focused access/resume tests, syntax and unchanged secret scan pass locally.
 PR #580 only. Existing environment protections and Contentful remain unchanged;
 actual migration/live cutover pending. M41 remains OPEN.
+
+
+## 2026-11-16 — M41 deployed-CMS checkpoint reconciled; guarded continuation
+
+Owner supplied the private release evidence for source
+`8c0637635dabab89d0d7ad0c924adf9ffa3bff0a`, CMS deployment version
+`92fab47e-ee45-4b81-bbe8-b69e720b3d80`. Status is
+`DEPLOYED_PUBLIC_SMOKE_VERIFIED`; admin HTTP 200 and anonymous user null.
+This supersedes the older saved 13:23 UTC environment-provisioning failure for
+the CMS deployment stage only. Editorial live login remains pending; no completed
+content import, source switch or public/protected delivery is claimed.
+
+The existing release worktree is `/workspaces/m41-full-cutover-suddBZ`.
+Owner's read-only inspection found only two tracked build-generated modifications:
+`apps/gpir-cms/next-env.d.ts` and `apps/gpir-cms/tsconfig.json`.
+They are preserved. The Codespace has 2.5 GB free on a 32 GB volume; this is
+development storage, not production hosting capacity.
+
+PR #580 alone gains an explicit post-CMS continuation. It verifies the saved
+evidence, unchanged deployed CMS runtime source and the sole active Cloudflare
+version using a read-only deployment-status query. It accepts only the exact
+observed Next-generated semantic changes, preserves the previous report/generated
+patch privately, and skips npm ci, CMS build and CMS redeployment. It refuses
+later/partial import evidence and checks at least 1 GiB available before import.
+Preflight failure is saved separately so the old report survives. Entered release
+stages are now persisted before their commands, distinguishing an interrupted
+stage from completed evidence.
+
+The continuation explicitly authorizes restoring the existing draft writer after
+the normal merge, with Payload primary and Contentful writes blocked. Existing
+environments/protections, all stashes/worktrees, URLs, both tickers, Smart Cards,
+Supabase engines, JWT policies, validation thresholds and expiry rules are retained.
+Contentful remains unchanged. No cleanup/deletion or paid infrastructure added.
+
+Validation: 26 focused access/resume tests and both changed executable syntax
+checks PASS locally. New cases reject deployment drift, split traffic, unexpected
+config edits and partial import evidence. Current-head remote CI must pass before
+private production continuation. Agent has connected GitHub access but no private
+Codespace terminal, credentials or reader session. No private import/live acceptance
+performed from this agent workspace; M41 remains OPEN.

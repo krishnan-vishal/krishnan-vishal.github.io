@@ -23,6 +23,21 @@ function git(directory, args, capture = true) {
 }
 async function main() {
 try {
+  if (process.argv.includes('--after-cms')) {
+    if (repository !== '/workspaces/m41-full-cutover-suddBZ') throw new Error('Select the owner-evidenced existing release checkout; no alternate checkout was created.')
+    const before = git(repository, ['rev-parse', 'HEAD']).trim()
+    const version = '92fab47e-ee45-4b81-bbe8-b69e720b3d80'
+    const evidence = JSON.parse(fs.readFileSync(path.join(repository, 'apps/gpir-cms/.wrangler/m41-production-evidence.json'), 'utf8'))
+    if (evidence.deploymentVersion !== version || evidence.sha !== '8c0637635dabab89d0d7ad0c924adf9ffa3bff0a') throw new Error('CMS evidence differs from the owner-confirmed checkpoint.')
+    // Git protects all local changes during this fast-forward; no reset/stash/clean.
+    git(repository, ['fetch', 'origin', 'fix/m41-cloudflare-sharp-admin-runtime-20261115'], false)
+    git(repository, ['merge', '--ff-only', 'FETCH_HEAD'], false)
+    console.log('M41: preserved existing checkout ' + before.slice(0, 7) + '; inspecting post-CMS continuation')
+    const run = spawnSync(process.execPath, ['scripts/m41/execute-cutover.mjs', '--execute', '--resume-after-cms=' + version, '--restore-draft-writer'],
+      { cwd: repository, stdio: 'inherit', env: process.env })
+    process.exitCode = run.status ?? 1
+    return
+  }
   const target = git(repository, ['rev-parse', 'FETCH_HEAD']).trim()
   const blocks = git(repository, ['worktree', 'list', '--porcelain']).trim().split(/\n\n+/)
   const candidates = blocks.flatMap(block => {
@@ -51,3 +66,4 @@ try {
 
 }
 if (process.argv[1] === '-' || (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))) await main()
+
