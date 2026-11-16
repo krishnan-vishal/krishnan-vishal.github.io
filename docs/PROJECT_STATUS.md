@@ -2,6 +2,16 @@
 
 ## Current handoff
 
+## 2026-11-16 — standalone shutdown correction, PR #580
+
+Saved batch confirmed at 800 (124 created/676 reused); the unfinished work must
+continue from that cursor. Post-checkpoint child shutdown is now bounded and
+explicit for both existing Payload CLI stages; query/data errors still fail.
+No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
+required CI/private execution and actual live acceptance pending.
+Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
+
+
 ## 2026-11-16 — finish from saved operation 775 in durable bounded batches
 
 Production observation increased from 641 to 742 distinct managed-content objects.

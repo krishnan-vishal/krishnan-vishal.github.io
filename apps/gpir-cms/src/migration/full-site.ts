@@ -99,12 +99,14 @@ async function main() {
       sourceValidationChanged: false, publicSourceSwitched: false }
     checkpoint.atomic(output, report)
     progress('COMPLETE', { created: cursor.created, reconciled: cursor.reconciled })
-    process.stdout.write(JSON.stringify(report) + '\n')
+    return report
   }
-  if (cursor.phase === 'complete') { coverage(); return }
+  if (cursor.phase === 'complete') return { ...coverage(), cleanupStatus: 'NO_DATABASE_SESSION' }
 
   const published = new Map<string, any>(delivery.entries.map((item: any) => [item.sys.id, item]))
   const payload = await getPayload({ config })
+  let result: Record<string, any> = {}
+  let cleanupStatus = 'NOT_STARTED'
   try {
     const client: any = payload
     async function immutable(key: string, value: any) {
@@ -164,13 +166,24 @@ async function main() {
     }
     const batch = await checkpoint.runBatch(plan, cursor, perform, update)
     cursor = batch.cursor
-    if (cursor.phase === 'complete') coverage()
-    else process.stdout.write(JSON.stringify({ status: batch.status, phase: cursor.phase, nextIndex: cursor.index,
-      created: cursor.created, reconciled: cursor.reconciled, completedBlobs: cursor.phase === 'blobs' ? cursor.index : manifest.files.length }) + '\n')
-  } finally { await payload.destroy() }
+    if (cursor.phase === 'complete') result = coverage()
+    else result = { status: batch.status, phase: cursor.phase, nextIndex: cursor.index,
+      created: cursor.created, reconciled: cursor.reconciled, completedBlobs: cursor.phase === 'blobs' ? cursor.index : manifest.files.length }
+  } finally {
+    // Work is already committed/checkpointed before cleanup. Bound only teardown,
+    // never a database write; a real task error still reaches the failure handler.
+    const cleanup = await checkpoint.closeBatch(() => payload.destroy())
+    cleanupStatus = cleanup.status
+    try { progress(progressState.phase || 'BATCH_SHUTDOWN', { cleanupStatus, cleanupErrorCode: cleanup.errorCode || null }) } catch {}
+  }
+  return { ...result, cleanupStatus }
 }
-main().catch((error) => {
+// This file is a standalone migration child, never a Worker runtime module.
+// Flush the result and exit after bounded cleanup so library handles cannot keep
+// an already-saved batch alive until the parent's five-minute process timeout.
+main().then(result => {
+  process.stdout.write(JSON.stringify(result) + '\n', () => process.exit(0))
+}).catch((error) => {
   try { progress('FAILED', { errorCode: checkpoint.failureCode(error) }) } catch {}
-  process.stderr.write('Content import batch failed; saved progress, cursor and original records are preserved. No cutover performed.\n')
-  process.exitCode = 1
+  process.stderr.write('Content import batch failed; saved progress, cursor and original records are preserved. No cutover performed.\n', () => process.exit(1))
 })

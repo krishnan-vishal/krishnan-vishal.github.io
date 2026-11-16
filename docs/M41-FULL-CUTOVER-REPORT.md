@@ -452,3 +452,41 @@ safe failure categories and preservation of interrupted temporary evidence.
 Required remote full-app TypeScript/Worker/Integrity checks must pass before
 private continuation. No production batch run or public/protected live cutover
 performed from this agent workspace; M41 remains OPEN.
+
+
+## 2026-11-16 — saved batch 800; standalone child shutdown corrected
+
+Owner's 35ef3ad run emitted BATCH_CHECKPOINT_SAVED at blobs:800, created=124,
+reconciled=676, completedBlobs=800. That is a completed 25-operation batch
+(24 created, 1 reused) beyond the prior 775 checkpoint, matching the observed
+742 -> 766 distinct objects. The parent then reported non-success using only the
+child's warning/stdout. No subsequent data error was recorded in that output.
+
+Confirmed code defect: the child printed success before an unbounded
+payload.destroy()/process shutdown, without explicitly exiting. The previous
+exit/signal/timeout metadata was omitted, so the exact termination signal is not
+claimed. The email-adapter warning is informational for this import; no email
+adapter, environment setting or credential is required to address this failure.
+
+Both standalone Payload children in this release (full-site import and native
+research-edition preparation) now bound teardown to five seconds, record safe
+cleanup status and explicitly exit after flushing output. This is after awaited
+database operations and durable cursor/report writes. Task/query failures still
+exit nonzero and are never converted to success. Teardown errors/deadlines are
+reported separately; operating-system process exit closes leftover handles of
+this isolated child. No Worker/runtime lifecycle or TLS policy changes.
+
+The parent logs saved cursor plus cleanup status; non-success diagnostics now
+include exit code, signal and spawn error code. The existing saved cursor takes
+precedence, so continuation starts at 800 without repeating 775-799. The same
+shutdown fix applies to the next existing research CLI to avoid the identical
+post-success wait there. Only these two reviewed offline files are excluded from
+unchanged Worker-source comparison and named in the pinned import-source allowlist.
+
+50 focused tests and JS syntax PASS locally. New cases cover normal/stalled/error
+cleanup, preservation of a genuine task failure despite cleanup failure, and an
+actual standalone child with leftover handles flushing and exiting successfully.
+Full-app TypeScript/Worker/Integrity CI remains required before private execution.
+No new secrets, variables, dependencies, services, schema/role/entitlement changes,
+Contentful writes, CMS rebuild or repeat export. The repaired session and original
+input/cursor remain. Actual final import/source switch/live acceptance pending.

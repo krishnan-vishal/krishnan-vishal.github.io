@@ -38,7 +38,7 @@ function run(command, args, { cwd = root, input, environment = process.env, time
     const failure = privateSupabaseFailure(result)
     throw Object.assign(new Error(failure.message), { code: failure.code })
   }
-  if (result.status !== 0) throw new Error(redact(`${command} failed: ${result.stderr || result.stdout || result.error?.message || 'no details'}`).slice(-5000))
+  if (result.status !== 0) throw new Error(redact(`${command} failed (exit=${result.status ?? 'none'}, signal=${result.signal || 'none'}, code=${result.error?.code || 'none'}): ${result.stderr || result.stdout || result.error?.message || 'no details'}`).slice(-5000))
   return result.stdout
 }
 function step(name) {
@@ -202,7 +202,7 @@ try {
     run('git', ['merge-base', '--is-ancestor', evidence.sha, sha])
     // Reuse only a deployment whose entire CMS runtime source is unchanged.
     run('git', ['diff', '--quiet', evidence.sha, sha, '--', 'apps/gpir-cms',
-      ':(exclude)apps/gpir-cms/src/migration/full-site.ts'])
+      ':(exclude)apps/gpir-cms/src/migration/full-site.ts', ':(exclude)apps/gpir-cms/src/migration/prepare-site-release.ts'])
     const savedExport = path.join(output, 'contentful')
     if (fs.existsSync(savedExport)) report.contentfulExport = verifiedContentfulExport(savedExport,
       { space: process.env.CONTENTFUL_SPACE_ID, environment: process.env.CONTENTFUL_ENVIRONMENT })
@@ -219,7 +219,7 @@ try {
         'tests/m41/release-access.test.mjs', 'tests/m41/management-session.test.mjs',
         'scripts/m41/management-session.mjs', 'scripts/m41/repair-management-access.mjs', 'scripts/m41/import-checkpoint.cjs',
         'tests/m41/import-checkpoint.test.mjs', '.github/workflows/payload-cms-ci.yml',
-        'apps/gpir-cms/src/migration/full-site.ts',
+        'apps/gpir-cms/src/migration/full-site.ts', 'apps/gpir-cms/src/migration/prepare-site-release.ts',
         'docs/M41-PRODUCTION-HANDOVER.md', 'docs/M41-FULL-CUTOVER-REPORT.md', 'docs/MASTER_PROJECT_LOG.md', 'docs/PROJECT_STATUS.md', 'docs/GPIR_BACKLOG.md'])
       if (changed.some(file => !allowed.has(file))) throw new Error('Managed source inputs changed since the interrupted import; preserve and reconcile instead of producing a new edition.')
     }
@@ -298,7 +298,8 @@ try {
       `--report=${migrationReport}`, `--progress=${path.join(output, 'import-progress.json')}`, `--cursor=${cursorFile}`,
       ...(resumeImport ? [`--source-commit=${report.importSourceCommit}`] : [])], { cwd: app, timeout: 5 * 60 * 1000 })
     const cursor = readJson(cursorFile)
-    console.log(`M41: saved import checkpoint ${cursor.phase}:${cursor.index}; created=${cursor.created}, reused=${cursor.reconciled}`)
+    const batchProgress = readJson(path.join(output, 'import-progress.json'))
+    console.log(`M41: saved import checkpoint ${cursor.phase}:${cursor.index}; created=${cursor.created}, reused=${cursor.reconciled}; cleanup=${batchProgress.cleanupStatus || 'NOT_REPORTED'}`)
     if (cursor.phase === 'complete') break
     const position = `${cursor.phase}:${cursor.index}`
     if (lastCursor === position) throw new Error('Import batch made no progress; saved cursor and records retained.')

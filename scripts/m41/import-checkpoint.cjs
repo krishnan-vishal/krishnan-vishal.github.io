@@ -82,4 +82,14 @@ function failureCode(error) {
     if (message === 'Source entry has no identity.') return 'SOURCE_IDENTITY_MISSING';
     return 'DETAILS_WITHHELD';
 }
-module.exports = { phases, digest, identity, initialize, validate, atomic, runBatch, failureCode };
+async function closeBatch(destroy, { timeoutMs = 5000 } = {}) {
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000) throw new Error('Invalid standalone shutdown deadline.');
+    let timer;
+    try {
+        return await Promise.race([
+            Promise.resolve().then(destroy).then(() => ({ status: 'CLOSED' }), error => ({ status: 'CLEANUP_ERROR', errorCode: failureCode(error) })),
+            new Promise(resolve => { timer = setTimeout(() => resolve({ status: 'CLEANUP_DEADLINE_REACHED' }), timeoutMs); })
+        ]);
+    } finally { clearTimeout(timer); }
+}
+module.exports = { phases, digest, identity, initialize, validate, atomic, runBatch, failureCode, closeBatch };

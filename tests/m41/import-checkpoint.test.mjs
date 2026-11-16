@@ -108,3 +108,37 @@ test('an interrupted temporary checkpoint is retained before the next atomic sav
         assert.equal(fs.readFileSync(path.join(directory, 'checkpoints', evidence[0]), 'utf8'), 'fixture-interrupted-evidence')
     } finally { fs.rmSync(directory, { recursive: true, force: true }) }
 })
+
+test('standalone database cleanup completes normally or returns a bounded deadline without hanging the batch', async () => {
+    let closed = false
+    assert.deepEqual(await checkpoint.closeBatch(async () => { closed = true }), { status: 'CLOSED' })
+    assert.equal(closed, true)
+    const result = await checkpoint.closeBatch(() => new Promise(() => {}), { timeoutMs: 10 })
+    assert.equal(result.status, 'CLEANUP_DEADLINE_REACHED')
+    const failed = await checkpoint.closeBatch(() => { throw Object.assign(new Error('fixture-private-cleanup'), { code: 'ECONNRESET' }) })
+    assert.deepEqual(failed, { status: 'CLEANUP_ERROR', errorCode: 'ECONNRESET' })
+})
+
+test('a real task failure remains a failure even if standalone cleanup also fails', async () => {
+    let saved = false
+    await assert.rejects(async () => {
+        try {
+            await checkpoint.runBatch(small, checkpoint.initialize(small), async () => { throw Error('fixture-real-query-failure') }, () => { saved = true })
+        } finally {
+            await checkpoint.closeBatch(() => { throw Error('fixture-cleanup-failure') })
+        }
+    }, /real-query-failure/)
+    assert.equal(saved, false)
+})
+
+test('a saved standalone batch flushes its result and exits despite leftover library handles', async () => {
+    const { spawnSync } = await import('node:child_process')
+    const module = new URL('../../scripts/m41/import-checkpoint.cjs', import.meta.url).href
+    const code = `import checkpoint from ${JSON.stringify(module)};
+        setInterval(() => {}, 1000);
+        const cleanup = await checkpoint.closeBatch(() => new Promise(() => {}), { timeoutMs: 10 });
+        process.stdout.write(JSON.stringify({ savedPosition: 800, cleanupStatus: cleanup.status }) + '\\n', () => process.exit(0));`
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', code], { encoding: 'utf8', timeout: 5000 })
+    assert.equal(result.status, 0, result.stderr)
+    assert.deepEqual(JSON.parse(result.stdout), { savedPosition: 800, cleanupStatus: 'CLEANUP_DEADLINE_REACHED' })
+})

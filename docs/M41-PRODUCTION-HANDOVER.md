@@ -607,3 +607,15 @@ Success is not a batch checkpoint or background launch. Final migration coverage
 production source switch, public bytes and real authorized protected Payload read
 remain required for overall M41 closure. Preserve a failure/cursor instead of
 starting a duplicate runner.
+
+
+## 2026-11-16 — standalone shutdown correction, PR #580
+
+Saved batch confirmed at 800 (124 created/676 reused); the unfinished work must
+continue from that cursor. Post-checkpoint child shutdown is now bounded and
+explicit for both existing Payload CLI stages; query/data errors still fail.
+No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
+required CI/private execution and actual live acceptance pending.
+Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
+
+Use the existing **Resume remaining batches from the saved import cursor** command above once current-head CI passes. It automatically uses the latest durable position (800); do not rerun access repair or recreate the source export. The background runner continues independently of Codex/Copilot after launch; keep Codespace running and preserve the final log/report.

@@ -10,6 +10,7 @@ import { legacyRecord, releaseDecision } from '../release/release'
 const require = createRequire(import.meta.url)
 const site = require('../../../../scripts/m41/site-content.cjs')
 const editions = require('../../../../scripts/m41/research-edition.cjs')
+const checkpoint = require('../../../../scripts/m41/import-checkpoint.cjs')
 const option = (name: string) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3)
 
 async function main() {
@@ -94,6 +95,16 @@ async function main() {
     const report = { status: 'EDITION_PREPARED_NOT_DEPLOYED', snapshot: manifest.snapshot, parentSnapshot: parent, released: released.length, managedFiles: manifest.files.length }
     await writeFile(output, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 })
     console.log(JSON.stringify(report))
-  } finally { await rm(root, { recursive: true, force: true }); await payload.destroy() }
+  } finally {
+    const cleanup = await checkpoint.closeBatch(async () => {
+      await rm(root, { recursive: true, force: true })
+      await payload.destroy()
+    })
+    if (cleanup.status !== 'CLOSED') console.log(JSON.stringify({ stage: 'standalone-edition-shutdown', cleanupStatus: cleanup.status, errorCode: cleanup.errorCode || null }))
+  }
 }
-main().catch(() => { console.error('Native research edition blocked. No deployment performed; existing edition and validation states preserved.'); process.exitCode = 1 })
+// Only this standalone child exits; Worker endpoints and release checks are unchanged.
+main().then(() => { process.stdout.write('', () => process.exit(0)) }).catch(() => {
+  process.stderr.write('Native research edition blocked. No deployment performed; existing edition and validation states preserved.\n', () => process.exit(1))
+})
+
