@@ -1,8 +1,8 @@
 name: M40 Contentful editorial draft handoff
 
-# Creates unpublished gpirPublication drafts for source-verified T3 candidates that await an
-# editorial decision. It never publishes: an editor approves and publishes in Contentful, after
-# which the existing gpir-intelligence-publish cron promotes the entry to the reader APIs.
+# Creates unpublished drafts in the selected primary CMS for source-verified T3
+# candidates. The existing publisher and Supabase gates remain authoritative.
+# Contentful remains intact as recovery storage after Payload cutover.
 on:
   schedule:
     - cron: '17,47 * * * *'
@@ -30,11 +30,14 @@ jobs:
     timeout-minutes: 10
     environment: contentful-production
     env:
+      GPIR_CONTENTFUL_READ_ONLY: 'true'
+      GPIR_EDITORIAL_SOURCE: ${{ vars.GPIR_EDITORIAL_SOURCE }}
+      PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+      PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
       SUPABASE_URL: https://qlnvhfapctcpzqyuhhth.supabase.co
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
       CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
       CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
-      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,7 +48,7 @@ jobs:
           node --test
           tests/m40/contentful-editorial-drafts.test.mjs
           tests/m39-t3-editorial-approval.test.mjs
-      - name: Hand off eligible candidates to Contentful drafts
+      - name: Hand off eligible candidates to the primary CMS
         run: >-
           node scripts/m40/sync-contentful-editorial-drafts.mjs
           ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run') && '--dry-run' || '' }}

@@ -24,12 +24,14 @@ const RULES = Object.freeze([
 // Exact reviewed source lines only. A path, line, rule, or content change makes
 // the finding unapproved and fails the scan. Fingerprints contain no values.
 const FALSE_POSITIVE_ALLOWLIST = Object.freeze([
+  ['apps/gpir-cms/test/auth-runtime.test.ts', 8, 'GENERIC_PASSWORD_ASSIGNMENT', 'd8c692313a2670ec96647ea8112d2cdb51e3453399dd1a07752dbf653747b75f', 'Synthetic authentication fixture only; not used for any live account or external login.'],
+  ['apps/gpir-cms/test/auth-runtime.test.ts', 29, 'GENERIC_PASSWORD_ASSIGNMENT', 'b763f29eebf9f551a6dd688914450154f7cdb2284a1966de9b3d467c51f1a559', 'Synthetic authentication fixture only; not used for any live account or external login.'],
   ['assets/js/gpir-password-recovery.js', 61, 'GENERIC_PASSWORD_ASSIGNMENT', 'b3e642eba6fb881dda19bf422282e1592316862baefecc5eecb404bdb2af7639', 'Passes reader-entered recovery input to Supabase updateUser at runtime; no embedded credential.'],
   ['assets/js/gpir-reader-auth.js', 131, 'GENERIC_PASSWORD_ASSIGNMENT', 'd3f1f3c2706a0dee86afeeb0612c582c2211c5268f0bf220203a253af8e4ea9d', 'Reads a password field from FormData; no literal value.'],
   ['scripts/m36/validate-stablecoins-c2c-real-edge.js', 74, 'GENERIC_API_KEY_ASSIGNMENT', '52958f768cfae44c204daec2234e22b710b69f3e332accfebe5ad291b82a06b3', 'Uses an environment-supplied secret variable as a request header.'],
   ['scripts/m36/validate-stablecoins-c2c-real-edge.js', 75, 'GENERIC_PASSWORD_ASSIGNMENT', 'be3f38546a938100a2a05f6a99f900a28a74acb1e60be976f0c57c0d85c42814', 'Generates an ephemeral random validation credential at runtime.'],
   ['scripts/m36/validate-stablecoins-c2c-real-edge.js', 88, 'GENERIC_API_KEY_ASSIGNMENT', '5d35f02f94b65598b2b6cd2c16aa405b47a55fd3b86391e8b0e5850c11a9faaa', 'Uses the same environment-supplied variable as a request header.'],
-  ['supabase/functions/gpir-protected-publication/handler.mjs', 117, 'GENERIC_API_KEY_ASSIGNMENT', '944814f2be0d6bf8b8ff1a424050cf5e8c7c862943efe384db8dd4444e0c6a60', 'References validated runtime configuration; no literal value.'],
+  ['supabase/functions/gpir-protected-publication/handler.mjs', 124, 'GENERIC_API_KEY_ASSIGNMENT', '944814f2be0d6bf8b8ff1a424050cf5e8c7c862943efe384db8dd4444e0c6a60', 'References validated runtime configuration; no literal value.'],
   ['supabase/functions/_shared/gpir-paypal.mjs', 79, 'GENERIC_API_KEY_ASSIGNMENT', '048054c91343080231ad55e22c467e27dad4765ea64dacf2dd8cabc0d310eedb', 'Uses validated runtime Supabase configuration for authenticated user lookup.'],
   ['supabase/functions/_shared/gpir-paypal.mjs', 91, 'GENERIC_API_KEY_ASSIGNMENT', 'c925b215684c4be464927f67f78a9a47773fdda21cad6d638886fa956620a518', 'Uses validated server-only Supabase configuration for an RPC header.'],
   ['supabase/functions/gpir-reader-summary/handler.mjs', 136, 'GENERIC_API_KEY_ASSIGNMENT', '22fa8cf77341a1ed030e284ec8d74d889379dde7fdd3797d70052cdd2f1499ad', 'Uses validated runtime Supabase configuration for authenticated user lookup.'],

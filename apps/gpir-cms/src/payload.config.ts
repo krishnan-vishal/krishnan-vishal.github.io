@@ -4,7 +4,6 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
-import sharp from 'sharp'
 import { Chapters } from './collections/Chapters'
 import { Countries } from './collections/Countries'
 import { EditorialMetadata } from './collections/EditorialMetadata'
@@ -13,23 +12,29 @@ import { Regions } from './collections/Regions'
 import { ReleaseEvents } from './collections/ReleaseEvents'
 import { ResearchPublications } from './collections/ResearchPublications'
 import { Users } from './collections/Users'
+import { editorialEndpoint } from './release/editorial-endpoint'
+import { siteReleaseEndpoint } from './release/site-endpoint'
 import { releaseEndpoint } from './release/endpoint'
+import { cmsDatabasePool } from './lib/database'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const storageConfigured = ['S3_BUCKET', 'S3_ENDPOINT', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY']
   .every((name) => Boolean(process.env[name]))
 
 export default buildConfig({
+  // Payload's supported setting for production Workers' PBKDF2 limit.
+  // Existing 600k hashes require one successful Node login to rehash at 100k.
+  auth: { passwordHashIterations: 100000 },
   admin: { user: Users.slug, meta: { titleSuffix: '— GPIR Editorial' } },
   collections: [Users, Regions, Countries, Chapters, EditorialMetadata, Media, ResearchPublications, ReleaseEvents],
   editor: lexicalEditor(),
-  endpoints: [releaseEndpoint],
+  endpoints: [releaseEndpoint, siteReleaseEndpoint, editorialEndpoint],
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000',
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   csrf: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   db: postgresAdapter({
-    pool: { connectionString: process.env.PAYLOAD_DATABASE_URI || '' },
+    pool: cmsDatabasePool(),
     schemaName: 'payload',
     idType: 'uuid',
     push: false,
@@ -53,6 +58,5 @@ export default buildConfig({
       },
     }),
   ],
-  sharp,
   typescript: { outputFile: path.resolve(dirname, '../payload-types.ts') },
 })

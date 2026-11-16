@@ -105,3 +105,17 @@ test('legacy Supabase JWT credentials retain authorization header', async () => 
   })
   assert.equal(headers?.get('authorization'), 'Bearer legacy-service-jwt')
 })
+
+test('publication release decisions use GPIR Core while the CMS database project remains unchanged', async () => {
+  const environment = { SUPABASE_URL: 'https://cmsproject.supabase.co', GPIR_SUPABASE_SECRET_KEY: 'sb_secret_fixture_cms',
+    GPIR_CORE_SUPABASE_URL: 'https://coreproject.supabase.co', GPIR_CORE_SUPABASE_SECRET_KEY: 'sb_secret_fixture_core' }
+  await releaseDecision(publication, environment, async (url, init) => {
+    assert.equal(url, 'https://coreproject.supabase.co/rest/v1/rpc/gpir_publication_release_decision')
+    const headers = new Headers(init?.headers)
+    assert.equal(headers.get('apikey'), 'sb_secret_fixture_core')
+    assert.equal(headers.has('authorization'), false)
+    return Response.json([{ access_class: 'ENTITLED', release_eligible: false }])
+  })
+  assert.equal(environment.SUPABASE_URL, 'https://cmsproject.supabase.co')
+  assert.equal(environment.GPIR_SUPABASE_SECRET_KEY, 'sb_secret_fixture_cms')
+})

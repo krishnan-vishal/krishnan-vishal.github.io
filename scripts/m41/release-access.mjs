@@ -1,0 +1,290 @@
+import { directSupabaseOrigin } from '../../apps/gpir-cms/scripts/hyperdrive-config.mjs'
+import { isDeepStrictEqual } from 'node:util'
+import fs from 'node:fs'
+import path from 'node:path'
+import { createHash } from 'node:crypto'
+
+export function acquireReleaseLock(directory, alive = pid => {
+  try { process.kill(pid, 0); return true } catch (error) {
+    if (error.code === 'ESRCH') return false
+    throw error
+  }
+}) {
+  fs.mkdirSync(directory, { recursive: true, mode: 0o700 })
+  const file = path.join(directory, 'release.lock')
+  const archive = reason => {
+    const target = path.join(directory, 'checkpoints')
+    fs.mkdirSync(target, { recursive: true, mode: 0o700 })
+    fs.renameSync(file, path.join(target, `${reason}-lock-${Date.now()}-${process.pid}.json`))
+  }
+  if (fs.existsSync(file)) {
+    const prior = JSON.parse(fs.readFileSync(file, 'utf8'))
+    if (!Number.isInteger(prior.pid) || prior.pid < 2 || alive(prior.pid)) throw new Error('Another release may be running; existing lock and checkpoints preserved.')
+    archive('interrupted')
+  }
+  fs.writeFileSync(file, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }) + '\n', { flag: 'wx', mode: 0o600 })
+  let released = false
+  return () => { if (!released) { archive('finished'); released = true } }
+}
+
+// Current workflow state controls today's API call. Restore intent controls only
+// the later source-switch completion; it must never cause a second disable call.
+export function pauseEditorialDraftWriter({ readState, disable, previouslyActive = false, restoreAuthorized = false }) {
+  const state = readState()
+  if (!['active', 'disabled_manually'].includes(state)) throw new Error('Editorial draft workflow has an unexpected state; original lifecycle preserved.')
+  if (state === 'active') {
+    try { disable() } catch (error) {
+      // Another actor may have paused it after our first GET. Accept only the
+      // desired observed state; preserve genuine permission/service errors.
+      if (readState() !== 'disabled_manually') throw error
+    }
+  }
+  return { observedState: state, wasActive: previouslyActive || state === 'active',
+    restoreAfterMerge: previouslyActive || state === 'active' || restoreAuthorized, paused: true }
+}
+
+// The exporter commits manifest.json last. Reuse a saved export only after every
+// JSON and downloaded media byte matches that manifest and the selected source.
+export function verifiedContentfulExport(directory, source) {
+  const digest = bytes => createHash('sha256').update(bytes).digest('hex')
+  const root = fs.realpathSync(directory)
+  const bytes = fs.readFileSync(path.join(root, 'manifest.json'))
+  const manifest = JSON.parse(bytes)
+  const names = ['contentTypes', 'editorInterfaces', 'locales', 'entries', 'assets', 'tags']
+  if (manifest.schemaVersion !== '1.0.0' || manifest.source?.space !== source.space ||
+      manifest.source?.environment !== source.environment || !Number.isFinite(Date.parse(manifest.exportedAt)) ||
+      !manifest.files || Object.keys(manifest.files).sort().join(',') !== [...names].sort().join(',')) throw new Error('Saved Contentful export source or manifest is incomplete; original files preserved.')
+  const archives = {}
+  for (const name of names) {
+    const content = fs.readFileSync(path.join(root, name + '.json'))
+    if (digest(content) !== manifest.files[name]) throw new Error('Saved Contentful export checksum mismatch; original files preserved.')
+    archives[name] = JSON.parse(content)
+    if (!Array.isArray(archives[name])) throw new Error('Saved Contentful export JSON is incomplete.')
+  }
+  for (const name of ['contentTypes', 'locales', 'entries', 'assets']) {
+    if (manifest.counts?.[name] !== archives[name].length) throw new Error('Saved Contentful export counts are incomplete.')
+    const ids = archives[name].map(item => item.sys?.id)
+    if (ids.some(id => typeof id !== 'string' || !id) || new Set(ids).size !== ids.length) throw new Error('Saved Contentful export identities are incomplete or duplicated.')
+  }
+  if (archives.contentTypes.some(item => item.sys?.id === 'gpirPayloadRecoveryV1') ||
+      archives.entries.some(item => item.sys?.contentType?.sys?.id === 'gpirPayloadRecoveryV1') ||
+      !archives.locales.some(item => item.default && item.code) ||
+      !Array.isArray(manifest.media) || manifest.counts.mediaFiles !== manifest.media.length) throw new Error('Saved Contentful export policy or media manifest is incomplete.')
+  const assetIDs = new Set(archives.assets.map(item => item.sys.id))
+  const localeCodes = new Set(archives.locales.map(item => item.code))
+  const expectedMedia = new Map()
+  for (const asset of archives.assets) for (const locale of localeCodes) {
+    const localized = asset.fields?.file
+    const file = localized && typeof localized === 'object' && !Array.isArray(localized) ?
+      (locale in localized ? localized[locale] : Object.values(localized)[0]) : localized
+    if (!file?.url) continue
+    const filename = path.basename(String(file.fileName || `${asset.sys.id}-${locale}`)).replace(/[^A-Za-z0-9._-]/g, '_')
+    expectedMedia.set(`media/${asset.sys.id}/${locale}/${filename}`, { assetId: asset.sys.id, locale, filename })
+  }
+  if (expectedMedia.size !== manifest.media.length) throw new Error('Saved export omits expected asset files.')
+  const paths = new Set()
+  for (const item of manifest.media) {
+    if (typeof item.relativePath !== 'string' || !item.relativePath.startsWith('media/') ||
+        item.relativePath.includes('\\') || item.relativePath.split('/').some(part => !part || part === '.' || part === '..') ||
+        paths.has(item.relativePath) || !assetIDs.has(item.assetId) || !localeCodes.has(item.locale) ||
+        !isDeepStrictEqual(expectedMedia.get(item.relativePath), { assetId: item.assetId, locale: item.locale, filename: item.filename })) throw new Error('Saved export media path or identity is invalid.')
+    const file = fs.realpathSync(path.join(root, item.relativePath))
+    if (!file.startsWith(root + path.sep)) throw new Error('Saved export media must remain inside its original backup.')
+    const content = fs.readFileSync(file)
+    if (content.length !== item.bytes || digest(content) !== item.sha256) throw new Error('Saved export media checksum mismatch; original files preserved.')
+    paths.add(item.relativePath)
+  }
+  return { status: 'VERIFIED_READ_ONLY_EXPORT', exportedAt: manifest.exportedAt, source: manifest.source,
+    counts: manifest.counts, manifestSha256: digest(bytes), jsonFilesVerified: names.length, mediaFilesVerified: paths.size }
+}
+
+// An environment PAT can be valid yet scoped to a different project (HTTP 403).
+// Retry only a read-only management request using an already stored CLI login.
+// Never retry a production write or silently substitute a project service key.
+export function existingSupabaseManagementSession(invoke, environment, { readOnly = false, sessionSelected = false } = {}) {
+  try { return { value: invoke(environment), environment, usedStoredLogin: false } } catch (error) {
+    if (!readOnly || sessionSelected || !environment.SUPABASE_ACCESS_TOKEN ||
+        !['CLI_AUTHENTICATION', 'CLI_PERMISSION'].includes(error.code)) throw error
+    const stored = { ...environment }
+    delete stored.SUPABASE_ACCESS_TOKEN
+    return { value: invoke(stored), environment: stored, usedStoredLogin: true }
+  }
+}
+
+// Accept only the exact semantic changes made by the completed Next.js build.
+// These working files are preserved, never reset, stashed or committed by release.
+export function verifiedNextBuildChanges(original, current) {
+  const expectedNext = original.next.replace('// This file is generated by Next.js conventions and should remain minimal.',
+    '// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.')
+    .replace('/// <reference types="next/image-types/global" />',
+      '/// <reference types="next/image-types/global" />\nimport "./.next/types/routes.d.ts";\nimport "./.next/types/root-params.d.ts";')
+  if (current.next !== original.next && current.next.trim() !== expectedNext.trim()) throw new Error('Unexpected next-env.d.ts changes; all work preserved.')
+  const baseline = JSON.parse(original.config), actual = JSON.parse(current.config)
+  const expected = structuredClone(baseline)
+  expected.compilerOptions.jsx = 'react-jsx'
+  if (!expected.include.includes('.next/dev/types/**/*.ts')) expected.include.push('.next/dev/types/**/*.ts')
+  if (!isDeepStrictEqual(actual, baseline) && !isDeepStrictEqual(actual, expected)) throw new Error('Unexpected tsconfig.json changes; all work preserved.')
+  return true
+}
+
+export function interruptedImportSource(prior, verifiedExport) {
+  const stage = 'export Contentful read-only and import the complete public edition into Payload'
+  if (!['IN_PROGRESS', 'BLOCKED_NOT_COMPLETE'].includes(prior?.status) ||
+      (prior.currentStage || prior.failedStage) !== stage || prior.contentfulWrites !== 0 ||
+      prior.contentfulExport?.manifestSha256 !== verifiedExport?.manifestSha256 ||
+      verifiedExport?.status !== 'VERIFIED_READ_ONLY_EXPORT') throw new Error('The interrupted import checkpoint or saved source export does not match.')
+  const sha = prior.importSourceCommit || prior.implementationCommit
+  if (!/^[a-f0-9]{40}$/.test(sha || '')) throw new Error('Original import source commit is missing; no new snapshot was invented.')
+  return sha
+}
+
+export function verifiedCMSCheckpoint({ evidence, deployedSHA, expectedVersion, origin, bindingId, caId, deployment, prior, laterFiles, resumeImport = false }) {
+  if (evidence?.status !== 'DEPLOYED_PUBLIC_SMOKE_VERIFIED' || evidence.sha !== deployedSHA ||
+      evidence.deploymentVersion !== expectedVersion || evidence.publicUrl !== origin || evidence.adminHTTP !== 200 ||
+      evidence.anonymousUser !== null || evidence.hyperdriveId !== bindingId || evidence.caId !== caId ||
+      evidence.sslmode !== 'verify-full' || evidence.queryCaching !== 'disabled') throw new Error('Saved CMS deployment evidence does not match the selected checkpoint.')
+  if (!Array.isArray(deployment?.versions) || deployment.versions.length !== 1 ||
+      deployment.versions[0].version_id !== expectedVersion || deployment.versions[0].percentage !== 100) throw new Error('The recorded CMS version is not the sole active production deployment; no redeployment or import attempted.')
+  const importStage = 'export Contentful read-only and import the complete public edition into Payload'
+  const importCheckpoint = resumeImport && ['IN_PROGRESS', 'BLOCKED_NOT_COMPLETE'].includes(prior?.status) &&
+    (prior.currentStage || prior.failedStage) === importStage
+  if (!prior || (!importCheckpoint && prior.status !== 'BLOCKED_NOT_COMPLETE') || prior.contentfulWrites !== 0 ||
+      !Array.isArray(prior.stages) || prior.stages.some(name => ![
+        'provision the missing GitHub cutover environment without modifying existing protections',
+        'pause the existing editorial draft writer during the primary-source switch',
+        'deploy the new CMS endpoints using the existing guarded Worker release',
+        ...(importCheckpoint ? [importStage] : [])
+      ].includes(name)) || ['coverage', 'researchEdition', 'releaseCommit', 'mergeCommit', 'live'].some(key => Object.hasOwn(prior, key)) || laterFiles.length) {
+    throw new Error('Later or ambiguous migration evidence exists; preserve it and resume that stage explicitly instead of repeating import.')
+  }
+  return true
+}
+// Resolve existing access only. No credential creation, rotation, logging or writes.
+export async function existingContentfulDeliveryToken(env, fetchImpl = fetch, remember = () => {}) {
+  if (env.CONTENTFUL_DELIVERY_TOKEN) {
+    remember(env.CONTENTFUL_DELIVERY_TOKEN)
+    return { token: env.CONTENTFUL_DELIVERY_TOKEN, source: 'EXISTING_ENVIRONMENT' }
+  }
+  const space = encodeURIComponent(env.CONTENTFUL_SPACE_ID || '')
+  const environment = String(env.CONTENTFUL_ENVIRONMENT || '')
+  const management = env.CONTENTFUL_MANAGEMENT_TOKEN
+  if (!space || !environment || !management) throw new Error('Existing Contentful space, environment and management access are required.')
+  const root = `https://api.contentful.com/spaces/${space}/api_keys`
+  async function read(url) {
+    const response = await fetchImpl(url, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { authorization: `Bearer ${management}` } })
+    if (!response.ok) throw new Error(`Existing Contentful key lookup denied (HTTP ${response.status}); no key was created or changed.`)
+    try { return await response.json() } catch { throw new Error('Existing Contentful key inventory returned invalid JSON; response details withheld.') }
+  }
+  for (let skip = 0, pageNumber = 0; pageNumber < 10; pageNumber++) {
+    const page = await read(`${root}?limit=100&skip=${skip}`)
+    if (!Array.isArray(page.items) || !Number.isInteger(page.total)) throw new Error('Existing Contentful key inventory is incomplete.')
+    // Register every returned credential before any later operation can fail.
+    for (const key of page.items) if (typeof key.accessToken === 'string') remember(key.accessToken)
+    for (const listed of page.items) {
+      const key = listed.accessToken ? listed : await read(`${root}/${encodeURIComponent(listed.sys?.id || '')}`)
+      if (typeof key.accessToken !== 'string' || !key.accessToken) continue
+      remember(key.accessToken)
+      const scopes = Array.isArray(key.environments) ? key.environments.map(item => item.sys?.id) : []
+      if (scopes.length && !scopes.includes(environment)) continue
+      const url = `https://cdn.contentful.com/spaces/${space}/environments/${encodeURIComponent(environment)}/entries?limit=1`
+      const response = await fetchImpl(url, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { authorization: `Bearer ${key.accessToken}` } })
+      if (!response.ok) continue
+      const body = await response.json().catch(() => null)
+      if (Array.isArray(body?.items) && Number.isInteger(body.total)) return { token: key.accessToken, source: 'EXISTING_KEY_READ_ONLY_LOOKUP' }
+    }
+    skip += page.items.length
+    if (skip >= page.total) break
+    if (!page.items.length) throw new Error('Existing Contentful key pagination stopped early.')
+  }
+  throw new Error('No existing Delivery key could read the selected Contentful environment. No key was created or modified.')
+}
+
+export async function existingCloudflareAccount(env, identity, inspectAccount) {
+  const configured = env.CLOUDFLARE_ACCOUNT_ID || env.CF_ACCOUNT_ID
+  const listed = Array.isArray(identity?.accounts) ? identity.accounts.map(item => item.id) : []
+  const candidates = configured ? [configured] : [...new Set(listed)]
+  if (!candidates.length || candidates.some(id => !/^[a-f0-9]{32}$/i.test(id))) throw new Error('Wrangler login did not provide a usable account; no account was guessed.')
+  const matches = []
+  for (const id of candidates) if (await inspectAccount(id)) matches.push(id)
+  if (matches.length !== 1) throw new Error('The existing verified CMS Hyperdrive binding must identify exactly one Cloudflare account.')
+  return { accountId: matches[0], source: configured ? 'EXISTING_ACCOUNT_SETTING' : 'EXISTING_WRANGLER_LOGIN_AND_VERIFIED_BINDING' }
+}
+
+export function supabaseProjectBoundaries(env, browserConfiguration) {
+  function origin(value, label) {
+    let url
+    try { url = new URL(value) } catch { throw new Error(`${label} must be an existing HTTPS Supabase project URL.`) }
+    if (url.protocol !== 'https:' || !/^[a-z0-9]+\.supabase\.co$/.test(url.hostname) || url.username || url.password || url.port || url.search || url.hash || url.pathname !== '/') throw new Error(`${label} must be an existing HTTPS Supabase project origin.`)
+    return url.origin
+  }
+  const urls = [...String(browserConfiguration).matchAll(/\burl\s*:\s*['"](https:\/\/[a-z0-9]+\.supabase\.co\/?)[\'"]/g)].map(item => origin(item[1], 'Public GPIR Core'))
+  if (new Set(urls).size !== 1) throw new Error('The committed public GPIR configuration must identify exactly one Core project.')
+  const coreSupabaseURL = urls[0]
+  const cmsSupabaseURL = origin(env.SUPABASE_URL, 'Private CMS')
+  directSupabaseOrigin({ ...env, SUPABASE_URL: cmsSupabaseURL })
+  if (env.GPIR_CORE_SUPABASE_URL && origin(env.GPIR_CORE_SUPABASE_URL, 'Explicit Core') !== coreSupabaseURL) throw new Error('The Core override differs from the unchanged public website; no Core target was redirected.')
+  return { cmsProjectRef: new URL(cmsSupabaseURL).hostname.split('.')[0], cmsSupabaseURL,
+    coreProjectRef: new URL(coreSupabaseURL).hostname.split('.')[0], coreSupabaseURL }
+}
+
+export async function existingCoreReleaseKey(env, coreURL, fetchImpl = fetch, remember = () => {}, readExistingKeys) {
+  const names = env.GPIR_CORE_SUPABASE_SECRET_KEY ? ['GPIR_CORE_SUPABASE_SECRET_KEY'] : ['GPIR_SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY']
+  const seen = new Set()
+  const coreRef = new URL(coreURL).hostname.split('.')[0]
+  for (const name of names) {
+    const value = env[name]
+    if (!value || seen.has(value)) continue
+    seen.add(value); remember(value)
+    const modern = value.startsWith('sb_secret_')
+    if (!modern) {
+      let claims
+      try { claims = JSON.parse(Buffer.from(value.split('.')[1], 'base64url').toString('utf8')) } catch { continue }
+      if (claims.role !== 'service_role' || (claims.ref && claims.ref !== coreRef)) continue
+    }
+    const headers = new Headers()
+    headers.set('apikey', value)
+    if (!modern) headers.set('authorization', `Bearer ${value}`)
+    const response = await fetchImpl(`${coreURL}/rest/v1/source_registry?select=source_id&limit=1`, {
+      method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers })
+    if ([401, 403].includes(response.status)) continue
+    if (!response.ok) throw new Error(`The existing GPIR Core release authority is unavailable (HTTP ${response.status}); no deployment performed.`)
+    if (Array.isArray(await response.json().catch(() => null))) return { key: value, source: name }
+  }
+  if (readExistingKeys && !env.GPIR_CORE_SUPABASE_SECRET_KEY) {
+    const keys = await readExistingKeys(coreRef)
+    if (!Array.isArray(keys)) throw new Error('Existing Core key inventory was incomplete; no deployment performed.')
+    for (const item of keys) if (typeof item['api_key'] === 'string') remember(item['api_key'])
+    for (const item of keys) {
+      if (!['service_role', 'secret'].includes(item.name) && item.type !== 'secret') continue
+      if (typeof item['api_key'] !== 'string' || !item['api_key']) continue
+      try {
+        const result = await existingCoreReleaseKey({ GPIR_CORE_SUPABASE_SECRET_KEY: item['api_key'] }, coreURL, fetchImpl, remember)
+        return { ...result, source: 'EXISTING_CORE_KEY_READ_ONLY_CLI_LOOKUP' }
+      } catch { /* Try another existing key, without returning credential details. */ }
+    }
+  }
+  throw new Error(`No existing private release key authenticated the unchanged GPIR Core project ${coreRef}. CMS credentials were not substituted and no key was created.`)
+}
+
+// Existing environments are never PUT: GitHub PUT can alter deployment protections.
+export function githubEnvironmentPlan(inventory, permissions) {
+  if (!Array.isArray(inventory)) throw new Error('GitHub environment inventory is unavailable; no release configuration changed.')
+  const names = new Set(inventory.map(item => item.name))
+  for (const name of ['contentful-production', 'payload-preview']) {
+    if (!names.has(name)) throw new Error(`Existing GitHub environment ${name} is missing; existing release settings must be preserved.`)
+  }
+  const create = names.has('payload-production-cutover') ? [] : ['payload-production-cutover']
+  if (create.length && permissions?.admin !== true) throw new Error('GitHub repository administration access is required to create the missing payload-production-cutover environment. Existing gh authentication lacks this permission; no CMS or website changes performed.')
+  return { existing: [...names], create }
+}
+
+// Return fixed messages only: CLI stdout/stderr can contain unrevealed credentials.
+export function privateSupabaseFailure(result) {
+  const diagnostic = String(result.stderr || '') + '\n' + String(result.stdout || '')
+  if (/unknown (?:flag|command)|unrecognized|unexpected argument/i.test(diagnostic)) return { code: 'CLI_COMPATIBILITY', message: 'Supabase CLI rejected the key-lookup command. No key output was disclosed; no deployment performed.' }
+  if (/\b403\b|forbidden|insufficient|not authorized|permission denied/i.test(diagnostic)) return { code: 'CLI_PERMISSION', message: 'Supabase management access lacks permission to read existing GPIR Core keys. Use an existing owner/admin CLI login for Core; no keys created or disclosed.' }
+  if (/\b401\b|unauthorized|access token not provided|not logged in|supabase login|invalid.*(?:access )?token|token.*expired/i.test(diagnostic)) return { code: 'CLI_AUTHENTICATION', message: 'Supabase CLI management authentication is missing or rejected. Run npx --yes supabase@2.121.0 login interactively in the authenticated Codespace, then resume. Project service keys do not authenticate the management CLI.' }
+  if (/timeout|timed out|ENOTFOUND|ECONN|fetch failed|network|TLS|certificate/i.test(diagnostic + ' ' + result.error?.code)) return { code: 'CLI_CONNECTION', message: 'Supabase management key lookup failed at the network/TLS layer; verification remains enabled. No key output disclosed or deployment performed.' }
+  return { code: 'CLI_KEY_LOOKUP_FAILED', message: 'Supabase management key lookup failed for an unclassified reason; credential-bearing output withheld. No deployment performed.' }
+}
+

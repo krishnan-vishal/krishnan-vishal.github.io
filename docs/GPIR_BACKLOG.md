@@ -532,3 +532,447 @@ with status `SUPERSEDED`; they are not silently removed.
 - Acceptance still required: live Contentful backup; reviewed generated Payload collection migration; non-production database import/reconciliation; end-to-end create/update/release/retrieve/archive acceptance; owner-approved cutover, rollback window and separate Contentful retirement approval.
 - Blockers: Contentful organization grant; approved database/runtime/migrator logins; S3/Payload/release secrets; upstream Payload Lexical `happy-dom` high advisories; owner cutover authorization.
 - Next executable action: grant the Contentful management token and provision the non-production Payload database, then follow `docs/M41-PAYLOAD-CMS-MIGRATION.md`.
+
+
+### 2026-11-15 — M41 PR #580 release continuation
+
+- IN PROGRESS: same-PR Worker build correction implemented and locally verified (17 tests, TypeScript, complete OpenNext bundle).
+- BLOCKED: production TLS/database/admin/login/deployment acceptance requires authenticated Cloudflare runtime and private settings; current workspace preflight is 0/11. Three high upstream Happy DOM/Lexical/Payload audit findings remain for remediation/compatibility review. See corresponding master-log entry. No new PR or production cutover performed.
+
+
+### 2026-11-15 — M41 Worker UnknownIssuer correction
+
+- IN PROGRESS, PR #580 only: owner-approved Hyperdrive transport and secure setup helper implemented; Node TLS success is distinct from Worker acceptance. Worker build and 27 local tests pass. Pending authenticated resource creation, actual binding ID, admin/login validation and CMS deployment. Public website, Supabase schema, Contentful and original migration work are preserved.
+
+
+### 2026-11-15 — M41 actual binding reconciled
+
+- Hyperdrive setup VERIFIED by owner-provided command result: correct origin, selected CA, verify-full and disabled caching. CMS binding ID recorded on PR #580; source e072eb7 CI passed. Pending final binding-head CI and Worker admin/authentication/live-deployment acceptance. No database schema or public website change.
+
+
+### 2026-11-15 — M41 preview authenticated; final production command prepared
+
+- VERIFIED: Worker preview admin loads and editorial login opens populated Research Publications (owner screenshots). Binding-head CI passed.
+- VERIFIED LOCALLY: Happy DOM security patch removes all high/critical audit findings; 30 tests, TypeScript and Worker build pass. Remaining 8 moderate/9 low findings reviewed and tracked.
+- PENDING: execute guarded CMS-only release helper in authenticated Codespace, capture actual deployment version/URL and live smoke evidence, then verify live editorial login. PR #580 remains the only correction vehicle; no content cutover or migration authorized by these checks.
+
+
+### 2026-11-15 — M41 authentication acceptance reopened
+
+- BLOCKED on current production 68f6cb2: owner logs confirm unsupported stored PBKDF2 iterations; public HTTP 200 is not authentication success.
+- IMPLEMENTED on PR #580 only: documented Worker password-hash setting, private verified existing-password rehash helper, and native database socket lifecycle correction. 34 tests, TypeScript, Worker build pass; no high/critical audit findings.
+- NEXT: current-head CI, private Node login/conversion using existing credentials, guarded redeployment, then live authentication/collection acceptance. Preserve original Codespace work and saved configuration stash. No source/content migration or main merge authorized by this correction.
+
+- CI follow-up: reviewed two synthetic authentication fixture literals through the existing exact path/line/rule/fingerprint allowlist; scanner patterns and scope remain unchanged. Private prompt data is passed directly and cleared without assignment matches. Scanner regression expectations include the two reviewed fixtures.
+
+
+## 2026-11-15 — M41 full content cutover continuation, PR #580
+
+Owner authorized full migration/cutover with Contentful BCP; existing infrastructure
+acceptance retained. Added managed-site import/signed delivery, preserved-engine
+editorial adapters and immutable Contentful recovery tooling to the existing branch.
+10 new tests, 24 existing relevant tests, TypeScript and Worker build pass locally.
+834 managed / 93 protected files inventoried. Production migration, source switch
+and real BCP sync/recovery NOT RUN: authenticated Codespace/deployment access is
+unavailable. Native research edit-to-snapshot propagation and competing-authority
+reconciliation remain ACTIONABLE implementation work before private RELEASE.
+Overall M41 remains IN PROGRESS; do not mark complete. No new PR, schema mutation,
+validation promotion or Contentful deletion. See M41-FULL-CUTOVER-REPORT.md.
+
+
+## 2026-11-15 — M41 native source contract and controlled release handover
+
+Continued PR #580 only. The source gap recorded at 42f9822 is resolved: native
+research authority/adoption, Supabase-gated immutable editions, protected-content
+Payload lookup, permanent source lock and fuller BCP reference/media/draft recovery.
+Existing Contentful content is never deleted or overwritten. One private runner
+and M41-PRODUCTION-HANDOVER.md check access/settings before production stages and
+preserve the original checkout/stashes. 84 focused tests, TypeScript, Worker build,
+scanner and public inventory pass; 835 managed / 93 protected files. Private run
+stopped at preflight because existing env/CA/deployment sessions are unavailable.
+No production deployment or actual BCP recovery claimed. Source/handover PREPARED;
+production cutover and reader acceptance OPEN / BLOCKED ON EXECUTION ACCESS.
+See M41-FULL-CUTOVER-REPORT.md.
+
+
+## 2026-11-15 — M41 resume: Contentful unchanged, primary cutover priority
+
+Resumed saved checkpoint 2844a41/PR #580, without repeating implementation. Both
+checkpoint CI workflows passed. Owner clarified zero Contentful changes and no
+BCP synchronization delay. Removed sync from the runner and both relevant workflow
+paths, added read-only draft guard and deny-by-default BCP writes with two tests.
+Recovery retains unchanged Contentful baseline, read-only export, original Payload
+snapshot and previous Git/Worker release history. Future Payload-to-Contentful sync
+is deferred; no false synchronized-BCP claim. Runner attempted here; stopped at
+preflight with stages=[] because the authenticated Codespace checkout/private env/CA
+and deployment sessions are unavailable. No production change or Contentful write.
+One complete private command batch and exact blocker are recorded in the handover.
+M41 remains OPEN until actual deployment/live evidence; PR #580 only.
+
+
+## M41 — owner preflight evidence and existing-session access fix
+
+Owner ran 1c353a2; stages=[]; missing three explicit Delivery/Cloudflare settings.
+No production or Contentful changes. Removed those mandatory variable requirements: exclude
+new token creation, reuse authenticated Wrangler/verified Hyperdrive account and
+GET-only lookup of an existing Delivery key. OAuth stays local; no credentials are
+logged. Eleven focused tests pass. Handover resumes the clean failed worktree and
+preserves originals/stashes. PR #580 only. Actual cutover/live evidence still pending.
+
+
+## M41 — owner preflight project mismatch and CMS/Core boundary correction
+
+Owner's 1e41d42 run: BLOCKED_NOT_COMPLETE, stages=[], no production/Contentful
+changes. The old guard incorrectly required CMS and Core projects to be identical.
+Corrected private CMS URL/DB/Hyperdrive validation plus independent Core target
+from committed public configuration; existing Core authority checked read-only.
+Separate server-only runtime fields prevent CMS credentials/URLs from redirecting
+Core functions or publication decisions. Resume supports any clean pre-production
+PR ancestor, preserving work; pinned CLI remains v2.121.0. Eighteen focused tests
+pass. PR #580 only; migration/live cutover still pending private execution.
+
+
+## M41 — missing GitHub cutover environment corrected (2026-11-15)
+
+Owner's 038b16e attempt passed CMS/Core separation, then stopped at preflight with
+HTTP 404, stages=[] and zero Contentful writes. Read-only repository environment
+inventory confirms contentful-production and payload-preview exist, while
+payload-production-cutover is absent. Runner now inventories environments instead
+of GET-probing a not-yet-created environment; missing cutover setup requires the
+existing gh identity to have repository administration permission. After all
+preflight/CI gates and --execute, it provisions only the missing cutover environment,
+rechecking existence first. Existing environments and protections receive no PUT.
+22 access/resume/environment tests and unchanged secret scan pass. Existing safe
+preflight worktree resumes with the same complete batch. PR #580 only; no production
+migration/deployment/live acceptance claimed; Contentful unchanged. M41 stays OPEN.
+
+
+## M41 — Contentful access passed; private Supabase management lookup blocked
+
+Owner execution at 81709cb successfully reused the existing Contentful Delivery
+key read-only, then stopped at Core key lookup (stages=[], no production or
+Contentful writes). Prior error handling concealed the failure category. Runner
+now reports only fixed, credential-free authentication/permission/compatibility/
+network categories, never raw key command output. If an environment PAT is rejected,
+it may reuse an existing stored CLI login; subsequent deployment keeps that same
+management session. Pinned CLI 2.121.0 key and interactive login flags were checked.
+23 focused tests and unchanged secret scan pass locally. The private continuation
+can refresh management login with `env -u CI -u SUPABASE_ACCESS_TOKEN npx --yes
+supabase@2.121.0 login --no-browser </dev/tty`, then run the existing resume batch.
+No project keys created/rotated, schema changes or weakened source/entitlement
+checks. PR #580 only. M41 remains OPEN pending actual private migration/live cutover.
+
+
+## M41 — GitHub integration permission blocker; safe setup-only resume
+
+Owner's 8d89b9b run passed Contentful, existing Core key lookup and both source CI
+checks. First execution stage, creation of payload-production-cutover, received
+HTTP 403 Resource not accessible by integration. No CMS deployment, draft writer
+pause, migration or Contentful write occurred. Repository admin metadata did not
+prove that the Codespaces integration credential held Administration write access.
+Use the owner's interactive GitHub browser login (`gh auth login --hostname
+github.com --web --git-protocol https --scopes repo,workflow </dev/tty`) with
+GH_TOKEN/GITHUB_TOKEN unset, then privately select that stored login as GH_TOKEN
+for the existing resume command. Do not print credentials or change private env.
+Resume now accepts this exact setup-only failure with no later deployment/content
+or draft-writer evidence; it still rejects partially executed production releases.
+24 focused access/resume tests, syntax and unchanged secret scan pass locally.
+PR #580 only. Existing environment protections and Contentful remain unchanged;
+actual migration/live cutover pending. M41 remains OPEN.
+
+
+## 2026-11-16 — M41 deployed-CMS checkpoint reconciled; guarded continuation
+
+Owner supplied the private release evidence for source
+`8c0637635dabab89d0d7ad0c924adf9ffa3bff0a`, CMS deployment version
+`92fab47e-ee45-4b81-bbe8-b69e720b3d80`. Status is
+`DEPLOYED_PUBLIC_SMOKE_VERIFIED`; admin HTTP 200 and anonymous user null.
+This supersedes the older saved 13:23 UTC environment-provisioning failure for
+the CMS deployment stage only. Editorial live login remains pending; no completed
+content import, source switch or public/protected delivery is claimed.
+
+The existing release worktree is `/workspaces/m41-full-cutover-suddBZ`.
+Owner's read-only inspection found only two tracked build-generated modifications:
+`apps/gpir-cms/next-env.d.ts` and `apps/gpir-cms/tsconfig.json`.
+They are preserved. The Codespace has 2.5 GB free on a 32 GB volume; this is
+development storage, not production hosting capacity.
+
+PR #580 alone gains an explicit post-CMS continuation. It verifies the saved
+evidence, unchanged deployed CMS runtime source and the sole active Cloudflare
+version using a read-only deployment-status query. It accepts only the exact
+observed Next-generated semantic changes, preserves the previous report/generated
+patch privately, and skips npm ci, CMS build and CMS redeployment. It refuses
+later/partial import evidence and checks at least 1 GiB available before import.
+Preflight failure is saved separately so the old report survives. Entered release
+stages are now persisted before their commands, distinguishing an interrupted
+stage from completed evidence.
+
+The continuation explicitly authorizes restoring the existing draft writer after
+the normal merge, with Payload primary and Contentful writes blocked. Existing
+environments/protections, all stashes/worktrees, URLs, both tickers, Smart Cards,
+Supabase engines, JWT policies, validation thresholds and expiry rules are retained.
+Contentful remains unchanged. No cleanup/deletion or paid infrastructure added.
+
+Validation: 26 focused access/resume tests and both changed executable syntax
+checks PASS locally. New cases reject deployment drift, split traffic, unexpected
+config edits and partial import evidence. Current-head remote CI must pass before
+private production continuation. Agent has connected GitHub access but no private
+Codespace terminal, credentials or reader session. No private import/live acceptance
+performed from this agent workspace; M41 remains OPEN.
+
+
+## 2026-11-16 — read-only Core management credential selection
+
+Owner's post-CMS continuation at `6e00295` passed repository environment inventory,
+existing Wrangler/Hyperdrive account and read-only Contentful access. It stopped
+at preflight on `CLI_PERMISSION` during existing Core key lookup; stages=[], zero
+Contentful writes, no new deployment or import. The previous release report is
+preserved; the new failure is in `resume-preflight-failure.json`.
+
+Confirmed source defect: fallback to an already authenticated stored Supabase CLI
+login handled an environment PAT's authentication refusal (401), but not its
+permission refusal (403). A token scoped outside Core can return 403; this is a
+possible cause, not a proven diagnosis of the private token. The corrected
+credential selector tries the existing stored CLI login once for either category,
+only during read-only key inventory or function listing. It never retries writes,
+changes roles/scopes, creates/rotates keys, mutates the parent environment or
+retries a selected session. A successful stored session is reused for later
+management commands; actual Core key authority must still pass the existing
+read-only Core request. A refusal of both sessions remains blocked.
+
+28 focused tests and runner syntax PASS locally. New tests cover 401/403 selection,
+parent-settings preservation, no write retry and bounded repeated refusal.
+Pinned CLI 2.121.0 retained; no dependency, schema, runtime CMS source or TLS change.
+Same post-CMS command and PR #580 only. CMS version 92fab47e remains the selected
+checkpoint; generated files and stashes preserved. Current-head CI/private
+continuation and actual public/protected live delivery remain required. M41 OPEN.
+
+
+## 2026-11-16 — existing Contentful export discovered; preserve and reuse
+
+Owner refreshed the existing Supabase CLI login. The next `c447d74` continuation
+verified stored-login management access and the existing Core release key using
+read-only requests. It then stopped on the partial-release guard, stages=[] and
+zero Contentful writes. Owner's directory inventory explains that guard: the
+saved Contentful export exists, with JSON archives at 13:34:59 UTC and the final
+manifest at 13:35:01 UTC on 15 November. No coverage/research-edition/live report
+was found. The old 13:23 failed report predates those later completed files.
+
+The post-CMS continuation now distinguishes a completed read-only export from
+later import/release evidence. Before accepting it, source/environment,
+manifest schema, six JSON checksums, identity/count integrity, exclusion of BCP
+recovery records, and all expected media paths/byte lengths/hashes are validated.
+Path traversal/symlink escape and omitted expected media are rejected. The saved
+export is reused in place without rewriting files or fetching another export.
+The original content-addressed immutable Payload importer still reconciles
+matching records and refuses conflicts/duplicate identities instead of
+overwriting any native/editorial changes. Coverage/research/live evidence still
+blocks ambiguous replay. No guard is simply disabled.
+
+29 focused tests and runner syntax PASS locally; the new saved-export test covers
+valid reuse with no writes, wrong source, counts, missing manifest, tampered JSON,
+tampered media, omitted assets and unsafe paths. Private export integrity is not
+claimed before the runner actually verifies those owner-side bytes.
+Current-head CI and private execution remain required.
+
+PR #580 only; same continuation command, no further login required by the latest
+evidence. CMS version 92fab47e reused; generated files, private exports, original
+reports and stashes preserved. No Contentful change or new CMS deployment.
+M41 remains OPEN until migration/source switch and actual public/protected live
+Payload delivery are evidenced.
+
+
+## 2026-11-16 — confirmed export; already-paused writer continuation corrected
+
+Owner's `8363807` run verified and reused CMS version 92fab47e and the saved
+read-only Contentful export: 112 entries, 2 content types, 5 assets, 3 media files,
+1 locale; all six JSON archives and three media hashes passed. ExportedAt:
+2026-11-15T13:35:00.996Z; manifest SHA-256:
+3236fd0e3581a84263c44010a980d22de95167cdc679ee3cf6ea4f41fb817f7b.
+GitHub, Cloudflare and Core stored-login/key authority also passed.
+No new import, CMS deployment or Contentful write occurred.
+
+The run stopped while pausing the editorial draft workflow: GitHub 403 explicitly
+said the workflow was already inactive. Confirmed runner defect: the earlier
+restore-after-merge authorization was incorrectly used as the current-state
+disable condition. This was an orchestration error, not a need to repeat CMS/export.
+
+The correction separates observed workflow state from later restore intent.
+An already manually disabled workflow needs no disable request. An active writer
+is paused once; a concurrent pause is accepted only after the desired disabled
+state is observed, while genuine failures remain errors. Original/authorized
+restore intent survives continuation and controls only the post-merge enable.
+A queued-run cancellation race is tolerated only if that exact run completed;
+post-merge restoration leaves an already-active workflow alone. Unknown lifecycle
+states still block. No workflow protection, content or subscription change.
+
+32 focused tests and runner syntax PASS locally, including already-paused,
+active-then-resume, concurrent pause, real denial and unexpected-state cases.
+Required current-head CI and private execution remain pending when this entry
+is authored. Same PR #580 and same guarded post-CMS continuation command.
+Completed CMS/export/access evidence is retained; all files and stashes preserved.
+M41 remains OPEN until migration/source switch and real public/protected live
+Payload delivery are evidenced. No full-completion claim.
+
+
+## 2026-11-16 — interrupted import checkpoint; detached recovery
+
+Owner reports no release/import processes after the session timeout. The durable
+consolidated report is IN_PROGRESS at the Contentful-export/public-Payload-import
+stage, with pause and CMS stages entered; coverage, research-edition and live
+reports are absent. This does not prove that no database records were written.
+Completed CMS version 92fab47e, verified saved export (112 entries, 5 assets,
+3 media files), source checks and authentication remain established.
+
+Explicit --resume-import accepts only this known interrupted stage with the same
+verified export hash, no later coverage/research/live evidence and zero Contentful
+writes. It pins the original import source commit across further tooling commits.
+The runner checks ancestor history and permits only the reviewed runner, standalone
+importer, tests and handoff files to differ; changes to managed website inputs
+remain blocked. The immutable content-addressed importer reuses identical objects
+and refuses conflicts/duplicates, preserving possible partial records. It does
+not create another source edition simply because recovery tooling changed.
+
+The standalone CLI importer gains a pinned-source option, bounded Delivery fetch
+and atomic progress/error-phase JSON; it closes its Payload connection in finally.
+It is the sole excluded offline file in the CMS-runtime comparison: no Worker
+runtime/config/dependency change or CMS redeployment is included. Required remote
+TypeScript/Worker validation still applies.
+
+The existing bootstrap supports --background. It launches the same guarded runner
+detached, with private timestamped logs and saved PID/log metadata. An exclusive
+release lock blocks overlapping executions and archives stale/finished lock
+metadata instead of discarding it. Browser disconnect does not terminate this
+detached process; stopping/suspending the Codespace still does. All original work,
+stashes, source export and preceding reports remain preserved.
+
+35 focused tests and JavaScript executable syntax checks PASS locally. The three
+new tests cover source pin/export mismatch, explicit interrupted-stage limits and
+overlapping/stale execution locks. Local full-app TypeScript compiler unavailable;
+required remote validation/build must pass before private continuation.
+No private database import, website source switch or live acceptance performed
+from the agent workspace. M41 remains OPEN until actual public and protected
+Payload delivery are evidenced.
+
+
+## 2026-11-16 — existing deployment-token access repair, PR #580 only
+
+Owner requests fixing the runner's management access without repeating migration,
+credential submission, reconciliation or CMS deployment. Both isolated CLI
+contexts failed; missing environment/fallback files do not establish native
+credential-store state. The exact native-login rejection cause is unconfirmed.
+
+Repository evidence identifies an established deployment authority:
+`.github/workflows/gpir-p2-production-functions.yml` uses the repository secret
+`GPIR_SUPABASE_DEPLOY_TOKEN` for Core management. The private cutover runner
+did not consume that named credential and depended on a locally retrievable CLI
+login. This continuation wires the runner to an existing named deploy token or
+a verified private session recovered from that existing GitHub secret.
+
+Access-only repair is added to the existing payload-cms-ci workflow, restricted
+to explicit workflow_dispatch by krishnan-vishal on the exact PR #580 branch.
+Repair mode skips validation/Worker-build jobs and never runs migration or deploys
+P2/payment functions. It uses GET-only Core functions and API-key permission
+checks; response bodies/keys are discarded. No Supabase token/key is created,
+rotated, broadened or printed. The repository credential's current validity is
+not assumed: a non-200 permission check blocks and reports only safe HTTP status.
+
+An ephemeral RSA recipient key is generated privately in the existing ignored
+Codespace migration directory. Only its public key and random request ID are
+workflow inputs. GitHub encrypts the existing token with AES-256-GCM plus
+RSA-OAEP/SHA-256; only the authenticated encrypted envelope is retained as a
+one-day artifact. The private key never leaves the Codespace. Local decryption
+checks request/Core binding and one-hour handoff age, then repeats the actual
+read-only management checks before saving mode-0600 private management-session
+JSON. Logs/reports contain only request/run IDs, status and HTTP codes. Pending
+requests reuse the same private request/key instead of duplicate dispatch.
+
+The runner reads that ignored private session explicitly and reuses it for
+management commands; it no longer needs native keyring retrieval after successful
+repair. Original CMS .env, Contentful and migration database records are unchanged.
+The interrupted import remains pinned; its source-change allowlist names only the
+new reviewed access tooling/tests and existing CI workflow. No managed content or
+runtime CMS source changed.
+
+39 focused tests and JavaScript syntax PASS locally. Tests cover encrypted
+round-trip/no plaintext, wrong request/Core, stale handoff, ciphertext tamper,
+weak key rejection, safe 401/403/429 handling, read-only requests, owner-only
+workflow and build skipping. Workflow YAML parses; the existing CI workflow is
+present on main, supporting dispatch of the reviewed PR ref. Remote required CI
+must pass before owner-side access repair. GitHub secret presence/actual authority,
+encrypted handoff and private runner acceptance are NOT yet evidenced.
+
+M41 remains OPEN. This is an executable access-only correction, not deployment or
+migration completion. No Codespace run or manual workflow dispatch was performed
+from this agent workspace; private terminal execution is still required.
+
+
+### Access-repair follow-up checks
+
+Normal validation runs retain the exact required `M41 Payload CMS validation`
+identity; only access-repair runs include the non-secret request ID in their title.
+An additional CLI test proves a missing repository credential reports its exact
+access-only stage without a network call or repeated login. The combined focused
+inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
+execution; no management-access or migration completion is claimed.
+
+
+## 2026-11-16 — finish from saved operation 775 in durable bounded batches
+
+Production observation increased from 641 to 742 distinct managed-content objects.
+Owner's saved progress proves 100 created + 675 reused file operations, total 775,
+of 835 managed-file operations. These are operation counts, not a unique-object
+coverage percentage. No manifest/archive/editorial completion is recorded yet.
+
+Owner's read-only process/resource check: no release/import processes; 2469 MiB
+free disk; available cgroup counters oom=0, oom_kill=0, oom_group_kill=0; log ends
+during import without an application failure report. The exact external
+termination reason is NOT established. Do not diagnose OOM, disk exhaustion,
+credential failure or successful completion from that evidence.
+
+The standalone importer now seeds an explicit source/snapshot-bound cursor from
+the verified legacy 775-operation checkpoint. It preserves the original progress
+separately and skips that completed blob prefix. Any uncertain work after the last
+old checkpoint is matched by immutable identity rather than duplicated. Subsequent
+cursor saves happen atomically after EVERY successful database operation. A stop
+between database commit and cursor save can replay only that uncertain operation.
+
+Each child handles at most 25 operations with a 32 MiB accounted-payload threshold,
+then closes its database connection. The existing parent continues short children,
+logs the saved phase/position after each batch, and applies a five-minute child
+timeout plus a bounded batch limit. It does not reset migration or repeat the
+completed prefix. The saved public-build input is reused; no CMS rebuild or repeat
+Contentful export. The published Delivery response is captured privately once and
+checksummed for all remaining batches. No Contentful writes.
+
+Plan/cursor hashes bind source commit, immutable snapshot, frozen Delivery bytes
+and phase sizes. Phases remain blobs -> source archive -> source entries ->
+editorial mirrors -> manifest. The existing immutable/conflict checks, verified
+Delivery import context, WARN/draft preservation and manifest-last rule remain.
+A complete cursor cannot skip uncompleted phases. Interrupted temporary checkpoint
+files are archived before replacement. Ordinary failures record a safe category,
+position and key without returning raw private diagnostics.
+
+Only the existing offline importer/runner, one framework-independent checkpoint
+helper/test and existing CI test command change. No Worker runtime, dependency,
+Supabase schema/role/auth/entitlement change, threshold change, new service or new
+architecture. The repaired private management session is reused. Original
+worktrees, stashes, exports, saved input and persisted database records remain.
+
+47 focused tests and changed JavaScript syntax PASS locally. New cases prove
+775-prefix skipping, cursor precedence/plan mismatch rejection, manifest-last
+ordering, commit-before-save interruption without duplicate writes, batch limits,
+safe failure categories and preservation of interrupted temporary evidence.
+Required remote full-app TypeScript/Worker/Integrity checks must pass before
+private continuation. No production batch run or public/protected live cutover
+performed from this agent workspace; M41 remains OPEN.
+
+
+## 2026-11-16 — standalone shutdown correction, PR #580
+
+Saved batch confirmed at 800 (124 created/676 reused); the unfinished work must
+continue from that cursor. Post-checkpoint child shutdown is now bounded and
+explicit for both existing Payload CLI stages; query/data errors still fail.
+No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
+required CI/private execution and actual live acceptance pending.
+Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
