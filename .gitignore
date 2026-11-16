@@ -10,3 +10,6 @@ apps/gpir-cms/tsconfig.tsbuildinfo
 supabase/.temp/
 apps/gpir-cms/.env*
 !apps/gpir-cms/.env.example
+apps/gpir-cms/.open-next/
+apps/gpir-cms/src/app/(payload)/admin/importMap.js
+apps/gpir-cms/.dev.vars*

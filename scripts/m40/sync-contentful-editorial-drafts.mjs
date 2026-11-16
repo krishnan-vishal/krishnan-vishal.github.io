@@ -117,6 +117,25 @@ export function buildDraftFields({ candidate, source, audit }) {
 
 function contentfulClient(env, fetchImpl) {
     const read = name => String(env[name] || '').trim();
+    if (read('GPIR_EDITORIAL_SOURCE') && !['payload', 'contentful'].includes(read('GPIR_EDITORIAL_SOURCE'))) throw new Error('Invalid editorial source.');
+    if (read('GPIR_EDITORIAL_SOURCE') === 'payload') {
+        const origin = read('PAYLOAD_PUBLIC_SERVER_URL');
+        const key = read('PAYLOAD_RELEASE_API_KEY');
+        if (!/^https:\/\/[^/]+$/.test(origin) || !key) throw new Error('Payload editorial configuration is required.');
+        async function action(input) {
+            const response = await fetchImpl(`${origin}/api/release/editorial-entries`, { method: 'POST', redirect: 'error',
+                headers: { authorization: `users API-Key ${key}`, 'content-type': 'application/json' }, body: JSON.stringify(input) });
+            if (!response.ok) throw new Error(`Payload editorial draft request failed: HTTP ${response.status}`);
+            return response.json();
+        }
+        return {
+            entry: async id => (await action({ action: 'entry', id })).entry,
+            search: async (field, value) => (await action({ action: 'search', field, value })).items,
+            create: async (id, fields) => (await action({ action: 'create', id, fields })).entry,
+            update: async (entry, fields) => (await action({ action: 'update', id: entry.sys.id, fields })).entry
+        };
+    }
+    if (read('GPIR_CONTENTFUL_READ_ONLY') === 'true') throw new Error('Contentful is preserved read-only; select Payload for editorial draft writes.');
     const space = read('CONTENTFUL_SPACE_ID');
     const environment = read('CONTENTFUL_ENVIRONMENT');
     const token = read('CONTENTFUL_MANAGEMENT_TOKEN');
@@ -178,7 +197,7 @@ export async function syncEditorialDrafts({ env = process.env, fetchImpl = fetch
     dryRun = false, hours = DEFAULT_WINDOW_HOURS, limit = DEFAULT_LIMIT } = {}) {
     const bounded = Math.min(Math.max(Number.parseInt(limit, 10) || DEFAULT_LIMIT, 1), MAX_LIMIT);
     const eligible = await selectEligibleCandidates({ env, fetchImpl, now, hours, limit: bounded });
-    const client = contentfulClient(env, fetchImpl);
+    const client = dryRun ? null : contentfulClient(env, fetchImpl);
     if (!dryRun && !client) throw new Error('Contentful credentials are required for a non-dry run.');
     const report = { generatedAt: new Date(now).toISOString(), dryRun, windowHours: hours, eligible: eligible.length,
         created: 0, updated: 0, preserved: 0, results: [] };

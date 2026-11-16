@@ -57,6 +57,10 @@ async function main() {
       skip = items.length
       if (!page.items.length && skip < total) throw new Error(`Contentful ${endpoint} pagination stopped early.`)
     } while (skip < total)
+    if (process.argv.includes('--exclude-recovery')) {
+      if (endpoint === 'entries') return items.filter(item => item.sys?.contentType?.sys?.id !== 'gpirPayloadRecoveryV1')
+      if (endpoint === 'content_types') return items.filter(item => item.sys?.id !== 'gpirPayloadRecoveryV1')
+    }
     return items
   }
 

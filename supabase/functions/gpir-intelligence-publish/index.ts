@@ -1,6 +1,9 @@
 import { createPublicationHandler } from './handler.mjs';
 
 const env = Object.fromEntries([
+  'GPIR_EDITORIAL_SOURCE',
+  'PAYLOAD_PUBLIC_SERVER_URL',
+  'PAYLOAD_RELEASE_API_KEY',
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'CONTENTFUL_SPACE_ID',

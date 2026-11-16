@@ -239,3 +239,27 @@ test('26 production-origin preflight is bounded and contains no response body', 
   assert.equal(result.response.headers.get('access-control-allow-origin'), 'https://fintechoisis.com');
   assert.equal(result.calls.length, 0);
 });
+
+test('Payload primary content is fetched only after the existing Supabase entitlement ALLOW', async () => {
+  const selected = { ...env, GPIR_EDITORIAL_SOURCE: 'payload', PAYLOAD_PUBLIC_SERVER_URL: 'https://cms.example', PAYLOAD_RELEASE_API_KEY: 'fixture-api-key' };
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    calls.push({ url, init });
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    assert.equal(url, 'https://cms.example/api/release/editorial-entries');
+    assert.equal(init.headers.authorization, 'users API-Key fixture-api-key');
+    assert.equal(init.redirect, 'error');
+    return Response.json({ items: [contentfulEntry()] });
+  };
+  const result = await createProtectedPublicationHandler({ env: selected, fetchImpl })(edgeRequest());
+  assert.equal(result.status, 200);
+  assert.equal(calls.length, 3);
+  assert.equal(result.headers.get('x-gpir-editorial-source'), 'payload');
+  assert.ok(!calls.some(call => call.url.includes('contentful.com')));
+  const deniedFetch = async (url) => {
+    assert.ok(!url.includes('cms.example'));
+    return url.includes('/auth/v1/user') ? Response.json({ id: userId }) : Response.json([{ decision: 'DENY' }]);
+  };
+  assert.equal((await createProtectedPublicationHandler({ env: selected, fetchImpl: deniedFetch })(edgeRequest())).status, 403);
+});

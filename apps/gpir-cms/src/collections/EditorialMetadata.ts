@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { guardEditorialRecord } from '../lib/editorial-record'
 import { adminOnly, editorialRead, editorialWrite } from '../lib/access'
 
 export const EditorialMetadata: CollectionConfig = {
@@ -6,6 +7,7 @@ export const EditorialMetadata: CollectionConfig = {
   admin: { useAsTitle: 'sourceRecordKey' },
   access: { create: editorialWrite, read: editorialRead, update: editorialWrite, delete: adminOnly },
   versions: { maxPerDoc: 100 },
+  hooks: { beforeChange: [guardEditorialRecord] },
   fields: [
     { name: 'sourceRecordKey', type: 'text', required: true, unique: true, index: true },
     { name: 'contentfulEntryId', type: 'text', unique: true, index: true },

@@ -30,6 +30,13 @@ export function isVerifiedEditorialApproval(approval) {
 
 export function contentfulEditorialConfig(env) {
   const read = name => (typeof env[name] === 'string' ? env[name].trim() : '');
+  if (read('GPIR_EDITORIAL_SOURCE') && !['payload', 'contentful'].includes(read('GPIR_EDITORIAL_SOURCE'))) throw new Error('INVALID_EDITORIAL_SOURCE');
+  if (read('GPIR_EDITORIAL_SOURCE') === 'payload') {
+    const origin = read('PAYLOAD_PUBLIC_SERVER_URL');
+    const token = read('PAYLOAD_RELEASE_API_KEY');
+    if (!/^https:\/\/[^/]+$/.test(origin) || !token) throw new Error('PAYLOAD_EDITORIAL_CONFIGURATION_REQUIRED');
+    return { mode: 'payload', origin, token };
+  }
   const spaceId = read('CONTENTFUL_SPACE_ID');
   const environment = read('CONTENTFUL_ENVIRONMENT');
   const token = read('CONTENTFUL_DELIVERY_TOKEN');
@@ -50,6 +57,22 @@ function entriesUrl(config, params) {
 }
 
 async function readEntries(config, fetchImpl, params) {
+  if (config.mode === 'payload') {
+    const response = await fetchImpl(`${config.origin}/api/release/editorial-entries`, {
+      method: 'POST', redirect: 'error',
+      headers: { authorization: `users API-Key ${config.token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'published' })
+    });
+    if (!response.ok) throw new Error(`PAYLOAD_EDITORIAL_HTTP_${response.status}`);
+    const body = await response.json();
+    if (!Array.isArray(body.items)) throw new Error('PAYLOAD_EDITORIAL_INVALID_RESPONSE');
+    let items = body.items.filter(item => item?.entryId && item?.fields);
+    if (params['fields.supabaseRecordId']) items = items.filter(item => item.fields.supabaseRecordId === params['fields.supabaseRecordId']);
+    if (params['fields.legacySourceUrl']) items = items.filter(item => item.fields.legacySourceUrl === params['fields.legacySourceUrl']);
+    const total = items.length;
+    const start = Number(params.skip || 0);
+    return { total, items: items.sort((a,b) => a.entryId.localeCompare(b.entryId)).slice(start, start + Number(params.limit || 100)) };
+  }
   let response;
   try { response = await fetchImpl(entriesUrl(config, params), { headers: { Authorization: `Bearer ${config.token}` } }); }
   catch { throw new Error('CONTENTFUL_REQUEST_FAILED'); }

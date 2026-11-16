@@ -1,6 +1,9 @@
 import { createProtectedPublicationHandler } from './handler.mjs';
 
 const env = Object.fromEntries([
+  'GPIR_EDITORIAL_SOURCE',
+  'PAYLOAD_PUBLIC_SERVER_URL',
+  'PAYLOAD_RELEASE_API_KEY',
   'SUPABASE_URL',
   'GPIR_SUPABASE_PUBLISHABLE_KEY',
   'CONTENTFUL_SPACE_ID',
