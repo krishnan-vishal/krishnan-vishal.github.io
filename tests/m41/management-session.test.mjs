@@ -50,6 +50,7 @@ test('management proof uses only read-only Core requests and never returns respo
 
 test('workflow isolates credential repair to owner dispatch and skips CMS builds in repair mode', () => {
   const source = fs.readFileSync(new URL('../../.github/workflows/payload-cms-ci.yml', import.meta.url), 'utf8')
+  assert.ok(source.includes("|| 'M41 Payload CMS validation'"))
   assert.match(source, /github.actor == 'krishnan-vishal'/)
   assert.match(source, /github.ref == 'refs\/heads\/fix\/m41-cloudflare-sharp-admin-runtime-20261115'/)
   assert.equal((source.match(/if: github.event_name != 'workflow_dispatch' \|\| inputs.mode == 'VALIDATE'/g) || []).length, 2)

@@ -1,5 +1,5 @@
 name: M41 Payload CMS validation
-run-name: "M41 Payload CMS ${{ inputs.mode || 'VALIDATE' }} ${{ inputs.recovery_id || github.event.pull_request.number || github.sha }}"
+run-name: "${{ inputs.mode == 'REPAIR_MANAGEMENT' && format('M41 Management Repair {0}', inputs.recovery_id) || 'M41 Payload CMS validation' }}"
 
 on:
   pull_request:
