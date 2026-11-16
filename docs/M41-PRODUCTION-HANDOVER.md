@@ -522,3 +522,88 @@ An additional CLI test proves a missing repository credential reports its exact
 access-only stage without a network call or repeated login. The combined focused
 inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
 execution; no management-access or migration completion is claimed.
+
+
+## 2026-11-16 — finish from saved operation 775 in durable bounded batches
+
+Production observation increased from 641 to 742 distinct managed-content objects.
+Owner's saved progress proves 100 created + 675 reused file operations, total 775,
+of 835 managed-file operations. These are operation counts, not a unique-object
+coverage percentage. No manifest/archive/editorial completion is recorded yet.
+
+Owner's read-only process/resource check: no release/import processes; 2469 MiB
+free disk; available cgroup counters oom=0, oom_kill=0, oom_group_kill=0; log ends
+during import without an application failure report. The exact external
+termination reason is NOT established. Do not diagnose OOM, disk exhaustion,
+credential failure or successful completion from that evidence.
+
+The standalone importer now seeds an explicit source/snapshot-bound cursor from
+the verified legacy 775-operation checkpoint. It preserves the original progress
+separately and skips that completed blob prefix. Any uncertain work after the last
+old checkpoint is matched by immutable identity rather than duplicated. Subsequent
+cursor saves happen atomically after EVERY successful database operation. A stop
+between database commit and cursor save can replay only that uncertain operation.
+
+Each child handles at most 25 operations with a 32 MiB accounted-payload threshold,
+then closes its database connection. The existing parent continues short children,
+logs the saved phase/position after each batch, and applies a five-minute child
+timeout plus a bounded batch limit. It does not reset migration or repeat the
+completed prefix. The saved public-build input is reused; no CMS rebuild or repeat
+Contentful export. The published Delivery response is captured privately once and
+checksummed for all remaining batches. No Contentful writes.
+
+Plan/cursor hashes bind source commit, immutable snapshot, frozen Delivery bytes
+and phase sizes. Phases remain blobs -> source archive -> source entries ->
+editorial mirrors -> manifest. The existing immutable/conflict checks, verified
+Delivery import context, WARN/draft preservation and manifest-last rule remain.
+A complete cursor cannot skip uncompleted phases. Interrupted temporary checkpoint
+files are archived before replacement. Ordinary failures record a safe category,
+position and key without returning raw private diagnostics.
+
+Only the existing offline importer/runner, one framework-independent checkpoint
+helper/test and existing CI test command change. No Worker runtime, dependency,
+Supabase schema/role/auth/entitlement change, threshold change, new service or new
+architecture. The repaired private management session is reused. Original
+worktrees, stashes, exports, saved input and persisted database records remain.
+
+47 focused tests and changed JavaScript syntax PASS locally. New cases prove
+775-prefix skipping, cursor precedence/plan mismatch rejection, manifest-last
+ordering, commit-before-save interruption without duplicate writes, batch limits,
+safe failure categories and preservation of interrupted temporary evidence.
+Required remote full-app TypeScript/Worker/Integrity checks must pass before
+private continuation. No production batch run or public/protected live cutover
+performed from this agent workspace; M41 remains OPEN.
+
+### Resume remaining batches from the saved import cursor
+
+This supersedes a whole-import replay. Run once after current-head required checks
+pass, with the existing Codespace running. It keeps the repaired session and saved
+775-operation prefix. No login, access-repair job, CMS deployment, repeat export or
+fresh public-build copy is requested. The background log shows each saved batch
+position and continues through the existing release sequence after final coverage.
+
+```bash
+bash <<'GPIR_M41_BATCHES'
+set -euo pipefail
+unset GH_TOKEN GITHUB_TOKEN
+export GH_TOKEN="$(gh auth token --hostname github.com)"
+gpir_release_repo=/workspaces/m41-full-cutover-suddBZ
+git -C "$gpir_release_repo" fetch origin fix/m41-cloudflare-sharp-admin-runtime-20261115
+git -C "$gpir_release_repo" show FETCH_HEAD:scripts/m41/resume-preflight.mjs |
+  node --input-type=module - "$gpir_release_repo" --after-cms --resume-import --background
+read -r gpir_pid gpir_log < <(python3 - <<'PY'
+import json
+from pathlib import Path
+p = Path('/workspaces/m41-full-cutover-suddBZ/.migration-data/m41-cutover/background-launch.json')
+d = json.loads(p.read_text())
+print(d['pid'], d['log'])
+PY
+)
+tail --pid="$gpir_pid" -n 60 -f "$gpir_log"
+GPIR_M41_BATCHES
+```
+
+Success is not a batch checkpoint or background launch. Final migration coverage,
+production source switch, public bytes and real authorized protected Payload read
+remain required for overall M41 closure. Preserve a failure/cursor instead of
+starting a duplicate runner.
