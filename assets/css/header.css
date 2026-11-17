@@ -111,10 +111,24 @@
 
 }
 
-.main-nav a.ask-gpir-btn{
+.main-nav a.ask-gpir-btn,
+.header .main-nav .header-tools a.ask-gpir-btn:link,
+.header .main-nav .header-tools a.ask-gpir-btn:visited {
+    color: #102747;
+    background: #fff9eb;
+    border: 2px solid #b98513;
+}
 
-    color:#ffffff;
+.header .main-nav .header-tools a.ask-gpir-btn:hover,
+.header .main-nav .header-tools a.ask-gpir-btn:focus-visible {
+    color: #071a2f;
+    background: #f2cc62;
+    border-color: #9b6a08;
+}
 
+.header .main-nav .header-tools a.ask-gpir-btn:focus-visible {
+    outline: 3px solid #102747;
+    outline-offset: 3px;
 }
 
 .main-nav a.ask-gpir-btn:hover{
