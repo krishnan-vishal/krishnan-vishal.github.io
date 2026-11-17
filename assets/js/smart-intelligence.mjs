@@ -767,7 +767,7 @@ function updateAskLinks(root, state) {
     topicLabels: SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label), geographyLabel
   });
   document.querySelectorAll('[data-smart-ask]').forEach(link => {
-    link.href = askHref(query);
+    link.href = '#gpir-ask-panel';
   });
 }
 
@@ -1147,6 +1147,7 @@ export async function initializeSmartIntelligence({ global = window,
   // Reuse the site's existing indexed GPIR search in-page, preserving Observatory context.
   const askPanel=document.createElement('section');
   askPanel.className='smi-ask-panel';
+  askPanel.id='gpir-ask-panel';
   askPanel.hidden=true;
   askPanel.setAttribute('aria-label','ASK GPIR — in-page search');
   const askTitle=document.createElement('h2');askTitle.textContent='ASK GPIR';
