@@ -604,3 +604,30 @@ Remote CI, private source staging, reviewed Pages publication and authenticated
 reader delivery acceptance remain pending. PR #580 is merged; no new PR or main
 push has been created. A follow-up PR requires an explicit exception to the owner's
 PR #580-only instruction. M41 remains OPEN.
+
+
+## 2026-11-17 — complete public edition staged in PR #582 without another private build
+
+The owner authorized the follow-up exception and then instructed completion.
+PR #582 is the single follow-up; #580 remains merged.
+
+Read-only CMS comparison decoded and SHA-256-verified all 795 unique managed
+objects against the accepted manifest, then calculated their exact Git blob
+identities (SHA-1 of the Git blob header plus content). Every one of the 835
+managed publication paths already references the corresponding verified blob in
+the repository. There are ZERO managed-content differences to copy or re-import.
+The publication commit inherits those existing verified Git blob IDs from its unchanged base tree
+and adds the missing `assets/data/cms-source.json` marker matching the successfully
+verified Worker edition. All 93 engine paths remain untouched.
+No credential, private file, stash, worktree, Contentful entry or database record
+was changed by this comparison/staging.
+
+The existing CMS validation path filter now includes the release marker so this
+publication head receives its own required validation rather than relying on
+a previous head. Publication workflow correction and 62 focused tests were
+validated in the preceding correction commit; current-head remote checks and
+normal merge remain required.
+
+This removes the need for an owner-side staging command or another content
+download/build. Actual public-domain byte verification, anonymous denial and
+authenticated protected Payload acceptance remain the completion gates.
