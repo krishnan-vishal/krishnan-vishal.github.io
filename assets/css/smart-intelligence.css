@@ -62,3 +62,12 @@
 .smi-topic-intel[data-state=locked] p{margin:.3rem 0;color:#43556a;font-size:.78rem}
 .smi-topic-intel .smi-sources{display:grid;gap:.4rem;margin:0 0 .6rem;padding-left:1.1rem;font-size:.78rem}
 .smi-topic-intel small{display:block;color:var(--smi-muted)}
+
+/* M40: bounded, period-scoped historical evidence cards. */
+.smi-evidence-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;margin:12px 0 16px}
+.smi-evidence-card{min-width:0;padding:14px 16px;background:#fff;border:1px solid #ded8c9;border-radius:12px;box-shadow:0 2px 8px rgba(11,31,54,.06)}
+.smi-evidence-card h3{font-size:1rem;line-height:1.4;margin:0 0 8px;overflow-wrap:anywhere}
+.smi-evidence-card h3 a{color:#102747;text-decoration:underline;text-underline-offset:3px}
+.smi-evidence-card h3 a:focus-visible{outline:2px solid #b98513;outline-offset:3px}
+.smi-evidence-card p{font-size:.875rem;line-height:1.55;margin:6px 0;overflow-wrap:anywhere}
+.smi-evidence-card .smi-evidence-meta{color:#526276;font-weight:600}
