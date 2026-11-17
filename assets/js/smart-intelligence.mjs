@@ -1143,11 +1143,7 @@ export async function initializeSmartIntelligence({ global = window,
     state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
     render();
   }));
-  root.querySelector('[data-smart-search]')?.addEventListener('submit', event => {
-    event.preventDefault();
-    const query = clean(new FormData(event.currentTarget).get('ask') || '', 300);
-    if (query) void openAsk(query);
-  });
+
   // Reuse the site's existing indexed GPIR search in-page, preserving Observatory context.
   const askPanel=document.createElement('section');
   askPanel.className='smi-ask-panel';
