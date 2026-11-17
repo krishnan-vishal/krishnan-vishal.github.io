@@ -487,7 +487,7 @@ function evidenceTag(record) {
 }
 
 const LONG_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-const askHref = query => `../../index.html?ask=${encodeURIComponent(query)}#gpir-search`;
+const askHref = query => `#gpir-ask-panel`;
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 function recordGeography(record) {
@@ -510,7 +510,7 @@ function developmentMarkup(record) {
     ['Record status', record.lifecycle], ['Geography', geography], ['Category', record.category], ['Themes', themes.join(' · ')]]
     .filter(([, value]) => value).map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const ask = askHref(buildAskQuery({}, { record }));
-  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask>Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
+  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
 }
 
 function renderTopSignal(root, records) {
@@ -525,7 +525,7 @@ function renderTopSignal(root, records) {
   const primary = themeById(primaryThemeId(record));
   top.style.setProperty('--theme-color', primary.color);
   const geography = recordGeography(record);
-  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="${escapeHtml(askHref(buildAskQuery({}, { record })))}" data-smart-item-ask>Ask GPIR about this</a>`;
+  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#gpir-ask-panel" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR about this</a>`;
   const extras = records.slice(1, 4);
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li style="--theme-color:${themeById(primaryThemeId(item)).color}"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
@@ -1194,6 +1194,12 @@ export async function initializeSmartIntelligence({ global = window,
       });
       void openAsk(query);
     });
+  });
+  document.addEventListener('click',event=>{
+    const link=event.target.closest?.('[data-smart-item-ask]');
+    if(!link)return;
+    event.preventDefault();
+    void openAsk(link.dataset.smartAskQuery||'');
   });
   root.querySelector('[data-smart-search]')?.addEventListener('submit',event=>{
     event.preventDefault();
