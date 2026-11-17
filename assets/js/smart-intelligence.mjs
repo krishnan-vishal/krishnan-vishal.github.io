@@ -978,7 +978,34 @@ export async function initializeSmartIntelligence({ global = window,
     nextButton.type='button'; nextButton.textContent='Next'; nextButton.disabled=!currentHistoryPage?.hasMore;
     nextButton.addEventListener('click',()=>{void render(cardsOffset,'next');});
     controls.append(previousButton,nextButton);
-    cardsPanel.replaceChildren(cardHeading,page,controls);
+    // The server cursor is scoped to the selected period, geography, topics and themes.
+    // Render only that bounded governed page; never fetch the entire archive in the browser.
+    const evidenceList=document.createElement('div');
+    evidenceList.className='smi-evidence-list';
+    for (const record of records) {
+      const article=document.createElement('article');
+      article.className='smi-evidence-card';
+      const heading=document.createElement('h3');
+      const link=document.createElement('a');
+      link.href=record.url;
+      link.target='_blank';
+      link.rel='noopener noreferrer';
+      link.textContent=record.title;
+      heading.append(link);
+      const meta=document.createElement('p');
+      meta.className='smi-evidence-meta';
+      meta.textContent=[new Date(record.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}),record.sourceName,record.category].filter(Boolean).join(' · ');
+      const summary=document.createElement('p');
+      summary.textContent=record.summary;
+      article.append(heading,meta,summary);
+      evidenceList.append(article);
+    }
+    if (!records.length && currentAggregate.total) {
+      const notice=document.createElement('p');
+      notice.textContent='No displayable evidence on this page; records failing source validation are omitted.';
+      evidenceList.append(notice);
+    }
+    cardsPanel.replaceChildren(cardHeading,page,evidenceList,controls);
     const liveCount = renderLive(root, liveRecords, state, requestNow);
     document.querySelectorAll('[data-smart-alerts-dot]').forEach(dot => { dot.hidden = !liveCount; });
     renderAlertFocus(root, liveRecords, records, state, requestNow, topicIntel.get(state.alertId));
