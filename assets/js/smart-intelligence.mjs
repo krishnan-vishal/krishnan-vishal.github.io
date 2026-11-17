@@ -1146,8 +1146,64 @@ export async function initializeSmartIntelligence({ global = window,
   root.querySelector('[data-smart-search]')?.addEventListener('submit', event => {
     event.preventDefault();
     const query = clean(new FormData(event.currentTarget).get('ask') || '', 300);
-    if (query) global.location.assign(askHref(query));
+    if (query) void openAsk(query);
   });
+  // Reuse the site's existing indexed GPIR search in-page, preserving Observatory context.
+  const askPanel=document.createElement('section');
+  askPanel.className='smi-ask-panel';
+  askPanel.hidden=true;
+  askPanel.setAttribute('aria-label','ASK GPIR — in-page search');
+  const askTitle=document.createElement('h2');askTitle.textContent='ASK GPIR';
+  const askForm=document.createElement('form');askForm.setAttribute('role','search');
+  const askInput=document.createElement('input');askInput.type='search';askInput.maxLength=300;
+  askInput.placeholder='Search verified GPIR research and intelligence';
+  askInput.setAttribute('aria-label','ASK GPIR query');
+  const askSubmit=document.createElement('button');askSubmit.type='submit';askSubmit.textContent='Search';
+  const askClose=document.createElement('button');askClose.type='button';askClose.textContent='Close';
+  askClose.addEventListener('click',()=>{askPanel.hidden=true;});
+  askForm.append(askInput,askSubmit,askClose);
+  const askResults=document.createElement('div');askResults.setAttribute('aria-live','polite');
+  askPanel.append(askTitle,askForm,askResults);
+  root.prepend(askPanel);
+  const openAsk=async query=>{
+    askPanel.hidden=false;askInput.value=query;
+    askPanel.scrollIntoView({block:'nearest'});
+    askInput.focus();
+    if(!query.trim())return;
+    askResults.textContent='Searching the governed GPIR index…';
+    try{
+      const search=global.GPIRContentSearch;
+      if(!search)throw Error('Index unavailable');
+      await search.load();
+      const found=search.search(query,10);
+      askResults.replaceChildren();
+      const count=document.createElement('p');count.textContent=`${found.total} indexed matches`;askResults.append(count);
+      for(const result of found.results){
+        const article=document.createElement('article');
+        const link=document.createElement('a');link.href=result.href;link.textContent=result.pageTitle||result.sectionTitle||'GPIR research';
+        const context=document.createElement('p');context.textContent=[result.sectionTitle,result.category].filter(Boolean).join(' · ');
+        article.append(link,context);askResults.append(article);
+      }
+      if(!found.total)askResults.append(document.createTextNode('No verified indexed matches for this query.'));
+    }catch{askResults.textContent='GPIR search is temporarily unavailable. No results have been inferred.';}
+  };
+  document.querySelectorAll('[data-smart-ask]').forEach(link=>{
+    link.addEventListener('click',event=>{
+      event.preventDefault();
+      const query=buildAskQuery(state,{
+        themeLabels:PREMIUM_THEMES.filter(theme=>state.themes.has(theme.id)).map(theme=>theme.label),
+        topicLabels:SMART_TOPICS.filter(topic=>state.topics.has(topic.id)).map(topic=>topic.label),
+        geographyLabel:root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent||'All geographies'
+      });
+      void openAsk(query);
+    });
+  });
+  root.querySelector('[data-smart-search]')?.addEventListener('submit',event=>{
+    event.preventDefault();
+    const query=clean(new FormData(event.currentTarget).get('ask')||'',300);
+    void openAsk(query);
+  },{capture:true});
+  askForm.addEventListener('submit',event=>{event.preventDefault();void openAsk(askInput.value);});
   const shareStatus = root.querySelector('[data-smart-share-status]');
   // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
   const shareContent = async (payload, trigger) => {
