@@ -88,15 +88,11 @@ async function main() {
             if (response.status !== 404) throw Error(`Live marker unavailable: HTTP ${response.status}; deployment not repeated blindly.`)
         }
         if (!alreadyLive) {
-            step('reconstruct website from the saved signed Payload snapshot; retain verified downloads')
-            run(process.execPath, ['scripts/build-cloudflare-preview.js'], true)
-            const built = read(path.join(root, '.cloudflare-preview-dist/assets/data/cms-source.json'))
-            if (built.source !== 'payload' || built.snapshot !== snapshot || built.managedFiles !== report.coverage.managedFiles) throw Error('Build marker differs from completed migration.')
-            step('deploy only the existing website Worker')
-            const deployed = run(process.execPath, ['apps/gpir-cms/node_modules/wrangler/bin/wrangler.js', 'deploy', '--config', 'wrangler.jsonc'])
-            report.websiteDeploymentVersion = deployed.match(/Current Version ID:\s*([a-f0-9-]+)/i)?.[1] || 'NOT_REPORTED'
-            save(reportFile, { ...report, status: 'IN_PROGRESS', currentStage: stage })
-        } else console.log('M41: selected snapshot already live; skip redeployment and verify delivery')
+            stage = 'publish the verified Payload edition through the existing GitHub Pages source'
+            throw Error('Public Pages marker is not the selected snapshot. Reuse the completed build with stage-pages-edition.cjs and owner-reviewed source publication. No repeat build or Worker deployment performed.')
+        }
+        report.publicationSource = 'EXISTING_GITHUB_PAGES_FROM_VERIFIED_PAYLOAD_EDITION'
+        console.log('M41: selected snapshot live on the existing Pages domain; verify delivery without rebuilding or redeploying')
         step('verify live managed bytes and preserved engine bytes')
         const liveFile = path.join(directory, 'live-verification.json')
         run(process.execPath, ['scripts/m41/verify-live.cjs', liveFile], true)
