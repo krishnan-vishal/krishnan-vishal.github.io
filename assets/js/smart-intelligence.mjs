@@ -1171,7 +1171,7 @@ export async function initializeSmartIntelligence({ global = window,
       const search=global.GPIRContentSearch;
       if(!search)throw Error('Index unavailable');
       await search.load();
-      const found=search.search(query,10);
+      const found=search.search(query,{limit:10});
       askResults.replaceChildren();
       const count=document.createElement('p');count.textContent=`${found.total} indexed matches`;askResults.append(count);
       for(const result of found.results){
