@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const site = require('./site-content.cjs');
+const { readJSON } = require('./read-json.cjs');
 function configuration(env) {
     const origin = new URL(env.PAYLOAD_PUBLIC_SERVER_URL || 'https://invalid.invalid');
     if (origin.protocol !== 'https:' || origin.username || origin.password || origin.search || origin.hash || origin.pathname !== '/' ||
@@ -13,10 +14,8 @@ function configuration(env) {
 async function client(env, fetchImpl = fetch) {
     const config = configuration(env);
     async function request(route, options = {}) {
-        const response = await fetchImpl(`${config.origin}${route}`, { ...options, redirect: 'error', signal: AbortSignal.timeout(60000),
+        return readJSON(fetchImpl, `${config.origin}${route}`, { ...options, redirect: 'error',
             headers: { authorization: `users API-Key ${config.key}`, 'content-type': 'application/json' } });
-        if (!response.ok) throw new Error(`Payload managed-site request failed: HTTP ${response.status}`);
-        return response.json();
     }
     const result = await request('/api/release/managed-site', { method: 'POST', body: JSON.stringify({ snapshot: config.snapshot }) });
     const expected = crypto.createHmac('sha256', config.secret).update(site.canonical(result.manifest)).digest('hex');
@@ -53,12 +52,32 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     const engineBefore = site.canonical(current.protectedFiles);
     // Verify the entire source before replacing any output bytes.
     const pending = [];
+    const cache = path.join(path.dirname(outputRoot), '.migration-data/m41-cutover/build-cache', source.manifest.snapshot);
+    fs.mkdirSync(cache, { recursive: true, mode: 0o700 });
+    let reused = 0;
     for (const item of source.manifest.files) {
-        const doc = await source.record(`m41:blob:${item.sha256}`);
-        if (doc.sourcePayload.kind !== 'site-bytes' || doc.sourcePayload.encoding !== 'base64') throw new Error('Invalid Payload site object.');
-        const bytes = Buffer.from(doc.sourcePayload.body, 'base64');
-        site.verifyBytes(item, bytes);
+        const cached = path.join(cache, item.sha256);
+        let bytes;
+        if (fs.existsSync(cached)) {
+            if (!fs.lstatSync(cached).isFile() || fs.lstatSync(cached).isSymbolicLink()) throw new Error('Unsafe Payload build cache entry.');
+            bytes = fs.readFileSync(cached);
+            site.verifyBytes(item, bytes);
+            reused++;
+        } else {
+            let doc;
+            try { doc = await source.record(`m41:blob:${item.sha256}`); }
+            catch (error) { throw new Error(`Managed file ${item.path}: ${error.message}`); }
+            if (doc.sourcePayload.kind !== 'site-bytes' || doc.sourcePayload.encoding !== 'base64') throw new Error('Invalid Payload site object.');
+            bytes = Buffer.from(doc.sourcePayload.body, 'base64');
+            site.verifyBytes(item, bytes);
+            const temporary = `${cached}.${process.pid}.${crypto.randomUUID()}.tmp`;
+            fs.writeFileSync(temporary, bytes, { flag: 'wx', mode: 0o600 });
+            fs.renameSync(temporary, cached);
+        }
         pending.push({ item, bytes });
+        if (pending.length === 1 || pending.length % 25 === 0 || pending.length === source.manifest.files.length) {
+            console.log(`M41: verified build files ${pending.length}/${source.manifest.files.length}; cached=${reused}`);
+        }
     }
     for (const { item, bytes } of pending) {
         fs.mkdirSync(path.dirname(path.join(outputRoot, item.path)), { recursive: true });
@@ -71,3 +90,4 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     return marker;
 }
 module.exports = { client, materialize, configuration };
+

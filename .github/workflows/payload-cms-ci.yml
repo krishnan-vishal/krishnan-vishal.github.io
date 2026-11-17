@@ -9,6 +9,7 @@ on:
       - 'tests/m41/**'
       - 'scripts/build-cloudflare-preview.js'
       - 'gpir-content-source.json'
+      - 'assets/data/cms-source.json'
       - 'supabase/functions/gpir-protected-publication/**'
       - 'supabase/functions/_shared/gpir-contentful-editorial.mjs'
       - 'supabase/migrations/20261114020220_gpir_payload_schema_isolation.sql'
@@ -49,7 +50,7 @@ jobs:
         run: npm audit --audit-level=high
       - run: npm run test
       - name: Verify existing-session release access
-        run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs
+        run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs ../../tests/m41/payload-reader.test.cjs ../../tests/m41/website-resume.test.mjs ../../tests/m41/pages-staging.test.cjs
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts
