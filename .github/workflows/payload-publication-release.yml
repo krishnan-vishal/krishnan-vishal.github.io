@@ -4,18 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: PREVIEW builds the full Payload site; RELEASE switches the existing website Worker.
+        description: PREVIEW builds the Payload site; RELEASE proposes its verified bytes for the existing GitHub Pages publication.
         required: true
         default: PREVIEW
         type: choice
         options: [PREVIEW, RELEASE]
       snapshot:
-        description: Exact reconciled Payload managed-site snapshot SHA-256
+        description: Exact reviewed Payload managed-site snapshot SHA-256 selected by the source lock
         required: true
         type: string
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: gpir-payload-governed-release
@@ -33,35 +34,56 @@ jobs:
       PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
       GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
       PAYLOAD_RELEASE_CUTOVER_ENABLED: ${{ vars.PAYLOAD_RELEASE_CUTOVER_ENABLED }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-          cache: npm
-          cache-dependency-path: apps/gpir-cms/package-lock.json
-      - name: Require explicit production source-switch configuration
+      - name: Require reviewed main and explicit publication configuration
         if: inputs.mode == 'RELEASE'
-        run: test "$PAYLOAD_RELEASE_CUTOVER_ENABLED" = "true"
+        run: |
+          test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
+          test "$PAYLOAD_RELEASE_CUTOVER_ENABLED" = "true"
       - name: Reconstruct full public content from the signed Payload snapshot
         run: node scripts/build-cloudflare-preview.js
-      - name: Install pinned existing deployment tooling
-        run: npm ci
-        working-directory: apps/gpir-cms
-      - name: Deploy full website through the existing Worker configuration
+      - name: Validate and stage only the managed public edition
         if: inputs.mode == 'RELEASE'
-        run: apps/gpir-cms/node_modules/.bin/wrangler deploy --config wrangler.jsonc
-      - name: Verify the live Payload source and every migrated public file
+        run: node scripts/m41/stage-pages-edition.cjs
+      - name: Propose the edition through the existing reviewed Pages source
         if: inputs.mode == 'RELEASE'
-        run: node scripts/m41/verify-live.cjs .migration-data/m41-live-verification.json
-      - name: Save consolidated release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          edition_branch="automation/m41-payload-$GPIR_PAYLOAD_SITE_SNAPSHOT"
+          if test -n "$(git ls-remote --heads origin "refs/heads/$edition_branch")"; then
+            echo "Existing edition branch preserved. No reset, rewrite, or repeat publication."
+            exit 0
+          fi
+          git switch -c "$edition_branch"
+          git add --pathspec-from-file=.migration-data/m41-cutover/pages-stage-paths.nul --pathspec-file-nul
+          if git diff --cached --quiet; then
+            echo "No managed publication change."
+            exit 0
+          fi
+          git -c user.name=github-actions\[bot\] -c user.email=41898282+github-actions\[bot\]@users.noreply.github.com commit -m "M41: stage reviewed Payload edition $GPIR_PAYLOAD_SITE_SNAPSHOT"
+          git push origin "HEAD:refs/heads/$edition_branch"
+          cat > "$RUNNER_TEMP/m41-publication-body.md" <<'BODY'
+          Publish the complete signed Payload edition through the existing GitHub Pages source.
+          Only managed public files and their release marker are staged. Engines and unrelated work are preserved.
+          No DNS, domain, Pages source setting, Contentful, identity, entitlement, or database changes.
+          Owner review and merge remain required; no production acceptance is claimed by this proposal.
+          BODY
+          gh pr create --base "$DEFAULT_BRANCH" --head "$edition_branch" --title "M41: publish reviewed Payload edition" --body-file "$RUNNER_TEMP/m41-publication-body.md"
+      - name: Save the verified source and staging evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: m41-full-site-${{ inputs.mode }}-${{ github.run_id }}
           path: |
-            .migration-data/m41-live-verification.json
             .cloudflare-preview-dist/assets/data/cms-source.json
-          if-no-files-found: error
+            .migration-data/m41-cutover/pages-stage-report.json
+          if-no-files-found: warn
           retention-days: 7
+

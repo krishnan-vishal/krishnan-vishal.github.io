@@ -1,5 +1,146 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-17 — complete public edition staged in PR #582 without another private build
+
+The owner authorized the follow-up exception and then instructed completion.
+PR #582 is the single follow-up; #580 remains merged.
+
+Read-only CMS comparison decoded and SHA-256-verified all 795 unique managed
+objects against the accepted manifest, then calculated their exact Git blob
+identities (SHA-1 of the Git blob header plus content). Every one of the 835
+managed publication paths already references the corresponding verified blob in
+the repository. There are ZERO managed-content differences to copy or re-import.
+The publication commit inherits those existing verified Git blob IDs from its unchanged base tree
+and adds the missing `assets/data/cms-source.json` marker matching the successfully
+verified Worker edition. All 93 engine paths remain untouched.
+No credential, private file, stash, worktree, Contentful entry or database record
+was changed by this comparison/staging.
+
+The existing CMS validation path filter now includes the release marker so this
+publication head receives its own required validation rather than relying on
+a previous head. Publication workflow correction and 62 focused tests were
+validated in the preceding correction commit; current-head remote checks and
+normal merge remain required.
+
+This removes the need for an owner-side staging command or another content
+download/build. Actual public-domain byte verification, anonymous denial and
+authenticated protected Payload acceptance remain the completion gates.
+
+
+## 2026-11-17 — complete Worker-byte verification; preserve existing GitHub Pages delivery
+
+Owner private build completed: 835/835 Payload-managed files verified; output
+929 public files, 184995881 bytes, SHA-256
+`ea311a85d867f44e961fcd3ab9d27f6babdfb838d2cb419f94cf4bc5ff730493`.
+The website Worker deployment command succeeded. Verification at the public
+domain then returned HTTP 404 for `assets/data/cms-source.json`.
+
+Independent live checks established the actual delivery mismatch:
+- Worker URL returns the correct Payload source marker.
+- Every one of the 835 managed files and 93 protected engine files at that Worker
+  URL passed actual HTTP byte/digest verification against the stored immutable
+  CMS manifest. The manifest's canonical hash and snapshot were checked first.
+- Public domain responses carry GitHub Pages headers; www redirects to apex.
+- Authoritative nameservers remain ns69/ns70.domaincontrol.com; apex A records
+  remain the four GitHub Pages 185.199.*.153 addresses.
+- The Worker release is NOT yet the public-domain release. No public/protected
+  domain completion is claimed.
+
+Direct Worker verification evidence:
+```json
+{
+  "status": "WORKER_URL_BYTES_VERIFIED_DOMAIN_CUTOVER_PENDING",
+  "origin": "https://krishnan-vishal-github-io.krishnanvishal12.workers.dev",
+  "snapshot": "f8f9a19b12292fb4395220076f4d87264b0fe7d70c02cd89b7f7d1b5330e5837",
+  "sourceCommit": "7111f7fbaba174a0291ec3f1210566fc0ce0925f",
+  "managedFilesVerified": 835,
+  "protectedEngineFilesVerified": 93,
+  "publicDomainAcceptance": "PENDING_GITHUB_PAGES_STILL_SERVES_DOMAIN"
+}
+```
+
+Owner selected **Keep GitHub Pages** rather than moving DNS to the Worker.
+No domain/DNS, registrar, Pages source setting, Contentful, Supabase identity,
+entitlement or engine change is part of the correction.
+
+`stage-pages-edition.cjs` reuses the completed private build and verifies its
+signed Payload manifest, source lock, completion marker, all managed bytes, and
+equality of the build's engine bytes to the existing Git engine files. It refuses
+local managed-file edits or any staged index changes. Only after all checks does
+it copy the managed edition and marker into the existing publication source.
+It creates a NUL-delimited exact path list for scoped Git staging; it never commits,
+pushes, deletes content or publishes. Unrelated work/stashes remain untouched.
+
+The existing Payload publication workflow now prepares a reviewed source proposal
+for the existing GitHub Pages branch deployment, following the existing Contentful
+proposal pattern. It does not convert Pages to a new deployment mode, move DNS,
+or deploy another Worker. Existing automatic Git engine/data updates retain their
+normal Pages publication. RELEASE requires the reviewed default branch and the
+existing explicit release configuration. New snapshot-named proposal branches
+use ordinary non-force pushes; an existing edition branch is preserved rather
+than reset/rebased/replaced. No automatic merge or main push.
+
+`finish-website.mjs` now holds if the selected public-domain marker is absent;
+it no longer repeats the successful build or deploys again to the wrong target.
+After reviewed Pages publication it performs public/protected acceptance only.
+
+62 focused Node tests and changed JS syntax PASS locally. New staging tests cover
+complete staging, engine preservation, dirty managed paths, corrupted content,
+and preservation of an unrelated staged index change. Actual workflow YAML and
+shell syntax, reviewed-branch gate and branch-only proposal checks PASS locally.
+Remote CI, private source staging, reviewed Pages publication and authenticated
+reader delivery acceptance remain pending. PR #580 is merged; no new PR or main
+push has been created. A follow-up PR requires an explicit exception to the owner's
+PR #580-only instruction. M41 remains OPEN.
+
+
+## 2026-11-16 — post-merge website recovery; no repeat import
+
+Owner-supplied private evidence confirms import completion: snapshot
+`f8f9a19b12292fb4395220076f4d87264b0fe7d70c02cd89b7f7d1b5330e5837`,
+835 managed files, 93 protected engine files, 112 Contentful entries, 5 assets,
+385 created and 682 reused operations. Source edition remains
+`7111f7fbaba174a0291ec3f1210566fc0ce0925f`.
+Contentful writes/modifications/deletions remain zero.
+
+PR #580 merged as `e5ed55a2b1e7260627dc27e37286db23a539aa9c`; source-lock
+commit `198dbb21cb2ee41634591be6477f4167ccc91daa`.
+The existing two editorial consumers were deployed. The website build failed on
+incomplete JSON at offsets 282624 and 380928; its completion marker is absent.
+One subsequent request returned HTTP 503. The later HTTP 200 header-only probe
+cancelled its body and did NOT prove complete JSON delivery. No observed Worker
+exception has established the transport truncation cause.
+
+The reader correction requests uncompressed JSON, consumes/parses the full body,
+and retries only transient read/JSON failures and HTTP 502/503/504, at most three
+attempts per request. HTTP 401/403/429, signature/hash mismatches and immutable
+content conflicts do not trigger broader fallback. Errors identify endpoint,
+immutable blob key, managed path, HTTP status, body size and attempt; never body,
+authorization header or credentials. Verified bytes are atomically cached under
+the signed snapshot, rehashed when reused, and retained if the build stops. Cache
+tampering fails closed and is preserved. Output replacement remains after all
+content verification. This is read recovery, not proof of the production cause
+or successful deployment.
+
+`scripts/m41/finish-website.mjs --background` is the post-merge continuation.
+It checks saved import/source-lock/PR merge identity, preserves the previous
+consolidated report, takes the existing release lock, and reuses existing private
+CMS credentials. It performs no import, export, management-access repair, merge,
+secret update, CMS build/deployment, or Supabase function/schema change.
+It builds the selected edition, deploys only the existing website Worker, and
+executes actual live byte checks for managed content AND the protected engine
+files. A selected snapshot already live is verified rather than redeployed.
+Existing reader acceptance is used only if a private reader token already exists;
+absence is recorded as protected acceptance pending, never a full completion.
+
+58 focused Node tests PASS locally, including seven response/cache tests and one
+post-merge identity test; changed JavaScript syntax PASS. These corrections are
+on the original working branch after PR #580 merged; they are not on main, and
+no new PR or main push is created. New remote CI and private continuation have
+not run. The existing validation workflow includes the new tests.
+M41 remains OPEN pending actual public and protected delivery evidence.
+
+
 ## Current handoff
 
 ## 2026-11-16 — standalone shutdown correction, PR #580
