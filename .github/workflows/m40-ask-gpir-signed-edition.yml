@@ -1,59 +1,32 @@
-name: M40 ASK GPIR signed Payload edition
+name: M40 ASK GPIR signed Payload edition verification
 on:
   pull_request:
     types: [synchronize, reopened, ready_for_review]
     paths:
-      - 'apps/gpir-cms/src/migration/prepare-site-release.ts'
       - 'pages/intelligence/index.html'
+      - 'gpir-content-source.json'
+      - 'assets/data/cms-source.json'
       - '.github/workflows/m40-ask-gpir-signed-edition.yml'
 permissions:
-  contents: write
+  contents: read
 jobs:
-  prepare-signed-edition:
+  verify-signed-edition:
     if: >-
       github.event.pull_request.number == 585 &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'fix/m40-ask-gpir-inpage-20261117'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     environment: payload-production-cutover
-    concurrency:
-      group: m40-ask-gpir-signed-edition
-      cancel-in-progress: false
     steps:
-      - name: Checkout exact approved PR branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-          cache: npm
-          cache-dependency-path: apps/gpir-cms/package-lock.json
-      - name: Install locked Payload dependencies
-        working-directory: apps/gpir-cms
-        run: npm ci
-      - name: Prepare immutable edition from pinned parent
-        working-directory: apps/gpir-cms
-        env:
-          PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
-          PAYLOAD_DATABASE_CA_CERT: ${{ secrets.PAYLOAD_DATABASE_CA_CERT }}
-          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
-          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
-          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT }}
-          GPIR_CORE_SUPABASE_URL: ${{ vars.GPIR_CORE_SUPABASE_URL }}
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          GPIR_SUPABASE_SECRET_KEY: ${{ secrets.GPIR_SUPABASE_SECRET_KEY }}
-          S3_BUCKET: ${{ vars.S3_BUCKET }}
-          S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
-          S3_REGION: ${{ vars.S3_REGION }}
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-        run: |
-          test -n "$PAYLOAD_DATABASE_URI" && test -n "$PAYLOAD_SECRET" && test -n "$GPIR_PAYLOAD_SITE_SNAPSHOT" || { echo "Protected Payload configuration unavailable; no publication performed."; exit 1; }
-          node --import tsx src/migration/prepare-site-release.ts --report="$RUNNER_TEMP/m40-ask-gpir-edition.json"
-      - name: Verify signed manifest and pin the generated edition
+      - name: Verify existing signed Payload manifest against approved ASK GPIR page
         env:
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
@@ -64,32 +37,13 @@ jobs:
           const site = require('./scripts/m41/site-content.cjs');
           const release = require('./scripts/m41/payload-site.cjs');
           (async () => {
-            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/m40-ask-gpir-edition.json', 'utf8'));
-            if (report.status !== 'EDITION_PREPARED_NOT_DEPLOYED' || report.observatoryUpdated !== true || !/^[a-f0-9]{64}$/.test(report.snapshot)) throw Error('No new Observatory edition prepared.');
-            const source = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: report.snapshot });
+            const lock = JSON.parse(fs.readFileSync('gpir-content-source.json', 'utf8'));
+            const cms = JSON.parse(fs.readFileSync('assets/data/cms-source.json', 'utf8'));
+            if (lock.source !== 'payload' || cms.source !== 'payload' || lock.snapshot !== cms.snapshot) throw Error('Payload source locks do not match.');
+            const source = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: lock.snapshot });
             const expected = site.sha256(fs.readFileSync('pages/intelligence/index.html'));
             const item = source.manifest.files.find(f => f.path === 'pages/intelligence/index.html');
-            if (!item || item.sha256 !== expected || report.snapshot === report.parentSnapshot) throw Error('Signed edition does not contain reviewed Observatory bytes.');
-            const lock = JSON.parse(fs.readFileSync('gpir-content-source.json', 'utf8'));
-            if (lock.snapshot !== report.parentSnapshot) throw Error('Source lock changed since edition preparation.');
-            lock.snapshot = report.snapshot;
-            fs.writeFileSync('gpir-content-source.json', JSON.stringify(lock, null, 2) + '\\n');
-            const cms = JSON.parse(fs.readFileSync('assets/data/cms-source.json', 'utf8'));
-            if (cms.snapshot !== report.parentSnapshot) throw Error('CMS source lock changed.');
-            cms.snapshot = report.snapshot;
-            cms.sourceCommit = source.manifest.sourceCommit;
-            cms.managedFiles = source.manifest.files.length;
-            cms.protectedEngineFiles = source.manifest.protectedFiles.length;
-            fs.writeFileSync('assets/data/cms-source.json', JSON.stringify(cms, null, 2) + '\\n');
-            console.log('SIGNED_EDITION_VERIFIED snapshot=' + report.snapshot + ' observatoryUpdated=true');
+            if (!item || item.sha256 !== expected) throw Error('SIGNED_EDITION_NOT_PUBLISHED: Current Payload snapshot does not contain approved ASK GPIR bytes. Existing managed-site endpoint can verify/sign an existing snapshot but cannot create one. Publish via authorized Payload database-backed release process before merging.');
+            console.log('SIGNED_EDITION_VERIFIED snapshot=' + lock.snapshot + ' observatory=true');
           })().catch(error => { console.error(error.message); process.exitCode = 1; });
           NODE
-      - name: Commit signed edition locks to PR 585
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- gpir-content-source.json assets/data/cms-source.json
-          git commit -m 'M40: pin signed ASK GPIR Payload edition'
-          git push origin HEAD:refs/heads/fix/m40-ask-gpir-inpage-20261117
