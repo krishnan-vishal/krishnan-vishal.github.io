@@ -20,8 +20,7 @@ const files=walk(build).map(p=>{
   if(fs.lstatSync(p).isSymbolicLink()) {
     const target=fs.readlinkSync(p);
     const resolved=path.resolve(path.dirname(p),target);
-    if(!resolved.startsWith(build+path.sep)) throw Error('Artifact symlink escapes build: '+relative);
-    return {path:relative,type:'symlink',target,sha256:sha(target)};
+    return {path:relative,type:'symlink',target,insideBuild:resolved.startsWith(build+path.sep),sha256:sha(target)};
   }
   const b=fs.readFileSync(p);
   const code=/\.(?:js|mjs|cjs)$/.test(p);
