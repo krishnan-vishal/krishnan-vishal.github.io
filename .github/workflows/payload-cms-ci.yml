@@ -52,8 +52,16 @@ jobs:
           node --test scripts/mitigate-picomatch.test.mjs
       - name: Verify fail-closed advisory policy
         run: node --test scripts/advisory-policy.test.mjs
-      - name: Reject high and critical dependency findings
-        run: npm audit --audit-level=high
+      - name: Enforce native audit and fail-closed advisory decision
+        run: node scripts/verify-native-audit.mjs
+      - name: Preserve native security audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-native-audit-evidence
+          path: ${{ runner.temp }}/gpir-native-audit.json
+          if-no-files-found: warn
+          retention-days: 30
       - run: npm run test
       - name: Verify existing-session release access
         run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs ../../tests/m41/payload-reader.test.cjs ../../tests/m41/website-resume.test.mjs ../../tests/m41/pages-staging.test.cjs
