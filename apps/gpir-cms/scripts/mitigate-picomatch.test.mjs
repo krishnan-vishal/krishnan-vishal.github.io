@@ -16,9 +16,11 @@ for (const [relative, pkg] of entries) {
     const source = `
       const assert = require('node:assert/strict');
       const pm = require(process.argv[1]);
-      for (const options of [{}, {maxExtglobRecursion:false}, {nocase:true}]) {
+      for (const options of [{}, {maxExtglobRecursion:false}, {fastpaths:false}, {nocase:true}]) {
         for (const pattern of ['+(*)','*(*)','+(a*)','+(*(a))','+(+(a))','+(a|aa)','+(?(a))']) {
-          assert.throws(() => pm(pattern, options), /GPIR: unsafe or unsupported repeated extglob/);
+          for (const method of [p => pm(p, options), p => pm.makeRe(p, options), p => pm.parse(p, options)]) {
+            assert.throws(() => method(pattern), /GPIR: unsafe or unsupported repeated extglob/, pattern);
+          }
         }
       }
       assert.equal(pm('**/*.js')('src/lib/test.js'), true);
