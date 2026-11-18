@@ -49,6 +49,9 @@
   },
   "overrides": {
     "dompurify": "3.4.17",
-    "happy-dom": "21.0.4"
+    "happy-dom": "21.0.4",
+    "glob": "14.0.6",
+    "minimatch": "11.0.8",
+    "esbuild": "0.28.2"
   }
 }
