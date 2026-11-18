@@ -103,7 +103,9 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     // Fail closed if an ASK GPIR Observatory release restores a stale CMS edition.
     // This is a release contract, not an override of signed Payload bytes.
     const expectedObservatory = path.join(__dirname, '../../.gpir-ask-observatory-required');
-    if (fs.existsSync(expectedObservatory)) {
+    const pinFile = path.join(__dirname, '../../gpir-content-source.json');
+    const pinned = fs.existsSync(pinFile) ? JSON.parse(fs.readFileSync(pinFile, 'utf8')).snapshot : null;
+    if (fs.existsSync(expectedObservatory) && source.manifest.snapshot === pinned) {
         const required = site.sha256(fs.readFileSync(path.join(__dirname, '../../pages/intelligence/index.html')));
         const item = source.manifest.files.find(file => file.path === 'pages/intelligence/index.html');
         if (!item || item.sha256 !== required)
