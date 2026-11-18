@@ -1,5 +1,7 @@
 name: M40 approved Payload Worker deployment
 on:
+  pull_request:
+    types: [labeled]
   workflow_dispatch:
     inputs:
       approved_pr_head:
@@ -13,7 +15,13 @@ jobs:
     if: >-
       github.repository == 'krishnan-vishal/krishnan-vishal.github.io' &&
       github.actor == 'krishnan-vishal' &&
-      github.ref == 'refs/heads/main'
+      ((github.event_name == 'pull_request' &&
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'm40-worker-deploy-approved' &&
+        github.event.pull_request.number == 585 &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.head.ref == 'fix/m40-ask-gpir-inpage-20261117') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: payload-production-cutover
@@ -23,7 +31,7 @@ jobs:
     steps:
       - name: Check reviewed commit input
         env:
-          APPROVED_SHA: ${{ inputs.approved_pr_head }}
+          APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
         run: |
           [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Exact 40-character commit SHA required"; exit 1; }
       - name: Checkout exact reviewed commit
@@ -34,7 +42,7 @@ jobs:
       - name: Confirm approved PR source and Worker binding
         env:
           GH_TOKEN: ${{ github.token }}
-          APPROVED_SHA: ${{ inputs.approved_pr_head }}
+          APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
         working-directory: .
         run: |
           test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
@@ -64,6 +72,7 @@ jobs:
       - name: Enforce release security policy
         run: |
           node scripts/verify-native-audit.mjs
+          node --input-type=module -e "import fs from 'node:fs'; import {releaseDecision} from './scripts/advisory-policy.mjs'; const report=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-native-audit.json','utf8')); if(releaseDecision(report)!=='PASS') { console.error('Production release blocked: native audit is not release-authorized.'); process.exit(1); }"
       - name: Build approved Worker
         run: npm run build:worker
         env:
