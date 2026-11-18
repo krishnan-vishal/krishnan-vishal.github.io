@@ -100,6 +100,16 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
         fs.writeFileSync(path.join(outputRoot, item.path), bytes);
     }
     if (site.canonical(site.inventory(outputRoot, source.manifest.sourceCommit).protectedFiles) !== engineBefore) throw new Error('A managed edition changed protected engine files.');
+    // Fail closed if an ASK GPIR Observatory release restores a stale CMS edition.
+    // This is a release contract, not an override of signed Payload bytes.
+    const expectedObservatory = path.join(__dirname, '../../.gpir-ask-observatory-required');
+    if (fs.existsSync(expectedObservatory)) {
+        const required = fs.readFileSync(expectedObservatory, 'utf8').trim();
+        if (!/^[a-f0-9]{64}$/.test(required)) throw new Error('Invalid Observatory release digest.');
+        const item = source.manifest.files.find(file => file.path === 'pages/intelligence/index.html');
+        if (!item || item.sha256 !== required)
+            throw new Error('Payload signed snapshot does not contain the approved Observatory ASK GPIR edition; publish and sign a new managed-site snapshot before release.');
+    }
     const marker = { source: 'payload', snapshot: source.manifest.snapshot, sourceCommit: source.manifest.sourceCommit,
         managedFiles: pending.length, protectedEngineFiles: current.protectedFiles.length };
     fs.writeFileSync(path.join(outputRoot, 'assets/data/cms-source.json'), JSON.stringify(marker) + '\n');
