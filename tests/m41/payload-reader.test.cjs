@@ -89,6 +89,7 @@ test('restart retains verified downloads; failed build never replaces output', a
     const second = f.manifest.files[1];
     f.fail(`m41:blob:${second.sha256}`);
     fs.writeFileSync(path.join(f.output, first.path), 'current output');
+    fs.mkdirSync(path.join(f.output, 'assets/data'), { recursive: true });
     await assert.rejects(materialize(f.output, f.env, f.fetchImpl), /HTTP=403/);
     assert.equal(fs.readFileSync(path.join(f.output, first.path), 'utf8'), 'current output');
     assert.equal(fs.existsSync(path.join(f.output, 'assets/data/cms-source.json')), false);
@@ -109,6 +110,8 @@ test('tampered cache is rejected before publication and preserved for inspection
     const cached = path.join(f.root, '.migration-data/m41-cutover/build-cache', f.manifest.snapshot, item.sha256);
     fs.mkdirSync(path.dirname(cached), { recursive: true });
     fs.writeFileSync(cached, 'tampered');
+    // Force the restore path to read the cache rather than reuse the valid output.
+    fs.unlinkSync(path.join(f.output, item.path));
     await assert.rejects(materialize(f.output, f.env, f.fetchImpl), /digest mismatch/);
     assert.equal(fs.readFileSync(cached, 'utf8'), 'tampered');
     assert.equal(fs.existsSync(path.join(f.output, 'assets/data/cms-source.json')), false);
