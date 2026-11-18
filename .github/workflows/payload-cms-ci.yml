@@ -50,6 +50,8 @@ jobs:
         run: |
           node scripts/mitigate-picomatch.mjs
           node --test scripts/mitigate-picomatch.test.mjs
+      - name: Verify fail-closed advisory policy
+        run: node --test scripts/advisory-policy.test.mjs
       - name: Reject high and critical dependency findings
         run: npm audit --audit-level=high
       - run: npm run test
