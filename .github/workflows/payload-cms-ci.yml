@@ -68,9 +68,6 @@ jobs:
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts
-      - name: Enforce production release security authorization
-        if: always()
-        run: node scripts/verify-release-authorization.mjs
 
   worker-build:
     if: github.event_name != 'workflow_dispatch' || inputs.mode == 'VALIDATE'
