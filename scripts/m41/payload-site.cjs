@@ -104,8 +104,7 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     // This is a release contract, not an override of signed Payload bytes.
     const expectedObservatory = path.join(__dirname, '../../.gpir-ask-observatory-required');
     if (fs.existsSync(expectedObservatory)) {
-        const required = fs.readFileSync(expectedObservatory, 'utf8').trim();
-        if (!/^[a-f0-9]{64}$/.test(required)) throw new Error('Invalid Observatory release digest.');
+        const required = site.sha256(fs.readFileSync(path.join(__dirname, '../../pages/intelligence/index.html')));
         const item = source.manifest.files.find(file => file.path === 'pages/intelligence/index.html');
         if (!item || item.sha256 !== required)
             throw new Error('Payload signed snapshot does not contain the approved Observatory ASK GPIR edition; publish and sign a new managed-site snapshot before release.');
