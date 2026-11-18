@@ -46,6 +46,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
+      - name: Apply and test temporary picomatch mitigation
+        run: |
+          node scripts/mitigate-picomatch.mjs
+          node --test scripts/mitigate-picomatch.test.mjs
       - name: Reject high and critical dependency findings
         run: npm audit --audit-level=high
       - run: npm run test
@@ -70,6 +74,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
+      - name: Apply and test temporary picomatch mitigation
+        run: |
+          node scripts/mitigate-picomatch.mjs
+          node --test scripts/mitigate-picomatch.test.mjs
       - name: Build isolated Cloudflare Worker
         run: npm run build:worker
         env:
