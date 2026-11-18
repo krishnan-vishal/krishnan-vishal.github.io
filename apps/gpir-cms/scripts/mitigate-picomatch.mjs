@@ -24,6 +24,21 @@ const replacement = [
   '    }',
   anchor
 ].join('\n');
+const entryAnchor = '  input = REPLACEMENTS[input] || input;';
+const entryGuard = [
+  '  // GPIR repeated-extglob preflight: cover parser shortcuts as well.',
+  '  for (let i = 0; i < input.length - 1; i++) {',
+  '    if ((input[i] !== "+" && input[i] !== "*") || input[i + 1] !== "(") continue;',
+  '    const end = input.indexOf(")", i + 2);',
+  '    const branches = end < 0 ? [] : input.slice(i + 2, end).split("|");',
+  '    const words = branches.map(word => word.toLowerCase());',
+  '    if (!branches.length || branches.some(word => !/^[a-zA-Z0-9_-]+$/.test(word)) ||',
+  '        words.some((word, j) => words.some((other, k) => j !== k && other.startsWith(word)))) {',
+  '      throw new SyntaxError("GPIR: unsafe or unsupported repeated extglob");',
+  '    }',
+  '  }',
+  entryAnchor
+].join('\n');
 for (const [relative, item] of entries) {
   if (!['2.3.2', '4.0.7'].includes(item.version)) throw new Error('Unreviewed picomatch version: ' + item.version);
   const dir = path.join(root, relative);
@@ -32,10 +47,11 @@ for (const [relative, item] of entries) {
   const file = path.join(dir, 'lib/parse.js');
   const source = fs.readFileSync(file, 'utf8');
   if (source.includes(marker)) {
-    if (!source.includes(replacement)) throw new Error('Unexpected existing mitigation');
+    if (!source.includes(replacement) || !source.includes(entryGuard)) throw new Error('Unexpected existing mitigation');
     continue;
   }
   if (source.split(anchor).length !== 2) throw new Error('Unexpected parser source: ' + relative);
-  fs.writeFileSync(file, source.replace(anchor, replacement));
+  if (source.split(entryAnchor).length !== 2) throw new Error('Unexpected parser entry: ' + relative);
+  fs.writeFileSync(file, source.replace(anchor, replacement).replace(entryAnchor, entryGuard));
   console.log('Applied temporary repeated-extglob restriction:', relative, item.version);
 }
