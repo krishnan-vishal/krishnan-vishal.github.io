@@ -89,6 +89,8 @@ test('restart retains verified downloads; failed build never replaces output', a
     const second = f.manifest.files[1];
     f.fail(`m41:blob:${second.sha256}`);
     fs.writeFileSync(path.join(f.output, first.path), 'current output');
+    // The second file must be absent to exercise the simulated 403 fetch.
+    fs.unlinkSync(path.join(f.output, second.path));
     fs.mkdirSync(path.join(f.output, 'assets/data'), { recursive: true });
     await assert.rejects(materialize(f.output, f.env, f.fetchImpl), /HTTP=403/);
     assert.equal(fs.readFileSync(path.join(f.output, first.path), 'utf8'), 'current output');
