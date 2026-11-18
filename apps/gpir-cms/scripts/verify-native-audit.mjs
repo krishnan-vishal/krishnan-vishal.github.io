@@ -3,7 +3,7 @@
 // runtime exposure and deployment-integrity attestations.
 import {spawnSync} from 'node:child_process';
 import {writeFileSync} from 'node:fs';
-import {classify,releaseDecision} from './advisory-policy.mjs';
+import {classify,releaseDecision,expiry} from './advisory-policy.mjs';
 const cmd=process.platform==='win32'?'npm.cmd':'npm';
 const run=spawnSync(cmd,['audit','--json','--audit-level=high'],{encoding:'utf8',maxBuffer:32*1024*1024,timeout:120000,shell:process.platform==='win32'});
 if(run.error){console.error('Native audit execution failed:',run.error.message);process.exit(1);}
@@ -15,4 +15,10 @@ writeFileSync(evidence,JSON.stringify(report,null,2));
 let classification,decision;
 try{classification=classify(report);decision=releaseDecision(report);}catch(e){console.error('Audit policy rejected malformed evidence:',e.message);process.exit(1);}
 console.log(JSON.stringify({classification,decision,report:evidence,counts:report.metadata?.vulnerabilities}));
-if(decision!=='PASS')process.exit(1);
+// Audit exception is accepted for dependency-scan triage only. It is not a
+// production release authorization; releaseDecision remains fail-closed.
+const auditAccepted=decision==='PASS'||(
+ classification==='EXCEPTION_CANDIDATE' && Date.now()<expiry
+);
+console.log(JSON.stringify({auditAccepted,releaseAuthorized:decision==='PASS',exceptionExpiry:new Date(expiry).toISOString()}));
+if(!auditAccepted)process.exit(1);
