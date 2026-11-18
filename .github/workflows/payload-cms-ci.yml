@@ -52,7 +52,7 @@ jobs:
           node --test scripts/mitigate-picomatch.test.mjs
       - name: Verify fail-closed advisory policy
         run: node --test scripts/advisory-policy.test.mjs
-      - name: Enforce native audit and fail-closed advisory decision
+      - name: Enforce native audit and expiring advisory triage
         run: node scripts/verify-native-audit.mjs
       - name: Preserve native security audit evidence
         if: always()
@@ -68,6 +68,9 @@ jobs:
       - run: npx tsc --noEmit
       - name: Confirm schema push remains disabled
         run: node --test test/config-boundary.test.ts
+      - name: Enforce production release security authorization
+        if: always()
+        run: node scripts/verify-release-authorization.mjs
 
   worker-build:
     if: github.event_name != 'workflow_dispatch' || inputs.mode == 'VALIDATE'
