@@ -90,15 +90,6 @@ jobs:
         run: |
           test -f .open-next/worker.js
           test -d .open-next/assets
-      - name: Record compiled Worker security evidence
-        run: node scripts/worker-build-evidence.mjs
-      - name: Retain Worker artifact identity
-        uses: actions/upload-artifact@v4
-        with:
-          name: gpir-worker-build-evidence
-          path: ${{ runner.temp }}/gpir-worker-build-evidence.json
-          if-no-files-found: error
-          retention-days: 30
 
   repair-management:
     if: >-
