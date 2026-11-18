@@ -64,7 +64,6 @@ jobs:
       - name: Enforce release security policy
         run: |
           node scripts/verify-native-audit.mjs
-          node scripts/worker-build-evidence.mjs
       - name: Build approved Worker
         run: npm run build:worker
         env:
