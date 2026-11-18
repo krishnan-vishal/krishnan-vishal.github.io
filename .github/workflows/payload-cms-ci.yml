@@ -100,6 +100,16 @@ jobs:
           test -d .open-next/assets
       - name: Record compiled Worker security evidence
         run: node scripts/worker-build-evidence.mjs
+      - name: Inspect bundled Next picomatch exposure indicators
+        run: node scripts/inspect-next-picomatch.mjs
+      - name: Retain Next picomatch inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-next-picomatch-exposure
+          path: ${{ runner.temp }}/gpir-next-picomatch-exposure.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Retain Worker artifact identity
         if: always()
         uses: actions/upload-artifact@v4
