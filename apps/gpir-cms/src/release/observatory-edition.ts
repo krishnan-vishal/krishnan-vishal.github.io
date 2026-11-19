@@ -30,10 +30,12 @@ export const observatoryEditionEndpoint: Endpoint = {
       if (result.totalDocs > 1) throw Error('AMBIGUOUS_SNAPSHOT_RECORD')
       return result.docs[0] || null
     }
+    let stage = 'PARENT_LOOKUP'
     try {
       const parentRecord = await get(`m41:manifest:${parentSnapshot}`)
       if (!parentRecord || sha(canonical(parentRecord.sourcePayload)) !== parentRecord.sourceHash)
         throw Error('PARENT_MANIFEST_UNAVAILABLE')
+      stage = 'PARENT_VALIDATION'
       const parent = parentRecord.sourcePayload
       if (parent.snapshot !== parentSnapshot || parent.schema !== 'gpir-managed-site/v1' ||
           sha(canonical(Object.fromEntries(Object.entries(parent).filter(([key]) => key !== 'snapshot')))) !== parentSnapshot)
@@ -41,12 +43,15 @@ export const observatoryEditionEndpoint: Endpoint = {
       const original = parent.files?.find((item: any) => item.path === path)
       if (!original || parent.files.filter((item: any) => item.path === path).length !== 1)
         throw Error('OBSERVATORY_ROUTE_NOT_MANAGED')
+      stage = 'APPROVED_SOURCE_FETCH'
       const response = await fetch(approvedUrl, { redirect: 'error', signal: AbortSignal.timeout(20000) })
       if (!response.ok) throw Error('REVIEWED_GITHUB_SOURCE_UNAVAILABLE')
+      stage = 'APPROVED_SOURCE_READ'
       const bytes = new Uint8Array(await response.arrayBuffer())
       const html = new TextDecoder().decode(bytes)
       if (bytes.length > 500000 || !html.includes('id="ask-gpir-observatory"') ||
           !html.includes('aria-controls="search-overlay"')) throw Error('APPROVED_PAGE_CONTRACT_FAILED')
+      stage = 'EDITION_CONSTRUCTION'
       const digest = sha(bytes)
       if (digest === original.sha256) throw Error('EDITION_UNCHANGED')
       const updatedFiles = parent.files.map((item: any) => item.path === path ? { ...item, sha256: digest, bytes: bytes.length } : item)
@@ -68,8 +73,11 @@ export const observatoryEditionEndpoint: Endpoint = {
           sourceValidationSummary: 'Owner-approved PR #585 Observatory edition; inherited protected engines and other managed bytes unchanged.'
         } })
       }
+      stage = 'BLOB_STORE'
       await store(`m41:blob:${digest}`, { kind: 'site-bytes', encoding: 'base64', body: Buffer.from(bytes).toString('base64') })
+      stage = 'MANIFEST_STORE'
       await store(`m41:manifest:${snapshot}`, manifest)
+      stage = 'SIGNATURE'
       return Response.json({ status: 'EDITION_PREPARED_NOT_DEPLOYED', snapshot, parentSnapshot,
         observatoryUpdated: true, managedFiles: manifest.files.length,
         integrity: signArtifact(manifest, signingSecret) }, { headers: { 'cache-control': 'no-store' } })
@@ -84,9 +92,9 @@ export const observatoryEditionEndpoint: Endpoint = {
       ])
       const raw = error instanceof Error ? error.message : 'UNKNOWN'
       const code = approvedCodes.has(raw) ? raw : 'INTERNAL_PREPARATION_ERROR'
-      console.error('M40 governed Observatory edition refused:', code)
+      console.error('M40 governed Observatory edition refused:', code, 'stage:', stage)
       return Response.json(
-        { error: 'EDITION_PREPARATION_REFUSED', reason: code },
+        { error: 'EDITION_PREPARATION_REFUSED', reason: code, stage },
         { status: 409, headers: { 'cache-control': 'no-store' } },
       )
     }
