@@ -345,5 +345,46 @@ if (root) {
         if (details) details.open = true;
         profilePanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
+    const globalAskForm = root.querySelector("[data-risk-global-ask]");
+    globalAskForm?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const question = globalAskForm.querySelector("input").value.trim();
+        const target = root.querySelector("[data-risk-global-answer]");
+        if (!question || !target) return;
+        const request = ++askRequest;
+        target.textContent = "Searching governed regulatory evidence…";
+        try {
+            const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
+            const query = contextualAskQuery(question, { topic: "FATF OFAC regulatory intelligence" });
+            const records = await retrieveGovernedEvidence(origin, query, { limit: 8 });
+            if (request !== askRequest || !globalAskForm.isConnected) return;
+            const result = summarizeGovernedAsk(question, records, { topic: "Regulatory intelligence" });
+            const paragraph = document.createElement("p");
+            paragraph.textContent = result.answer;
+            const citations = document.createElement("ul");
+            (result.citations || []).forEach(citation => {
+                const li = document.createElement("li");
+                if (citation.url && /^https:\/\//i.test(citation.url)) {
+                    const a = document.createElement("a");
+                    a.href = citation.url;
+                    a.textContent = citation.title || "Verified source";
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+                    li.append(a);
+                } else li.textContent = citation.title || "Verified record";
+                citations.append(li);
+            });
+            target.replaceChildren(paragraph);
+            if (citations.childElementCount) target.append(citations);
+        } catch {
+            if (request === askRequest) target.textContent =
+                "Governed intelligence is temporarily unavailable. No unverified answer has been generated.";
+        }
+    });
+    root.querySelector("[data-risk-back]")?.addEventListener("click", () => {
+        if (history.length > 1) history.back();
+        else location.assign("/reader/my-gpir/");
+    });
+    root.querySelector("[data-risk-forward]")?.addEventListener("click", () => history.forward());
     void load();
 }
