@@ -324,3 +324,77 @@
 .risk-reader-gate__actions[hidden] { display: none; }
 .risk-reader-gate__actions a { color: var(--risk-blue); font-weight: 700; }
 .risk-reader-gate__actions .risk-reader-gate__primary { padding: .7rem 1rem; background: var(--risk-navy); color: white; border-radius: 8px; text-decoration: none; }
+
+/* Approved GPIR dashboard treatment — compact, responsive, regional matrix */
+.country-risk-page[data-risk-auth="reader"]{background:#071c36;color:#f5f8ff;font-family:Arial,Helvetica,sans-serif}
+.country-risk-page [hidden]{display:none!important}
+.country-risk-shell{width:min(1600px,calc(100% - 28px))}
+.country-risk-hero{padding:0 0 16px;background:linear-gradient(115deg,#06162c,#0c365b 76%,#102844);border-bottom:2px solid #c9a24a}
+.risk-brandbar{display:flex;align-items:center;gap:16px;min-height:58px;border-bottom:1px solid rgba(238,197,94,.35);font-size:1.15rem}
+.risk-brand{display:flex;align-items:center;gap:8px;color:#fff!important;text-decoration:none;font-size:1.8rem}
+.risk-brand img{width:36px;height:36px;object-fit:contain}
+.risk-brand sup,.risk-dashboard-footer sup{font-size:.5em;vertical-align:super}
+.risk-hero-grid{display:grid;grid-template-columns:minmax(310px,1fr) minmax(650px,1.7fr);align-items:center;gap:20px;padding-top:12px}
+.country-risk-hero h1{font:700 clamp(1.6rem,2.3vw,2.65rem)/1.1 Arial,Helvetica,sans-serif;margin:0}
+.country-risk-hero p{font-size:.95rem;margin:.3rem 0;color:#e6ebf2}
+.risk-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.risk-kpis>div{display:flex;align-items:center;gap:9px;min-height:66px;padding:9px 12px;background:linear-gradient(125deg,#173957,#07192e);border:1px solid #52708b;border-radius:12px}
+.risk-kpis>div:first-child{border-color:#c63e42;background:linear-gradient(120deg,#6d202c,#14223a)}
+.risk-kpis>div:nth-child(2){border-color:#c9a24a}
+.risk-kpis strong{font-size:1.6rem;color:#ffcf66}
+.risk-kpis span{font-weight:700;font-size:.8rem}
+.risk-kpis small{display:block;font-size:.7rem;font-weight:400;color:#d9e3ed}
+.country-risk-main{padding:12px 0 20px}
+.risk-dashboard-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 0 12px}
+.risk-dashboard-tabs button{min-height:48px;border:1px solid #53728f;border-radius:9px;background:#102e4d;color:#f8fbff;font-size:1rem;font-weight:700;cursor:pointer}
+.risk-dashboard-tabs button.is-active{color:#071a33;background:linear-gradient(#ffe8a0,#dfaa36);border-color:#f8d276}
+.risk-workspace{display:grid;grid-template-columns:220px minmax(0,1fr);gap:12px;align-items:start}
+.risk-filters,.risk-results,.risk-secondary-panel,.risk-profiles-panel{border:1px solid #6688a5;border-radius:15px;background:linear-gradient(145deg,#103554,#061a31);padding:13px;min-width:0}
+.risk-filter-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #57708a;margin-bottom:12px}
+.risk-filter-head h2,.risk-results-head h2{font-size:1.15rem;color:#ffe18d;margin:0 0 8px}
+.risk-filter-head button{border:0;background:none;color:#dce5ef;cursor:pointer;text-decoration:underline;font-size:.75rem}
+.risk-filters label{display:grid;gap:5px;margin:11px 0;font-weight:700;font-size:.85rem;color:#ffe18d}
+.risk-filters input,.risk-filters select{width:100%;min-width:0;padding:10px;border:1px solid #6c8aa3;border-radius:8px;background:#0c2845;color:white;font:inherit}
+.risk-filters input::placeholder{color:#bac9d8}
+.risk-filter-note{font-size:.72rem;color:#c4d3e1;line-height:1.45}
+.risk-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.risk-results-head p{font-size:.76rem;color:#d1e0ed;margin:0;text-align:right}
+.risk-region-nav{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 11px}
+.risk-region-nav button{padding:6px 10px;border:1px solid #61809c;background:#0a2845;color:#fff;border-radius:999px;font-weight:700;font-size:.74rem;cursor:pointer}
+.risk-region-nav button[aria-expanded="true"]{border-color:#e4ba55;color:#ffe08b}
+.risk-region-nav small{color:#ffdf8d}
+.risk-region-groups{display:grid;gap:9px}
+.risk-region-section{border:1px solid #4d708d;border-radius:11px;overflow:hidden}
+.risk-region-title{display:flex;align-items:center;gap:10px;width:100%;padding:9px 13px;background:#123a5c;color:#f8d477;border:0;text-align:left;font-weight:800;cursor:pointer}
+.risk-region-title small{margin-left:auto;color:#e5edf6}
+.risk-country-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:8px;background:#09223d}
+.risk-compact-country{display:flex;align-items:center;gap:6px;min-width:0;padding:7px;background:linear-gradient(#fff,#edf3f9);border:1px solid #b7ccdc;border-radius:8px;color:#071a33;text-decoration:none;font-size:.78rem}
+.risk-compact-country:hover,.risk-compact-country:focus-visible{outline:2px solid #f0bc45}
+.risk-compact-country .risk-flag{width:23px;height:16px}
+.risk-country-code{font-weight:800;font-size:.7rem;padding:4px 5px;color:white;background:#09233f;border-radius:4px}
+.risk-compact-country strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.risk-compact-country .risk-badge{font-size:.67rem;white-space:nowrap;padding:4px 6px}
+.risk-country-action{font-size:1rem;color:#153f65}
+.risk-pagination{margin:12px 0 0;color:#f5f7fc}
+.risk-pagination button{background:#174b76}
+.risk-profiles-panel{margin-top:12px}
+.risk-profiles-panel h2{margin:0;color:#ffe08b;font-size:1.1rem}
+.risk-profiles-panel>p{font-size:.75rem;color:#d7e3f0;margin:5px 0}
+.risk-cards{grid-template-columns:repeat(3,minmax(0,1fr));max-height:300px;overflow-y:auto}
+.risk-card{color:#0d2744}
+.risk-card summary{gap:8px}
+.risk-card summary .risk-badge{font-size:.65rem}
+.risk-quicklinks{display:grid;grid-template-columns:repeat(4,1fr);margin-top:12px;padding:12px;background:#0d3152;border:1px solid #7090aa;border-radius:13px}
+.risk-quicklinks a{display:grid;gap:3px;padding:8px 16px;border-right:1px solid #7894ab;text-decoration:none;color:#fff}
+.risk-quicklinks a:last-child{border:0}
+.risk-quicklinks strong{color:#ffdc7c;font-size:.95rem}
+.risk-quicklinks span{font-size:.76rem}
+.risk-secondary-panel{min-height:260px}
+.risk-secondary-panel h2{color:#ffda7c}
+.risk-secondary-panel a,.risk-secondary-panel button{display:inline-block;padding:10px;margin:8px;border:1px solid #dfb550;border-radius:8px;background:#102e4d;color:#fff;cursor:pointer}
+.risk-dashboard-footer{padding:13px 0;border-top:3px solid #d4aa48;background:#07182c}
+.risk-dashboard-footer>div{display:flex;align-items:center;gap:16px}
+.risk-dashboard-footer strong{font-size:1.4rem}
+.risk-dashboard-footer small{margin-left:auto;color:#e3edf7}
+@media(max-width:1150px){.risk-hero-grid{grid-template-columns:1fr}.risk-country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.risk-kpis{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:760px){.risk-workspace{grid-template-columns:1fr}.risk-dashboard-tabs{grid-template-columns:repeat(2,1fr)}.risk-country-grid,.risk-cards{grid-template-columns:1fr}.risk-kpis{grid-template-columns:repeat(2,1fr)}.risk-quicklinks{grid-template-columns:repeat(2,1fr)}.risk-dashboard-footer>div{flex-wrap:wrap}.risk-dashboard-footer small{margin-left:0}.risk-results-head{display:block}.risk-results-head p{text-align:left}}
