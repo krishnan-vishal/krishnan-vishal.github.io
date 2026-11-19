@@ -2679,3 +2679,14 @@ gpir-fx-card {
     padding: 0.7rem;
   }
 }
+
+/* In-card ASK GPIR: preserve currency pair context and FX card width. */
+.fxi-ask{margin-block:1rem}
+.fxi-ask form{display:grid;gap:.5rem}
+.fxi-ask label{font-weight:600}
+.fxi-ask-controls{display:flex;flex-wrap:wrap;gap:.6rem}
+.fxi-ask-controls input{flex:1 1 18rem;min-width:0;border:1px solid #8c9cb0;border-radius:.5rem;padding:.75rem;font:inherit}
+.fxi-ask-controls button{border:1px solid #bd922d;background:#fff7df;color:#152a47;border-radius:.5rem;padding:.65rem 1rem;cursor:pointer;font:inherit}
+.fxi-ask [data-fx-ask-results]{margin-top:.8rem;overflow-wrap:anywhere}
+.fxi-ask [data-fx-ask-results] article{border-top:1px solid #d7dce5;padding:.6rem 0}
+.fxi-ask [data-fx-ask-results] h3{font-size:1rem;margin:.8rem 0 .4rem}
