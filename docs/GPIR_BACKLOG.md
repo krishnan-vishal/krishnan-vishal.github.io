@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M42 OFAC, FATF and Global Country Risk Monitor
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M42-OFAC-FATF | 2026-11-19 | Governed OFAC sanctions-change and FATF country-classification integration, five-year evidence history and Global Country Risk Monitor | INTELLIGENCE, DATA, AUTOMATION, READER EXPERIENCE, GOVERNANCE | Critical | IN PROGRESS | Required CI; reviewed FATF historical statement manifest; owner-controlled Supabase/Payload release and live acceptance | Branch implementation adds official-host validation, hashes, current snapshots without historical inference, OFAC recent action/delta evidence, bounded restartable checkpoints, separate FATF/GPIR/OFAC classification fields, current 21-jurisdiction reader, filters, cards, sources and ASK context. No deployment or production mutation. OFAC bounded delta backfill is implemented; FATF historical backfill fails closed pending a reviewed manifest. See `docs/M42-OFAC-FATF-COUNTRY-RISK.md`. |
+
 ## M39 global typography, topic continuity and ASK GPIR integration
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |

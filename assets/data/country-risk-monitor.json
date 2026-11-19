@@ -1,0 +1,605 @@
+{
+  "schemaVersion": "GPIR-COUNTRY-RISK-1",
+  "generatedAt": "2026-11-19T00:00:00+05:30",
+  "authorityState": "AUTHORITATIVE_FATF_CURRENT_CLASSIFICATION",
+  "sourceRetrievalDate": "2026-11-19",
+  "publicationConfidenceThreshold": 95,
+  "methodology": {
+    "fatf": "Official designations are reproduced from the cited FATF publications and remain distinct from GPIR analysis.",
+    "gpir": "No approved GPIR country-risk methodology is active in this dataset; every analytical rating is UNRATED.",
+    "ofac": "OFAC sanctions-program and jurisdiction-exposure indicators are independent. A listed person's connection to a country never makes that country sanctioned.",
+    "history": "This committed snapshot records current FATF classifications only. Five-year history becomes available only after reviewed, evidence-linked backfill; it is not inferred from current lists."
+  },
+  "counts": {
+    "countries": 21,
+    "callForAction": 3,
+    "increasedMonitoring": 18,
+    "gpirRated": 0,
+    "ofacAssessed": 0
+  },
+  "sources": [
+    {
+      "id": "FATF-GLOBAL-001",
+      "title": "FATF black and grey lists",
+      "url": "https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html",
+      "publicationDate": "2026-10-30",
+      "retrievedDate": "2026-11-19"
+    },
+    {
+      "id": "OFAC-US-001",
+      "title": "OFAC Sanctions List Service",
+      "url": "https://ofac.treasury.gov/sanctions-list-service",
+      "publicationDate": null,
+      "retrievedDate": "2026-11-19"
+    }
+  ],
+  "countries": [
+    {
+      "countryCode": "PRK",
+      "slug": "north-korea",
+      "countryName": "Democratic People's Republic of Korea",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_CALL_FOR_ACTION",
+      "fatfLabel": "High Risk — Call for Action",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "High-Risk Jurisdictions subject to a Call for Action — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/call-for-action-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_CALL_FOR_ACTION",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "IRN",
+      "slug": "iran",
+      "countryName": "Iran",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_CALL_FOR_ACTION",
+      "fatfLabel": "High Risk — Call for Action",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "High-Risk Jurisdictions subject to a Call for Action — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/call-for-action-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_CALL_FOR_ACTION",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "MMR",
+      "slug": "myanmar",
+      "countryName": "Myanmar",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_CALL_FOR_ACTION",
+      "fatfLabel": "High Risk — Call for Action",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "High-Risk Jurisdictions subject to a Call for Action — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/call-for-action-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_CALL_FOR_ACTION",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "AGO",
+      "slug": "angola",
+      "countryName": "Angola",
+      "region": "Africa",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "BOL",
+      "slug": "bolivia",
+      "countryName": "Bolivia",
+      "region": "Americas",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "BIH",
+      "slug": "bosnia-and-herzegovina",
+      "countryName": "Bosnia and Herzegovina",
+      "region": "Europe",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "CMR",
+      "slug": "cameroon",
+      "countryName": "Cameroon",
+      "region": "Africa",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "HTI",
+      "slug": "haiti",
+      "countryName": "Haiti",
+      "region": "Americas",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "IRQ",
+      "slug": "iraq",
+      "countryName": "Iraq",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "KEN",
+      "slug": "kenya",
+      "countryName": "Kenya",
+      "region": "Africa",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "KWT",
+      "slug": "kuwait",
+      "countryName": "Kuwait",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "LAO",
+      "slug": "lao-pdr",
+      "countryName": "Lao People's Democratic Republic",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "LBN",
+      "slug": "lebanon",
+      "countryName": "Lebanon",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "NPL",
+      "slug": "nepal",
+      "countryName": "Nepal",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "PNG",
+      "slug": "papua-new-guinea",
+      "countryName": "Papua New Guinea",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "SSD",
+      "slug": "south-sudan",
+      "countryName": "South Sudan",
+      "region": "Africa",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "SYR",
+      "slug": "syria",
+      "countryName": "Syria",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "VEN",
+      "slug": "venezuela",
+      "countryName": "Venezuela",
+      "region": "Americas",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "VNM",
+      "slug": "vietnam",
+      "countryName": "Vietnam",
+      "region": "Asia-Pacific",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "VGB",
+      "slug": "virgin-islands-uk",
+      "countryName": "Virgin Islands (UK)",
+      "region": "Americas",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    },
+    {
+      "countryCode": "YEM",
+      "slug": "yemen",
+      "countryName": "Yemen",
+      "region": "Middle East",
+      "fatfDesignation": "FATF_INCREASED_MONITORING",
+      "fatfLabel": "Grey List — Increased Monitoring",
+      "publicationDate": "2026-10-30",
+      "sourceTitle": "Jurisdictions under Increased Monitoring — 30 October 2026",
+      "sourceUrl": "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+      "gpirAnalyticalRisk": "UNRATED",
+      "gpirMethodologyId": null,
+      "ofac": {
+        "jurisdictionSanctioned": null,
+        "exposureStatus": "NOT_ASSESSED",
+        "programs": [],
+        "note": "No country-wide OFAC conclusion is inferred from entity, nationality, address or vessel connections."
+      },
+      "statusHistory": [
+        {
+          "designation": "FATF_INCREASED_MONITORING",
+          "observedFrom": "2026-10-30",
+          "observedTo": null,
+          "sourcePublicationDate": "2026-10-30"
+        }
+      ]
+    }
+  ]
+}
