@@ -1,0 +1,260 @@
+const OFFICIAL_HOSTS = Object.freeze({
+    OFAC: new Set(["ofac.treasury.gov", "sanctionslist.ofac.treas.gov", "sanctionslistservice.ofac.treas.gov", "www.treasury.gov"]),
+    FATF: new Set(["fatf-gafi.org", "www.fatf-gafi.org"])
+});
+
+export const OFAC_EXPORT_BASE = "https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/";
+export const OFAC_DELTA_BASE = "https://sanctionslistservice.ofac.treas.gov/api/download/delta?filename=";
+export const FATF_STATEMENTS_URL = "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions.html";
+
+const MONTHS = Object.freeze({
+    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+});
+
+const FATF_RESERVED_HEADINGS = new Set([
+    "publication details", "language", "country", "topic", "black list", "grey list",
+    "removal from fatf review", "jurisdictions no longer under increased monitoring",
+    "jurisdiction subject to a fatf call on its members and other jurisdictions to apply counter-measures",
+    "jurisdiction subject to a fatf call on its members and other jurisdictions to apply enhanced due diligence measures proportionate to the risks arising from the jurisdiction"
+]);
+
+const COUNTRY_ALIASES = Object.freeze({
+    "democratic people's republic of korea": { code: "PRK", name: "Democratic People's Republic of Korea" },
+    "north korea": { code: "PRK", name: "Democratic People's Republic of Korea" },
+    "iran": { code: "IRN", name: "Iran" },
+    "myanmar": { code: "MMR", name: "Myanmar" },
+    "angola": { code: "AGO", name: "Angola" },
+    "bolivia": { code: "BOL", name: "Bolivia" },
+    "bosnia and herzegovina": { code: "BIH", name: "Bosnia and Herzegovina" },
+    "cameroon": { code: "CMR", name: "Cameroon" },
+    "haiti": { code: "HTI", name: "Haiti" },
+    "iraq": { code: "IRQ", name: "Iraq" },
+    "kenya": { code: "KEN", name: "Kenya" },
+    "kuwait": { code: "KWT", name: "Kuwait" },
+    "lao pdr": { code: "LAO", name: "Lao People's Democratic Republic" },
+    "lao people's democratic republic": { code: "LAO", name: "Lao People's Democratic Republic" },
+    "lebanon": { code: "LBN", name: "Lebanon" },
+    "nepal": { code: "NPL", name: "Nepal" },
+    "papua new guinea": { code: "PNG", name: "Papua New Guinea" },
+    "south sudan": { code: "SSD", name: "South Sudan" },
+    "syria": { code: "SYR", name: "Syria" },
+    "venezuela": { code: "VEN", name: "Venezuela" },
+    "vietnam": { code: "VNM", name: "Vietnam" },
+    "viet nam": { code: "VNM", name: "Vietnam" },
+    "virgin islands (uk)": { code: "VGB", name: "Virgin Islands (UK)" },
+    "british virgin islands": { code: "VGB", name: "Virgin Islands (UK)" },
+    "yemen": { code: "YEM", name: "Yemen" }
+});
+
+function decodeHtml(value) {
+    return String(value || "")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;|&#039;/gi, "'")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&ndash;/gi, "–")
+        .replace(/&mdash;/gi, "—")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function safeDate(value) {
+    const parsed = Date.parse(String(value || ""));
+    return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
+function parseEnglishDate(value) {
+    const match = String(value || "").match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(20\d{2})\b/i);
+    if (!match) return null;
+    const date = new Date(Date.UTC(Number(match[3]), MONTHS[match[1].toLowerCase()], Number(match[2])));
+    return date.toISOString().slice(0, 10);
+}
+
+export function assertOfficialSourceUrl(value, authority) {
+    const url = new URL(value);
+    const allowed = OFFICIAL_HOSTS[authority];
+    if (url.protocol !== "https:" || !allowed || !allowed.has(url.hostname.toLowerCase())) {
+        throw new Error(authority + "_UNAPPROVED_SOURCE_URL");
+    }
+    url.hash = "";
+    return url.toString();
+}
+
+export async function sha256Hex(value) {
+    const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
+    const hash = await crypto.subtle.digest("SHA-256", bytes);
+    return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function parseOfacSnapshotMetadata(xml, sourceUrl) {
+    const canonicalUrl = assertOfficialSourceUrl(sourceUrl, "OFAC");
+    const text = String(xml || "");
+    if (!/<(?:\w+:)?(?:sdnList|Sanctions)\b/i.test(text)) throw new Error("OFAC_SNAPSHOT_ROOT_INVALID");
+    const publishDate = decodeHtml(text.match(/<(?:\w+:)?(?:Publish_Date|DateOfIssue|DataAsOf)>\s*([^<]+)\s*</i)?.[1]);
+    const countText = decodeHtml(text.match(/<(?:\w+:)?(?:Record_Count|RecordCount)>\s*(\d+)\s*</i)?.[1]);
+    const recordCount = /^\d+$/.test(countText) ? Number(countText) :
+        (text.match(/<(?:\w+:)?(?:sdnEntry|DistinctParty)\b/gi) || []).length;
+    if (!recordCount) throw new Error("OFAC_SNAPSHOT_EMPTY");
+    return {
+        authority: "OFAC",
+        canonicalUrl,
+        documentKind: "CURRENT_FULL_SNAPSHOT",
+        publishedDate: safeDate(publishDate),
+        recordCount,
+        historicalProof: false,
+        eventCount: 0
+    };
+}
+
+function xmlValue(block, names) {
+    for (const name of names) {
+        const match = block.match(new RegExp("<(?:\\w+:)?" + name + "\\b[^>]*>([\\s\\S]*?)</(?:\\w+:)?" + name + ">", "i"));
+        if (match) return decodeHtml(match[1]);
+    }
+    return "";
+}
+
+export function parseOfacDelta(xml, { sourceUrl, publishedDate = null } = {}) {
+    const canonicalUrl = assertOfficialSourceUrl(sourceUrl, "OFAC");
+    const text = String(xml || "");
+    if (!/<(?:\w+:)?(?:Delta|Sanctions|sdnList)\b/i.test(text)) throw new Error("OFAC_DELTA_ROOT_INVALID");
+    const events = [];
+    const seen = new Set();
+    const pattern = /<((?:\w+:)?(?:DistinctParty|sdnEntry|Entity))\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        const block = match[0];
+        const attrs = match[2] || "";
+        const actionRaw = (attrs.match(/\baction\s*=\s*["']([^"']+)["']/i)?.[1] ||
+            xmlValue(block, ["Action", "actionType"]) || "update").toLowerCase();
+        const action = actionRaw.includes("add") ? "ADDED" :
+            actionRaw.includes("remove") || actionRaw.includes("delete") ? "REMOVED" :
+            actionRaw.includes("amend") || actionRaw.includes("update") || actionRaw.includes("change") ? "AMENDED" :
+            "TECHNICAL";
+        const uid = xmlValue(block, ["uid", "FixedRef", "ID", "Id"]) || null;
+        const name = xmlValue(block, ["FormattedFullName", "lastName", "Name", "name"]) || "OFAC list record";
+        const programs = [...block.matchAll(/<(?:\w+:)?(?:program|SanctionsProgram)[^>]*>([^<]+)</gi)]
+            .map(item => decodeHtml(item[1])).filter(Boolean);
+        const key = [action, uid || name, publishedDate || canonicalUrl].join("|").toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        events.push({
+            eventKey: key,
+            action,
+            entityUid: uid,
+            displayName: name,
+            programs: [...new Set(programs)],
+            sourceUrl: canonicalUrl,
+            publishedAt: safeDate(publishedDate),
+            evidenceType: "OFAC_PUBLISHED_DELTA",
+            currentSnapshotProof: false
+        });
+    }
+    if (!events.length) throw new Error("OFAC_DELTA_NO_EVENTS");
+    return events;
+}
+
+export function parseOfacRecentActions(html, baseUrl = "https://ofac.treasury.gov/recent-actions") {
+    assertOfficialSourceUrl(baseUrl, "OFAC");
+    const text = String(html || "");
+    const results = [];
+    const seen = new Set();
+    const links = /<a\b[^>]*href=["']([^"']*\/recent-actions\/\d{8}_[^"'?#]+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    let match;
+    while ((match = links.exec(text)) !== null) {
+        const url = assertOfficialSourceUrl(new URL(match[1], baseUrl).toString(), "OFAC");
+        if (seen.has(url)) continue;
+        const nearby = text.slice(Math.max(0, match.index - 350), Math.min(text.length, links.lastIndex + 350));
+        const date = parseEnglishDate(decodeHtml(nearby));
+        const title = decodeHtml(match[2]);
+        if (!title || !date) continue;
+        seen.add(url);
+        results.push({
+            title,
+            canonicalUrl: url,
+            publicationDate: date,
+            exactTimestamp: null,
+            timePrecision: "DATE_ONLY",
+            eventType: /remov/i.test(title) ? "REMOVAL" :
+                /amend|update|change/i.test(title) ? "AMENDMENT" : "REGULATORY_NOTICE"
+        });
+    }
+    return results;
+}
+
+function headingCountries(html) {
+    const values = [];
+    for (const match of String(html || "").matchAll(/<h[2-4]\b[^>]*>([\s\S]*?)<\/h[2-4]>/gi)) {
+        const heading = decodeHtml(match[1]);
+        const normalized = heading.toLowerCase().replace(/\s+/g, " ").trim();
+        if (!normalized || FATF_RESERVED_HEADINGS.has(normalized)) continue;
+        const country = COUNTRY_ALIASES[normalized];
+        if (country) values.push(country);
+    }
+    return values;
+}
+
+function metadataCountries(html) {
+    const text = String(html || "");
+    const candidates = [];
+    for (const match of text.matchAll(/(?:Country|countries)\s*<[^>]+>\s*([\s\S]{1,1000}?)(?=<h[1-6]|<dt|Topic|<\/dl>)/gi)) {
+        const list = decodeHtml(match[1]).split(/\s*,\s*|\s*;\s*/);
+        for (const item of list) {
+            const normalized = item.toLowerCase().replace(/\s+/g, " ").trim();
+            if (COUNTRY_ALIASES[normalized]) candidates.push(COUNTRY_ALIASES[normalized]);
+        }
+    }
+    return candidates;
+}
+
+export function parseFatfStatement(html, { sourceUrl, designation, publicationDate = null } = {}) {
+    const canonicalUrl = assertOfficialSourceUrl(sourceUrl, "FATF");
+    if (!["FATF_CALL_FOR_ACTION", "FATF_INCREASED_MONITORING"].includes(designation)) {
+        throw new Error("FATF_DESIGNATION_INVALID");
+    }
+    const text = String(html || "");
+    if (!/FATF|Financial Action Task Force/i.test(text)) throw new Error("FATF_DOCUMENT_IDENTITY_INVALID");
+    const date = publicationDate || parseEnglishDate(decodeHtml(text));
+    if (!date) throw new Error("FATF_PUBLICATION_DATE_MISSING");
+    const countries = [...metadataCountries(text), ...headingCountries(text)];
+    const unique = new Map(countries.map(country => [country.code, country]));
+    if (!unique.size) throw new Error("FATF_COUNTRY_LIST_EMPTY");
+    return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name)).map(country => ({
+        countryCode: country.code,
+        countryName: country.name,
+        officialDesignation: designation,
+        gpirAnalyticalRisk: "UNRATED",
+        publicationDate: date,
+        canonicalUrl,
+        evidenceType: "FATF_OFFICIAL_STATEMENT",
+        ofacJurisdictionSanctioned: null,
+        ofacExposureStatus: "NOT_ASSESSED"
+    }));
+}
+
+export function validateBackfillWindow(from, to, maximumDays = 31) {
+    const start = Date.parse(from);
+    const end = Date.parse(to);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) throw new Error("BACKFILL_WINDOW_INVALID");
+    const days = Math.ceil((end - start) / 86400000);
+    if (days > maximumDays) throw new Error("BACKFILL_WINDOW_TOO_LARGE");
+    return {
+        from: new Date(start).toISOString(),
+        to: new Date(end).toISOString(),
+        days
+    };
+}
+
+export function ofacDeltaUrl(day) {
+    const value = /^\d{4}-\d{2}-\d{2}$/.test(String(day || "")) ? day : null;
+    if (!value) throw new Error("OFAC_DELTA_DATE_INVALID");
+    return OFAC_DELTA_BASE + encodeURIComponent("DeltaArchive/" + value + "_delta.xml");
+}
+
+export function lifecycleForTimestamp(value, now = Date.now()) {
+    const timestamp = Date.parse(value || "");
+    if (!Number.isFinite(timestamp)) return "HISTORICAL_DATE_ONLY";
+    return now - timestamp <= 12 * 60 * 60 * 1000 && timestamp <= now ? "LIVE_12_HOUR" : "ARCHIVED";
+}
