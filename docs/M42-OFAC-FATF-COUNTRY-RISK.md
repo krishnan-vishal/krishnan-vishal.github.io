@@ -119,13 +119,13 @@ authorized by this implementation.
 
 | Acceptance | State | Evidence / next gate |
 |---|---|---|
-| OFAC parser and dedupe contracts | IMPLEMENTED / CI PENDING | Required parser tests on PR head |
+| OFAC parser and dedupe contracts | IMPLEMENTED / CI PASSED | Security and Integrity run 44482826434 on `d61f7d1` |
 | FATF current classifications | STATIC SNAPSHOT IMPLEMENTED / LIVE CANARY PENDING | 21 current jurisdictions sourced to 30 Oct 2026 statements |
 | Hourly source polling | PREPARED / NOT APPLIED | Controlled release SQL |
 | Independent 12-hour visibility | CODED / NOT PRODUCTION-VERIFIED | Exact timestamp required; date-only remains archived |
 | OFAC five-year historical changes | PARTIAL | Bounded delta runner implemented; early official gaps explicit |
 | FATF five-year historical status | BLOCKED | Reviewed official statement manifest not yet committed |
-| Country filters/cards | IMPLEMENTED / BROWSER QA PENDING | Static reader and regression path |
+| Country filters/cards | IMPLEMENTED / CI PASSED / BROWSER QA PENDING | Structured content, links and JavaScript syntax passed in run 44482826434 |
 | ASK GPIR cited responses | ENTRY POINT IMPLEMENTED / LIVE ACCEPTANCE PENDING | Existing governed endpoint; no threshold bypass |
 | FX, reader, CMS, auth, entitlements | UNCHANGED IN SOURCE / REGRESSION PENDING | Existing release checks plus live acceptance |
 | Production deployment | NOT STARTED | Owner-controlled merge, migration, canaries and signed Payload release |
@@ -149,8 +149,9 @@ Branch dataset counts:
 
 ## Remaining blockers
 
-- Local Windows/Node execution runtime was unavailable, so branch validation must be
-  obtained from required GitHub Actions; no local test result is claimed.
+- Local Windows/Node execution runtime was unavailable, so no local test result is claimed.
+  Required GitHub Actions passed on `d61f7d175517261c131400c60161f5dac991407b`:
+  Security and Integrity run 44482826434 and PostgreSQL acceptance run 44482826476.
 - FATF historical manifest/backfill implementation and canary evidence remain required.
 - Supabase migration/function/source schedule are not deployed.
 - No genuine update has yet traversed source → relay → publication → archive.

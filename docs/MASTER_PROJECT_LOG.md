@@ -3417,3 +3417,11 @@ Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
 - **Validation:** Local execution was unavailable because the registered runtime was detached. No local pass is claimed. Required GitHub Actions and browser/live acceptance are pending.
 - **Milestone state:** IN PROGRESS. OFAC bounded delta history is implemented but not run; FATF five-year backfill is blocked on a reviewed statement manifest; source schedules, Supabase migration/function and signed Payload edition are not deployed; no genuine update has traversed source to relay to archive.
 - **Production impact:** NONE. No main push, merge, Supabase write, source activation, Payload release, Cloudflare change, threshold change or secret exposure.
+
+
+### M42 required CI checkpoint — 2026-11-19
+
+- Draft PR #591 head `d61f7d175517261c131400c60161f5dac991407b` is mergeable and remains draft.
+- GPIR Security and Integrity run 44482826434 passed structured content, existing discovery/source/announcement contracts, the new OFAC/FATF parser tests, internal links, JavaScript syntax and the high-confidence secret scan.
+- G1 R07 PostgreSQL acceptance run 44482826476 passed its migration/acceptance job.
+- Local execution remains unavailable and browser/live/Production acceptance remains pending. Green CI does not complete M42.
