@@ -1,4 +1,5 @@
-import { retrieveGovernedEvidence } from './gpir-governed-ask.mjs';
+import { contextualAskQuery, retrieveGovernedEvidence, summarizeGovernedAsk }
+  from './gpir-governed-ask.mjs';
 const API_PATH = '/functions/v1/gpir-reader-summary';
 const DISCLAIMER = 'GPIR FX Intelligence is for research and information only. Reference rates are indicative, not transaction quotes. Historical performance does not predict future movements. Not financial advice.';
 const PERIODS = Object.freeze([
@@ -205,6 +206,37 @@ function rateDigits(pair) {
 
 function rateText(value, pair) {
   return Number.isFinite(value) ? number(value, rateDigits(pair)) : 'Unavailable';
+}
+
+export function answerFxQuestion(question, metrics, previousMetrics, pair, periodLabel) {
+  const scope = pair.base + '/' + pair.quote + ' over the ' + periodLabel.toLowerCase() + ' period';
+  if (metrics?.status !== 'AVAILABLE') return Object.freeze({
+    status: 'INSUFFICIENT_DATA',
+    answer: 'Insufficient verified observations are available to answer this question for ' + scope + '.'
+  });
+  const movement = pair.base + ' ' + (metrics.changePercent > 0 ? 'strengthened' :
+    metrics.changePercent < 0 ? 'weakened' : 'was unchanged') + ' against ' + pair.quote +
+    ' by ' + percent(metrics.changePercent) + ' across ' + metrics.observations +
+    ' source observations from ' + metrics.first.date + ' to ' + metrics.latest.date + '.';
+  const term = String(question || '').toLowerCase();
+  let answer;
+  if (/volatil|risk|variation/.test(term)) {
+    answer = metrics.annualizedVolatility == null
+      ? movement + ' Annualised realised volatility is unavailable because at least 20 daily returns are required.'
+      : movement + ' Annualised realised volatility was ' + number(metrics.annualizedVolatility, 2) + '%.';
+  } else if (/high|low|range|maximum|minimum/.test(term)) {
+    answer = 'For ' + scope + ', the verified low was ' + rateText(metrics.low.rate, pair) +
+      ' on ' + metrics.low.date + ' and the verified high was ' + rateText(metrics.high.rate, pair) +
+      ' on ' + metrics.high.date + '. ' + movement;
+  } else if (/previous|compare|comparison/.test(term)) {
+    answer = movement + ' ' + previousLabel(metrics, previousMetrics);
+  } else {
+    answer = movement + ' The observed range was ' + rateText(metrics.low.rate, pair) + ' to ' +
+      rateText(metrics.high.rate, pair) + '.';
+  }
+  if (/why|cause|reason|forecast|next/.test(term))
+    answer += ' These verified calculations do not establish a cause or support a forecast.';
+  return Object.freeze({ status: 'AVAILABLE', answer });
 }
 
 export function referenceConversion(amount, rate) {
@@ -566,6 +598,8 @@ class GpirFxCard extends HTMLElementBase {
     super();
     this.attachShadow({ mode: 'open' });
     this.requestNumber = 0;
+    this.askRequestNumber = 0;
+    this.cardHistory = null;
     this.lastRefreshAt = 0;
     this.onVisibilityChange = () => {
       if (globalThis.document?.visibilityState === 'visible' &&
@@ -597,6 +631,7 @@ class GpirFxCard extends HTMLElementBase {
     this.refreshTimer = null;
     globalThis.document?.removeEventListener?.('visibilitychange', this.onVisibilityChange);
     this.requestNumber++;
+    this.askRequestNumber++;
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -606,6 +641,7 @@ class GpirFxCard extends HTMLElementBase {
 
   async refresh() {
     const sequence = ++this.requestNumber;
+    this.askRequestNumber++;
     this.lastRefreshAt = Date.now();
     const pair = normalizeFxPair(this.getAttribute('base'), this.getAttribute('quote'));
     const period = PERIODS.some(item => item.id === this.getAttribute('period'))
@@ -621,6 +657,7 @@ class GpirFxCard extends HTMLElementBase {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       const editorialRecords = await loadPublishedFxEditorial();
       if (sequence !== this.requestNumber || !this.isConnected) return;
+      this.cardHistory = history;
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
       this.bindFxAsk(pair);
@@ -637,23 +674,25 @@ class GpirFxCard extends HTMLElementBase {
     const input = this.shadowRoot.querySelector('[data-fx-ask-input]');
     const target = this.shadowRoot.querySelector('[data-fx-ask-results]');
     if (!form || !input || !target) return;
-    let request = 0;
     form.addEventListener('submit', async event => {
       event.preventDefault();
-      const sequence = ++request;
+      const sequence = ++this.askRequestNumber;
+      const selectedPeriod = this.getAttribute('period') || 'M';
+      const periodLabel = PERIODS.find(item => item.id === selectedPeriod)?.label || 'Monthly';
       const term = input.value.trim().slice(0, 120);
       if (!term) return;
       target.replaceChildren();
       const status = document.createElement('p');
       status.textContent = 'Searching approved GPIR intelligence and research…';
       target.append(status);
-      const query = pair.base + '/' + pair.quote + ' ' + term;
+      const askContext = { topic: 'FX', currencyPair: pair.base + '/' + pair.quote, period: periodLabel };
+      const query = contextualAskQuery(pair.base + '/' + pair.quote + ' ' + term, askContext);
       const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
       const validOrigin = typeof origin === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(origin);
       let records = null;
       if (validOrigin) {
         try {
-          records = await retrieveGovernedEvidence(origin,term,{limit:10});
+          records = await retrieveGovernedEvidence(origin, query, { limit: 10 });
         } catch { records = null; }
       }
       let research = null;
@@ -661,15 +700,16 @@ class GpirFxCard extends HTMLElementBase {
         const search = globalThis.GPIRContentSearch;
         if (search) { await search.load(); research = search.search(query, {limit:8}); }
       } catch { research = null; }
-      if (sequence !== request || !this.isConnected) return;
+      if (sequence !== this.askRequestNumber || !this.isConnected) return;
       target.replaceChildren();
       const heading = document.createElement('h3');
-      heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote;
+      heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote + ' · ' + periodLabel;
       target.append(heading);
+      let matching = [];
       if (records === null) {
         const p = document.createElement('p'); p.textContent = 'Governed intelligence is temporarily unavailable. No missing records are inferred.'; target.append(p);
       } else {
-        const matching = records.filter(item => {
+        matching = records.filter(item => {
           const text = [item.title,item.summary,item.category,item.pair,item.currencyPair,...(Array.isArray(item.keywords)?item.keywords:[])].filter(Boolean).join(' ').toUpperCase();
           return text.includes(pair.base+'/'+pair.quote) || (text.includes(pair.base) && text.includes(pair.quote));
         });
@@ -684,6 +724,48 @@ class GpirFxCard extends HTMLElementBase {
           meta.textContent = [item.publishedAt || item.published_at,item.sourceName || item.source_name].filter(Boolean).join(' · ');
           article.append(link,meta);target.append(article);
         }
+      }
+      const evidenceCount = records === null ? null : records.filter(item => {
+        const description = [item.title, item.summary, item.category, item.pair, item.currencyPair,
+          ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ').toUpperCase();
+        return description.includes(pair.base + '/' + pair.quote)
+          || (description.includes(pair.base) && description.includes(pair.quote));
+      }).length;
+      const reference = document.createElement('p');
+      const points = this.cardHistory?.pair === pair.base + '/' + pair.quote
+        ? pointsForPeriod(this.cardHistory.points, selectedPeriod, this.cardHistory.lastFixingDate) : [];
+      const metrics = calculateMetrics(points);
+      const description = metrics.status === 'AVAILABLE'
+        ? metrics.observations + ' official/approved source observations between ' + metrics.first.date
+          + ' and ' + metrics.latest.date + '; ' + pair.base + '/' + pair.quote
+          + ' moved ' + percent(metrics.changePercent) + ', with observed low '
+          + rateText(metrics.low.rate, pair) + ' and high ' + rateText(metrics.high.rate, pair) + '.'
+        : 'Insufficient verified observations for a computed ' + periodLabel.toLowerCase() + ' movement summary.';
+      reference.textContent = 'Verified FX history · ' + description;
+      target.insertBefore(reference, target.firstChild);
+      const response = document.createElement('p');
+      response.className = 'fxi-ask-answer';
+      const researchCount = research?.total ?? null;
+      const previous = calculateMetrics(previousPeriodPoints(this.cardHistory?.points || [],
+        selectedPeriod, this.cardHistory?.lastFixingDate));
+      const calculated = answerFxQuestion(term, metrics, previous, pair, periodLabel);
+      const governed = records === null ? null : summarizeGovernedAsk(term, matching, askContext);
+      response.textContent = calculated.answer + ' ' + (governed?.answer ||
+        (researchCount === null
+          ? 'Approved intelligence and research indexes are temporarily unavailable; no missing evidence is inferred.'
+          : 'No approved pair-specific governed intelligence record was available; review the indexed GPIR research below.'));
+      target.insertBefore(response, target.firstChild);
+      const sourceUrl = this.cardHistory?.sourceUrl;
+      if (typeof sourceUrl === 'string' && /^https:\/\//.test(sourceUrl)) {
+        const citation = document.createElement('p');
+        citation.className = 'fxi-ask-citation';
+        const link = document.createElement('a');
+        link.href = sourceUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = this.cardHistory.source || 'Verified FX reference-rate source';
+        citation.append('Calculation source: ', link, ' · fixing dates and observation count shown above.');
+        target.insertBefore(citation, target.firstChild.nextSibling);
       }
       const researchHeading = document.createElement('h3');researchHeading.textContent='Indexed GPIR research';target.append(researchHeading);
       if (research) {
@@ -732,6 +814,7 @@ class GpirFxCard extends HTMLElementBase {
 
   showSignedOut() {
     this.requestNumber++;
+    this.askRequestNumber++;
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
   }
 }
