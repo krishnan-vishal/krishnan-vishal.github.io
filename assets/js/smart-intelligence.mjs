@@ -1249,6 +1249,13 @@ export async function initializeSmartIntelligence({ global = window,
       : 'Enter a topic to search the indexed GPIR repository.';
   });
   askForm.addEventListener('submit',event=>{event.preventDefault();void openAsk(askInput.value);});
+  // Reader dashboard deep link opens the existing in-page ASK panel without
+  // inventing an answer or issuing a query before the reader enters a topic.
+  if(new URL(global.location.href).searchParams.get('ask')==='1'){
+    askPanel.hidden=false;
+    askResults.textContent='Enter a payments topic to search governed intelligence and published research.';
+    askInput.focus();
+  }
   const shareStatus = root.querySelector('[data-smart-share-status]');
   // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
   const shareContent = async (payload, trigger) => {
