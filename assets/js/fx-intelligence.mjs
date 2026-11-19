@@ -689,6 +689,22 @@ class GpirFxCard extends HTMLElementBase {
           article.append(link,meta);target.append(article);
         }
       }
+      const evidenceCount = records === null ? null : records.filter(item => {
+        const description = [item.title, item.summary, item.category, item.pair, item.currencyPair,
+          ...(Array.isArray(item.keywords) ? item.keywords : [])].filter(Boolean).join(' ').toUpperCase();
+        return description.includes(pair.base + '/' + pair.quote)
+          || (description.includes(pair.base) && description.includes(pair.quote));
+      }).length;
+      const response = document.createElement('p');
+      response.className = 'fxi-ask-answer';
+      const researchCount = research?.total ?? null;
+      response.textContent = evidenceCount === null && researchCount === null
+        ? 'An evidence-based answer is unavailable because the approved intelligence and research indexes could not be retrieved.'
+        : 'For ' + pair.base + '/' + pair.quote + ' (' + periodLabel + '), the indexed sources returned '
+          + (evidenceCount === null ? 'unavailable governed intelligence' : evidenceCount + ' pair-specific governed intelligence record(s)')
+          + ' and ' + (researchCount === null ? 'unavailable published research' : researchCount + ' indexed research section(s)')
+          + '. Review the cited source links below. These search results do not establish a causal explanation or forecast.';
+      target.insertBefore(response, target.firstChild);
       const researchHeading = document.createElement('h3');researchHeading.textContent='Indexed GPIR research';target.append(researchHeading);
       if (research) {
         const p = document.createElement('p');p.textContent=research.total+' matching research sections';target.append(p);
