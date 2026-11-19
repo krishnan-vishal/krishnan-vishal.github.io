@@ -3,7 +3,7 @@ import { contextualAskQuery, retrieveGovernedEvidence, summarizeGovernedAsk }
 
 const root = document.querySelector("[data-country-risk-monitor]");
 if (root) {
-    const PAGE_SIZE = 25;
+    const PAGE_SIZE = 24;
     const ALPHA3_TO_ALPHA2 = Object.freeze({
         PRK: "KP", IRN: "IR", MMR: "MM", AGO: "AO", BOL: "BO", BIH: "BA",
         CMR: "CM", HTI: "HT", IRQ: "IQ", KEN: "KE", KWT: "KW", LAO: "LA",
@@ -17,6 +17,9 @@ if (root) {
     const tbody = root.querySelector("[data-risk-rows]");
     const cards = root.querySelector("[data-risk-cards]");
     const sourceStatus = root.querySelector("[data-risk-source-status]");
+    const regionGroups = root.querySelector("[data-risk-region-groups]");
+    const regionNav = root.querySelector("[data-risk-region-nav]");
+    const expandedRegions = new Set();
     const previous = root.querySelector("[data-risk-prev]");
     const next = root.querySelector("[data-risk-next]");
     const pageStatus = root.querySelector("[data-risk-page-status]");
@@ -166,6 +169,48 @@ if (root) {
         });
     }
 
+    function renderCompactCountry(country) {
+        const shortStatus = country.fatfDesignation === "FATF_CALL_FOR_ACTION" ? "High Risk" :
+            country.fatfDesignation === "FATF_INCREASED_MONITORING" ? "Grey List" : "Not listed";
+        return '<a class="risk-compact-country" href="#country-' + escapeHtml(country.slug) +
+            '" aria-label="Open ' + escapeHtml(country.countryName) + ' evidence profile">' +
+            flagMarkup(country) + '<span class="risk-country-code">' + escapeHtml(country.countryCode2) +
+            '</span><strong title="' + escapeHtml(country.countryName) + '">' +
+            escapeHtml(country.countryName) + '</strong><span class="' +
+            badgeClass(country.fatfDesignation) + '">' + shortStatus +
+            '</span><span class="risk-country-action" aria-hidden="true">↗</span></a>';
+    }
+
+    function renderRegions(visible, filtered) {
+        const regionNames = [...new Set(filtered.map(country => country.region))].sort();
+        regionNav.innerHTML = regionNames.map(name => {
+            const count = filtered.filter(country => country.region === name).length;
+            const active = expandedRegions.has(name);
+            return '<button type="button" data-region-toggle="' + escapeHtml(name) +
+                '" aria-expanded="' + active + '">' + escapeHtml(name) +
+                ' <small>' + count + '</small></button>';
+        }).join("");
+        const grouped = new Map();
+        visible.forEach(country => {
+            if (!grouped.has(country.region)) grouped.set(country.region, []);
+            grouped.get(country.region).push(country);
+        });
+        regionGroups.innerHTML = [...grouped.entries()].map(([name, members]) => {
+            const open = expandedRegions.size === 0 || expandedRegions.has(name);
+            return '<section class="risk-region-section"><button type="button" class="risk-region-title" data-region-toggle="' +
+                escapeHtml(name) + '" aria-expanded="' + open + '"><span>▦ ' +
+                escapeHtml(name) + '</span><small>' + members.length + ' on this page</small><span>' +
+                (open ? '−' : '+') + '</span></button><div class="risk-country-grid"' +
+                (open ? '' : ' hidden') + '>' + members.map(renderCompactCountry).join("") + '</div></section>';
+        }).join("") || '<p class="risk-empty">No countries match the selected filters.</p>';
+        root.querySelectorAll("[data-region-toggle]").forEach(button => button.addEventListener("click", () => {
+            const name = button.dataset.regionToggle;
+            if (expandedRegions.size === 0) regionNames.forEach(regionName => expandedRegions.add(regionName));
+            if (expandedRegions.has(name)) expandedRegions.delete(name); else expandedRegions.add(name);
+            render();
+        }));
+    }
+
     function render() {
         if (!dataset) return;
         const filtered = countries.filter(matches);
@@ -175,6 +220,7 @@ if (root) {
         const visible = filtered.slice(start, start + PAGE_SIZE);
         tbody.innerHTML = visible.map(renderRow).join("");
         cards.innerHTML = visible.map(renderCard).join("");
+        renderRegions(visible, filtered);
         const listed = dataset.counts.callForAction + dataset.counts.increasedMonitoring;
         summary.textContent = (visible.length ? (start + 1) + "–" + (start + visible.length) : "0") +
             " of " + filtered.length + " matching countries · " + countries.length +
@@ -222,6 +268,12 @@ if (root) {
                 };
             }).sort((left, right) => left.countryName.localeCompare(right.countryName));
             sourceStatus.textContent = "FATF publication 30 October 2026 · retrieved 19 November 2026 · 95% publication threshold preserved";
+            const highCount = document.querySelector("[data-risk-high-count]");
+            const greyCount = document.querySelector("[data-risk-grey-count]");
+            const totalCount = document.querySelector("[data-risk-total-count]");
+            if (highCount) highCount.textContent = String(risk.counts.callForAction);
+            if (greyCount) greyCount.textContent = String(risk.counts.increasedMonitoring);
+            if (totalCount) totalCount.textContent = String(countries.length);
             [...new Set(countries.map(item => item.region))].sort().forEach(item => {
                 const option = document.createElement("option");
                 option.value = item;
@@ -242,5 +294,24 @@ if (root) {
     }));
     previous.addEventListener("click", () => { if (pageNumber > 1) { pageNumber -= 1; render(); } });
     next.addEventListener("click", () => { pageNumber += 1; render(); });
+    root.querySelectorAll("[data-risk-tab]").forEach(button => button.addEventListener("click", () => {
+        const target = button.dataset.riskTab;
+        root.querySelectorAll("[data-risk-tab]").forEach(tab => tab.classList.toggle("is-active", tab === button));
+        root.querySelectorAll("[data-risk-panel]").forEach(panel => { panel.hidden = panel.dataset.riskPanel !== target; });
+    }));
+    root.querySelector("[data-risk-clear]")?.addEventListener("click", () => {
+        search.value = ""; region.value = ""; category.value = ""; pageNumber = 1;
+        expandedRegions.clear(); render();
+    });
+    root.querySelector("[data-risk-show-fatf]")?.addEventListener("click", () => {
+        category.value = "FATF_CALL_FOR_ACTION"; pageNumber = 1; render();
+        root.querySelector('[data-risk-tab="matrix"]')?.click();
+    });
+    root.addEventListener("click", event => {
+        const link = event.target.closest?.(".risk-compact-country");
+        if (!link) return;
+        const details = root.querySelector(link.getAttribute("href"));
+        if (details) details.open = true;
+    });
     void load();
 }
