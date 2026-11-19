@@ -474,3 +474,13 @@ test('source failures fail closed without a success-shaped empty history', async
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), { status: 'ERROR', code: 'FX_SOURCE_UNAVAILABLE' });
 });
+
+
+test('FX Smart Card renders contextual ASK GPIR inside the pair card', async () => {
+  const source = await readFile(new URL('../../assets/js/fx-intelligence.mjs', import.meta.url), 'utf8');
+  assert.match(source, /data-fx-ask-form/);
+  assert.match(source, /data-fx-ask-results/);
+  assert.match(source, /this\.bindFxAsk\(pair\)/);
+  assert.match(source, /view:'history-records'/);
+  assert.match(source, /GPIRContentSearch/);
+});
