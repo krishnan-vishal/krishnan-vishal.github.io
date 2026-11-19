@@ -45,3 +45,13 @@ test('returns cited evidence summaries without inventing regulatory conclusions'
   assert.equal(empty.status, 'NO_APPROVED_EVIDENCE');
   assert.deepEqual(empty.citations, []);
 });
+
+test('Smart Intelligence uses the shared ASK core in the existing in-page panel', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../../assets/js/smart-intelligence.mjs', import.meta.url), 'utf8');
+  assert.match(source, /contextualAskQuery\(query, activeContext\)/);
+  assert.match(source, /summarizeGovernedAsk\(query, intelligence \|\| \[\], activeContext\)/);
+  assert.match(source, /askResults\.append\(answerHeading, answerText\)/);
+  assert.match(source, /askPanel\.id='gpir-ask-panel'/);
+  assert.match(source, /if\(request!==askRequest\)return/);
+});
