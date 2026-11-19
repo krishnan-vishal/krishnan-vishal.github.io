@@ -48,11 +48,11 @@ export function classify(report) {
 }
 // Exception remains inactive. A reviewed exposure record and separate activation
 // change are required; no environment variable can enable acceptance.
-export function releaseDecision(report, now=Date.now()) {
+export function releaseDecision(report, now=Date.now(), withdrawnVerified=false) {
   const result=classify(report);
   if(result==='CLEAN') return 'PASS';
   // This exact advisory was withdrawn by GitHub Security Advisory review on 2026-11-18.
   // Other high/critical findings remain blocked by classify().
-  if(result==='EXCEPTION_CANDIDATE') return 'PASS_WITHDRAWN_ADVISORY';
+  if(result==='EXCEPTION_CANDIDATE') return withdrawnVerified === true ? 'PASS_WITHDRAWN_ADVISORY' : 'BLOCK_UNVERIFIED_WITHDRAWAL';
   return 'BLOCK';
 }
