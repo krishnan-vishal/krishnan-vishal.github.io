@@ -314,3 +314,13 @@
  .country-risk-hero h1 { font-size: 1.55rem; }
  .risk-control-grid { grid-template-columns: 1fr; }
 }
+
+/* Reader-only dashboard: no protected UI or data module before verified login. */
+.country-risk-page:not([data-risk-auth="reader"]) [data-risk-protected] { display: none; }
+.country-risk-page[data-risk-auth="reader"] [data-risk-reader-gate] { display: none; }
+.risk-reader-gate { width: min(620px,calc(100% - 2rem)); margin: 9vh auto; padding: 2rem; border: 1px solid var(--risk-border); border-top: 4px solid var(--risk-gold); border-radius: 14px; box-shadow: 0 12px 30px rgba(7,26,51,.07); }
+.risk-reader-gate h1 { color: var(--risk-navy); font-size: clamp(1.45rem,3vw,2rem); }
+.risk-reader-gate__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.25rem; }
+.risk-reader-gate__actions[hidden] { display: none; }
+.risk-reader-gate__actions a { color: var(--risk-blue); font-weight: 700; }
+.risk-reader-gate__actions .risk-reader-gate__primary { padding: .7rem 1rem; background: var(--risk-navy); color: white; border-radius: 8px; text-decoration: none; }
