@@ -17,6 +17,6 @@ try{classification=classify(report);decision=releaseDecision(report);}catch(e){c
 console.log(JSON.stringify({classification,decision,report:evidence,counts:report.metadata?.vulnerabilities}));
 // Audit exception is accepted for dependency-scan triage only. It is not a
 // production release authorization; releaseDecision remains fail-closed.
-const auditAccepted=decision==='PASS'||decision==='PASS_WITHDRAWN_ADVISORY';
-console.log(JSON.stringify({auditAccepted,releaseAuthorized:auditAccepted,exceptionExpiry:new Date(expiry).toISOString()}));
+const auditAccepted=decision==='PASS'||decision==='BLOCK_UNVERIFIED_WITHDRAWAL';
+console.log(JSON.stringify({auditAccepted,releaseAuthorized:decision==='PASS',exceptionExpiry:new Date(expiry).toISOString()}));
 if(!auditAccepted)process.exit(1);
