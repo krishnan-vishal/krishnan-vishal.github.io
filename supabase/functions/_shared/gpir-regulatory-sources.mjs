@@ -256,8 +256,12 @@ function metadataCountries(html) {
 
 function activeFatfStatementScope(html) {
     const text = String(html || "");
-    const removal = /<h[1-6]\b[^>]*>[\s\S]*?jurisdictions\s+no\s+longer[\s\S]*?<\/h[1-6]>/i.exec(text);
-    return removal ? text.slice(0, removal.index) : text;
+    for (const heading of text.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)) {
+        if (/jurisdictions\s+no\s+longer/i.test(decodeHtml(heading[1]))) {
+            return text.slice(0, heading.index);
+        }
+    }
+    return text;
 }
 
 export function parseFatfStatement(html, { sourceUrl, designation, publicationDate = null } = {}) {
