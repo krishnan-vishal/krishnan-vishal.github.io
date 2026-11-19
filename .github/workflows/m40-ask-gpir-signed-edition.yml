@@ -56,7 +56,18 @@ jobs:
               headers: { authorization: 'users API-Key ' + cfg.key, 'content-type': 'application/json' },
               body: JSON.stringify({ action: 'prepare', parentSnapshot: lock.snapshot })
             });
-            if (!preparedResponse.ok) throw Error('EDITION_PREPARATION_UNAVAILABLE HTTP ' + preparedResponse.status + ': deploy the reviewed Payload Worker endpoint before retrying.');
+            if (!preparedResponse.ok) {
+              const refusal = await preparedResponse.json().catch(() => ({}));
+              const approvedReasons = new Set([
+                'AMBIGUOUS_SNAPSHOT_RECORD', 'PARENT_MANIFEST_UNAVAILABLE',
+                'PARENT_MANIFEST_INVALID', 'OBSERVATORY_ROUTE_NOT_MANAGED',
+                'REVIEWED_GITHUB_SOURCE_UNAVAILABLE', 'APPROVED_PAGE_CONTRACT_FAILED',
+                'EDITION_UNCHANGED', 'IMMUTABLE_EDITION_CONFLICT',
+                'INTERNAL_PREPARATION_ERROR'
+              ]);
+              const safeReason = approvedReasons.has(refusal.reason) ? refusal.reason : 'UNSPECIFIED_REFUSAL';
+              throw Error('EDITION_PREPARATION_REFUSED HTTP ' + preparedResponse.status + ': ' + safeReason);
+            }
             const prepared = await preparedResponse.json();
             if (prepared.status !== 'EDITION_PREPARED_NOT_DEPLOYED' || prepared.observatoryUpdated !== true || !/^[a-f0-9]{64}$/.test(prepared.snapshot)) throw Error('EDITION_NOT_PREPARED');
             const source = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: prepared.snapshot });
