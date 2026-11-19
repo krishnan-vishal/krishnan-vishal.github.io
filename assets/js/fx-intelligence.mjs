@@ -567,6 +567,7 @@ class GpirFxCard extends HTMLElementBase {
     this.attachShadow({ mode: 'open' });
     this.requestNumber = 0;
     this.askRequestNumber = 0;
+    this.cardHistory = null;
     this.lastRefreshAt = 0;
     this.onVisibilityChange = () => {
       if (globalThis.document?.visibilityState === 'visible' &&
@@ -624,6 +625,7 @@ class GpirFxCard extends HTMLElementBase {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       const editorialRecords = await loadPublishedFxEditorial();
       if (sequence !== this.requestNumber || !this.isConnected) return;
+      this.cardHistory = history;
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
       this.bindFxAsk(pair);
@@ -695,6 +697,18 @@ class GpirFxCard extends HTMLElementBase {
         return description.includes(pair.base + '/' + pair.quote)
           || (description.includes(pair.base) && description.includes(pair.quote));
       }).length;
+      const reference = document.createElement('p');
+      const points = this.cardHistory?.pair === pair.base + '/' + pair.quote
+        ? pointsForPeriod(this.cardHistory.points, selectedPeriod, this.cardHistory.lastFixingDate) : [];
+      const metrics = calculateMetrics(points);
+      const description = metrics.status === 'AVAILABLE'
+        ? metrics.observations + ' official/approved source observations between ' + metrics.first.date
+          + ' and ' + metrics.latest.date + '; ' + pair.base + '/' + pair.quote
+          + ' moved ' + percent(metrics.changePercent) + ', with observed low '
+          + rateText(metrics.low.rate, pair) + ' and high ' + rateText(metrics.high.rate, pair) + '.'
+        : 'Insufficient verified observations for a computed ' + periodLabel.toLowerCase() + ' movement summary.';
+      reference.textContent = 'Verified FX history · ' + description;
+      target.insertBefore(reference, target.firstChild);
       const response = document.createElement('p');
       response.className = 'fxi-ask-answer';
       const researchCount = research?.total ?? null;
