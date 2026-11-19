@@ -4,7 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
   pointsForPeriod, previousPeriodPoints, selectionFromSearch,
-  fxIntelligenceReturnTo, accessMarkup, buildCardMarkup, referenceConversion }
+  fxIntelligenceReturnTo, accessMarkup, answerFxQuestion, buildCardMarkup, referenceConversion }
   from '../../assets/js/fx-intelligence.mjs';
 import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, subscriptionConfig,
   validSubscriptionConfig, verifySubscription }
@@ -494,6 +494,9 @@ test('FX ASK remains embedded and uses selected-period metrics and bounded evide
   assert.match(source, /sequence !== this\.askRequestNumber/);
   assert.match(source, /this\.askRequestNumber\+\+/);
   assert.match(source, /No missing records are inferred/);
+  assert.match(source, /contextualAskQuery/);
+  assert.match(source, /summarizeGovernedAsk/);
+  assert.match(source, /Calculation source:/);
 });
 
 test('historical period selection changes actual FX trend and movement metrics', () => {
@@ -519,4 +522,30 @@ test('historical period selection changes actual FX trend and movement metrics',
   assert.equal(w.observations,4);
   assert.equal(q.observations,6);
   assert.notEqual(w.changePercent,q.changePercent);
+});
+
+
+test('ASK GPIR answers natural-language FX questions from selected-period calculations', () => {
+  const pair = { base: 'USD', quote: 'JPY' };
+  const current = calculateMetrics([
+    { date: '2026-01-01', rate: 140 },
+    { date: '2026-06-01', rate: 150 },
+    { date: '2026-12-31', rate: 154 }
+  ]);
+  const previous = calculateMetrics([
+    { date: '2025-01-01', rate: 145 },
+    { date: '2025-12-31', rate: 140 }
+  ]);
+  const movement = answerFxQuestion('How did USD/JPY move?', current, previous, pair, 'Yearly');
+  assert.equal(movement.status, 'AVAILABLE');
+  assert.match(movement.answer, /strengthened/);
+  assert.match(movement.answer, /3 source observations/);
+  const comparison = answerFxQuestion('Compare with the previous period', current, previous, pair, 'Yearly');
+  assert.match(comparison.answer, /Current/);
+  const volatility = answerFxQuestion('What was volatility?', current, previous, pair, 'Yearly');
+  assert.match(volatility.answer, /at least 20 daily returns/);
+  const insufficient = answerFxQuestion('What changed?', { status: 'INSUFFICIENT_OBSERVATIONS' },
+    previous, pair, 'Weekly');
+  assert.equal(insufficient.status, 'INSUFFICIENT_DATA');
+  assert.match(insufficient.answer, /Insufficient verified observations/);
 });

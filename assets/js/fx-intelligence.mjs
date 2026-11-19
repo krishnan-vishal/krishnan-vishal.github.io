@@ -1,4 +1,5 @@
-import { retrieveGovernedEvidence } from './gpir-governed-ask.mjs';
+import { contextualAskQuery, retrieveGovernedEvidence, summarizeGovernedAsk }
+  from './gpir-governed-ask.mjs';
 const API_PATH = '/functions/v1/gpir-reader-summary';
 const DISCLAIMER = 'GPIR FX Intelligence is for research and information only. Reference rates are indicative, not transaction quotes. Historical performance does not predict future movements. Not financial advice.';
 const PERIODS = Object.freeze([
@@ -205,6 +206,37 @@ function rateDigits(pair) {
 
 function rateText(value, pair) {
   return Number.isFinite(value) ? number(value, rateDigits(pair)) : 'Unavailable';
+}
+
+export function answerFxQuestion(question, metrics, previousMetrics, pair, periodLabel) {
+  const scope = pair.base + '/' + pair.quote + ' over the ' + periodLabel.toLowerCase() + ' period';
+  if (metrics?.status !== 'AVAILABLE') return Object.freeze({
+    status: 'INSUFFICIENT_DATA',
+    answer: 'Insufficient verified observations are available to answer this question for ' + scope + '.'
+  });
+  const movement = pair.base + ' ' + (metrics.changePercent > 0 ? 'strengthened' :
+    metrics.changePercent < 0 ? 'weakened' : 'was unchanged') + ' against ' + pair.quote +
+    ' by ' + percent(metrics.changePercent) + ' across ' + metrics.observations +
+    ' source observations from ' + metrics.first.date + ' to ' + metrics.latest.date + '.';
+  const term = String(question || '').toLowerCase();
+  let answer;
+  if (/volatil|risk|variation/.test(term)) {
+    answer = metrics.annualizedVolatility == null
+      ? movement + ' Annualised realised volatility is unavailable because at least 20 daily returns are required.'
+      : movement + ' Annualised realised volatility was ' + number(metrics.annualizedVolatility, 2) + '%.';
+  } else if (/high|low|range|maximum|minimum/.test(term)) {
+    answer = 'For ' + scope + ', the verified low was ' + rateText(metrics.low.rate, pair) +
+      ' on ' + metrics.low.date + ' and the verified high was ' + rateText(metrics.high.rate, pair) +
+      ' on ' + metrics.high.date + '. ' + movement;
+  } else if (/previous|compare|comparison/.test(term)) {
+    answer = movement + ' ' + previousLabel(metrics, previousMetrics);
+  } else {
+    answer = movement + ' The observed range was ' + rateText(metrics.low.rate, pair) + ' to ' +
+      rateText(metrics.high.rate, pair) + '.';
+  }
+  if (/why|cause|reason|forecast|next/.test(term))
+    answer += ' These verified calculations do not establish a cause or support a forecast.';
+  return Object.freeze({ status: 'AVAILABLE', answer });
 }
 
 export function referenceConversion(amount, rate) {
@@ -653,13 +685,14 @@ class GpirFxCard extends HTMLElementBase {
       const status = document.createElement('p');
       status.textContent = 'Searching approved GPIR intelligence and research…';
       target.append(status);
-      const query = pair.base + '/' + pair.quote + ' ' + periodLabel + ' ' + term;
+      const askContext = { topic: 'FX', currencyPair: pair.base + '/' + pair.quote, period: periodLabel };
+      const query = contextualAskQuery(pair.base + '/' + pair.quote + ' ' + term, askContext);
       const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
       const validOrigin = typeof origin === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(origin);
       let records = null;
       if (validOrigin) {
         try {
-          records = await retrieveGovernedEvidence(origin,term,{limit:10});
+          records = await retrieveGovernedEvidence(origin, query, { limit: 10 });
         } catch { records = null; }
       }
       let research = null;
@@ -672,10 +705,11 @@ class GpirFxCard extends HTMLElementBase {
       const heading = document.createElement('h3');
       heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote + ' · ' + periodLabel;
       target.append(heading);
+      let matching = [];
       if (records === null) {
         const p = document.createElement('p'); p.textContent = 'Governed intelligence is temporarily unavailable. No missing records are inferred.'; target.append(p);
       } else {
-        const matching = records.filter(item => {
+        matching = records.filter(item => {
           const text = [item.title,item.summary,item.category,item.pair,item.currencyPair,...(Array.isArray(item.keywords)?item.keywords:[])].filter(Boolean).join(' ').toUpperCase();
           return text.includes(pair.base+'/'+pair.quote) || (text.includes(pair.base) && text.includes(pair.quote));
         });
@@ -712,13 +746,27 @@ class GpirFxCard extends HTMLElementBase {
       const response = document.createElement('p');
       response.className = 'fxi-ask-answer';
       const researchCount = research?.total ?? null;
-      response.textContent = evidenceCount === null && researchCount === null
-        ? 'An evidence-based answer is unavailable because the approved intelligence and research indexes could not be retrieved.'
-        : 'For ' + pair.base + '/' + pair.quote + ' (' + periodLabel + '), the indexed sources returned '
-          + (evidenceCount === null ? 'unavailable governed intelligence' : evidenceCount + ' pair-specific governed intelligence record(s)')
-          + ' and ' + (researchCount === null ? 'unavailable published research' : researchCount + ' indexed research section(s)')
-          + '. Review the cited source links below. These search results do not establish a causal explanation or forecast.';
+      const previous = calculateMetrics(previousPeriodPoints(this.cardHistory?.points || [],
+        selectedPeriod, this.cardHistory?.lastFixingDate));
+      const calculated = answerFxQuestion(term, metrics, previous, pair, periodLabel);
+      const governed = records === null ? null : summarizeGovernedAsk(term, matching, askContext);
+      response.textContent = calculated.answer + ' ' + (governed?.answer ||
+        (researchCount === null
+          ? 'Approved intelligence and research indexes are temporarily unavailable; no missing evidence is inferred.'
+          : 'No approved pair-specific governed intelligence record was available; review the indexed GPIR research below.'));
       target.insertBefore(response, target.firstChild);
+      const sourceUrl = this.cardHistory?.sourceUrl;
+      if (typeof sourceUrl === 'string' && /^https:\/\//.test(sourceUrl)) {
+        const citation = document.createElement('p');
+        citation.className = 'fxi-ask-citation';
+        const link = document.createElement('a');
+        link.href = sourceUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = this.cardHistory.source || 'Verified FX reference-rate source';
+        citation.append('Calculation source: ', link, ' · fixing dates and observation count shown above.');
+        target.insertBefore(citation, target.firstChild.nextSibling);
+      }
       const researchHeading = document.createElement('h3');researchHeading.textContent='Indexed GPIR research';target.append(researchHeading);
       if (research) {
         const p = document.createElement('p');p.textContent=research.total+' matching research sections';target.append(p);
