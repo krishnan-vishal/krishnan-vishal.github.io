@@ -346,21 +346,44 @@ if (root) {
         profilePanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     const globalAskForm = root.querySelector("[data-risk-global-ask]");
+    const globalAskButton = globalAskForm?.querySelector('button[type="submit"]');
+    const globalAskTarget = root.querySelector("[data-risk-global-answer]");
     globalAskForm?.addEventListener("submit", async event => {
         event.preventDefault();
         const question = globalAskForm.querySelector("input").value.trim();
-        const target = root.querySelector("[data-risk-global-answer]");
-        if (!question || !target) return;
+        if (!question || !globalAskTarget) return;
         const request = ++askRequest;
-        target.textContent = "Searching governed regulatory evidence…";
+        globalAskTarget.setAttribute("role", "status");
+        globalAskTarget.textContent = "Checking official FATF classifications and governed regulatory evidence…";
+        if (globalAskButton) globalAskButton.disabled = true;
+        const questionLower = question.toLowerCase();
+        const words = questionLower.split(/[^a-z]+/);
+        const aliases = { AE: "uae", US: "usa", GB: "uk" };
+        const mentioned = countries.filter(country => {
+            const name = country.countryName.toLowerCase();
+            return (name.length > 3 && questionLower.includes(name)) || Boolean(aliases[country.countryCode2] && words.includes(aliases[country.countryCode2]));
+        }).sort((a,b) => b.countryName.length - a.countryName.length);
+        const country = mentioned[0];
+        const statusText = country
+            ? country.countryName + ": " + country.fatfLabel + ". This is the classification in the current verified GPIR FATF snapshot, not an OFAC country-sanctions conclusion."
+            : "";
         try {
             const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
-            const query = contextualAskQuery(question, { topic: "FATF OFAC regulatory intelligence" });
-            const records = await retrieveGovernedEvidence(origin, query, { limit: 8 });
+            const query = contextualAskQuery(question, {
+                topic: "FATF OFAC regulatory intelligence",
+                ...(country ? { country: country.countryName } : {})
+            });
+            const evidence = await Promise.race([
+                retrieveGovernedEvidence(origin, query, { limit: 8 }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), 10000))
+            ]);
             if (request !== askRequest || !globalAskForm.isConnected) return;
-            const result = summarizeGovernedAsk(question, records, { topic: "Regulatory intelligence" });
+            const result = summarizeGovernedAsk(question, evidence, {
+                topic: "Regulatory intelligence",
+                ...(country ? { country: country.countryName } : {})
+            });
             const paragraph = document.createElement("p");
-            paragraph.textContent = result.answer;
+            paragraph.textContent = [statusText, result.answer].filter(Boolean).join(" ");
             const citations = document.createElement("ul");
             (result.citations || []).forEach(citation => {
                 const li = document.createElement("li");
@@ -374,17 +397,59 @@ if (root) {
                 } else li.textContent = citation.title || "Verified record";
                 citations.append(li);
             });
-            target.replaceChildren(paragraph);
-            if (citations.childElementCount) target.append(citations);
+            if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                a.href = country.sourceUrl;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.textContent = "Official FATF classification source";
+                li.append(a);
+                citations.append(li);
+            }
+            globalAskTarget.replaceChildren(paragraph);
+            if (citations.childElementCount) globalAskTarget.append(citations);
         } catch {
-            if (request === askRequest) target.textContent =
-                "Governed intelligence is temporarily unavailable. No unverified answer has been generated.";
+            if (request === askRequest) {
+                globalAskTarget.replaceChildren();
+                const paragraph = document.createElement("p");
+                paragraph.textContent = statusText || "The governed intelligence service did not respond within 10 seconds. No unsupported answer has been generated.";
+                globalAskTarget.append(paragraph);
+                if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+                    const a = document.createElement("a");
+                    a.href = country.sourceUrl;
+                    a.textContent = "Verify official FATF evidence";
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+                    globalAskTarget.append(a);
+                }
+            }
+        } finally {
+            if (request === askRequest && globalAskButton) globalAskButton.disabled = false;
         }
     });
-    root.querySelector("[data-risk-back]")?.addEventListener("click", () => {
-        if (history.length > 1) history.back();
-        else location.assign("/reader/my-gpir/");
-    });
-    root.querySelector("[data-risk-forward]")?.addEventListener("click", () => history.forward());
+    const tabButtons = [...root.querySelectorAll("[data-risk-tab]")];
+    function moveDashboard(direction) {
+        const active = tabButtons.findIndex(tab => tab.classList.contains("is-active"));
+        const matrixActive = active === 0;
+        const filteredCount = countries.filter(matches).length;
+        const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
+        if (matrixActive && direction > 0 && pageNumber < totalPages) {
+            pageNumber += 1; selectedCountryCode = null; render(); return;
+        }
+        if (matrixActive && direction < 0 && pageNumber > 1) {
+            pageNumber -= 1; selectedCountryCode = null; render(); return;
+        }
+        const nextTab = active + direction;
+        if (nextTab >= 0 && nextTab < tabButtons.length) {
+            tabButtons[nextTab].click();
+            tabButtons[nextTab].focus();
+            return;
+        }
+        if (direction < 0) location.assign("/reader/my-gpir/#library");
+        else location.assign("/reader/my-gpir/#library");
+    }
+    root.querySelector("[data-risk-back]")?.addEventListener("click", () => moveDashboard(-1));
+    root.querySelector("[data-risk-forward]")?.addEventListener("click", () => moveDashboard(1));
     void load();
 }
