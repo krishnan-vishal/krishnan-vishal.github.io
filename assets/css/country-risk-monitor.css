@@ -437,3 +437,19 @@
 .country-risk-page[data-risk-auth="reader"] .risk-card{max-width:100%}
 @media(max-width:1100px){.country-risk-page[data-risk-auth="reader"] .risk-country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.country-risk-page[data-risk-auth="reader"] .risk-country-grid{grid-template-columns:1fr}.country-risk-page[data-risk-auth="reader"] .country-risk-hero::before{right:-250px;opacity:.16}}
+
+/* Reader navigation, accessible skip link, and governed in-page ASK */
+.country-risk-page .skip-link{position:absolute;top:-120px;left:12px;z-index:1000;padding:9px 14px;background:#fff;color:#071a33;border-radius:5px}
+.country-risk-page .skip-link:focus{top:8px}
+.country-risk-page .risk-history-nav{display:flex;gap:8px;align-items:center;margin-left:auto}
+.country-risk-page .risk-history-nav button,.country-risk-page .risk-history-nav a{border:1px solid #bd9a51;border-radius:6px;background:#123453;color:#fff;padding:6px 11px;text-decoration:none;font:inherit;font-size:.78rem;cursor:pointer}
+.country-risk-page .risk-global-ask{display:grid;grid-template-columns:minmax(220px,1fr) minmax(280px,2fr);gap:16px;padding:16px;margin-top:14px;background:#103354;border:1px solid #8ca8bd;border-radius:13px;color:#f7fbff}
+.country-risk-page .risk-global-ask h2{margin:0 0 5px;font-size:1.05rem;color:#ffdb7e}
+.country-risk-page .risk-global-ask p{margin:0;font-size:.82rem;line-height:1.5}
+.country-risk-page .risk-global-ask label{display:block;font-size:.8rem;font-weight:700;margin-bottom:6px}
+.country-risk-page .risk-global-ask-controls{display:flex;gap:8px}
+.country-risk-page .risk-global-ask input{flex:1;min-width:0;border-radius:7px;padding:10px 12px;border:1px solid #b3c5d8;background:#fff;color:#0b233f}
+.country-risk-page .risk-global-ask button{padding:9px 15px;border-radius:7px;border:1px solid #f4d17b;background:#edc65e;color:#07182d;font-weight:800;cursor:pointer}
+.country-risk-page .risk-global-answer{margin-top:8px;font-size:.83rem;line-height:1.5}
+.country-risk-page .risk-global-answer a{color:#ffe095}
+@media(max-width:760px){.country-risk-page .risk-global-ask{grid-template-columns:1fr}.country-risk-page .risk-history-nav{flex-wrap:wrap}.country-risk-page .risk-global-ask-controls{flex-wrap:wrap}}
