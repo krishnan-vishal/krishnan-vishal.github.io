@@ -1167,8 +1167,10 @@ export async function initializeSmartIntelligence({ global = window,
   const openAsk=async query=>{
     const request = ++askRequest;
     askPanel.hidden=false;askInput.value=query;
-    askPanel.scrollIntoView({block:'nearest'});
-    askInput.focus();
+    if (!askPanel.dataset.autoQuery) {
+      askPanel.scrollIntoView({block:'nearest'});
+      askInput.focus();
+    }
     if(!query.trim()){askResults.textContent='Enter a topic to search the indexed GPIR repository.';return;}
     askResults.textContent='Searching the governed GPIR index…';
     const activeContext = {
@@ -1250,15 +1252,38 @@ export async function initializeSmartIntelligence({ global = window,
     const query=clean(new FormData(event.currentTarget).get('ask')||'',300);
     void openAsk(query);
   },{capture:true});
-  // Clear stale results immediately; never display the previous query's matches
-  // beneath a newly typed topic. Explicit Search/Enter performs the lookup.
+  // Debounced automatic topic discovery, with stale-query cancellation.
+  // User submission remains available for a fully specified question.
+  let askDebounce;
   askInput.addEventListener('input',()=>{
     ++askRequest;
-    askResults.textContent=askInput.value.trim()
-      ? 'Press Search or Enter to find matches for this topic.'
-      : 'Enter a topic to search the indexed GPIR repository.';
+    clearTimeout(askDebounce);
+    const query=askInput.value.trim();
+    askResults.textContent=query
+      ? 'Finding approved topic evidence and publications…'
+      : 'Select a topic or enter a question to explore GPIR evidence.';
+    if(query.length>=3){
+      askDebounce=setTimeout(()=>{
+        askPanel.dataset.autoQuery='1';
+        void openAsk(query).finally(()=>{delete askPanel.dataset.autoQuery;});
+      },450);
+    }
   });
-  askForm.addEventListener('submit',event=>{event.preventDefault();void openAsk(askInput.value);});
+  askForm.addEventListener('submit',event=>{event.preventDefault();clearTimeout(askDebounce);void openAsk(askInput.value);});
+  // Keep topic discovery aligned with dashboard selections, without requiring Enter.
+  const refreshAskFromContext=()=>{
+    if(askPanel.hidden)return;
+    const query=buildAskQuery(state,{
+      themeLabels:PREMIUM_THEMES.filter(theme=>state.themes.has(theme.id)).map(theme=>theme.label),
+      topicLabels:SMART_TOPICS.filter(topic=>state.topics.has(topic.id)).map(topic=>topic.label),
+      geographyLabel:root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent||'All geographies'
+    });
+    clearTimeout(askDebounce);
+    askPanel.dataset.autoQuery='1';
+    void openAsk(query).finally(()=>{delete askPanel.dataset.autoQuery;});
+  };
+  [periodSelect,themeSelect,geo].filter(Boolean).forEach(control=>
+    control.addEventListener('change',refreshAskFromContext));
   // Reader dashboard deep link opens the existing in-page ASK panel without
   // inventing an answer or issuing a query before the reader enters a topic.
   if(new URL(global.location.href).searchParams.get('ask')==='1'){
