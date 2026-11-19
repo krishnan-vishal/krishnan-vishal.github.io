@@ -89,24 +89,25 @@ availability begins later than the five-year start, so unavailable days remain e
 Older official annual change documents may supplement that gap only after a reviewed
 parser is added; a current SDN or consolidated snapshot must never fill it.
 
-FATF current ingestion is implemented. Historical FATF execution deliberately fails
-closed with `FATF_BACKFILL_REQUIRES_REVIEWED_STATEMENT_MANIFEST` until the five-year
-official statement manifest is enumerated and reviewed. This prevents a current list from
-being presented as historical status. The milestone cannot be accepted until that manifest,
-parser canary and all 60 windows are completed.
+FATF current and historical ingestion now enumerate dated official statement links from
+the authoritative FATF publication index, require a complete two-designation snapshot for
+one publication date, exclude the explicit "no longer monitored" section, and process
+oldest-to-newest bounded windows with durable cursors. Completed windows are idempotent.
+Production execution remains pending; the current list is never substituted for history.
 
 ## Controlled release order
 
 1. Required branch checks and review.
 2. Owner-controlled merge only after the Payload signed-edition implications are reconciled.
-3. Apply additive migration.
+3. Apply the additive migration and source-registration SQL (no schedules).
 4. Deploy `gpir-regulatory-fetch`.
 5. Run dry-run canaries for OFAC and FATF; verify official redirects, hashes, dates,
    record counts and zero public mutation.
-6. Apply source registration and hourly schedules.
-7. Verify one genuine eligible update through raw ingestion, candidate validation,
+6. Execute five-year backfill windows oldest-to-newest with checkpoint evidence, then
+   run one non-dry current canary.
+7. Apply the separate hourly schedule-activation SQL.
+8. Verify one genuine eligible update through raw ingestion, candidate validation,
    >=95 publication gate, 12-hour relay and archive.
-8. Execute reviewed five-year backfill windows with checkpoint evidence.
 9. Produce a new signed Payload site edition including the changed managed homepage
    and new monitor assets; release through the existing GitHub Pages workflow.
 10. Perform live desktop/mobile, ASK GPIR, authenticated reader, FX, CMS, payment,
@@ -124,7 +125,7 @@ authorized by this implementation.
 | Hourly source polling | PREPARED / NOT APPLIED | Controlled release SQL |
 | Independent 12-hour visibility | CODED / NOT PRODUCTION-VERIFIED | Exact timestamp required; date-only remains archived |
 | OFAC five-year historical changes | PARTIAL | Bounded delta runner implemented; early official gaps explicit |
-| FATF five-year historical status | BLOCKED | Reviewed official statement manifest not yet committed |
+| FATF five-year historical status | IMPLEMENTED / EXECUTION PENDING | Official index enumeration, two-statement snapshot validation and restartable bounded windows |
 | Country filters/cards | IMPLEMENTED / CI PASSED / BROWSER QA PENDING | Structured content, links and JavaScript syntax passed in run 44482826434 |
 | ASK GPIR cited responses | ENTRY POINT IMPLEMENTED / LIVE ACCEPTANCE PENDING | Existing governed endpoint; no threshold bypass |
 | FX, reader, CMS, auth, entitlements | UNCHANGED IN SOURCE / REGRESSION PENDING | Existing release checks plus live acceptance |
@@ -152,10 +153,19 @@ Branch dataset counts:
 - Local Windows/Node execution runtime was unavailable, so no local test result is claimed.
   Required GitHub Actions passed on `d61f7d175517261c131400c60161f5dac991407b`:
   Security and Integrity run 44482826434 and PostgreSQL acceptance run 44482826476.
-- FATF historical manifest/backfill implementation and canary evidence remain required.
+- FATF and OFAC five-year backfill execution and production canary evidence remain required.
 - Supabase migration/function/source schedule are not deployed.
 - No genuine update has yet traversed source → relay → publication → archive.
 - The new homepage bytes require reconciliation with the signed Payload managed-site
   edition before publication.
 - Final production URL, ingestion counts, last successful ingestion and publication
   evidence are unavailable until owner-controlled release and live acceptance.
+
+
+## Source-branding constraint
+
+The official FATF Terms, Conditions and Disclaimers state that the FATF logo is legally
+protected and may not be used without express written permission. PR #591 therefore keeps
+compact verified text attribution and a no-endorsement notice. A graphical FATF footer
+asset is blocked until the owner supplies permission evidence; no unauthorized logo is
+embedded or hotlinked.

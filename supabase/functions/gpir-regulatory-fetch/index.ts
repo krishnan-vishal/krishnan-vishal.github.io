@@ -11,7 +11,8 @@ import {
     parseOfacRecentActions,
     parseOfacSnapshotMetadata,
     sha256Hex,
-    validateBackfillWindow
+    validateBackfillWindow,
+    validateFatfSnapshot
 } from "../_shared/gpir-regulatory-sources.mjs";
 
 const OFAC_SOURCE_ID = "OFAC-US-001";
@@ -160,13 +161,19 @@ async function stageRelayRecord(admin: any, {
     return String(processed || "UNKNOWN");
 }
 
-async function recordFatfCurrent(admin: any, documentId: string, rows: Array<Record<string, any>>, publicationDate: string, documentHash: string) {
+async function recordFatfSnapshot(admin: any, statements: Array<Record<string, any>>) {
+    const snapshot = validateFatfSnapshot(statements);
     const { data: current, error: currentError } = await admin.from("gpir_country_risk_status_history")
-        .select("id,country_code,official_designation")
+        .select("id,country_code,official_designation,publication_date")
         .eq("source_id", FATF_SOURCE_ID)
         .is("effective_to", null);
     if (currentError) throw new Error("FATF_CURRENT_READ_FAILED:" + currentError.message);
-    const next = new Map(rows.map(row => [row.countryCode, row]));
+    const latest = (current || []).map(item => item.publication_date).filter(Boolean).sort().at(-1);
+    if (latest && latest > snapshot.publicationDate) throw new Error("FATF_BACKFILL_ORDER_REQUIRED");
+    const next = new Map();
+    for (const statement of statements) for (const row of statement.rows) next.set(row.countryCode, {
+        ...row, documentId: statement.documentId, documentHash: statement.hash
+    });
     let closed = 0;
     for (const item of current || []) {
         const replacement = next.get(item.country_code);
@@ -175,7 +182,7 @@ async function recordFatfCurrent(admin: any, documentId: string, rows: Array<Rec
             continue;
         }
         const { error } = await admin.from("gpir_country_risk_status_history")
-            .update({ effective_to: publicationDate }).eq("id", item.id).is("effective_to", null);
+            .update({ effective_to: snapshot.publicationDate }).eq("id", item.id).is("effective_to", null);
         if (error) throw new Error("FATF_HISTORY_CLOSE_FAILED:" + error.message);
         closed += 1;
     }
@@ -183,14 +190,15 @@ async function recordFatfCurrent(admin: any, documentId: string, rows: Array<Rec
     for (const row of next.values()) {
         inserts.push({
             source_id: FATF_SOURCE_ID,
-            document_id: documentId,
+            document_id: row.documentId,
             country_code: row.countryCode,
             country_name: row.countryName,
             official_designation: row.officialDesignation,
-            effective_from: publicationDate,
-            publication_date: publicationDate,
+            effective_from: snapshot.publicationDate,
+            publication_date: snapshot.publicationDate,
             status_fingerprint: await sha256Hex([
-                FATF_SOURCE_ID, row.countryCode, row.officialDesignation, publicationDate, documentHash
+                FATF_SOURCE_ID, row.countryCode, row.officialDesignation,
+                snapshot.publicationDate, row.documentHash
             ].join("|")),
             gpir_analytical_risk: "UNRATED",
             gpir_methodology_id: null
@@ -201,10 +209,10 @@ async function recordFatfCurrent(admin: any, documentId: string, rows: Array<Rec
             .upsert(inserts, { onConflict: "status_fingerprint", ignoreDuplicates: true });
         if (error) throw new Error("FATF_HISTORY_INSERT_FAILED:" + error.message);
     }
-    return { inserted: inserts.length, closed, unchanged: rows.length - inserts.length };
+    return { inserted: inserts.length, closed, unchanged: snapshot.rows.length - inserts.length };
 }
 
-async function handleOfacCurrent(admin: any, dryRun: boolean) {
+async function handleOfacCurrentasync function handleOfacCurrent(admin: any, dryRun: boolean) {
     const snapshots = [];
     for (const file of ["SDN.XML", "CONSOLIDATED.XML"]) {
         const sourceUrl = OFAC_EXPORT_BASE + file;
@@ -362,17 +370,11 @@ async function handleOfacBackfill(admin: any, from: string, to: string, dryRun: 
     return { window, ...summary, databaseWritten: !dryRun };
 }
 
-async function handleFatfCurrent(admin: any, dryRun: boolean) {
-    const { result: indexResponse } = await officialFetch(FATF_STATEMENTS_URL, "FATF");
-    if (!indexResponse.ok) throw new Error("FATF_INDEX_HTTP_" + indexResponse.status);
-    const indexHtml = await indexResponse.text();
-    const links = fatfStatementLinks(indexHtml);
-    const selected = new Map<string, { url: string; designation: string; publicationDate: string | null }>();
-    for (const link of links) if (!selected.has(link.designation)) selected.set(link.designation, link);
-    if (selected.size !== 2) throw new Error("FATF_CURRENT_STATEMENTS_INCOMPLETE");
-    const outcomes = [];
-    for (const link of selected.values()) {
-        const { result } = await officialFetch(link.url, "FATF");
+async function processFatfSnapshot(admin: any, links: Array<Record<string, any>>, dryRun: boolean) {
+    const statements = [];
+    for (const link of links) {
+        const { result, finalUrl } = await officialFetch(link.url, "FATF");
+        if (result.status === 429) throw new Error("FATF_RATE_LIMITED");
         if (!result.ok) throw new Error("FATF_STATEMENT_HTTP_" + result.status);
         const html = await result.text();
         const publicationDate = link.publicationDate || fatfPublicationDate(html);
@@ -383,11 +385,8 @@ async function handleFatfCurrent(admin: any, dryRun: boolean) {
             publicationDate
         });
         const hash = await sha256Hex(html);
-        if (dryRun) {
-            outcomes.push({ ...link, publicationDate, countries: rows, hash, databaseWritten: false });
-            continue;
-        }
-        const documentId = await insertDocument(admin, {
+        let documentId = null;
+        if (!dryRun) documentId = await insertDocument(admin, {
             source_id: FATF_SOURCE_ID,
             document_identity: link.url,
             canonical_url: link.url,
@@ -399,27 +398,139 @@ async function handleFatfCurrent(admin: any, dryRun: boolean) {
             media_type: result.headers.get("content-type"),
             http_status: result.status,
             validation_state: "VALIDATED",
-            metadata: { designation: link.designation, country_count: rows.length }
+            metadata: {
+                designation: link.designation,
+                country_count: rows.length,
+                final_url: finalUrl,
+                historical_statement: true
+            }
         });
-        const status = await recordFatfCurrent(admin, documentId, rows, publicationDate, hash);
+        statements.push({ ...link, publicationDate, rows, hash, documentId, html });
+    }
+    const snapshot = validateFatfSnapshot(statements);
+    if (dryRun) return {
+        publicationDate: snapshot.publicationDate,
+        statements: statements.map(item => ({
+            url: item.url, designation: item.designation, publicationDate: item.publicationDate,
+            countryCount: item.rows.length, hash: item.hash
+        })),
+        countries: snapshot.rows,
+        databaseWritten: false
+    };
+    const status = await recordFatfSnapshot(admin, statements);
+    const outcomes = [];
+    for (const statement of statements) {
         const relay = await stageRelayRecord(admin, {
             sourceId: FATF_SOURCE_ID,
-            documentId,
-            title: link.designation === "FATF_CALL_FOR_ACTION"
+            documentId: statement.documentId,
+            title: statement.designation === "FATF_CALL_FOR_ACTION"
                 ? "FATF High-Risk Jurisdictions subject to a Call for Action"
                 : "FATF Jurisdictions under Increased Monitoring",
-            canonicalUrl: link.url,
-            content: rows.map(row => row.countryName).join(", "),
-            exactTimestamp: exactPublishedTimestamp(html),
-            fingerprint: hash,
-            metadata: { authority: "FATF", designation: link.designation, country_count: rows.length }
+            canonicalUrl: statement.url,
+            content: statement.rows.map((row: any) => row.countryName).join(", "),
+            exactTimestamp: exactPublishedTimestamp(statement.html),
+            fingerprint: statement.hash,
+            metadata: {
+                authority: "FATF",
+                designation: statement.designation,
+                country_count: statement.rows.length
+            }
         });
-        outcomes.push({ ...link, publicationDate, countryCount: rows.length, status, relay });
+        outcomes.push({
+            url: statement.url,
+            designation: statement.designation,
+            publicationDate: statement.publicationDate,
+            countryCount: statement.rows.length,
+            relay
+        });
     }
-    return { statements: outcomes };
+    return { publicationDate: snapshot.publicationDate, statements: outcomes, status, databaseWritten: true };
 }
 
-async function loadSource(admin: any, sourceId: string) {
+function latestFatfLinks(links: Array<Record<string, any>>) {
+    const dated = links.filter(link => link.publicationDate)
+        .sort((left, right) => String(right.publicationDate).localeCompare(String(left.publicationDate)));
+    const selected = new Map();
+    for (const link of dated) if (!selected.has(link.designation)) selected.set(link.designation, link);
+    return [...selected.values()];
+}
+
+async function handleFatfCurrent(admin: any, dryRun: boolean) {
+    const { result: indexResponse } = await officialFetch(FATF_STATEMENTS_URL, "FATF");
+    if (!indexResponse.ok) throw new Error("FATF_INDEX_HTTP_" + indexResponse.status);
+    const links = latestFatfLinks(fatfStatementLinks(await indexResponse.text()));
+    if (links.length !== 2) throw new Error("FATF_CURRENT_STATEMENTS_INCOMPLETE");
+    return processFatfSnapshot(admin, links, dryRun);
+}
+
+async function handleFatfBackfill(admin: any, from: string, to: string, dryRun: boolean) {
+    const window = validateBackfillWindow(from, to);
+    const { result: indexResponse } = await officialFetch(FATF_STATEMENTS_URL, "FATF");
+    if (!indexResponse.ok) throw new Error("FATF_INDEX_HTTP_" + indexResponse.status);
+    const links = fatfStatementLinks(await indexResponse.text()).filter(link =>
+        link.publicationDate && link.publicationDate >= window.from.slice(0, 10) &&
+        link.publicationDate < window.to.slice(0, 10));
+    const groups = new Map<string, Array<Record<string, any>>>();
+    for (const link of links) {
+        const group = groups.get(link.publicationDate) || [];
+        group.push(link);
+        groups.set(link.publicationDate, group);
+    }
+    const ordered = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right));
+    let cursor = "";
+    if (!dryRun) {
+        const { data, error } = await admin.from("gpir_regulatory_backfill_checkpoints")
+            .select("cursor_value,run_status,fetched_count,validated_count")
+            .eq("source_id", FATF_SOURCE_ID)
+            .eq("window_start", window.from.slice(0, 10))
+            .eq("window_end", window.to.slice(0, 10))
+            .maybeSingle();
+        if (error) throw new Error("FATF_CHECKPOINT_READ_FAILED:" + error.message);
+        if (data?.run_status === "COMPLETE") return { window, skipped: true, reason: "CHECKPOINT_COMPLETE" };
+        cursor = String(data?.cursor_value || "");
+    }
+    const outcomes = [];
+    for (const [publicationDate, statements] of ordered) {
+        if (cursor && publicationDate <= cursor.slice(0, 10)) continue;
+        if (statements.length !== 2) throw new Error("FATF_BACKFILL_SNAPSHOT_INCOMPLETE:" + publicationDate);
+        const result = await processFatfSnapshot(admin, statements, dryRun);
+        outcomes.push(result);
+        cursor = publicationDate;
+        if (!dryRun) {
+            const { error } = await admin.from("gpir_regulatory_backfill_checkpoints").upsert({
+                source_id: FATF_SOURCE_ID,
+                window_start: window.from.slice(0, 10),
+                window_end: window.to.slice(0, 10),
+                cursor_value: cursor,
+                run_status: "RUNNING",
+                fetched_count: outcomes.length * 2,
+                validated_count: outcomes.reduce((sum, item) =>
+                    sum + item.statements.reduce((count: number, value: any) => count + value.countryCount, 0), 0),
+                attempt_count: 1,
+                updated_at: new Date().toISOString()
+            }, { onConflict: "source_id,window_start,window_end" });
+            if (error) throw new Error("FATF_CHECKPOINT_WRITE_FAILED:" + error.message);
+        }
+    }
+    if (!dryRun) {
+        const { error } = await admin.from("gpir_regulatory_backfill_checkpoints").upsert({
+            source_id: FATF_SOURCE_ID,
+            window_start: window.from.slice(0, 10),
+            window_end: window.to.slice(0, 10),
+            cursor_value: cursor || window.to,
+            run_status: "COMPLETE",
+            fetched_count: outcomes.length * 2,
+            validated_count: outcomes.reduce((sum, item) =>
+                sum + item.statements.reduce((count: number, value: any) => count + value.countryCount, 0), 0),
+            attempt_count: 1,
+            updated_at: new Date().toISOString()
+        }, { onConflict: "source_id,window_start,window_end" });
+        if (error) throw new Error("FATF_CHECKPOINT_COMPLETE_FAILED:" + error.message);
+    }
+    return { window, snapshots: outcomes, databaseWritten: !dryRun };
+}
+
+async function loadSourceasync function loadSource(admin: any, sourceId: string) {
     const { data, error } = await admin.from("source_registry")
         .select("source_id,source_name,trust_tier,source_status,official_url,feed_or_index_url,parser_profile")
         .eq("source_id", sourceId).limit(2);
@@ -448,13 +559,6 @@ export default {
         const dryRun = body.dry_run !== false;
         if (!ALLOWED_SOURCES.includes(sourceId)) return response(400, { status: "ERROR", code: "SOURCE_NOT_ALLOWED" });
         if (!["CURRENT", "BACKFILL"].includes(mode)) return response(400, { status: "ERROR", code: "MODE_NOT_ALLOWED" });
-        if (sourceId === FATF_SOURCE_ID && mode === "BACKFILL") {
-            return response(409, {
-                status: "BLOCKED",
-                code: "FATF_BACKFILL_REQUIRES_REVIEWED_STATEMENT_MANIFEST",
-                message: "Historical FATF statements must be enumerated and validated before import; current snapshots are not backfill."
-            });
-        }
         const startedAt = new Date().toISOString();
         let runId: string | null = null;
         try {
@@ -473,7 +577,9 @@ export default {
                 ? mode === "BACKFILL"
                     ? await handleOfacBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
                     : await handleOfacCurrent(ctx.supabaseAdmin, dryRun)
-                : await handleFatfCurrent(ctx.supabaseAdmin, dryRun);
+                : mode === "BACKFILL"
+                    ? await handleFatfBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
+                    : await handleFatfCurrent(ctx.supabaseAdmin, dryRun);
             if (runId) {
                 const { error } = await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
                     completed_at: new Date().toISOString(),

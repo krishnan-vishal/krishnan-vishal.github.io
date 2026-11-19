@@ -44,7 +44,52 @@ const COUNTRY_ALIASES = Object.freeze({
     "viet nam": { code: "VNM", name: "Vietnam" },
     "virgin islands (uk)": { code: "VGB", name: "Virgin Islands (UK)" },
     "british virgin islands": { code: "VGB", name: "Virgin Islands (UK)" },
-    "yemen": { code: "YEM", name: "Yemen" }
+    "yemen": { code: "YEM", name: "Yemen" },
+    "albania": { code: "ALB", name: "Albania" },
+    "algeria": { code: "DZA", name: "Algeria" },
+    "barbados": { code: "BRB", name: "Barbados" },
+    "bulgaria": { code: "BGR", name: "Bulgaria" },
+    "burkina faso": { code: "BFA", name: "Burkina Faso" },
+    "cambodia": { code: "KHM", name: "Cambodia" },
+    "cayman islands": { code: "CYM", name: "Cayman Islands" },
+    "côte d'ivoire": { code: "CIV", name: "Côte d'Ivoire" },
+    "cote d'ivoire": { code: "CIV", name: "Côte d'Ivoire" },
+    "democratic republic of the congo": { code: "COD", name: "Democratic Republic of the Congo" },
+    "gibraltar": { code: "GIB", name: "Gibraltar" },
+    "jamaica": { code: "JAM", name: "Jamaica" },
+    "jordan": { code: "JOR", name: "Jordan" },
+    "mali": { code: "MLI", name: "Mali" },
+    "malta": { code: "MLT", name: "Malta" },
+    "mauritius": { code: "MUS", name: "Mauritius" },
+    "monaco": { code: "MCO", name: "Monaco" },
+    "morocco": { code: "MAR", name: "Morocco" },
+    "mozambique": { code: "MOZ", name: "Mozambique" },
+    "namibia": { code: "NAM", name: "Namibia" },
+    "nicaragua": { code: "NIC", name: "Nicaragua" },
+    "nigeria": { code: "NGA", name: "Nigeria" },
+    "pakistan": { code: "PAK", name: "Pakistan" },
+    "panama": { code: "PAN", name: "Panama" },
+    "philippines": { code: "PHL", name: "Philippines" },
+    "senegal": { code: "SEN", name: "Senegal" },
+    "south africa": { code: "ZAF", name: "South Africa" },
+    "tanzania": { code: "TZA", name: "Tanzania" },
+    "turkey": { code: "TUR", name: "Türkiye" },
+    "türkiye": { code: "TUR", name: "Türkiye" },
+    "uganda": { code: "UGA", name: "Uganda" },
+    "united arab emirates": { code: "ARE", name: "United Arab Emirates" },
+    "croatia": { code: "HRV", name: "Croatia" },
+    "ghana": { code: "GHA", name: "Ghana" },
+    "iceland": { code: "ISL", name: "Iceland" },
+    "serbia": { code: "SRB", name: "Serbia" },
+    "trinidad and tobago": { code: "TTO", name: "Trinidad and Tobago" },
+    "the bahamas": { code: "BHS", name: "The Bahamas" },
+    "bahamas": { code: "BHS", name: "The Bahamas" },
+    "botswana": { code: "BWA", name: "Botswana" },
+    "ethiopia": { code: "ETH", name: "Ethiopia" },
+    "guyana": { code: "GUY", name: "Guyana" },
+    "sri lanka": { code: "LKA", name: "Sri Lanka" },
+    "tunisia": { code: "TUN", name: "Tunisia" },
+    "zimbabwe": { code: "ZWE", name: "Zimbabwe" }
 });
 
 function decodeHtml(value) {
@@ -209,6 +254,12 @@ function metadataCountries(html) {
     return candidates;
 }
 
+function activeFatfStatementScope(html) {
+    const text = String(html || "");
+    const removal = /<h[1-6]\b[^>]*>[\s\S]*?jurisdictions\s+no\s+longer[\s\S]*?<\/h[1-6]>/i.exec(text);
+    return removal ? text.slice(0, removal.index) : text;
+}
+
 export function parseFatfStatement(html, { sourceUrl, designation, publicationDate = null } = {}) {
     const canonicalUrl = assertOfficialSourceUrl(sourceUrl, "FATF");
     if (!["FATF_CALL_FOR_ACTION", "FATF_INCREASED_MONITORING"].includes(designation)) {
@@ -218,7 +269,9 @@ export function parseFatfStatement(html, { sourceUrl, designation, publicationDa
     if (!/FATF|Financial Action Task Force/i.test(text)) throw new Error("FATF_DOCUMENT_IDENTITY_INVALID");
     const date = publicationDate || parseEnglishDate(decodeHtml(text));
     if (!date) throw new Error("FATF_PUBLICATION_DATE_MISSING");
-    const countries = [...metadataCountries(text), ...headingCountries(text)];
+    const active = activeFatfStatementScope(text);
+    const headings = headingCountries(active);
+    const countries = headings.length ? headings : metadataCountries(active);
     const unique = new Map(countries.map(country => [country.code, country]));
     if (!unique.size) throw new Error("FATF_COUNTRY_LIST_EMPTY");
     return [...unique.values()].sort((a, b) => a.name.localeCompare(b.name)).map(country => ({
@@ -232,6 +285,26 @@ export function parseFatfStatement(html, { sourceUrl, designation, publicationDa
         ofacJurisdictionSanctioned: null,
         ofacExposureStatus: "NOT_ASSESSED"
     }));
+}
+
+export function validateFatfSnapshot(statements) {
+    if (!Array.isArray(statements) || statements.length !== 2) throw new Error("FATF_SNAPSHOT_INCOMPLETE");
+    const expected = new Set(["FATF_CALL_FOR_ACTION", "FATF_INCREASED_MONITORING"]);
+    const dates = new Set();
+    const countries = new Set();
+    const rows = [];
+    for (const statement of statements) {
+        if (!expected.delete(statement?.designation) || !/^20\d{2}-\d{2}-\d{2}$/.test(statement?.publicationDate || "") ||
+            !Array.isArray(statement?.rows) || !statement.rows.length) throw new Error("FATF_SNAPSHOT_INVALID");
+        dates.add(statement.publicationDate);
+        for (const row of statement.rows) {
+            if (countries.has(row.countryCode)) throw new Error("FATF_SNAPSHOT_COUNTRY_CONFLICT");
+            countries.add(row.countryCode);
+            rows.push(row);
+        }
+    }
+    if (expected.size || dates.size !== 1) throw new Error("FATF_SNAPSHOT_DATE_MISMATCH");
+    return Object.freeze({ publicationDate: [...dates][0], rows: Object.freeze(rows) });
 }
 
 export function validateBackfillWindow(from, to, maximumDays = 31) {

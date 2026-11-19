@@ -1,7 +1,7 @@
 -- M42 controlled OFAC/FATF source activation.
--- Apply only after migration 20261119090000 and the reviewed
--- gpir-regulatory-fetch deployment. This does not change publication thresholds.
--- Existing 12-hour visibility and archive lifecycle remain authoritative.
+-- Apply after migration 20261119090000 and before canaries/backfill.
+-- This registers sources only. Hourly schedules are activated separately after
+-- historical backfill and a successful non-dry current canary.
 
 begin;
 
@@ -53,28 +53,5 @@ on conflict (source_id) do update set
     poll_minutes = excluded.poll_minutes,
     parser_profile = excluded.parser_profile,
     source_status = excluded.source_status;
-
--- Existing secret-backed Edge invocation pattern. Jobs are offset within the hour
--- and remain independent of the 12-hour presentation window.
-select cron.schedule(job.name, job.schedule, format($job$
-select net.http_post(
-    url := 'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-regulatory-fetch',
-    headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'apikey', secret.decrypted_secret,
-        'Authorization', 'Bearer ' || secret.decrypted_secret
-    ),
-    body := jsonb_build_object('source_id', %L, 'mode', 'CURRENT', 'dry_run', false),
-    timeout_milliseconds := 55000
-)
-from vault.decrypted_secrets as secret
-where secret.name = 'gpir_edge_function_secret'
-  and secret.decrypted_secret is not null
-  and secret.decrypted_secret <> '';
-$job$, job.source_id))
-from (values
-    ('m42-ofac-regulatory-hourly', '5 * * * *', 'OFAC-US-001'),
-    ('m42-fatf-classification-hourly', '35 * * * *', 'FATF-GLOBAL-001')
-) as job(name, schedule, source_id);
 
 commit;

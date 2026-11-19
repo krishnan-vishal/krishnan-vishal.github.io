@@ -10,7 +10,8 @@ import {
     parseOfacDelta,
     parseOfacRecentActions,
     parseOfacSnapshotMetadata,
-    validateBackfillWindow
+    validateBackfillWindow,
+    validateFatfSnapshot
 } from "../../supabase/functions/_shared/gpir-regulatory-sources.mjs";
 
 test("official source allowlists reject lookalike and non-HTTPS URLs", () => {
@@ -106,4 +107,33 @@ test("country monitor uses the existing 150+ country registry, bounded paginatio
     assert.match(page, /OFAC Sanctions Intelligence/);
     assert.match(page, /FATF Country Risk Intelligence/);
     assert.match(dashboard, /Open regulatory Smart Card/);
+});
+
+
+test("FATF parser excludes jurisdictions in the official no-longer-monitored section", () => {
+    const rows = parseFatfStatement(
+        '<p>Financial Action Task Force</p><p>30 October 2026</p>' +
+        '<h3>Angola</h3><h3>Kenya</h3>' +
+        '<h4>Jurisdictions No Longer subject to Increased Monitoring By The FATF</h4>' +
+        '<h3>Bulgaria</h3>',
+        {
+            sourceUrl: "https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html",
+            designation: "FATF_INCREASED_MONITORING",
+            publicationDate: "2026-10-30"
+        }
+    );
+    assert.deepEqual(rows.map(row => row.countryCode), ["AGO", "KEN"]);
+});
+
+test("FATF snapshot validation requires both designations on one publication date", () => {
+    const high = [{ countryCode: "IRN", officialDesignation: "FATF_CALL_FOR_ACTION" }];
+    const grey = [{ countryCode: "KEN", officialDesignation: "FATF_INCREASED_MONITORING" }];
+    const snapshot = validateFatfSnapshot([
+        { designation: "FATF_CALL_FOR_ACTION", publicationDate: "2026-10-30", rows: high },
+        { designation: "FATF_INCREASED_MONITORING", publicationDate: "2026-10-30", rows: grey }
+    ]);
+    assert.equal(snapshot.rows.length, 2);
+    assert.throws(() => validateFatfSnapshot([
+        { designation: "FATF_CALL_FOR_ACTION", publicationDate: "2026-10-30", rows: high }
+    ]), /INCOMPLETE/);
 });
