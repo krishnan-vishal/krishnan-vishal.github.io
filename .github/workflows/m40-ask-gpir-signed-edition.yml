@@ -26,6 +26,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
+      - name: Confirm reviewed Worker endpoint is deployed
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+        run: |
+          test -n "$PAYLOAD_PUBLIC_SERVER_URL" || { echo "PAYLOAD_PUBLIC_SERVER_URL unavailable"; exit 1; }
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${PAYLOAD_PUBLIC_SERVER_URL%/}/api/release/observatory-edition" -H 'content-type: application/json' -d '{}')
+          if [ "$status" != "403" ]; then
+            echo "::notice::M40 signing is waiting for approved Worker deployment. Endpoint returned HTTP $status. Do not retry this verification until the Worker deployment job succeeds."
+            exit 1
+          fi
       - name: Prepare edition through deployed authenticated Payload Worker and verify signed manifest
         env:
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
