@@ -141,7 +141,18 @@ not run. The existing validation workflow includes the new tests.
 M41 remains OPEN pending actual public and protected delivery evidence.
 
 
-## Current handoff
+## Current handoff — M42 OFAC/FATF country-risk integration (2026-11-19)
+
+- **Objective:** Integrate OFAC change evidence and FATF country classifications into the existing governed relay and add the Global Country Risk Monitor.
+- **Branch/base:** `codex/ofac-fatf-country-risk-monitor` from main `5165bbff72ea18e5fd5365aca960bc5f11152480`.
+- **State:** Source/data contracts, bounded OFAC backfill, current FATF ingestion, reader dataset/page, filters, profiles, ASK context, navigation and tests are implemented on the branch. No production deployment, source activation, database write or publication is claimed.
+- **Constraints:** 95% publication threshold, exact-timestamp 12-hour visibility, append-oriented history, separate FATF/GPIR/OFAC classifications and signed Payload publication gate are unchanged.
+- **Validation:** Local runtime unavailable; required GitHub Actions are pending. See [M42 implementation and acceptance](M42-OFAC-FATF-COUNTRY-RISK.md).
+- **Remaining:** FATF five-year official statement manifest/backfill, live canaries, one genuine relay-to-archive proof, 60 monthly coverage windows, signed Payload edition, owner review/merge and controlled release.
+- **Production impact:** NONE.
+
+## Previous handoff — M41 Payload cutover
+
 
 ## 2026-11-16 — standalone shutdown correction, PR #580
 

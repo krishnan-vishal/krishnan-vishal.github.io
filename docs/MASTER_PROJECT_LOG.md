@@ -3404,3 +3404,16 @@ explicit for both existing Payload CLI stages; query/data errors still fail.
 No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
 required CI/private execution and actual live acceptance pending.
 Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
+
+
+## M42 OFAC, FATF and Global Country Risk Monitor — 2026-11-19
+
+- **Classification:** INTELLIGENCE, DATA, AUTOMATION, READER EXPERIENCE, GOVERNANCE.
+- **Objective:** Add official OFAC sanctions-change and FATF country-classification sources to the existing GPIR relay and historical architecture, then expose a country-risk monitor without weakening publication controls or inferring sanctions.
+- **Repository state before work:** Remote main `5165bbff72ea18e5fd5365aca960bc5f11152480`; old country dashboard branches were fully merged ancestors. Main contained an OFAC source-map mention and FATF content, but no OFAC/FATF source activation, list-change ingestion, FATF country history or dedicated monitor. Baseline production evidence remained 93 approved announcements with Sep–Nov 2026 coverage and zero recent automated publications.
+- **Delivered:** Additive regulatory document, OFAC event, FATF history and checkpoint tables; official-host and content-integrity validation; bounded OFAC delta backfill; current FATF ingestion; unchanged 95% candidate/publication relay; source registration/rollback SQL; required tests; 21-country current FATF dataset; responsive filters/table/cards; source evidence; contextual ASK GPIR; homepage menu and sitemap route.
+- **Integrity boundaries:** Current OFAC full snapshots are validation inputs only and cannot prove past listing. FATF designations, GPIR analytical ratings and OFAC jurisdiction exposure are separate. All GPIR ratings remain UNRATED and all OFAC country assessments remain NOT_ASSESSED. Date-only publications never receive an invented time for the 12-hour live window.
+- **Files:** See `docs/M42-OFAC-FATF-COUNTRY-RISK.md`.
+- **Validation:** Local execution was unavailable because the registered runtime was detached. No local pass is claimed. Required GitHub Actions and browser/live acceptance are pending.
+- **Milestone state:** IN PROGRESS. OFAC bounded delta history is implemented but not run; FATF five-year backfill is blocked on a reviewed statement manifest; source schedules, Supabase migration/function and signed Payload edition are not deployed; no genuine update has traversed source to relay to archive.
+- **Production impact:** NONE. No main push, merge, Supabase write, source activation, Payload release, Cloudflare change, threshold change or secret exposure.
