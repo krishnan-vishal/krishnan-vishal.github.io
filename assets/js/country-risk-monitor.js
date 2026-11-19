@@ -39,6 +39,19 @@ if (root) {
             .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     }
 
+    const ASEAN_CODES = new Set(["BN","KH","ID","LA","MY","MM","PH","SG","TH","TL","VN"]);
+    const FAR_EAST_CODES = new Set(["CN","JP","KP","KR","MN","TW","HK","MO"]);
+    function dashboardRegion(country) {
+        const code = country.countryCode;
+        if (country.region === "APAC") {
+            if (ASEAN_CODES.has(code)) return "ASEAN";
+            if (FAR_EAST_CODES.has(code)) return "Far East";
+            return "APAC";
+        }
+        if (country.region === "EUROPE") return "SEPA / Europe";
+        return regionLabel(country.region);
+    }
+
     function regionLabel(value) {
         return String(value || "Unclassified").toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase());
     }
@@ -251,7 +264,7 @@ if (root) {
                 if (current) return {
                     ...current,
                     countryCode2: item.countryCode,
-                    region: regionLabel(item.region)
+                    region: dashboardRegion(item)
                 };
                 return {
                     countryCode2: item.countryCode,
