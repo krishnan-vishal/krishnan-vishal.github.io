@@ -1,4 +1,4 @@
-import { retrieveGovernedEvidence } from './gpir-governed-ask.mjs';
+import { retrieveGovernedEvidence, contextualAskQuery, summarizeGovernedAsk } from './gpir-governed-ask.mjs';
 import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
 import {
   EXECUTIVE_THEME_IDS, GEOGRAPHY_FILTER_KEYS, PREMIUM_THEMES, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
@@ -1171,11 +1171,17 @@ export async function initializeSmartIntelligence({ global = window,
     askInput.focus();
     if(!query.trim()){askResults.textContent='Enter a topic to search the indexed GPIR repository.';return;}
     askResults.textContent='Searching the governed GPIR index…';
+    const activeContext = {
+      topic: SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label).slice(0, 2).join(' '),
+      country: state.geography && state.geography !== 'ALL' ? state.geography : '',
+      period: state.period || ''
+    };
+    const contextualQuery = contextualAskQuery(query, activeContext);
     try{
       const search=global.GPIRContentSearch;
       if(!search)throw Error('Index unavailable');
       await search.load();
-      const found=search.search(query,{limit:10});
+      const found=search.search(contextualQuery,{limit:10});
       // Query the existing governed M40 Supabase API on demand. Never download
       // the archive into the browser or treat an API failure as zero evidence.
       const origin=endpointOrigin(global);
@@ -1183,11 +1189,19 @@ export async function initializeSmartIntelligence({ global = window,
       let intelligenceError=false;
       if(origin){
         try{
-          intelligence=await retrieveGovernedEvidence(origin,query,{limit:10});
+          intelligence=await retrieveGovernedEvidence(origin,contextualQuery,{limit:10});
         }catch{intelligenceError=true;}
       }else intelligenceError=true;
       if(request!==askRequest)return;
       askResults.replaceChildren();
+      const answer = summarizeGovernedAsk(query, intelligence || [], activeContext);
+      const answerHeading = document.createElement('h3');
+      answerHeading.textContent = 'Evidence-based answer';
+      const answerText = document.createElement('p');
+      answerText.textContent = intelligenceError
+        ? 'Governed intelligence is temporarily unavailable; the published research index is shown separately below.'
+        : answer.answer;
+      askResults.append(answerHeading, answerText);
       const heading=document.createElement('h3');heading.textContent='Governed intelligence · live and historical repository';askResults.append(heading);
       if(intelligence){
         const count=document.createElement('p');count.textContent=`${intelligence.length} historical evidence records on this page`;askResults.append(count);
