@@ -643,35 +643,19 @@ function initializeMegaMenuHoverIntent(){
 
     });
 
-    // FX and Global Alerts sit directly below the sticky navigation.
-    // Entering either ribbon must dismiss an open menu immediately so
-    // currency-pair and alert links remain reachable without obstruction.
+    // Keep the open navigation panel authoritative for pointer interaction.
+    // Ribbon hover and screen-coordinate checks previously dismissed the panel
+    // while the reader crossed the header-to-panel seam. Clicking outside,
+    // Escape, scroll and resize retain their existing close behaviour.
     document.querySelectorAll("#fx-ribbon, #market-ribbon").forEach(ribbon => {
-        ribbon.addEventListener("pointerenter", () => {
-            if(mobileQuery.matches) return;
-            controllers.forEach(c => c.closeInstant());
+        ribbon.addEventListener("pointerdown", (e) => {
+            if(mobileQuery.matches || e.target.closest?.(".mega-menu")) return;
+            controllers.forEach(c => {
+                c.cancelPendingOpen();
+                if(c.item.classList.contains("is-open")) c.closeInstant();
+            });
         }, { passive:true });
     });
-
-    // A mega-menu overlays the ribbons, so their own pointerenter
-    // listeners cannot fire. Detect the pointer position at document
-    // capture phase (even while the menu is the hit target) and dismiss
-    // the obstruction before the next pointer/click reaches an FX link.
-    document.addEventListener("pointermove", (e) => {
-        if(mobileQuery.matches || e.pointerType === "touch") return;
-        if(!controllers.some(c => c.item.classList.contains("is-open") || c.hasPendingOpen())) return;
-        const overRibbon = ["fx-ribbon", "market-ribbon"].some(id => {
-            const ribbon = document.getElementById(id);
-            if(!ribbon) return false;
-            const rect = ribbon.getBoundingClientRect();
-            return e.clientY >= rect.top && e.clientY < rect.bottom &&
-                e.clientX >= rect.left && e.clientX < rect.right;
-        });
-        if(overRibbon) controllers.forEach(c => {
-            c.cancelPendingOpen();
-            if(c.item.classList.contains("is-open")) c.closeInstant();
-        });
-    }, { capture:true, passive:true });
 
     document.addEventListener("click", (e) => {
 

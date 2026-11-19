@@ -1788,7 +1788,8 @@ button.ticker-card{
 
     position:absolute;
 
-    top:calc(100% + 20px);
+    /* Attach directly to the trigger; no hover gap over the ticker. */
+    top:100%;
 
     left:50%;
 

@@ -171,7 +171,7 @@ content="#0B1120">
      SECTIONS
 =========================== -->
 
-<link rel="stylesheet" href="assets/css/header.css?v=20261113a">
+<link rel="stylesheet" href="assets/css/header.css?v=20261119nav2">
 <link rel="stylesheet" href="assets/css/hero.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/architecture.css?v=20260822c">
 <link rel="stylesheet" href="assets/css/intelligence-library.css?v=20260822c">
@@ -3621,24 +3621,21 @@ content="#0B1120">
 
     </div>
 
-    <div class="gpir-source-attribution" aria-label="Verified information sources" style="padding:14px 16px 10px;text-align:center;border-top:1px solid rgba(148,163,184,.22);font-size:.78rem">
-        <strong style="display:block;margin-bottom:9px;color:#18314e;letter-spacing:.03em">Verified information sources</strong>
-        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;max-width:1050px;margin:0 auto">
-            <a href="https://www.ecb.europa.eu/" target="_blank" rel="noopener noreferrer" style="padding:5px 10px;border:1px solid #d9e0e8;border-radius:7px;text-decoration:none;color:#18314e">ECB <span style="font-size:.7rem;color:#63738a">European Central Bank</span></a>
-            <a href="https://www.bis.org/" target="_blank" rel="noopener noreferrer" style="padding:5px 10px;border:1px solid #d9e0e8;border-radius:7px;text-decoration:none;color:#18314e">BIS <span style="font-size:.7rem;color:#63738a">Bank for International Settlements</span></a>
-            <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener noreferrer" style="padding:5px 10px;border:1px solid #d9e0e8;border-radius:7px;text-decoration:none;color:#18314e">World Bank <span style="font-size:.7rem;color:#63738a">Remittance Prices</span></a>
-            <a href="https://www.fatf-gafi.org/" target="_blank" rel="noopener noreferrer" aria-label="FATF official source" style="display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid #c5d2e0;border-radius:7px;text-decoration:none;color:#18314e"><span aria-hidden="true" style="font-weight:800;letter-spacing:.05em;color:#20466e">FATF</span><span style="font-size:.7rem;color:#63738a">Financial Action Task Force</span></a>
-            <a href="https://ofac.treasury.gov/" target="_blank" rel="noopener noreferrer" aria-label="OFAC official source" style="display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid #c5d2e0;border-radius:7px;text-decoration:none;color:#18314e"><span aria-hidden="true" style="font-weight:800;letter-spacing:.05em;color:#20466e">OFAC</span><span style="font-size:.7rem;color:#63738a">U.S. Treasury</span></a>
+    <div class="gpir-source-attribution" aria-label="GPIR information sources and payment collection provider" style="padding:12px 14px;border-top:1px solid rgba(148,163,184,.22)">
+        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 14px;max-width:1080px;margin:0 auto;font-size:.75rem">
+            <strong style="letter-spacing:.05em;text-transform:uppercase">Verified information sources</strong>
+            <a href="https://www.ecb.europa.eu/" target="_blank" rel="noopener noreferrer">ECB</a>
+            <a href="https://www.bis.org/" target="_blank" rel="noopener noreferrer">BIS</a>
+            <a href="https://remittanceprices.worldbank.org/" target="_blank" rel="noopener noreferrer">World Bank</a>
+            <a href="https://www.fatf-gafi.org/" target="_blank" rel="noopener noreferrer">FATF</a>
+            <a href="https://ofac.treasury.gov/" target="_blank" rel="noopener noreferrer">OFAC</a>
         </div>
-        <small style="display:block;margin-top:8px;color:#65738a;line-height:1.4">Source attribution only; it does not imply endorsement. FATF graphical-logo use requires express written permission under the official FATF terms, so the verified text attribution is retained pending owner evidence of permission.</small>
-    </div>
-
-    <div class="gpir-payment-attribution" aria-label="Payment service provider" style="padding:8px 24px 16px;text-align:center;font-size:.8rem">
-        <span style="margin-right:8px">Payments through</span>
-        <a href="https://www.paypal.com/" target="_blank" rel="noopener noreferrer" aria-label="PayPal payment service">
-            <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" width="24" height="24" loading="lazy" decoding="async" style="display:inline-block;vertical-align:middle;object-fit:contain">
-            <span style="vertical-align:middle;font-weight:600">PayPal</span>
-        </a>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:12px auto 0;padding-top:10px;border-top:1px solid rgba(148,163,184,.22);font-size:.75rem">
+            <strong>Payment collection provider</strong>
+            <a href="https://www.paypal.com/" target="_blank" rel="noopener noreferrer" aria-label="PayPal payment collection provider" style="display:inline-flex;align-items:center;gap:6px">
+                <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="" width="20" height="20" loading="lazy" decoding="async">PayPal
+            </a>
+        </div>
     </div>
 
     <div class="footer-utility">
@@ -3647,7 +3644,7 @@ content="#0B1120">
 
             <div class="footer-metric">
                 <span class="footer-metric-label" data-i18n="footer.visitors">Visitors</span>
-                <strong class="footer-metric-value" id="footer-visitor-count" data-i18n="footer.updating">Updating</strong>
+                <strong class="footer-metric-value" id="footer-visitor-count" aria-live="polite">—</strong>
                 <span class="footer-metric-desc" data-i18n="footer.global_visitors">Global Visitors</span>
             </div>
 
@@ -3659,7 +3656,7 @@ content="#0B1120">
 
             <div class="footer-metric">
                 <span class="footer-metric-label" data-i18n="footer.followers">Followers</span>
-                <strong class="footer-metric-value" id="footer-follower-count" data-i18n="footer.updating">Updating</strong>
+                <strong class="footer-metric-value" id="footer-follower-count" aria-live="polite">—</strong>
                 <span class="footer-metric-desc" data-i18n="footer.linkedin_followers">LinkedIn Followers</span>
             </div>
 
@@ -3808,7 +3805,7 @@ content="#0B1120">
 
 <script src="assets/js/generate-dashboard-gallery.js?v=20260913a"></script>
 
-<script src="assets/js/script.js?v=20261113a"></script>
+<script src="assets/js/script.js?v=20261119nav2"></script>
 
 <script src="assets/js/content-protection.js?v=20260822c"></script>
 <script src="assets/js/dashboard-lightbox.js?v=20260816"></script>

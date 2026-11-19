@@ -7,7 +7,7 @@
     <meta name="description" content="Official FATF country classifications, separate GPIR analytical ratings, OFAC sanctions-change evidence and historical status.">
     <link rel="canonical" href="https://fintechoisis.com/pages/risk/global-country-risk-monitor.html">
     <link rel="stylesheet" href="../../assets/css/global.css">
-    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261119c">
+    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261119polish">
 </head>
 <body class="country-risk-page" data-risk-auth="checking">
     <a class="skip-link" href="#country-risk-content">Skip to country risk monitor</a>
@@ -20,102 +20,81 @@
       </div>
     </section>
     <div data-risk-protected>
+
     <header class="country-risk-hero">
-        <div class="country-risk-shell">
-            <nav aria-label="Breadcrumb">
-                <a href="../../index.html">Home</a> /
-                <span>Risk &amp; Regulatory</span> /
-                <span aria-current="page">Global Country Risk Monitor</span>
-            </nav>
-            <h1>Global Country Risk Monitor</h1>
-            <p>Official FATF classifications, GPIR analytical ratings and OFAC exposure evidence are displayed as separate fields. Current list membership is never used to invent earlier history, and an entity's connection to a country never makes that country sanctioned.</p>
-            <p class="risk-source-status" data-risk-source-status>Loading validated country-risk evidence…</p>
+      <div class="country-risk-shell risk-brandbar">
+        <a href="../../index.html" class="risk-brand" aria-label="GPIR home"><img src="../../assets/branding/logos/fo-mark.svg" alt="GPIR brand mark" width="52" height="52"><strong>GPIR<sup>®</sup></strong></a>
+        <span>Regulation, Risk &amp; Intelligence</span>
+        <nav class="risk-history-nav" aria-label="Page navigation"><button type="button" data-risk-back>← Back</button><button type="button" data-risk-forward>Forward →</button><a href="/reader/my-gpir/">My GPIR</a></nav>
+      </div>
+      <div class="country-risk-shell risk-hero-grid">
+        <div><h1>Global Country Risk Monitor</h1><p>OFAC Sanctions · FATF Classifications · Country Intelligence</p></div>
+        <div class="risk-kpis" aria-label="Official classifications and coverage">
+          <div><strong data-risk-high-count>3</strong><span>FATF High Risk<small>Call for Action</small></span></div>
+          <div><strong data-risk-grey-count>18</strong><span>FATF Grey List<small>Increased Monitoring</small></span></div>
+          <div><strong>OFAC</strong><span>Sanctions Intelligence<small>Programs &amp; Entities</small></span></div>
+          <div><strong data-risk-total-count>—</strong><span>Countries<small>Directory &amp; Intelligence</small></span></div>
         </div>
+      </div>
     </header>
-
     <main id="country-risk-content" class="country-risk-shell country-risk-main" data-country-risk-monitor>
-        <section class="risk-boundary" aria-labelledby="risk-boundary-title">
-            <h2 id="risk-boundary-title">Classification boundary</h2>
-            <p><strong>FATF High Risk — Call for Action</strong> and <strong>FATF Grey List — Increased Monitoring</strong> are official FATF designations. GPIR High / Medium / Low are analytical classifications and appear only with an approved methodology. This edition therefore reports every GPIR analytical rating as <strong>Unrated</strong>. OFAC program and jurisdiction-exposure indicators remain independent.</p>
-        </section>
-
-        <section class="risk-module-grid" aria-label="Regulation, Risk and Intelligence modules">
-            <article><p class="risk-kicker">Official sanctions authority</p><h2>OFAC Sanctions Intelligence</h2><p>Verified SDN, consolidated non-SDN, recent-action and published-delta evidence enters the existing governed intelligence relay. Country exposure remains distinct from entity listings.</p><a href="/intelligence-repository/?q=OFAC">Open verified OFAC intelligence</a></article>
-            <article><p class="risk-kicker">Official country classification authority</p><h2>FATF Country Risk Intelligence</h2><p>Call-for-action and increased-monitoring publications are preserved as official classifications, separately from GPIR analytical ratings and OFAC indicators.</p><a href="#risk-table-title">Open country matrix</a></article>
-        </section>
-
-        <section class="risk-controls" aria-labelledby="risk-controls-title">
-            <h2 id="risk-controls-title">Find a classified jurisdiction</h2>
-            <div class="risk-control-grid">
-                <label>
-                    Country search
-                    <input type="search" maxlength="80" placeholder="Country name or ISO code" data-risk-search>
-                </label>
-                <label>
-                    Region
-                    <select data-risk-region>
-                        <option value="">All regions</option>
-                    </select>
-                </label>
-                <label>
-                    Official FATF category
-                    <select data-risk-category>
-                        <option value="">All FATF categories</option>
-                        <option value="FATF_CALL_FOR_ACTION">High Risk — Call for Action</option>
-                        <option value="FATF_INCREASED_MONITORING">Grey List — Increased Monitoring</option>
-                        <option value="FATF_NOT_LISTED_CURRENT_SNAPSHOT">Not listed in current snapshot</option>
-                    </select>
-                </label>
-            </div>
-            <p class="risk-summary" data-risk-summary aria-live="polite">Loading classifications…</p>
-        </section>
-
-        <section aria-labelledby="risk-table-title">
-            <h2 id="risk-table-title">Global country risk matrix</h2>
-            <div class="risk-table-wrap">
-                <table class="risk-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Jurisdiction</th>
-                            <th scope="col">Region</th>
-                            <th scope="col">Official FATF status</th>
-                            <th scope="col">GPIR rating</th>
-                            <th scope="col">OFAC exposure</th>
-                            <th scope="col">Evidence</th>
-                        </tr>
-                    </thead>
-                    <tbody data-risk-rows></tbody>
-                </table>
-            </div>
-            <nav class="risk-pagination" aria-label="Country risk matrix pages">
-                <button type="button" data-risk-prev>Previous</button>
-                <span data-risk-page-status>Page 1</span>
-                <button type="button" data-risk-next>Next</button>
-            </nav>
-        </section>
-
-        <section aria-labelledby="risk-profiles-title">
-            <h2 id="risk-profiles-title">Expandable country profiles</h2>
-            <p>Each profile keeps source evidence, analytical status and sanctions exposure distinct. ASK GPIR opens the existing governed search with country context; it does not bypass publication or entitlement controls.</p>
-            <div class="risk-cards" data-risk-cards></div>
-        </section>
-
-        <section class="risk-sources" aria-labelledby="risk-sources-title">
-            <h2 id="risk-sources-title">Official sources and coverage</h2>
-            <ul>
-                <li><a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">FATF black and grey lists</a> — current publication dated 30 October 2026; retrieved 19 November 2026.</li>
-                <li><a href="https://ofac.treasury.gov/sanctions-list-service" target="_blank" rel="noopener noreferrer">OFAC Sanctions List Service</a> — source integration prepared separately from country classification.</li>
-                <li><a href="../intelligence/index.html">GPIR live-to-archive intelligence</a> — verified records remain discoverable after the 12-hour live window.</li>
-            </ul>
-            <p><strong>Historical coverage:</strong> this reader currently exposes the validated current FATF snapshot only. Five-year historical status and OFAC change coverage will appear only after the controlled, restartable backfill is executed and its evidence counts are accepted.</p>
-        </section>
+      <nav class="risk-dashboard-tabs" aria-label="Intelligence modules">
+        <button type="button" class="is-active" data-risk-tab="matrix">▦ Country Risk Matrix</button>
+        <button type="button" data-risk-tab="ofac">⚖ OFAC Sanctions</button>
+        <button type="button" data-risk-tab="fatf">⬡ FATF Intelligence</button>
+        <button type="button" data-risk-tab="insights">▥ Risk Insights</button>
+      </nav>
+      <section class="risk-workspace" data-risk-panel="matrix">
+        <aside class="risk-filters" aria-label="Country risk filters">
+          <div class="risk-filter-head"><h2>Filters</h2><button type="button" data-risk-clear>Clear all</button></div>
+          <label class="risk-search-label">Search countries<input type="search" maxlength="80" placeholder="Country, ISO code or region" data-risk-search></label>
+          <fieldset class="risk-status-checks"><legend>Risk Category</legend><label><input type="checkbox" value="FATF_CALL_FOR_ACTION" data-risk-status-check> FATF High Risk</label><label><input type="checkbox" value="FATF_INCREASED_MONITORING" data-risk-status-check> FATF Grey List</label><label><input type="checkbox" value="FATF_NOT_LISTED_CURRENT_SNAPSHOT" data-risk-status-check> Other / Not listed</label></fieldset>
+          <label>Region<select data-risk-region><option value="">All regions</option></select></label>
+          <label class="risk-legacy-category" hidden>FATF status<select data-risk-category>
+            <option value="">All categories</option>
+            <option value="FATF_CALL_FOR_ACTION">High Risk — Call for Action</option>
+            <option value="FATF_INCREASED_MONITORING">Grey List — Increased Monitoring</option>
+            <option value="FATF_NOT_LISTED_CURRENT_SNAPSHOT">Not listed in current snapshot</option>
+          </select></label>
+          <p class="risk-filter-note">FATF designations are official. GPIR analytical ratings remain Unrated; OFAC country exposure is not inferred.</p>
+        </aside>
+        <div class="risk-results">
+          <div class="risk-results-head"><h2>Country Risk Matrix</h2><p data-risk-summary aria-live="polite">Loading validated classifications…</p></div>
+          <div class="risk-region-nav" data-risk-region-nav aria-label="Expand countries by region"></div>
+          <div class="risk-region-groups" data-risk-region-groups></div>
+          <nav class="risk-pagination" aria-label="Country risk pages">
+            <button type="button" data-risk-prev>Previous</button><span data-risk-page-status>Page 1</span><button type="button" data-risk-next>Next</button>
+          </nav>
+          <div class="risk-legacy-table" hidden><table><tbody data-risk-rows></tbody></table></div>
+        </div>
+      </section>
+      <section class="risk-secondary-panel" data-risk-panel="ofac" hidden>
+        <h2>OFAC Sanctions Intelligence</h2><p>Verified sanctions actions and entity/program evidence are distinct from country-level conclusions. No country is classified as sanctioned without authoritative evidence.</p>
+        <a href="/intelligence-repository/?q=OFAC">Explore verified OFAC intelligence</a>
+      </section>
+      <section class="risk-secondary-panel" data-risk-panel="fatf" hidden>
+        <h2>FATF Intelligence</h2><p>Explore official call-for-action and increased-monitoring designations by selecting the corresponding filter in the country matrix.</p>
+        <button type="button" data-risk-show-fatf>Show FATF-designated countries</button>
+        <a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">Official FATF source</a>
+      </section>
+      <section class="risk-secondary-panel" data-risk-panel="insights" hidden>
+        <h2>Risk Insights</h2><p>Country coverage and FATF categories are drawn from the validated snapshot. GPIR High/Medium/Low analytical ratings remain Unrated until an approved methodology is published.</p>
+        <p data-risk-source-status>Loading validated source evidence…</p>
+      </section>
+      <section class="risk-profiles-panel" aria-labelledby="risk-profiles-title" hidden>
+        <h2 id="risk-profiles-title">Country Profiles</h2>
+        <p>Selected country · official evidence and contextual ASK GPIR.</p><button type="button" class="risk-profile-close" data-risk-profile-close>Close profile</button>
+        <div class="risk-cards" data-risk-cards></div>
+      </section>
+      <section class="risk-global-ask" id="risk-ask-gpir" aria-labelledby="risk-global-ask-title"><div><h2 id="risk-global-ask-title">ASK GPIR · Regulatory Intelligence</h2><p>Ask about FATF classifications, OFAC evidence, or a country. Answers are limited to governed, verified records.</p></div><form data-risk-global-ask><label for="risk-global-question">Your intelligence question</label><div class="risk-global-ask-controls"><input id="risk-global-question" type="search" maxlength="180" required placeholder="e.g. What is the latest verified FATF update for Iran?"><button type="submit">Ask GPIR</button></div><div data-risk-global-answer class="risk-global-answer" aria-live="polite"></div></form></section>
+      <nav class="risk-quicklinks" aria-label="Country intelligence shortcuts">
+        <a href="#risk-profiles-title"><strong>◉ Country Profiles</strong><span>Country risk &amp; regulatory overview</span></a>
+        <a href="/intelligence-repository/?q=FATF%20OFAC"><strong>▤ Regulatory Updates</strong><span>Latest verified OFAC &amp; FATF changes</span></a>
+        <a href="/intelligence-repository/"><strong>◷ Historical Repository</strong><span>Governed historical evidence</span></a>
+        <a href="#risk-ask-gpir"><strong>◇ ASK GPIR</strong><span>Contextual country intelligence</span></a>
+      </nav>
     </main>
-
-    <footer class="country-risk-shell">
-        <p>GPIR is a research and intelligence repository, not legal, compliance or sanctions-screening advice.</p>
-        <p><a href="../legal/disclaimer.html">Disclaimer</a> · <a href="../legal/terms-of-use.html">Terms of Use</a> · <a href="../../index.html#gpir-search">Search / ASK GPIR</a></p>
-    </footer>
-
+    <footer class="risk-dashboard-footer"><div class="country-risk-shell"><strong>GPIR<sup>®</sup></strong><span>Global Payments Intelligence Repository</span><small>Official sources: FATF · U.S. Treasury (OFAC)</small></div></footer>
     </div>
     <script src="../../assets/js/gpir-supabase-public-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>

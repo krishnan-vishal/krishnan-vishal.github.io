@@ -13,7 +13,17 @@
   <script src="/assets/js/gpir-reader-auth.js?v=20261104a" defer></script>
   <script type="module" src="/assets/js/my-gpir-navigation.mjs?v=20261029c"></script>
   <script type="module" src="/assets/js/gpir-reader-dashboard.mjs?v=20261109d"></script>
-</head>
+<style>
+.my-gpir-smart-library{border:1px solid #cbd7e4;border-radius:12px;padding:14px;margin:0 0 20px;background:#f7faff}
+.my-gpir-smart-library summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:12px;align-items:center;color:#0d2d4f}
+.my-gpir-smart-library summary span{font-size:.85rem;color:#62748b}
+.my-gpir-smart-library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.my-gpir-smart-library-grid article{border:1px solid #d5dfea;background:#fff;border-radius:10px;padding:14px;min-width:0}
+.my-gpir-smart-library-grid h3{margin:0 0 8px;font-size:1rem}
+.my-gpir-smart-library-grid p{font-size:.86rem;line-height:1.45}
+.my-gpir-smart-library-grid a{display:inline-block}
+@media(max-width:780px){.my-gpir-smart-library-grid{grid-template-columns:1fr}}
+</style></head>
 <body class="my-gpir">
   <a class="skip-link" href="#my-gpir-main">Skip to your account</a>
   <header class="my-gpir-header">
@@ -37,10 +47,8 @@
       <ul>
         <li><a href="/reader/my-gpir/" data-gpir-section="overview" aria-current="page"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Overview</span><span class="my-gpir-nav__description">Account summary and access status</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
         <li><a href="/reader/my-gpir/#profile" data-gpir-section="profile"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5.5 20c.7-3.7 3-5.5 6.5-5.5s5.8 1.8 6.5 5.5"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Profile</span><span class="my-gpir-nav__description">Reader identity and verified email</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/pages/intelligence/smart.html" aria-label="Open Payments Smart Intelligence dashboard"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18V9l5 4 4-7 7 4"></path><circle cx="4" cy="18" r="1"></circle><circle cx="20" cy="10" r="1"></circle></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Payments Smart Intelligence</span><span class="my-gpir-nav__description">Global alerts, payments topics and historical signals</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/pages/risk/global-country-risk-monitor.html" aria-label="Open Global Country Risk Monitor"><span class="my-gpir-nav__icon" aria-hidden="true">◎</span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Regulatory Intelligence</span><span class="my-gpir-nav__description">OFAC changes, FATF classifications and country evidence</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
         <li><a href="/reader/my-gpir/#public-research" data-gpir-section="public-research"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="M8 10h8M8 14h5"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Public FX Research</span><span class="my-gpir-nav__description">Currency-pair analysis and published FX research</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
-        <li><a href="/reader/my-gpir/#library" data-gpir-section="library"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5A2.5 2.5 0 0 1 18 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z"></path><path d="M7.5 15.5H18M8.5 8h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">My Library</span><span class="my-gpir-nav__description">Authorised publications available to read</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
+        <li><a href="/reader/my-gpir/#library" data-gpir-section="library"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5A2.5 2.5 0 0 1 18 7v12.5H7.5A2.5 2.5 0 0 1 5 17V4.5Z"></path><path d="M7.5 15.5H18M8.5 8h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">My Library</span><span class="my-gpir-nav__description">Smart Cards and authorised publications</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
         <li><a href="/reader/my-gpir/#payments" data-gpir-section="payments"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4Z"></path><path d="M9 8h6M9 12h6"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Payment History</span><span class="my-gpir-nav__description">Recorded one-time purchase activity</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
         <li><a href="/reader/my-gpir/#plan" data-gpir-section="plan"><span class="my-gpir-nav__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.3 4.7 5.2.8-3.8 3.7.9 5.3-4.6-2.5-4.6 2.5.9-5.3-3.8-3.7 5.2-.8L12 3Z"></path></svg></span><span class="my-gpir-nav__copy"><span class="my-gpir-nav__label">Subscription &amp; Plan</span><span class="my-gpir-nav__description">Current reader plan and billing availability</span></span><span class="my-gpir-nav__chevron" aria-hidden="true">&rsaquo;</span></a></li>
       </ul>
@@ -51,7 +59,7 @@
     </div>
     <div class="my-gpir-grid" data-reader-view="overview">
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Library count">
-        <p class="my-gpir-eyebrow">My Library</p><p class="my-gpir-metric" data-reader-metric="library">&mdash;</p><p class="my-gpir-metric-label">authorised publications</p>
+        <p class="my-gpir-eyebrow">My Library</p><p class="my-gpir-metric">3</p><p class="my-gpir-metric-label">intelligence services</p><p class="my-gpir-metric-label"><span data-reader-metric="library">&mdash;</span> authorised publications</p>
       </section>
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Payment count">
         <p class="my-gpir-eyebrow">Payment History</p><p class="my-gpir-metric" data-reader-metric="payments">&mdash;</p><p class="my-gpir-metric-label">recorded transactions</p>
@@ -61,16 +69,6 @@
       </section>
       <section class="my-gpir-card my-gpir-card--metric" data-view-panel="overview" aria-label="Reader account context">
         <p class="my-gpir-eyebrow">Account</p><p class="my-gpir-metric my-gpir-metric--context" data-reader-metric="account">&mdash;</p><p class="my-gpir-metric-label">reader account status</p>
-      </section>
-      <section class="my-gpir-card my-gpir-card--wide" data-view-panel="overview" aria-labelledby="fx-smart-card-title">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">FX Intelligence · Smart Card</p><h2 id="fx-smart-card-title">Currency Intelligence &amp; Historical Analytics</h2></div></header>
-        <p>Open the existing FX Smart Card with pair selection, historical periods, analytics and contextual ASK GPIR.</p>
-        <p><a class="my-gpir-refresh" href="/pages/fx/intelligence.html">Open FX Smart Card</a></p>
-      </section>
-      <section class="my-gpir-card my-gpir-card--wide" data-view-panel="overview" aria-labelledby="regulatory-smart-card-title">
-        <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Regulation, Risk &amp; Intelligence</p><h2 id="regulatory-smart-card-title">Global Country Risk Monitor</h2></div></header>
-        <p>Review separate FATF official classifications, GPIR analytical status and OFAC sanctions-program evidence without inferring country sanctions from entity connections.</p>
-        <p><a class="my-gpir-refresh" href="/pages/risk/global-country-risk-monitor.html">Open regulatory Smart Card</a></p>
       </section>
       <section id="profile" class="my-gpir-card my-gpir-card--wide" data-view-panel="profile">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Account</p><h2>Profile</h2></div></header>
@@ -107,6 +105,14 @@
       </section>
       <section id="library" class="my-gpir-card my-gpir-card--wide" data-view-panel="library">
         <header class="my-gpir-card__header"><div><p class="my-gpir-eyebrow">Research access</p><h2>My Library</h2></div></header>
+        <details class="my-gpir-smart-library" open>
+          <summary><strong>GPIR Smart Intelligence Cards</strong> <span>Expand to access your three intelligence workspaces</span></summary>
+          <div class="my-gpir-smart-library-grid">
+            <article><h3>Payments Smart Intelligence</h3><p>Global payment signals, approved alerts and topic intelligence.</p><a class="my-gpir-refresh" href="/pages/intelligence/smart.html">Open Payments Smart Card</a></article>
+            <article><h3>FX Intelligence</h3><p>Currency pairs, historical analytics and contextual ASK GPIR.</p><a class="my-gpir-refresh" href="/pages/fx/intelligence.html">Open FX Smart Card</a></article>
+            <article><h3>Regulatory Intelligence</h3><p>Country Risk Monitor, FATF classifications and OFAC evidence.</p><a class="my-gpir-refresh" href="/pages/risk/global-country-risk-monitor.html">Open regulatory Smart Card</a></article>
+          </div>
+        </details>
         <div data-reader-library><div class="my-gpir-empty"><strong>Loading authorised publications&hellip;</strong></div></div>
       </section>
       <section id="payments" class="my-gpir-card my-gpir-card--wide" data-view-panel="payments">

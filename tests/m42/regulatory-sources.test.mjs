@@ -99,13 +99,13 @@ test("country monitor uses the existing 150+ country registry, bounded paginatio
     const page = await readFile(new URL("../../pages/risk/global-country-risk-monitor.html", import.meta.url), "utf8");
     const dashboard = await readFile(new URL("../../reader/my-gpir/index.html", import.meta.url), "utf8");
     assert(registry.countries.length >= 150);
-    assert.match(script, /PAGE_SIZE = 25/);
+    assert.match(script, /PAGE_SIZE = 24/);
     assert.match(script, /assets\/icons\/flags/);
     assert.match(script, /contextualAskQuery/);
     assert.match(script, /summarizeGovernedAsk/);
     assert.match(page, /data-risk-prev/);
     assert.match(page, /OFAC Sanctions Intelligence/);
-    assert.match(page, /FATF Country Risk Intelligence/);
+    assert.match(page, /FATF Intelligence/);
     assert.match(dashboard, /Open regulatory Smart Card/);
 });
 
