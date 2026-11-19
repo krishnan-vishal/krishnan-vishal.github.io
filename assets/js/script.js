@@ -660,6 +660,8 @@ function initializeMegaMenuHoverIntent(){
     document.addEventListener("pointermove", (e) => {
         if(mobileQuery.matches || e.pointerType === "touch") return;
         if(!controllers.some(c => c.item.classList.contains("is-open") || c.hasPendingOpen())) return;
+        // A dropdown link must remain selectable even when the panel overlaps the ticker.
+        if(e.target.closest?.(".mega-menu")) return;
         const overRibbon = ["fx-ribbon", "market-ribbon"].some(id => {
             const ribbon = document.getElementById(id);
             if(!ribbon) return false;
