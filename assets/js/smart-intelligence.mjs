@@ -1162,17 +1162,20 @@ export async function initializeSmartIntelligence({ global = window,
   const askResults=document.createElement('div');askResults.setAttribute('aria-live','polite');
   askPanel.append(askTitle,askForm,askResults);
   root.prepend(askPanel);
+  let askRequest = 0;
   const openAsk=async query=>{
+    const request = ++askRequest;
     askPanel.hidden=false;askInput.value=query;
     askPanel.scrollIntoView({block:'nearest'});
     askInput.focus();
-    if(!query.trim())return;
+    if(!query.trim()){askResults.textContent='Enter a topic to search the indexed GPIR repository.';return;}
     askResults.textContent='Searching the governed GPIR index…';
     try{
       const search=global.GPIRContentSearch;
       if(!search)throw Error('Index unavailable');
       await search.load();
       const found=search.search(query,{limit:10});
+      if(request!==askRequest)return;
       askResults.replaceChildren();
       const count=document.createElement('p');count.textContent=`${found.total} indexed matches`;askResults.append(count);
       for(const result of found.results){
@@ -1182,7 +1185,7 @@ export async function initializeSmartIntelligence({ global = window,
         article.append(link,context);askResults.append(article);
       }
       if(!found.total)askResults.append(document.createTextNode('No verified indexed matches for this query.'));
-    }catch{askResults.textContent='GPIR search is temporarily unavailable. No results have been inferred.';}
+    }catch{if(request===askRequest)askResults.textContent='GPIR search is temporarily unavailable. No results have been inferred.';}
   };
   document.querySelectorAll('[data-smart-ask]').forEach(link=>{
     link.addEventListener('click',event=>{
@@ -1206,6 +1209,14 @@ export async function initializeSmartIntelligence({ global = window,
     const query=clean(new FormData(event.currentTarget).get('ask')||'',300);
     void openAsk(query);
   },{capture:true});
+  // Clear stale results immediately; never display the previous query's matches
+  // beneath a newly typed topic. Explicit Search/Enter performs the lookup.
+  askInput.addEventListener('input',()=>{
+    ++askRequest;
+    askResults.textContent=askInput.value.trim()
+      ? 'Press Search or Enter to find matches for this topic.'
+      : 'Enter a topic to search the indexed GPIR repository.';
+  });
   askForm.addEventListener('submit',event=>{event.preventDefault();void openAsk(askInput.value);});
   const shareStatus = root.querySelector('[data-smart-share-status]');
   // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
