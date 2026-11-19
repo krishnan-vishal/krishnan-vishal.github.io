@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Global Country Risk Monitor | GPIR</title>
+    <meta name="description" content="Official FATF country classifications, separate GPIR analytical ratings, OFAC sanctions-change evidence and historical status.">
+    <link rel="canonical" href="https://fintechoisis.com/pages/risk/global-country-risk-monitor.html">
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css">
+</head>
+<body class="country-risk-page">
+    <a class="skip-link" href="#country-risk-content">Skip to country risk monitor</a>
+    <header class="country-risk-hero">
+        <div class="country-risk-shell">
+            <nav aria-label="Breadcrumb">
+                <a href="../../index.html">Home</a> /
+                <span>Risk &amp; Regulatory</span> /
+                <span aria-current="page">Global Country Risk Monitor</span>
+            </nav>
+            <h1>Global Country Risk Monitor</h1>
+            <p>Official FATF classifications, GPIR analytical ratings and OFAC exposure evidence are displayed as separate fields. Current list membership is never used to invent earlier history, and an entity's connection to a country never makes that country sanctioned.</p>
+            <p class="risk-source-status" data-risk-source-status>Loading validated country-risk evidence…</p>
+        </div>
+    </header>
+
+    <main id="country-risk-content" class="country-risk-shell country-risk-main" data-country-risk-monitor>
+        <section class="risk-boundary" aria-labelledby="risk-boundary-title">
+            <h2 id="risk-boundary-title">Classification boundary</h2>
+            <p><strong>FATF High Risk — Call for Action</strong> and <strong>FATF Grey List — Increased Monitoring</strong> are official FATF designations. GPIR High / Medium / Low are analytical classifications and appear only with an approved methodology. This edition therefore reports every GPIR analytical rating as <strong>Unrated</strong>. OFAC program and jurisdiction-exposure indicators remain independent.</p>
+        </section>
+
+        <section class="risk-controls" aria-labelledby="risk-controls-title">
+            <h2 id="risk-controls-title">Find a classified jurisdiction</h2>
+            <div class="risk-control-grid">
+                <label>
+                    Country search
+                    <input type="search" maxlength="80" placeholder="Country name or ISO code" data-risk-search>
+                </label>
+                <label>
+                    Region
+                    <select data-risk-region>
+                        <option value="">All regions</option>
+                    </select>
+                </label>
+                <label>
+                    Official FATF category
+                    <select data-risk-category>
+                        <option value="">All FATF categories</option>
+                        <option value="FATF_CALL_FOR_ACTION">High Risk — Call for Action</option>
+                        <option value="FATF_INCREASED_MONITORING">Grey List — Increased Monitoring</option>
+                    </select>
+                </label>
+            </div>
+            <p class="risk-summary" data-risk-summary aria-live="polite">Loading classifications…</p>
+        </section>
+
+        <section aria-labelledby="risk-table-title">
+            <h2 id="risk-table-title">Current official classifications</h2>
+            <div class="risk-table-wrap">
+                <table class="risk-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Jurisdiction</th>
+                            <th scope="col">Region</th>
+                            <th scope="col">Official FATF status</th>
+                            <th scope="col">GPIR rating</th>
+                            <th scope="col">OFAC exposure</th>
+                            <th scope="col">Evidence</th>
+                        </tr>
+                    </thead>
+                    <tbody data-risk-rows></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section aria-labelledby="risk-profiles-title">
+            <h2 id="risk-profiles-title">Expandable country profiles</h2>
+            <p>Each profile keeps source evidence, analytical status and sanctions exposure distinct. ASK GPIR opens the existing governed search with country context; it does not bypass publication or entitlement controls.</p>
+            <div class="risk-cards" data-risk-cards></div>
+        </section>
+
+        <section class="risk-sources" aria-labelledby="risk-sources-title">
+            <h2 id="risk-sources-title">Official sources and coverage</h2>
+            <ul>
+                <li><a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">FATF black and grey lists</a> — current publication dated 30 October 2026; retrieved 19 November 2026.</li>
+                <li><a href="https://ofac.treasury.gov/sanctions-list-service" target="_blank" rel="noopener noreferrer">OFAC Sanctions List Service</a> — source integration prepared separately from country classification.</li>
+                <li><a href="../intelligence/index.html">GPIR live-to-archive intelligence</a> — verified records remain discoverable after the 12-hour live window.</li>
+            </ul>
+            <p><strong>Historical coverage:</strong> this reader currently exposes the validated current FATF snapshot only. Five-year historical status and OFAC change coverage will appear only after the controlled, restartable backfill is executed and its evidence counts are accepted.</p>
+        </section>
+    </main>
+
+    <footer class="country-risk-shell">
+        <p>GPIR is a research and intelligence repository, not legal, compliance or sanctions-screening advice.</p>
+        <p><a href="../legal/disclaimer.html">Disclaimer</a> · <a href="../legal/terms-of-use.html">Terms of Use</a> · <a href="../../index.html#gpir-search">Search / ASK GPIR</a></p>
+    </footer>
+
+    <script src="../../assets/js/country-risk-monitor.js" defer></script>
+</body>
+</html>
