@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 
 import {
     assertOfficialSourceUrl,
@@ -88,4 +89,21 @@ test("12-hour lifecycle never treats missing or date-only timestamps as live", (
     assert.equal(lifecycleForTimestamp("2026-11-19T06:00:00Z", now), "LIVE_12_HOUR");
     assert.equal(lifecycleForTimestamp("2026-11-18T23:00:00Z", now), "ARCHIVED");
     assert.equal(lifecycleForTimestamp(null, now), "HISTORICAL_DATE_ONLY");
+});
+
+
+test("country monitor uses the existing 150+ country registry, bounded pagination, flags and contextual ASK", async () => {
+    const registry = JSON.parse(await readFile(new URL("../../assets/data/fx/country-currency-registry.json", import.meta.url), "utf8"));
+    const script = await readFile(new URL("../../assets/js/country-risk-monitor.js", import.meta.url), "utf8");
+    const page = await readFile(new URL("../../pages/risk/global-country-risk-monitor.html", import.meta.url), "utf8");
+    const dashboard = await readFile(new URL("../../reader/my-gpir/index.html", import.meta.url), "utf8");
+    assert(registry.countries.length >= 150);
+    assert.match(script, /PAGE_SIZE = 25/);
+    assert.match(script, /assets\/icons\/flags/);
+    assert.match(script, /contextualAskQuery/);
+    assert.match(script, /summarizeGovernedAsk/);
+    assert.match(page, /data-risk-prev/);
+    assert.match(page, /OFAC Sanctions Intelligence/);
+    assert.match(page, /FATF Country Risk Intelligence/);
+    assert.match(dashboard, /Open regulatory Smart Card/);
 });

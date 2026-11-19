@@ -30,6 +30,11 @@
             <p><strong>FATF High Risk — Call for Action</strong> and <strong>FATF Grey List — Increased Monitoring</strong> are official FATF designations. GPIR High / Medium / Low are analytical classifications and appear only with an approved methodology. This edition therefore reports every GPIR analytical rating as <strong>Unrated</strong>. OFAC program and jurisdiction-exposure indicators remain independent.</p>
         </section>
 
+        <section class="risk-module-grid" aria-label="Regulation, Risk and Intelligence modules">
+            <article><p class="risk-kicker">Official sanctions authority</p><h2>OFAC Sanctions Intelligence</h2><p>Verified SDN, consolidated non-SDN, recent-action and published-delta evidence enters the existing governed intelligence relay. Country exposure remains distinct from entity listings.</p><a href="/intelligence-repository/?q=OFAC">Open verified OFAC intelligence</a></article>
+            <article><p class="risk-kicker">Official country classification authority</p><h2>FATF Country Risk Intelligence</h2><p>Call-for-action and increased-monitoring publications are preserved as official classifications, separately from GPIR analytical ratings and OFAC indicators.</p><a href="#risk-table-title">Open country matrix</a></article>
+        </section>
+
         <section class="risk-controls" aria-labelledby="risk-controls-title">
             <h2 id="risk-controls-title">Find a classified jurisdiction</h2>
             <div class="risk-control-grid">
@@ -49,6 +54,7 @@
                         <option value="">All FATF categories</option>
                         <option value="FATF_CALL_FOR_ACTION">High Risk — Call for Action</option>
                         <option value="FATF_INCREASED_MONITORING">Grey List — Increased Monitoring</option>
+                        <option value="FATF_NOT_LISTED_CURRENT_SNAPSHOT">Not listed in current snapshot</option>
                     </select>
                 </label>
             </div>
@@ -56,7 +62,7 @@
         </section>
 
         <section aria-labelledby="risk-table-title">
-            <h2 id="risk-table-title">Current official classifications</h2>
+            <h2 id="risk-table-title">Global country risk matrix</h2>
             <div class="risk-table-wrap">
                 <table class="risk-table">
                     <thead>
@@ -72,6 +78,11 @@
                     <tbody data-risk-rows></tbody>
                 </table>
             </div>
+            <nav class="risk-pagination" aria-label="Country risk matrix pages">
+                <button type="button" data-risk-prev>Previous</button>
+                <span data-risk-page-status>Page 1</span>
+                <button type="button" data-risk-next>Next</button>
+            </nav>
         </section>
 
         <section aria-labelledby="risk-profiles-title">
@@ -96,6 +107,7 @@
         <p><a href="../legal/disclaimer.html">Disclaimer</a> · <a href="../legal/terms-of-use.html">Terms of Use</a> · <a href="../../index.html#gpir-search">Search / ASK GPIR</a></p>
     </footer>
 
-    <script src="../../assets/js/country-risk-monitor.js" defer></script>
+    <script src="../../assets/js/gpir-supabase-public-config.js"></script>
+    <script type="module" src="../../assets/js/country-risk-monitor.js"></script>
 </body>
 </html>
