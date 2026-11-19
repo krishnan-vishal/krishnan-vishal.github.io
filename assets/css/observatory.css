@@ -233,3 +233,24 @@
         padding:32px;
     }
 }
+
+/* M40 follow-up: maintain visible, accessible Observatory ASK GPIR control. */
+#ask-gpir-observatory.ask-gpir-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  color: #10294d;
+  background: #f4c64e;
+  border: 1px solid #b88a15;
+  font-weight: 700;
+  text-shadow: none;
+  cursor: pointer;
+}
+#ask-gpir-observatory.ask-gpir-btn:hover,
+#ask-gpir-observatory.ask-gpir-btn:focus-visible {
+  color: #091b35;
+  background: #ffdc75;
+  outline-offset: 3px;
+}
