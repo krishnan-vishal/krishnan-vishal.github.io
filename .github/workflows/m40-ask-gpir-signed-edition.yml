@@ -51,6 +51,15 @@ jobs:
             const cms = JSON.parse(fs.readFileSync('assets/data/cms-source.json', 'utf8'));
             if (lock.source !== 'payload' || cms.source !== 'payload' || lock.snapshot !== cms.snapshot) throw Error('Payload source locks do not match.');
             const cfg = release.configuration({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: lock.snapshot });
+            // A verified signed edition is immutable: a new PR push must not
+            // prepare a duplicate edition for the same already-approved page.
+            const existing = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: lock.snapshot });
+            const approvedDigest = site.sha256(fs.readFileSync('pages/intelligence/index.html'));
+            const existingPage = existing.manifest.files.find(f => f.path === 'pages/intelligence/index.html');
+            if (existingPage?.sha256 === approvedDigest) {
+              console.log('SIGNED_EDITION_ALREADY_VERIFIED snapshot=' + lock.snapshot);
+              return;
+            }
             const preparedResponse = await fetch(cfg.origin + '/api/release/observatory-edition', {
               method: 'POST', redirect: 'error',
               headers: { authorization: 'users API-Key ' + cfg.key, 'content-type': 'application/json' },
@@ -82,8 +91,8 @@ jobs:
             cms.sourceCommit = source.manifest.sourceCommit;
             cms.managedFiles = source.manifest.files.length;
             cms.protectedEngineFiles = source.manifest.protectedFiles.length;
-            fs.writeFileSync('gpir-content-source.json', JSON.stringify(lock, null, 2) + '\\n');
-            fs.writeFileSync('assets/data/cms-source.json', JSON.stringify(cms, null, 2) + '\\n');
+            fs.writeFileSync('gpir-content-source.json', JSON.stringify(lock, null, 2) + '\n');
+            fs.writeFileSync('assets/data/cms-source.json', JSON.stringify(cms, null, 2) + '\n');
             console.log('SIGNED_EDITION_VERIFIED snapshot=' + prepared.snapshot + ' observatory=true');
           })().catch(error => { console.error(error.message); process.exitCode = 1; });
           NODE
@@ -92,5 +101,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- gpir-content-source.json assets/data/cms-source.json
+          if git diff --cached --quiet; then echo 'SIGNED_EDITION_LOCKS_ALREADY_CURRENT'; exit 0; fi
           git commit -m 'M40: pin verified signed Observatory edition'
           git push origin HEAD:refs/heads/fix/m40-ask-gpir-inpage-20261117
