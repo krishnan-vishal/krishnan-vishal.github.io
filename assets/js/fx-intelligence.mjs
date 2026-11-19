@@ -566,6 +566,7 @@ class GpirFxCard extends HTMLElementBase {
     super();
     this.attachShadow({ mode: 'open' });
     this.requestNumber = 0;
+    this.askRequestNumber = 0;
     this.lastRefreshAt = 0;
     this.onVisibilityChange = () => {
       if (globalThis.document?.visibilityState === 'visible' &&
@@ -597,6 +598,7 @@ class GpirFxCard extends HTMLElementBase {
     this.refreshTimer = null;
     globalThis.document?.removeEventListener?.('visibilitychange', this.onVisibilityChange);
     this.requestNumber++;
+    this.askRequestNumber++;
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -606,6 +608,7 @@ class GpirFxCard extends HTMLElementBase {
 
   async refresh() {
     const sequence = ++this.requestNumber;
+    this.askRequestNumber++;
     this.lastRefreshAt = Date.now();
     const pair = normalizeFxPair(this.getAttribute('base'), this.getAttribute('quote'));
     const period = PERIODS.some(item => item.id === this.getAttribute('period'))
@@ -637,17 +640,18 @@ class GpirFxCard extends HTMLElementBase {
     const input = this.shadowRoot.querySelector('[data-fx-ask-input]');
     const target = this.shadowRoot.querySelector('[data-fx-ask-results]');
     if (!form || !input || !target) return;
-    let request = 0;
     form.addEventListener('submit', async event => {
       event.preventDefault();
-      const sequence = ++request;
+      const sequence = ++this.askRequestNumber;
+      const selectedPeriod = this.getAttribute('period') || 'M';
+      const periodLabel = PERIODS.find(item => item.id === selectedPeriod)?.label || 'Monthly';
       const term = input.value.trim().slice(0, 120);
       if (!term) return;
       target.replaceChildren();
       const status = document.createElement('p');
       status.textContent = 'Searching approved GPIR intelligence and research…';
       target.append(status);
-      const query = pair.base + '/' + pair.quote + ' ' + term;
+      const query = pair.base + '/' + pair.quote + ' ' + periodLabel + ' ' + term;
       const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
       const validOrigin = typeof origin === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(origin);
       let records = null;
@@ -661,10 +665,10 @@ class GpirFxCard extends HTMLElementBase {
         const search = globalThis.GPIRContentSearch;
         if (search) { await search.load(); research = search.search(query, {limit:8}); }
       } catch { research = null; }
-      if (sequence !== request || !this.isConnected) return;
+      if (sequence !== this.askRequestNumber || !this.isConnected) return;
       target.replaceChildren();
       const heading = document.createElement('h3');
-      heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote;
+      heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote + ' · ' + periodLabel;
       target.append(heading);
       if (records === null) {
         const p = document.createElement('p'); p.textContent = 'Governed intelligence is temporarily unavailable. No missing records are inferred.'; target.append(p);
@@ -732,6 +736,7 @@ class GpirFxCard extends HTMLElementBase {
 
   showSignedOut() {
     this.requestNumber++;
+    this.askRequestNumber++;
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
   }
 }
