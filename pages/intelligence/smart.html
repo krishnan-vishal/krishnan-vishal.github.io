@@ -9,7 +9,7 @@
   <title>Executive Intelligence Dashboard | FINTECHOISIS — GPIR</title>
   <link rel="canonical" href="https://fintechoisis.com/pages/intelligence/smart.html">
   <link rel="icon" href="../../assets/favicon/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261109c">
+  <link rel="stylesheet" href="../../assets/css/smart-intelligence.css?v=20261117c">
   <link rel="stylesheet" href="../../assets/css/gpir-smart-card-sections.css?v=20261109e">
   <link rel="stylesheet" href="../../assets/css/smart-premium.css?v=20261109g">
   <link rel="stylesheet" href="../../assets/css/smart-executive.css?v=20261109a">
@@ -79,7 +79,7 @@
         <a href="../fx/intelligence.html"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-fx"></use></svg><span>FX Intelligence</span></a>
         <a href="./smart.html?themes=regulatory,aml,fraud"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-risk"></use></svg><span>Risk &amp; Regulatory</span></a>
         <a href="../../index.html#research"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-list"></use></svg><span>Publications</span></a>
-        <a data-smart-ask href="../../index.html#gpir-search"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-chat"></use></svg><span>ASK GPIR</span></a>
+        <a data-smart-ask href="#gpir-ask-panel"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-chat"></use></svg><span>ASK GPIR</span></a>
       </nav>
     </aside>
 
@@ -91,12 +91,12 @@
           <p>Verified global developments, policy moves and industry shifts across key payment themes</p>
         </div>
         <div class="smx-tools">
-          <form class="smx-search" data-smart-search action="../../index.html" method="get" role="search">
+          <form class="smx-search" data-smart-search action="#gpir-ask-panel" method="get" role="search">
             <svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-search"></use></svg>
             <label class="smx-sr" for="smx-search-input">Search GPIR</label>
             <input id="smx-search-input" name="ask" type="search" placeholder="Search GPIR..." autocomplete="off" maxlength="300">
           </form>
-          <a class="smx-btn smx-btn-ghost" data-smart-ask href="../../index.html#gpir-search"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bubble"></use></svg>Ask GPIR</a>
+          <a class="smx-btn smx-btn-ghost" data-smart-ask href="#gpir-ask-panel"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bubble"></use></svg>Ask GPIR</a>
           <button type="button" class="smx-btn smx-btn-gold smp-share" data-smart-share><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-share"></use></svg>Smart Share</button>
           <span class="smx-sr" role="status" data-smart-share-status></span>
         </div>
@@ -215,7 +215,7 @@
           </section>
 
           <section class="smi-evidence smp-timeline-panel" data-smart-timeline aria-labelledby="smi-evidence-title">
-            <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="../../index.html#gpir-search">Ask GPIR with this context</a></div>
+            <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="#gpir-ask-panel">Ask GPIR with this context</a></div>
             <p class="smp-note">Historical evidence from the governed archive, newest first. Live announcements appear only in the Live Global Alerts strip during their 12-hour window.</p>
             <div class="smp-results" data-smart-results></div>
             <details class="smp-reference" data-smart-reference hidden></details>
@@ -247,6 +247,7 @@
   <footer class="smi-footer smx-footer"><span>FINTECHOISIS · GPIR</span><span>Governed intelligence, not financial or legal advice.</span></footer>
   <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109e" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261112a"></script>
+  <script defer src="../../assets/js/content-search.js?v=20261117b"></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261117c"></script>
 </body>
 </html>

@@ -1,0 +1,106 @@
+name: M40 ASK GPIR signed Payload edition verification
+on:
+  pull_request:
+    types: [synchronize, reopened, ready_for_review]
+    paths:
+      - 'pages/intelligence/index.html'
+      - 'gpir-content-source.json'
+      - 'assets/data/cms-source.json'
+      - '.github/workflows/m40-ask-gpir-signed-edition.yml'
+permissions:
+  contents: write
+jobs:
+  verify-signed-edition:
+    if: >-
+      github.event.pull_request.number == 585 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/m40-ask-gpir-inpage-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: payload-production-cutover
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Confirm reviewed Worker endpoint is deployed
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+        run: |
+          test -n "$PAYLOAD_PUBLIC_SERVER_URL" || { echo "PAYLOAD_PUBLIC_SERVER_URL unavailable"; exit 1; }
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${PAYLOAD_PUBLIC_SERVER_URL%/}/api/release/observatory-edition" -H 'content-type: application/json' -d '{}')
+          if [ "$status" != "403" ]; then
+            echo "::notice::M40 signing is waiting for approved Worker deployment. Endpoint returned HTTP $status. Do not retry this verification until the Worker deployment job succeeds."
+            exit 1
+          fi
+      - name: Prepare edition through deployed authenticated Payload Worker and verify signed manifest
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const site = require('./scripts/m41/site-content.cjs');
+          const release = require('./scripts/m41/payload-site.cjs');
+          (async () => {
+            const lock = JSON.parse(fs.readFileSync('gpir-content-source.json', 'utf8'));
+            const cms = JSON.parse(fs.readFileSync('assets/data/cms-source.json', 'utf8'));
+            if (lock.source !== 'payload' || cms.source !== 'payload' || lock.snapshot !== cms.snapshot) throw Error('Payload source locks do not match.');
+            const cfg = release.configuration({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: lock.snapshot });
+            // A verified signed edition is immutable: a new PR push must not
+            // prepare a duplicate edition for the same already-approved page.
+            const existing = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: lock.snapshot });
+            const approvedDigest = site.sha256(fs.readFileSync('pages/intelligence/index.html'));
+            const existingPage = existing.manifest.files.find(f => f.path === 'pages/intelligence/index.html');
+            if (existingPage?.sha256 === approvedDigest) {
+              console.log('SIGNED_EDITION_ALREADY_VERIFIED snapshot=' + lock.snapshot);
+              return;
+            }
+            const preparedResponse = await fetch(cfg.origin + '/api/release/observatory-edition', {
+              method: 'POST', redirect: 'error',
+              headers: { authorization: 'users API-Key ' + cfg.key, 'content-type': 'application/json' },
+              body: JSON.stringify({ action: 'prepare', parentSnapshot: lock.snapshot })
+            });
+            if (!preparedResponse.ok) {
+              const refusal = await preparedResponse.json().catch(() => ({}));
+              const approvedReasons = new Set([
+                'AMBIGUOUS_SNAPSHOT_RECORD', 'PARENT_MANIFEST_UNAVAILABLE',
+                'PARENT_MANIFEST_INVALID', 'OBSERVATORY_ROUTE_NOT_MANAGED',
+                'REVIEWED_GITHUB_SOURCE_UNAVAILABLE', 'APPROVED_PAGE_CONTRACT_FAILED',
+                'EDITION_UNCHANGED', 'IMMUTABLE_EDITION_CONFLICT',
+                'INTERNAL_PREPARATION_ERROR'
+              ]);
+              const safeReason = approvedReasons.has(refusal.reason) ? refusal.reason : 'UNSPECIFIED_REFUSAL';
+              const safeStages = new Set(['PARENT_LOOKUP','PARENT_VALIDATION','APPROVED_SOURCE_FETCH','APPROVED_SOURCE_READ','EDITION_CONSTRUCTION','BLOB_STORE','MANIFEST_STORE','SIGNATURE']);
+              const safeStage = safeStages.has(refusal.stage) ? refusal.stage : 'UNSPECIFIED_STAGE';
+              throw Error('EDITION_PREPARATION_REFUSED HTTP ' + preparedResponse.status + ': ' + safeReason + ' at ' + safeStage);
+            }
+            const prepared = await preparedResponse.json();
+            if (prepared.status !== 'EDITION_PREPARED_NOT_DEPLOYED' || prepared.observatoryUpdated !== true || !/^[a-f0-9]{64}$/.test(prepared.snapshot)) throw Error('EDITION_NOT_PREPARED');
+            const source = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: prepared.snapshot });
+            const expected = site.sha256(fs.readFileSync('pages/intelligence/index.html'));
+            const item = source.manifest.files.find(f => f.path === 'pages/intelligence/index.html');
+            if (!item || item.sha256 !== expected) throw Error('SIGNED_EDITION_NOT_PUBLISHED: Current Payload snapshot does not contain approved ASK GPIR bytes. Existing managed-site endpoint can verify/sign an existing snapshot but cannot create one. Publish via authorized Payload database-backed release process before merging.');
+            if (prepared.snapshot === lock.snapshot) throw Error('NO_NEW_SNAPSHOT');
+            lock.snapshot = prepared.snapshot;
+            cms.snapshot = prepared.snapshot;
+            cms.sourceCommit = source.manifest.sourceCommit;
+            cms.managedFiles = source.manifest.files.length;
+            cms.protectedEngineFiles = source.manifest.protectedFiles.length;
+            fs.writeFileSync('gpir-content-source.json', JSON.stringify(lock, null, 2) + '\n');
+            fs.writeFileSync('assets/data/cms-source.json', JSON.stringify(cms, null, 2) + '\n');
+            console.log('SIGNED_EDITION_VERIFIED snapshot=' + prepared.snapshot + ' observatory=true');
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE
+      - name: Commit verified edition locks to PR 585
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- gpir-content-source.json assets/data/cms-source.json
+          if git diff --cached --quiet; then echo 'SIGNED_EDITION_LOCKS_ALREADY_CURRENT'; exit 0; fi
+          git commit -m 'M40: pin verified signed Observatory edition'
+          git push origin HEAD:refs/heads/fix/m40-ask-gpir-inpage-20261117

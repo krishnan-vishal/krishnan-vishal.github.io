@@ -57,6 +57,19 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     let reused = 0;
     for (const item of source.manifest.files) {
         const cached = path.join(cache, item.sha256);
+        const destination = path.join(outputRoot, item.path);
+        if (fs.existsSync(destination)) {
+            const stat = fs.lstatSync(destination);
+            if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('Unsafe local managed file.');
+            const existing = fs.readFileSync(destination);
+            if (existing.length === item.bytes && site.sha256(existing) === item.sha256) {
+                pending.push({ item, local: true });
+                reused++;
+                if (pending.length === 1 || pending.length % 25 === 0 || pending.length === source.manifest.files.length)
+                    console.log(`M41: verified build files ${pending.length}/${source.manifest.files.length}; reused=${reused}`);
+                continue;
+            }
+        }
         let bytes;
         if (fs.existsSync(cached)) {
             if (!fs.lstatSync(cached).isFile() || fs.lstatSync(cached).isSymbolicLink()) throw new Error('Unsafe Payload build cache entry.');
@@ -74,16 +87,30 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
             fs.writeFileSync(temporary, bytes, { flag: 'wx', mode: 0o600 });
             fs.renameSync(temporary, cached);
         }
-        pending.push({ item, bytes });
+        pending.push({ item, cached });
         if (pending.length === 1 || pending.length % 25 === 0 || pending.length === source.manifest.files.length) {
             console.log(`M41: verified build files ${pending.length}/${source.manifest.files.length}; cached=${reused}`);
         }
     }
-    for (const { item, bytes } of pending) {
+    for (const { item, cached, local } of pending) {
+        if (local) continue;
+        const bytes = fs.readFileSync(cached);
+        site.verifyBytes(item, bytes);
         fs.mkdirSync(path.dirname(path.join(outputRoot, item.path)), { recursive: true });
         fs.writeFileSync(path.join(outputRoot, item.path), bytes);
     }
     if (site.canonical(site.inventory(outputRoot, source.manifest.sourceCommit).protectedFiles) !== engineBefore) throw new Error('A managed edition changed protected engine files.');
+    // Fail closed if an ASK GPIR Observatory release restores a stale CMS edition.
+    // This is a release contract, not an override of signed Payload bytes.
+    const expectedObservatory = path.join(__dirname, '../../.gpir-ask-observatory-required');
+    const pinFile = path.join(__dirname, '../../gpir-content-source.json');
+    const pinned = fs.existsSync(pinFile) ? JSON.parse(fs.readFileSync(pinFile, 'utf8')).snapshot : null;
+    if (fs.existsSync(expectedObservatory) && source.manifest.snapshot === pinned) {
+        const required = site.sha256(fs.readFileSync(path.join(__dirname, '../../pages/intelligence/index.html')));
+        const item = source.manifest.files.find(file => file.path === 'pages/intelligence/index.html');
+        if (!item || item.sha256 !== required)
+            throw new Error('Payload signed snapshot does not contain the approved Observatory ASK GPIR edition; publish and sign a new managed-site snapshot before release.');
+    }
     const marker = { source: 'payload', snapshot: source.manifest.snapshot, sourceCommit: source.manifest.sourceCommit,
         managedFiles: pending.length, protectedEngineFiles: current.protectedFiles.length };
     fs.writeFileSync(path.join(outputRoot, 'assets/data/cms-source.json'), JSON.stringify(marker) + '\n');
