@@ -69,10 +69,23 @@ jobs:
         run: |
           npm test
           npx tsc --noEmit
+      - name: Verify withdrawn advisory using GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /advisories/GHSA-fc5q-39xc-vjpf > "$RUNNER_TEMP/gpir-ghsa.json"
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/gpir-ghsa.json','utf8'));
+          if(a.ghsa_id!=='GHSA-fc5q-39xc-vjpf' || a.state!=='withdrawn' || !a.withdrawn_at)
+            throw Error('Withdrawn advisory not independently confirmed; deployment refused');
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified',a.ghsa_id);
+          console.log('Verified withdrawn GitHub advisory');
+          NODE
       - name: Enforce release security policy
         run: |
           node scripts/verify-native-audit.mjs
-          node --input-type=module -e "import fs from 'node:fs'; import {releaseDecision} from './scripts/advisory-policy.mjs'; const report=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-native-audit.json','utf8')); if(!['PASS','PASS_WITHDRAWN_ADVISORY'].includes(releaseDecision(report))) { console.error('Production release blocked: native audit is not release-authorized.'); process.exit(1); }"
+          node --input-type=module -e "import fs from 'node:fs'; import {releaseDecision} from './scripts/advisory-policy.mjs'; const report=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-native-audit.json','utf8')); const verified=fs.existsSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified') && fs.readFileSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified','utf8').trim()==='GHSA-fc5q-39xc-vjpf'; if(!['PASS','PASS_WITHDRAWN_ADVISORY'].includes(releaseDecision(report,Date.now(),verified))) { console.error('Production release blocked: native audit is not release-authorized.'); process.exit(1); }"
       - name: Build approved Worker
         run: npm run build:worker
         env:
