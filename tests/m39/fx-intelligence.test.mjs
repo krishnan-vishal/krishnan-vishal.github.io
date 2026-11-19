@@ -484,3 +484,39 @@ test('FX Smart Card renders contextual ASK GPIR inside the pair card', async () 
   assert.match(source, /view:'history-records'/);
   assert.match(source, /GPIRContentSearch/);
 });
+
+
+test('FX ASK remains embedded and uses selected-period metrics and bounded evidence', async () => {
+  const source = await readFile(new URL('../../assets/js/fx-intelligence.mjs', import.meta.url), 'utf8');
+  assert.match(source, /data-fx-ask-form/);
+  assert.match(source, /bindFxAsk\(pair\)/);
+  assert.match(source, /pointsForPeriod\(this\.cardHistory\.points, selectedPeriod/);
+  assert.match(source, /sequence !== this\.askRequestNumber/);
+  assert.match(source, /this\.askRequestNumber\+\+/);
+  assert.match(source, /No missing records are inferred/);
+});
+
+test('historical period selection changes actual FX trend and movement metrics', () => {
+  const history = {pair:'USD/JPY',baseName:'US Dollar',quoteName:'Japanese Yen',
+    lastFixingDate:'2026-11-04',retrievedAt:'2026-11-04T15:00:00Z',
+    source:'ECB',sourceUrl:'https://example.com/source',
+    sourceTermsUrl:'https://example.com/terms',providerUrl:'https://example.com/provider',
+    points:[
+      {date:'2026-09-01',rate:130},
+      {date:'2026-10-01',rate:140},
+      {date:'2026-11-01',rate:150},
+      {date:'2026-11-02',rate:152},
+      {date:'2026-11-03',rate:154},
+      {date:'2026-11-04',rate:156}
+    ],currencies:[],peerStatus:'UNAVAILABLE',peerComparisons:[]};
+  const weekly = buildCardMarkup(history,null,'UNAVAILABLE','W',1000);
+  const quarterly = buildCardMarkup(history,null,'UNAVAILABLE','Q',1000);
+  assert.match(weekly, /Weekly trend/);
+  assert.match(quarterly, /Quarterly trend/);
+  assert.notEqual(weekly, quarterly);
+  const w = calculateMetrics(pointsForPeriod(history.points,'W','2026-11-04'));
+  const q = calculateMetrics(pointsForPeriod(history.points,'Q','2026-11-04'));
+  assert.equal(w.observations,4);
+  assert.equal(q.observations,6);
+  assert.notEqual(w.changePercent,q.changePercent);
+});
