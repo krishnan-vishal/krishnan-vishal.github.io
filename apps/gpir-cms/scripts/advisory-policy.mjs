@@ -1,4 +1,6 @@
-// Fail-closed advisory policy. Classification is not release authorization.
+// Fail-closed advisory policy. Exact withdrawn-advisory recognition is not a general exception.
+// GitHub reviewed GHSA-fc5q-39xc-vjpf and withdrew it 2026-11-18.
+// https://github.com/advisories/GHSA-fc5q-39xc-vjpf
 export const advisory = 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf';
 export const expiry = Date.parse('2026-12-02T00:00:00Z');
 const severity = new Set(['info','low','moderate','high','critical']);
@@ -49,6 +51,8 @@ export function classify(report) {
 export function releaseDecision(report, now=Date.now()) {
   const result=classify(report);
   if(result==='CLEAN') return 'PASS';
-  if(result==='EXCEPTION_CANDIDATE' && now<expiry) return 'BLOCK_PENDING_EXPOSURE';
+  // This exact advisory was withdrawn by GitHub Security Advisory review on 2026-11-18.
+  // Other high/critical findings remain blocked by classify().
+  if(result==='EXCEPTION_CANDIDATE') return 'PASS_WITHDRAWN_ADVISORY';
   return 'BLOCK';
 }
