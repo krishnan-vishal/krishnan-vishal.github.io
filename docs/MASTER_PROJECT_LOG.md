@@ -1,3 +1,15 @@
+
+## M42 final-delivery continuation — 2026-11-19
+
+- Reconciled existing PRs #590, #591 and #592 without creating another PR or backend service.
+- Integrated the shared ASK contract into FX and the country monitor using stacked merge parents; preserved existing governed retrieval, authentication and entitlement boundaries.
+- Expanded the Country Risk Monitor from 21 listed jurisdictions to the existing 189-country registry, while retaining exactly 21 official current FATF designations (3 call-for-action, 18 increased-monitoring), zero GPIR High/Medium/Low ratings and zero inferred OFAC country sanctions.
+- Corrected FATF ingestion so the call-for-action and increased-monitoring documents form one atomic snapshot. Added official-index historical discovery, removed-section exclusion, extended historical country aliases, bounded checkpoints and separate hourly activation.
+- Production inventory was read only: project `qlnvhfapctcpzqyuhhth` is ACTIVE_HEALTHY; source registry has 18 pre-release rows; the four M42 evidence tables and `gpir-regulatory-fetch` are not deployed. Existing auth/payment/reader functions were not changed.
+- Security adviser baseline was inspected and left unchanged by this un-deployed branch. No secret value was read or written.
+- FATF logo use remains blocked by the official express-permission requirement. No unauthorized logo was embedded.
+- Local Windows runtime remained unavailable (`registered runtime ownership is missing`), so no local test result is claimed. GitHub Actions is the authoritative validation surface for this continuation.
+
 # FINTECHOISIS / GPIR Master Project Log
 
 Permanent chronological record of repository development prompts and verified
