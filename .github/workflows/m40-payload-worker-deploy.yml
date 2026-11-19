@@ -23,9 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: payload-production-cutover
-    defaults:
-      run:
-        working-directory: apps/gpir-cms
     steps:
       - name: Check reviewed commit input
         env:
@@ -62,22 +59,27 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - name: Install exact locked dependencies
+        working-directory: apps/gpir-cms
         run: npm ci
       - name: Validate tests and types
+        working-directory: apps/gpir-cms
         run: |
           npm test
           npx tsc --noEmit
       - name: Enforce release security policy
+        working-directory: apps/gpir-cms
         run: |
           node scripts/verify-native-audit.mjs
           node --input-type=module -e "import fs from 'node:fs'; import {releaseDecision} from './scripts/advisory-policy.mjs'; const report=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-native-audit.json','utf8')); if(releaseDecision(report)!=='PASS') { console.error('Production release blocked: native audit is not release-authorized.'); process.exit(1); }"
       - name: Build approved Worker
+        working-directory: apps/gpir-cms
         run: npm run build:worker
         env:
           PAYLOAD_DATABASE_URI: postgresql://build_only:build_only@localhost:5432/postgres
           PAYLOAD_SECRET: build-only-placeholder-not-a-production-secret
           PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
       - name: Verify Worker artifact
+        working-directory: apps/gpir-cms
         run: |
           test -s .open-next/worker.js
           test -d .open-next/assets
@@ -85,6 +87,7 @@ jobs:
           node scripts/inspect-next-picomatch.mjs
           node --input-type=module -e "import fs from 'node:fs'; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-next-picomatch-exposure.json','utf8')); if(p.compiledPicomatch || p.staticReferenceFiles?.length) { console.error('Unresolved compiled dependency exposure; production deployment is not authorized.'); process.exit(1); }"
       - name: Deploy to existing Cloudflare Worker
+        working-directory: apps/gpir-cms
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
