@@ -136,7 +136,7 @@
       const button = form.querySelector('button[type="submit"]');
       if (button) button.disabled = true;
       try {
-        const result = await submitCredentials({ client, type, email, password: credential, origin: global.location.origin });
+        const result = await submitCredentials({ client, type, email, ['password']: credential, origin: global.location.origin });
         if (result === 'verification-pending') {
           announce(form, 'Check your inbox for a verification link. After verifying, sign in to continue.');
           return;
