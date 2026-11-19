@@ -1,3 +1,4 @@
+import { retrieveGovernedEvidence, contextualAskQuery, summarizeGovernedAsk } from './gpir-governed-ask.mjs';
 import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
 import {
   EXECUTIVE_THEME_IDS, GEOGRAPHY_FILTER_KEYS, PREMIUM_THEMES, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
@@ -487,7 +488,7 @@ function evidenceTag(record) {
 }
 
 const LONG_DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-const askHref = query => `../../index.html?ask=${encodeURIComponent(query)}#gpir-search`;
+const askHref = query => `#gpir-ask-panel`;
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 function recordGeography(record) {
@@ -510,7 +511,7 @@ function developmentMarkup(record) {
     ['Record status', record.lifecycle], ['Geography', geography], ['Category', record.category], ['Themes', themes.join(' · ')]]
     .filter(([, value]) => value).map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const ask = askHref(buildAskQuery({}, { record }));
-  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask>Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
+  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
 }
 
 function renderTopSignal(root, records) {
@@ -525,7 +526,7 @@ function renderTopSignal(root, records) {
   const primary = themeById(primaryThemeId(record));
   top.style.setProperty('--theme-color', primary.color);
   const geography = recordGeography(record);
-  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="${escapeHtml(askHref(buildAskQuery({}, { record })))}" data-smart-item-ask>Ask GPIR about this</a>`;
+  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#gpir-ask-panel" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR about this</a>`;
   const extras = records.slice(1, 4);
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li style="--theme-color:${themeById(primaryThemeId(item)).color}"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
@@ -767,7 +768,7 @@ function updateAskLinks(root, state) {
     topicLabels: SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label), geographyLabel
   });
   document.querySelectorAll('[data-smart-ask]').forEach(link => {
-    link.href = askHref(query);
+    link.href = '#gpir-ask-panel';
   });
 }
 
@@ -1143,11 +1144,153 @@ export async function initializeSmartIntelligence({ global = window,
     state.customEnd = root.querySelector('[data-smart-end]').value || isoDay(now());
     render();
   }));
-  root.querySelector('[data-smart-search]')?.addEventListener('submit', event => {
-    event.preventDefault();
-    const query = clean(new FormData(event.currentTarget).get('ask') || '', 300);
-    if (query) global.location.assign(askHref(query));
+
+  // Reuse the site's existing indexed GPIR search in-page, preserving Observatory context.
+  const askPanel=document.createElement('section');
+  askPanel.className='smi-ask-panel';
+  askPanel.id='gpir-ask-panel';
+  askPanel.hidden=true;
+  askPanel.setAttribute('aria-label','ASK GPIR — in-page search');
+  const askTitle=document.createElement('h2');askTitle.textContent='ASK GPIR';
+  const askForm=document.createElement('form');askForm.setAttribute('role','search');
+  const askInput=document.createElement('input');askInput.type='search';askInput.maxLength=300;
+  askInput.placeholder='Search verified GPIR research and intelligence';
+  askInput.setAttribute('aria-label','ASK GPIR query');
+  const askSubmit=document.createElement('button');askSubmit.type='submit';askSubmit.textContent='Search';
+  const askClose=document.createElement('button');askClose.type='button';askClose.textContent='Close';
+  askClose.addEventListener('click',()=>{askPanel.hidden=true;});
+  askForm.append(askInput,askSubmit,askClose);
+  const askResults=document.createElement('div');askResults.setAttribute('aria-live','polite');
+  askPanel.append(askTitle,askForm,askResults);
+  root.prepend(askPanel);
+  let askRequest = 0;
+  const openAsk=async query=>{
+    const request = ++askRequest;
+    askPanel.hidden=false;askInput.value=query;
+    if (!askPanel.dataset.autoQuery) {
+      askPanel.scrollIntoView({block:'nearest'});
+      askInput.focus();
+    }
+    if(!query.trim()){askResults.textContent='Enter a topic to search the indexed GPIR repository.';return;}
+    askResults.textContent='Searching the governed GPIR index…';
+    const activeContext = {
+      topic: SMART_TOPICS.filter(topic => state.topics.has(topic.id)).map(topic => topic.label).slice(0, 2).join(' '),
+      country: state.geography && state.geography !== 'ALL' ? state.geography : '',
+      period: state.period || ''
+    };
+    const contextualQuery = contextualAskQuery(query, activeContext);
+    try{
+      const search=global.GPIRContentSearch;
+      if(!search)throw Error('Index unavailable');
+      await search.load();
+      const found=search.search(contextualQuery,{limit:10});
+      // Query the existing governed M40 Supabase API on demand. Never download
+      // the archive into the browser or treat an API failure as zero evidence.
+      const origin=endpointOrigin(global);
+      let intelligence=null;
+      let intelligenceError=false;
+      if(origin){
+        try{
+          intelligence=await retrieveGovernedEvidence(origin,contextualQuery,{limit:10});
+        }catch{intelligenceError=true;}
+      }else intelligenceError=true;
+      if(request!==askRequest)return;
+      askResults.replaceChildren();
+      const answer = summarizeGovernedAsk(query, intelligence || [], activeContext);
+      const answerHeading = document.createElement('h3');
+      answerHeading.textContent = 'Evidence-based answer';
+      const answerText = document.createElement('p');
+      answerText.textContent = intelligenceError
+        ? 'Governed intelligence is temporarily unavailable; the published research index is shown separately below.'
+        : answer.answer;
+      askResults.append(answerHeading, answerText);
+      const heading=document.createElement('h3');heading.textContent='Governed intelligence · live and historical repository';askResults.append(heading);
+      if(intelligence){
+        const count=document.createElement('p');count.textContent=`${intelligence.length} historical evidence records on this page`;askResults.append(count);
+        for(const record of intelligence){
+          const article=document.createElement('article');
+          const link=document.createElement('a');
+          const url=record.canonicalUrl||record.canonical_url||record.url;
+          if(typeof url==='string'&&/^https:\/\//i.test(url)){link.href=url;link.target='_blank';link.rel='noopener noreferrer';}
+          link.textContent=record.title||'Verified intelligence record';
+          const context=document.createElement('p');
+          context.textContent=[record.category,record.publishedAt||record.published_at,record.sourceName].filter(Boolean).join(' · ');
+          article.append(link,context);askResults.append(article);
+        }
+        if(!intelligence.length)askResults.append(document.createTextNode('No approved historical intelligence matches this topic.'));
+      }else if(intelligenceError)askResults.append(document.createTextNode('Governed intelligence is currently unavailable; research results below are separate.'));
+      const researchTitle=document.createElement('h3');researchTitle.textContent='Indexed research and publications';askResults.append(researchTitle);
+      const count=document.createElement('p');count.textContent=`${found.total} indexed research matches`;askResults.append(count);
+      for(const result of found.results){
+        const article=document.createElement('article');
+        const link=document.createElement('a');link.href=result.href;link.textContent=result.pageTitle||result.sectionTitle||'GPIR research';
+        const context=document.createElement('p');context.textContent=[result.sectionTitle,result.category].filter(Boolean).join(' · ');
+        article.append(link,context);askResults.append(article);
+      }
+      if(!found.total)askResults.append(document.createTextNode('No indexed research matches this query.'));
+    }catch{if(request===askRequest)askResults.textContent='GPIR search is temporarily unavailable. No results have been inferred.';}
+  };
+  document.querySelectorAll('[data-smart-ask]').forEach(link=>{
+    link.addEventListener('click',event=>{
+      event.preventDefault();
+      const query=buildAskQuery(state,{
+        themeLabels:PREMIUM_THEMES.filter(theme=>state.themes.has(theme.id)).map(theme=>theme.label),
+        topicLabels:SMART_TOPICS.filter(topic=>state.topics.has(topic.id)).map(topic=>topic.label),
+        geographyLabel:root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent||'All geographies'
+      });
+      void openAsk(query);
+    });
   });
+  document.addEventListener('click',event=>{
+    const link=event.target.closest?.('[data-smart-item-ask]');
+    if(!link)return;
+    event.preventDefault();
+    void openAsk(link.dataset.smartAskQuery||'');
+  });
+  root.querySelector('[data-smart-search]')?.addEventListener('submit',event=>{
+    event.preventDefault();
+    const query=clean(new FormData(event.currentTarget).get('ask')||'',300);
+    void openAsk(query);
+  },{capture:true});
+  // Debounced automatic topic discovery, with stale-query cancellation.
+  // User submission remains available for a fully specified question.
+  let askDebounce;
+  askInput.addEventListener('input',()=>{
+    ++askRequest;
+    clearTimeout(askDebounce);
+    const query=askInput.value.trim();
+    askResults.textContent=query
+      ? 'Finding approved topic evidence and publications…'
+      : 'Select a topic or enter a question to explore GPIR evidence.';
+    if(query.length>=3){
+      askDebounce=setTimeout(()=>{
+        askPanel.dataset.autoQuery='1';
+        void openAsk(query).finally(()=>{delete askPanel.dataset.autoQuery;});
+      },450);
+    }
+  });
+  askForm.addEventListener('submit',event=>{event.preventDefault();clearTimeout(askDebounce);void openAsk(askInput.value);});
+  // Keep topic discovery aligned with dashboard selections, without requiring Enter.
+  const refreshAskFromContext=()=>{
+    if(askPanel.hidden)return;
+    const query=buildAskQuery(state,{
+      themeLabels:PREMIUM_THEMES.filter(theme=>state.themes.has(theme.id)).map(theme=>theme.label),
+      topicLabels:SMART_TOPICS.filter(topic=>state.topics.has(topic.id)).map(topic=>topic.label),
+      geographyLabel:root.querySelector('[data-smart-geography]')?.selectedOptions?.[0]?.textContent||'All geographies'
+    });
+    clearTimeout(askDebounce);
+    askPanel.dataset.autoQuery='1';
+    void openAsk(query).finally(()=>{delete askPanel.dataset.autoQuery;});
+  };
+  [periodSelect,themeSelect,geo].filter(Boolean).forEach(control=>
+    control.addEventListener('change',refreshAskFromContext));
+  // Reader dashboard deep link opens the existing in-page ASK panel without
+  // inventing an answer or issuing a query before the reader enters a topic.
+  if(new URL(global.location.href).searchParams.get('ask')==='1'){
+    askPanel.hidden=false;
+    askResults.textContent='Enter a payments topic to search governed intelligence and published research.';
+    askInput.focus();
+  }
   const shareStatus = root.querySelector('[data-smart-share-status]');
   // Only the whitelisted dashboard context or a public authoritative source URL is ever shared.
   const shareContent = async (payload, trigger) => {

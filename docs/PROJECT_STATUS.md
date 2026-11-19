@@ -1,5 +1,16 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-19 — OFAC/FATF + FX + contextual ASK release train prepared; production gate remains human-controlled
+
+- PR #592 head `f8ceb9410607fc7e2b7c35be4e6c9ab985502b1f` provides the shared bounded contextual ASK and cited evidence contract. Security and Integrity run 44489232310 passed.
+- PR #590 head `aeda61b215529f308336c6d2650e06d8528d0d52` keeps ASK inside the FX card, preserves pair/period context, answers movement/range/volatility/comparison questions from selected-period observations, cites the rate source, and retains stale-request protection. Security and Integrity run 44489457237 passed.
+- PR #591 now uses the existing 189-country registry with 25-row pagination, repository flags, ISO codes, separate FATF/GPIR/OFAC fields, inline cited ASK, two distinct regulatory modules and a My GPIR regulatory Smart Card.
+- FATF current processing is atomic across both official designations. Historical processing discovers dated official statement links, rejects incomplete snapshots, excludes explicit no-longer-monitored sections and checkpoints oldest-to-newest bounded windows. OFAC current snapshots remain prohibited as historical listing proof.
+- Source registration and hourly activation are split so canaries and backfill precede scheduling. The 95% publication gate and 12-hour live/archive contract are unchanged.
+- The FATF graphical logo is not embedded: FATF's official terms require express written permission. Compact verified text attribution and a no-endorsement statement remain pending owner-supplied permission evidence.
+- No production migration, Edge deployment, schedule, backfill, main merge or website publication has been performed from this branch. Final merge/publication remains human-controlled under repository governance; production acceptance cannot be claimed before that gate and a genuine source-to-relay-to-archive observation.
+
+
 ## 2026-11-17 — complete public edition staged in PR #582 without another private build
 
 The owner authorized the follow-up exception and then instructed completion.
@@ -141,7 +152,18 @@ not run. The existing validation workflow includes the new tests.
 M41 remains OPEN pending actual public and protected delivery evidence.
 
 
-## Current handoff
+## Current handoff — M42 OFAC/FATF country-risk integration (2026-11-19)
+
+- **Objective:** Integrate OFAC change evidence and FATF country classifications into the existing governed relay and add the Global Country Risk Monitor.
+- **Branch/base:** `codex/ofac-fatf-country-risk-monitor` from main `5165bbff72ea18e5fd5365aca960bc5f11152480`.
+- **State:** Source/data contracts, bounded OFAC backfill, current FATF ingestion, reader dataset/page, filters, profiles, ASK context, navigation and tests are implemented on the branch. No production deployment, source activation, database write or publication is claimed.
+- **Constraints:** 95% publication threshold, exact-timestamp 12-hour visibility, append-oriented history, separate FATF/GPIR/OFAC classifications and signed Payload publication gate are unchanged.
+- **Validation:** Required GitHub Actions pass on head `d61f7d175517261c131400c60161f5dac991407b`: GPIR Security and Integrity run 44482826434 and G1 R07 PostgreSQL acceptance run 44482826476. Local runtime remained unavailable, so no local pass is claimed. See [M42 implementation and acceptance](M42-OFAC-FATF-COUNTRY-RISK.md).
+- **Remaining:** FATF five-year official statement manifest/backfill, live canaries, one genuine relay-to-archive proof, 60 monthly coverage windows, signed Payload edition, owner review/merge and controlled release.
+- **Production impact:** NONE.
+
+## Previous handoff — M41 Payload cutover
+
 
 ## 2026-11-16 — standalone shutdown correction, PR #580
 

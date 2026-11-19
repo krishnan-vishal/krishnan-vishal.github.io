@@ -23,7 +23,10 @@
     "release:fetch": "tsx src/release/fetch-release.ts",
     "cloud:preflight": "node scripts/cloud-preflight.mjs",
     "test": "node --import tsx --test test/*.test.ts",
-    "build:worker": "npm run generate:importmap && opennextjs-cloudflare build"
+    "build:worker": "npm run generate:importmap && opennextjs-cloudflare build",
+    "postinstall": "node scripts/mitigate-picomatch.mjs && node --test scripts/mitigate-picomatch.test.mjs",
+    "prebuild:worker": "node scripts/mitigate-picomatch.mjs && node --test scripts/mitigate-picomatch.test.mjs",
+    "prebuild": "node scripts/mitigate-picomatch.mjs && node --test scripts/mitigate-picomatch.test.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.93.0",
@@ -49,6 +52,9 @@
   },
   "overrides": {
     "dompurify": "3.4.17",
-    "happy-dom": "21.0.4"
+    "happy-dom": "21.0.4",
+    "glob": "14.0.6",
+    "minimatch": "11.0.8",
+    "esbuild": "0.28.2"
   }
 }

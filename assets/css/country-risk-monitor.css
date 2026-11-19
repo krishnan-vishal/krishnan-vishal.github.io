@@ -1,0 +1,326 @@
+:root {
+    --risk-navy: #071a33;
+    --risk-blue: #0d4f8b;
+    --risk-gold: #c9a24a;
+    --risk-border: #d7dee8;
+    --risk-surface: #f5f7fa;
+    --risk-high: #8b1e2d;
+    --risk-grey: #4b5563;
+}
+
+.country-risk-page {
+    background: #fff;
+    color: #162033;
+}
+
+.country-risk-hero {
+    padding: clamp(3rem, 8vw, 6rem) 1.25rem 2.5rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--risk-navy), #103f68);
+}
+
+.country-risk-shell {
+    width: min(1180px, calc(100% - 2rem));
+    margin-inline: auto;
+}
+
+.country-risk-hero a,
+.country-risk-hero a:visited {
+    color: #f2d184;
+}
+
+.country-risk-hero h1 {
+    max-width: 850px;
+    margin: .75rem 0;
+    font-size: clamp(2.2rem, 6vw, 4.25rem);
+    line-height: 1;
+}
+
+.country-risk-hero p {
+    max-width: 850px;
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+
+.country-risk-main {
+    padding-block: 2rem 5rem;
+}
+
+.risk-boundary,
+.risk-controls,
+.risk-table-wrap,
+.risk-sources {
+    margin-block: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid var(--risk-border);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.risk-boundary {
+    border-left: 5px solid var(--risk-gold);
+    background: #fffaf0;
+}
+
+.risk-boundary h2,
+.risk-controls h2,
+.risk-sources h2 {
+    margin-top: 0;
+}
+
+.risk-control-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(180px, 1fr));
+    gap: .85rem;
+}
+
+.risk-control-grid label {
+    display: grid;
+    gap: .35rem;
+    font-weight: 700;
+}
+
+.risk-control-grid input,
+.risk-control-grid select {
+    min-height: 44px;
+    padding: .65rem .75rem;
+    border: 1px solid #9aa8ba;
+    border-radius: 8px;
+    background: #fff;
+    color: #162033;
+    font: inherit;
+}
+
+.risk-summary {
+    margin: 1rem 0 0;
+    color: #4b5b70;
+}
+
+.risk-table-wrap {
+    overflow-x: auto;
+    padding: 0;
+}
+
+.risk-table {
+    width: 100%;
+    min-width: 820px;
+    border-collapse: collapse;
+    font-size: .92rem;
+}
+
+.risk-table th,
+.risk-table td {
+    padding: .8rem .9rem;
+    border-bottom: 1px solid var(--risk-border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.risk-table th {
+    position: sticky;
+    top: 0;
+    color: #fff;
+    background: var(--risk-navy);
+}
+
+.risk-table td small {
+    display: block;
+    margin-top: .15rem;
+    color: #66758a;
+}
+
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .28rem .55rem;
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.risk-badge--high {
+    color: #fff;
+    background: var(--risk-high);
+}
+
+.risk-badge--grey {
+    color: #fff;
+    background: var(--risk-grey);
+}
+
+.risk-badge--unrated {
+    color: #26364a;
+    border: 1px solid #aab5c3;
+    background: #eef1f5;
+}
+
+.risk-cards {
+    display: grid;
+    gap: .75rem;
+    margin-block: 1.25rem;
+}
+
+.risk-card {
+    border: 1px solid var(--risk-border);
+    border-radius: 12px;
+    background: #fff;
+    overflow: clip;
+}
+
+.risk-card summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+}
+
+.risk-card summary strong,
+.risk-card summary small {
+    display: block;
+}
+
+.risk-card summary small {
+    margin-top: .2rem;
+    color: #637286;
+}
+
+.risk-card__body {
+    padding: 0 1.1rem 1.1rem;
+    border-top: 1px solid var(--risk-border);
+}
+
+.risk-card__body dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.risk-card__body dl div {
+    padding: .75rem;
+    border-radius: 8px;
+    background: var(--risk-surface);
+}
+
+.risk-card__body dt {
+    margin-bottom: .25rem;
+    color: #53647a;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.risk-card__body dd {
+    margin: 0;
+}
+
+.risk-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    margin-top: 1rem;
+}
+
+.risk-card__actions a {
+    padding: .55rem .75rem;
+    border: 1px solid var(--risk-blue);
+    border-radius: 7px;
+    color: var(--risk-blue);
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.risk-card__actions a:hover,
+.risk-card__actions a:focus-visible {
+    color: #fff;
+    background: var(--risk-blue);
+}
+
+.risk-source-status {
+    color: #47566a;
+    font-size: .9rem;
+}
+
+.risk-empty {
+    padding: 1.25rem;
+    border: 1px dashed #aab5c3;
+    border-radius: 10px;
+    background: var(--risk-surface);
+}
+
+@media (max-width: 780px) {
+    .risk-control-grid,
+    .risk-card__body dl {
+        grid-template-columns: 1fr;
+    }
+
+    .risk-card summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .risk-card__actions a {
+        transition: none;
+    }
+}
+
+
+.risk-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.risk-module-grid article{background:#fff;border:1px solid var(--risk-border);border-radius:14px;padding:1rem;box-shadow:0 8px 24px rgba(15,42,68,.06)}
+.risk-module-grid h2{margin:.25rem 0 .45rem;font-size:1.05rem}
+.risk-kicker{margin:0;color:var(--risk-muted);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.risk-country-name{display:inline-flex;align-items:center;gap:.55rem}
+.risk-country-name>span{display:grid}
+.risk-flag{border-radius:2px;box-shadow:0 0 0 1px rgba(15,42,68,.15);object-fit:cover;flex:none}
+.risk-pagination{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.8rem}
+.risk-pagination button,.risk-ask button{border:1px solid #20466e;border-radius:8px;background:#20466e;color:#fff;padding:.55rem .8rem;font:inherit;font-weight:700;cursor:pointer}
+.risk-pagination button:disabled{cursor:not-allowed;opacity:.45}
+.risk-ask{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem;align-items:end;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--risk-border)}
+.risk-ask label{display:grid;gap:.35rem;font-weight:700}
+.risk-ask input{min-width:0;border:1px solid var(--risk-border);border-radius:8px;padding:.6rem;font:inherit}
+.risk-ask__result{grid-column:1/-1;display:grid;gap:.4rem;padding:.65rem;border-radius:8px;background:#f5f8fb}
+.risk-ask__result:empty{display:none}
+.risk-ask__result p,.risk-ask__result ul{margin:0}
+@media (max-width:720px){
+    .risk-module-grid{grid-template-columns:1fr}
+    .risk-ask{grid-template-columns:1fr}
+    .risk-ask button{width:100%}
+}
+
+/* Compact GPIR intelligence matrix: prioritize evidence rows over explanatory hero. */
+.country-risk-hero { padding: 1.1rem 1.25rem 1.25rem; }
+.country-risk-hero h1 { max-width: none; font-size: clamp(1.55rem, 3vw, 2.4rem); line-height: 1.12; margin: .4rem 0; }
+.country-risk-hero p { max-width: 100%; font-size: .86rem; line-height: 1.45; margin: .35rem 0; }
+.country-risk-main { padding-block: .8rem 2rem; }
+.risk-boundary { padding: .65rem .9rem; margin-block: .55rem; font-size: .8rem; line-height: 1.4; }
+.risk-boundary h2 { font-size: .9rem; margin: 0 0 .25rem; }
+.risk-module-grid { gap: .55rem; margin-block: .55rem; }
+.risk-module-grid article { padding: .75rem; }
+.risk-module-grid article p { font-size: .82rem; line-height: 1.4; }
+.risk-module-grid article h2 { font-size: 1rem; margin: .2rem 0; }
+.risk-controls,.risk-table-wrap,.risk-sources { margin-block: .65rem; }
+.risk-controls { padding: .75rem; }
+.risk-table { font-size: .81rem; }
+.risk-table th,.risk-table td { padding: .4rem .55rem; }
+.risk-cards { gap: .45rem; margin-block: .65rem; }
+.risk-card summary { padding: .55rem .75rem; }
+.risk-card__body { padding: 0 .75rem .7rem; }
+@media (max-width: 700px) {
+ .country-risk-hero { padding: .8rem .6rem 1rem; }
+ .country-risk-hero h1 { font-size: 1.55rem; }
+ .risk-control-grid { grid-template-columns: 1fr; }
+}
+
+/* Reader-only dashboard: no protected UI or data module before verified login. */
+.country-risk-page:not([data-risk-auth="reader"]) [data-risk-protected] { display: none; }
+.country-risk-page[data-risk-auth="reader"] [data-risk-reader-gate] { display: none; }
+.risk-reader-gate { width: min(620px,calc(100% - 2rem)); margin: 9vh auto; padding: 2rem; border: 1px solid var(--risk-border); border-top: 4px solid var(--risk-gold); border-radius: 14px; box-shadow: 0 12px 30px rgba(7,26,51,.07); }
+.risk-reader-gate h1 { color: var(--risk-navy); font-size: clamp(1.45rem,3vw,2rem); }
+.risk-reader-gate__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.25rem; }
+.risk-reader-gate__actions[hidden] { display: none; }
+.risk-reader-gate__actions a { color: var(--risk-blue); font-weight: 700; }
+.risk-reader-gate__actions .risk-reader-gate__primary { padding: .7rem 1rem; background: var(--risk-navy); color: white; border-radius: 8px; text-decoration: none; }

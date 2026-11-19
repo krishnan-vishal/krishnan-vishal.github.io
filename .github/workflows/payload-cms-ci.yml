@@ -46,8 +46,22 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
-      - name: Reject high and critical dependency findings
-        run: npm audit --audit-level=high
+      - name: Apply and test temporary picomatch mitigation
+        run: |
+          node scripts/mitigate-picomatch.mjs
+          node --test scripts/mitigate-picomatch.test.mjs
+      - name: Verify fail-closed advisory policy
+        run: node --test scripts/advisory-policy.test.mjs
+      - name: Enforce native audit and expiring advisory triage
+        run: node scripts/verify-native-audit.mjs
+      - name: Preserve native security audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-native-audit-evidence
+          path: ${{ runner.temp }}/gpir-native-audit.json
+          if-no-files-found: warn
+          retention-days: 30
       - run: npm run test
       - name: Verify existing-session release access
         run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs ../../tests/m41/payload-reader.test.cjs ../../tests/m41/website-resume.test.mjs ../../tests/m41/pages-staging.test.cjs
@@ -70,6 +84,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
       - run: npm ci
+      - name: Apply and test temporary picomatch mitigation
+        run: |
+          node scripts/mitigate-picomatch.mjs
+          node --test scripts/mitigate-picomatch.test.mjs
       - name: Build isolated Cloudflare Worker
         run: npm run build:worker
         env:
@@ -80,6 +98,26 @@ jobs:
         run: |
           test -f .open-next/worker.js
           test -d .open-next/assets
+      - name: Record compiled Worker security evidence
+        run: node scripts/worker-build-evidence.mjs
+      - name: Inspect bundled Next picomatch exposure indicators
+        run: node scripts/inspect-next-picomatch.mjs
+      - name: Retain Next picomatch inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-next-picomatch-exposure
+          path: ${{ runner.temp }}/gpir-next-picomatch-exposure.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Retain Worker artifact identity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpir-worker-build-evidence
+          path: ${{ runner.temp }}/gpir-worker-build-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
 
   repair-management:
     if: >-

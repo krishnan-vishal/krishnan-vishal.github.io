@@ -48,7 +48,19 @@ async function main() {
       await writeFile(file, rendered.html)
       released.push(record); decisions.push(decision)
     }
-    if (!released.length) {
+    // M40: carry the owner-reviewed Observatory page into a new immutable edition.
+    // Never copy other working-tree files or alter the inherited engine inventory.
+    const approvedObservatory = path.resolve(process.cwd(), '../../pages/intelligence/index.html')
+    const approvedBytes = await readFile(approvedObservatory)
+    const approvedHtml = approvedBytes.toString('utf8')
+    if (!approvedHtml.includes('id="ask-gpir-observatory"') || !approvedHtml.includes('aria-controls="search-overlay"')) {
+      throw new Error('Reviewed Observatory ASK GPIR source is missing or incompatible.')
+    }
+    const originalObservatory = original.files.find((item: any) => item.path === 'pages/intelligence/index.html')
+    if (!originalObservatory) throw new Error('Parent edition lacks the Observatory managed route.')
+    const observatoryChanged = site.sha256(approvedBytes) !== originalObservatory.sha256
+    if (observatoryChanged) await writeFile(path.join(root, 'pages/intelligence/index.html'), approvedBytes)
+    if (!released.length && !observatoryChanged) {
       const output = path.resolve(option('report') || '../../.migration-data/m41-research-release.json')
       await mkdir(path.dirname(output), { recursive: true })
       const report = { status: 'UNCHANGED_NO_REVIEWED_RESEARCH', snapshot: parent, released: 0 }
@@ -56,6 +68,7 @@ async function main() {
       console.log(JSON.stringify(report))
       return
     }
+    if (released.length) {
     const routesFile = path.join(root, 'routes.json')
     const routes = JSON.parse(await readFile(routesFile, 'utf8'))
     for (const record of released) {
@@ -67,6 +80,7 @@ async function main() {
     await writeFile(routesFile, JSON.stringify(routes, null, 2) + '\n')
     const fx = path.join(root, 'assets/data/fx/editorial-public.json')
     await writeFile(fx, JSON.stringify(editions.mergeFxEditorial(JSON.parse(await readFile(fx, 'utf8')), released), null, 2) + '\n')
+    }
     // Engines are not stored/copied in the CMS edition; keep their prior manifest
     // evidence and let the website build preserve the current Git-controlled code.
     const inventory = site.inventory(root, execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim())
@@ -92,7 +106,7 @@ async function main() {
     await store(`m41:manifest:${manifest.snapshot}`, manifest)
     const output = path.resolve(option('report') || '../../.migration-data/m41-research-release.json')
     await mkdir(path.dirname(output), { recursive: true })
-    const report = { status: 'EDITION_PREPARED_NOT_DEPLOYED', snapshot: manifest.snapshot, parentSnapshot: parent, released: released.length, managedFiles: manifest.files.length }
+    const report = { status: 'EDITION_PREPARED_NOT_DEPLOYED', snapshot: manifest.snapshot, parentSnapshot: parent, released: released.length, observatoryUpdated: observatoryChanged, managedFiles: manifest.files.length }
     await writeFile(output, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 })
     console.log(JSON.stringify(report))
   } finally {

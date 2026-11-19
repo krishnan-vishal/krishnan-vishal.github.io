@@ -168,7 +168,7 @@
 <div class="mega-menu mega-menu--headed mega-menu--wide"><div class="mega-menu-inner mega-menu-inner--headed mega-menu-inner--3col">
 <div class="mega-col mega-col--headed"><div class="mega-col-header"><span class="mega-col-icon" aria-hidden="true">◇</span><span class="mega-col-heading"><strong>Resources</strong><small>Repository</small></span></div><ul class="mega-col-desc-list"><li><a href="../../index.html#research"><strong>Research Deck</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/intelligence/smart.html?period=YTD"><strong>Smart Intelligence Archive</strong><small>Signed readers · verified alerts and historical topic intelligence</small></a></li><li><a href="/pages/research/global-payments-landscape.html"><strong>Timelines</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/research/global-payments-landscape.html"><strong>Glossary -Index</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="../../index.html#architecture-library"><strong>Architecture Library</strong><small>Explore existing GPIR coverage</small></a></li><li class="mega-item-soon"><span><strong>Charts &amp; Maps</strong><small>Dedicated page pending · Explore via GPIR search</small></span></li></ul><div class="mega-col-header"><span class="mega-col-icon" aria-hidden="true">◇</span><span class="mega-col-heading"><strong>Legal Policies</strong><small>Repository</small></span></div><ul class="mega-col-desc-list"><li><a href="/pages/legal/privacy-policy.html"><strong>Privacy Policy</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/legal/terms-of-use.html"><strong>Terms of Use</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/legal/cookie-policy.html"><strong>Cookie Policy</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/legal/disclaimer.html"><strong>Disclaimer</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/pages/legal/copyright-ip-policy.html"><strong>CopyRight &amp; IP</strong><small>Explore existing GPIR coverage</small></a></li></ul></div><div class="mega-col mega-col--headed"><div class="mega-col-header"><span class="mega-col-icon" aria-hidden="true">◇</span><span class="mega-col-heading"><strong>Directory</strong><small>Repository</small></span></div><ul class="mega-col-desc-list"><li><a href="../../index.html#research"><strong>Industry Directory</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/"><strong>Industry Participants</strong><small>Explore existing GPIR coverage</small></a></li><li class="mega-item-soon"><span><strong>Domain Experts -Global leaders</strong><small>Dedicated page pending · Explore via GPIR search</small></span></li><li><a href="/industry-participant-analysis-banks-fintechs-networks-wallets-gpir-research-fintechoisis/"><strong>Banks &amp; Fintechs</strong><small>Explore existing GPIR coverage</small></a></li><li class="mega-item-soon"><span><strong>Library of Fintech associations</strong><small>Dedicated page pending · Explore via GPIR search</small></span></li></ul></div><div class="mega-col mega-col--headed"><div class="mega-col-header"><span class="mega-col-icon" aria-hidden="true">◇</span><span class="mega-col-heading"><strong>About FintechO</strong><small>Repository</small></span></div><ul class="mega-col-desc-list"><li><a href="../../index.html#about"><strong>Founder</strong><small>Explore existing GPIR coverage</small></a></li><li><a href="../../index.html#research"><strong>Research methodology and Validations</strong><small>Explore existing GPIR coverage</small></a></li><li class="mega-item-soon"><span><strong>Transaction Monitoring</strong><small>Dedicated page pending · Explore via GPIR search</small></span></li></ul></div></div></div></li>
 </ul>
-<div class="header-tools"><a href="../../index.html#research" class="repository-btn">Repository →</a></div>
+<div class="header-tools"><button type="button" class="repository-btn ask-gpir-btn" id="ask-gpir-observatory" aria-controls="search-overlay" aria-label="ASK GPIR within Intelligence Observatory">ASK GPIR</button><a href="../../index.html#research" class="repository-btn">Repository →</a></div>
 </nav>
 
 <button
@@ -748,5 +748,20 @@
 <script src="../../assets/js/content-protection.js?v=20260822c"></script>
 <script src="../../assets/js/dashboard-lightbox.js?v=20260816"></script>
 <script src="../../assets/js/supabase-archive.js?v=20261113a"></script>
+<script>
+(function () {
+  var button = document.getElementById('ask-gpir-observatory');
+  if (!button) return;
+  button.addEventListener('click', function () {
+    // Reuse the existing search-index-powered overlay; do not navigate,
+    // recreate search, reset Observatory filters, or load an iframe.
+    var toggle = document.getElementById('search-toggle');
+    var overlay = document.getElementById('search-overlay');
+    if (toggle && overlay && overlay.getAttribute('aria-hidden') !== 'false') toggle.click();
+    var input = document.getElementById('search-input');
+    if (input) input.focus();
+  });
+})();
+</script>
 </body>
 </html>

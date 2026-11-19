@@ -62,3 +62,11 @@
 .smi-topic-intel[data-state=locked] p{margin:.3rem 0;color:#43556a;font-size:.78rem}
 .smi-topic-intel .smi-sources{display:grid;gap:.4rem;margin:0 0 .6rem;padding-left:1.1rem;font-size:.78rem}
 .smi-topic-intel small{display:block;color:var(--smi-muted)}
+
+.smi-ask-panel{margin:16px 0;padding:20px;background:#fff;border:1px solid #d9c28a;border-radius:14px;box-shadow:0 4px 20px rgba(11,31,54,.08)}
+.smi-ask-panel[hidden]{display:none}
+.smi-ask-panel form{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.smi-ask-panel input{flex:1 1 250px;min-width:0;padding:10px;border:1px solid #aab5c2;border-radius:8px}
+.smi-ask-panel button{padding:10px 15px;border:1px solid #b98513;border-radius:8px;background:#fff9eb;color:#102747;cursor:pointer}
+.smi-ask-panel article{padding:10px 0;border-top:1px solid #e5e9ef}
+.smi-ask-panel article p{margin:3px 0;color:#526276}

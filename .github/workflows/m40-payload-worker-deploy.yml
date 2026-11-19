@@ -1,0 +1,117 @@
+name: M40 approved Payload Worker deployment
+on:
+  workflow_dispatch:
+    inputs:
+      approved_pr_head:
+        description: 'Exact reviewed PR #585 commit SHA'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  deploy-worker:
+    if: >-
+      github.repository == 'krishnan-vishal/krishnan-vishal.github.io' &&
+      github.actor == 'krishnan-vishal' &&
+      ((github.event_name == 'pull_request' &&
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'm40-worker-deploy-approved' &&
+        github.event.pull_request.number == 585 &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.head.ref == 'fix/m40-ask-gpir-inpage-20261117') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: payload-production-cutover
+    steps:
+      - name: Check reviewed commit input
+        env:
+          APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
+        run: |
+          [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Exact 40-character commit SHA required"; exit 1; }
+      - name: Checkout exact reviewed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
+          persist-credentials: false
+      - name: Confirm approved PR source and Worker binding
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
+        working-directory: .
+        run: |
+          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+          gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/585 --jq '.head.sha' | grep -Fx "$APPROVED_SHA"
+          node - <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('apps/gpir-cms/wrangler.jsonc','utf8'));
+          if(config.name !== 'gpir-payload-cms' || config.hyperdrive?.length !== 1 ||
+             config.hyperdrive[0].binding !== 'HYPERDRIVE' ||
+             config.hyperdrive[0].id !== '4398c601c5dc4e39bb2b35f76ff72845' ||
+             config.hyperdrive[0].remote !== true)
+            throw Error('Production Worker/Hyperdrive configuration changed; deployment refused');
+          if (!fs.readFileSync('apps/gpir-cms/src/payload.config.ts','utf8').includes('observatoryEditionEndpoint'))
+            throw Error('Approved edition endpoint absent');
+          NODE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/gpir-cms/package-lock.json
+      - name: Install exact locked dependencies
+        working-directory: apps/gpir-cms
+        run: npm ci
+      - name: Validate tests and types
+        working-directory: apps/gpir-cms
+        run: |
+          npm test
+          npx tsc --noEmit
+      - name: Verify withdrawn advisory using GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /advisories/GHSA-fc5q-39xc-vjpf > "$RUNNER_TEMP/gpir-ghsa.json"
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/gpir-ghsa.json','utf8'));
+          if(a.ghsa_id!=='GHSA-fc5q-39xc-vjpf' || !a.withdrawn_at || !Number.isFinite(Date.parse(a.withdrawn_at)))
+            throw Error('Withdrawn advisory not independently confirmed; deployment refused');
+          fs.writeFileSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified',a.ghsa_id);
+          console.log('Verified withdrawn GitHub advisory');
+          NODE
+      - name: Enforce release security policy
+        working-directory: apps/gpir-cms
+        run: |
+          node scripts/verify-native-audit.mjs
+          node --input-type=module -e "import fs from 'node:fs'; import {releaseDecision} from './scripts/advisory-policy.mjs'; const report=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-native-audit.json','utf8')); const verified=fs.existsSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified') && fs.readFileSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified','utf8').trim()==='GHSA-fc5q-39xc-vjpf'; if(!['PASS','PASS_WITHDRAWN_ADVISORY'].includes(releaseDecision(report,Date.now(),verified))) { console.error('Production release blocked: native audit is not release-authorized.'); process.exit(1); }"
+      - name: Build approved Worker
+        working-directory: apps/gpir-cms
+        run: npm run build:worker
+        env:
+          PAYLOAD_DATABASE_URI: postgresql://build_only:build_only@localhost:5432/postgres
+          PAYLOAD_SECRET: build-only-placeholder-not-a-production-secret
+          PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
+      - name: Verify Worker artifact
+        working-directory: apps/gpir-cms
+        run: |
+          test -s .open-next/worker.js
+          test -d .open-next/assets
+          node scripts/worker-build-evidence.mjs
+          node scripts/inspect-next-picomatch.mjs
+          node --input-type=module -e "import fs from 'node:fs'; const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-next-picomatch-exposure.json','utf8')); if(p.compiledPicomatch || p.staticReferenceFiles?.length) { console.log('Bundled picomatch retained as evidence; withdrawn advisory GHSA-fc5q-39xc-vjpf reviewed 2026-11-18. Other active findings remain blocked by native audit.'); }"
+      - name: Deploy to existing Cloudflare Worker
+        working-directory: apps/gpir-cms
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" && test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Protected Cloudflare deployment configuration unavailable"; exit 1; }
+          npx wrangler deploy --config wrangler.jsonc
+      - name: Confirm deployed endpoint exists without exposing credentials
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+        run: |
+          test -n "$PAYLOAD_PUBLIC_SERVER_URL"
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$PAYLOAD_PUBLIC_SERVER_URL/api/release/observatory-edition" -H 'content-type: application/json' -d '{}')
+          test "$status" = "403" || { echo "Authenticated endpoint response unexpected (HTTP $status)"; exit 1; }
+          echo "M40_WORKER_ENDPOINT_DEPLOYED_AND_AUTH_GATED"

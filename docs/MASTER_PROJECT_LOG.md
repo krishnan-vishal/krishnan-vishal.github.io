@@ -1,3 +1,15 @@
+
+## M42 final-delivery continuation — 2026-11-19
+
+- Reconciled existing PRs #590, #591 and #592 without creating another PR or backend service.
+- Integrated the shared ASK contract into FX and the country monitor using stacked merge parents; preserved existing governed retrieval, authentication and entitlement boundaries.
+- Expanded the Country Risk Monitor from 21 listed jurisdictions to the existing 189-country registry, while retaining exactly 21 official current FATF designations (3 call-for-action, 18 increased-monitoring), zero GPIR High/Medium/Low ratings and zero inferred OFAC country sanctions.
+- Corrected FATF ingestion so the call-for-action and increased-monitoring documents form one atomic snapshot. Added official-index historical discovery, removed-section exclusion, extended historical country aliases, bounded checkpoints and separate hourly activation.
+- Production inventory was read only: project `qlnvhfapctcpzqyuhhth` is ACTIVE_HEALTHY; source registry has 18 pre-release rows; the four M42 evidence tables and `gpir-regulatory-fetch` are not deployed. Existing auth/payment/reader functions were not changed.
+- Security adviser baseline was inspected and left unchanged by this un-deployed branch. No secret value was read or written.
+- FATF logo use remains blocked by the official express-permission requirement. No unauthorized logo was embedded.
+- Local Windows runtime remained unavailable (`registered runtime ownership is missing`), so no local test result is claimed. GitHub Actions is the authoritative validation surface for this continuation.
+
 # FINTECHOISIS / GPIR Master Project Log
 
 Permanent chronological record of repository development prompts and verified
@@ -3404,3 +3416,24 @@ explicit for both existing Payload CLI stages; query/data errors still fail.
 No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
 required CI/private execution and actual live acceptance pending.
 Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
+
+
+## M42 OFAC, FATF and Global Country Risk Monitor — 2026-11-19
+
+- **Classification:** INTELLIGENCE, DATA, AUTOMATION, READER EXPERIENCE, GOVERNANCE.
+- **Objective:** Add official OFAC sanctions-change and FATF country-classification sources to the existing GPIR relay and historical architecture, then expose a country-risk monitor without weakening publication controls or inferring sanctions.
+- **Repository state before work:** Remote main `5165bbff72ea18e5fd5365aca960bc5f11152480`; old country dashboard branches were fully merged ancestors. Main contained an OFAC source-map mention and FATF content, but no OFAC/FATF source activation, list-change ingestion, FATF country history or dedicated monitor. Baseline production evidence remained 93 approved announcements with Sep–Nov 2026 coverage and zero recent automated publications.
+- **Delivered:** Additive regulatory document, OFAC event, FATF history and checkpoint tables; official-host and content-integrity validation; bounded OFAC delta backfill; current FATF ingestion; unchanged 95% candidate/publication relay; source registration/rollback SQL; required tests; 21-country current FATF dataset; responsive filters/table/cards; source evidence; contextual ASK GPIR; homepage menu and sitemap route.
+- **Integrity boundaries:** Current OFAC full snapshots are validation inputs only and cannot prove past listing. FATF designations, GPIR analytical ratings and OFAC jurisdiction exposure are separate. All GPIR ratings remain UNRATED and all OFAC country assessments remain NOT_ASSESSED. Date-only publications never receive an invented time for the 12-hour live window.
+- **Files:** See `docs/M42-OFAC-FATF-COUNTRY-RISK.md`.
+- **Validation:** Local execution was unavailable because the registered runtime was detached. No local pass is claimed. Required GitHub Actions and browser/live acceptance are pending.
+- **Milestone state:** IN PROGRESS. OFAC bounded delta history is implemented but not run; FATF five-year backfill is blocked on a reviewed statement manifest; source schedules, Supabase migration/function and signed Payload edition are not deployed; no genuine update has traversed source to relay to archive.
+- **Production impact:** NONE. No main push, merge, Supabase write, source activation, Payload release, Cloudflare change, threshold change or secret exposure.
+
+
+### M42 required CI checkpoint — 2026-11-19
+
+- Draft PR #591 head `d61f7d175517261c131400c60161f5dac991407b` is mergeable and remains draft.
+- GPIR Security and Integrity run 44482826434 passed structured content, existing discovery/source/announcement contracts, the new OFAC/FATF parser tests, internal links, JavaScript syntax and the high-confidence secret scan.
+- G1 R07 PostgreSQL acceptance run 44482826476 passed its migration/acceptance job.
+- Local execution remains unavailable and browser/live/Production acceptance remains pending. Green CI does not complete M42.
