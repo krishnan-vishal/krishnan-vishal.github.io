@@ -22,3 +22,16 @@
 5. Reader ASK and homepage ASK share the same approved records but retain distinct access policies. No subscriber data or privileged Supabase key in the browser.
 
 This is an operational scope record, **not** evidence that any source was activated or any backfill completed.
+
+## Binding owner clarification — canonical topic taxonomy
+
+**The GPIR live homepage header and its existing mega-menu entries/subentries are the ONLY approved topic scope for the five-year backfill.** Derive topic identities and labels from the currently approved menu source at `index.html` (or its signed Payload-managed canonical equivalent at release time). Do not create a parallel 36-topic taxonomy, substitute supplier categories, or classify header navigation utilities as intelligence subjects.
+
+- Traverse each actual intelligence/research topic in the header and its submenus; preserve the exact displayed labels, parent-child relationships and canonical route identifiers. Menu entries such as Home, sign-in, Repository navigation, or generic search controls are not standalone intelligence topics.
+- Entries labelled Coming Soon remain in scope as taxonomy labels if they represent substantive topics, but do not imply a published research page or historical evidence exists.
+- Freeze a versioned menu-taxonomy snapshot with source commit/signed CMS edition before a backfill batch; any later owner-approved menu change is handled as a versioned delta, not an implicit change in historical classification.
+- Map approved source keywords and synonyms to these canonical menu topic IDs; a record may map to more than one menu topic without duplicating the underlying source record.
+- Report coverage by menu category/subcategory, year and source, including zero-result categories, unsupported feeds and provenance. Preserve the existing approval threshold, no synthetic data and existing 12-hour archive behavior.
+- ASK GPIR homepage, signed-in Reader Dashboard and Observatory consume this same taxonomy; the presentation and entitlements remain distinct.
+
+**Implementation gate:** confirm the menu snapshot matches the currently deployed signed Payload edition before executing any historical batch. No backfill or source activation is claimed by this specification.
