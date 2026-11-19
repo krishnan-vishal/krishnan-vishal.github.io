@@ -44,8 +44,19 @@ export const observatoryEditionEndpoint: Endpoint = {
       if (!original || parent.files.filter((item: any) => item.path === path).length !== 1)
         throw Error('OBSERVATORY_ROUTE_NOT_MANAGED')
       stage = 'APPROVED_SOURCE_FETCH'
-      const response = await fetch(approvedUrl, { redirect: 'error', signal: AbortSignal.timeout(20000) })
-      if (!response.ok) throw Error('REVIEWED_GITHUB_SOURCE_UNAVAILABLE')
+      // GitHub's raw content host may redirect. Follow only HTTPS redirects,
+      // then confirm the final host remains a trusted GitHub content endpoint.
+      // Do not accept a caller-supplied URL or modify the immutable commit.
+      let response: Response
+      try {
+        response = await fetch(approvedUrl, { redirect: 'follow', signal: AbortSignal.timeout(20000) })
+      } catch {
+        throw Error('REVIEWED_GITHUB_SOURCE_UNAVAILABLE')
+      }
+      const finalUrl = new URL(response.url)
+      if (!response.ok || finalUrl.protocol !== 'https:' ||
+          !['raw.githubusercontent.com', 'github.com'].includes(finalUrl.hostname))
+        throw Error('REVIEWED_GITHUB_SOURCE_UNAVAILABLE')
       stage = 'APPROVED_SOURCE_READ'
       const bytes = new Uint8Array(await response.arrayBuffer())
       const html = new TextDecoder().decode(bytes)
