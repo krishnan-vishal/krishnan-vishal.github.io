@@ -33,10 +33,12 @@ test('returns cited evidence summaries without inventing regulatory conclusions'
   const result = summarizeGovernedAsk('Latest changes?', [
     { id: 'a', title: 'Official update', source_url: 'https://example.org/a' },
     { id: 'a', title: 'Duplicate' },
-    { id: 'b', title: 'Additional notice' }
+    { id: 'b', title: 'Additional notice', canonical_url: 'https://example.org/b' },
+    { id: 'c', title: 'Unapproved draft', canonical_url: 'https://example.org/c', publication_status: 'draft' }
   ], { topic: 'FATF', country: 'Nepal' });
   assert.equal(result.status, 'EVIDENCE_FOUND');
   assert.equal(result.citations.length, 2);
+  assert.equal(result.citations[1].url, 'https://example.org/b');
   assert.match(result.answer, /approved intelligence reference/);
   assert.doesNotMatch(result.answer, /Nepal is sanctioned/);
   const empty = summarizeGovernedAsk('What changed?', [], { country: 'Nepal' });

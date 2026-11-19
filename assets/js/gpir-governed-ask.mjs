@@ -51,17 +51,19 @@ export function contextualAskQuery(question, context = {}) {
  */
 export function summarizeGovernedAsk(question, records, context = {}) {
   const query = String(question || '').trim().slice(0, 120);
-  const items = Array.isArray(records) ? records.filter(record =>
-    record && typeof record === 'object' && typeof record.id === 'string'
-  ) : [];
+  const items = Array.isArray(records) ? records.filter(record => {
+    if (!record || typeof record !== 'object' || typeof record.id !== 'string') return false;
+    const publication = record.publication_status || record.publicationStatus;
+    return !publication || String(publication).toLowerCase() === 'approved';
+  }) : [];
   const seen = new Set();
   const cited = [];
   for (const item of items) {
     if (seen.has(item.id)) continue;
     seen.add(item.id);
     const title = String(item.title || item.headline || 'Verified intelligence record').slice(0, 180);
-    const url = typeof item.source_url === 'string' && /^https:\/\//.test(item.source_url)
-      ? item.source_url : typeof item.url === 'string' && /^https:\/\//.test(item.url) ? item.url : null;
+    const candidates = [item.source_url, item.canonical_url, item.canonicalUrl, item.url, item.source?.url];
+    const url = candidates.find(value => typeof value === 'string' && /^https:\/\//.test(value)) || null;
     cited.push({ id: item.id, title, url });
     if (cited.length === 5) break;
   }
