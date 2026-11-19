@@ -1,3 +1,4 @@
+import { retrieveGovernedEvidence } from './gpir-governed-ask.mjs';
 import { TOPIC_TAXONOMY, classifyTopicIds, groupRelayItems } from './gpir-topic-intelligence.mjs';
 import {
   EXECUTIVE_THEME_IDS, GEOGRAPHY_FILTER_KEYS, PREMIUM_THEMES, buildAskQuery, buildExecutiveDonut, buildExecutiveKpis, buildGeographyCoverage, buildItemShare,
@@ -1182,12 +1183,7 @@ export async function initializeSmartIntelligence({ global = window,
       let intelligenceError=false;
       if(origin){
         try{
-          const params=new URLSearchParams({view:'history-records',kind:'announcements',q:query.trim().slice(0,120),limit:'10',offset:'0'});
-          const response=await fetch(`${origin}/functions/v1/gpir-public-intelligence?${params}`,{cache:'no-store',headers:{accept:'application/json'}});
-          if(!response.ok)throw Error('GOVERNED_HISTORY_UNAVAILABLE');
-          const payload=await response.json();
-          if(payload?.status!=='OK'||!Array.isArray(payload.records))throw Error('GOVERNED_HISTORY_INVALID');
-          intelligence=payload.records;
+          intelligence=await retrieveGovernedEvidence(origin,query,{limit:10});
         }catch{intelligenceError=true;}
       }else intelligenceError=true;
       if(request!==askRequest)return;
