@@ -357,10 +357,11 @@ if (root) {
         globalAskTarget.textContent = "Checking official FATF classifications and governed regulatory evidence…";
         if (globalAskButton) globalAskButton.disabled = true;
         const questionLower = question.toLowerCase();
-        const aliases = { UAE: /\\buae\\b|\\bu\\.a\\.e\\.\\b/i, US: /\\busa\\b|\\bu\\.s\\.\\b/i, GB: /\\buk\\b|\\bu\\.k\\.\\b/i };
+        const words = questionLower.split(/[^a-z]+/);
+        const aliases = { AE: "uae", US: "usa", GB: "uk" };
         const mentioned = countries.filter(country => {
             const name = country.countryName.toLowerCase();
-            return (name.length > 3 && questionLower.includes(name)) || Boolean(aliases[country.countryCode2]?.test(question));
+            return (name.length > 3 && questionLower.includes(name)) || Boolean(aliases[country.countryCode2] && words.includes(aliases[country.countryCode2]));
         }).sort((a,b) => b.countryName.length - a.countryName.length);
         const country = mentioned[0];
         const statusText = country
