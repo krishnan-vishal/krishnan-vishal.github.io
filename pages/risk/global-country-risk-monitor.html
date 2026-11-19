@@ -9,8 +9,17 @@
     <link rel="stylesheet" href="../../assets/css/global.css">
     <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261119b">
 </head>
-<body class="country-risk-page">
+<body class="country-risk-page" data-risk-auth="checking">
     <a class="skip-link" href="#country-risk-content">Skip to country risk monitor</a>
+    <section class="risk-reader-gate" data-risk-reader-gate aria-live="polite">
+      <h1>Global Country Risk Intelligence</h1>
+      <p data-risk-gate-status>Checking reader access…</p>
+      <div class="risk-reader-gate__actions" hidden data-risk-gate-actions>
+        <a class="risk-reader-gate__primary" href="/reader/create-account/?returnTo=%2Fpages%2Frisk%2Fglobal-country-risk-monitor.html">Create a free reader account</a>
+        <a href="/reader/sign-in/?returnTo=%2Fpages%2Frisk%2Fglobal-country-risk-monitor.html">Already registered? Sign in</a>
+      </div>
+    </section>
+    <div data-risk-protected>
     <header class="country-risk-hero">
         <div class="country-risk-shell">
             <nav aria-label="Breadcrumb">
@@ -107,7 +116,37 @@
         <p><a href="../legal/disclaimer.html">Disclaimer</a> · <a href="../legal/terms-of-use.html">Terms of Use</a> · <a href="../../index.html#gpir-search">Search / ASK GPIR</a></p>
     </footer>
 
+    </div>
     <script src="../../assets/js/gpir-supabase-public-config.js"></script>
-    <script type="module" src="../../assets/js/country-risk-monitor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+    <script src="../../scripts/m34/supabase-browser-client.js"></script>
+    <script type="module">
+      const status = document.querySelector('[data-risk-gate-status]');
+      const actions = document.querySelector('[data-risk-gate-actions]');
+      try {
+        const config = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG;
+        const factory = globalThis.GPIR_M34?.createSupabaseBrowserClient;
+        const sdk = globalThis.supabase;
+        if (!config?.url || !config?.publishableKey || !factory || !sdk?.createClient)
+          throw new Error('Reader authentication unavailable');
+        const client = globalThis.GPIR_SUPABASE_CLIENT ||
+          (globalThis.GPIR_SUPABASE_CLIENT = factory({
+            url: config.url, publishableKey: config.publishableKey, createClient: sdk.createClient
+          }));
+        const { data, error } = await client.auth.getUser();
+        if (error || !data?.user) {
+          status.textContent = 'Create a reader account or sign in to access the Global Country Risk Monitor.';
+          actions.hidden = false;
+          document.body.dataset.riskAuth = 'guest';
+        } else {
+          document.body.dataset.riskAuth = 'reader';
+          await import('../../assets/js/country-risk-monitor.js');
+        }
+      } catch {
+        status.textContent = 'Reader access could not be verified. Sign in to continue.';
+        actions.hidden = false;
+        document.body.dataset.riskAuth = 'guest';
+      }
+    </script>
 </body>
 </html>
