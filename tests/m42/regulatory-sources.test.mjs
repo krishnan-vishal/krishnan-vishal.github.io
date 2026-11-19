@@ -105,7 +105,7 @@ test("country monitor uses the existing 150+ country registry, bounded paginatio
     assert.match(script, /summarizeGovernedAsk/);
     assert.match(page, /data-risk-prev/);
     assert.match(page, /OFAC Sanctions Intelligence/);
-    assert.match(page, /FATF Country Risk Intelligence/);
+    assert.match(page, /FATF Intelligence/);
     assert.match(dashboard, /Open regulatory Smart Card/);
 });
 
