@@ -1,6 +1,6 @@
 // Bounded keyword retrieval against the existing governed M40 history endpoint.
 // This is evidence retrieval, not a generative answer or a replacement for approval gates.
-const STOP = new Set(['what','which','where','when','about','from','with','during','show','find','give','please','report','reports','card','cards','latest','recent','information','data','the','and','for','are','has','have','into','all','any','this','that','payments','payment']);
+const STOP = new Set(['what','which','where','when','about','from','with','during','show','find','give','please','report','reports','card','cards','latest','recent','information','data','the','and','for','are','has','have','into','all','any','this','that']);
 export function governedTerms(query, max=3) {
   const tokens = String(query||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[];
   const terms=[];
