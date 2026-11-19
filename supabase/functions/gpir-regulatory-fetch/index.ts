@@ -212,7 +212,7 @@ async function recordFatfSnapshot(admin: any, statements: Array<Record<string, a
     return { inserted: inserts.length, closed, unchanged: snapshot.rows.length - inserts.length };
 }
 
-async function handleOfacCurrentasync function handleOfacCurrent(admin: any, dryRun: boolean) {
+async function handleOfacCurrent(admin: any, dryRun: boolean) {
     const snapshots = [];
     for (const file of ["SDN.XML", "CONSOLIDATED.XML"]) {
         const sourceUrl = OFAC_EXPORT_BASE + file;
@@ -530,7 +530,7 @@ async function handleFatfBackfill(admin: any, from: string, to: string, dryRun: 
     return { window, snapshots: outcomes, databaseWritten: !dryRun };
 }
 
-async function loadSourceasync function loadSource(admin: any, sourceId: string) {
+async function loadSource(admin: any, sourceId: string) {
     const { data, error } = await admin.from("source_registry")
         .select("source_id,source_name,trust_tier,source_status,official_url,feed_or_index_url,parser_profile")
         .eq("source_id", sourceId).limit(2);
