@@ -438,6 +438,7 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
     <div class="fxi-header-range"><p class="fxi-eyebrow">52-WEEK OBSERVED RANGE</p><div class="fxi-range-gauge" style="--gauge-position:${rangePosition}%;--gauge-angle:${gaugeAngle}deg"><span></span><i></i></div><div class="fxi-gauge-labels"><span>Low ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.low.rate, pair) : 'Unavailable')}</span><span>High ${escapeHtml(yearMetrics.status === 'AVAILABLE' ? rateText(yearMetrics.high.rate, pair) : 'Unavailable')}</span></div><strong>${yearMetrics.status === 'AVAILABLE' ? `${number(rangePosition, 0)}%` : 'Unavailable'}</strong><small>of observed 52-week range</small></div>
   </header>
   ${coverageNotice}
+  <section class="fxi-section fxi-ask" aria-label="ASK GPIR for this FX pair"><div class="fxi-section-heading"><div><p class="fxi-kicker">PAIR-CONTEXT INTELLIGENCE</p><h2>ASK GPIR · ${escapeHtml(pair.base)}/${escapeHtml(pair.quote)}</h2></div></div><form data-fx-ask-form role="search"><label for="fxi-ask-input">Ask about this currency pair and its approved research</label><div class="fxi-ask-controls"><input id="fxi-ask-input" data-fx-ask-input type="search" maxlength="120" placeholder="FX policy, remittances, market developments…" required><button type="submit">Search evidence</button></div></form><div data-fx-ask-results aria-live="polite"><p>Search verified research and governed intelligence without leaving this FX Smart Card.</p></div></section>
   <nav class="fxi-periods" aria-label="Historical analysis period">${periodButtons}</nav>
   <section class="fxi-analytics-band" aria-label="Historical trend and quick reference">
     <article class="fxi-section fxi-chart-section"><div class="fxi-section-heading"><div><p class="fxi-kicker">OBSERVED REFERENCE FIXINGS</p><h2>${escapeHtml(periodLabel)} trend</h2><small>${escapeHtml(observationWindow)} · moving average overlays when available</small></div><span class="${metrics.status === 'AVAILABLE' ? metrics.changePercent >= 0 ? 'fxi-up' : 'fxi-down' : ''}">${escapeHtml(trend)} · ${escapeHtml(activeChange)}</span></div>
@@ -621,12 +622,85 @@ class GpirFxCard extends HTMLElementBase {
       if (sequence !== this.requestNumber || !this.isConnected) return;
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
+      this.bindFxAsk(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
       const returnTo = fxIntelligenceReturnTo(pair, period);
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c">${accessMarkup(error, returnTo)}`;
       this.shadowRoot.querySelector('[data-retry]')?.addEventListener('click', () => void this.refresh());
     }
+  }
+
+  bindFxAsk(pair) {
+    const form = this.shadowRoot.querySelector('[data-fx-ask-form]');
+    const input = this.shadowRoot.querySelector('[data-fx-ask-input]');
+    const target = this.shadowRoot.querySelector('[data-fx-ask-results]');
+    if (!form || !input || !target) return;
+    let request = 0;
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const sequence = ++request;
+      const term = input.value.trim().slice(0, 120);
+      if (!term) return;
+      target.replaceChildren();
+      const status = document.createElement('p');
+      status.textContent = 'Searching approved GPIR intelligence and research…';
+      target.append(status);
+      const query = pair.base + '/' + pair.quote + ' ' + term;
+      const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
+      const validOrigin = typeof origin === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(origin);
+      let records = null;
+      if (validOrigin) {
+        try {
+          const params = new URLSearchParams({view:'history-records',kind:'announcements',q:term,limit:'10',offset:'0'});
+          const response = await fetch(new URL('/functions/v1/gpir-public-intelligence?' + params, origin), {cache:'no-store',headers:{accept:'application/json'}});
+          if (!response.ok) throw Error('INTELLIGENCE_UNAVAILABLE');
+          const data = await response.json();
+          if (data?.status !== 'OK' || !Array.isArray(data.records)) throw Error('INVALID_INTELLIGENCE');
+          records = data.records;
+        } catch { records = null; }
+      }
+      let research = null;
+      try {
+        const search = globalThis.GPIRContentSearch;
+        if (search) { await search.load(); research = search.search(query, {limit:8}); }
+      } catch { research = null; }
+      if (sequence !== request || !this.isConnected) return;
+      target.replaceChildren();
+      const heading = document.createElement('h3');
+      heading.textContent = 'Approved historical intelligence · ' + pair.base + '/' + pair.quote;
+      target.append(heading);
+      if (records === null) {
+        const p = document.createElement('p'); p.textContent = 'Governed intelligence is temporarily unavailable. No missing records are inferred.'; target.append(p);
+      } else {
+        const matching = records.filter(item => {
+          const text = [item.title,item.summary,item.category,item.pair,item.currencyPair,...(Array.isArray(item.keywords)?item.keywords:[])].filter(Boolean).join(' ').toUpperCase();
+          return text.includes(pair.base+'/'+pair.quote) || (text.includes(pair.base) && text.includes(pair.quote));
+        });
+        const p = document.createElement('p'); p.textContent = matching.length ? matching.length+' currency-pair-relevant records' : 'No approved pair-specific records found in this bounded query.'; target.append(p);
+        for (const item of matching) {
+          const article = document.createElement('article');
+          const url = item.canonicalUrl || item.canonical_url || item.url;
+          const link = document.createElement('a');
+          link.textContent = item.title || 'Verified intelligence record';
+          if (typeof url === 'string' && /^https:\/\//.test(url)) { link.href=url;link.target='_blank';link.rel='noopener noreferrer'; }
+          const meta = document.createElement('p');
+          meta.textContent = [item.publishedAt || item.published_at,item.sourceName || item.source_name].filter(Boolean).join(' · ');
+          article.append(link,meta);target.append(article);
+        }
+      }
+      const researchHeading = document.createElement('h3');researchHeading.textContent='Indexed GPIR research';target.append(researchHeading);
+      if (research) {
+        const p = document.createElement('p');p.textContent=research.total+' matching research sections';target.append(p);
+        for (const item of research.results) {
+          const article=document.createElement('article');const link=document.createElement('a');
+          link.href=item.href;link.textContent=item.pageTitle||item.sectionTitle||'Published GPIR research';
+          article.append(link);target.append(article);
+        }
+      } else {
+        const p=document.createElement('p');p.textContent='Published research index is unavailable; no research results are inferred.';target.append(p);
+      }
+    });
   }
 
   bindControls(pair) {
