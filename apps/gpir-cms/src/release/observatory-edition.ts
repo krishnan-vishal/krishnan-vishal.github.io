@@ -74,8 +74,21 @@ export const observatoryEditionEndpoint: Endpoint = {
         observatoryUpdated: true, managedFiles: manifest.files.length,
         integrity: signArtifact(manifest, signingSecret) }, { headers: { 'cache-control': 'no-store' } })
     } catch (error) {
-      console.error('M40 governed Observatory edition refused:', error instanceof Error ? error.message : 'UNKNOWN')
-      return Response.json({ error: 'EDITION_PREPARATION_REFUSED' }, { status: 409 })
+      // Only publish reviewed, fixed refusal codes; do not leak SQL, credentials,
+      // HTTP URLs, database internals or arbitrary exception messages.
+      const approvedCodes = new Set([
+        'AMBIGUOUS_SNAPSHOT_RECORD', 'PARENT_MANIFEST_UNAVAILABLE',
+        'PARENT_MANIFEST_INVALID', 'OBSERVATORY_ROUTE_NOT_MANAGED',
+        'REVIEWED_GITHUB_SOURCE_UNAVAILABLE', 'APPROVED_PAGE_CONTRACT_FAILED',
+        'EDITION_UNCHANGED', 'IMMUTABLE_EDITION_CONFLICT',
+      ])
+      const raw = error instanceof Error ? error.message : 'UNKNOWN'
+      const code = approvedCodes.has(raw) ? raw : 'INTERNAL_PREPARATION_ERROR'
+      console.error('M40 governed Observatory edition refused:', code)
+      return Response.json(
+        { error: 'EDITION_PREPARATION_REFUSED', reason: code },
+        { status: 409, headers: { 'cache-control': 'no-store' } },
+      )
     }
   },
 }
