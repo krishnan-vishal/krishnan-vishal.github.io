@@ -5,7 +5,7 @@ const direct={name:'picomatch',severity:'high',url:advisory};
 const entry=(name,via,severity='high')=>({name,via,severity,nodes:['node_modules/'+name]});
 function report(...vs){const counts={info:0,low:0,moderate:0,high:0,critical:0,total:vs.length};for(const v of vs)counts[v.severity]++;return {auditReportVersion:2,vulnerabilities:Object.fromEntries(vs.map(v=>[v.name,v])),metadata:{vulnerabilities:counts}};}
 test('clean audit passes',()=>assert.equal(releaseDecision(report()),'PASS'));
-test('exact advisory and inherited cycle classified but not accepted',()=>{const r=report(entry('picomatch',[direct]),entry('a',['b','picomatch']),entry('b',['a']));assert.equal(classify(r),'EXCEPTION_CANDIDATE');assert.equal(releaseDecision(r,expiry-1),'BLOCK_PENDING_EXPOSURE');assert.equal(releaseDecision(r,expiry),'BLOCK');});
+test('withdrawn advisory and inherited cycle recognized but unrelated findings remain blocked',()=>{const r=report(entry('picomatch',[direct]),entry('a',['b','picomatch']),entry('b',['a']));assert.equal(classify(r),'EXCEPTION_CANDIDATE');assert.equal(releaseDecision(r,expiry-1),'PASS_WITHDRAWN_ADVISORY');assert.equal(releaseDecision(r,expiry),'PASS_WITHDRAWN_ADVISORY');});
 test('unrelated high blocked',()=>assert.equal(classify(report(entry('picomatch',[direct]),entry('other',[{...direct,name:'other'}]))),'BLOCK'));
 test('critical blocked',()=>assert.equal(classify(report(entry('picomatch',[{...direct,severity:'critical'}],'critical'))),'BLOCK'));
 test('cycle without advisory blocked',()=>assert.equal(classify(report(entry('a',['b']),entry('b',['a']))),'BLOCK'));
