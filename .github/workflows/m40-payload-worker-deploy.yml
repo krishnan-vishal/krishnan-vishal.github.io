@@ -74,7 +74,7 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+'/gpir-ghsa.json','utf8'));
-          if(a.ghsa_id!=='GHSA-fc5q-39xc-vjpf' || a.state!=='withdrawn' || !a.withdrawn_at)
+          if(a.ghsa_id!=='GHSA-fc5q-39xc-vjpf' || !a.withdrawn_at || !Number.isFinite(Date.parse(a.withdrawn_at)))
             throw Error('Withdrawn advisory not independently confirmed; deployment refused');
           fs.writeFileSync(process.env.RUNNER_TEMP+'/gpir-withdrawn-verified',a.ghsa_id);
           console.log('Verified withdrawn GitHub advisory');
