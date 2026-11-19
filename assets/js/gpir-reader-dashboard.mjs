@@ -532,10 +532,16 @@ export function readerDashboardState(summary) {
 }
 
 export function readerDashboardStatus(summary) {
-  return readerDashboardState(summary) === 'partial'
-    ? Object.freeze({ message: 'Some account sections are temporarily unavailable. Unverified information remains hidden.',
-      className: 'my-gpir-status my-gpir-warning' })
-    : Object.freeze({ message: 'Your account is up to date.', className: 'my-gpir-status' });
+  if (readerDashboardState(summary) !== 'partial')
+    return Object.freeze({ message: 'Your account is up to date.', className: 'my-gpir-status' });
+  const labels = { profile: 'Profile', library: 'Authorised publications',
+    payments: 'Payment history', plan: 'Subscription plan', libraryPass: 'Library pass' };
+  const unavailable = PROTECTED_SECTIONS.filter(name =>
+    summary?.availability?.[name] === 'UNAVAILABLE').map(name => labels[name]);
+  return Object.freeze({
+    message: `Account service temporarily unavailable: ${unavailable.join(', ')}. Other verified sections remain accessible; unavailable account information is hidden. Use Refresh account to retry.`,
+    className: 'my-gpir-status my-gpir-warning'
+  });
 }
 
 export function clearReaderDashboard(document) {
