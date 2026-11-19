@@ -66,7 +66,9 @@ jobs:
                 'INTERNAL_PREPARATION_ERROR'
               ]);
               const safeReason = approvedReasons.has(refusal.reason) ? refusal.reason : 'UNSPECIFIED_REFUSAL';
-              throw Error('EDITION_PREPARATION_REFUSED HTTP ' + preparedResponse.status + ': ' + safeReason);
+              const safeStages = new Set(['PARENT_LOOKUP','PARENT_VALIDATION','APPROVED_SOURCE_FETCH','APPROVED_SOURCE_READ','EDITION_CONSTRUCTION','BLOB_STORE','MANIFEST_STORE','SIGNATURE']);
+              const safeStage = safeStages.has(refusal.stage) ? refusal.stage : 'UNSPECIFIED_STAGE';
+              throw Error('EDITION_PREPARATION_REFUSED HTTP ' + preparedResponse.status + ': ' + safeReason + ' at ' + safeStage);
             }
             const prepared = await preparedResponse.json();
             if (prepared.status !== 'EDITION_PREPARED_NOT_DEPLOYED' || prepared.observatoryUpdated !== true || !/^[a-f0-9]{64}$/.test(prepared.snapshot)) throw Error('EDITION_NOT_PREPARED');
