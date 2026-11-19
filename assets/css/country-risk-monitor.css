@@ -290,3 +290,27 @@
     .risk-ask{grid-template-columns:1fr}
     .risk-ask button{width:100%}
 }
+
+/* Compact GPIR intelligence matrix: prioritize evidence rows over explanatory hero. */
+.country-risk-hero { padding: 1.1rem 1.25rem 1.25rem; }
+.country-risk-hero h1 { max-width: none; font-size: clamp(1.55rem, 3vw, 2.4rem); line-height: 1.12; margin: .4rem 0; }
+.country-risk-hero p { max-width: 100%; font-size: .86rem; line-height: 1.45; margin: .35rem 0; }
+.country-risk-main { padding-block: .8rem 2rem; }
+.risk-boundary { padding: .65rem .9rem; margin-block: .55rem; font-size: .8rem; line-height: 1.4; }
+.risk-boundary h2 { font-size: .9rem; margin: 0 0 .25rem; }
+.risk-module-grid { gap: .55rem; margin-block: .55rem; }
+.risk-module-grid article { padding: .75rem; }
+.risk-module-grid article p { font-size: .82rem; line-height: 1.4; }
+.risk-module-grid article h2 { font-size: 1rem; margin: .2rem 0; }
+.risk-controls,.risk-table-wrap,.risk-sources { margin-block: .65rem; }
+.risk-controls { padding: .75rem; }
+.risk-table { font-size: .81rem; }
+.risk-table th,.risk-table td { padding: .4rem .55rem; }
+.risk-cards { gap: .45rem; margin-block: .65rem; }
+.risk-card summary { padding: .55rem .75rem; }
+.risk-card__body { padding: 0 .75rem .7rem; }
+@media (max-width: 700px) {
+ .country-risk-hero { padding: .8rem .6rem 1rem; }
+ .country-risk-hero h1 { font-size: 1.55rem; }
+ .risk-control-grid { grid-template-columns: 1fr; }
+}
