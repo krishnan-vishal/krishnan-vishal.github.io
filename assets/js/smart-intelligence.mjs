@@ -1161,7 +1161,11 @@ export async function initializeSmartIntelligence({ global = window,
   askForm.append(askInput,askSubmit,askClose);
   const askResults=document.createElement('div');askResults.setAttribute('aria-live','polite');
   askPanel.append(askTitle,askForm,askResults);
-  root.prepend(askPanel);
+  // Keep ASK inside the existing Smart Intelligence card workspace, below
+  // its title, search and filter controls; do not create a separate page.
+  const smartHeader=root.querySelector('.smx-head');
+  if(smartHeader)smartHeader.after(askPanel);
+  else root.prepend(askPanel);
   let askRequest = 0;
   const openAsk=async query=>{
     const request = ++askRequest;
