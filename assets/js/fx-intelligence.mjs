@@ -1,3 +1,4 @@
+import { retrieveGovernedEvidence } from './gpir-governed-ask.mjs';
 const API_PATH = '/functions/v1/gpir-reader-summary';
 const DISCLAIMER = 'GPIR FX Intelligence is for research and information only. Reference rates are indicative, not transaction quotes. Historical performance does not predict future movements. Not financial advice.';
 const PERIODS = Object.freeze([
@@ -610,23 +611,23 @@ class GpirFxCard extends HTMLElementBase {
     const period = PERIODS.some(item => item.id === this.getAttribute('period'))
       ? this.getAttribute('period') : 'M';
     if (!pair) {
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><section class="fxi-access"><h2>Select a valid currency pair</h2><p>Choose two different three-letter currency codes.</p></section>`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><section class="fxi-access"><h2>Select a valid currency pair</h2><p>Choose two different three-letter currency codes.</p></section>`;
       return;
     }
     const enteredAmount = Number(this.shadowRoot.querySelector('[data-amount]')?.value);
     const amount = Number.isFinite(enteredAmount) && enteredAmount >= 0 ? enteredAmount : 1000;
-    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
+    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
     try {
       const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
       const editorialRecords = await loadPublishedFxEditorial();
       if (sequence !== this.requestNumber || !this.isConnected) return;
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
       this.bindFxAsk(pair);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
       const returnTo = fxIntelligenceReturnTo(pair, period);
-      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c">${accessMarkup(error, returnTo)}`;
+      this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b">${accessMarkup(error, returnTo)}`;
       this.shadowRoot.querySelector('[data-retry]')?.addEventListener('click', () => void this.refresh());
     }
   }
@@ -652,12 +653,7 @@ class GpirFxCard extends HTMLElementBase {
       let records = null;
       if (validOrigin) {
         try {
-          const params = new URLSearchParams({view:'history-records',kind:'announcements',q:term,limit:'10',offset:'0'});
-          const response = await fetch(new URL('/functions/v1/gpir-public-intelligence?' + params, origin), {cache:'no-store',headers:{accept:'application/json'}});
-          if (!response.ok) throw Error('INTELLIGENCE_UNAVAILABLE');
-          const data = await response.json();
-          if (data?.status !== 'OK' || !Array.isArray(data.records)) throw Error('INVALID_INTELLIGENCE');
-          records = data.records;
+          records = await retrieveGovernedEvidence(origin,term,{limit:10});
         } catch { records = null; }
       }
       let research = null;
@@ -736,7 +732,7 @@ class GpirFxCard extends HTMLElementBase {
 
   showSignedOut() {
     this.requestNumber++;
-    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261105c">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
+    this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b">${accessMarkup(new Error('SESSION_REQUIRED'))}`;
   }
 }
 
