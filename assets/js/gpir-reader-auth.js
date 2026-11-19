@@ -129,14 +129,14 @@
       event.preventDefault();
       const data = new FormData(form);
       const email = String(data.get('email') || '').trim();
-      const password = String(data.get('password') || '');
-      if (!email || !password) { announce(form, 'Enter your email and password.', true); return; }
+      const credential = String(data.get('password') || '');
+      if (!email || !credential) { announce(form, 'Enter your email and password.', true); return; }
       if (!form.querySelector('[name="email"]')?.checkValidity()) { announce(form, 'Enter a valid email address.', true); return; }
-      if (type === 'signup' && password.length < 8) { announce(form, 'Use a password with at least 8 characters.', true); return; }
+      if (type === 'signup' && credential.length < 8) { announce(form, 'Use a password with at least 8 characters.', true); return; }
       const button = form.querySelector('button[type="submit"]');
       if (button) button.disabled = true;
       try {
-        const result = await submitCredentials({ client, type, email, password, origin: global.location.origin });
+        const result = await submitCredentials({ client, type, email, password: credential, origin: global.location.origin });
         if (result === 'verification-pending') {
           announce(form, 'Check your inbox for a verification link. After verifying, sign in to continue.');
           return;
