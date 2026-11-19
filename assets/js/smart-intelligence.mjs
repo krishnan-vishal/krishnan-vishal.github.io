@@ -1175,16 +1175,47 @@ export async function initializeSmartIntelligence({ global = window,
       if(!search)throw Error('Index unavailable');
       await search.load();
       const found=search.search(query,{limit:10});
+      // Query the existing governed M40 Supabase API on demand. Never download
+      // the archive into the browser or treat an API failure as zero evidence.
+      const origin=endpointOrigin(global);
+      let intelligence=null;
+      let intelligenceError=false;
+      if(origin){
+        try{
+          const params=new URLSearchParams({view:'history-records',kind:'announcements',q:query.trim().slice(0,120),limit:'10',offset:'0'});
+          const response=await fetch(`${origin}/functions/v1/gpir-public-intelligence?${params}`,{cache:'no-store',headers:{accept:'application/json'}});
+          if(!response.ok)throw Error('GOVERNED_HISTORY_UNAVAILABLE');
+          const payload=await response.json();
+          if(payload?.status!=='OK'||!Array.isArray(payload.records))throw Error('GOVERNED_HISTORY_INVALID');
+          intelligence=payload.records;
+        }catch{intelligenceError=true;}
+      }else intelligenceError=true;
       if(request!==askRequest)return;
       askResults.replaceChildren();
-      const count=document.createElement('p');count.textContent=`${found.total} indexed matches`;askResults.append(count);
+      const heading=document.createElement('h3');heading.textContent='Governed intelligence · live and historical repository';askResults.append(heading);
+      if(intelligence){
+        const count=document.createElement('p');count.textContent=`${intelligence.length} historical evidence records on this page`;askResults.append(count);
+        for(const record of intelligence){
+          const article=document.createElement('article');
+          const link=document.createElement('a');
+          const url=record.canonicalUrl||record.canonical_url||record.url;
+          if(typeof url==='string'&&/^https:\/\//i.test(url)){link.href=url;link.target='_blank';link.rel='noopener noreferrer';}
+          link.textContent=record.title||'Verified intelligence record';
+          const context=document.createElement('p');
+          context.textContent=[record.category,record.publishedAt||record.published_at,record.sourceName].filter(Boolean).join(' · ');
+          article.append(link,context);askResults.append(article);
+        }
+        if(!intelligence.length)askResults.append(document.createTextNode('No approved historical intelligence matches this topic.'));
+      }else if(intelligenceError)askResults.append(document.createTextNode('Governed intelligence is currently unavailable; research results below are separate.'));
+      const researchTitle=document.createElement('h3');researchTitle.textContent='Indexed research and publications';askResults.append(researchTitle);
+      const count=document.createElement('p');count.textContent=`${found.total} indexed research matches`;askResults.append(count);
       for(const result of found.results){
         const article=document.createElement('article');
         const link=document.createElement('a');link.href=result.href;link.textContent=result.pageTitle||result.sectionTitle||'GPIR research';
         const context=document.createElement('p');context.textContent=[result.sectionTitle,result.category].filter(Boolean).join(' · ');
         article.append(link,context);askResults.append(article);
       }
-      if(!found.total)askResults.append(document.createTextNode('No verified indexed matches for this query.'));
+      if(!found.total)askResults.append(document.createTextNode('No indexed research matches this query.'));
     }catch{if(request===askRequest)askResults.textContent='GPIR search is temporarily unavailable. No results have been inferred.';}
   };
   document.querySelectorAll('[data-smart-ask]').forEach(link=>{
