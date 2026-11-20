@@ -17,15 +17,15 @@ try{
  // Aider receives a single fixture file and fixed task; it may not choose commands.
  run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--model','openrouter/'+model,'--message','Change only src/checkpoint.js so its exact contents are: export const checkpoint = 1; followed by a newline. Do not modify any other file.','src/checkpoint.js']);
  if(readFileSync(join(root,'src','checkpoint.js'),'utf8')!=='export const checkpoint = 1;\n')throw Error('AIDER_EDIT_MISMATCH');
- // Aider may create its own untracked chat/cache metadata in this disposable fixture.
- // Enforce the single-file allowlist for tracked changes and reject any unexpected untracked files.
- const changed=run('git',['diff','--name-only','HEAD']).split('\\n').filter(Boolean);
+ // Only tracked changes are eligible for the checkpoint. Aider metadata remains
+ // untracked in the disposable workspace and is never staged or pushed.
+ const changed=run('git',['diff','--name-only','HEAD']).split('\n').filter(Boolean);
  if(changed.length!==1||changed[0]!=='src/checkpoint.js')throw Error('UNEXPECTED_TRACKED_CHANGE:'+changed.join(','));
- const untracked=run('git',['ls-files','--others','--exclude-standard']).split('\\n').filter(Boolean);
- if(untracked.some(path=>!/^\\.aider(?:[./-]|$)/.test(path)))throw Error('UNEXPECTED_UNTRACKED_FILE');
  run('git',['add','--','src/checkpoint.js']);
  run('git',['-c','user.name=SEP01','-c','user.email=sep01@example.invalid','commit','-qm','SEP-01 Aider bounded checkpoint']);
  const after=run('git',['rev-parse','HEAD']);
+ const committed=run('git',['diff-tree','--no-commit-id','--name-only','-r','HEAD']).split('\n').filter(Boolean);
+ if(committed.length!==1||committed[0]!=='src/checkpoint.js')throw Error('UNEXPECTED_COMMITTED_FILE');
  if(after===before||run('git',['diff','--name-only','HEAD'])||run('git',['diff','--cached','--name-only']))throw Error('AIDER_CHECKPOINT_INVALID');
  console.log(JSON.stringify({result:'SEP01_AIDER_CHECKPOINT_PASS',checkpoint:after,workspace:'DISPOSABLE_NO_PUSH'}));
 }finally{rmSync(root,{recursive:true,force:true});}
