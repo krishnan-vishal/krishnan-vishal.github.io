@@ -15,7 +15,7 @@ let accepted=null;
 for(const model of ordered.slice(0,4)){
  const editor=createGeminiCodeEditor({apiKey:key,model});
  const result=await editor({job:{scope:'dashboard',instruction:'Replace the supplied file with exactly: export const ready = true; followed by a newline.'},path:'fixture.js',content:'export const ready = false;\n'});
- if(result.status==='MODEL_UNAVAILABLE'){errors.push({model,reason:result.reason});continue;}
+ if(result.status==='MODEL_UNAVAILABLE'||result.status==='PROVIDER_BUSY'){errors.push({model,status:result.status,reason:result.reason||null});continue;}
  if(result.status==='QUOTA_EXHAUSTED'||result.status==='PROVIDER_UNAVAILABLE')throw Error('GEMINI_ACCESS_'+result.status);
  if(result.status!=='EDIT'||result.content!=='export const ready = true;\n')throw Error('GEMINI_INDEPENDENT_ACCEPTANCE_NOT_VERIFIED_'+result.status);
  accepted=model;break;
