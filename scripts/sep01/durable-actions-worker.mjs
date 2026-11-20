@@ -22,9 +22,18 @@ const execute=async(job)=>{
  if(job.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job.scope))throw Error('SENSITIVE_JOB_NOT_ALLOWED');
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
- const editor=createGeminiCodeEditor({apiKey:process.env.GEMINI_API_KEY,model:process.env.SEP01_GEMINI_MODEL});
+ const key=process.env.GEMINI_API_KEY;
+ const discovery=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100',{headers:{'x-goog-api-key':key}});
+ if(!discovery.ok)throw Error('GEMINI_MODEL_DISCOVERY_HTTP_'+discovery.status);
+ const listing=await discovery.json();
+ const eligible=(listing.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&/^models\\/gemini-[a-z0-9._-]+$/i.test(m.name)&&!/tts|audio|speech|image|video|live|embedding/i.test(m.name)).map(m=>m.name.slice(7));
+ const preferred=process.env.SEP01_GEMINI_MODEL.trim().replace(/^models\\//,'');
+ const model=eligible.includes(preferred)?preferred:eligible.find(m=>/flash/i.test(m))||eligible[0];
+ if(!model)throw Error('NO_AUTHORIZED_GEMINI_TEXT_MODEL');
+ console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_SELECTED',model,preferred_matched:model===preferred}));
+ const editor=createGeminiCodeEditor({apiKey:key,model});
  const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>{execFileSync('node',['--test','scripts/sep01/*.test.mjs'],{cwd:process.cwd(),timeout:120000,shell:true,stdio:'pipe'});},requestEdit:editor});
- const result=await run({job,provider:{id:'gemini/'+process.env.SEP01_GEMINI_MODEL}});
+ const result=await run({job,provider:{id:'gemini/'+model}});
  if(result.status!=='SUCCESS')return result;
  // The commit must be remotely durable before Supabase can mark CHECKPOINTED.
  git('push','origin','HEAD:refs/heads/'+job.branch);
