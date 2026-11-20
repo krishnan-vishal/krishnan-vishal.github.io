@@ -15,3 +15,30 @@ test('successful approved provider persists verified commit',async()=>{
  const state=await executeWithFailover({job,providers,invoke:async p=>{calls.push(p.id);return {status:'SUCCESS',commit:'a'.repeat(40),step:'verified'};},persist:async s=>s});
  assert.equal(state.status,'CHECKPOINTED');assert.deepEqual(calls,['codex']);
 });
+
+test('429 with durable checkpoint safely hands off exactly once',async()=>{
+ const calls=[],states=[];
+ const result=await executeWithFailover({
+  job,providers,
+  invoke:async (provider,state)=>{
+   calls.push({id:provider.id,checkpoint:state.checkpoint_commit});
+   return provider.id==='codex'
+    ? {status:'QUOTA_EXHAUSTED',commit:'c'.repeat(40),step:'safe git commit'}
+    : {status:'SUCCESS',commit:'d'.repeat(40),step:'reviewed result'};
+  },
+  persist:async state=>{states.push(state.status);return state;}
+ });
+ assert.deepEqual(calls.map(x=>x.id),['codex','fallback']);
+ assert.equal(calls[1].checkpoint,'c'.repeat(40));
+ assert.deepEqual(states,['CLAIMED','CHECKPOINTED','CLAIMED','CHECKPOINTED']);
+ assert.equal(result.checkpoint_commit,'d'.repeat(40));
+});
+test('failed checkpoint persistence prevents fallback invocation',async()=>{
+ const calls=[];
+ await assert.rejects(executeWithFailover({
+  job,providers,
+  invoke:async p=>{calls.push(p.id);return {status:'QUOTA_EXHAUSTED',commit:'e'.repeat(40),step:'safe'};},
+  persist:async s=>{if(s.status==='CHECKPOINTED')throw Error('PERSISTENCE_DOWN');return s;}
+ }),/PERSISTENCE_DOWN/);
+ assert.deepEqual(calls,['codex']);
+});
