@@ -1,0 +1,31 @@
+// SEP-01 durable worker: one queue job per invocation, no production deployment.
+// Caller provides authenticated provider execution and isolated Git checkpoint verification.
+import {classify} from './controller.mjs';
+export function createDurableWorker({store,execute,verifyCheckpoint}){
+ if(!store||typeof execute!=='function'||typeof verifyCheckpoint!=='function')throw Error('INVALID_DURABLE_WORKER');
+ return async function process(jobId){
+  const initial=await store.get(jobId);
+  if(!initial)return {status:'NOT_FOUND'};
+  classify(initial);
+  if(!['QUEUED','CHECKPOINTED','QUOTA_PAUSED'].includes(initial.status))return {status:'UNCHANGED',job:initial};
+  if(initial.status!=='QUEUED'){
+   if(!initial.checkpoint_commit||!await verifyCheckpoint(initial.checkpoint_commit,initial))return {status:'BLOCKED',reason:'CHECKPOINT_NOT_VERIFIED'};
+  }
+  const claimed=await store.compareAndSet(jobId,initial.status,{status:'CLAIMED',reason:null});
+  if(!claimed)return {status:'CONCURRENTLY_CLAIMED'};
+  try{
+   const result=await execute(claimed);
+   if(result?.status==='SUCCESS'&&/^[a-f0-9]{40}$/.test(result.commit||'')&&await verifyCheckpoint(result.commit,claimed)){
+    const saved=await store.compareAndSet(jobId,'CLAIMED',{status:'CHECKPOINTED',checkpoint_commit:result.commit,last_safe_step:result.step||'verified coding checkpoint'});
+    if(!saved)throw Error('CHECKPOINT_PERSIST_CONFLICT');
+    return {status:'CHECKPOINTED',job:saved};
+   }
+   const reason=['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE'].includes(result?.status)?result.status:'EXECUTION_NOT_VERIFIED';
+   const paused=await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason});
+   return {status:'QUOTA_PAUSED',job:paused};
+  }catch(e){
+   await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason:'EXECUTION_ERROR'});
+   throw e;
+  }
+ };
+}
