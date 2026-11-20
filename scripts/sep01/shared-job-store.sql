@@ -24,7 +24,7 @@ begin
      or p_payload->>'idempotency_key' is distinct from p_idempotency_key then
     raise exception 'INVALID_JOB_CONTRACT';
   end if;
-  if p_expected_revision is null then
+  -- Serialize ownership claims across independent runners and distinct job IDs.\n  perform pg_catalog.pg_advisory_xact_lock(60401);\n  if p_payload->>'status' in ('CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE') and exists (\n    select 1 from public.gpir_sep01_jobs j\n    where j.job_id <> p_job_id\n      and j.payload->>'status' in ('CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE')\n      and (j.payload->>'branch' = p_payload->>'branch' or exists (\n        select 1 from jsonb_array_elements_text(coalesce(j.payload->'locked_paths','[]'::jsonb)) a(path)\n        join jsonb_array_elements_text(coalesce(p_payload->'locked_paths','[]'::jsonb)) b(path) using(path)\n      ))\n  ) then raise exception 'WRITER_LOCK_CONFLICT'; end if;\n  if p_expected_revision is null then
     insert into public.gpir_sep01_jobs(job_id,idempotency_key,payload)
     values(p_job_id,p_idempotency_key,p_payload)
     on conflict do nothing returning * into v_record;
