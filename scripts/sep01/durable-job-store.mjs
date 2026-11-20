@@ -15,7 +15,7 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    if(!job?.job_id||!job?.idempotency_key||!/^sep01\/jobs\/[a-zA-Z0-9._-]+$/.test(job.branch||'')||!Array.isArray(job.locked_paths)||job.locked_paths.length!==1||typeof job.instruction!=='string'||!job.instruction.trim()||job.instruction.length>3000)throw Error('INVALID_DURABLE_JOB');
    const {job_id,idempotency_key,branch,locked_paths,scope,instruction,capability='code',sensitivity_tier=null,remaining_budget=0}=job;
    const payload={branch,locked_paths,scope,instruction,capability,sensitivity_tier,remaining_budget,status:'QUEUED'};
-   const rows=await request('','POST',{job_id,idempotency_key,revision:0,payload},{Prefer:'resolution=ignore-duplicates,return=representation'});
+   const rows=await request('?on_conflict=idempotency_key','POST',{job_id,idempotency_key,revision:0,payload},{Prefer:'resolution=ignore-duplicates,return=representation'});
    return unpack(rows[0]);
   },
   async nextQueued(){
