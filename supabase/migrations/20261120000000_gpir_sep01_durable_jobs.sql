@@ -5,6 +5,7 @@ create table if not exists public.gpir_sep01_jobs (
  branch text not null,
  locked_paths text[] not null check (cardinality(locked_paths)>0),
  scope text not null,
+ instruction text not null check (length(instruction) between 1 and 3000),
  capability text not null default 'code',
  sensitivity_tier text,
  remaining_budget numeric not null default 0,
