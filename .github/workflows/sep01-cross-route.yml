@@ -1,0 +1,44 @@
+name: SEP-01 authenticated cross-route handoff
+on:
+  workflow_dispatch:
+    inputs:
+      primary_model:
+        description: 'Approved Aider OpenRouter coding model ID'
+        required: true
+        type: string
+      fallback_model:
+        description: 'Approved OpenRouter API coding model ID'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-cross-route-handoff
+  cancel-in-progress: false
+jobs:
+  checkpoint-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout SEP-01 draft without push credentials
+        uses: actions/checkout@v4
+        with:
+          ref: feat/sep01-central-command-controller-20261120
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned Aider
+        run: python -m pip install 'aider-chat==0.86.1'
+      - name: Run authenticated checkpoint-gated handoff
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SEP01_AIDER_MODEL: ${{ inputs.primary_model }}
+          SEP01_FALLBACK_MODEL: ${{ inputs.fallback_model }}
+          SEP01_ROUTE_APPROVED: 'true'
+          AIDER_ANALYTICS: 'false'
+          AIDER_CHECK_UPDATE: 'false'
+        run: node scripts/sep01/aider-openrouter-cross-route.mjs
