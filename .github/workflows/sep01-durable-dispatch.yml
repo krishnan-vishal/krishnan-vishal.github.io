@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   dispatch:
-    if: ${{ vars.SEP01_DISPATCH_ENABLED == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.SEP01_DISPATCH_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
