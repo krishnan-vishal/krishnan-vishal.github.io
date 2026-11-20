@@ -20,9 +20,16 @@ export function createCodingRunner({root,allowedPaths,runTests,requestEdit}) {
   if(job.branch!==git(['branch','--show-current'],base))throw Error('WRONG_BRANCH');
   if(git(['status','--porcelain'],base))throw Error('DIRTY_WORKTREE');
   const before=readFileSync(abs,'utf8');
-  const edit=await requestEdit({provider,job,path,content:before});
-  if(edit?.status==='QUOTA_EXHAUSTED')return {status:'QUOTA_EXHAUSTED'};
-  if(edit?.status!=='EDIT'||typeof edit.content!=='string'||!edit.content||edit.content===before)throw Error('INVALID_EDIT');
+  let edit=await requestEdit({provider,job,path,content:before});
+  if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(edit?.status))return {status:edit.status};
+  if(edit?.status==='EDIT'&&edit.content===before){
+   // One bounded clarification for a model no-op, never a blind retry loop.
+   edit=await requestEdit({provider,job:{...job,instruction:job.instruction+'\\nIMPORTANT: The previous response was identical to the original file. Return a changed complete file implementing the instruction exactly.'},path,content:before});
+   if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(edit?.status))return {status:edit.status};
+  }
+  if(edit?.status!=='EDIT')throw Error('MODEL_EDIT_UNEXPECTED_STATUS_'+String(edit?.status||'MISSING'));
+  if(typeof edit.content!=='string'||!edit.content)throw Error('MODEL_EDIT_EMPTY');
+  if(edit.content===before)throw Error('MODEL_EDIT_UNCHANGED');
   if(Buffer.byteLength(edit.content)>100000)throw Error('EDIT_TOO_LARGE');
   writeFileSync(abs,edit.content,{encoding:'utf8',flag:'w'});
   try {
