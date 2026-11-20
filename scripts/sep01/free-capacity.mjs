@@ -23,3 +23,17 @@ export function capacityReport(profiles,now=new Date()){
  const snapshot=capacitySnapshot(profiles,now);
  return {as_of:new Date(now).toISOString(),providers:snapshot,available:snapshot.filter(p=>p.eligible).length,paused:snapshot.filter(p=>!p.eligible).length};
 }
+
+/**
+ * Adapt verified free-model capacity into the existing SEP-01 routing contract.
+ * Unknown quota/cost, unavailable models and missing approval fail closed.
+ * Paid tools must be supplied separately with their own authenticated adapters.
+ */
+export function freeRoutingProviders(profiles, now=new Date()) {
+ const snapshot=capacitySnapshot(profiles,now);
+ return snapshot.filter(s=>s.eligible).map(s=>{
+  const p=profiles.find(item=>item.id===s.id);
+  return {id:s.id,approved:true,healthy:true,remaining_quota:s.remaining_requests,
+   capabilities:p.capabilities,estimated_cost:0,tier:'PUBLIC',private_environment:false};
+ });
+}
