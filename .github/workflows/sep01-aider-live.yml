@@ -1,0 +1,38 @@
+name: SEP-01 Aider live coding acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Approved OpenRouter text coding model ID (exact ID)'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-aider-acceptance
+  cancel-in-progress: false
+jobs:
+  aider-checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out SEP-01 implementation only
+        uses: actions/checkout@v4
+        with:
+          ref: feat/sep01-central-command-controller-20261120
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Aider CLI
+        run: python -m pip install 'aider-chat==0.86.1'
+      - name: Authenticated Aider bounded edit and verified Git checkpoint
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SEP01_AIDER_MODEL: ${{ inputs.model }}
+          AIDER_ANALYTICS: 'false'
+          AIDER_CHECK_UPDATE: 'false'
+        run: node scripts/sep01/aider-live-acceptance.mjs
