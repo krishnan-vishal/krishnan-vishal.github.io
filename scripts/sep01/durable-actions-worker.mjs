@@ -8,7 +8,9 @@ import {createCodingRunner} from './coding-runner.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
 if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REPOSITORY)throw Error('GITHUB_ACTIONS_REQUIRED');
-if(!jobId||!process.env.SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY||!process.env.GEMINI_API_KEY||!process.env.SEP01_GEMINI_MODEL)throw Error('SEP01_PRIVATE_WORKER_CONFIGURATION_REQUIRED');
+const required=['SEP01_JOB_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','GEMINI_API_KEY','SEP01_GEMINI_MODEL'];
+const missing=required.filter(name=>!process.env[name]?.trim());
+if(missing.length)throw Error('SEP01_MISSING_CONFIGURATION: '+missing.join(', '));
 const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
 const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',timeout:30000}).trim();
 const verifyCheckpoint=async(commit,job)=>{
