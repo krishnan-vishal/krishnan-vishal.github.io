@@ -30,3 +30,15 @@ test('Gemini API edit accepts only JSON bounded replacement',async()=>{
  const edit=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash',fetchImpl:async(url,opts)=>{assert.match(url,/generativelanguage.googleapis.com/);assert.equal(opts.headers['x-goog-api-key'],'fixture');return {status:200,ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify({content:'export const x=2;\n'})}]}}]})};}});
  assert.deepEqual(await edit({job:{scope:'dashboard',instruction:'edit'},path:'src/a.js',content:'x'}),{status:'EDIT',content:'export const x=2;\n'});
 });
+
+test('real provider 503 capacity signal switches only with verified checkpoint',async()=>{
+ const calls=[];
+ const result=await dispatchWithQuotaFailover({job,providers,config,verifyCheckpoint:async s=>s===sha,execute:async ({provider})=>{calls.push(provider.agent_id);return provider.agent_id==='openrouter'?{status:'PROVIDER_BUSY',http_status:503}:{status:'EDIT',content:'ok'};}});
+ assert.deepEqual(calls,['openrouter','gemini']);assert.equal(result.quota_event,'OBSERVED_PROVIDER_BUSY');
+});
+test('Gemini HTTP 503 is a capacity signal, not an exception or retry',async()=>{
+ let calls=0;
+ const edit=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash',fetchImpl:async()=>{calls++;return {status:503,ok:false};}});
+ assert.deepEqual(await edit({job:{scope:'dashboard',instruction:'edit'},path:'src/a.js',content:'x'}),{status:'PROVIDER_BUSY',provider:'gemini',http_status:503});
+ assert.equal(calls,1);
+});
