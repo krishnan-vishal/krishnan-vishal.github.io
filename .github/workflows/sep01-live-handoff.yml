@@ -1,0 +1,36 @@
+name: SEP-01 live coding handoff acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      primary_model:
+        description: 'Approved primary OpenRouter model ID'
+        required: true
+        type: string
+      fallback_model:
+        description: 'Distinct approved fallback OpenRouter model ID'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-live-acceptance
+  cancel-in-progress: false
+jobs:
+  authenticated-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out existing SEP-01 PR branch without touching other work
+        uses: actions/checkout@v4
+        with:
+          ref: feat/sep01-central-command-controller-20261120
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run one authenticated two-model handoff with isolated Git checkpoints
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SEP01_PRIMARY_MODEL: ${{ inputs.primary_model }}
+          SEP01_FALLBACK_MODEL: ${{ inputs.fallback_model }}
+        run: node scripts/sep01/codespaces-live-handoff.mjs

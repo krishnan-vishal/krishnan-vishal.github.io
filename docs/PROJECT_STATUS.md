@@ -9,6 +9,14 @@
 - Fresh-runner run 44726862749 recovered the same checkpoint with `RECOVERED_CHECKPOINT`, made zero Gemini model-result calls and did not repeat the edit. The Supabase revision and remote branch SHA remained unchanged.
 - Automatic dispatch was not enabled. No production service, website content, CMS record, authentication, entitlement or intelligence publication path was changed. Owner review/merge of draft PR #604 remains the release gate.
 
+## 2026-11-20 — verified research sources active; exact five-year backfill complete
+
+- `gpir-intelligence-fetch` v65 is active in Supabase project `qlnvhfapctcpzqyuhhth` with JWT verification enabled. FinTech News Singapore and Atlas Technologies Research are GREEN and scheduled hourly through the existing Vault-authenticated fetch function; their first :50/:55 cron and Edge runs completed successfully with zero errors or duplicate writes. Finextra and FXC remain DISABLED for documented access/evidence reasons.
+- Production completed 60 monthly windows per source for `[2021-11-19, 2026-11-19)`: FinTech News 1,680/1,680 records and Atlas 49/49, with distinct canonical URLs and hashes, zero missing timestamps and explicit empty Atlas windows before its archive begins.
+- The unchanged publisher completed the bounded candidate drain. Final new-source outcomes are 188 FinTech News and three Atlas approved historical announcements; none is ticker eligible. The live endpoint truthfully returns zero alerts, while the history endpoint returns the source-linked archived records.
+- Thresholds, source checks, deduplication, access controls and audit history are unchanged. A genuine future >=95 article is still required for source-to-live-to-expired acceptance; no backfilled or lower-confidence item was promoted to manufacture that proof.
+- Implementation is durable on remote branch `codex/gpir-live-intelligence-backfill-20261120` and owner-review PR #605 is open; final merge/public website publication remain owner-controlled. Full evidence: [production receipt](GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md).
+
 ## 2026-11-19 — OFAC/FATF + FX + contextual ASK release train prepared; production gate remains human-controlled
 
 - PR #592 head `f8ceb9410607fc7e2b7c35be4e6c9ab985502b1f` provides the shared bounded contextual ASK and cited evidence contract. Security and Integrity run 44489232310 passed.

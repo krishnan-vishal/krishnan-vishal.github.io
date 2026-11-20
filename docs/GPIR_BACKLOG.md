@@ -13,6 +13,12 @@ Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 |---|---|---|---|---|---|---|---|
 | SEP-01-CONSOLIDATED-ACCEPTANCE | 2026-11-20 | Consolidate the failed live attempts into one bounded Gemini edit, verified Git/Supabase checkpoint and fresh-runner recovery path in existing PR #604 | AUTOMATION, GOVERNANCE, SECURITY | Critical | COMPLETED | Owner review and human-controlled merge of draft PR #604 | Repair commit `ce27b82aa36966ecc2af10f67656e9d49ea3cb35`; three PR checks passed. Live run 44726620886 generated and validated the exact isolated fixture edit, pushed checkpoint `4044a5e721483a3e0b7ee84b050c8a54400824ea`, and stored the identical SHA in Supabase revision 14. Fresh-runner run 44726862749 recovered it without a Gemini call or repeated edit. Automatic dispatch and production changes remain disabled. |
 
+## M39 live research sources and five-year intelligence backfill
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M39-LIVE-SOURCE-BACKFILL | 2026-11-20 | Activate verified research sources, complete exact five-year acquisition and drain governed publication without weakening the 95 gate | INTELLIGENCE, DATA, AUTOMATION, GOVERNANCE | Critical | IN PROGRESS | One genuine future qualifying article for source-to-live-to-expired acceptance; owner review/merge | FinTech News Singapore and Atlas are GREEN and hourly; 120 monthly source windows completed with exact 1,680 and 49 record totals, zero missing timestamps and 191 governed historical approvals. Finextra and FXC remain disabled. Empty live relay is truthful; do not manufacture final lifecycle proof. See `docs/GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md`. |
+
 ## M42 OFAC, FATF and Global Country Risk Monitor
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
