@@ -1,0 +1,30 @@
+name: SEP-01 final Gemini and checkpointed dispatch acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Preferred Gemini text model (automatic bounded fallback)'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-gemini-independent-acceptance
+  cancel-in-progress: false
+jobs:
+  independent-provider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/sep01-central-command-controller-20261120
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify independent Gemini and checkpointed cross-provider dispatch
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SEP01_GEMINI_MODEL: ${{ inputs.model }}
+        run: node scripts/sep01/final-gates.mjs

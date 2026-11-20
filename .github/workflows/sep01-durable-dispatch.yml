@@ -1,0 +1,44 @@
+name: SEP-01 durable coding dispatcher
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'Previously queued authorized SEP-01 job ID (blank selects oldest)'
+        required: false
+        type: string
+  schedule:
+    - cron: '*/15 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: sep01-durable-dispatch
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.SEP01_DISPATCH_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/sep01-central-command-controller-20261120
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Resolve one queued job and isolated remote worktree
+        id: preflight
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SEP01_JOB_ID: ${{ inputs.job_id }}
+        run: node scripts/sep01/dispatch-preflight.mjs
+      - name: Execute bounded edit and publish remote checkpoint
+        if: steps.preflight.outputs.has_job == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SEP01_GEMINI_MODEL: ${{ vars.SEP01_GEMINI_MODEL }}
+        run: node scripts/sep01/durable-actions-worker.mjs
