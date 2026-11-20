@@ -1,5 +1,14 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-20 — SEP-01 consolidated repair accepted; PR #604 remains human-controlled
+
+- PR #604 branch `feat/sep01-central-command-controller-20261120` contains the consolidated Gemini, response-validation, bounded runner, remote Git checkpoint, Supabase transition and fresh-runner recovery repair in commit `ce27b82aa36966ecc2af10f67656e9d49ea3cb35`.
+- Required PR checks passed on that commit: GPIR Security and Integrity run 44726345132, SEP-01 controller acceptance run 44726345464, and G1 R07 PostgreSQL acceptance run 44726345423.
+- Manual isolated acceptance run 44726620886 used direct Gemini model discovery. `gemini-2.5-flash-lite` was unavailable, then `gemini-3.1-flash-lite` generated the exact authorized one-file edit. Tests passed and remote checkpoint `4044a5e721483a3e0b7ee84b050c8a54400824ea` was pushed to `sep01/jobs/live-acceptance-20261120`.
+- Independent readback confirmed that commit changes only `scripts/sep01/acceptance-fixture.txt` from `STATE: PENDING` to `STATE: CHECKPOINT_VERIFIED`. Supabase job `sep01-live-acceptance-20261120` is revision 14, status `CHECKPOINTED`, with the identical checkpoint SHA and `tests passed; bounded commit verified` as its last safe step.
+- Fresh-runner run 44726862749 recovered the same checkpoint with `RECOVERED_CHECKPOINT`, made zero Gemini model-result calls and did not repeat the edit. The Supabase revision and remote branch SHA remained unchanged.
+- Automatic dispatch was not enabled. No production service, website content, CMS record, authentication, entitlement or intelligence publication path was changed. Owner review/merge of draft PR #604 remains the release gate.
+
 ## 2026-11-19 — OFAC/FATF + FX + contextual ASK release train prepared; production gate remains human-controlled
 
 - PR #592 head `f8ceb9410607fc7e2b7c35be4e6c9ab985502b1f` provides the shared bounded contextual ASK and cited evidence contract. Security and Integrity run 44489232310 passed.
