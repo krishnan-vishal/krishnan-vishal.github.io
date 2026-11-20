@@ -17,4 +17,4 @@ jobs:
         with:
           node-version: '24'
       - name: Deterministic routing and failover acceptance
-        run: node --test scripts/sep01/controller.test.mjs
+        run: node --test scripts/sep01/*.test.mjs
