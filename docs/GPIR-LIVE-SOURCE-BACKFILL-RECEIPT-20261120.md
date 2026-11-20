@@ -71,6 +71,10 @@ query returned the new records with `CONTENT_VERIFIED`, `HISTORICAL` /
   The window did not advance; a bounded retry completed it without duplicates.
 - The first concurrent dry-run request also saw a transient Supabase
   `JWT issued at future` error. A serial retry passed without changing auth.
+- The first scheduled jobs were observed end to end: FinTech News at 06:50 UTC
+  and Atlas at 06:55 UTC. Both cron runs succeeded and both Edge runs completed
+  `SUCCESS`, checking 10 and nine feed links respectively with zero unseen
+  items, zero fetch/processing errors and zero duplicate writes.
 
 ## Validation receipt
 
