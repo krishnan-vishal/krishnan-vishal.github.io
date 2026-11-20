@@ -24,7 +24,14 @@ export class FileJobStore {
         const out=await open(tmp,'wx',0o600);
         try{await out.writeFile(JSON.stringify(record)+'\n');await out.sync();}finally{await out.close();}
         await rename(tmp,target);
-        const dir=await open(dirname(target),'r');try{await dir.sync();}finally{await dir.close();}
+        const dir=await open(dirname(target),'r');
+        try{
+          try{await dir.sync();}catch(error){
+            // Windows does not support fsync on directory handles. The file was
+            // fsynced above; suppress only that documented platform limitation.
+            if(process.platform!=='win32'||!['EPERM','EINVAL','EBADF'].includes(error.code))throw error;
+          }
+        }finally{await dir.close();}
       }finally{await rm(tmp,{force:true});}
       return record;
     }finally{await handle.close();await rm(lock,{force:true});}

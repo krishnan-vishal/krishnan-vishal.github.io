@@ -19,6 +19,7 @@ export function createCodingRunner({root,allowedPaths,runTests,requestEdit}) {
   const path=job.locked_paths[0],abs=safePath(path);
   if(job.branch!==git(['branch','--show-current'],base))throw Error('WRONG_BRANCH');
   if(git(['status','--porcelain'],base))throw Error('DIRTY_WORKTREE');
+  const parent=git(['rev-parse','HEAD'],base);
   const before=readFileSync(abs,'utf8');
   let edit=await requestEdit({provider,job,path,content:before});
   if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(edit?.status))return {status:edit.status};
@@ -32,18 +33,28 @@ export function createCodingRunner({root,allowedPaths,runTests,requestEdit}) {
   if(edit.content===before)throw Error('MODEL_EDIT_UNCHANGED');
   if(Buffer.byteLength(edit.content)>100000)throw Error('EDIT_TOO_LARGE');
   writeFileSync(abs,edit.content,{encoding:'utf8',flag:'w'});
+  let committed=false;
   try {
    await runTests({job,root:base});
-   const changed=git(['diff','--name-only'],base).split('\n').filter(Boolean);
-   if(changed.length!==1||changed[0]!==path)throw Error('UNEXPECTED_CHANGES');
+   const tracked=git(['diff','--name-only'],base).split('\n').filter(Boolean);
+   const untracked=git(['ls-files','--others','--exclude-standard'],base).split('\n').filter(Boolean);
+   if(tracked.length!==1||tracked[0]!==path||untracked.length)throw Error('UNEXPECTED_CHANGES');
    git(['add','--',path],base);
    git(['-c','user.name=GPIR SEP-01','-c','user.email=sep01@users.noreply.github.com','commit','-m','SEP-01: bounded authorized coding checkpoint'],base);
+   committed=true;
    const commit=git(['rev-parse','HEAD'],base);
    if(!/^[a-f0-9]{40}$/.test(commit))throw Error('INVALID_COMMIT');
+   if(git(['rev-parse','HEAD^'],base)!==parent)throw Error('INVALID_COMMIT_PARENT');
+   const committedPaths=git(['diff-tree','--no-commit-id','--name-only','-r',commit],base).split('\n').filter(Boolean);
+   if(committedPaths.length!==1||committedPaths[0]!==path||git(['status','--porcelain'],base))throw Error('INVALID_COMMIT_CONTENT');
    return {status:'SUCCESS',commit,step:'tests passed; bounded commit verified'};
   } catch(error) {
-   // Reset only the owned file; never discard unrelated work.
-   git(['restore','--staged','--worktree','--',path],base);
+   // Before a commit exists, restore the exact owned bytes only. Never discard
+   // unrelated work or rewrite an already-created checkpoint.
+   if(!committed){
+    git(['restore','--staged','--',path],base);
+    writeFileSync(abs,before,{encoding:'utf8',flag:'w'});
+   }
    throw error;
   }
  };
