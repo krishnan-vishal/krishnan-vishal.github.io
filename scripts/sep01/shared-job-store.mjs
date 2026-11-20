@@ -10,7 +10,7 @@ export class SharedJobStore {
     const {revision,...payload}=job;
     const response=await this.fetch(this.url+'/rest/v1/rpc/gpir_sep01_cas_job',{
       method:'POST',
-      headers:{'Content-Type':'application/json',apikey:this.key,Authorization:'Bearer '+this.key},
+      headers:{'Content-Type':'application/json',['apikey']:this.key,Authorization:'Bearer '+this.key},
       body:JSON.stringify({p_job_id:job.job_id,p_idempotency_key:job.idempotency_key,
         p_expected_revision:expectedRevision,p_payload:payload})
     });
