@@ -26,6 +26,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SEP-01 consolidated repair and live acceptance — 2026-11-20
+
+- **Objective:** Repair the existing PR #604 implementation after repeated configuration, model-selection, syntax, response-handling and availability failures; prove the complete bounded execution and recovery chain without another PR or production activation.
+- **Implementation:** Direct Gemini discovery now accepts only generateContent text models, ignores invalid placeholder configuration, ranks flash-lite capacity first and consumes at most four distinct models. Structured JSON response handling fails closed on blocked, truncated, quota and unavailable responses. The runner validates tracked and untracked scope, preserves exact owned bytes on a failed pre-commit test, verifies the commit parent and one-file tree, pushes the exact commit, and verifies the remote ref before state persistence. Supabase transitions distinguish capacity/auth failures and fresh runners reconcile only a verified remote checkpoint. Windows directory-sync limitations no longer invalidate the durable local store.
+- **Local evidence:** Changed-module syntax and `git diff --check` passed; all 56 SEP-01 tests passed; `e2e-coding-handoff.mjs` emitted `SEP01_REAL_GIT_CHECKPOINT_AND_SIMULATED_429_HANDOFF_PASS`. Content, link and M-18 announcement validators passed. The broader unchanged announcement-intent script still reports five Qatar/RBI/Singapore/Australia/GCC contract failures; no affected file is in that surface. The performance audit remained advisory with its existing seven warnings.
+- **Remote evidence:** Repair commit `ce27b82aa36966ecc2af10f67656e9d49ea3cb35` is confirmed on `origin/feat/sep01-central-command-controller-20261120`. GPIR Security and Integrity run 44726345132, SEP-01 controller run 44726345464 and G1 R07 run 44726345423 passed.
+- **Live evidence:** Run 44726620886 skipped unavailable `gemini-2.5-flash-lite`, then `gemini-3.1-flash-lite` produced the exact authorized edit. Remote branch `sep01/jobs/live-acceptance-20261120`, commit readback and Supabase revision 14 all identify `4044a5e721483a3e0b7ee84b050c8a54400824ea`. Run 44726862749 returned `RECOVERED_CHECKPOINT` with zero Gemini model-result events, proving a fresh runner did not repeat completed work.
+- **Boundary:** The acceptance modifies only the isolated fixture branch. Automatic dispatch was not enabled; no GPIR production service, website, CMS, auth, entitlement or intelligence record changed. PR #604 remains draft and human-controlled merge is pending.
+
 ## M39 global typography, topic continuity and ASK GPIR integration — 2026-11-13
 
 - **Objective:** normalize GPIR chapter/publication typography and whitespace, preserve the governed topic graph across fresh intelligence, research and archives, and expose contextual ASK GPIR navigation without redesigning architecture or changing publication access.

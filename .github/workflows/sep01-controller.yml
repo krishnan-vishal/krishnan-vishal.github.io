@@ -1,0 +1,54 @@
+name: SEP-01 controller acceptance
+on:
+  pull_request:
+    paths:
+      - 'scripts/sep01/**'
+      - '.github/workflows/sep01-controller.yml'
+  workflow_dispatch:
+    inputs:
+      primary_model:
+        description: 'Approved OpenRouter primary model ID'
+        required: true
+        type: string
+      fallback_model:
+        description: 'Distinct approved OpenRouter fallback model ID'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  controller-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Deterministic routing and failover acceptance
+        run: node --test scripts/sep01/*.test.mjs
+  coding-handoff-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Real isolated Git commits and simulated 429 continuation
+        run: node scripts/sep01/e2e-coding-handoff.mjs
+  live-two-model-handoff:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Two authenticated model edits with verified isolated Git checkpoints
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SEP01_PRIMARY_MODEL: ${{ inputs.primary_model }}
+          SEP01_FALLBACK_MODEL: ${{ inputs.fallback_model }}
+        run: node scripts/sep01/codespaces-live-handoff.mjs
