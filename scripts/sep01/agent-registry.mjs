@@ -2,6 +2,7 @@
 // External CLI agents must be connected through separately authorized runner adapters.
 export const AGENTS=Object.freeze([
  {id:'openrouter',kind:'model-api',credential:'OPENROUTER_API_KEY',supportsAutomaticExecution:true},
+ {id:'gemini',kind:'independent-model-api',credential:'GEMINI_API_KEY',supportsAutomaticExecution:true},
  {id:'codex',kind:'coding-agent',credential:'CODEX_AGENT_AUTH',supportsAutomaticExecution:false},
  {id:'copilot',kind:'coding-agent',credential:'COPILOT_AGENT_AUTH',supportsAutomaticExecution:false},
  {id:'cline',kind:'coding-agent',credential:'CLINE_AGENT_AUTH',supportsAutomaticExecution:false},
