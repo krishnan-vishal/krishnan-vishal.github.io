@@ -5,7 +5,8 @@ import {createDurableJobStore} from './durable-job-store.mjs';
 import {createDurableWorker} from './durable-worker.mjs';
 import {createGeminiCodeEditor} from './gemini-code-editor.mjs';
 import {createCodingRunner} from './coding-runner.mjs';
-const root=process.cwd(),jobId=process.env.SEP01_JOB_ID;
+const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
+if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
 if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REPOSITORY)throw Error('GITHUB_ACTIONS_REQUIRED');
 if(!jobId||!process.env.SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY||!process.env.GEMINI_API_KEY||!process.env.SEP01_GEMINI_MODEL)throw Error('SEP01_PRIVATE_WORKER_CONFIGURATION_REQUIRED');
 const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
@@ -20,7 +21,7 @@ const execute=async(job)=>{
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const editor=createGeminiCodeEditor({apiKey:process.env.GEMINI_API_KEY,model:process.env.SEP01_GEMINI_MODEL});
- const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>{execFileSync('node',['--test','scripts/sep01/*.test.mjs'],{cwd:root,timeout:120000,shell:true,stdio:'pipe'});},requestEdit:editor});
+ const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>{execFileSync('node',['--test','scripts/sep01/*.test.mjs'],{cwd:process.cwd(),timeout:120000,shell:true,stdio:'pipe'});},requestEdit:editor});
  const result=await run({job,provider:{id:'gemini/'+process.env.SEP01_GEMINI_MODEL}});
  if(result.status!=='SUCCESS')return result;
  // The commit must be remotely durable before Supabase can mark CHECKPOINTED.
