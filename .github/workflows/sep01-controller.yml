@@ -5,6 +5,11 @@ on:
       - 'scripts/sep01/**'
       - '.github/workflows/sep01-controller.yml'
   workflow_dispatch:
+    inputs:
+      provider_model:
+        description: 'Explicitly approved OpenRouter model ID for bounded live connectivity'
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
@@ -18,3 +23,17 @@ jobs:
           node-version: '24'
       - name: Deterministic routing and failover acceptance
         run: node --test scripts/sep01/*.test.mjs
+  provider-connectivity:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Authenticated OpenRouter advisory smoke (no repository writes)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SEP01_OPENROUTER_MODEL: ${{ inputs.provider_model }}
+        run: node scripts/sep01/provider-smoke.mjs
