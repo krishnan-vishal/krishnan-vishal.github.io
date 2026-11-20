@@ -22,3 +22,12 @@
 5. Reader ASK and homepage ASK share the same approved records but retain distinct access policies. No subscriber data or privileged Supabase key in the browser.
 
 This is an operational scope record, **not** evidence that any source was activated or any backfill completed.
+
+## 2026-11-20 reconciliation
+
+FinTech News Singapore subsequently passed the machine-readable feed, official
+category API, canonical URL, publication timestamp and full article-evidence
+checks. It is now active as T3 source `FINTECHNEWS-SG-008`; its exact five-year
+receipt is recorded in `GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md`.
+This appended outcome supersedes the candidate-only status for that source but
+does not convert any other candidate in this document into an approved source.

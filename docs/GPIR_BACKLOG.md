@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M39 live research sources and five-year intelligence backfill
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M39-LIVE-SOURCE-BACKFILL | 2026-11-20 | Activate verified research sources, complete exact five-year acquisition and drain governed publication without weakening the 95 gate | INTELLIGENCE, DATA, AUTOMATION, GOVERNANCE | Critical | IN PROGRESS | One genuine future qualifying article for source-to-live-to-expired acceptance; owner review/merge | FinTech News Singapore and Atlas are GREEN and hourly; 120 monthly source windows completed with exact 1,680 and 49 record totals, zero missing timestamps and 191 governed historical approvals. Finextra and FXC remain disabled. Empty live relay is truthful; do not manufacture final lifecycle proof. See `docs/GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md`. |
+
 ## M42 OFAC, FATF and Global Country Risk Monitor
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
