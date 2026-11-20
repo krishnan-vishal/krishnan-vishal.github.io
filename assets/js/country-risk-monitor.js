@@ -365,7 +365,7 @@ if (root) {
         }).sort((a,b) => b.countryName.length - a.countryName.length);
         const country = mentioned[0];
         const statusText = country
-            ? country.countryName + ": " + country.fatfLabel + ". This is the classification in the current verified GPIR FATF snapshot, not an OFAC country-sanctions conclusion."
+            ? country.countryName + ": FATF publication status in the dated official FATF source: " + country.fatfLabel + ". GPIR reproduces the official FATF publication status; it does not independently designate jurisdictions or infer OFAC sanctions."
             : "";
         try {
             const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
@@ -446,8 +446,7 @@ if (root) {
             tabButtons[nextTab].focus();
             return;
         }
-        if (direction < 0) location.assign("/reader/my-gpir/#library");
-        else location.assign("/reader/my-gpir/#library");
+        location.assign("/reader/my-gpir/#library");
     }
     root.querySelector("[data-risk-back]")?.addEventListener("click", () => moveDashboard(-1));
     root.querySelector("[data-risk-forward]")?.addEventListener("click", () => moveDashboard(1));
