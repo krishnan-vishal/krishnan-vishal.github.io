@@ -13,7 +13,7 @@ export function createAiderAdapter({cwd,model,apiKey,timeoutMs=120000}){
   if(!rel||rel.startsWith('..')||isAbsolute(rel)||file.startsWith('-')||!statSync(abs).isFile())throw Error('AIDER_UNSAFE_PATH');
   const env={...process.env,OPENROUTER_API_KEY:apiKey,AIDER_ANALYTICS:'false',AIDER_CHECK_UPDATE:'false'};
   try{
-   execFileSync('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--model','openrouter/'+model,'--message',job.instruction,'--',rel],{cwd:base,env,timeout:timeoutMs,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024});
+   execFileSync('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--model','openrouter/'+model,'--message',job.instruction,rel],{cwd:base,env,timeout:timeoutMs,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024});
    return {status:'EDIT_COMPLETE_REQUIRES_GIT_VERIFICATION',model,allowed_path:rel};
   }catch(e){
    // No implicit retry or failover: the caller must first verify a durable checkpoint.
