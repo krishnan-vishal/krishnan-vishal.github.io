@@ -5,6 +5,7 @@ import {
     PAYMENTS_PUBLISHERS,
     PAYMENTS_PUBLISHER_IDS,
     approvedArticleUrl,
+    buildPaymentsPublisherDiscoveryUrl,
     discoverPaymentsPublisherLinks,
     isApprovedPaymentsPublisherRegistry,
     selectUnseenItems
@@ -33,6 +34,18 @@ const epcListing = `<h2><a href="/news-insights/news/epc-publishes-updated-techn
 <a href="/latest/monthly-e-newsletter">Monthly e-newsletter</a>
 <a href="https://evil.example/news-insights/news/fake-article-with-a-long-title">Fake article with a long title</a>`;
 
+const fintechNewsFeed = `<rss><channel><item>
+<title><![CDATA[NETS Adds AI Agent Payments]]></title>
+<link>https://fintechnews.sg/141909/payments/nets-ai-agent-payments/</link>
+<pubDate>Thu, 19 Nov 2026 09:11:26 +0000</pubDate>
+</item></channel></rss>`;
+
+const wordpressHistory = JSON.stringify([
+    { id: 140075, date_gmt: '2026-10-30T05:05:36', link: 'https://fintechnews.sg/140075/payments/visa-payment-passkey-adyen-authenticate/', title: { rendered: 'Adyen Rolls Out Visa Payment Passkey for Online Checkout' }, categories: [5666] },
+    { id: 140076, date_gmt: '2026-10-30T06:00:00', link: 'https://fintechnews.sg/140076/security/off-topic/', title: { rendered: 'Not in the approved category' }, categories: [77] },
+    { id: 140077, date_gmt: '2026-11-01T00:00:00', link: 'https://fintechnews.sg/140077/payments/end-boundary/', title: { rendered: 'Exact exclusive end boundary' }, categories: [5666] }
+]);
+
 test('Payments Dive discovery keeps only approved-host article URLs, deduplicated, with index dates', () => {
     const items = discoverPaymentsPublisherLinks('PAYMENTSDIVE-US-005', paymentsDiveFeed);
     assert.equal(items.length, 1);
@@ -51,6 +64,38 @@ test('EPC discovery yields article links only and never an invented date', () =>
     const items = discoverPaymentsPublisherLinks('EPC-EUR-007', epcListing);
     assert.deepEqual(items.map(item => item.url), ['https://www.europeanpaymentscouncil.eu/news-insights/news/epc-publishes-updated-technical-documentation-srtp-scheme']);
     assert.equal(items[0].indexPublishedAt, null);
+});
+
+test('verified WordPress publishers support current feeds and exact bounded history', () => {
+    const live = discoverPaymentsPublisherLinks('FINTECHNEWS-SG-008', fintechNewsFeed);
+    assert.equal(live[0].indexPublishedAt, '2026-11-19T09:11:26.000Z');
+    assert.equal(live[0].url, 'https://fintechnews.sg/141909/payments/nets-ai-agent-payments/');
+
+    const history = discoverPaymentsPublisherLinks('FINTECHNEWS-SG-008', wordpressHistory, {
+        start: '2026-10-01T00:00:00.000Z', end: '2026-11-01T00:00:00.000Z', max: 100
+    });
+    assert.deepEqual(history.map(item => item.url), [
+        'https://fintechnews.sg/140075/payments/visa-payment-passkey-adyen-authenticate/'
+    ]);
+    assert.equal(history[0].indexPublishedAt, '2026-10-30T05:05:36.000Z');
+    assert.deepEqual(history[0].discovery, { adapter: 'wordpress-rest-v2', postId: 140075 });
+});
+
+test('historical discovery URL is official, category-bound and limited to one month', () => {
+    const value = buildPaymentsPublisherDiscoveryUrl('ATLAS-APAC-009', {
+        start: '2026-10-01T00:00:00.000Z', end: '2026-11-01T00:00:00.000Z', maxRecords: 1000
+    });
+    const url = new URL(value);
+    assert.equal(url.origin + url.pathname, 'https://sg.atlstech.com/wp-json/wp/v2/posts');
+    assert.equal(url.searchParams.get('categories'), '3100');
+    assert.equal(url.searchParams.get('per_page'), '100');
+    assert.equal(url.searchParams.get('before'), '2026-11-01T00:00:00.000Z');
+    assert.throws(() => buildPaymentsPublisherDiscoveryUrl('ATLAS-APAC-009', {
+        start: '2026-09-01T00:00:00.000Z', end: '2026-11-01T00:00:00.000Z'
+    }), /EXCEEDS_32_DAYS/);
+    assert.throws(() => buildPaymentsPublisherDiscoveryUrl('FINEXTRA-PAY-006', {
+        start: '2026-10-01T00:00:00.000Z', end: '2026-11-01T00:00:00.000Z'
+    }), /UNSUPPORTED/);
 });
 
 test('only registered publishers are accepted and article URLs must match host and path', () => {
@@ -80,7 +125,9 @@ test('the fetch function reuses the existing pipeline, guards the registry and f
     assert.match(fetchSource, /\.\.\.PAYMENTS_PUBLISHER_IDS\] as const/);
     assert.match(fetchSource, /PAYMENTS_PUBLISHER_REGISTRY_MISMATCH/);
     assert.match(fetchSource, /discoverPaymentsPublisherLinks\(requestedSource, indexHtml/);
-    assert.match(fetchSource, /selectUnseenItems\(routedDiscoveries, knownUrls, MAX_PAGE_FETCHES\)/);
+    assert.match(fetchSource, /selectUnseenItems\([\s\S]*routedDiscoveries[\s\S]*knownUrls/);
+    assert.match(fetchSource, /MAX_BACKFILL_PAGE_FETCHES/);
+    assert.match(fetchSource, /start_datetime: payload\.start_datetime/);
     assert.match(fetchSource, /\.from\("intelligence_raw_ingestion"\)\s*\.select\("discovered_url"\)/);
     assert.match(fetchSource, /ECB_SOURCE_ID/);
 });

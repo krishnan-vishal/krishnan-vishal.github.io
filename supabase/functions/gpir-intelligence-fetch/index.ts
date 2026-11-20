@@ -31,6 +31,7 @@ import { fetchTechnicalHistory } from "../_shared/gpir-github-technical.mjs";
 import { articleSpecificDescription, collapseOfficialPathSlashes } from "../_shared/gpir-official-evidence.mjs";
 import {
   PAYMENTS_PUBLISHER_IDS,
+  buildPaymentsPublisherDiscoveryUrl,
   discoverPaymentsPublisherLinks,
   isApprovedPaymentsPublisherRegistry,
   selectUnseenItems,
@@ -51,6 +52,7 @@ const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, 
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 5;
+const MAX_BACKFILL_PAGE_FETCHES = 10;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
 // strand a source. Dry runs never obtain a claim and remain write-free.
 const SOURCE_RUN_CLAIM_TTL_SECONDS = 900;
@@ -1086,6 +1088,11 @@ const source = sourceRows[0] as SourceRecord;
           source.feed_or_index_url || source.official_url;
 
         const gdeltTopic = String(payload.gdelt_topic || "cross-border-payments");
+        const paymentsPublisher = (PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource);
+        const paymentsHistoryWindow = paymentsPublisher && Boolean(payload.start_datetime || payload.end_datetime);
+        const paymentsDiscoveryLimit = paymentsHistoryWindow
+          ? Math.max(1, Math.min(100, Number(payload.max_records) || 100))
+          : MAX_DISCOVERED_LINKS;
 
           const discoveryUrl =
           requestedSource === GDELT_SOURCE_ID
@@ -1098,6 +1105,12 @@ const source = sourceRows[0] as SourceRecord;
           ? SFA_NEWS_INDEX
           : requestedSource === RBA_SOURCE_ID
           ? RBA_MEDIA_RSS
+          : paymentsPublisher
+          ? buildPaymentsPublisherDiscoveryUrl(requestedSource, {
+            start: payload.start_datetime,
+            end: payload.end_datetime,
+            maxRecords: paymentsDiscoveryLimit,
+          })
           : indexUrl;
 
         if (!indexUrl) {
@@ -1156,8 +1169,12 @@ const source = sourceRows[0] as SourceRecord;
           ? discoverFintechFuturesLinks(indexHtml, indexResponse.url)
           : requestedSource === PYMNTS_SOURCE_ID
           ? discoverPymntsLinks(indexHtml, indexResponse.url)
-          : (PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource)
-          ? discoverPaymentsPublisherLinks(requestedSource, indexHtml, { max: MAX_DISCOVERED_LINKS }) as DiscoveredItem[]
+          : paymentsPublisher
+          ? discoverPaymentsPublisherLinks(requestedSource, indexHtml, {
+            max: paymentsDiscoveryLimit,
+            start: payload.start_datetime,
+            end: payload.end_datetime,
+          }) as DiscoveredItem[]
           : discoverLinks(indexHtml, indexResponse.url);
 
         let unmatchedPublisherSources = 0;
@@ -1192,7 +1209,12 @@ const source = sourceRows[0] as SourceRecord;
           if (knownError) throw new Error(`KNOWN_URL_LOOKUP_FAILED: ${knownError.message}`);
           for (const row of knownRows || []) knownUrls.add((row as { discovered_url: string }).discovered_url);
         }
-        const selected = selectUnseenItems(routedDiscoveries, knownUrls, MAX_PAGE_FETCHES) as DiscoveredItem[];
+        const unseenDiscoveryCount = routedDiscoveries.filter((item) => !knownUrls.has(item.url)).length;
+        const selected = selectUnseenItems(
+          routedDiscoveries,
+          knownUrls,
+          paymentsHistoryWindow ? MAX_BACKFILL_PAGE_FETCHES : MAX_PAGE_FETCHES,
+        ) as DiscoveredItem[];
 
         const preview: unknown[] = [];
         // ----------------------------------------------------
@@ -1454,7 +1476,7 @@ if (gate1Decision === "PASS") {
                 meta.sourcePublishedAt
                   ? meta.publicationDateSource
                   : item.indexPublishedAt
-                  ? "RBI_LISTING_OR_RSS"
+                  ? "SOURCE_INDEX_OR_FEED"
                   : "UNKNOWN",
 
               index_published_at:
@@ -1552,7 +1574,18 @@ if (gate1Decision === "PASS") {
               records_discovered: selected.length, records_candidate: reviewCount + pendingCandidateCount,
               records_rejected: rejectedCount, records_published: 0,
               error_message: fetchErrors || processingErrors ? `fetch_errors=${fetchErrors}; processing_errors=${processingErrors}` : null,
-              metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, fetched_count: selected.length - fetchErrors, raw_inserted_count: inserted, review_count: reviewCount, pending_candidate_count: pendingCandidateCount, gate1_rejected_count: gate1RejectedCount, gate2_rejected_count: gate2RejectedCount, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors },
+              metadata: {
+                milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false,
+                max_page_fetches: paymentsHistoryWindow ? MAX_BACKFILL_PAGE_FETCHES : MAX_PAGE_FETCHES,
+                start_datetime: payload.start_datetime || null, end_datetime: payload.end_datetime || null,
+                links_discovered: routedDiscoveries.length,
+                unseen_remaining: Math.max(0, unseenDiscoveryCount - selected.length),
+                fetched_count: selected.length - fetchErrors, raw_inserted_count: inserted,
+                review_count: reviewCount, pending_candidate_count: pendingCandidateCount,
+                gate1_rejected_count: gate1RejectedCount, gate2_rejected_count: gate2RejectedCount,
+                duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors,
+                processing_error_count: processingErrors,
+              },
             }).eq("id", runId);
           if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
         }
@@ -1592,6 +1625,8 @@ if (gate1Decision === "PASS") {
                 unmatchedPublisherSources,
             pages_selected:
               selected.length,
+            unseen_remaining:
+              Math.max(0, unseenDiscoveryCount - selected.length),
             raw_records_inserted:
               inserted,
             duplicates_skipped:
