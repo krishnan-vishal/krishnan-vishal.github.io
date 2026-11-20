@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createGeminiCodeEditor} from './gemini-code-editor.mjs';
+import {createOpenRouterCodeEditor} from './openrouter-code-editor.mjs';
 import {dispatchWithQuotaFailover} from './live-quota-failover.mjs';
 const sha='a'.repeat(40),job={job_id:'test',idempotency_key:'key',branch:'fix/test',locked_paths:['src/a.js'],scope:'dashboard',capability:'code',remaining_budget:0,status:'QUEUED',checkpoint_commit:sha};
 const providers=[
@@ -40,5 +41,13 @@ test('Gemini HTTP 503 is a capacity signal, not an exception or retry',async()=>
  let calls=0;
  const edit=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash',fetchImpl:async()=>{calls++;return {status:503,ok:false};}});
  assert.deepEqual(await edit({job:{scope:'dashboard',instruction:'edit'},path:'src/a.js',content:'x'}),{status:'PROVIDER_BUSY',provider:'gemini',http_status:503});
+ assert.equal(calls,1);
+});
+
+test('OpenRouter actual 503 response yields capacity signal for controller',async()=>{
+ let calls=0;
+ const editor=createOpenRouterCodeEditor({apiKey:'fixture',model:'approved-model',fetchImpl:async()=>{calls++;return {status:503,ok:false};}});
+ const result=await editor({job:{instruction:'edit'},path:'src/a.js',content:'x'});
+ assert.deepEqual(result,{status:'PROVIDER_BUSY',provider:'openrouter',http_status:503});
  assert.equal(calls,1);
 });
