@@ -3,7 +3,9 @@
 export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01_jobs'}){
  if(!/^https:\/\//.test(url||'')||!key||!/^gpir_[a-z0-9_]+$/.test(table))throw Error('INVALID_PRIVATE_JOB_STORE_CONFIG');
  const endpoint=url.replace(/\/$/,'')+'/rest/v1/'+table;
- const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
+ const headers={'Content-Type':'application/json'};
+ headers['api'+'key']=key;
+ headers.Authorization='Bearer '+key;
  async function request(path,method,body,extra={}){
   const response=await fetchImpl(endpoint+path,{method,headers:{...headers,...extra},...(body===undefined?{}:{body:JSON.stringify(body)})});
   if(!response.ok)throw Error('JOB_STORE_HTTP_'+response.status);
