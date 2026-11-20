@@ -12,7 +12,12 @@ export function createGeminiCodeEditor({apiKey,model,fetchImpl=fetch}){
   });
   if(response.status===429)return {status:'QUOTA_EXHAUSTED',provider:'gemini'};
   if(response.status===401||response.status===403)return {status:'PROVIDER_UNAVAILABLE',reason:'AUTH_OR_PERMISSION'};
-  if(!response.ok)throw Error('GEMINI_HTTP_'+response.status);
+  if(!response.ok){
+   const detail=await response.json().catch(()=>({}));
+   const reason=String(detail?.error?.message||'').slice(0,240).replace(/[\r\n]/g,' ');
+   if(response.status===404)return {status:'MODEL_UNAVAILABLE',reason:reason||'MODEL_NOT_FOUND'};
+   throw Error('GEMINI_HTTP_'+response.status+(reason?' '+reason:''));
+  }
   const data=await response.json();
   const answer=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('');
   if(typeof answer!=='string'||!answer)throw Error('INVALID_GEMINI_RESPONSE');
