@@ -446,7 +446,14 @@ if (root) {
             tabButtons[nextTab].focus();
             return;
         }
-        location.assign("/reader/my-gpir/#library");
+        // At the dashboard boundary, stay in the Risk Monitor and wrap to the
+        // adjacent section rather than navigating away from the reader's work.
+        const wrapTab = direction > 0 ? tabButtons[0] : tabButtons[tabButtons.length - 1];
+        if (wrapTab) {
+            if (direction > 0) { pageNumber = 1; selectedCountryCode = null; }
+            wrapTab.click();
+            wrapTab.focus();
+        }
     }
     root.querySelector("[data-risk-back]")?.addEventListener("click", () => moveDashboard(-1));
     root.querySelector("[data-risk-forward]")?.addEventListener("click", () => moveDashboard(1));
