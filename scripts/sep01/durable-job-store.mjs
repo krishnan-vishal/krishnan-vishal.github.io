@@ -12,7 +12,8 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
  return {
   async enqueue(job){
    if(!job?.job_id||!job?.idempotency_key||!job?.branch||!Array.isArray(job.locked_paths)||!job.locked_paths.length)throw Error('INVALID_DURABLE_JOB');
-   const rows=await request('','POST',{...job,status:'QUEUED'}, {'Prefer':'resolution=ignore-duplicates,return=representation'});
+   const {job_id,idempotency_key,branch,locked_paths,scope,capability='code',sensitivity_tier=null,remaining_budget=0}=job;
+   const rows=await request('','POST',{job_id,idempotency_key,branch,locked_paths,scope,capability,sensitivity_tier,remaining_budget,status:'QUEUED'}, {'Prefer':'resolution=ignore-duplicates,return=representation'});
    return rows[0]||null;
   },
   async get(jobId){
