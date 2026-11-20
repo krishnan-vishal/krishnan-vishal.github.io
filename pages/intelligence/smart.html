@@ -70,12 +70,13 @@
     </svg>
   </header>
 
+  <nav aria-label="Smart Card navigation" style="display:flex;gap:12px;align-items:center;justify-content:flex-end;padding:8px 20px;background:#0b1f3d;color:#fff"><a href="../../reader/my-gpir/#library" style="color:#fff">← My Library</a><a href="../fx/intelligence.html" style="color:#fff">FX Intelligence →</a><a href="../risk/global-country-risk-monitor.html" style="color:#fff">Regulatory Intelligence →</a></nav>
   <div class="smx-shell">
     <aside class="smx-side" aria-label="Dashboard navigation">
       <nav aria-label="Intelligence dashboard navigation">
         <a href="../../index.html"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-home"></use></svg><span>Home</span></a>
         <a href="./smart.html" aria-current="page" class="smx-side-active"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bars"></use></svg><span>Intelligence Dashboard</span></a>
-        <a href="#smart-live-alerts"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bell"></use></svg><span>Global Alerts</span><i class="smx-alert-dot" data-smart-alerts-dot hidden><span class="smx-sr">Live alerts available</span></i></a>
+        <a href="#smart-live-alerts" data-smart-alert-nav aria-label="Global Alerts: live relay and historical archive"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-bell"></use></svg><span>Global Alerts</span><i class="smx-alert-dot" data-smart-alerts-dot hidden><span class="smx-sr">Live alerts available</span></i></a>
         <a href="../fx/intelligence.html"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-fx"></use></svg><span>FX Intelligence</span></a>
         <a href="./smart.html?themes=regulatory,aml,fraud"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-risk"></use></svg><span>Risk &amp; Regulatory</span></a>
         <a href="../../index.html#research"><svg class="smx-ico" aria-hidden="true" focusable="false"><use href="#smx-ic-list"></use></svg><span>Publications</span></a>
@@ -185,7 +186,7 @@
         <div data-smart-timeline-track></div>
       </section>
 
-      <section class="smi-alert-ribbon smx-live" id="smart-live-alerts" aria-label="Live Global Alerts" data-smart-live data-state="loading">
+      <section tabindex="-1" class="smi-alert-ribbon smx-live" id="smart-live-alerts" aria-label="Live Global Alerts" data-smart-live data-state="loading">
         <strong><span aria-hidden="true"></span> LIVE GLOBAL ALERTS</strong>
         <div data-smart-live-content aria-live="polite">Checking the governed 12-hour publication window…</div>
         <span class="smx-asof" data-smart-asof>As of —</span>
@@ -248,5 +249,15 @@
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script defer src="../../assets/js/content-search.js?v=20261117b"></script>
   <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261119e"></script>
+  <script>
+  document.querySelector("[data-smart-alert-nav]")?.addEventListener("click", event => {
+    const target = document.getElementById("smart-live-alerts");
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.focus({ preventScroll: true });
+    history.replaceState(null, "", "#smart-live-alerts");
+  });
+</script>
 </body>
 </html>

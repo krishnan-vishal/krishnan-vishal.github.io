@@ -1,0 +1,38 @@
+name: SEP-01 OpenRouter connectivity (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      provider_model:
+        description: 'Approved OpenRouter model ID (provider/model)'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  authenticated-connectivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify authenticated OpenRouter API without code execution
+        shell: bash
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PROVIDER_MODEL: ${{ inputs.provider_model }}
+        run: |
+          node <<'NODE'
+          const key=process.env.OPENROUTER_API_KEY;
+          const model=process.env.PROVIDER_MODEL;
+          if(!key||!model||!model.includes('/'))throw Error('PROVIDER_CONFIGURATION_MISSING');
+          (async()=>{
+            const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+              method:'POST',
+              headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},
+              body:JSON.stringify({model,stream:false,max_tokens:16,
+                messages:[{role:'user',content:'Reply OK.'}]})
+            });
+            if(!res.ok)throw Error('OPENROUTER_AUTH_OR_MODEL_FAILED_HTTP_'+res.status);
+            const body=await res.json();
+            if(!body?.choices?.[0]?.message)throw Error('INVALID_PROVIDER_RESPONSE');
+            console.log('SEP01_OPENROUTER_AUTHENTICATED_ADVISORY_OK');
+          })().catch(e=>{console.error(e.message);process.exitCode=1});
+          NODE
