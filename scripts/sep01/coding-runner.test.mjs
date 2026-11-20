@@ -46,3 +46,22 @@ test('quota exhaustion returns without changing git state',async()=>{
   assert.equal(git(root,'status','--porcelain'),'');
  } finally {rmSync(root,{recursive:true,force:true});}
 });
+
+test('one model no-op is clarified once before committing',async()=>{
+ const root=fixture();let calls=0;
+ try{
+  const run=createCodingRunner({root,allowedPaths:['src/file.js'],
+   requestEdit:async()=>++calls===1?{status:'EDIT',content:'export const value = 1;\n'}:{status:'EDIT',content:'export const value = 2;\n'},
+   runTests:async()=>{}});
+  const result=await run({job:{branch:'sep01-test',locked_paths:['src/file.js'],instruction:'Change value to 2'},provider:{id:'approved'}});
+  assert.equal(result.status,'SUCCESS');assert.equal(calls,2);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('provider busy is reported without treating it as an invalid edit',async()=>{
+ const root=fixture();
+ try{
+  const run=createCodingRunner({root,allowedPaths:['src/file.js'],requestEdit:async()=>({status:'PROVIDER_BUSY'}),runTests:async()=>{}});
+  assert.deepEqual(await run({job:{branch:'sep01-test',locked_paths:['src/file.js']},provider:{id:'approved'}}),{status:'PROVIDER_BUSY'});
+  assert.equal(git(root,'status','--porcelain'),'');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
