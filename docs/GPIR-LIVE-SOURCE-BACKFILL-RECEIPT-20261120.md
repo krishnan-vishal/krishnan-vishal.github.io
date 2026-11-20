@@ -3,7 +3,8 @@
 ## Release identity
 
 - Repository branch: `codex/gpir-live-intelligence-backfill-20261120`
-- Durable implementation head before this receipt: `6deaaf50f915f8dd57ba9fc56202eaf3ee85c131`
+- Owner-review pull request: #605
+- Production receipt head before the PR-number follow-up: `dc3968729a0656d5ddb1e5d97649624dc5ee2305`
 - Supabase project: `qlnvhfapctcpzqyuhhth`
 - Deployed function: `gpir-intelligence-fetch` v65, JWT verification enabled
 - Historical window: `[2021-11-19T00:00:00Z, 2026-11-19T00:00:00Z)`
