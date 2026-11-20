@@ -26,8 +26,8 @@ const execute=async(job)=>{
  const discovery=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100',{headers:{'x-goog-api-key':key}});
  if(!discovery.ok)throw Error('GEMINI_MODEL_DISCOVERY_HTTP_'+discovery.status);
  const listing=await discovery.json();
- const eligible=(listing.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&/^models\\/gemini-[a-z0-9._-]+$/i.test(m.name)&&!/tts|audio|speech|image|video|live|embedding/i.test(m.name)).map(m=>m.name.slice(7));
- const preferred=process.env.SEP01_GEMINI_MODEL.trim().replace(/^models\\//,'');
+ const eligible=(listing.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&typeof m.name==='string'&&m.name.startsWith('models/gemini-')&&!/tts|audio|speech|image|video|live|embedding/i.test(m.name)).map(m=>m.name.slice(7));
+ const preferred=process.env.SEP01_GEMINI_MODEL.trim().replace('models/','');
  const model=eligible.includes(preferred)?preferred:eligible.find(m=>/flash/i.test(m))||eligible[0];
  if(!model)throw Error('NO_AUTHORIZED_GEMINI_TEXT_MODEL');
  console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_SELECTED',model,preferred_matched:model===preferred}));
