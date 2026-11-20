@@ -12,6 +12,8 @@ export function createOpenRouterCodeEditor({apiKey,model,fetchImpl=fetch}) {
     ]})
   });
   if(response.status===429)return {status:'QUOTA_EXHAUSTED'};
+  if([502,503,504].includes(response.status))return {status:'PROVIDER_BUSY',provider:'openrouter',http_status:response.status};
+  if(response.status===404)return {status:'MODEL_UNAVAILABLE',provider:'openrouter'};
   if(!response.ok)throw Error('CODE_EDITOR_HTTP_'+response.status);
   const data=await response.json();
   const answer=data?.choices?.[0]?.message?.content;
