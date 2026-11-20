@@ -11,6 +11,7 @@ export function createGeminiCodeEditor({apiKey,model,fetchImpl=fetch}){
    body:JSON.stringify({systemInstruction:{parts:[{text:'You are a code editor. Reply only with a JSON object containing a content string holding the complete replacement file. No markdown or shell commands.'}]},contents:[{role:'user',parts:[{text:JSON.stringify({task:job.instruction,file:path,content})}]}],generationConfig:{temperature:0,maxOutputTokens:6000,responseMimeType:'application/json'}})
   });
   if(response.status===429)return {status:'QUOTA_EXHAUSTED',provider:'gemini'};
+  if(response.status===503||response.status===502||response.status===504)return {status:'PROVIDER_BUSY',provider:'gemini',http_status:response.status};
   if(response.status===401||response.status===403)return {status:'PROVIDER_UNAVAILABLE',reason:'AUTH_OR_PERMISSION'};
   if(!response.ok){
    const detail=await response.json().catch(()=>({}));
