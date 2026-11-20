@@ -9,7 +9,7 @@ export async function dispatchWithQuotaFailover({job,providers,config,verifyChec
  let active=claim(job,[first]);
  if(active.status!=='CLAIMED')return active;
  const firstResult=await execute({job:active,provider:first});
- if(firstResult?.status!=='QUOTA_EXHAUSTED')return {job:active,result:firstResult};
+ if(!['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE'].includes(firstResult?.status))return {job:active,result:firstResult};
  // Never switch on a real 429 without a durable, independently verified commit.
  if(!job.checkpoint_commit||!/^[a-f0-9]{40}$/.test(job.checkpoint_commit)||!await verifyCheckpoint(job.checkpoint_commit,job)){
   return {job:{...active,status:'QUOTA_PAUSED',reason:'NO_VERIFIED_CHECKPOINT'},result:firstResult};
@@ -22,5 +22,5 @@ export async function dispatchWithQuotaFailover({job,providers,config,verifyChec
  const fallback=allowed.find(p=>p.id===next.provider);
  if(!fallback||!await verifyCheckpoint(next.checkpoint_commit,job))throw Error('CHECKPOINT_CHANGED_BEFORE_FAILOVER');
  const result=await execute({job:next,provider:fallback});
- return {job:next,result,switched_from:first.id,switched_to:fallback.id,quota_event:'OBSERVED_429'};
+ return {job:next,result,switched_from:first.id,switched_to:fallback.id,quota_event:firstResult.status==='QUOTA_EXHAUSTED'?'OBSERVED_429':firstResult.status==='PROVIDER_BUSY'?'OBSERVED_PROVIDER_BUSY':'OBSERVED_MODEL_UNAVAILABLE'};
 }
