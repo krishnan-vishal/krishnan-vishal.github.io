@@ -38,9 +38,12 @@ function argumentsFrom(argv = process.argv.slice(2)) {
 }
 
 async function invoke(url, secret, functionName, body) {
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.set('apikey', secret);
+    headers.set('Authorization', `Bearer ${secret}`);
     const response = await fetch(`${url.replace(/\/$/, '')}/functions/v1/${functionName}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: secret, Authorization: `Bearer ${secret}` },
+        headers,
         body: JSON.stringify(body)
     });
     const text = await response.text();
