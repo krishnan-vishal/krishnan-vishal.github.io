@@ -16,6 +16,10 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    const rows=await request('','POST',{job_id,idempotency_key,branch,locked_paths,scope,instruction,capability,sensitivity_tier,remaining_budget,status:'QUEUED'}, {'Prefer':'resolution=ignore-duplicates,return=representation'});
    return rows[0]||null;
   },
+  async nextQueued(){
+   const rows=await request('?status=eq.QUEUED&order=created_at.asc&limit=1&select=*','GET');
+   return rows[0]||null;
+  },
   async get(jobId){
    const rows=await request('?job_id=eq.'+encodeURIComponent(jobId)+'&select=*','GET');
    return rows[0]||null;
