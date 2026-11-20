@@ -1,10 +1,10 @@
-name: SEP-01 independent Gemini provider acceptance
+name: SEP-01 final Gemini and checkpointed dispatch acceptance
 on:
   workflow_dispatch:
     inputs:
       model:
-        description: 'Approved Gemini API model ID'
-        required: true
+        description: 'Preferred Gemini text model (automatic bounded fallback)'
+        required: false
         type: string
 permissions:
   contents: read
@@ -23,8 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Authenticate independent Gemini route without production writes
+      - name: Verify independent Gemini and checkpointed cross-provider dispatch
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SEP01_GEMINI_MODEL: ${{ inputs.model }}
-        run: node scripts/sep01/gemini-live-acceptance.mjs
+        run: node scripts/sep01/final-gates.mjs
