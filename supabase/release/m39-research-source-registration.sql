@@ -18,7 +18,7 @@ insert into public.source_registry (
    'Payments Research', 'T3', 'https://sg.atlstech.com/', 'A',
    'https://sg.atlstech.com/category/insight/blogs/payments-research/feed/',
    60, 'wordpress-payments-v1', 'GREEN'),
-  ('FXC-GLOBAL-010', 'FXC Intelligence', null, 'Global', null,
+  ('FXC-GLOBAL-010', 'FXC Intelligence', 'XGL', 'Global', null,
    'Payments Intelligence', 'T3', 'https://www.fxcintel.com/', 'C',
    'https://www.fxcintel.com/research', 1440, 'standard-html', 'DISABLED')
 on conflict (source_id) do nothing;

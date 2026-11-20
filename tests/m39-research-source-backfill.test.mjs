@@ -28,7 +28,7 @@ test('backfill defaults to plan-only and only permits approved source IDs', () =
 test('registration activates verified sources while FXC and Finextra remain fail-closed', () => {
     assert.match(registration, /'FINTECHNEWS-SG-008'[\s\S]*'wordpress-payments-v1', 'GREEN'/);
     assert.match(registration, /'ATLAS-APAC-009'[\s\S]*'wordpress-payments-v1', 'GREEN'/);
-    assert.match(registration, /'FXC-GLOBAL-010'[\s\S]*'standard-html', 'DISABLED'/);
+    assert.match(registration, /'FXC-GLOBAL-010', 'FXC Intelligence', 'XGL', 'Global'[\s\S]*'standard-html', 'DISABLED'/);
     assert.match(registration, /'FINEXTRA-PAY-006' and source_status = 'DISABLED'/);
     assert.match(registration, /on conflict \(source_id\) do nothing/);
     assert.doesNotMatch(registration, /confidence|threshold|alter table|drop table|delete from/i);
