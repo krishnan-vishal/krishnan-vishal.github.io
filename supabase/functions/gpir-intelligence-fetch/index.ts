@@ -1251,7 +1251,7 @@ const source = sourceRows[0] as SourceRecord;
                 type: "PDF_DEFERRED",
               });
 
-              continue;
+              return;
             }
 
             if (!pageResponse.ok) {
@@ -1264,7 +1264,7 @@ const source = sourceRows[0] as SourceRecord;
                 type: "FETCH_ERROR",
               });
 
-              continue;
+              return;
             }
 
             if (requestedSource === GDELT_SOURCE_ID &&
@@ -1272,7 +1272,7 @@ const source = sourceRows[0] as SourceRecord;
               fetchErrors++;
               preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
                 type: "GDELT_PUBLISHER_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
-              continue;
+              return;
             }
 
             const pageHtml = await pageResponse.text();
@@ -1292,7 +1292,7 @@ const source = sourceRows[0] as SourceRecord;
               fetchErrors++;
               preview.push({ discovered_title: item.title, url: item.url, status: pageResponse.status,
                 type: "GDELT_CANONICAL_DOMAIN_MISMATCH", candidate_source_id: articleSource.source_id });
-              continue;
+              return;
             }
             if (requestedSource === RBA_SOURCE_ID) {
               const canonicalUrl = absoluteUrl(meta.canonicalUrl || pageResponse.url, pageResponse.url);
@@ -1312,7 +1312,7 @@ const source = sourceRows[0] as SourceRecord;
                   status: pageResponse.status,
                   type: "RBA_CANONICAL_URL_REJECTED",
                 });
-                continue;
+                return;
               }
             }
 
@@ -1328,7 +1328,7 @@ const source = sourceRows[0] as SourceRecord;
                 type: "RBA_ARTICLE_BODY_REJECTED",
                 evidence_extracted: false,
               });
-              continue;
+              return;
             }
     // M33-F5
     // Prefer article-page publication metadata.
@@ -1509,7 +1509,7 @@ if (gate1Decision === "PASS") {
             // fetch and parse only, NO database insert.
             // ------------------------------------------------
 
-            continue;
+            return;
             }
 
             // M33-G1: retain evidence before processor-owned Gate 1/Gate 2.
@@ -1523,7 +1523,7 @@ if (gate1Decision === "PASS") {
 
             if (existing && existing.length > 0) {
               skippedExisting++;
-              continue;
+              return;
             }
 
             const { data: insertedRaw, error: insertError } =

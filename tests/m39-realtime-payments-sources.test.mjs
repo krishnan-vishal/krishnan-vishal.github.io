@@ -129,6 +129,9 @@ test('the fetch function reuses the existing pipeline, guards the registry and f
     assert.match(fetchSource, /MAX_BACKFILL_PAGE_FETCHES/);
     assert.match(fetchSource, /PAGE_FETCH_CONCURRENCY = 5/);
     assert.match(fetchSource, /Promise\.all\(selected\.slice/);
+    const concurrentFetchBlock = fetchSource.match(/Promise\.all\(selected\.slice[\s\S]*?^ {10}\}\)\);/m)?.[0] || '';
+    assert.ok(concurrentFetchBlock);
+    assert.doesNotMatch(concurrentFetchBlock, /\bcontinue;/);
     assert.match(fetchSource, /start_datetime: payload\.start_datetime/);
     assert.match(fetchSource, /\.from\("intelligence_raw_ingestion"\)\s*\.select\("discovered_url"\)/);
     assert.match(fetchSource, /ECB_SOURCE_ID/);
