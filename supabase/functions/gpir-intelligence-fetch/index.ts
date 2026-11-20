@@ -52,7 +52,8 @@ const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, 
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
 const MAX_DISCOVERED_LINKS = 40;
 const MAX_PAGE_FETCHES = 5;
-const MAX_BACKFILL_PAGE_FETCHES = 10;
+const MAX_BACKFILL_PAGE_FETCHES = 20;
+const PAGE_FETCH_CONCURRENCY = 5;
 // A write-mode claim has a finite lease so a crashed Edge invocation cannot
 // strand a source. Dry runs never obtain a claim and remain write-free.
 const SOURCE_RUN_CLAIM_TTL_SECONDS = 900;
@@ -1221,7 +1222,8 @@ const source = sourceRows[0] as SourceRecord;
         // 6. Fetch selected individual pages
         // ----------------------------------------------------
 
-        for (const item of selected) {
+        for (let batchStart = 0; batchStart < selected.length; batchStart += PAGE_FETCH_CONCURRENCY) {
+          await Promise.all(selected.slice(batchStart, batchStart + PAGE_FETCH_CONCURRENCY).map(async (item) => {
           const articleSource = item.publisherSource || source;
           try {
             const pageResponse = await fetch(item.url, {
@@ -1562,6 +1564,7 @@ if (gate1Decision === "PASS") {
                   : String(pageError),
             });
           }
+          }));
         }
 
         if (runId) {

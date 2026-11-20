@@ -127,6 +127,8 @@ test('the fetch function reuses the existing pipeline, guards the registry and f
     assert.match(fetchSource, /discoverPaymentsPublisherLinks\(requestedSource, indexHtml/);
     assert.match(fetchSource, /selectUnseenItems\([\s\S]*routedDiscoveries[\s\S]*knownUrls/);
     assert.match(fetchSource, /MAX_BACKFILL_PAGE_FETCHES/);
+    assert.match(fetchSource, /PAGE_FETCH_CONCURRENCY = 5/);
+    assert.match(fetchSource, /Promise\.all\(selected\.slice/);
     assert.match(fetchSource, /start_datetime: payload\.start_datetime/);
     assert.match(fetchSource, /\.from\("intelligence_raw_ingestion"\)\s*\.select\("discovered_url"\)/);
     assert.match(fetchSource, /ECB_SOURCE_ID/);
