@@ -28,12 +28,22 @@ const execute=async(job)=>{
  const listing=await discovery.json();
  const eligible=(listing.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&typeof m.name==='string'&&m.name.startsWith('models/gemini-')&&!/tts|audio|speech|image|video|live|embedding/i.test(m.name)).map(m=>m.name.slice(7));
  const preferred=process.env.SEP01_GEMINI_MODEL.trim().replace('models/','');
- const model=eligible.includes(preferred)?preferred:eligible.find(m=>/flash/i.test(m))||eligible[0];
- if(!model)throw Error('NO_AUTHORIZED_GEMINI_TEXT_MODEL');
- console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_SELECTED',model,preferred_matched:model===preferred}));
- const editor=createGeminiCodeEditor({apiKey:key,model});
- const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>{execFileSync('node',['--test','scripts/sep01/*.test.mjs'],{cwd:process.cwd(),timeout:120000,shell:true,stdio:'pipe'});},requestEdit:editor});
- const result=await run({job,provider:{id:'gemini/'+model}});
+ const candidates=[...new Set([preferred,...eligible.filter(m=>/flash/i.test(m)),...eligible])].filter(m=>eligible.includes(m));
+ if(!candidates.length)throw Error('NO_AUTHORIZED_GEMINI_TEXT_MODEL');
+ const selected=candidates.slice(0,2);
+ console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selected,preferred_matched:eligible.includes(preferred)}));
+ let activeModel=selected[0];
+ const requestEdit=async args=>{
+  for(const model of selected){
+   activeModel=model;
+   const result=await createGeminiCodeEditor({apiKey:key,model})(args);
+   if(result?.status==='MODEL_UNAVAILABLE')continue;
+   return result;
+  }
+  return {status:'MODEL_UNAVAILABLE'};
+ };
+ const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>{execFileSync('node',['--test','scripts/sep01/*.test.mjs'],{cwd:process.cwd(),timeout:120000,shell:true,stdio:'pipe'});},requestEdit});
+ const result=await run({job,provider:{id:'gemini/authorized-text-model'}});
  if(result.status!=='SUCCESS')return result;
  // The commit must be remotely durable before Supabase can mark CHECKPOINTED.
  git('push','origin','HEAD:refs/heads/'+job.branch);
