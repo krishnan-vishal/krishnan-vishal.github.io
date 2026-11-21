@@ -266,7 +266,7 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
   if(instruction.length>1000)throw Error('The existing SEP worker accepts up to 1,000 characters for execution. Shorten the instruction; the full draft remains available.');
   if(!approvedDiscovery||approvedDiscovery.category!=='development'||approvedDiscovery.sensitive)throw Error('Analyze this requirement and review its governance result before submission');
   const path=scope==='fixture'?'':document.querySelector('#directive-path').value.trim();
-  if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')))throw Error('Specify an existing docs/*.md or assets/css/*.css file');
+  if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')||!discoveredTargetPaths.has(path)))throw Error('Choose a repository-discovered, authorized target before submission');
   if(!window.confirm('Submit ONE bounded development job to the existing SEP worker? Gemini/OpenRouter API usage may incur charges. No production deployment.')){status.textContent='Submission cancelled';return}
   status.textContent='Authenticating and submitting governed change…';
   const receipt=await commandRequest({action:'submit',scope,path,instruction:instruction.replace(/\s+/g,' ').trim()});
