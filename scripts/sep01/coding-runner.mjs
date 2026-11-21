@@ -22,11 +22,11 @@ export function createCodingRunner({root,allowedPaths,runTests,requestEdit}) {
   const parent=git(['rev-parse','HEAD'],base);
   const before=readFileSync(abs,'utf8');
   let edit=await requestEdit({provider,job,path,content:before});
-  if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(edit?.status))return {status:edit.status};
+  if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID'].includes(edit?.status))return {status:edit.status};
   if(edit?.status==='EDIT'&&edit.content===before){
    // One bounded clarification for a model no-op, never a blind retry loop.
    edit=await requestEdit({provider,job:{...job,instruction:job.instruction+'\\nIMPORTANT: The previous response was identical to the original file. Return a changed complete file implementing the instruction exactly.'},path,content:before});
-   if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(edit?.status))return {status:edit.status};
+   if(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID'].includes(edit?.status))return {status:edit.status};
   }
   if(edit?.status!=='EDIT')throw Error('MODEL_EDIT_UNEXPECTED_STATUS_'+String(edit?.status||'MISSING'));
   if(typeof edit.content!=='string'||!edit.content)throw Error('MODEL_EDIT_EMPTY');
