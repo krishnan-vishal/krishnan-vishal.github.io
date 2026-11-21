@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GPIR Central Command · SEP-01</title>
+<title>GPIR Central Command · SEP-01</title><link rel="stylesheet" href="/assets/css/variables.css">
 <style>
 :root{color-scheme:dark;--bg:#0c1421;--card:#172437;--line:#34465b;--text:#f1f5fa;--muted:#b8c6d6;--good:#69d6ad;--warn:#ffd27a}*{box-sizing:border-box}body{font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);margin:0}main{max-width:1180px;margin:auto;padding:28px 18px 60px}h1{font-size:clamp(1.7rem,4vw,2.6rem);margin:.2em 0}h2{font-size:1.2rem;margin:0 0 12px}.muted,small{color:var(--muted)}header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:0 0 14px}.pill{display:inline-block;border:1px solid var(--line);border-radius:40px;padding:3px 10px;font-size:.83rem;color:var(--muted)}.good{color:var(--good)}.warn{color:var(--warn)}.tool{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:12px 0}.tool:last-child{border:0}.tool span{max-width:60%}a{color:#a7d4ff}button,.action{background:#29496d;border:1px solid #7192b2;border-radius:8px;color:white;padding:9px 13px;cursor:pointer;display:inline-block;text-decoration:none;margin:4px 5px 4px 0}button:focus-visible,a:focus-visible{outline:3px solid #ffd27a;outline-offset:3px}.metric{font-size:1.6rem;font-weight:700}.note{border-left:3px solid var(--warn);padding-left:12px}code{overflow-wrap:anywhere}textarea,select{width:100%;background:#0c1421;color:var(--text);border:1px solid #7192b2;border-radius:8px;padding:12px;font:inherit}textarea{min-height:120px;resize:vertical}label{display:block;font-weight:600;margin:10px 0 5px}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{margin:0}.console-status{margin-top:10px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}@media(max-width:600px){.tool{display:block}.tool span{display:block;max-width:none}} 
 </style><style id="gpir-command-accessibility">
@@ -24,8 +24,45 @@ html body main .card th,html body main .card td {border-bottom-color:#52657b}
 #owner-auth-panel {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:14px 18px;border:1px solid #a9b9cc;border-radius:12px;background:#fff;color:#17263a}
 #owner-auth-panel a {color:#174d7b;text-decoration:underline;font-weight:700}
 #owner-auth-state {font-weight:700}
+</style><style id="gpir-approved-brand">
+/* GPIR Smart Premium brand tokens: ivory / navy / gold, compact editorial cards. */
+:root{color-scheme:light;--gpir-navy:#102c4b;--gpir-ivory:#f7f4ec;--gpir-gold:#b8913a;--gpir-line:#e6e1d3}
+html body{background:var(--gpir-ivory)!important;color:#14243a!important;font-size:14px}
+html body main{max-width:1320px;padding:20px 24px 48px}
+html body main header{background:#fff;border:1px solid var(--gpir-line);border-top:3px solid var(--gpir-gold);border-radius:12px;padding:15px 20px;margin-bottom:14px;box-shadow:0 4px 16px #102c4b0a}
+.gpir-brand{display:inline-flex;align-items:center;gap:10px;color:var(--gpir-navy)!important;text-decoration:none;font-weight:700}
+.gpir-brand img{width:48px;height:48px;flex:none}
+.gpir-brand span{display:flex;flex-direction:column;gap:3px}
+.gpir-brand strong{font-size:17px;letter-spacing:.09em}
+.gpir-brand small{font-size:11px;color:#526579}
+.gpir-brand b{background:#f6eed6;color:#75571e;border-radius:20px;padding:3px 8px;margin-right:5px}
+.gpir-eyebrow{color:#8c6c26;font-size:10px;font-weight:800;letter-spacing:.13em;margin-top:12px}
+html body main h1{font-size:clamp(23px,2.5vw,30px);line-height:1.2;margin:3px 0}
+.gpir-subtitle{color:#566678;font-size:12px}
+html body main .card{background:#fff!important;color:#14243a!important;border:1px solid var(--gpir-line)!important;box-shadow:0 1px 2px #102c4b0a,0 8px 24px #102c4b0a;border-radius:14px;padding:16px;margin-bottom:12px}
+html body main .card h2,html body main .card h3,html body main .card label,html body main .card strong,html body main .card th,html body main .card td{color:#14243a!important}
+html body main .card p,html body main .card small,html body main .card .muted{color:#526579!important}
+html body main .card a{color:#16567b!important}
+html body main .card input,html body main .card select,html body main .card textarea{background:#fff!important;color:#14243a!important;border:1px solid #b5c2cf!important}
+html body main .card input::placeholder,html body main .card textarea::placeholder{color:#657588!important}
+html body main .card button,html body main .card .action{background:#102c4b!important;color:#fff!important;border:1px solid #102c4b!important}
+html body main .card .action{color:#fff!important;text-decoration:none}
+html body main .card button:hover,html body main .card .action:hover{background:#1c4b71!important}
+html body main .card .good{color:#126e60!important}
+html body main .card .warn{color:#946510!important}
+html body main .card .tool{padding:9px 0;border-bottom-color:#e6e1d3}
+html body main .card .tool span{max-width:68%;font-size:12px;line-height:1.5}
+html body main .card .note{border-left-color:var(--gpir-gold)}
+html body main .card th,html body main .card td{border-bottom-color:#e6e1d3}
+html body main .grid{gap:12px}
+html body main .metric{font-size:22px}
+#owner-auth-panel{background:#fff;border-color:#d8d4c7;box-shadow:0 1px 4px #102c4b0a;padding:10px 15px;font-size:12px}
+#owner-auth-panel a{color:#16567b}
+html body main header .pill{color:#526579}
+html body main header button{background:#102c4b;color:#fff;border-color:#102c4b}
+@media(max-width:640px){html body main{padding:12px}html body main header{padding:12px}.gpir-brand strong{font-size:14px}.gpir-brand small{font-size:10px}html body main .card{padding:13px}}
 </style></head><body><main>
-<header><div><div class="muted">GPIR / SEP-01 / OWNER OPERATIONS</div><h1>Central Command</h1><div class="muted">Provider connectivity · execution evidence · safe handoff</div></div><div><span class="pill" id="sync">Not refreshed</span><button type="button" id="refresh">Refresh status</button></div></header>
+<header><div><a class="gpir-brand" href="/" aria-label="FINTECHOISIS GPIR home"><img src="/assets/branding/logos/fo-mark.svg" alt="" width="48" height="48"><span><strong>FINTECHOISIS</strong><small><b>GPIR</b> Global Payments Intelligence Repository</small></span></a><div class="gpir-eyebrow">GPIR / OWNER OPERATIONS / SEP-01</div><h1>Central Command</h1><div class="gpir-subtitle">Governed execution · provider connectivity · verified checkpoints</div></div><div><span class="pill" id="sync">Not refreshed</span><button type="button" id="refresh">Refresh status</button></div></header>
 <div id="owner-auth-panel"><span id="owner-auth-state" role="status" aria-live="polite">Checking GPIR sign-in…</span><a href="/reader/sign-in/?returnTo=%2Fadmin%2Fcentral-command%2F">Sign in to GPIR</a><span>Owner access is verified by Supabase; no separate admin password.</span></div><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Owner AI directive console</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Bounded documentation and stylesheet changes can be submitted for verified checkpoints. Sensitive code and production releases remain approval-gated. No production changes are permitted.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-path">Target file (existing docs/*.md or assets/css/*.css)</label><input id="directive-path" type="text" placeholder="docs/GPIR_BACKLOG.md" maxlength="180" style="width:100%;padding:12px;background:#0c1421;color:white;border:1px solid #7192b2;border-radius:8px"><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="submit-directive">Submit governed change</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite"><a href="/reader/sign-in/?returnTo=%2Fadmin%2Fcentral-command%2F">Sign in to GPIR</a> as the authorized owner. Specify an existing non-sensitive file and the requested change.</p></section>
 <section class="grid" aria-label="Overview"><div class="card"><div class="muted">Local Codex adapter</div><div class="metric good">PASS</div><small>Owner-verified Windows acceptance; not a live heartbeat</small></div><div class="card"><div class="muted">Prior durable checkpoint</div><div class="metric good">Rev 14</div><small>Recorded Supabase acceptance; not live polling</small></div><div class="card"><div class="muted">Cross-tool automatic handoff</div><div class="metric warn">NOT VERIFIED</div><small>Requires authenticated runner and controlled test</small></div></section>
 <section class="grid"><div class="card"><h2>Coding tools</h2><div id="tools" aria-live="polite"><div class="tool"><strong>Gemini</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>OpenRouter</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>Codex</strong><span class="warn">Optional · runtime unverified</span></div><div class="tool"><strong>Copilot</strong><span class="warn">Not accepted for automated routing</span></div><div class="tool"><strong>Cline</strong><span class="warn">Interactive only · automated transport unsupported</span></div><div class="tool"><strong>Aider</strong><span class="warn">Parked after 12 failed runs</span></div></div><small><span id="provider-snapshot-status">Built-in public status fallback. No private credentials or quota values are queried from the browser.</span></small></div>
