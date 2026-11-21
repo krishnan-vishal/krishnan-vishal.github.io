@@ -631,3 +631,7 @@ normal merge remain required.
 This removes the need for an owner-side staging command or another content
 download/build. Actual public-domain byte verification, anonymous denial and
 authenticated protected Payload acceptance remain the completion gates.
+
+## SEP-01 Owner Command Acceptance Test
+
+This section serves as a non-production test of authenticated command execution. It is intended for verification purposes only and does not constitute a production deployment or operational change.
