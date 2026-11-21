@@ -6,6 +6,8 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {createDurableJobStore} from './durable-job-store.mjs';
 import {createDurableWorker} from './durable-worker.mjs';
 import {createGeminiCodeEditor,discoverGeminiTextModels} from './gemini-code-editor.mjs';
+import {createOpenRouterCodeEditor} from './openrouter-code-editor.mjs';
+import {requestWithIndependentFallback} from './independent-provider-router.mjs';
 import {createCodingRunner} from './coding-runner.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
@@ -53,21 +55,25 @@ const execute=async(job)=>{
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const key=process.env.GEMINI_API_KEY;
+ const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
+ const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[-\\w./:]+$/.test(independentModel));
+ // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  const discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
  const selected=discovery.models;
- console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selected,preferred_matched:discovery.preferredMatched,bounded_attempts:selected.length}));
- let cursor=0;
+ console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selected,preferred_matched:discovery.preferredMatched,bounded_attempts:selected.length,independent_fallback_enabled:allowOpenRouter}));
  const attempts=[];
  const requestEdit=async args=>{
-  while(cursor<selected.length){
-   const model=selected[cursor++];
-   const result=await createGeminiCodeEditor({apiKey:key,model})(args);
-   attempts.push({model,status:result?.status||'MISSING'});
-   console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_RESULT',model,status:result?.status||'MISSING',attempt:attempts.length,max_attempts:selected.length}));
-   if(['MODEL_UNAVAILABLE','PROVIDER_BUSY'].includes(result?.status))continue;
-   return result;
-  }
-  return {status:attempts.some(item=>item.status==='PROVIDER_BUSY')?'PROVIDER_BUSY':'MODEL_UNAVAILABLE'};
+  const routed=await requestWithIndependentFallback({
+   geminiModels:selected,
+   geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
+   allowOpenRouter,
+   openrouterEdit:allowOpenRouter?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
+   onAttempt:item=>{
+    attempts.push(item);
+    console.log(JSON.stringify({event:'SEP01_PROVIDER_RESULT',provider:item.provider,model:item.model||'approved-openrouter',status:item.status,attempt:attempts.length,max_attempts:selected.length+(allowOpenRouter?1:0)}));
+   }
+  });
+  return routed.result;
  };
  const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>runRegressionTests(job),requestEdit});
  const result=await run({job,provider:{id:'gemini/authorized-text-model'}});
