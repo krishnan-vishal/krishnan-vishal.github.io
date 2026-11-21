@@ -3,7 +3,7 @@
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 const model=process.env.SEP01_AIDER_MODEL;
 if(!model||!/^[-\w./:]+$/.test(model)||!process.env.OPENROUTER_API_KEY)throw Error('APPROVED_AIDER_MODEL_AND_KEY_REQUIRED');
 const root=mkdtempSync(join(tmpdir(),'sep01-aider-'));
@@ -18,21 +18,23 @@ try{
  // Aider receives a single fixture file and fixed task; it may not choose commands.
  // Use the documented positional file argument. Avoid optional CLI switches that
  // can cause a help/usage response without executing an edit.
- const aiderOutput=run('aider',['--yes','--no-auto-commits','--model','openrouter/'+model,'--message','Edit src/checkpoint.js: change export const checkpoint = 0; to export const checkpoint = 1; and preserve the final newline.','src/checkpoint.js']);
- // Detect CLI usage/help or argument parsing output before accepting a successful
- // exit code. Report fixed booleans only; never log raw model/provider responses.
- const lines=aiderOutput.split(/\\r?\\n/);
- const usage=lines.some(line=>/^\\s*(?:usage:|options:|optional arguments:|error: (?:unrecognized|unknown) arguments?)/i.test(line));
- const diagnostics={
-  usage_or_help:usage,
-  http_error:/\\b(?:HTTP|status|error code)\\s*[:=]?\\s*(?:400|401|402|403|404|408|409|422|429|500|502|503|504)\\b/i.test(aiderOutput),
-  provider_error:/\\b(?:litellm\\.|badrequesterror|authenticationerror|ratelimiterror|apierror|connectionerror|traceback \\(most recent call last\\))/i.test(aiderOutput),
-  no_edit:/\\b(?:no changes made|no edits made|nothing to change|no files to edit)\\b/i.test(aiderOutput),
-  edit_application_error:/\\b(?:failed to apply|unable to apply|could not apply|malformed edit)\\b/i.test(aiderOutput),
-  output_chars:aiderOutput.length
+ const invocation=spawnSync('aider',['--yes','--no-auto-commits','--model','openrouter/'+model,'--message','Edit src/checkpoint.js: change export const checkpoint = 0; to export const checkpoint = 1; and preserve the final newline.','src/checkpoint.js'],{cwd:root,encoding:'utf8',timeout:120000,stdio:['ignore','pipe','pipe'],maxBuffer:1024*1024});
+ const stdout=invocation.stdout||'';
+ const stderr=invocation.stderr||'';
+ // Aider writes operational and model diagnostics to stderr on some versions.
+ // Classify both streams without printing transcripts, paths, headers or secrets.
+ const combined=stdout+'\n'+stderr;
+ const has=(pattern)=>pattern.test(combined);
+ const flags={
+  usage_or_help:has(/(?:^|\n)\s*(?:usage:|options:|optional arguments:|error: (?:unrecognized|unknown) arguments?)/im),
+  api_or_model_error:has(/\b(?:litellm|badrequesterror|authenticationerror|ratelimiterror|apierror|connectionerror|model not found|unknown model|no endpoints found)\b/i),
+  auth_or_quota:has(/\b(?:unauthorized|authentication failed|invalid api key|rate limit|quota exceeded|insufficient credits|payment required)\b/i),
+  editor_error:has(/\b(?:failed to apply|unable to apply|could not apply|malformed edit|no files to edit|no changes made)\b/i),
+  model_response_seen:has(/\b(?:tokens|cost|model|assistant|response)\b/i)
  };
- console.log(JSON.stringify({event:'SEP01_AIDER_CLI_DIAGNOSIS',...diagnostics}));
- if(usage)throw Error('SEP01_AIDER_CLI_USAGE_INSTEAD_OF_EXECUTION');
+ console.log(JSON.stringify({event:'SEP01_AIDER_STDIO_EVIDENCE',exit_code:invocation.status,signal:invocation.signal||null,spawn_error:invocation.error?.code||null,stdout_chars:stdout.length,stderr_chars:stderr.length,...flags}));
+ if(invocation.error||invocation.status!==0)throw Error('SEP01_AIDER_CLI_EXECUTION_FAILED');
+ if(flags.usage_or_help)throw Error('SEP01_AIDER_CLI_USAGE_INSTEAD_OF_EXECUTION');
  const actual=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  if(actual!=='export const checkpoint = 1;\n'){
   const reason=actual===original?'UNCHANGED':'INCORRECT_CONTENT';
