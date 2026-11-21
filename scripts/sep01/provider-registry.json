@@ -42,8 +42,8 @@
       "id": "aider",
       "kind": "cli",
       "adapter": "agent-bridge.mjs",
-      "status": "contract_only",
-      "health": "requires authenticated host runner and tested transport; not live"
+      "status": "paused_failed_live_acceptance",
+      "health": "Five repeated live attempts failed: CLI returned output but fixture unchanged; not eligible for routing or further routine retries"
     }
   ],
   "integration_contract": {
@@ -57,6 +57,6 @@
       "idempotency",
       "sensitivity_policy"
     ],
-    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard. Existing Gemini and OpenRouter routes must not depend on Codex API credentials. A skipped Codex acceptance is not a PASS."
+    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard. Existing Gemini and OpenRouter routes must not depend on Codex API credentials. A skipped Codex acceptance is not a PASS. Aider is paused after repeated unchanged-fixture live failures; never retry automatically or treat a diagnostic-only run as acceptance. Continue eligible Gemini/OpenRouter routing without waiting for Aider."
   }
 }
