@@ -56,7 +56,7 @@ const execute=async(job)=>{
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const key=process.env.GEMINI_API_KEY;
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
- const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[-\\w./:]+$/.test(independentModel));
+ const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[A-Za-z0-9_.:/-]+$/.test(independentModel));
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  const discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
  const selected=discovery.models;
