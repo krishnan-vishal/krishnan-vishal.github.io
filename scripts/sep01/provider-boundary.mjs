@@ -1,6 +1,7 @@
 // SEP-01 authorized provider boundary. No real credentials or external calls.
 // Adapter must return a verified commit/step; checkpoint is persisted before any handoff.
 import {claim,checkpoint,quotaFailure} from './controller.mjs';
+import {normalizeProviderFailure} from './provider-failure.mjs';
 export async function executeWithFailover({job,providers,invoke,persist,activeJobs=[]}) {
   if(typeof invoke!=='function'||typeof persist!=='function')throw Error('MISSING_ADAPTER');
   let state=await persist(claim(job,providers,activeJobs));
@@ -15,7 +16,11 @@ export async function executeWithFailover({job,providers,invoke,persist,activeJo
       if(!/^[a-f0-9]{40}$/.test(outcome.commit)||!outcome.step)throw Error('UNVERIFIED_SUCCESS');
       return persist(checkpoint(state,outcome.commit,outcome.step));
     }
-    if(outcome?.status!=='QUOTA_EXHAUSTED')throw Error('PROVIDER_FAILED');
+    const failure=normalizeProviderFailure(outcome);
+    if(!failure.retryable) {
+      if(failure.reason==='PROVIDER_FAILED')throw Error('PROVIDER_FAILED');
+      return persist({...state,status:'BLOCKED',reason:failure.reason,provider:null});
+    }
     // A 429 cannot cause a second provider to run until a durable checkpoint exists.
     if(outcome.commit && outcome.step) {
       if(!/^[a-f0-9]{40}$/.test(outcome.commit))throw Error('INVALID_CHECKPOINT');
