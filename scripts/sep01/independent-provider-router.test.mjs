@@ -22,3 +22,16 @@ test('no Gemini models can use separately authorized OpenRouter route',async()=>
  const out=await requestWithIndependentFallback({geminiModels:[],geminiEdit:async()=>{throw Error('no Gemini')},allowOpenRouter:true,openrouterEdit:async()=>({status:'EDIT',content:'ok'})});
  assert.equal(out.result.status,'EDIT');
 });
+
+test('live failure class invalid Gemini JSON switches to independent route once, not four Gemini retries',async()=>{
+ let geminiCalls=0,openrouterCalls=0;
+ const out=await requestWithIndependentFallback({
+  geminiModels:['gemini-first','gemini-second'],
+  geminiEdit:async()=>{geminiCalls++;return {status:'PROVIDER_RESPONSE_INVALID',reason:'NON_JSON_OUTPUT'};},
+  allowOpenRouter:true,
+  openrouterEdit:async()=>{openrouterCalls++;return {status:'EDIT',content:'fixed'};}
+ });
+ assert.equal(out.result.status,'EDIT');
+ assert.equal(geminiCalls,1);assert.equal(openrouterCalls,1);
+ assert.deepEqual(out.attempts.map(x=>x.provider),['gemini','openrouter']);
+});
