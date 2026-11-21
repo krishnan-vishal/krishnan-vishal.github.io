@@ -14,9 +14,15 @@ try{
  run('git',['add','.']);
  run('git',['-c','user.name=SEP01','-c','user.email=sep01@example.invalid','commit','-qm','fixture']);
  const before=run('git',['rev-parse','HEAD']);
+ const original=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  // Aider receives a single fixture file and fixed task; it may not choose commands.
  run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--model','openrouter/'+model,'--message','Change only src/checkpoint.js so its exact contents are: export const checkpoint = 1; followed by a newline. Do not modify any other file.','src/checkpoint.js']);
- if(readFileSync(join(root,'src','checkpoint.js'),'utf8')!=='export const checkpoint = 1;\n')throw Error('AIDER_EDIT_MISMATCH');
+ const actual=readFileSync(join(root,'src','checkpoint.js'),'utf8');
+ if(actual!=='export const checkpoint = 1;\n'){
+  const reason=actual===original?'UNCHANGED':'INCORRECT_CONTENT';
+  console.error(JSON.stringify({event:'SEP01_AIDER_EDIT_REJECTED',reason,actual_length:actual.length,expected_length:29}));
+  throw Error('AIDER_EDIT_MISMATCH:'+reason);
+ }
  // Only tracked changes are eligible for the checkpoint. Aider metadata remains
  // untracked in the disposable workspace and is never staged or pushed.
  const changed=run('git',['diff','--name-only','HEAD']).split('\n').filter(Boolean);
