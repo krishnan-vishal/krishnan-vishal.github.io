@@ -24,16 +24,19 @@ test('Every registered provider is represented without claiming unverified readi
 
 test('Original job receipt is owner-authenticated and read-only',()=>{
  assert.match(page,/id="load-original-receipt"/);
- assert.match(page,/commandRequest\(\{action:'status',job_id:originalJobId\}\)/);
+ assert.match(page,/commandRequest\(\{action:'status',job_id:jobId\}\)/);
  assert.match(page,/originalJobId='sep01-owner-8c8dcf0c-16aa-4c02'/);
  assert.match(page,/id="receipt-checkpoint"/);
+ assert.match(page,/id="load-sep02-receipt"/);
+ assert.match(page,/id="receipt-attempts"/);
+ assert.match(gateway,/model_attempts:modelAttempts/);
  assert.match(page,/details.hidden=true/);
  assert.doesNotMatch(page,/fetch\([^\n]*rest\/v1\/gpir_sep01_jobs/);
 });
 
 test('one-shot SEP-02 fixture intake is explicitly non-retryable while development remains standard',()=>{
  assert.match(gateway,/single_attempt:scope==='fixture'/);
- assert.match(page,/commandRequest\(\{action:'status',job_id:originalJobId\}\)/);
+ assert.match(page,/commandRequest\(\{action:'status',job_id:jobId\}\)/);
 });
 
 test('SEP-02 fixture intake uses isolated owned path and one-time idempotency',()=>{
