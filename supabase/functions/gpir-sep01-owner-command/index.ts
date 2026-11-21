@@ -40,7 +40,12 @@ Deno.serve(async request=>{
    const rows=await supa('gpir_sep01_jobs?job_id=eq.'+encodeURIComponent(jobId)+'&select=job_id,revision,updated_at,payload');
    const row=rows[0];
    if(!row||row.payload?.owner_user_id!==owner)return json({error:'JOB_NOT_FOUND'},404);
-   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null});
+   const modelAttempts=Array.isArray(row.payload.model_attempts)?row.payload.model_attempts.slice(0,6).flatMap(attempt=>{
+    if(!['gemini','openrouter','codex'].includes(attempt?.provider)||!/^[-A-Z_]{1,40}$/.test(attempt.status||''))return [];
+    const model=/^[-A-Za-z0-9_.:/]{1,120}$/.test(attempt.model||'')?attempt.model:null;
+    return [{provider:attempt.provider,model,status:attempt.status}];
+   }):[];
+   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts});
   }
   if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
   const scope=String(body.scope||'');
