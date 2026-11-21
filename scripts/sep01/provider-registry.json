@@ -27,23 +27,23 @@
     {
       "id": "cline",
       "kind": "local-agent",
-      "adapter": null,
-      "status": "registered_only",
-      "health": "no authenticated headless worker"
+      "adapter": "agent-bridge.mjs",
+      "status": "contract_only",
+      "health": "requires authenticated host runner and tested transport; not live"
     },
     {
       "id": "copilot",
       "kind": "cli",
-      "adapter": null,
-      "status": "registered_only",
-      "health": "no authenticated worker"
+      "adapter": "agent-bridge.mjs",
+      "status": "contract_only",
+      "health": "requires authenticated host runner and tested transport; not live"
     },
     {
       "id": "aider",
       "kind": "cli",
-      "adapter": null,
-      "status": "registered_only",
-      "health": "no authenticated worker"
+      "adapter": "agent-bridge.mjs",
+      "status": "contract_only",
+      "health": "requires authenticated host runner and tested transport; not live"
     }
   ],
   "integration_contract": {
