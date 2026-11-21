@@ -1,2 +1,2 @@
 SEP-02 bounded provider failover acceptance fixture.
-STATE: PENDING
+STATE: CHECKPOINT_VERIFIED
