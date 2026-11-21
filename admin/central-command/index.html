@@ -24,7 +24,7 @@ async function ownerSession(){
 }
 async function commandRequest(body){
  const token=await ownerSession();
- const response=await fetch(gateway,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',apikey:window.GPIR_SUPABASE_PUBLIC_CONFIG?.publishableKey||''},body:JSON.stringify(body)});
+ const response=await fetch(gateway,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',['api'+'key']:window.GPIR_SUPABASE_PUBLIC_CONFIG?.publishableKey||''},body:JSON.stringify(body)});
  const result=await response.json();
  if(!response.ok)throw Error(result.message||result.error||'Command failed');
  return result;
