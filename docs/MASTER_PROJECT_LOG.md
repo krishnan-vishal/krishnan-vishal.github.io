@@ -26,6 +26,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## SEP-01 consolidated repair and live acceptance — 2026-11-20
+
+- **Objective:** Repair the existing PR #604 implementation after repeated configuration, model-selection, syntax, response-handling and availability failures; prove the complete bounded execution and recovery chain without another PR or production activation.
+- **Implementation:** Direct Gemini discovery now accepts only generateContent text models, ignores invalid placeholder configuration, ranks flash-lite capacity first and consumes at most four distinct models. Structured JSON response handling fails closed on blocked, truncated, quota and unavailable responses. The runner validates tracked and untracked scope, preserves exact owned bytes on a failed pre-commit test, verifies the commit parent and one-file tree, pushes the exact commit, and verifies the remote ref before state persistence. Supabase transitions distinguish capacity/auth failures and fresh runners reconcile only a verified remote checkpoint. Windows directory-sync limitations no longer invalidate the durable local store.
+- **Local evidence:** Changed-module syntax and `git diff --check` passed; all 56 SEP-01 tests passed; `e2e-coding-handoff.mjs` emitted `SEP01_REAL_GIT_CHECKPOINT_AND_SIMULATED_429_HANDOFF_PASS`. Content, link and M-18 announcement validators passed. The broader unchanged announcement-intent script still reports five Qatar/RBI/Singapore/Australia/GCC contract failures; no affected file is in that surface. The performance audit remained advisory with its existing seven warnings.
+- **Remote evidence:** Repair commit `ce27b82aa36966ecc2af10f67656e9d49ea3cb35` is confirmed on `origin/feat/sep01-central-command-controller-20261120`. GPIR Security and Integrity run 44726345132, SEP-01 controller run 44726345464 and G1 R07 run 44726345423 passed.
+- **Live evidence:** Run 44726620886 skipped unavailable `gemini-2.5-flash-lite`, then `gemini-3.1-flash-lite` produced the exact authorized edit. Remote branch `sep01/jobs/live-acceptance-20261120`, commit readback and Supabase revision 14 all identify `4044a5e721483a3e0b7ee84b050c8a54400824ea`. Run 44726862749 returned `RECOVERED_CHECKPOINT` with zero Gemini model-result events, proving a fresh runner did not repeat completed work.
+- **Boundary:** The acceptance modifies only the isolated fixture branch. Automatic dispatch was not enabled; no GPIR production service, website, CMS, auth, entitlement or intelligence record changed. PR #604 remains draft and human-controlled merge is pending.
+
 ## M39 global typography, topic continuity and ASK GPIR integration — 2026-11-13
 
 - **Objective:** normalize GPIR chapter/publication typography and whitespace, preserve the governed topic graph across fresh intelligence, research and archives, and expose contextual ASK GPIR navigation without redesigning architecture or changing publication access.
@@ -3446,3 +3455,11 @@ Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
 - **Production receipt:** Fetch v65 completed 60 monthly windows for each active source over `[2021-11-19, 2026-11-19)`. FinTech News matched 1,680 official API records and Atlas matched 49; canonical URLs/hashes are unique and timestamps complete. The publisher drain completed with 188 FinTech News and three Atlas archive announcements, all historical and non-ticker-eligible. The live endpoint correctly returned zero current alerts; a history query returned source-linked archived records.
 - **Operations:** Source jobs 8 and 9 are active at :50 and :55 and reuse the existing Vault secret. Their first observed cron and Edge runs both completed successfully with zero errors or duplicate writes. Existing ten-minute publication remains authoritative. One v64 boot failure wrote no history and was corrected in v65; one transient source HTTP/2 failure retried without duplicates.
 - **Validation / handoff:** 16 focused source/backfill tests, 18 publisher tests, content/link/announcement validation, performance audit and `git diff --check` passed. `test-announcement-intent.js` retains five unrelated baseline fixture failures and was not weakened. Owner-review PR #605 is open; final source-to-live-to-expired proof remains dependent on a genuine future article meeting every unchanged T3 gate. See `docs/GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md`.
+
+
+## RB-001 — GPIR Golden Rule / Red Book — 2026-11-21
+
+- **Owner directive:** GPIR architecture is sacred; every successfully accomplished and verified capability is protected against silent regression or replacement.
+- **Permanent control:** Append-only `docs/GPIR_RED_BOOK.md` records binding owner decisions and protected accomplishments, with evidence and explicit status distinctions. Future workers read it before changing code and append new verified achievements after acceptance.
+- **Change exception:** Requires express owner approval, documented impact, targeted regression verification and rollback reference. Do not erase or rewrite prior history.
+- **Delivery:** Governance branch and PR only; production unchanged. Word master-control addendum prepared separately; prior published Word source not available for in-place amendment.

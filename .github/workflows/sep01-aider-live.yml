@@ -2,9 +2,14 @@ name: SEP-01 Aider live coding acceptance
 on:
   workflow_dispatch:
     inputs:
-      model:
-        description: 'Approved OpenRouter text coding model ID (exact ID)'
+      acknowledge_manual_diagnostic:
+        description: 'Type AIDER_RECOVERY to authorize one alternate-model acceptance'
         required: true
+        type: string
+      model:
+        description: 'Approved OpenRouter model ID (use openai/gpt-4.1-mini for recovery)'
+        required: true
+        default: 'openai/gpt-4.1-mini'
         type: string
 permissions:
   contents: read
@@ -13,13 +18,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   aider-checkpoint:
+    if: inputs.acknowledge_manual_diagnostic == 'AIDER_RECOVERY'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - name: Check out SEP-01 implementation only
         uses: actions/checkout@v4
         with:
-          ref: feat/sep01-central-command-controller-20261120
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:

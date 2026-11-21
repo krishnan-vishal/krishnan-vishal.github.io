@@ -1,0 +1,50 @@
+name: SEP-01 Codex CLI independent acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Codex CLI model ID available to your API project'
+        required: true
+        default: 'gpt-5.3-codex'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-codex-independent-acceptance
+  cancel-in-progress: false
+jobs:
+  codex-cli-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check optional Codex API authorization
+        id: auth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CODEX_OPTIONAL_NOT_CONFIGURED: no OpenAI API credential. Existing Gemini and OpenRouter routes are unaffected; Codex CLI remains disabled."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install Codex CLI
+        if: steps.auth.outputs.ready == 'true'
+        run: npm install -g @openai/codex
+      - name: Verify Codex CLI read-only fixture
+        if: steps.auth.outputs.ready == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CODEX_MODEL: ${{ inputs.model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          codex --version
+          node scripts/sep01/codex-local-acceptance.mjs "$CODEX_MODEL"

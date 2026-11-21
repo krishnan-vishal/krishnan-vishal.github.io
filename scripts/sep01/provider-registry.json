@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "purpose": "Extensible SEP-01 provider inventory; never treat registration as availability or authentication evidence",
+  "execution_boundary": "server-side authenticated SEP-01 worker",
+  "providers": [
+    {
+      "id": "gemini",
+      "kind": "api",
+      "adapter": "gemini-code-editor.mjs",
+      "status": "implemented",
+      "health": "Native API workflow #8 succeeded; runtime authorization still checked per job"
+    },
+    {
+      "id": "openrouter",
+      "kind": "api",
+      "adapter": "openrouter-code-editor.mjs",
+      "status": "implemented_optional",
+      "health": "Two-model handoff Run #105 succeeded; runtime key/model/quota still checked per job"
+    },
+    {
+      "id": "codex",
+      "kind": "cli",
+      "adapter": "codex-cli-editor.mjs",
+      "status": "optional_disabled_by_default",
+      "health": "Not required for SEP-01; enable only with separately authenticated Codex runner and isolated acceptance PASS; do not substitute OpenRouter for native Codex"
+    },
+    {
+      "id": "cline",
+      "kind": "local-agent",
+      "adapter": "agent-bridge.mjs",
+      "status": "contract_only",
+      "health": "Next: verify existing VS Codium Cline authenticated host transport; contract-only until bounded fixture PASS"
+    },
+    {
+      "id": "copilot",
+      "kind": "cli",
+      "adapter": "agent-bridge.mjs",
+      "status": "contract_only",
+      "health": "Next: verify existing Copilot CLI entitlement and authenticated runner; contract-only until bounded fixture PASS"
+    },
+    {
+      "id": "aider",
+      "kind": "cli",
+      "adapter": "agent-bridge.mjs",
+      "status": "parked_pending_root_cause",
+      "health": "Twelve live acceptance attempts failed with unchanged fixture; last run exit 0, api_or_model_error=true, no verified edit. Retained in architecture; excluded from routing pending separately authorized root-cause fix and live PASS."
+    }
+  ],
+  "integration_contract": {
+    "required": [
+      "id",
+      "kind",
+      "adapter",
+      "health",
+      "approval_scope",
+      "checkpoint_protocol",
+      "idempotency",
+      "sensitivity_policy"
+    ],
+    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard. Existing Gemini and OpenRouter routes must not depend on Codex API credentials. A skipped Codex acceptance is not a PASS. Aider remains a required integration target after repeated unchanged-fixture failures; do not repeat the failing model/editor combination or treat a diagnostic-only run as acceptance. Continue eligible Gemini/OpenRouter routing without waiting for Aider. Aider parked by owner after 12 failed attempts; do not run Aider workflow again as part of Copilot/Cline activation."
+  }
+}
