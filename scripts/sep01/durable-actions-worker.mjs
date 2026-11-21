@@ -22,13 +22,17 @@ const gitRaw=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',timeou
 const git=(...args)=>gitRaw(...args).trim();
 const sourceRoot=process.cwd();
 const expectedFixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: CHECKPOINT_VERIFIED\n';
+const expectedSep02Fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: CHECKPOINT_VERIFIED\n';
 function validateJobOutput(job,read=path=>readFileSync(join(root,path),'utf8')){
- if(job.scope==='fixture'&&job.locked_paths[0]==='scripts/sep01/acceptance-fixture.txt'){
-  // Permit only line-ending and one terminal-newline variation. Do not
-  // accept paraphrases, extra text, different states or other file changes.
-  const actual=read(job.locked_paths[0]).replace(/\r\n/g,'\n');
-  if(actual.replace(/\n?$/,'\n')!==expectedFixture){
-   console.error(JSON.stringify({event:'SEP01_FIXTURE_MISMATCH',actual_length:actual.length,expected_length:expectedFixture.length,actual_lines:actual.split('\n').length}));
+ if(job.scope==='fixture'){
+  const path=job.locked_paths?.[0];
+  const expected=path==='scripts/sep01/acceptance-fixture.txt'?expectedFixture:
+   path==='scripts/sep01/sep02-acceptance-fixture.txt'&&job.acceptance_series==='SEP02'&&job.single_attempt===true?expectedSep02Fixture:null;
+  if(!expected)throw Error('FIXTURE_PATH_NOT_AUTHORIZED');
+  // Permit only line-ending and one terminal-newline variation. Never accept paraphrases or extra text.
+  const actual=read(path).replace(/\r\n/g,'\n');
+  if(actual.replace(/\n?$/,'\n')!==expected){
+   console.error(JSON.stringify({event:'SEP01_FIXTURE_MISMATCH',actual_length:actual.length,expected_length:expected.length,actual_lines:actual.split('\n').length}));
    throw Error('ACCEPTANCE_FIXTURE_VALIDATION_FAILED');
   }
  }
@@ -73,6 +77,7 @@ const execute=async(job)=>{
  if(job.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job.scope))throw Error('SENSITIVE_JOB_NOT_ALLOWED');
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
  if(job.scope!=='fixture'&&job.scope!=='development')throw Error('JOB_SCOPE_NOT_AUTHORIZED');
+ if(job.scope==='fixture'&&job.locked_paths[0]!=='scripts/sep01/acceptance-fixture.txt'&&!(job.locked_paths[0]==='scripts/sep01/sep02-acceptance-fixture.txt'&&job.acceptance_series==='SEP02'&&job.single_attempt===true))throw Error('FIXTURE_PATH_NOT_AUTHORIZED');
  if(job.scope==='development'&&(!/^(?:docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(job.locked_paths[0])||job.locked_paths[0].includes('..')))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const key=process.env.GEMINI_API_KEY;
