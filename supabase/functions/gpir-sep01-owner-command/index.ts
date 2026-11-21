@@ -54,14 +54,18 @@ Deno.serve(async request=>{
    if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
    const lowered=instruction.toLowerCase();
-   const sensitive=/\b(auth(?:entication|orization)?|password|secret|token|credential|payment|billing|entitlement|deploy(?:ment)?|release|database|migration|schema|supabase|workflow|github actions|edge function|api key|security|permission)\b/i.test(instruction);
-   const inferred= /\b(research|analysis|investigat|report|study)\b/i.test(instruction)?'research':/\b(deploy|release|publish|production|rollout)\b/i.test(instruction)?'release':'development';
+   // Classify requested operations, not explicit prohibitions or acceptance constraints.
+   // Preserve fail-closed review for ambiguous or sensitive requested actions.
+   const operative=instruction.split(/[.!?\n]+/).map(part=>part.trim()).filter(Boolean).filter(part=>!/^((?:do not|don't|never|without|no|avoid|prohibit|exclude|must not|should not)\b)/i.test(part)&&!/\b(?:are|remain|must be|should be)\s+(?:approval.gated|prohibited|unchanged|preserved)\b/i.test(part));
+   const requested=operative.join(' ');
+   const sensitive=/\b(auth(?:entication|orization)?|password|secret|token|credential|payment|billing|entitlement|deploy(?:ment)?|release|database|migration|schema|supabase|workflow|github actions|edge function|api key|security|permission)\b/i.test(requested);
+   const inferred=/\b(research|analysis|investigat|report|study)\b/i.test(requested)?'research':/\b(deploy|release|publish|production|rollout)\b/i.test(requested)?'release':'development';
    const category=requestedScope==='development'?inferred:requestedScope;
    if(category!=='development'||sensitive)return json({category,sensitive,executable:false,reason:sensitive?'SENSITIVE_REVIEW_REQUIRED':'SCOPE_REQUIRES_SEPARATE_AUTHORIZATION',candidates:[],read_only:true});
    const ref=await github('git/ref/heads/main');
    const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
    if(tree.truncated||!Array.isArray(tree.tree))return json({category,sensitive:false,executable:false,reason:'REPOSITORY_DISCOVERY_INCOMPLETE',candidates:[],read_only:true});
-   const words=new Set(lowered.match(/[a-z0-9]{3,}/g)||[]);
+   const words=new Set(requested.toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
    const eligible=tree.tree.filter(entry=>entry.type==='blob'&&entry.size<=100000&&typeof entry.path==='string'&&/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(entry.path)&&!entry.path.includes('..'));
    const ranked=eligible.map(entry=>{
     const tokens=new Set(entry.path.toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
@@ -70,7 +74,7 @@ Deno.serve(async request=>{
     if(/\b(document|docs|readme|chapter|text)\b/.test(lowered)&&entry.path.endsWith('.md'))score+=2;
     return {path:entry.path,score};
    }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path)).slice(0,8);
-   return json({category,sensitive:false,executable:false,reason:ranked.length?'OWNER_TARGET_SELECTION_REQUIRED':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true});
+   return json({category,sensitive:false,executable:false,reason:ranked.length?'OWNER_TARGET_SELECTION_REQUIRED':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true,auto_suggested_target:ranked.length===1||ranked[0]?.score>ranked[1]?.score?ranked[0]?.path:null});
   }
   if(body.action==='agent_tasks_list'){
    // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
