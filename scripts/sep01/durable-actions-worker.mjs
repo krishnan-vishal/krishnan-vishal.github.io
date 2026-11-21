@@ -8,6 +8,7 @@ import {createDurableWorker} from './durable-worker.mjs';
 import {createGeminiCodeEditor,discoverGeminiTextModels} from './gemini-code-editor.mjs';
 import {createOpenRouterCodeEditor} from './openrouter-code-editor.mjs';
 import {requestWithIndependentFallback} from './independent-provider-router.mjs';
+import {rankUsageAwareRoutes,recordQuotaOutcome} from './usage-aware-router.mjs';
 import {createCodingRunner} from './coding-runner.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
@@ -58,19 +59,44 @@ const execute=async(job)=>{
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
  const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[A-Za-z0-9_.:/-]+$/.test(independentModel));
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
- const discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
+ let discovery;
+ try{
+  discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
+ }catch(error){
+  // Only transport availability/quota failures permit independent fallback.
+  // Authentication, malformed discovery and configuration failures stay fail-closed.
+  const message=String(error?.message||'');
+  if(!/^GEMINI_MODEL_DISCOVERY_HTTP_(429|500|502|503|504)$/.test(message))throw error;
+  discovery={models:[],preferredMatched:false};
+  console.log(JSON.stringify({event:'SEP01_GEMINI_DISCOVERY_UNAVAILABLE',status:message}));
+ }
  const selected=discovery.models;
- console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selected,preferred_matched:discovery.preferredMatched,bounded_attempts:selected.length,independent_fallback_enabled:allowOpenRouter}));
+ const routeReadiness={
+  gemini:{ready:Boolean(key&&selected.length)},
+  openrouter:{ready:allowOpenRouter}
+ };
+ const routeCandidates=[
+  {id:'gemini',agent_id:'gemini',approved:true,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota:null,quota_failure_detection_verified:true},
+  {id:'openrouter',agent_id:'openrouter',approved:allowOpenRouter,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota:null,quota_failure_detection_verified:true}
+ ];
+ const eligible=rankUsageAwareRoutes(job,routeCandidates,routeReadiness);
+ const eligibleIds=new Set(eligible.map(route=>route.id));
+ const selectedModels=eligibleIds.has('gemini')?selected:[];
+ const fallbackAllowed=eligibleIds.has('openrouter');
+ console.log(JSON.stringify({event:'SEP01_USAGE_AWARE_ROUTES',eligible:[...eligibleIds],gemini_models:selectedModels.length,openrouter_authorized:fallbackAllowed}));
+ console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selectedModels,preferred_matched:discovery.preferredMatched,bounded_attempts:selectedModels.length,independent_fallback_enabled:fallbackAllowed}));
  const attempts=[];
  const requestEdit=async args=>{
   const routed=await requestWithIndependentFallback({
-   geminiModels:selected,
+   geminiModels:selectedModels,
    geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
-   allowOpenRouter,
-   openrouterEdit:allowOpenRouter?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
+   allowOpenRouter:fallbackAllowed,
+   openrouterEdit:fallbackAllowed?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
    onAttempt:item=>{
     attempts.push(item);
-    console.log(JSON.stringify({event:'SEP01_PROVIDER_RESULT',provider:item.provider,model:item.model||'approved-openrouter',status:item.status,attempt:attempts.length,max_attempts:selected.length+(allowOpenRouter?1:0)}));
+    const route=routeCandidates.find(candidate=>candidate.id===item.provider);
+    if(route)Object.assign(route,recordQuotaOutcome(route,item.status));
+    console.log(JSON.stringify({event:'SEP01_PROVIDER_RESULT',provider:item.provider,model:item.model||'approved-openrouter',status:item.status,attempt:attempts.length,max_attempts:selectedModels.length+(fallbackAllowed?1:0)}));
    }
   });
   return routed.result;
