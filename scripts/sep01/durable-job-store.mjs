@@ -33,8 +33,14 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    const current=await this.get(jobId);
    if(!current||current.status!==expectedStatus)return null;
    const {revision,job_id,idempotency_key,...payload}=current;
-   const rows=await request('?job_id=eq.'+encodeURIComponent(jobId)+'&revision=eq.'+revision,'PATCH',{revision:revision+1,payload:{...payload,...patch},updated_at:new Date().toISOString()},{Prefer:'return=representation'});
-   return rows.length===1?unpack(rows[0]):null;
+   // Authoritative database RPC serializes overlapping writer claims and preserves CAS.
+   const response=await fetchImpl(url.replace(/\\/$/,'')+'/rest/v1/rpc/gpir_sep01_cas_job',{
+    method:'POST',headers:{...headers,Prefer:'return=representation'},
+    body:JSON.stringify({p_job_id:jobId,p_idempotency_key:idempotency_key,p_expected_revision:revision,p_payload:{...payload,...patch,job_id:jobId,idempotency_key}})
+   });
+   if(response.status===409)return null;
+   if(!response.ok)throw Error('JOB_CAS_RPC_HTTP_'+response.status);
+   return response.json();
   }
  };
 }
