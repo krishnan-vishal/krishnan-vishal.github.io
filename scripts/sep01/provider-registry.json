@@ -8,21 +8,21 @@
       "kind": "api",
       "adapter": "gemini-code-editor.mjs",
       "status": "implemented",
-      "health": "requires authenticated runtime check"
+      "health": "Native API workflow #8 succeeded; runtime authorization still checked per job"
     },
     {
       "id": "openrouter",
       "kind": "api",
       "adapter": "openrouter-code-editor.mjs",
       "status": "implemented_optional",
-      "health": "requires key, approved model and runtime check"
+      "health": "Two-model handoff Run #105 succeeded; runtime key/model/quota still checked per job"
     },
     {
       "id": "codex",
       "kind": "cli",
       "adapter": "codex-cli-editor.mjs",
-      "status": "conditional",
-      "health": "requires enabled, authenticated runner"
+      "status": "optional_disabled_by_default",
+      "health": "Not required for SEP-01; enable only with separately authenticated Codex runner and isolated acceptance PASS; do not substitute OpenRouter for native Codex"
     },
     {
       "id": "cline",
@@ -57,6 +57,6 @@
       "idempotency",
       "sensitivity_policy"
     ],
-    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard."
+    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard. Existing Gemini and OpenRouter routes must not depend on Codex API credentials. A skipped Codex acceptance is not a PASS."
   }
 }
