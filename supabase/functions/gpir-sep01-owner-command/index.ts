@@ -45,12 +45,15 @@ Deno.serve(async request=>{
     const model=/^[-A-Za-z0-9_.:/]{1,120}$/.test(attempt.model||'')?attempt.model:null;
     return [{provider:attempt.provider,model,status:attempt.status}];
    }):[];
-   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts});
+   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
-  if(body.action==='classify_requirement'){
+  const plannedSubmission=body.action==='submit_planned';
+  let plannedBase;
+  if(body.action==='classify_requirement'||plannedSubmission){
    // Read-only classification and bounded repository discovery. No jobs, paid calls or mutations.
    const instruction=String(body.instruction||'').trim();
    const requestedScope=String(body.scope||'development');
+   if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
    if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
    const lowered=instruction.toLowerCase();
@@ -74,7 +77,13 @@ Deno.serve(async request=>{
     if(/\b(document|docs|readme|chapter|text)\b/.test(lowered)&&entry.path.endsWith('.md'))score+=2;
     return {path:entry.path,score};
    }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path)).slice(0,8);
-   return json({category,sensitive:false,executable:false,reason:ranked.length?'OWNER_TARGET_SELECTION_REQUIRED':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true,auto_suggested_target:ranked.length===1||ranked[0]?.score>ranked[1]?.score?ranked[0]?.path:null});
+   const target=ranked.length===1||ranked[0]?.score>ranked[1]?.score?ranked[0]?.path:null;
+   const planId=target?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([owner,ref.object.sha,target,instruction])))),byte=>byte.toString(16).padStart(2,'0')).join(''):null;
+   if(!plannedSubmission)return json({category,sensitive:false,executable:false,reason:target?'OWNER_APPROVAL_REQUIRED':ranked.length?'AMBIGUOUS_COMPONENT':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true,auto_suggested_target:target,plan_id:planId});
+   if(!planId||body.plan_id!==planId)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
+   plannedBase=ref.object.sha;
+   body.path=target;
+   body.instruction=instruction.replace(/\s+/g,' ').trim();
   }
   if(body.action==='agent_tasks_list'){
    // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
@@ -143,7 +152,7 @@ Deno.serve(async request=>{
    if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
    return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,provider:'github_copilot',requires_review:true},201);
   }
-  if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
+  if(body.action!=='submit'&&!plannedSubmission)return json({error:'UNKNOWN_ACTION'},400);
   const scope=String(body.scope||'');
   if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
   // Explicit non-sensitive file boundary. No arbitrary code, workflow, auth, payment, secret or deployment edits.
@@ -164,15 +173,16 @@ Deno.serve(async request=>{
    const file=await github('contents/'+path);
    if(file.type!=='file'||file.size>100000)return json({error:'FILE_NOT_ELIGIBLE'},422);
   }
-  const jobId='sep01-owner-'+crypto.randomUUID().slice(0,18);
+  const jobId='sep01-owner-'+(plannedSubmission?body.plan_id.slice(0,40):crypto.randomUUID().slice(0,18));
   const branch='sep01/jobs/'+jobId;
   const ref=await github('git/ref/heads/main');
+  if(plannedBase&&plannedBase!==ref.object.sha)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
   await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
   if(scope==='fixture'){
    const fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: PENDING\n';
    await github('contents/'+sep02FixturePath,'PUT',{message:'SEP-02: seed isolated non-production acceptance fixture',content:btoa(fixture),branch});
   }
-  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture',acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
+  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture'||plannedSubmission,acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
   const queued=await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
   if(queued?.job_id!==jobId||queued?.status!=='QUEUED')throw Error('ACCEPTANCE_QUEUE_NOT_CONFIRMED');
   try{await github('actions/workflows/sep01-durable-dispatch.yml/dispatches','POST',{ref:'main',inputs:{job_id:jobId}})}
