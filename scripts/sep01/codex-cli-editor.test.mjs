@@ -24,3 +24,16 @@ test('Codex CLI sensitive job blocked',async()=>{
  const editor=createCodexCliEditor({model:'codex-test',enabled:true,authenticated:true,spawnImpl:()=>{throw Error('unexpected execution')}});
  await assert.rejects(()=>editor({...args,job:{...job,scope:'payments'}}),/SENSITIVE_JOB_FORBIDDEN/);
 });
+
+test('Windows Codex npm shim preserves sign-in home without forwarding GPIR secrets',async()=>{
+ let captured;
+ const editor=createCodexCliEditor({model:'gpt-5.6-sol',platformName:'win32',enabled:true,authenticated:true,spawnImpl:(bin,argv,opts)=>{captured={bin,argv,opts};return {status:0,stdout:JSON.stringify({content:'after'})}}});
+ assert.equal((await editor(args)).status,'EDIT');
+ assert.equal(captured.bin,'cmd.exe');
+ assert.deepEqual(captured.argv.slice(0,3),['/d','/s','/c']);
+ assert.match(captured.argv[3],/codex exec --sandbox read-only/);
+ assert.ok(!('SUPABASE_SERVICE_ROLE_KEY' in captured.opts.env));
+ assert.ok(!('GITHUB_TOKEN' in captured.opts.env));
+ assert.ok(!('OPENAI_API_KEY' in captured.opts.env));
+ assert.ok(!captured.argv.join(' ').includes('Replace fixture'));
+});
