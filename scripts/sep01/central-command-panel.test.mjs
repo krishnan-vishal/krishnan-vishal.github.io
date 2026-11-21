@@ -30,3 +30,8 @@ test('Original job receipt is owner-authenticated and read-only',()=>{
  assert.match(page,/details.hidden=true/);
  assert.doesNotMatch(page,/fetch\([^\n]*rest\/v1\/gpir_sep01_jobs/);
 });
+
+test('one-shot SEP-02 fixture intake is explicitly non-retryable while development remains standard',()=>{
+ assert.match(gateway,/single_attempt:scope==='fixture'/);
+ assert.match(page,/commandRequest\(\{action:'status',job_id:originalJobId\}\)/);
+});

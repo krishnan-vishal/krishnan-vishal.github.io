@@ -14,7 +14,7 @@ import {createCodingRunner} from './coding-runner.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
 if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REPOSITORY)throw Error('GITHUB_ACTIONS_REQUIRED');
-const required=['SEP01_JOB_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','GEMINI_API_KEY'];
+const required=['SEP01_JOB_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY'];
 const missing=required.filter(name=>!process.env[name]?.trim());
 if(missing.length)throw Error('SEP01_MISSING_CONFIGURATION: '+missing.join(', '));
 const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
@@ -83,7 +83,9 @@ const execute=async(job)=>{
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  let discovery;
  try{
-  discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
+  discovery=key?.trim()
+   ?await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4})
+   :{models:[],preferredMatched:false};
  }catch(error){
   // Only transport availability/quota failures permit independent fallback.
   // Authentication, malformed discovery and configuration failures stay fail-closed.
@@ -105,13 +107,14 @@ const execute=async(job)=>{
  ];
  const eligible=rankUsageAwareRoutes(job,routeCandidates,routeReadiness);
  const eligibleIds=new Set(eligible.map(route=>route.id));
- const selectedModels=eligibleIds.has('gemini')?selected:[];
  const fallbackAllowed=eligibleIds.has('openrouter');
- const codexAllowed=eligibleIds.has('codex');
+ const selectedModels=eligibleIds.has('gemini')?selected.slice(0,fallbackAllowed?1:4):[];
+ const codexAllowed=!fallbackAllowed&&eligibleIds.has('codex');
  console.log(JSON.stringify({event:'SEP01_USAGE_AWARE_ROUTES',eligible:[...eligibleIds],gemini_models:selectedModels.length,openrouter_authorized:fallbackAllowed}));
  console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selectedModels,preferred_matched:discovery.preferredMatched,bounded_attempts:selectedModels.length,independent_fallback_enabled:fallbackAllowed}));
  const attempts=[];
  const requestEdit=async args=>{
+  if(fallbackAllowed&&attempts.length)return {status:'PROVIDER_RESPONSE_INVALID'};
   const routed=await requestWithIndependentFallback({
    geminiModels:selectedModels,
    geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
@@ -130,11 +133,11 @@ const execute=async(job)=>{
  };
  const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>runRegressionTests(job),requestEdit});
  const result=await run({job,provider:{id:'gemini/authorized-text-model'}});
- if(result.status!=='SUCCESS')return result;
+ if(result.status!=='SUCCESS')return {...result,model_attempts:attempts};
  // The commit must be remotely durable before Supabase can mark CHECKPOINTED.
  git('push','--porcelain','origin',result.commit+':refs/heads/'+job.branch);
  if(!await verifyCheckpoint(result.commit,job))throw Error('REMOTE_CHECKPOINT_NOT_DURABLE');
- return {...result,model_attempts:attempts};
+ return {...result,provider:attempts.at(-1)?.provider,model_attempts:attempts};
 };
 const worker=createDurableWorker({store,execute,verifyCheckpoint,recoverCheckpoint});
 const result=await worker(jobId);
