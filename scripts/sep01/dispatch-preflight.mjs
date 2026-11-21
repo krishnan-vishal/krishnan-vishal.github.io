@@ -5,7 +5,7 @@ import {appendFileSync,mkdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createDurableJobStore} from './durable-job-store.mjs';
 const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
-const job=process.env.SEP01_JOB_ID?await store.get(process.env.SEP01_JOB_ID):await store.nextQueued();
+const job=process.env.SEP01_JOB_ID?await store.get(process.env.SEP01_JOB_ID):await store.nextRecoverable();
 if(!job){console.log('SEP01_NO_QUEUED_JOB');process.exit(0);}
 const resumable=new Set(['QUEUED','CLAIMED','CHECKPOINTED','QUOTA_PAUSED']);
 if(!resumable.has(job.status)||!/^sep01\/jobs\/[a-zA-Z0-9._-]+$/.test(job.branch))throw Error('UNAUTHORIZED_JOB_BRANCH_OR_STATE');

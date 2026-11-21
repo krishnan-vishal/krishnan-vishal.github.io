@@ -23,3 +23,25 @@ test('reject unsafe job branch and identity mutation',async()=>{
  await assert.rejects(()=>store.enqueue({job_id:'j',idempotency_key:'k',branch:'main',locked_paths:['a.js'],instruction:'edit'}),/INVALID_DURABLE_JOB/);
  await assert.rejects(()=>store.compareAndSet('j','QUEUED',{status:'CLAIMED',job_id:'other'}),/INVALID_JOB_TRANSITION/);
 });
+
+test('scheduled selection prefers queued work and recovers revisioned paused jobs only',async()=>{
+ const paused={job_id:'sep01-owner-existing',idempotency_key:'original',revision:3,payload:{branch:'sep01/jobs/sep01-owner-existing',locked_paths:['docs/report.md'],scope:'development',instruction:'append section',status:'QUOTA_PAUSED'}};
+ let mode='queued',queried=[];
+ const store=createDurableJobStore({url:'https://example.supabase.co',key:'private-test-key',fetchImpl:async(url)=>{
+  queried.push(url);
+  const isQueued=url.includes('status=eq.QUEUED');
+  const value=isQueued?(mode==='queued'?[{...paused,revision:1,payload:{...paused.payload,status:'QUEUED'}}]:[]):(mode==='paused'?[paused]:[]);
+  return {ok:true,status:200,json:async()=>value};
+ }});
+ const queue=await store.nextRecoverable();assert.equal(queue.status,'QUEUED');
+ assert.equal(queried.length,1);
+ mode='paused';queried=[];
+ const recovery=await store.nextRecoverable();assert.equal(recovery.job_id,'sep01-owner-existing');assert.equal(recovery.revision,3);
+ assert.equal(recovery.status,'QUOTA_PAUSED');assert.equal(queried.length,2);
+ mode='none';assert.equal(await store.nextRecoverable(),null);
+});
+test('never schedule a paused job without an earlier claim or authorized job branch',async()=>{
+ const fake={job_id:'bad',idempotency_key:'bad',revision:1,payload:{branch:'main',status:'QUOTA_PAUSED'}};
+ const store=createDurableJobStore({url:'https://example.supabase.co',key:'private-test-key',fetchImpl:async(url)=>({ok:true,status:200,json:async()=>url.includes('status=eq.QUEUED')?[]:[fake]})});
+ assert.equal(await store.nextRecoverable(),null);
+});
