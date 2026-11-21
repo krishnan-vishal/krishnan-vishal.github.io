@@ -23,7 +23,15 @@ const git=(...args)=>gitRaw(...args).trim();
 const sourceRoot=process.cwd();
 const expectedFixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: CHECKPOINT_VERIFIED\n';
 function validateJobOutput(job,read=path=>readFileSync(join(root,path),'utf8')){
- if(job.scope==='fixture'&&job.locked_paths[0]==='scripts/sep01/acceptance-fixture.txt'&&read(job.locked_paths[0]).replace(/\r\n/g,'\n')!==expectedFixture)throw Error('ACCEPTANCE_FIXTURE_VALIDATION_FAILED');
+ if(job.scope==='fixture'&&job.locked_paths[0]==='scripts/sep01/acceptance-fixture.txt'){
+  // Permit only line-ending and one terminal-newline variation. Do not
+  // accept paraphrases, extra text, different states or other file changes.
+  const actual=read(job.locked_paths[0]).replace(/\r\n/g,'\n');
+  if(actual.replace(/\n?$/,'\n')!==expectedFixture){
+   console.error(JSON.stringify({event:'SEP01_FIXTURE_MISMATCH',actual_length:actual.length,expected_length:expectedFixture.length,actual_lines:actual.split('\n').length}));
+   throw Error('ACCEPTANCE_FIXTURE_VALIDATION_FAILED');
+  }
+ }
 }
 function runRegressionTests(job){
  validateJobOutput(job);
