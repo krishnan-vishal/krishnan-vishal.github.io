@@ -25,12 +25,12 @@ export function createDurableWorker({store,execute,verifyCheckpoint,recoverCheck
   try{
    const result=await execute(claimed);
    if(result?.status==='SUCCESS'&&/^[a-f0-9]{40}$/.test(result.commit||'')&&await verifyCheckpoint(result.commit,claimed)){
-    const saved=await store.compareAndSet(jobId,'CLAIMED',{status:'CHECKPOINTED',checkpoint_commit:result.commit,last_safe_step:result.step||'verified coding checkpoint'});
+    const saved=await store.compareAndSet(jobId,'CLAIMED',{status:'CHECKPOINTED',checkpoint_commit:result.commit,last_safe_step:result.step||'verified coding checkpoint',...(result.provider?{provider:result.provider}:{}),...(result.model_attempts?.length?{model_attempts:result.model_attempts}:{})});
     if(!saved)throw Error('CHECKPOINT_PERSIST_CONFLICT');
     return {status:'CHECKPOINTED',job:saved};
    }
    const reason=['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID'].includes(result?.status)?result.status:'EXECUTION_NOT_VERIFIED';
-   const paused=await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason});
+   const paused=await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason,...(result?.model_attempts?.length?{model_attempts:result.model_attempts}:{})});
    return {status:'QUOTA_PAUSED',job:paused};
   }catch(e){
    await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason:'EXECUTION_ERROR'});
