@@ -17,6 +17,18 @@ try{
  const original=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  // Aider receives a single fixture file and fixed task; it may not choose commands.
  const aiderOutput=run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--edit-format','whole','--model','openrouter/'+model,'--message','Edit the supplied file src/checkpoint.js. Replace the zero with one in the exported checkpoint constant. The entire final file must be exactly: export const checkpoint = 1; followed by a newline. Apply the edit to disk. Do not modify any other file.','src/checkpoint.js']);
+ // Classify the captured CLI output without printing any raw provider text or secrets.
+ // These are diagnostic signals, not proof of authentication or a successful edit.
+ const diagnosticPatterns={
+  provider_http_error:/\\b(?:HTTP|status|error code)\\s*[:=]?\\s*(?:400|401|402|403|404|408|409|422|429|500|502|503|504)\\b/i,
+  rate_limited:/\\b(?:rate.limit|quota.exceed|too many requests|429)\\b/i,
+  auth_rejected:/\\b(?:unauthorized|invalid.api.key|authentication.failed|permission.denied|401|403)\\b/i,
+  model_unavailable:/\\b(?:model.not.found|unsupported.model|no endpoints found|404)\\b/i,
+  edit_format_problem:/\\b(?:failed.to.apply|couldn't.apply|unable.to.apply|malformed.edit|invalid.edit.format|no.files.to.edit|no.matches.found)\\b/i,
+  completion_without_edit:/\\b(?:no.changes.made|no.edits.made|nothing.to.change|already.correct)\\b/i
+ };
+ const diagnostic=Object.fromEntries(Object.entries(diagnosticPatterns).map(([name,pattern])=>[name,pattern.test(aiderOutput)]));
+ console.log(JSON.stringify({event:'SEP01_AIDER_SANITIZED_DIAGNOSTIC',...diagnostic,output_chars:aiderOutput.length}));
  // Report only bounded outcome signals; never emit model transcripts or API credentials.
  console.log(JSON.stringify({event:'SEP01_AIDER_INVOCATION',model,output_chars:aiderOutput.length,reported_no_changes:/no (changes|files) (made|to edit)|did not (change|edit)|no edits/i.test(aiderOutput),reported_edit:/applied edit|applied.*change|wrote.*file|edited.*checkpoint/i.test(aiderOutput)}));
  const actual=readFileSync(join(root,'src','checkpoint.js'),'utf8');
