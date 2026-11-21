@@ -7,7 +7,7 @@ test('Central Command submits through authenticated gateway, never directly to p
  assert.match(page,/Central Command/);
  assert.match(page,/api\.github\.com\/repos\/krishnan-vishal/);
  assert.match(page,/async function ownerSession\(/);
- assert.match(page,/commandRequest\(\{action:'submit',scope,path,instruction\}\)/);
+ assert.match(page,/commandRequest\(\{action:'submit_planned'/);
  assert.match(page,/startReceiptPolling\(\)/);
  assert.doesNotMatch(page,/SUPABASE_SERVICE_ROLE_KEY|OPENAI_API_KEY|GEMINI_API_KEY/);
  assert.doesNotMatch(page,/rest\/v1\/gpir_sep01_jobs/);
@@ -18,8 +18,8 @@ test('Central Command submits through authenticated gateway, never directly to p
 });
 test('Every registered provider is represented without claiming unverified readiness',()=>{
  for(const id of ['Codex','Gemini','OpenRouter','Copilot','Cline','Aider'])assert.ok(page.includes(id));
- assert.match(page,/cross-CLI acceptance pending/);
- assert.match(page,/not a live heartbeat/);
+ assert.match(page,/Runtime availability checked during execution/);
+ assert.match(page,/Provider Status/);
 });
 
 test('Original job receipt is owner-authenticated and read-only',()=>{
@@ -40,9 +40,9 @@ test('one-shot SEP-02 fixture intake is explicitly non-retryable while developme
 });
 
 test('SEP-02 fixture intake uses isolated owned path and one-time idempotency',()=>{
- assert.match(page,/<option value="fixture">SEP-02 non-production acceptance/);
- assert.match(page,/commandRequest\(\{action:'submit',scope,path,instruction\}\)/);
- assert.match(page,/gpir_sep02_fixture_job_id/);
+ assert.doesNotMatch(page,/<option value="fixture">/);
+ assert.match(page,/commandRequest\(\{action:'submit_planned'/);
+ assert.match(page,/id="load-sep02-receipt"/);
  assert.match(page,/window\.confirm\(/);
  assert.match(gateway,/const sep02FixturePath='scripts\/sep01\/sep02-acceptance-fixture\.txt'/);
  assert.match(gateway,/acceptance_series==='SEP02'/);
@@ -53,7 +53,7 @@ test('SEP-02 fixture intake uses isolated owned path and one-time idempotency',(
 });
 test('SEP-02 fixture instruction is fixed and remains non-production only',()=>{
  assert.match(gateway,/FIXTURE_INSTRUCTION_NOT_AUTHORIZED/);
- assert.match(page,/sep02FixtureInstruction/);
+ assert.doesNotMatch(page,/id="directive-path"/);
  assert.match(gateway,/single_attempt:scope==='fixture'/);
- assert.match(page,/No automatic retry or production release/);
+ assert.match(gateway,/PLAN_STALE_OR_AMBIGUOUS/);
 });
