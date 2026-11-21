@@ -45,6 +45,10 @@ Deno.serve(async request=>{
   if(body.scope!=='fixture')return json({error:'SCOPE_NOT_YET_AUTHORIZED',message:'Only bounded fixture acceptance is currently approved.'},422);
   const instruction=String(body.instruction||'').trim();
   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},400);
+  // Do not create another job while the protected fixture writer lock is held.
+  const existing=await supa('gpir_sep01_jobs?select=job_id,payload&limit=100');
+  const lockHolder=existing.find(row=>['CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE'].includes(row.payload?.status)&&row.payload?.locked_paths?.includes('scripts/sep01/acceptance-fixture.txt'));
+  if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'Existing protected fixture checkpoint must be released through governed lifecycle before a new fixture job.'},409);
   const jobId='sep01-owner-'+crypto.randomUUID().slice(0,18);
   const branch='sep01/jobs/'+jobId;
   const ref=await github('git/ref/heads/main');
