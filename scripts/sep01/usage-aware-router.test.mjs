@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {rankUsageAwareRoutes,recordQuotaOutcome} from './usage-aware-router.mjs';
+const job={capability:'code',scope:'dashboard',remaining_budget:0};
+const ready={gemini:{ready:true},openrouter:{ready:true},codex:{ready:false}};
+const p=(id,remaining_quota=1)=>({id,agent_id:id,approved:true,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota});
+test('prioritizes verified available quota',()=>assert.equal(rankUsageAwareRoutes(job,[p('gemini',1),p('openrouter',3)],ready)[0].id,'openrouter'));
+test('never selects a paid subscription without execution adapter',()=>assert.deepEqual(rankUsageAwareRoutes(job,[p('codex',999)],ready),[]));
+test('exhaustion excludes provider and retains independent fallback',()=>assert.deepEqual(rankUsageAwareRoutes(job,[recordQuotaOutcome(p('gemini'), 'QUOTA_EXHAUSTED'),p('openrouter')],ready).map(x=>x.id),['openrouter']));
+test('respects retry-after cooldown',()=>assert.equal(rankUsageAwareRoutes(job,[{...p('gemini'),retry_after_epoch_ms:200}],ready,100).length,0));
+test('unknown quota needs verified quota-error detection',()=>assert.equal(rankUsageAwareRoutes(job,[{...p('gemini'),remaining_quota:null}],ready).length,0));
+test('sensitive jobs never go to public coding APIs',()=>assert.equal(rankUsageAwareRoutes({...job,scope:'payments'},[p('gemini')],ready).length,0));
+test('does not mutate provider on successful edit',()=>assert.equal(recordQuotaOutcome(p('gemini'),'EDIT').remaining_quota,1));
