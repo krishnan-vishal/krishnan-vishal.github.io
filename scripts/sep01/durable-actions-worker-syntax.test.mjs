@@ -16,3 +16,13 @@ test('development path and stylesheet guards remain present in both validation g
  assert.match(source,/UNSAFE_STYLESHEET_OUTPUT/);
  assert.match(source,/job\.locked_paths\.length!==1/);
 });
+
+test('one-shot SEP-02 fixture has a separately allowlisted output contract',()=>{
+ const source=readFileSync(worker,'utf8');
+ assert.match(source,/expectedSep02Fixture/);
+ assert.match(source,/scripts\/sep01\/sep02-acceptance-fixture\.txt/);
+ assert.match(source,/job\.acceptance_series==='SEP02'/);
+ assert.match(source,/job\.single_attempt===true/);
+ assert.match(source,/FIXTURE_PATH_NOT_AUTHORIZED/);
+ assert.match(source,/ACCEPTANCE_FIXTURE_VALIDATION_FAILED/);
+});
