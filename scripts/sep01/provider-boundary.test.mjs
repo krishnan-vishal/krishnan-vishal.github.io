@@ -42,3 +42,28 @@ test('failed checkpoint persistence prevents fallback invocation',async()=>{
  }),/PERSISTENCE_DOWN/);
  assert.deepEqual(calls,['codex']);
 });
+
+test('temporary outage after durable checkpoint switches to approved fallback',async()=>{
+ const calls=[];
+ const result=await executeWithFailover({job,providers,invoke:async p=>{
+  calls.push(p.id);
+  return p.id==='codex'
+   ? {status:'TEMPORARILY_UNAVAILABLE',commit:'a'.repeat(40),step:'verified checkpoint'}
+   : {status:'SUCCESS',commit:'b'.repeat(40),step:'verified fallback'};
+ },persist:async state=>state});
+ assert.deepEqual(calls,['codex','fallback']);
+ assert.equal(result.checkpoint_commit,'b'.repeat(40));
+});
+test('rate limit without checkpoint pauses safely',async()=>{
+ const calls=[];
+ const result=await executeWithFailover({job,providers,invoke:async p=>{calls.push(p.id);return {status:'RATE_LIMITED'};},persist:async s=>s});
+ assert.deepEqual(calls,['codex']);
+ assert.equal(result.status,'QUOTA_PAUSED');
+});
+test('authentication failure blocks and never switches provider',async()=>{
+ const calls=[];
+ const result=await executeWithFailover({job,providers,invoke:async p=>{calls.push(p.id);return {status:'AUTH_FAILED'};},persist:async s=>s});
+ assert.deepEqual(calls,['codex']);
+ assert.equal(result.status,'BLOCKED');
+ assert.equal(result.reason,'AUTH_FAILED');
+});
