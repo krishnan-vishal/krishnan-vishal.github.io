@@ -16,7 +16,9 @@ try{
  const before=run('git',['rev-parse','HEAD']);
  const original=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  // Aider receives a single fixture file and fixed task; it may not choose commands.
- run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--model','openrouter/'+model,'--message','Change only src/checkpoint.js so its exact contents are: export const checkpoint = 1; followed by a newline. Do not modify any other file.','src/checkpoint.js']);
+ const aiderOutput=run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--edit-format','whole','--model','openrouter/'+model,'--message','Edit the supplied file src/checkpoint.js. Replace the zero with one in the exported checkpoint constant. The entire final file must be exactly: export const checkpoint = 1; followed by a newline. Apply the edit to disk. Do not modify any other file.','src/checkpoint.js']);
+ // Report only bounded outcome signals; never emit model transcripts or API credentials.
+ console.log(JSON.stringify({event:'SEP01_AIDER_INVOCATION',model,output_chars:aiderOutput.length,reported_no_changes:/no (changes|files) (made|to edit)|did not (change|edit)|no edits/i.test(aiderOutput),reported_edit:/applied edit|applied.*change|wrote.*file|edited.*checkpoint/i.test(aiderOutput)}));
  const actual=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  if(actual!=='export const checkpoint = 1;\n'){
   const reason=actual===original?'UNCHANGED':'INCORRECT_CONTENT';
