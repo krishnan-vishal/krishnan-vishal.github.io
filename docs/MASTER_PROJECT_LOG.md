@@ -3455,3 +3455,11 @@ Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
 - **Production receipt:** Fetch v65 completed 60 monthly windows for each active source over `[2021-11-19, 2026-11-19)`. FinTech News matched 1,680 official API records and Atlas matched 49; canonical URLs/hashes are unique and timestamps complete. The publisher drain completed with 188 FinTech News and three Atlas archive announcements, all historical and non-ticker-eligible. The live endpoint correctly returned zero current alerts; a history query returned source-linked archived records.
 - **Operations:** Source jobs 8 and 9 are active at :50 and :55 and reuse the existing Vault secret. Their first observed cron and Edge runs both completed successfully with zero errors or duplicate writes. Existing ten-minute publication remains authoritative. One v64 boot failure wrote no history and was corrected in v65; one transient source HTTP/2 failure retried without duplicates.
 - **Validation / handoff:** 16 focused source/backfill tests, 18 publisher tests, content/link/announcement validation, performance audit and `git diff --check` passed. `test-announcement-intent.js` retains five unrelated baseline fixture failures and was not weakened. Owner-review PR #605 is open; final source-to-live-to-expired proof remains dependent on a genuine future article meeting every unchanged T3 gate. See `docs/GPIR-LIVE-SOURCE-BACKFILL-RECEIPT-20261120.md`.
+
+
+## RB-001 — GPIR Golden Rule / Red Book — 2026-11-21
+
+- **Owner directive:** GPIR architecture is sacred; every successfully accomplished and verified capability is protected against silent regression or replacement.
+- **Permanent control:** Append-only `docs/GPIR_RED_BOOK.md` records binding owner decisions and protected accomplishments, with evidence and explicit status distinctions. Future workers read it before changing code and append new verified achievements after acceptance.
+- **Change exception:** Requires express owner approval, documented impact, targeted regression verification and rollback reference. Do not erase or rewrite prior history.
+- **Delivery:** Governance branch and PR only; production unchanged. Word master-control addendum prepared separately; prior published Word source not available for in-place amendment.
