@@ -84,7 +84,14 @@ const execute=async(job)=>{
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
  const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[A-Za-z0-9_.:/-]+$/.test(independentModel));
  const codexModel=(process.env.SEP01_CODEX_MODEL||'').trim();
- const allowCodex=process.env.SEP01_CODEX_ENABLED==='true'&&process.env.SEP01_CODEX_AUTH_VERIFIED==='true'&&/^[-A-Za-z0-9_.]+$/.test(codexModel);
+ const codexConfigured=process.env.SEP01_CODEX_ENABLED==='true'&&process.env.SEP01_CODEX_AUTH_VERIFIED==='true'&&/^[-A-Za-z0-9_.]+$/.test(codexModel);
+ // The existing adapter accepts only SEP fixture paths. Probe runner login without a model request.
+ const allowCodex=codexConfigured&&job.scope==='fixture'&&(()=>{
+  try{
+   execFileSync('codex',['login','status'],{stdio:'ignore',timeout:5000,env:{PATH:process.env.PATH,HOME:process.env.HOME,CODEX_HOME:process.env.CODEX_HOME}});
+   return true;
+  }catch{return false;}
+ })();
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  let discovery;
  try{
@@ -113,13 +120,13 @@ const execute=async(job)=>{
  const eligible=rankUsageAwareRoutes(job,routeCandidates,routeReadiness);
  const eligibleIds=new Set(eligible.map(route=>route.id));
  const fallbackAllowed=eligibleIds.has('openrouter');
- const selectedModels=eligibleIds.has('gemini')?selected.slice(0,fallbackAllowed?1:4):[];
- const codexAllowed=!fallbackAllowed&&eligibleIds.has('codex');
+ const codexAllowed=eligibleIds.has('codex');
+ const selectedModels=eligibleIds.has('gemini')?selected.slice(0,fallbackAllowed||codexAllowed||job.scope==='fixture'?1:4):[];
  console.log(JSON.stringify({event:'SEP01_USAGE_AWARE_ROUTES',eligible:[...eligibleIds],gemini_models:selectedModels.length,openrouter_authorized:fallbackAllowed}));
  console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selectedModels,preferred_matched:discovery.preferredMatched,bounded_attempts:selectedModels.length,independent_fallback_enabled:fallbackAllowed}));
  const attempts=[];
  const requestEdit=async args=>{
-  if(fallbackAllowed&&attempts.length)return {status:'PROVIDER_RESPONSE_INVALID'};
+  if((fallbackAllowed||codexAllowed||job.scope==='fixture')&&attempts.length)return {status:'PROVIDER_RESPONSE_INVALID'};
   const routed=await requestWithIndependentFallback({
    geminiModels:selectedModels,
    geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
@@ -128,6 +135,7 @@ const execute=async(job)=>{
    allowOpenRouter:fallbackAllowed,
    openrouterEdit:fallbackAllowed?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
    onAttempt:item=>{
+    item.model??=item.provider==='openrouter'?independentModel:codexModel;
     attempts.push(item);
     const route=routeCandidates.find(candidate=>candidate.id===item.provider);
     if(route)Object.assign(route,recordQuotaOutcome(route,item.status));

@@ -11,17 +11,20 @@ export async function requestWithIndependentFallback({geminiModels,geminiEdit,op
   // A malformed provider response is not an edit; switch routes without trying more Gemini variants.
   if(result.status==='PROVIDER_RESPONSE_INVALID')break;
  }
+ let openRouterResult;
+ if(allowOpenRouter&&typeof openrouterEdit==='function'){
+  const result=await openrouterEdit();
+  attempts.push({provider:'openrouter',status:result?.status||'MISSING'});
+  onAttempt(attempts.at(-1));
+  if(!FAILOVER.has(result?.status))return {result,attempts};
+  openRouterResult=result;
+ }
  if(allowCodex&&typeof codexEdit==='function'){
   const result=await codexEdit();
   attempts.push({provider:'codex',status:result?.status||'MISSING'});
   onAttempt(attempts.at(-1));
   if(!FAILOVER.has(result?.status))return {result,attempts};
  }
- if(allowOpenRouter&&typeof openrouterEdit==='function'){
-  const result=await openrouterEdit();
-  attempts.push({provider:'openrouter',status:result?.status||'MISSING'});
-  onAttempt(attempts.at(-1));
-  return {result,attempts};
- }
+ if(openRouterResult&&attempts.at(-1)?.provider==='openrouter')return {result:openRouterResult,attempts};
  return {result:{status:attempts.some(x=>x.status==='PROVIDER_RESPONSE_INVALID')?'PROVIDER_RESPONSE_INVALID':attempts.some(x=>x.status==='QUOTA_EXHAUSTED')?'QUOTA_EXHAUSTED':attempts.some(x=>x.status==='PROVIDER_BUSY')?'PROVIDER_BUSY':'MODEL_UNAVAILABLE'},attempts};
 }
