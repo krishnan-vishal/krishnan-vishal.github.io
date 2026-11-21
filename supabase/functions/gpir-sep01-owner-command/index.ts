@@ -41,22 +41,31 @@ Deno.serve(async request=>{
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null});
   }
   if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
-  // This gate does not claim to support arbitrary repository edits.
-  if(body.scope!=='fixture')return json({error:'SCOPE_NOT_YET_AUTHORIZED',message:'Only bounded fixture acceptance is currently approved.'},422);
+  const scope=String(body.scope||'');
+  if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+  // Explicit non-sensitive file boundary. No arbitrary code, workflow, auth, payment, secret or deployment edits.
+  const path=String(body.path||'');
+  if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')))return json({error:'PATH_NOT_AUTHORIZED'},422);
   const instruction=String(body.instruction||'').trim();
   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},400);
-  // Do not create another job while the protected fixture writer lock is held.
-  const existing=await supa('gpir_sep01_jobs?select=job_id,payload&limit=100');
-  const lockHolder=existing.find(row=>['CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE'].includes(row.payload?.status)&&row.payload?.locked_paths?.includes('scripts/sep01/acceptance-fixture.txt'));
-  if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'Existing protected fixture checkpoint must be released through governed lifecycle before a new fixture job.'},409);
+  const target=scope==='fixture'?'scripts/sep01/acceptance-fixture.txt':path;
+  const existing=await supa('gpir_sep01_jobs?select=job_id,payload&limit=1000');
+  const lockHolder=existing.find(row=>['CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE'].includes(row.payload?.status)&&row.payload?.locked_paths?.includes(target));
+  if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'A verified checkpoint already owns this file. Preserve its state and complete governed review before submitting another edit.'},409);
+  if(scope==='development'){
+   const file=await github('contents/'+path);
+   if(file.type!=='file'||file.size>100000)return json({error:'FILE_NOT_ELIGIBLE'},422);
+  }
   const jobId='sep01-owner-'+crypto.randomUUID().slice(0,18);
   const branch='sep01/jobs/'+jobId;
   const ref=await github('git/ref/heads/main');
   await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
-  const fixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: PENDING\n';
-  await github('contents/scripts/sep01/acceptance-fixture.txt','PUT',{message:'SEP-01: seed isolated acceptance fixture',content:btoa(fixture),branch});
-  const payload={job_id:jobId,idempotency_key:'owner:'+jobId,branch,locked_paths:['scripts/sep01/acceptance-fixture.txt'],scope:'fixture',instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,status:'QUEUED',owner_user_id:owner};
-  await supa('gpir_sep01_jobs?on_conflict=job_id','POST',{job_id:jobId,idempotency_key:payload.idempotency_key,revision:1,payload});
+  if(scope==='fixture'){
+   const fixture='SEP-01 durable checkpoint acceptance fixture.\\nSTATE: PENDING\\n';
+   await github('contents/scripts/sep01/acceptance-fixture.txt','PUT',{message:'SEP-01: seed isolated acceptance fixture',content:btoa(fixture),branch});
+  }
+  const payload={job_id:jobId,idempotency_key:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,status:'QUEUED',owner_user_id:owner};
+  await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
   try{await github('actions/workflows/sep01-durable-dispatch.yml/dispatches','POST',{ref:'main',inputs:{job_id:jobId}})}
   catch(error){return json({job_id:jobId,status:'QUEUED',dispatch:'PENDING',message:'Job queued; dispatcher trigger unavailable. Scheduled dispatcher may pick it up.'},202)}
   return json({job_id:jobId,status:'QUEUED',dispatch:'REQUESTED'},202);
