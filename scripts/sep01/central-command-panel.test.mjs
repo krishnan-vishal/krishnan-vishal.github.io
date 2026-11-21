@@ -21,3 +21,12 @@ test('Every registered provider is represented without claiming unverified readi
  assert.match(page,/cross-CLI acceptance pending/);
  assert.match(page,/not a live heartbeat/);
 });
+
+test('Original job receipt is owner-authenticated and read-only',()=>{
+ assert.match(page,/id="load-original-receipt"/);
+ assert.match(page,/commandRequest\(\{action:'status',job_id:originalJobId\}\)/);
+ assert.match(page,/originalJobId='sep01-owner-8c8dcf0c-16aa-4c02'/);
+ assert.match(page,/id="receipt-checkpoint"/);
+ assert.match(page,/details.hidden=true/);
+ assert.doesNotMatch(page,/fetch\([^\n]*rest\/v1\/gpir_sep01_jobs/);
+});
