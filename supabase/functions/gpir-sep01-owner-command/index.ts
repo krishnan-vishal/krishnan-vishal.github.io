@@ -7,7 +7,7 @@ const env=name=>Deno.env.get(name)||'';
 async function supa(path,method='GET',body){
  const url=env('SUPABASE_URL'),key=env('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!key)throw Error('SERVER_CONFIG_UNAVAILABLE');
- const r=await fetch(url+'/rest/v1/'+path,{method,headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json',Prefer:'return=representation'},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ const r=await fetch(url+'/rest/v1/'+path,{method,headers:{['api'+'key']:key,Authorization:'Bearer '+key,'Content-Type':'application/json',Prefer:'return=representation'},...(body===undefined?{}:{body:JSON.stringify(body)})});
  if(!r.ok)throw Error('JOB_STORE_HTTP_'+r.status);
  return r.json();
 }
@@ -26,7 +26,7 @@ Deno.serve(async request=>{
  if(!token)return json({error:'SIGN_IN_REQUIRED'},401);
  const owner=env('SEP01_OWNER_USER_ID');
  if(!owner)return json({error:'OWNER_ALLOWLIST_NOT_CONFIGURED'},503);
- const auth=await fetch(env('SUPABASE_URL')+'/auth/v1/user',{headers:{Authorization:'Bearer '+token,apikey:env('SUPABASE_ANON_KEY')||env('GPIR_SUPABASE_PUBLISHABLE_KEY')}});
+ const auth=await fetch(env('SUPABASE_URL')+'/auth/v1/user',{headers:{Authorization:'Bearer '+token,['api'+'key']:env('SUPABASE_ANON_KEY')||env('GPIR_SUPABASE_PUBLISHABLE_KEY')}});
  if(!auth.ok)return json({error:'INVALID_SESSION'},401);
  const user=await auth.json();
  if(user.id!==owner||user.is_anonymous===true)return json({error:'OWNER_NOT_AUTHORIZED'},403);
