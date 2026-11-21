@@ -51,8 +51,12 @@ Deno.serve(async request=>{
    // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
    const agentToken=env('SEP03_GITHUB_AGENT_READ_TOKEN');
    if(!agentToken)return json({error:'AGENT_MONITOR_CREDENTIAL_NOT_CONFIGURED'},503);
+   // Reject malformed secret values before constructing a privileged outbound header.
+   // Never log or return the credential; GitHub PATs must be single-line ASCII.
+   const normalizedAgentToken=agentToken.trim();
+   if(!/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(normalizedAgentToken))return json({error:'AGENT_MONITOR_CREDENTIAL_INVALID_FORMAT'},503);
    const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks?per_page=20',{
-    method:'GET',headers:{Authorization:'Bearer '+agentToken,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Monitor'}
+    method:'GET',headers:{Authorization:'Bearer '+normalizedAgentToken,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Monitor'}
    });
    if(!response.ok){
     console.error('SEP03_AGENT_TASKS_HTTP',response.status);
