@@ -2,6 +2,10 @@ name: SEP-01 Aider live coding acceptance
 on:
   workflow_dispatch:
     inputs:
+      acknowledge_manual_diagnostic:
+        description: 'Type DIAGNOSTIC_ONLY to explicitly override Aider pause (not an acceptance claim)'
+        required: true
+        type: string
       model:
         description: 'Approved OpenRouter text coding model ID (exact ID)'
         required: true
@@ -13,6 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   aider-checkpoint:
+    if: inputs.acknowledge_manual_diagnostic == 'DIAGNOSTIC_ONLY'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
