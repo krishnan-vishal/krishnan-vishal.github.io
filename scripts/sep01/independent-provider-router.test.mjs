@@ -35,3 +35,23 @@ test('live failure class invalid Gemini JSON switches to independent route once,
  assert.equal(geminiCalls,1);assert.equal(openrouterCalls,1);
  assert.deepEqual(out.attempts.map(x=>x.provider),['gemini','openrouter']);
 });
+
+test('Codex runs last and only after safe failures from approved routes',async()=>{
+ const out=await requestWithIndependentFallback({
+  geminiModels:['gemini-a'],geminiEdit:async()=>({status:'MODEL_UNAVAILABLE'}),
+  allowOpenRouter:true,openrouterEdit:async()=>({status:'PROVIDER_BUSY'}),
+  allowCodex:true,codexEdit:async()=>({status:'EDIT',content:'ok'})
+ });
+ assert.equal(out.result.status,'EDIT');
+ assert.deepEqual(out.attempts.map(x=>x.provider),['gemini','openrouter','codex']);
+});
+test('OpenRouter edit or unsafe outcome does not call Codex',async()=>{
+ for(const status of ['EDIT','INVALID_EDIT']){
+  const out=await requestWithIndependentFallback({
+   geminiModels:[],geminiEdit:async()=>{throw Error('unexpected Gemini')},
+   allowOpenRouter:true,openrouterEdit:async()=>({status}),
+   allowCodex:true,codexEdit:async()=>{throw Error('unexpected Codex')}
+  });
+  assert.equal(out.result.status,status);
+ }
+});
