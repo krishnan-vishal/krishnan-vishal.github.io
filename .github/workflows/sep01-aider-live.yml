@@ -3,12 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       acknowledge_manual_diagnostic:
-        description: 'Type DIAGNOSTIC_ONLY to explicitly override Aider pause (not an acceptance claim)'
+        description: 'Type AIDER_RECOVERY to authorize one alternate-model acceptance'
         required: true
         type: string
       model:
-        description: 'Approved OpenRouter text coding model ID (exact ID)'
+        description: 'Approved OpenRouter model ID (use openai/gpt-4.1-mini for recovery)'
         required: true
+        default: 'openai/gpt-4.1-mini'
         type: string
 permissions:
   contents: read
@@ -17,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   aider-checkpoint:
-    if: inputs.acknowledge_manual_diagnostic == 'DIAGNOSTIC_ONLY'
+    if: inputs.acknowledge_manual_diagnostic == 'AIDER_RECOVERY'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
