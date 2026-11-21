@@ -16,7 +16,16 @@ try{
  const before=run('git',['rev-parse','HEAD']);
  const original=readFileSync(join(root,'src','checkpoint.js'),'utf8');
  // Aider receives a single fixture file and fixed task; it may not choose commands.
- const aiderOutput=run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--edit-format','whole','--model','openrouter/'+model,'--message','Edit the supplied file src/checkpoint.js. Replace the zero with one in the exported checkpoint constant. The entire final file must be exactly: export const checkpoint = 1; followed by a newline. Apply the edit to disk. Do not modify any other file.','src/checkpoint.js']);
+ const aiderOutput=run('aider',['--yes','--no-auto-commits','--no-gitignore','--no-show-model-warnings','--edit-format','whole','--model','openrouter/'+model,'--file','src/checkpoint.js','--message','Edit the supplied file src/checkpoint.js. Replace the zero with one in the exported checkpoint constant. The entire final file must be exactly: export const checkpoint = 1; followed by a newline. Apply the edit to disk. Do not modify any other file.']);
+ // The fixture contains no private content. Emit only known Aider operational lines,
+ // never arbitrary model text, raw headers, tokens, or full provider transcripts.
+ const safeSignals=[];
+ for(const line of aiderOutput.split(/\\r?\\n/)){
+  const trimmed=line.trim();
+  if(/^(?:Aider v|Main model:|Editor model:|Edit format:|Git repo:|Repo-map:|Added .* to the chat\\.|No files to edit\\.|No changes made\\.|Applied edit to .*|Failed to apply edit to .*|Unable to apply edit to .*|Unknown model .*|Model .* not found)/i.test(trimmed))
+   safeSignals.push(trimmed.replace(/(?:sk-|key-|Bearer\\s+)[A-Za-z0-9._-]{8,}/gi,'[REDACTED]').slice(0,160));
+ }
+ console.log(JSON.stringify({event:'SEP01_AIDER_CLI_FILE_BINDING',file_explicitly_attached:true,signals:safeSignals.slice(0,12)}));
  // Classify the captured CLI output without printing any raw provider text or secrets.
  // These are diagnostic signals, not proof of authentication or a successful edit.
  const diagnosticPatterns={
