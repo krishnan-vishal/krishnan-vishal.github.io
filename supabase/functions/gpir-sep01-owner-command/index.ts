@@ -47,6 +47,31 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts});
   }
+  if(body.action==='agent_tasks_list'){
+   // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
+   const agentToken=env('SEP03_GITHUB_AGENT_READ_TOKEN');
+   if(!agentToken)return json({error:'AGENT_MONITOR_CREDENTIAL_NOT_CONFIGURED'},503);
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks?per_page=20',{
+    method:'GET',headers:{Authorization:'Bearer '+agentToken,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Monitor'}
+   });
+   if(!response.ok){
+    console.error('SEP03_AGENT_TASKS_HTTP',response.status);
+    return json({error:'AGENT_TASKS_UPSTREAM_UNAVAILABLE',upstream_status:response.status},502);
+   }
+   const data=await response.json();
+   const source=Array.isArray(data)?data:Array.isArray(data?.tasks)?data.tasks:[];
+   const tasks=source.slice(0,20).map(task=>{
+    const id=String(task?.id??task?.task_id??'');
+    const state=String(task?.status??task?.state??'unknown');
+    const url=String(task?.html_url??task?.url??'');
+    return {
+     id:/^[a-zA-Z0-9_-]{1,120}$/.test(id)?id:null,
+     state:/^[a-zA-Z0-9_ -]{1,80}$/.test(state)?state:'unknown',
+     url:url.startsWith('https://github.com/')?url:null
+    };
+   });
+   return json({tasks,read_only:true,source_count:source.length});
+  }
   if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
   const scope=String(body.scope||'');
   if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
