@@ -19,7 +19,6 @@ jobs:
       - name: Check out SEP-01 implementation only
         uses: actions/checkout@v4
         with:
-          ref: feat/sep01-central-command-controller-20261120
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
