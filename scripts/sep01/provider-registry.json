@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "purpose": "Extensible SEP-01 provider inventory; never treat registration as availability or authentication evidence",
+  "execution_boundary": "server-side authenticated SEP-01 worker",
+  "providers": [
+    {
+      "id": "gemini",
+      "kind": "api",
+      "adapter": "gemini-code-editor.mjs",
+      "status": "implemented",
+      "health": "requires authenticated runtime check"
+    },
+    {
+      "id": "openrouter",
+      "kind": "api",
+      "adapter": "openrouter-code-editor.mjs",
+      "status": "implemented_optional",
+      "health": "requires key, approved model and runtime check"
+    },
+    {
+      "id": "codex",
+      "kind": "cli",
+      "adapter": "codex-cli-editor.mjs",
+      "status": "conditional",
+      "health": "requires enabled, authenticated runner"
+    },
+    {
+      "id": "cline",
+      "kind": "local-agent",
+      "adapter": null,
+      "status": "registered_only",
+      "health": "no authenticated headless worker"
+    },
+    {
+      "id": "copilot",
+      "kind": "cli",
+      "adapter": null,
+      "status": "registered_only",
+      "health": "no authenticated worker"
+    },
+    {
+      "id": "aider",
+      "kind": "cli",
+      "adapter": null,
+      "status": "registered_only",
+      "health": "no authenticated worker"
+    }
+  ],
+  "integration_contract": {
+    "required": [
+      "id",
+      "kind",
+      "adapter",
+      "health",
+      "approval_scope",
+      "checkpoint_protocol",
+      "idempotency",
+      "sensitivity_policy"
+    ],
+    "policy": "New providers remain ineligible until server-side auth, capability, quota handling, checkpoint recovery and isolated acceptance pass. Never send API keys or arbitrary code to public dashboard."
+  }
+}
