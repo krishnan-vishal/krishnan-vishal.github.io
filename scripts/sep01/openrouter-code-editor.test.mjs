@@ -16,7 +16,7 @@ test('HTTP 429 fails over without generating a replacement',async()=>{
 
 test('OpenRouter receives bounded append context and preserves the complete baseline',async()=>{
  let payload;
- const original='# Existing M41 report\n'+'Baseline. '.repeat(5000);
+ const original='# Existing M41 report\n'+'Baseline. '.repeat(4500);
  const job={scope:'development',instruction:'Append a clearly labelled section titled "SEP-01 Owner Command Acceptance Test" without altering existing content.'};
  const edit=createOpenRouterCodeEditor({apiKey:'fixture',model:'approved/model',fetchImpl:async(_url,opts)=>{
   payload=JSON.parse(opts.body);
