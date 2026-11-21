@@ -35,6 +35,13 @@ function validateJobOutput(job,read=path=>readFileSync(join(root,path),'utf8')){
 }
 function runRegressionTests(job){
  validateJobOutput(job);
+ if(job.scope==='development'){
+  if(job.locked_paths.length!==1||!/^(docs\\/[a-zA-Z0-9/_-]+\\.md|assets\\/css\\/[a-zA-Z0-9/_-]+\\.css)$/.test(job.locked_paths[0])||job.locked_paths[0].includes('..'))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
+  const file=readFileSync(join(root,job.locked_paths[0]),'utf8');
+  if(!file.trim()||Buffer.byteLength(file)>100000)throw Error('DEVELOPMENT_OUTPUT_INVALID');
+  if(job.locked_paths[0].endsWith('.css')&&/\\b(?:@import|expression\\s*\\(|javascript\\s*:)/i.test(file))throw Error('UNSAFE_STYLESHEET_OUTPUT');
+ }
+
  const directory=join(sourceRoot,'scripts','sep01');
  const tests=readdirSync(directory).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>join('scripts','sep01',name));
  if(!tests.length)throw Error('SEP01_TESTS_NOT_FOUND');
@@ -63,6 +70,8 @@ const recoverCheckpoint=async job=>{
 const execute=async(job)=>{
  if(job.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job.scope))throw Error('SENSITIVE_JOB_NOT_ALLOWED');
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
+ if(job.scope!=='fixture'&&job.scope!=='development')throw Error('JOB_SCOPE_NOT_AUTHORIZED');
+ if(job.scope==='development'&&(!/^(docs\\/[a-zA-Z0-9/_-]+\\.md|assets\\/css\\/[a-zA-Z0-9/_-]+\\.css)$/.test(job.locked_paths[0])||job.locked_paths[0].includes('..')))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const key=process.env.GEMINI_API_KEY;
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
