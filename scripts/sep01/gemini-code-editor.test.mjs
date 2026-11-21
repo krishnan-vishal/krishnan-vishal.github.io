@@ -53,3 +53,23 @@ test('blocked or truncated responses never become edits',async()=>{
  assert.equal((await truncated(input)).status,'PROVIDER_BUSY');
  assert.equal(normalizeGeminiModel('not a model'),null);
 });
+
+test('malformed or truncated Gemini JSON is a bounded provider failure, never an edit',async()=>{
+ const invalid=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash-lite',fetchImpl:async()=>jsonResponse(200,{candidates:[{finishReason:'STOP',content:{parts:[{text:'{"content":'}]}}]})});
+ assert.equal((await invalid(input)).status,'PROVIDER_RESPONSE_INVALID');
+ const truncated=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash-lite',fetchImpl:async()=>jsonResponse(200,{candidates:[{finishReason:'MAX_TOKENS',content:{parts:[{text:'{"content":"cut off"}'}]}}]})});
+ assert.equal((await truncated(input)).reason,'TRUNCATED_OUTPUT');
+});
+test('Gemini appends compact Markdown instead of requesting a 40KB file regeneration',async()=>{
+ let payload;
+ const original='# Existing report\n'+'Confirmed baseline. '.repeat(2100);
+ const job={scope:'development',instruction:'Append a clearly labelled section titled "SEP-01 Owner Command Acceptance Test" and preserve existing conclusions.'};
+ const edit=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash-lite',fetchImpl:async(_url,opts)=>{
+  payload=JSON.parse(opts.body);
+  return jsonResponse(200,{candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({content:'## SEP-01 Owner Command Acceptance Test\n\nNon-production acceptance test.'})}]}}]});
+ }});
+ const result=await edit({job,path:'docs/M41-FULL-CUTOVER-REPORT.md',content:original});
+ assert.equal(result.status,'EDIT');assert.ok(result.content.startsWith(original));
+ const supplied=JSON.parse(payload.contents[0].parts[0].text);
+ assert.ok(supplied.content.length<=4000);
+});
