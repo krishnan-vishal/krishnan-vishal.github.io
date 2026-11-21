@@ -20,6 +20,64 @@ async function github(path,method='GET',body){
  if(!r.ok)throw Error('GITHUB_HTTP_'+r.status);
  return r.status===204?{}:r.json();
 }
+const gatewayVersion='sep04a-2';
+const maxFileBytes=100000;
+const developmentPath=/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/;
+const sensitiveTerms=/\b(auth(?:entication|orization)?|passwords?|secrets?|tokens?|credentials?|payments?|billing|entitlements?|deploy(?:ment)?|releases?|database|migration|schema|supabase|workflows?|github actions|edge functions?|api keys?|security|permissions?)\b/i;
+const constraintStart=/^(?:(?:please\s+)?(?:do not|don't|never|without|avoid|exclude|preserve|retain|leave|keep)\b|no\s+(?:new|changes?|production|deploy|release|provider|paid)\b)/i;
+function classifyRequirement(instruction,scope){
+ const clauses=instruction.replace(/^\s*\d+\.\s+/gm,'').split(/[\n;!?]+|\.(?=\s|$)|,\s*(?=(?:please\s+)?(?:do not|don't|never|without|preserve|retain|leave|keep|but|then)\b)|\s+(?:and\s+)?(?:but|then|also)\s+|\s+and\s+(?=(?:deploy|publish|release|roll\s*out|promote|push|merge|change|modify|update|remove|implement|disable|enable)\b)|\s+(?=(?:and\s+)?(?:without|do not|don't|never)\s)/i)
+  .map(clause=>clause.trim().replace(/^(?:[-*]\s+|\d+\.\s+|(?:constraints?|governance|acceptance criteria|requirements?|objective)\s*:\s*|and\s+|but\s+|then\s+)+/i,''))
+  .filter(clause=>clause&&!constraintStart.test(clause)&&!/^[\w /-]+\s+(?:must|should)\s+(?:remain|stay|be)\s+(?:unchanged|preserved|approval.gated|prohibited)$/i.test(clause));
+ const requested=clauses.join(' ');
+ const documentation=/\b(?:document(?:ation)?|docs|readme|markdown|guide|runbook|handbook|manual)\b|\.md\b/i;
+ const stylesheet=/\b(?:stylesheets?|css|layout|fonts?|spacing|visual|typography)\b|\.css\b/i;
+ const edit=/\b(?:add|amend|change|clarify|correct|edit|expand|fix|improve|implement|insert|remove|rename|replace|revise|rewrite|update|write)\b/i;
+ const research=/^(?:please\s+)?(?:research|analy[sz]e|investigate|compare|explain|find|summarize|assess|review|report on)\b/i;
+ const release=/\b(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i;
+ const requestsRelease=clauses.some(clause=>{
+  const action=clause.match(release);
+  if(!action)return false;
+  const prefix=clause.slice(0,action.index);
+  if(/\band\s*$/i.test(prefix))return true;
+  return !research.test(clause)&&!(edit.test(prefix)&&documentation.test(clause))&&
+   (/^(?:please\s+)?(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i.test(clause)||
+    /\b(?:and|to)\s+(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i.test(clause));
+ });
+ const isDocumentation=clauses.some(clause=>edit.test(clause)&&documentation.test(clause));
+ const isStylesheet=clauses.some(clause=>edit.test(clause)&&stylesheet.test(clause));
+ const kind=isDocumentation&&!isStylesheet?'documentation':isStylesheet&&!isDocumentation?'stylesheet':'application_code';
+ const inferred=requestsRelease?'release':clauses.length&&clauses.every(clause=>research.test(clause))?'research':'development';
+ const category=scope==='release'||inferred==='release'?'release':scope==='research'?'research':inferred;
+ const sensitive=sensitiveTerms.test(requested);
+ const explicitPaths=[...new Set((requested.match(/[\w/-]+\.(?:md|css|[cm]?[jt]sx?|html|json|ya?ml|sql|toml|txt|py|sh)\b/gi)||[]).map(path=>path.toLowerCase()))];
+ const unsupported=explicitPaths.some(path=>!path.endsWith('.md')&&!path.endsWith('.css'))||
+  clauses.some(clause=>edit.test(clause)&&!documentation.test(clause)&&!stylesheet.test(clause)&&/\b(?:application code|javascript|typescript|backend|server logic|source code)\b/i.test(clause));
+ const multiple=explicitPaths.length>1||(isDocumentation&&isStylesheet)||/\b(?:both|multiple|several|all|two|three)\s+(?:[\w-]+\s+){0,3}(?:files|pages|documents|stylesheets)\b/i.test(requested);
+ const reason=category==='release'?'RELEASE_REVIEW_REQUIRED':sensitive?'SENSITIVE_REVIEW_REQUIRED':
+  category==='research'?'RESEARCH_OUTSIDE_WORKER':multiple?'SINGLE_FILE_REQUIRED':
+  !edit.test(requested)?'REQUESTED_EDIT_REQUIRED':(kind==='application_code'||unsupported)?'APPLICATION_CODE_REVIEW_REQUIRED':null;
+ return {requested,category,kind,sensitive,reason,explicitPaths};
+}
+function rankTargets(tree,{requested,kind,explicitPaths}){
+ const normalize=value=>value.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const stop=new Set('add amend update fix change correct edit expand improve insert remove rename replace revise rewrite write docs document documentation readme markdown guide runbook handbook manual css stylesheet layout font spacing visual typography gpir file page component please should must this that the and for with from into about under section current existing'.split(' '));
+ const query=normalize(requested);
+ const words=new Set(query.split(' ').filter(word=>word.length>=3&&!stop.has(word)));
+ return tree.flatMap(entry=>{
+  if(entry.type!=='blob'||typeof entry.path!=='string'||!developmentPath.test(entry.path)||!Number.isSafeInteger(entry.size)||entry.size<0||
+    !entry.path.endsWith(kind==='documentation'?'.md':'.css'))return [];
+  const path=entry.path.toLowerCase();
+  const basename=path.split('/').at(-1);
+  const exact=explicitPaths.some(hint=>hint===path||hint===basename);
+  if(explicitPaths.length&&!exact)return [];
+  const stem=normalize(basename.replace(/\.[^.]+$/,''));
+  const tokens=[...new Set(stem.split(' ').filter(word=>words.has(word)))];
+  const phrase=stem.split(' ').length>1&&(' '+query+' ').includes(' '+stem+' ');
+  const score=exact?100:phrase?50:tokens.length;
+  return score?[{path:entry.path,score,size:entry.size}]:[];
+ }).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path));
+}
 Deno.serve(async request=>{
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(request.headers.get('Origin')!==allowedOrigin)return json({error:'ORIGIN_NOT_AUTHORIZED'},403);
@@ -56,30 +114,24 @@ Deno.serve(async request=>{
    if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
    if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
-   const lowered=instruction.toLowerCase();
-   // Classify requested operations, not explicit prohibitions or acceptance constraints.
-   // Preserve fail-closed review for ambiguous or sensitive requested actions.
-   const operative=instruction.split(/[.!?\n]+/).map(part=>part.trim()).filter(Boolean).filter(part=>!/^((?:do not|don't|never|without|no|avoid|prohibit|exclude|must not|should not)\b)/i.test(part)&&!/\b(?:are|remain|must be|should be)\s+(?:approval.gated|prohibited|unchanged|preserved)\b/i.test(part));
-   const requested=operative.join(' ');
-   const sensitive=/\b(auth(?:entication|orization)?|password|secret|token|credential|payment|billing|entitlement|deploy(?:ment)?|release|database|migration|schema|supabase|workflow|github actions|edge function|api key|security|permission)\b/i.test(requested);
-   const inferred=/\b(research|analysis|investigat|report|study)\b/i.test(requested)?'research':/\b(deploy|release|publish|production|rollout)\b/i.test(requested)?'release':'development';
-   const category=requestedScope==='development'?inferred:requestedScope;
-   if(category!=='development'||sensitive)return json({category,sensitive,executable:false,reason:sensitive?'SENSITIVE_REVIEW_REQUIRED':'SCOPE_REQUIRES_SEPARATE_AUTHORIZATION',candidates:[],read_only:true});
+   const intent=classifyRequirement(instruction,requestedScope);
+   const {category,kind,sensitive}=intent;
+   const preview={gateway_version:gatewayVersion,category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
+   const block=(reason,candidates=[])=>plannedSubmission?json({error:reason},409):json({...preview,reason,candidates});
+   if(intent.reason)return block(intent.reason);
+   if(instruction.replace(/\s+/g,' ').length>1000)return block('WORKER_INSTRUCTION_LIMIT');
    const ref=await github('git/ref/heads/main');
    const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
-   if(tree.truncated||!Array.isArray(tree.tree))return json({category,sensitive:false,executable:false,reason:'REPOSITORY_DISCOVERY_INCOMPLETE',candidates:[],read_only:true});
-   const words=new Set(requested.toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
-   const eligible=tree.tree.filter(entry=>entry.type==='blob'&&entry.size<=100000&&typeof entry.path==='string'&&/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(entry.path)&&!entry.path.includes('..'));
-   const ranked=eligible.map(entry=>{
-    const tokens=new Set(entry.path.toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
-    let score=0;for(const word of words)if(tokens.has(word))score++;
-    if(/\b(style|css|layout|font|spacing|visual)\b/.test(lowered)&&entry.path.endsWith('.css'))score+=2;
-    if(/\b(document|docs|readme|chapter|text)\b/.test(lowered)&&entry.path.endsWith('.md'))score+=2;
-    return {path:entry.path,score};
-   }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path)).slice(0,8);
-   const target=ranked.length===1||ranked[0]?.score>ranked[1]?.score?ranked[0]?.path:null;
+   if(tree.truncated||!Array.isArray(tree.tree))return block('REPOSITORY_DISCOVERY_INCOMPLETE');
+   const ranked=rankTargets(tree.tree,intent);
+   const eligible=ranked.filter(item=>item.size<=maxFileBytes).slice(0,8);
+   if(ranked[0]?.size>maxFileBytes&&(!eligible.length||ranked[0].score>=eligible[0].score))return block('MATCH_EXCEEDS_FILE_LIMIT',eligible);
+   const target=eligible[0]&&(eligible.length===1||eligible[0].score>eligible[1].score)?eligible[0].path:null;
    const planId=target?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([owner,ref.object.sha,target,instruction])))),byte=>byte.toString(16).padStart(2,'0')).join(''):null;
-   if(!plannedSubmission)return json({category,sensitive:false,executable:false,reason:target?'OWNER_APPROVAL_REQUIRED':ranked.length?'AMBIGUOUS_COMPONENT':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true,auto_suggested_target:target,plan_id:planId});
+   if(!plannedSubmission){
+    if(!target)return block(eligible.length?'AMBIGUOUS_COMPONENT':'NO_SAFE_TARGET_IDENTIFIED',eligible);
+    return json({...preview,reason:'OWNER_APPROVAL_REQUIRED',candidates:eligible,review_required:true,auto_suggested_target:target,plan_id:planId});
+   }
    if(!planId||body.plan_id!==planId)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
    plannedBase=ref.object.sha;
    body.path=target;
@@ -171,7 +223,7 @@ Deno.serve(async request=>{
   if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'A verified checkpoint already owns this file. Preserve its state and complete governed review before submitting another edit.'},409);
   if(scope==='development'){
    const file=await github('contents/'+path);
-   if(file.type!=='file'||file.size>100000)return json({error:'FILE_NOT_ELIGIBLE'},422);
+   if(file.type!=='file'||file.size>maxFileBytes)return json({error:'FILE_NOT_ELIGIBLE'},422);
   }
   const jobId='sep01-owner-'+(plannedSubmission?body.plan_id.slice(0,40):crypto.randomUUID().slice(0,18));
   const branch='sep01/jobs/'+jobId;

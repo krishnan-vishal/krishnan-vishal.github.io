@@ -93,7 +93,7 @@ html body{background:#081c34!important;color:#102b4b!important}html body main{ma
 <a class="gpir-smart-tile" href="#provider-heading"><strong>Provider Status</strong><span>Review Gemini and OpenRouter routing</span></a>
 <a class="gpir-smart-tile" href="#governance-heading"><strong>Governance</strong><span>Review approvals and historical evidence</span></a>
 </nav></section>
-<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Bounded documentation and stylesheet changes can be submitted for verified checkpoints. Sensitive code and production releases remain approval-gated. No production changes are permitted.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Only bounded development directives can execute; other requirements remain drafts until separately authorized.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section></div>
+<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Bounded documentation and stylesheet changes can be submitted for verified checkpoints. Sensitive code and production releases remain approval-gated. No production changes are permitted.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Only bounded development directives can execute; other requirements remain drafts until separately authorized.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section></div>
 <section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">Agent Monitoring</h2><p class="muted">Owner-authenticated, read-only task status. This does not submit an agent task, authorize spending or change provider routing.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
 
 
@@ -210,23 +210,38 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
   const result=await commandRequest({action:'classify_requirement',instruction,scope});
   state.replaceChildren();
   if(instruction!==directive.value.trim()||scope!==mode.value)return;
-  const candidates=result.candidates||[];
-  const rows=[
-   ['Objective',instruction],
-   ['Scope',result.category+' · '+(result.auto_suggested_target?'one bounded branch change':result.reason)],
-   ['Primary component',result.auto_suggested_target||'No unambiguous component'],
-   ['Related components',candidates.filter(item=>item.path!==result.auto_suggested_target).map(item=>item.path).join(', ')||'None identified'],
-   ['Dependencies','Repository branch, owner gateway and SEP worker checks. Component matches are inferred from repository paths.'],
-   ['Provider eligibility','Gemini → OpenRouter for eligible development jobs. Runtime availability checked during execution.'],
-   ['Risks','Provider usage may incur charges. Ambiguous and sensitive requests require review.'],
-   ['Acceptance criteria','The approved outcome is reflected in the bounded change, checks pass and a remote checkpoint is recorded.']
-  ];
+  const ready=result.reason==='OWNER_APPROVAL_REQUIRED'&&result.plan_id&&result.auto_suggested_target&&result.category==='development'&&!result.sensitive;
+  const reasons={
+   RELEASE_REVIEW_REQUIRED:'Use the existing GitHub and Supabase release review for production actions.',
+   SENSITIVE_REVIEW_REQUIRED:'Use the governed pull request path for owner and security review of sensitive changes.',
+   RESEARCH_OUTSIDE_WORKER:'Save this research directive for review. The SEP worker only processes bounded edits.',
+   APPLICATION_CODE_REVIEW_REQUIRED:'Submit application-code changes through the governed GitHub pull request path.',
+   SINGLE_FILE_REQUIRED:'The worker edits one file per job. Narrow the request to one outcome or use a governed pull request for coordinated changes.',
+   WORKER_INSTRUCTION_LIMIT:'Shorten the execution instruction to 1,000 characters. You can keep the full draft locally.',
+   REQUESTED_EDIT_REQUIRED:'Describe the edit you want to make.',
+   MATCH_EXCEEDS_FILE_LIMIT:'The strongest match exceeds the 100 KB (100,000-byte) worker limit. Use the governed pull request path for this file.',
+   REPOSITORY_DISCOVERY_INCOMPLETE:'The repository listing was incomplete. Review the target in GitHub before proceeding.',
+   AMBIGUOUS_COMPONENT:'Several files match equally. Add the document title or section to narrow the request.',
+   NO_SAFE_TARGET_IDENTIFIED:'No relevant eligible file was found. Add the document title or component to clarify the target.'
+  };
+  const related=(result.candidates||[]).filter(item=>item.path!==result.auto_suggested_target);
+  const rows=[['Request type',result.kind==='application_code'&&result.category==='development'?'Application code':(result.category==='development'?result.kind:result.category)]];
+  if(ready)rows.push(
+   ['Proposed change',instruction],
+   ['Target',result.auto_suggested_target],
+   ['Provider route','Gemini → OpenRouter. Runtime availability checked during execution.'],
+   ['Execution restrictions','One file, up to 100 KB (100,000 bytes), on an isolated branch. Separate review is required to merge or deploy. Provider usage may incur charges.'],
+   ['Approval','Approve and confirm one job to submit.']
+  );
+  else rows.push(['Review path',reasons[result.reason]||'The gateway did not return an eligible plan. Ask the owner to review the gateway release before submitting.']);
+  if(related.length)rows.push(['Other eligible matches',related.map(item=>item.path).join(', ')]);
+  if(result.gateway_version)rows.push(['Gateway',result.gateway_version]);
   for(const [label,value] of rows){
    const row=document.createElement('p');row.className='plan-item';
    const title=document.createElement('strong');title.textContent=label+' · ';
    row.append(title,document.createTextNode(value));state.append(row);
   }
-  if(result.plan_id&&result.auto_suggested_target&&result.category==='development'&&!result.sensitive){
+  if(ready){
    approvedDiscovery={...result,instruction};
    document.querySelector('#submit-directive').disabled=false;
   }
@@ -255,7 +270,7 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
 
   startReceiptPolling();
   status.textContent='Submitted '+receipt.job_id+' · '+receipt.status+' · dispatch '+receipt.dispatch;
- }catch(error){status.textContent='Not submitted: '+String(error.message||error)}
+ }catch(error){status.textContent='Submission was not confirmed: '+String(error.message||error)+'. Check execution status before approving another job.'}
  finally{button.disabled=!approvedDiscovery}
 });
 async function refreshReceipt(){
