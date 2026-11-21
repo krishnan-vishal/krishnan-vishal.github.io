@@ -36,10 +36,12 @@ function validateJobOutput(job,read=path=>readFileSync(join(root,path),'utf8')){
 function runRegressionTests(job){
  validateJobOutput(job);
  if(job.scope==='development'){
-  if(job.locked_paths.length!==1||!/^(docs\\/[a-zA-Z0-9/_-]+\\.md|assets\\/css\\/[a-zA-Z0-9/_-]+\\.css)$/.test(job.locked_paths[0])||job.locked_paths[0].includes('..'))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
-  const file=readFileSync(join(root,job.locked_paths[0]),'utf8');
+  const path=job.locked_paths?.[0];
+  const eligible=typeof path==='string' && /^(?:docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path);
+  if(job.locked_paths?.length!==1||!eligible||path.includes('..'))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
+  const file=readFileSync(join(root,path),'utf8');
   if(!file.trim()||Buffer.byteLength(file)>100000)throw Error('DEVELOPMENT_OUTPUT_INVALID');
-  if(job.locked_paths[0].endsWith('.css')&&/\\b(?:@import|expression\\s*\\(|javascript\\s*:)/i.test(file))throw Error('UNSAFE_STYLESHEET_OUTPUT');
+  if(path.endsWith('.css')&&/\b(?:@import|expression\s*\(|javascript\s*:)/i.test(file))throw Error('UNSAFE_STYLESHEET_OUTPUT');
  }
 
  const directory=join(sourceRoot,'scripts','sep01');
