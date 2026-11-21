@@ -137,8 +137,10 @@ async function refreshReceipt(){
  const status=document.querySelector('#directive-status');
  try{
   const receipt=await commandRequest({action:'status',job_id:submittedJob});
-  status.textContent='Job '+receipt.job_id+' · '+receipt.status+' · revision '+receipt.revision+(receipt.checkpoint?' · checkpoint '+receipt.checkpoint:'');
-  if(['BLOCKED','DEPLOYED_VERIFIED','RELEASE_ELIGIBLE'].includes(receipt.status)&&statusPoll){clearInterval(statusPoll);statusPoll=null;}
+  if(receipt.job_id!==submittedJob||!Number.isSafeInteger(receipt.revision)||typeof receipt.status!=='string')throw Error('INVALID_RECEIPT');
+  if(receipt.checkpoint!==null&&!/^[a-f0-9]{40}$/.test(receipt.checkpoint))throw Error('INVALID_CHECKPOINT');
+  status.textContent='Job '+receipt.job_id+' · '+receipt.status+' · revision '+receipt.revision+(receipt.provider?' · provider '+receipt.provider:'')+(receipt.checkpoint?' · checkpoint '+receipt.checkpoint:'');
+  if(['BLOCKED','CHECKPOINTED','DEPLOYED_VERIFIED','RELEASE_ELIGIBLE'].includes(receipt.status)&&statusPoll){clearInterval(statusPoll);statusPoll=null;}
  }catch(error){status.textContent='Status unavailable: '+String(error.message||error)}
 }
 function startReceiptPolling(){if(statusPoll)clearInterval(statusPoll);refreshReceipt();statusPoll=setInterval(refreshReceipt,15000)}
