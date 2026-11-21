@@ -2,6 +2,8 @@
 // Scope intentionally limited to the existing acceptance fixture until owner-only auth
 // and broader allowlist approvals are proven. No code execution occurs here.
 import {createDurableJobStore} from './durable-job-store.mjs';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 export function validateOwnerCommand(input){
  const jobId=String(input.job_id||'');
  const instruction=String(input.instruction||'');
@@ -16,7 +18,7 @@ export async function enqueueOwnerCommand(input,store){
  if(!result)throw Error('OWNER_JOB_ALREADY_QUEUED_OR_NOT_RETURNED');
  return {job_id:result.job_id,status:result.status,revision:result.revision,branch:result.branch};
 }
-if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1].replace(/\\/g,'/')).href){
+if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
  const input={job_id:process.env.SEP01_OWNER_JOB_ID,instruction:process.env.SEP01_OWNER_INSTRUCTION,scope:process.env.SEP01_OWNER_SCOPE};
  const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
  const result=await enqueueOwnerCommand(input,store);
