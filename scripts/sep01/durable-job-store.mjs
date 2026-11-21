@@ -32,7 +32,7 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    const rows=await request('?payload->>status=eq.QUOTA_PAUSED&order=updated_at.asc&limit=1&select=*','GET');
    const paused=unpack(rows[0]);
    // Only a previously claimed, revisioned job may be recovered; no new execution identity.
-   return paused&&paused.revision>1&&/^sep01\\/jobs\\/[a-zA-Z0-9._-]+$/.test(paused.branch||'')?paused:null;
+   return paused&&paused.revision>1&&paused.branch.startsWith('sep01/jobs/')&&/^[a-zA-Z0-9._-]+$/.test(paused.branch.slice(11))?paused:null;
   },
   async get(jobId){
    const rows=await request('?job_id=eq.'+encodeURIComponent(jobId)+'&select=*','GET');
