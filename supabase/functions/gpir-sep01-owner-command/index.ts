@@ -94,11 +94,11 @@ Deno.serve(async request=>{
    if(env('SEP03_AGENT_COST_APPROVED')!=='true')return json({error:'AGENT_COST_APPROVAL_REQUIRED'},403);
    if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_AGENT_TASK')return json({error:'EXPLICIT_TASK_CONFIRMATION_REQUIRED'},422);
    const path=String(body.path||'');
-   if(!/^(docs\\/[a-zA-Z0-9/_-]+\\.md|assets\\/css\\/[a-zA-Z0-9/_-]+\\.css)$/.test(path)||path.includes('..'))return json({error:'PATH_NOT_AUTHORIZED'},422);
+   if(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..'))return json({error:'PATH_NOT_AUTHORIZED'},422);
    const instruction=String(body.instruction||'').trim();
-   if(!instruction||instruction.length>1000||/[\\x00-\\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
+   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
    const writeToken=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
-   if(!/^(github_pat_|ghp_)[\\x21-\\x7e]{10,500}$/.test(writeToken))return json({error:'AGENT_WRITE_CREDENTIAL_UNAVAILABLE'},503);
+   if(!/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(writeToken))return json({error:'AGENT_WRITE_CREDENTIAL_UNAVAILABLE'},503);
    // Restrict the task's instructions and require PR-only review; never authorize deployment.
    const prompt='GPIR owner-authorized bounded documentation/stylesheet proposal. Modify ONLY '+path+
     '. Do not change workflows, authentication, secrets, payments, dependencies, or production deployment. Open a PR for review; do not merge. Requirement: '+instruction;
