@@ -8,7 +8,13 @@ import {createGeminiCodeEditor} from './gemini-code-editor.mjs';
 import {dispatchWithQuotaFailover} from './live-quota-failover.mjs';
 const key=process.env.GEMINI_API_KEY;
 if(!key)throw Error('GEMINI_KEY_MISSING');
-const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100',{headers:{'x-goog-api-key':key}});
+// Bound every external request so a provider stall cannot consume the whole Actions job.
+// Timeout is reported distinctly from quota, authentication and model failures.
+const timedFetch=(url,options={})=>fetch(url,{...options,signal:AbortSignal.timeout(25000)});
+console.log(JSON.stringify({gate:'GEMINI_DISCOVERY_STARTED',request_timeout_ms:25000}));
+let response;
+try{response=await timedFetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100',{headers:{'x-goog-api-key':key}});}
+catch(error){throw Error(error?.name==='TimeoutError'?'GEMINI_DISCOVERY_TIMEOUT_25S':'GEMINI_DISCOVERY_NETWORK_ERROR_'+String(error?.name||'UNKNOWN'));}
 if(!response.ok)throw Error('MODEL_DISCOVERY_HTTP_'+response.status);
 const listing=await response.json();
 const eligible=(listing.models||[]).filter(m=>m.supportedGenerationMethods?.includes('generateContent')&&/^models\/gemini-[a-z0-9._-]+$/i.test(m.name)&&!/tts|audio|speech|image|video|live|embedding/i.test(m.name)).map(m=>m.name.slice(7));
@@ -19,8 +25,14 @@ const original='export const ready = false;\n',expected='export const ready = tr
 let accepted=null;
 const failures=[];
 for(const model of models){
- const edit=createGeminiCodeEditor({apiKey:key,model});
- const result=await edit({job:task,path:'fixture.js',content:original});
+ console.log(JSON.stringify({gate:'GEMINI_MODEL_ATTEMPT',model,request_timeout_ms:25000}));
+ const edit=createGeminiCodeEditor({apiKey:key,model,fetchImpl:timedFetch});
+ let result;
+ try{result=await edit({job:task,path:'fixture.js',content:original});}
+ catch(error){
+  if(error?.name==='TimeoutError')result={status:'PROVIDER_BUSY',reason:'REQUEST_TIMEOUT_25S'};
+  else throw error;
+ }
  if(result.status==='EDIT'){
   if(result.content!==expected)throw Error('GEMINI_EDIT_NOT_EXACT');
   accepted=model;break;
