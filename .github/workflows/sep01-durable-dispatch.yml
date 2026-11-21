@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/sep01-central-command-controller-20261120
+          ref: main
           fetch-depth: 0
           persist-credentials: true
       - uses: actions/setup-node@v4
