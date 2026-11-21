@@ -1,0 +1,43 @@
+name: SEP-01 owner command intake
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'Unique job ID: sep01-owner- plus 6-60 lowercase letters, digits or hyphens'
+        required: true
+        type: string
+      scope:
+        description: 'Authorized scope (fixture only until production authorization)'
+        required: true
+        type: choice
+        options:
+          - fixture
+      instruction:
+        description: 'Bounded coding instruction; never include secrets'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-owner-intake
+  cancel-in-progress: false
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate and enqueue one authorized fixture job
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SEP01_OWNER_JOB_ID: ${{ inputs.job_id }}
+          SEP01_OWNER_SCOPE: ${{ inputs.scope }}
+          SEP01_OWNER_INSTRUCTION: ${{ inputs.instruction }}
+        run: node scripts/sep01/owner-command-intake.mjs
