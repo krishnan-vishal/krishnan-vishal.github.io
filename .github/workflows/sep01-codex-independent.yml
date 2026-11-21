@@ -1,0 +1,40 @@
+name: SEP-01 Codex CLI independent acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Codex CLI model ID available to your API project'
+        required: true
+        default: 'gpt-5.3-codex'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sep01-codex-independent-acceptance
+  cancel-in-progress: false
+jobs:
+  codex-cli-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      - name: Verify Codex CLI read-only fixture
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CODEX_MODEL: ${{ inputs.model }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+            echo "::error::OPENAI_API_KEY repository secret is required for this independent runner"
+            exit 1
+          fi
+          codex --version
+          node scripts/sep01/codex-local-acceptance.mjs "$CODEX_MODEL"
