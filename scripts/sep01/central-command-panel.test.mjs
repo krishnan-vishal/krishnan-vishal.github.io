@@ -7,7 +7,7 @@ test('Central Command submits through authenticated gateway, never directly to p
  assert.match(page,/Central Command/);
  assert.match(page,/api\.github\.com\/repos\/krishnan-vishal/);
  assert.match(page,/async function ownerSession\(/);
- assert.match(page,/scope:'development',path,instruction/);
+ assert.match(page,/commandRequest\(\{action:'submit',scope,path,instruction\}\)/);
  assert.match(page,/startReceiptPolling\(\)/);
  assert.doesNotMatch(page,/SUPABASE_SERVICE_ROLE_KEY|OPENAI_API_KEY|GEMINI_API_KEY/);
  assert.doesNotMatch(page,/rest\/v1\/gpir_sep01_jobs/);
