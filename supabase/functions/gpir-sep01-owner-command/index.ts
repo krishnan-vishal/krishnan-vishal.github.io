@@ -1,6 +1,8 @@
 // SEP-01 owner-only command gateway. All privileged calls remain server-side.
 // Explicit owner allowlist and scope guard fail closed; no production release capability.
 const allowedOrigin='https://fintechoisis.com';
+const sep02FixturePath='scripts/sep01/sep02-acceptance-fixture.txt';
+const sep02FixtureInstruction='Replace the entire isolated SEP-02 fixture with exactly two lines: SEP-02 bounded provider failover acceptance fixture. then STATE: CHECKPOINT_VERIFIED. End both lines with a newline. Do not modify any other file or deploy.';
 const cors={'Access-Control-Allow-Origin':allowedOrigin,'Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Vary':'Origin'};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
 const env=name=>Deno.env.get(name)||'';
@@ -48,8 +50,13 @@ Deno.serve(async request=>{
   if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')))return json({error:'PATH_NOT_AUTHORIZED'},422);
   const instruction=String(body.instruction||'').trim();
   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},400);
-  const target=scope==='fixture'?'scripts/sep01/acceptance-fixture.txt':path;
+  if(scope==='fixture'&&instruction!==sep02FixtureInstruction)return json({error:'FIXTURE_INSTRUCTION_NOT_AUTHORIZED'},422);
+  const target=scope==='fixture'?sep02FixturePath:path;
   const existing=await supa('gpir_sep01_jobs?select=job_id,payload&limit=1000');
+  if(scope==='fixture'){
+   const previous=existing.find(row=>row.payload?.acceptance_series==='SEP02'&&row.payload?.owner_user_id===owner);
+   if(previous)return json({error:'ACCEPTANCE_ALREADY_SUBMITTED',job_id:previous.job_id,message:'SEP-02 is one-shot. Check the existing acceptance receipt; do not submit again.'},409);
+  }
   const lockHolder=existing.find(row=>['CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE'].includes(row.payload?.status)&&row.payload?.locked_paths?.includes(target));
   if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'A verified checkpoint already owns this file. Preserve its state and complete governed review before submitting another edit.'},409);
   if(scope==='development'){
@@ -61,11 +68,12 @@ Deno.serve(async request=>{
   const ref=await github('git/ref/heads/main');
   await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
   if(scope==='fixture'){
-   const fixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: PENDING\n';
-   await github('contents/scripts/sep01/acceptance-fixture.txt','PUT',{message:'SEP-01: seed isolated acceptance fixture',content:btoa(fixture),branch});
+   const fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: PENDING\n';
+   await github('contents/'+sep02FixturePath,'PUT',{message:'SEP-02: seed isolated non-production acceptance fixture',content:btoa(fixture),branch});
   }
-  const payload={job_id:jobId,idempotency_key:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture',status:'QUEUED',owner_user_id:owner};
-  await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
+  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture',acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
+  const queued=await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
+  if(queued?.job_id!==jobId||queued?.status!=='QUEUED')throw Error('ACCEPTANCE_QUEUE_NOT_CONFIRMED');
   try{await github('actions/workflows/sep01-durable-dispatch.yml/dispatches','POST',{ref:'main',inputs:{job_id:jobId}})}
   catch(error){return json({job_id:jobId,status:'QUEUED',dispatch:'PENDING',message:'Job queued; dispatcher trigger unavailable. Scheduled dispatcher may pick it up.'},202)}
   return json({job_id:jobId,status:'QUEUED',dispatch:'REQUESTED'},202);
