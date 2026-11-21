@@ -49,7 +49,7 @@ Deno.serve(async request=>{
   const branch='sep01/jobs/'+jobId;
   const ref=await github('git/ref/heads/main');
   await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
-  const fixture='SEP-01 durable checkpoint acceptance fixture.\\nSTATE: PENDING\\n';
+  const fixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: PENDING\n';
   await github('contents/scripts/sep01/acceptance-fixture.txt','PUT',{message:'SEP-01: seed isolated acceptance fixture',content:btoa(fixture),branch});
   const payload={job_id:jobId,idempotency_key:'owner:'+jobId,branch,locked_paths:['scripts/sep01/acceptance-fixture.txt'],scope:'fixture',instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,status:'QUEUED',owner_user_id:owner};
   await supa('gpir_sep01_jobs?on_conflict=job_id','POST',{job_id:jobId,idempotency_key:payload.idempotency_key,revision:1,payload});
