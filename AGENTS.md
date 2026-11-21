@@ -4,6 +4,10 @@
 
 GPIR Core, repository governance, and deterministic validation are authoritative; GitHub is the source of truth. Codex, Copilot, Claude, ChatGPT, OpenHands, Aider, and future tools are interchangeable development assistants only. They must never become dependencies of GPIR Core or the public website, which must function independently of AI providers, development environments, Codespaces, GCP, databases, and live AI services.
 
+## Red Book — Binding Owner Golden Rule
+
+Before any GPIR change, read [docs/GPIR_RED_BOOK.md](docs/GPIR_RED_BOOK.md). Preserve the approved GPIR architecture and all successfully verified accomplishments. No change may silently weaken, replace or regress protected assets. Any necessary exception requires express owner authorization, documented impact, targeted regression evidence and recovery reference. Record new verified accomplishments append-only in the Red Book and master project log. Unverified work is never labeled complete.
+
 ## Project Structure and Commands
 
 This is a static GitHub Pages site. `pages/` contains public HTML; `assets/js/` and `assets/css/` contain shared browser code and styles; `assets/data/` contains authoritative structured content. `assets/data/content-registry.json` is the identity/relationship catalogue; announcements and trusted sources are in `announcements.json` and `trusted-sources.json`. Scripts are in `scripts/`, governance in `docs/`, and CI in `.github/workflows/`.
