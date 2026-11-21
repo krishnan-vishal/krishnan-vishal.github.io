@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-21",
+  "source": "SEP-01 merged implementation and owner-reported local acceptance; static public snapshot, not a live heartbeat",
+  "providers": [
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "kind": "good",
+      "status": "Approved API route · coding adapter implemented; live worker acceptance pending"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "kind": "good",
+      "status": "Approved API fallback · coding adapter implemented; live worker acceptance pending"
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "kind": "warn",
+      "status": "Optional CLI · historical local PASS; automated runtime not verified"
+    },
+    {
+      "id": "copilot",
+      "name": "Copilot",
+      "kind": "warn",
+      "status": "Not authenticated for SEP-01 automated routing"
+    },
+    {
+      "id": "cline",
+      "name": "Cline",
+      "kind": "warn",
+      "status": "Local interactive edit PASS; automated transport unsupported"
+    },
+    {
+      "id": "aider",
+      "name": "Aider",
+      "kind": "warn",
+      "status": "Parked · 12 unsuccessful acceptance attempts"
+    }
+  ]
+}
