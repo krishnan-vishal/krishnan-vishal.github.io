@@ -37,3 +37,12 @@ test('fresh runner reconciles a pushed checkpoint after a claimed-state interrup
  const result=await worker('j');
  assert.equal(result.status,'RECOVERED_CHECKPOINT');assert.equal(f.get().status,'CHECKPOINTED');assert.equal(f.get().checkpoint_commit,sha);assert.equal(called,false);assert.deepEqual(f.calls.map(x=>x[0]),['CLAIMED']);
 });
+
+test('checkpoint receipt persists the successful provider and bounded attempts', async()=>{
+ const f=fixture();
+ const attempts=[{provider:'gemini',status:'QUOTA_EXHAUSTED'},{provider:'openrouter',status:'EDIT'}];
+ const worker=createDurableWorker({store:f.store,execute:async()=>({status:'SUCCESS',commit:sha,provider:'openrouter',model_attempts:attempts}),verifyCheckpoint:async commit=>commit===sha});
+ const result=await worker('j');
+ assert.equal(result.job.provider,'openrouter');
+ assert.deepEqual(result.job.model_attempts,attempts);
+});
