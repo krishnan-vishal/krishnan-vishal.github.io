@@ -1,0 +1,2 @@
+SEP-01 durable checkpoint acceptance fixture.
+STATE: PENDING
