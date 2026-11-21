@@ -26,7 +26,7 @@ export function createCodexCliEditor({binary='codex',model,spawnImpl=spawnSync,e
   const executable=windows?'cmd.exe':binary;
   const argv=windows?['/d','/s','/c', 'codex exec --sandbox read-only --skip-git-repo-check --model '+model+' -']:['exec','--sandbox','read-only','--skip-git-repo-check','--model',model,'-'];
   // Preserve only platform identity and Codex auth-home locations, not project secrets.
-  const environment={PATH:process.env.PATH,Path:process.env.Path,HOME:process.env.HOME,USERPROFILE:process.env.USERPROFILE,APPDATA:process.env.APPDATA,LOCALAPPDATA:process.env.LOCALAPPDATA,CODEX_HOME:process.env.CODEX_HOME,TERM:'dumb'};
+  const environment={PATH:process.env.PATH,Path:process.env.Path,HOME:process.env.HOME,USERPROFILE:process.env.USERPROFILE,APPDATA:process.env.APPDATA,LOCALAPPDATA:process.env.LOCALAPPDATA,SystemRoot:process.env.SystemRoot,TEMP:process.env.TEMP,TMP:process.env.TMP,CODEX_HOME:process.env.CODEX_HOME,TERM:'dumb'};
   for(const name of Object.keys(environment))if(environment[name]===undefined)delete environment[name];
   const result=spawnImpl(executable,argv,{input:prompt,encoding:'utf8',timeout:timeoutMs,maxBuffer:150000,env:environment});
   if(result.error){
