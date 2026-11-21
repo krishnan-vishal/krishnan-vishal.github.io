@@ -7,7 +7,7 @@
   }
   const RETURN_KEY = 'gpir.reader.returnTo';
   const C2C = '/stablecoins-cross-border-money-movement-c2c/';
-  const OWNED_ROUTES = new Set(['/', C2C, '/auth/callback/', '/reader/sign-in/',
+  const OWNED_ROUTES = new Set(['/', C2C, '/admin/central-command/', '/auth/callback/', '/reader/sign-in/',
     '/reader/create-account/', '/reader/my-gpir/', '/reader/profile/', '/reader/library/',
     '/reader/payments/', '/reader/plan/', '/pages/fx/intelligence.html',
     '/pages/risk/global-country-risk-monitor.html']);

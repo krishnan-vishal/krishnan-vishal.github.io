@@ -1,19 +1,238 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GPIR Central Command · SEP-01</title>
+<title>GPIR Central Command · SEP-01</title><link rel="stylesheet" href="/assets/css/variables.css">
 <style>
 :root{color-scheme:dark;--bg:#0c1421;--card:#172437;--line:#34465b;--text:#f1f5fa;--muted:#b8c6d6;--good:#69d6ad;--warn:#ffd27a}*{box-sizing:border-box}body{font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text);margin:0}main{max-width:1180px;margin:auto;padding:28px 18px 60px}h1{font-size:clamp(1.7rem,4vw,2.6rem);margin:.2em 0}h2{font-size:1.2rem;margin:0 0 12px}.muted,small{color:var(--muted)}header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:0 0 14px}.pill{display:inline-block;border:1px solid var(--line);border-radius:40px;padding:3px 10px;font-size:.83rem;color:var(--muted)}.good{color:var(--good)}.warn{color:var(--warn)}.tool{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:12px 0}.tool:last-child{border:0}.tool span{max-width:60%}a{color:#a7d4ff}button,.action{background:#29496d;border:1px solid #7192b2;border-radius:8px;color:white;padding:9px 13px;cursor:pointer;display:inline-block;text-decoration:none;margin:4px 5px 4px 0}button:focus-visible,a:focus-visible{outline:3px solid #ffd27a;outline-offset:3px}.metric{font-size:1.6rem;font-weight:700}.note{border-left:3px solid var(--warn);padding-left:12px}code{overflow-wrap:anywhere}textarea,select{width:100%;background:#0c1421;color:var(--text);border:1px solid #7192b2;border-radius:8px;padding:12px;font:inherit}textarea{min-height:120px;resize:vertical}label{display:block;font-weight:600;margin:10px 0 5px}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{margin:0}.console-status{margin-top:10px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}@media(max-width:600px){.tool{display:block}.tool span{display:block;max-width:none}} 
+</style><style id="gpir-command-accessibility">
+/* Isolate the admin console from reader-auth global styles. */
+html body {background:#eef2f7!important;color:#17263a!important}
+html body main {color:#17263a!important}
+html body main h1,html body main header h2 {color:#17263a!important}
+html body main .card {background:#172437!important;color:#f1f5fa!important;border:1px solid #52657b!important}
+html body main .card h2,html body main .card h3,html body main .card label,html body main .card strong,html body main .card th,html body main .card td {color:#f1f5fa!important}
+html body main .card p,html body main .card small,html body main .card .muted {color:#d0dce9!important}
+html body main .card a {color:#a9d7ff!important;text-decoration:underline}
+html body main .card input,html body main .card select,html body main .card textarea {background:#0b1524!important;color:#fff!important;border:1px solid #8da6bf!important}
+html body main .card input::placeholder,html body main .card textarea::placeholder {color:#bacadd!important;opacity:1}
+html body main .card button {background:#31577e!important;color:#fff!important;border:1px solid #92b4d5!important}
+html body main .card button:hover {background:#426e9c!important}
+html body main .card .good {color:#76e3ba!important}
+html body main .card .warn {color:#ffda8a!important}
+html body main .card .note {border-left:3px solid #ffda8a}
+html body main .card .tool {border-bottom-color:#52657b}
+html body main .card th,html body main .card td {border-bottom-color:#52657b}
+#owner-auth-panel {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:14px 18px;border:1px solid #a9b9cc;border-radius:12px;background:#fff;color:#17263a}
+#owner-auth-panel a {color:#174d7b;text-decoration:underline;font-weight:700}
+#owner-auth-state {font-weight:700}
+</style><style id="gpir-approved-brand">
+/* GPIR Smart Premium brand tokens: ivory / navy / gold, compact editorial cards. */
+:root{color-scheme:light;--gpir-navy:#102c4b;--gpir-ivory:#f7f4ec;--gpir-gold:#b8913a;--gpir-line:#e6e1d3}
+html body{background:var(--gpir-ivory)!important;color:#14243a!important;font-size:14px}
+html body main{max-width:1320px;padding:20px 24px 48px}
+html body main header{background:#fff;border:1px solid var(--gpir-line);border-top:3px solid var(--gpir-gold);border-radius:12px;padding:15px 20px;margin-bottom:14px;box-shadow:0 4px 16px #102c4b0a}
+.gpir-brand{display:inline-flex;align-items:center;gap:10px;color:var(--gpir-navy)!important;text-decoration:none;font-weight:700}
+.gpir-brand img{width:48px;height:48px;flex:none}
+.gpir-brand span{display:flex;flex-direction:column;gap:3px}
+.gpir-brand strong{font-size:17px;letter-spacing:.09em}
+.gpir-brand small{font-size:11px;color:#526579}
+.gpir-brand b{background:#f6eed6;color:#75571e;border-radius:20px;padding:3px 8px;margin-right:5px}
+.gpir-eyebrow{color:#8c6c26;font-size:10px;font-weight:800;letter-spacing:.13em;margin-top:12px}
+html body main h1{font-size:clamp(23px,2.5vw,30px);line-height:1.2;margin:3px 0}
+.gpir-subtitle{color:#566678;font-size:12px}
+html body main .card{background:#fff!important;color:#14243a!important;border:1px solid var(--gpir-line)!important;box-shadow:0 1px 2px #102c4b0a,0 8px 24px #102c4b0a;border-radius:14px;padding:16px;margin-bottom:12px}
+html body main .card h2,html body main .card h3,html body main .card label,html body main .card strong,html body main .card th,html body main .card td{color:#14243a!important}
+html body main .card p,html body main .card small,html body main .card .muted{color:#526579!important}
+html body main .card a{color:#16567b!important}
+html body main .card input,html body main .card select,html body main .card textarea{background:#fff!important;color:#14243a!important;border:1px solid #b5c2cf!important}
+html body main .card input::placeholder,html body main .card textarea::placeholder{color:#657588!important}
+html body main .card button,html body main .card .action{background:#102c4b!important;color:#fff!important;border:1px solid #102c4b!important}
+html body main .card .action{color:#fff!important;text-decoration:none}
+html body main .card button:hover,html body main .card .action:hover{background:#1c4b71!important}
+html body main .card .good{color:#126e60!important}
+html body main .card .warn{color:#946510!important}
+html body main .card .tool{padding:9px 0;border-bottom-color:#e6e1d3}
+html body main .card .tool span{max-width:68%;font-size:12px;line-height:1.5}
+html body main .card .note{border-left-color:var(--gpir-gold)}
+html body main .card th,html body main .card td{border-bottom-color:#e6e1d3}
+html body main .grid{gap:12px}
+html body main .metric{font-size:22px}
+#owner-auth-panel{background:#fff;border-color:#d8d4c7;box-shadow:0 1px 4px #102c4b0a;padding:10px 15px;font-size:12px}
+#owner-auth-panel a{color:#16567b}
+html body main header .pill{color:#526579}
+html body main header button{background:#102c4b;color:#fff;border-color:#102c4b}
+@media(max-width:640px){html body main{padding:12px}html body main header{padding:12px}.gpir-brand strong{font-size:14px}.gpir-brand small{font-size:10px}html body main .card{padding:13px}}
 </style></head><body><main>
-<header><div><div class="muted">GPIR / SEP-01 / OWNER OPERATIONS</div><h1>Central Command</h1><div class="muted">Provider connectivity · execution evidence · safe handoff</div></div><div><span class="pill" id="sync">Not refreshed</span><button type="button" id="refresh">Refresh public CI</button></div></header>
-<section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Owner AI directive console</h2><p class="muted">Compose a GPIR requirement here. This public page prepares a draft only; authenticated GitHub Actions remains the execution and approval boundary. No instruction or credential is sent to a public endpoint.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-owner-command.yml" target="_blank" rel="noopener noreferrer">Open authenticated intake</a></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">No directive submitted. Current intake accepts fixture scope only.</p></section>
+<header><div><a class="gpir-brand" href="/" aria-label="FINTECHOISIS GPIR home"><img src="/assets/branding/logos/fo-mark.svg" alt="" width="48" height="48"><span><strong>FINTECHOISIS</strong><small><b>GPIR</b> Global Payments Intelligence Repository</small></span></a><div class="gpir-eyebrow">GPIR / OWNER OPERATIONS / SEP-01</div><h1>Central Command</h1><div class="gpir-subtitle">Governed execution · provider connectivity · verified checkpoints</div></div><div><span class="pill" id="sync">Not refreshed</span><button type="button" id="refresh">Refresh status</button></div></header>
+<div id="owner-auth-panel"><span id="owner-auth-state" role="status" aria-live="polite">Checking GPIR sign-in…</span><a id="owner-sign-in-link" href="/reader/sign-in/?returnTo=%2Fadmin%2Fcentral-command%2F">Sign in to GPIR</a><span>Owner access is verified by Supabase; no separate admin password.</span></div><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Owner AI directive console</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Bounded documentation and stylesheet changes can be submitted for verified checkpoints. Sensitive code and production releases remain approval-gated. No production changes are permitted.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="fixture">SEP-02 non-production acceptance (one time)</option><option value="release">Release proposal (approval required)</option></select><label for="directive-path" id="directive-path-label">Target file (existing docs/*.md or assets/css/*.css)</label><input id="directive-path" type="text" placeholder="Choose an existing authorized file only for bounded execution" maxlength="180" style="width:100%;padding:12px;background:#0c1421;color:white;border:1px solid #7192b2;border-radius:8px"><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="submit-directive">Submit authorized change</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Only bounded development directives can execute; other requirements remain drafts until separately authorized.</p></section>
+<section class="card" aria-labelledby="sep03-delegation-heading"><h2 id="sep03-delegation-heading">SEP-03 · Governed GitHub agent delegation</h2><p class="muted">Submit requirements from Central Command only when repository eligibility, write authorization and explicit cost approval have been independently verified. This interface cannot bypass GitHub plan restrictions. No automatic paid execution.</p><button type="button" id="check-agent-eligibility">Check delegation eligibility</button><p id="agent-delegation-state" class="muted" role="status" aria-live="polite">Delegation disabled until eligibility is checked.</p><label for="agent-delegation-path">Existing documentation or stylesheet target</label><input id="agent-delegation-path" type="text" placeholder="docs/GPIR_BACKLOG.md" maxlength="180" style="width:100%;padding:12px"><label for="agent-delegation-instruction">Owner requirement (up to 1,000 characters)</label><textarea id="agent-delegation-instruction" maxlength="1000" placeholder="Describe one bounded change and acceptance criteria"></textarea><button type="button" id="submit-agent-delegation" disabled>Authorize one GitHub agent task</button><p class="muted">Submission is unavailable by default. Any authorized task creates a reviewable PR, never a production deployment. Subscription usage may be charged by GitHub.</p></section>
+<section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">SEP-03 · GitHub coding-agent monitoring</h2><p class="muted">Owner-authenticated, read-only task status. This does not submit an agent task, authorize spending or change provider routing.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
+<section class="card" aria-labelledby="receipt-heading"><h2 id="receipt-heading">Authenticated execution receipts</h2><p class="muted">Read-only status from the existing owner-authorized Supabase gateway. This does not submit or execute a command.</p><button type="button" id="load-original-receipt">Verify SEP-01 receipt</button><button type="button" id="load-sep02-receipt">Verify SEP-02 receipt</button><p id="original-receipt-state" role="status" aria-live="polite">Sign in as the authorized owner to verify the original checkpoint.</p><div id="original-receipt-details" hidden><table><tbody><tr><th scope="row">Job ID</th><td id="receipt-job"></td></tr><tr><th scope="row">Status</th><td id="receipt-status"></td></tr><tr><th scope="row">Revision</th><td id="receipt-revision"></td></tr><tr><th scope="row">Checkpoint</th><td><code id="receipt-checkpoint"></code></td></tr><tr><th scope="row">Provider</th><td id="receipt-provider"></td></tr><tr><th scope="row">Provider attempts</th><td id="receipt-attempts"></td></tr><tr><th scope="row">Last updated</th><td id="receipt-updated"></td></tr></tbody></table></div></section>
 <section class="grid" aria-label="Overview"><div class="card"><div class="muted">Local Codex adapter</div><div class="metric good">PASS</div><small>Owner-verified Windows acceptance; not a live heartbeat</small></div><div class="card"><div class="muted">Prior durable checkpoint</div><div class="metric good">Rev 14</div><small>Recorded Supabase acceptance; not live polling</small></div><div class="card"><div class="muted">Cross-tool automatic handoff</div><div class="metric warn">NOT VERIFIED</div><small>Requires authenticated runner and controlled test</small></div></section>
 <section class="grid"><div class="card"><h2>Coding tools</h2><div id="tools" aria-live="polite"><div class="tool"><strong>Gemini</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>OpenRouter</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>Codex</strong><span class="warn">Optional · runtime unverified</span></div><div class="tool"><strong>Copilot</strong><span class="warn">Not accepted for automated routing</span></div><div class="tool"><strong>Cline</strong><span class="warn">Interactive only · automated transport unsupported</span></div><div class="tool"><strong>Aider</strong><span class="warn">Parked after 12 failed runs</span></div></div><small><span id="provider-snapshot-status">Built-in public status fallback. No private credentials or quota values are queried from the browser.</span></small></div>
-<div class="card"><h2>Execution supervision</h2><p class="note">Owner commands are submitted through authenticated GitHub Actions. ChatGPT prompts are not automatically submitted to the job queue; only authorized, bounded jobs are accepted.</p><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-owner-command.yml" target="_blank" rel="noopener noreferrer">Submit bounded owner job</a><p id="runstate" role="status" aria-live="polite">Public GitHub Actions status has not been loaded.</p><div id="runs"></div><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-durable-dispatch.yml" target="_blank" rel="noopener noreferrer">Open SEP workflow controls</a><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/pulls" target="_blank" rel="noopener noreferrer">Review pull requests</a><p class="muted">Dispatch, approval and cancellation remain in authenticated GitHub Actions. This panel never triggers production mutations.</p></div></section>
+<div class="card"><h2>Execution supervision</h2><p class="note">Owner-authorized bounded commands are submitted through the protected gateway. GitHub Actions executes the queued job; releases remain separately governed.</p><p id="runstate" role="status" aria-live="polite">Public GitHub Actions status has not been loaded.</p><div id="runs"></div><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-durable-dispatch.yml" target="_blank" rel="noopener noreferrer">Open SEP workflow controls</a><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/pulls" target="_blank" rel="noopener noreferrer">Review pull requests</a><p class="muted">Submitted commands dispatch through the protected gateway; production releases remain separately approval-gated.</p></div></section>
 <section class="card"><h2>Architecture connectivity</h2><div class="grid"><div><strong>GitHub</strong><p id="github-health" class="muted">Checking public workflow API on refresh</p></div><div><strong>Supabase</strong><p class="muted">Checkpoint recorded; live private status requires an owner-authenticated endpoint</p></div><div><strong>Payload / Cloudflare</strong><p class="muted">Production health not verified by this panel</p></div><div><strong>Global Alerts</strong><p class="muted">Source → publication → 12-hour relay → archive: pending live acceptance</p></div></div></section>
-<section class="card"><h2>Usage optimization & provider mover</h2><p class="note">Never assume unlimited subscription quota. Unknown remaining quota is not a balance of zero or infinity. Provider handoff occurs only after a safe checkpoint, through the existing SEP worker.</p><table><thead><tr><th>Signal</th><th>Current visibility</th></tr></thead><tbody><tr><td>Codex subscription quota</td><td>Not exposed to this page</td></tr><tr><td>Copilot / Cline authentication</td><td>Not verified</td></tr><tr><td>API usage and spend</td><td>Requires protected server-side telemetry</td></tr><tr><td>Automatic fallback</td><td>Existing routing code; cross-CLI acceptance pending</td></tr></tbody></table><a class="action" href="https://supabase.com/dashboard/project/qlnvhfapctcpzqyuhhth" target="_blank" rel="noopener noreferrer">Open authorized Supabase console</a></section>
-<footer class="muted">Read-only supervisor · No embedded secrets · No autonomous dispatch · Evidence required before PASS</footer>
-</main><script type="module">
-const directive=document.querySelector('#directive-text');const mode=document.querySelector('#directive-mode');const directiveStatus=document.querySelector('#directive-status');function draft(){const requirement=directive.value.trim();if(!requirement)throw Error('Enter a requirement first');return 'GPIR OWNER DIRECTIVE\\nType: '+mode.value+'\\nRequirement: '+requirement+'\\nGovernance: Follow existing SEP-01 contracts, checkpoint and idempotency controls. No production mutation without explicit approval. This draft is not an executable job.'}document.querySelector('#copy-directive').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(draft());directiveStatus.textContent='Directive copied locally. NOT queued or executed.'}catch(e){directiveStatus.textContent='Copy unavailable: '+String(e.message||e)}});document.querySelector('#download-directive').addEventListener('click',()=>{try{const blob=new Blob([draft()+'\\n'],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gpir-owner-directive.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);directiveStatus.textContent='Draft saved locally. NOT queued or executed.'}catch(e){directiveStatus.textContent=String(e.message||e)}});
+<section class="card" aria-labelledby="sep03-evidence-heading"><h2 id="sep03-evidence-heading">Verified execution and delegation evidence</h2><p class="muted">Historical acceptance evidence, not a live quota or provider heartbeat. Execution authorization and subscription availability are separate from read-only task monitoring.</p><table><thead><tr><th>Provider or capability</th><th>Authenticated / monitored</th><th>Execution / quota</th></tr></thead><tbody><tr><td>Gemini → OpenRouter</td><td>SEP-02 receipt: Gemini MODEL_UNAVAILABLE → OpenRouter EDIT → CHECKPOINTED</td><td>Fallback verified for bounded fixture; current availability unknown</td></tr><tr><td>GitHub Copilot Agent tasks</td><td>SEP-03 owner-authenticated read-only listing verified in production</td><td>Task creation not authorized; live credits unknown</td></tr><tr><td>Codex</td><td>Historical local Windows adapter PASS</td><td>Unattended delegation and quota not verified</td></tr><tr><td>Cline / Aider</td><td>Historical local or parked status only</td><td>Unattended execution not verified</td></tr></tbody></table></section>
+<section class="card"><h2>Usage optimization & provider mover</h2><p class="note">Never assume unlimited subscription quota. Unknown remaining quota is not a balance of zero or infinity. Provider handoff occurs only after a safe checkpoint, through the existing SEP worker.</p><table><thead><tr><th>Signal</th><th>Current visibility</th></tr></thead><tbody><tr><td>Codex subscription quota</td><td>Not exposed to this page</td></tr><tr><td>Copilot / Cline authentication</td><td>Copilot Agent tasks read-only authentication PASS (SEP-03); Copilot execution and Cline unattended authentication unverified</td></tr><tr><td>API usage and spend</td><td>Requires protected server-side telemetry</td></tr><tr><td>Automatic fallback</td><td>Gemini → OpenRouter SEP-02 fixture PASS; cross-CLI / GitHub-agent handoff not verified</td></tr></tbody></table><a class="action" href="https://supabase.com/dashboard/project/qlnvhfapctcpzqyuhhth" target="_blank" rel="noopener noreferrer">Open authorized Supabase console</a></section>
+<footer class="muted">Owner-authenticated bounded intake · No embedded secrets · Sensitive and production execution remain approval-gated · Evidence required before PASS</footer>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script><script src="/assets/js/gpir-supabase-public-config.js"></script><script src="/scripts/m34/supabase-browser-client.js"></script><script src="/assets/js/gpir-reader-auth.js"></script><script type="module">
+const gateway='https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-sep01-owner-command';
+const sep02FixtureInstruction='Replace the entire isolated SEP-02 fixture with exactly two lines: SEP-02 bounded provider failover acceptance fixture. then STATE: CHECKPOINT_VERIFIED. End both lines with a newline. Do not modify any other file or deploy.';
+let submittedJob=sessionStorage.getItem('gpir_sep01_job_id')||null;
+let statusPoll=null;
+async function showOwnerAuth(){
+ const state=document.querySelector('#owner-auth-state');
+ const link=document.querySelector('#owner-sign-in-link');
+ try{
+  const client=window.GPIR_SUPABASE_CLIENT;
+  if(!client?.auth?.getSession){state.textContent='Sign-in client unavailable';link.hidden=false;return}
+  const {data,error}=await client.auth.getSession();
+  const signedIn=!error&&Boolean(data?.session?.access_token);
+  state.textContent=signedIn?'GPIR session active · owner permissions verified by gateway on submission':error?'Unable to verify sign-in':'Not signed in to GPIR';
+  link.hidden=signedIn;
+ }catch{state.textContent='Unable to verify sign-in';link.hidden=false}
+}
+window.addEventListener('load',showOwnerAuth);
+async function ownerSession(){
+ const client=window.GPIR_SUPABASE_CLIENT;
+ if(!client?.auth?.getSession)throw Error('Sign in to GPIR before submitting a command');
+ const {data,error}=await client.auth.getSession();
+ if(error||!data?.session?.access_token)throw Error('Owner sign-in required');
+ return data.session.access_token;
+}
+async function commandRequest(body){
+ const token=await ownerSession();
+ const response=await fetch(gateway,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',['api'+'key']:window.GPIR_SUPABASE_PUBLIC_CONFIG?.publishableKey||''},body:JSON.stringify(body)});
+ const result=await response.json();
+ if(!response.ok)throw Error(result.message||result.error||'Command failed');
+ return result;
+}
+let agentDelegationEligible=false;
+document.querySelector('#check-agent-eligibility').addEventListener('click',async()=>{
+ const state=document.querySelector('#agent-delegation-state');
+ const button=document.querySelector('#submit-agent-delegation');
+ button.disabled=true;agentDelegationEligible=false;state.textContent='Checking server-side delegation gates…';
+ try{
+  const data=await commandRequest({action:'agent_delegation_eligibility'});
+  agentDelegationEligible=data.submission_available===true;
+  button.disabled=!agentDelegationEligible;
+  state.textContent=agentDelegationEligible?'Eligibility gates enabled; explicit owner confirmation required for each task.':'Delegation blocked: '+String(data.reason||'UNVERIFIED')+'. Read-only monitoring remains available.';
+ }catch(error){state.textContent='Delegation eligibility unavailable: '+String(error.message||error)}
+});
+document.querySelector('#submit-agent-delegation').addEventListener('click',async()=>{
+ const button=document.querySelector('#submit-agent-delegation');
+ const state=document.querySelector('#agent-delegation-state');
+ if(!agentDelegationEligible||button.disabled)return;
+ const path=document.querySelector('#agent-delegation-path').value.trim();
+ const instruction=document.querySelector('#agent-delegation-instruction').value.trim();
+ if(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')||!instruction||instruction.length>1000){state.textContent='Enter one authorized existing docs/*.md or assets/css/*.css target and a bounded requirement.';return}
+ if(!window.confirm('Authorize ONE GitHub Copilot cloud-agent task? This may consume paid credits. No automatic retries. The result requires PR review.')){state.textContent='Task not authorized';return}
+ button.disabled=true;
+ try{
+  const result=await commandRequest({action:'agent_task_submit',path,instruction,confirmation:'AUTHORIZE_ONE_GITHUB_AGENT_TASK'});
+  state.textContent='Task '+String(result.task_id)+' · '+String(result.state)+' · PR review required. Refresh agent tasks to monitor.';
+ }catch(error){state.textContent='Task not created: '+String(error.message||error)}
+ finally{agentDelegationEligible=false;button.disabled=true}
+});
+document.querySelector('#load-agent-tasks').addEventListener('click',async()=>{
+ const button=document.querySelector('#load-agent-tasks');
+ const state=document.querySelector('#agent-task-state');
+ const results=document.querySelector('#agent-task-results');
+ if(button.disabled)return;
+ button.disabled=true;
+ state.textContent='Checking owner-authorized GitHub agent tasks…';
+ results.replaceChildren();
+ try{
+  const data=await commandRequest({action:'agent_tasks_list'});
+  if(!data.read_only||!Array.isArray(data.tasks))throw Error('INVALID_AGENT_TASK_RESPONSE');
+  state.textContent=data.tasks.length?'Read-only GitHub task listing returned '+data.tasks.length+' task(s).':'Authenticated GitHub task listing returned no tasks.';
+  for(const task of data.tasks){
+   const line=document.createElement('p');
+   line.textContent='Task '+String(task.id||'Unidentified')+' · '+String(task.state||'unknown')+' ';
+   if(typeof task.url==='string'&&task.url.startsWith('https://github.com/')){
+    const link=document.createElement('a');link.href=task.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='View in GitHub';line.append(link);
+   }
+   results.append(line);
+  }
+ }catch(error){state.textContent='Agent monitoring unavailable: '+String(error.message||error)}
+ finally{button.disabled=false}
+});
+const originalJobId='sep01-owner-8c8dcf0c-16aa-4c02';
+async function loadOriginalReceipt(jobId,button){
+ const state=document.querySelector('#original-receipt-state'),details=document.querySelector('#original-receipt-details');
+ if(button.disabled)return;
+ button.disabled=true;details.hidden=true;state.textContent='Checking authenticated Supabase checkpoint…';
+ try{
+  const receipt=await commandRequest({action:'status',job_id:jobId});
+  if(receipt.job_id!==jobId||!Number.isSafeInteger(receipt.revision)||typeof receipt.status!=='string')throw Error('INVALID_RECEIPT');
+  const checkpoint=receipt.checkpoint;
+  if(checkpoint!==null&&!/^[a-f0-9]{40}$/.test(checkpoint))throw Error('INVALID_CHECKPOINT');
+  document.querySelector('#receipt-job').textContent=receipt.job_id;
+  document.querySelector('#receipt-status').textContent=receipt.status;
+  document.querySelector('#receipt-revision').textContent=String(receipt.revision);
+  document.querySelector('#receipt-checkpoint').textContent=checkpoint||'Not recorded';
+  document.querySelector('#receipt-provider').textContent=receipt.provider||'Not recorded';
+  document.querySelector('#receipt-attempts').textContent=receipt.model_attempts?.map(attempt=>[attempt.provider,attempt.model,attempt.status].filter(Boolean).join(' · ')).join(' → ')||'Not recorded';
+  document.querySelector('#receipt-updated').textContent=receipt.updated_at||'Not available';
+  details.hidden=false;
+  state.textContent=receipt.status==='CHECKPOINTED'&&checkpoint?'Authenticated checkpoint receipt returned by owner gateway.':'Owner gateway returned a non-checkpointed job state.';
+ }catch(error){state.textContent='Receipt unavailable: '+String(error.message||error)}
+ finally{button.disabled=false}
+}
+document.querySelector('#load-original-receipt').addEventListener('click',event=>loadOriginalReceipt(originalJobId,event.currentTarget));
+document.querySelector('#load-sep02-receipt').addEventListener('click',event=>loadOriginalReceipt('sep01-owner-84b672f1-ec0b-4ec7',event.currentTarget));
+document.querySelector('#submit-directive').addEventListener('click',async()=>{
+ const button=document.querySelector('#submit-directive');
+ const status=document.querySelector('#directive-status');
+ if(button.disabled)return;
+ button.disabled=true;
+ try{
+  const scope=document.querySelector('#directive-mode').value;
+  if(scope!=='development')throw Error('Only bounded development is executable; use Copy governed directive for other types');
+  const instruction=document.querySelector('#directive-text').value.trim();
+  if(!instruction)throw Error('Enter a requirement');
+  if(instruction.length>1000)throw Error('Execution requires a requirement of 1,000 characters or fewer');
+  const path=scope==='fixture'?'':document.querySelector('#directive-path').value.trim();
+  if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')))throw Error('Specify an existing docs/*.md or assets/css/*.css file');
+  if(!window.confirm('Submit ONE bounded development job to the existing SEP worker? Gemini/OpenRouter API usage may incur charges. No production deployment.')){status.textContent='Submission cancelled';return}
+  status.textContent='Authenticating and submitting governed change…';
+  const receipt=await commandRequest({action:'submit',scope,path,instruction});
+  submittedJob=receipt.job_id;
+  sessionStorage.setItem('gpir_sep01_job_id',submittedJob);
+
+  startReceiptPolling();
+  status.textContent='Submitted '+receipt.job_id+' · '+receipt.status+' · dispatch '+receipt.dispatch;
+ }catch(error){status.textContent='Not submitted: '+String(error.message||error)}
+ finally{button.disabled=false}
+});
+async function refreshReceipt(){
+ if(!submittedJob)return;
+ const status=document.querySelector('#directive-status');
+ try{
+  const receipt=await commandRequest({action:'status',job_id:submittedJob});
+  if(receipt.job_id!==submittedJob||!Number.isSafeInteger(receipt.revision)||typeof receipt.status!=='string')throw Error('INVALID_RECEIPT');
+  if(receipt.checkpoint!==null&&!/^[a-f0-9]{40}$/.test(receipt.checkpoint))throw Error('INVALID_CHECKPOINT');
+  status.textContent='Job '+receipt.job_id+' · '+receipt.status+' · revision '+receipt.revision+(receipt.provider?' · provider '+receipt.provider:'')+(receipt.checkpoint?' · checkpoint '+receipt.checkpoint:'');
+  if(['BLOCKED','CHECKPOINTED','DEPLOYED_VERIFIED','RELEASE_ELIGIBLE'].includes(receipt.status)&&statusPoll){clearInterval(statusPoll);statusPoll=null;}
+ }catch(error){status.textContent='Status unavailable: '+String(error.message||error)}
+}
+function startReceiptPolling(){if(statusPoll)clearInterval(statusPoll);refreshReceipt();statusPoll=setInterval(refreshReceipt,15000)}
+if(submittedJob)startReceiptPolling();
+document.querySelector('#refresh').addEventListener('click',refreshReceipt);
+const directive=document.querySelector('#directive-text');const mode=document.querySelector('#directive-mode');const directiveStatus=document.querySelector('#directive-status');
+let developmentDraft=directive.value;
+function refreshDirectiveMode(){
+ const fixture=mode.value==='fixture',development=mode.value==='development';
+ const path=document.querySelector('#directive-path'),pathLabel=document.querySelector('#directive-path-label');
+ const submit=document.querySelector('#submit-directive');
+ path.hidden=!development;pathLabel.hidden=!development;
+ submit.disabled=!development;
+ submit.textContent=development?'Submit authorized change':'Submission unavailable · draft only';
+ if(fixture&&!directive.readOnly){developmentDraft=directive.value;directive.value=sep02FixtureInstruction;directive.readOnly=true}
+ else if(!fixture&&directive.readOnly){directive.value=developmentDraft;directive.readOnly=false}
+ directiveStatus.textContent=development?'Bounded execution only: select an existing docs/*.md or assets/css/*.css file. Other files require separate authorization.':fixture?'SEP-02 acceptance is already complete. Use the existing receipt; no repeat execution.':'This requirement can be drafted and copied here, but this directive type has no authorized execution route yet.';
+}
+mode.addEventListener('change',refreshDirectiveMode);refreshDirectiveMode();
+function draft(){const requirement=directive.value.trim();if(!requirement)throw Error('Enter a requirement first');return 'GPIR OWNER DIRECTIVE\\nType: '+mode.value+'\\nRequirement: '+requirement+'\\nGovernance: Follow existing SEP-01 contracts, checkpoint and idempotency controls. No production mutation without explicit approval. This draft is not an executable job.'}document.querySelector('#copy-directive').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(draft());directiveStatus.textContent='Directive copied locally. NOT queued or executed.'}catch(e){directiveStatus.textContent='Copy unavailable: '+String(e.message||e)}});document.querySelector('#download-directive').addEventListener('click',()=>{try{const blob=new Blob([draft()+'\\n'],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gpir-owner-directive.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);directiveStatus.textContent='Draft saved locally. NOT queued or executed.'}catch(e){directiveStatus.textContent=String(e.message||e)}});
 // Public-safe, versioned provider snapshot. Never query private quotas or credentials.
 async function refreshProviders(){
  const target=document.querySelector('#tools');

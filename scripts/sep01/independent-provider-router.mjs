@@ -1,5 +1,5 @@
 // SEP-01: bounded cross-provider routing; never retry an invalid edit or validation failure.
-const FAILOVER=new Set(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE']);
+const FAILOVER=new Set(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID']);
 export async function requestWithIndependentFallback({geminiModels,geminiEdit,openrouterEdit,allowOpenRouter=false,codexEdit,allowCodex=false,onAttempt=()=>{}}){
  if(!Array.isArray(geminiModels)||typeof geminiEdit!=='function')throw Error('INVALID_PROVIDER_ROUTING');
  const attempts=[];
@@ -8,6 +8,16 @@ export async function requestWithIndependentFallback({geminiModels,geminiEdit,op
   attempts.push({provider:'gemini',model,status:result?.status||'MISSING'});
   onAttempt(attempts.at(-1));
   if(!FAILOVER.has(result?.status))return {result,attempts};
+  // A malformed provider response is not an edit; switch routes without trying more Gemini variants.
+  if(result.status==='PROVIDER_RESPONSE_INVALID')break;
+ }
+ let openRouterResult;
+ if(allowOpenRouter&&typeof openrouterEdit==='function'){
+  const result=await openrouterEdit();
+  attempts.push({provider:'openrouter',status:result?.status||'MISSING'});
+  onAttempt(attempts.at(-1));
+  if(!FAILOVER.has(result?.status))return {result,attempts};
+  openRouterResult=result;
  }
  if(allowCodex&&typeof codexEdit==='function'){
   const result=await codexEdit();
@@ -15,11 +25,6 @@ export async function requestWithIndependentFallback({geminiModels,geminiEdit,op
   onAttempt(attempts.at(-1));
   if(!FAILOVER.has(result?.status))return {result,attempts};
  }
- if(allowOpenRouter&&typeof openrouterEdit==='function'){
-  const result=await openrouterEdit();
-  attempts.push({provider:'openrouter',status:result?.status||'MISSING'});
-  onAttempt(attempts.at(-1));
-  return {result,attempts};
- }
- return {result:{status:attempts.some(x=>x.status==='QUOTA_EXHAUSTED')?'QUOTA_EXHAUSTED':attempts.some(x=>x.status==='PROVIDER_BUSY')?'PROVIDER_BUSY':'MODEL_UNAVAILABLE'},attempts};
+ if(openRouterResult&&attempts.at(-1)?.provider==='openrouter')return {result:openRouterResult,attempts};
+ return {result:{status:attempts.some(x=>x.status==='PROVIDER_RESPONSE_INVALID')?'PROVIDER_RESPONSE_INVALID':attempts.some(x=>x.status==='QUOTA_EXHAUSTED')?'QUOTA_EXHAUSTED':attempts.some(x=>x.status==='PROVIDER_BUSY')?'PROVIDER_BUSY':'MODEL_UNAVAILABLE'},attempts};
 }

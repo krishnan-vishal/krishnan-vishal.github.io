@@ -1,3 +1,4 @@
+import {prepareEditorTask} from './editor-output-contract.mjs';
 // SEP-01 independent Google Gemini API coding transport.
 // This route is separate from OpenRouter; requires its own authorized Gemini key.
 // No shell commands, Git writes, or secret material returned to the caller.
@@ -28,9 +29,10 @@ export function createGeminiCodeEditor({apiKey,model,fetchImpl=fetch}){
  return async ({job,path,content})=>{
   if(job?.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job?.scope))throw Error('GEMINI_SENSITIVE_JOB_FORBIDDEN');
   if(typeof job?.instruction!=='string'||!job.instruction.trim()||job.instruction.length>3000||typeof path!=='string'||typeof content!=='string'||content.length>50000)throw Error('INVALID_GEMINI_EDIT_INPUT');
+  const contract=prepareEditorTask({job,path,content});
   const response=await fetchImpl('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
    method:'POST',headers:{'x-goog-api-key':apiKey,'Content-Type':'application/json'},
-   body:JSON.stringify({systemInstruction:{parts:[{text:'You are a code editor. Reply only with a JSON object containing a content string holding the complete replacement file. No markdown or shell commands.'}]},contents:[{role:'user',parts:[{text:JSON.stringify({task:job.instruction,file:path,content})}]}],generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{content:{type:'STRING'}},required:['content']}}})
+   body:JSON.stringify({systemInstruction:{parts:[{text:contract.prompt}]},contents:[{role:'user',parts:[{text:JSON.stringify({task:job.instruction,file:path,content:contract.context})}]}],generationConfig:{temperature:0,maxOutputTokens:8192,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{content:{type:'STRING'}},required:['content']}}})
   });
   if(response.status===429)return {status:'QUOTA_EXHAUSTED',provider:'gemini'};
   if([500,502,503,504].includes(response.status))return {status:'PROVIDER_BUSY',provider:'gemini',http_status:response.status};
@@ -45,13 +47,14 @@ export function createGeminiCodeEditor({apiKey,model,fetchImpl=fetch}){
   const candidate=data?.candidates?.[0];
   const finish=String(candidate?.finishReason||'');
   if(['SAFETY','RECITATION','BLOCKLIST','PROHIBITED_CONTENT','SPII'].includes(finish))return {status:'PROVIDER_UNAVAILABLE',reason:'RESPONSE_BLOCKED'};
+  if(finish==='MAX_TOKENS')return {status:'PROVIDER_RESPONSE_INVALID',provider:'gemini',reason:'TRUNCATED_OUTPUT'};
   const answer=candidate?.content?.parts?.map(part=>typeof part?.text==='string'?part.text:'').join('');
   if(typeof answer!=='string'||!answer.trim()){
    if(finish==='MAX_TOKENS')return {status:'PROVIDER_BUSY',provider:'gemini',reason:'INCOMPLETE_RESPONSE'};
    throw Error('INVALID_GEMINI_RESPONSE');
   }
-  let parsed;try{parsed=JSON.parse(answer.trim());}catch{throw Error('INVALID_GEMINI_JSON');}
+  let parsed;try{parsed=JSON.parse(answer.trim());}catch{return {status:'PROVIDER_RESPONSE_INVALID',provider:'gemini',reason:'NON_JSON_OUTPUT'};}
   if(typeof parsed.content!=='string'||!parsed.content||parsed.content.length>100000)throw Error('INVALID_GEMINI_CONTENT');
-  return {status:'EDIT',content:parsed.content};
+  return {status:'EDIT',content:contract.materialize(parsed.content)};
  };
 }

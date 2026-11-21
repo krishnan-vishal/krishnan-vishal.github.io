@@ -14,7 +14,7 @@ import {createCodingRunner} from './coding-runner.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
 if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REPOSITORY)throw Error('GITHUB_ACTIONS_REQUIRED');
-const required=['SEP01_JOB_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','GEMINI_API_KEY'];
+const required=['SEP01_JOB_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY'];
 const missing=required.filter(name=>!process.env[name]?.trim());
 if(missing.length)throw Error('SEP01_MISSING_CONFIGURATION: '+missing.join(', '));
 const store=createDurableJobStore({url:process.env.SUPABASE_URL,key:process.env.SUPABASE_SERVICE_ROLE_KEY});
@@ -22,19 +22,32 @@ const gitRaw=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',timeou
 const git=(...args)=>gitRaw(...args).trim();
 const sourceRoot=process.cwd();
 const expectedFixture='SEP-01 durable checkpoint acceptance fixture.\nSTATE: CHECKPOINT_VERIFIED\n';
+const expectedSep02Fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: CHECKPOINT_VERIFIED\n';
 function validateJobOutput(job,read=path=>readFileSync(join(root,path),'utf8')){
- if(job.scope==='fixture'&&job.locked_paths[0]==='scripts/sep01/acceptance-fixture.txt'){
-  // Permit only line-ending and one terminal-newline variation. Do not
-  // accept paraphrases, extra text, different states or other file changes.
-  const actual=read(job.locked_paths[0]).replace(/\r\n/g,'\n');
-  if(actual.replace(/\n?$/,'\n')!==expectedFixture){
-   console.error(JSON.stringify({event:'SEP01_FIXTURE_MISMATCH',actual_length:actual.length,expected_length:expectedFixture.length,actual_lines:actual.split('\n').length}));
+ if(job.scope==='fixture'){
+  const path=job.locked_paths?.[0];
+  const expected=path==='scripts/sep01/acceptance-fixture.txt'?expectedFixture:
+   path==='scripts/sep01/sep02-acceptance-fixture.txt'&&job.acceptance_series==='SEP02'&&job.single_attempt===true?expectedSep02Fixture:null;
+  if(!expected)throw Error('FIXTURE_PATH_NOT_AUTHORIZED');
+  // Permit only line-ending and one terminal-newline variation. Never accept paraphrases or extra text.
+  const actual=read(path).replace(/\r\n/g,'\n');
+  if(actual.replace(/\n?$/,'\n')!==expected){
+   console.error(JSON.stringify({event:'SEP01_FIXTURE_MISMATCH',actual_length:actual.length,expected_length:expected.length,actual_lines:actual.split('\n').length}));
    throw Error('ACCEPTANCE_FIXTURE_VALIDATION_FAILED');
   }
  }
 }
 function runRegressionTests(job){
  validateJobOutput(job);
+ if(job.scope==='development'){
+  const path=job.locked_paths?.[0];
+  const eligible=typeof path==='string' && /^(?:docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path);
+  if(job.locked_paths?.length!==1||!eligible||path.includes('..'))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
+  const file=readFileSync(join(root,path),'utf8');
+  if(!file.trim()||Buffer.byteLength(file)>100000)throw Error('DEVELOPMENT_OUTPUT_INVALID');
+  if(path.endsWith('.css')&&/\b(?:@import|expression\s*\(|javascript\s*:)/i.test(file))throw Error('UNSAFE_STYLESHEET_OUTPUT');
+ }
+
  const directory=join(sourceRoot,'scripts','sep01');
  const tests=readdirSync(directory).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>join('scripts','sep01',name));
  if(!tests.length)throw Error('SEP01_TESTS_NOT_FOUND');
@@ -63,16 +76,28 @@ const recoverCheckpoint=async job=>{
 const execute=async(job)=>{
  if(job.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job.scope))throw Error('SENSITIVE_JOB_NOT_ALLOWED');
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
+ if(job.scope!=='fixture'&&job.scope!=='development')throw Error('JOB_SCOPE_NOT_AUTHORIZED');
+ if(job.scope==='fixture'&&job.locked_paths[0]!=='scripts/sep01/acceptance-fixture.txt'&&!(job.locked_paths[0]==='scripts/sep01/sep02-acceptance-fixture.txt'&&job.acceptance_series==='SEP02'&&job.single_attempt===true))throw Error('FIXTURE_PATH_NOT_AUTHORIZED');
+ if(job.scope==='development'&&(!/^(?:docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(job.locked_paths[0])||job.locked_paths[0].includes('..')))throw Error('DEVELOPMENT_PATH_NOT_AUTHORIZED');
  if(job.branch!==git('branch','--show-current'))throw Error('JOB_BRANCH_CHECKOUT_REQUIRED');
  const key=process.env.GEMINI_API_KEY;
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
  const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[A-Za-z0-9_.:/-]+$/.test(independentModel));
  const codexModel=(process.env.SEP01_CODEX_MODEL||'').trim();
- const allowCodex=process.env.SEP01_CODEX_ENABLED==='true'&&process.env.SEP01_CODEX_AUTH_VERIFIED==='true'&&/^[-A-Za-z0-9_.]+$/.test(codexModel);
+ const codexConfigured=process.env.SEP01_CODEX_ENABLED==='true'&&process.env.SEP01_CODEX_AUTH_VERIFIED==='true'&&/^[-A-Za-z0-9_.]+$/.test(codexModel);
+ // The existing adapter accepts only SEP fixture paths. Probe runner login without a model request.
+ const allowCodex=codexConfigured&&job.scope==='fixture'&&(()=>{
+  try{
+   execFileSync('codex',['login','status'],{stdio:'ignore',timeout:5000,env:{PATH:process.env.PATH,HOME:process.env.HOME,CODEX_HOME:process.env.CODEX_HOME}});
+   return true;
+  }catch{return false;}
+ })();
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  let discovery;
  try{
-  discovery=await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4});
+  discovery=key?.trim()
+   ?await discoverGeminiTextModels({apiKey:key,preferred:process.env.SEP01_GEMINI_MODEL,maxCandidates:4})
+   :{models:[],preferredMatched:false};
  }catch(error){
   // Only transport availability/quota failures permit independent fallback.
   // Authentication, malformed discovery and configuration failures stay fail-closed.
@@ -94,13 +119,14 @@ const execute=async(job)=>{
  ];
  const eligible=rankUsageAwareRoutes(job,routeCandidates,routeReadiness);
  const eligibleIds=new Set(eligible.map(route=>route.id));
- const selectedModels=eligibleIds.has('gemini')?selected:[];
  const fallbackAllowed=eligibleIds.has('openrouter');
  const codexAllowed=eligibleIds.has('codex');
+ const selectedModels=eligibleIds.has('gemini')?selected.slice(0,fallbackAllowed||codexAllowed||job.scope==='fixture'?1:4):[];
  console.log(JSON.stringify({event:'SEP01_USAGE_AWARE_ROUTES',eligible:[...eligibleIds],gemini_models:selectedModels.length,openrouter_authorized:fallbackAllowed}));
  console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selectedModels,preferred_matched:discovery.preferredMatched,bounded_attempts:selectedModels.length,independent_fallback_enabled:fallbackAllowed}));
  const attempts=[];
  const requestEdit=async args=>{
+  if((fallbackAllowed||codexAllowed||job.scope==='fixture')&&attempts.length)return {status:'PROVIDER_RESPONSE_INVALID'};
   const routed=await requestWithIndependentFallback({
    geminiModels:selectedModels,
    geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
@@ -109,6 +135,7 @@ const execute=async(job)=>{
    allowOpenRouter:fallbackAllowed,
    openrouterEdit:fallbackAllowed?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
    onAttempt:item=>{
+    item.model??=item.provider==='openrouter'?independentModel:codexModel;
     attempts.push(item);
     const route=routeCandidates.find(candidate=>candidate.id===item.provider);
     if(route)Object.assign(route,recordQuotaOutcome(route,item.status));
@@ -119,11 +146,11 @@ const execute=async(job)=>{
  };
  const run=createCodingRunner({root,allowedPaths:job.locked_paths,runTests:async()=>runRegressionTests(job),requestEdit});
  const result=await run({job,provider:{id:'gemini/authorized-text-model'}});
- if(result.status!=='SUCCESS')return result;
+ if(result.status!=='SUCCESS')return {...result,model_attempts:attempts};
  // The commit must be remotely durable before Supabase can mark CHECKPOINTED.
  git('push','--porcelain','origin',result.commit+':refs/heads/'+job.branch);
  if(!await verifyCheckpoint(result.commit,job))throw Error('REMOTE_CHECKPOINT_NOT_DURABLE');
- return {...result,model_attempts:attempts};
+ return {...result,provider:attempts.at(-1)?.provider,model_attempts:attempts};
 };
 const worker=createDurableWorker({store,execute,verifyCheckpoint,recoverCheckpoint});
 const result=await worker(jobId);

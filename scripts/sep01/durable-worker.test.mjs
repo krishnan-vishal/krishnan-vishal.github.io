@@ -37,3 +37,47 @@ test('fresh runner reconciles a pushed checkpoint after a claimed-state interrup
  const result=await worker('j');
  assert.equal(result.status,'RECOVERED_CHECKPOINT');assert.equal(f.get().status,'CHECKPOINTED');assert.equal(f.get().checkpoint_commit,sha);assert.equal(called,false);assert.deepEqual(f.calls.map(x=>x[0]),['CLAIMED']);
 });
+
+test('checkpoint receipt persists the successful provider and bounded attempts', async()=>{
+ const f=fixture();
+ const attempts=[{provider:'gemini',status:'QUOTA_EXHAUSTED'},{provider:'openrouter',status:'EDIT'}];
+ const worker=createDurableWorker({store:f.store,execute:async()=>({status:'SUCCESS',commit:sha,provider:'openrouter',model_attempts:attempts}),verifyCheckpoint:async commit=>commit===sha});
+ const result=await worker('j');
+ assert.equal(result.job.provider,'openrouter');
+ assert.deepEqual(result.job.model_attempts,attempts);
+});
+
+test('one-shot fixture provider failure is terminal and cannot be scheduled again',async()=>{
+ const f=fixture({...base,scope:'fixture'});
+ let calls=0;
+ const worker=createDurableWorker({store:f.store,execute:async()=>{calls++;return {status:'QUOTA_EXHAUSTED',model_attempts:[{provider:'gemini',status:'QUOTA_EXHAUSTED'},{provider:'openrouter',status:'QUOTA_EXHAUSTED'}]};},verifyCheckpoint:async()=>false});
+ const result=await worker('j');
+ assert.equal(result.status,'BLOCKED');
+ assert.equal(f.get().status,'BLOCKED');
+ assert.equal(f.get().reason,'QUOTA_EXHAUSTED');
+ assert.equal(calls,1);
+ assert.equal((await worker('j')).status,'UNCHANGED');
+ assert.equal(calls,1);
+});
+test('previously paused fixture is terminalized without another provider call even before gateway deployment',async()=>{
+ const f=fixture({...base,scope:'fixture',status:'QUOTA_PAUSED'});
+ let calls=0;
+ const worker=createDurableWorker({store:f.store,execute:async()=>{calls++;},verifyCheckpoint:async()=>false});
+ assert.equal((await worker('j')).status,'BLOCKED');
+ assert.equal(f.get().status,'BLOCKED');
+ assert.equal(f.get().reason,'SINGLE_ATTEMPT_ALREADY_USED');
+ assert.equal(calls,0);
+});
+test('one-shot fixture transport exception cannot enter the scheduled paused queue',async()=>{
+ const f=fixture({...base,scope:'fixture'});
+ const worker=createDurableWorker({store:f.store,execute:async()=>{throw Error('PROVIDER_TRANSPORT_FAILURE');},verifyCheckpoint:async()=>false});
+ await assert.rejects(()=>worker('j'),/PROVIDER_TRANSPORT_FAILURE/);
+ assert.equal(f.get().status,'BLOCKED');
+ assert.equal(f.get().reason,'EXECUTION_ERROR');
+});
+test('ordinary development job remains eligible for established paused recovery',async()=>{
+ const f=fixture({...base,scope:'development',single_attempt:false});
+ const worker=createDurableWorker({store:f.store,execute:async()=>({status:'PROVIDER_BUSY'}),verifyCheckpoint:async()=>false});
+ assert.equal((await worker('j')).status,'QUOTA_PAUSED');
+ assert.equal(f.get().status,'QUOTA_PAUSED');
+});

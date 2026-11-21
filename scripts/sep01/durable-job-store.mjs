@@ -24,6 +24,16 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    const rows=await request('?payload->>status=eq.QUEUED&order=updated_at.asc&limit=1&select=*','GET');
    return unpack(rows[0]);
   },
+  async nextRecoverable(){
+   // Prefer fresh work; recover paused jobs only after all queued jobs are exhausted.
+   // Stable update-time ordering prevents picking arbitrary paused jobs.
+   const queued=await this.nextQueued();
+   if(queued)return queued;
+   const rows=await request('?payload->>status=eq.QUOTA_PAUSED&order=updated_at.asc&limit=1&select=*','GET');
+   const paused=unpack(rows[0]);
+   // Only a previously claimed, revisioned job may be recovered; no new execution identity.
+   return paused&&paused.revision>1&&paused.branch.startsWith('sep01/jobs/')&&/^[a-zA-Z0-9._-]+$/.test(paused.branch.slice(11))?paused:null;
+  },
   async get(jobId){
    const rows=await request('?job_id=eq.'+encodeURIComponent(jobId)+'&select=*','GET');
    return unpack(rows[0]);
@@ -33,8 +43,14 @@ export function createDurableJobStore({url,key,fetchImpl=fetch,table='gpir_sep01
    const current=await this.get(jobId);
    if(!current||current.status!==expectedStatus)return null;
    const {revision,job_id,idempotency_key,...payload}=current;
-   const rows=await request('?job_id=eq.'+encodeURIComponent(jobId)+'&revision=eq.'+revision,'PATCH',{revision:revision+1,payload:{...payload,...patch},updated_at:new Date().toISOString()},{Prefer:'return=representation'});
-   return rows.length===1?unpack(rows[0]):null;
+   // Authoritative database RPC serializes overlapping writer claims and preserves CAS.
+   const response=await fetchImpl(endpoint.replace('/'+table,'/rpc/gpir_sep01_cas_job'),{
+    method:'POST',headers:{...headers,Prefer:'return=representation'},
+    body:JSON.stringify({p_job_id:jobId,p_idempotency_key:idempotency_key,p_expected_revision:revision,p_payload:{...payload,...patch,job_id:jobId,idempotency_key}})
+   });
+   if(response.status===409)return null;
+   if(!response.ok)throw Error('JOB_CAS_RPC_HTTP_'+response.status);
+   return response.json();
   }
  };
 }
