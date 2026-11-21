@@ -47,6 +47,31 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts});
   }
+  if(body.action==='classify_requirement'){
+   // Read-only classification and bounded repository discovery. No jobs, paid calls or mutations.
+   const instruction=String(body.instruction||'').trim();
+   const requestedScope=String(body.scope||'development');
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+   const lowered=instruction.toLowerCase();
+   const sensitive=/\b(auth(?:entication|orization)?|password|secret|token|credential|payment|billing|entitlement|deploy(?:ment)?|release|database|migration|schema|supabase|workflow|github actions|edge function|api key|security|permission)\b/i.test(instruction);
+   const inferred= /\b(research|analysis|investigat|report|study)\b/i.test(instruction)?'research':/\b(deploy|release|publish|production|rollout)\b/i.test(instruction)?'release':'development';
+   const category=requestedScope==='development'?inferred:requestedScope;
+   if(category!=='development'||sensitive)return json({category,sensitive,executable:false,reason:sensitive?'SENSITIVE_REVIEW_REQUIRED':'SCOPE_REQUIRES_SEPARATE_AUTHORIZATION',candidates:[],read_only:true});
+   const ref=await github('git/ref/heads/main');
+   const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
+   if(tree.truncated||!Array.isArray(tree.tree))return json({category,sensitive:false,executable:false,reason:'REPOSITORY_DISCOVERY_INCOMPLETE',candidates:[],read_only:true});
+   const words=new Set(lowered.match(/[a-z0-9]{3,}/g)||[]);
+   const eligible=tree.tree.filter(entry=>entry.type==='blob'&&entry.size<=100000&&typeof entry.path==='string'&&/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(entry.path)&&!entry.path.includes('..'));
+   const ranked=eligible.map(entry=>{
+    const tokens=new Set(entry.path.toLowerCase().match(/[a-z0-9]{3,}/g)||[]);
+    let score=0;for(const word of words)if(tokens.has(word))score++;
+    if(/\b(style|css|layout|font|spacing|visual)\b/.test(lowered)&&entry.path.endsWith('.css'))score+=2;
+    if(/\b(document|docs|readme|chapter|text)\b/.test(lowered)&&entry.path.endsWith('.md'))score+=2;
+    return {path:entry.path,score};
+   }).filter(item=>item.score>0).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path)).slice(0,8);
+   return json({category,sensitive:false,executable:false,reason:ranked.length?'OWNER_TARGET_SELECTION_REQUIRED':'NO_SAFE_TARGET_IDENTIFIED',candidates:ranked,read_only:true,review_required:true});
+  }
   if(body.action==='agent_tasks_list'){
    // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
    const agentToken=env('SEP03_GITHUB_AGENT_READ_TOKEN');
