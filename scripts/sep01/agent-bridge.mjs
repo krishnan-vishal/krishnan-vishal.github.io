@@ -16,7 +16,7 @@ export function createAgentBridge({provider,enabled=false,authenticated=false,ca
   if(job?.sensitivity_tier==='TIER_1'||FORBIDDEN.has(job?.scope))throw Error('SEP01_SENSITIVE_JOB_FORBIDDEN');
   if(typeof job?.instruction!=='string'||!job.instruction.trim()||job.instruction.length>3000||
      !Array.isArray(job?.locked_paths)||job.locked_paths.length!==1||job.locked_paths[0]!==path||
-     !/^scripts\\/sep01\\/[a-zA-Z0-9._/-]+$/.test(path)||path.includes('..')||
+     !path.startsWith('scripts/sep01/')||!Array.from(path).every(ch=>/[a-zA-Z0-9._/-]/.test(ch))||path.includes('..')||
      typeof content!=='string'||content.length>50000)throw Error('SEP01_AGENT_INPUT_REJECTED');
   // invoke must be an authenticated host adapter with its own command allowlist.
   const response=await invoke({provider,task:job.instruction,path,content});
