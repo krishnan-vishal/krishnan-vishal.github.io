@@ -76,6 +76,44 @@ Deno.serve(async request=>{
    });
    return json({tasks,read_only:true,source_count:source.length});
   }
+  if(body.action==='agent_delegation_eligibility'){
+   // GitHub's Agent tasks creation API requires Copilot Business/Enterprise.
+   // A Pro+ subscription or read-only PAT is not sufficient evidence.
+   const enabled=env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')==='true';
+   const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
+   const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
+   const writeConfigured=Boolean(env('SEP03_GITHUB_AGENT_WRITE_TOKEN'));
+   return json({read_only_monitoring:true,submission_available:enabled&&eligible&&costApproved&&writeConfigured,
+    eligibility_verified:eligible,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
+    reason:!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!writeConfigured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':'ELIGIBLE'});
+  }
+  if(body.action==='agent_task_submit'){
+   // No side effects until every independent authorization gate passes.
+   if(env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')!=='true')return json({error:'AGENT_TASK_SUBMISSION_DISABLED'},403);
+   if(env('SEP03_AGENT_PLAN_ELIGIBLE')!=='true')return json({error:'AGENT_PLAN_NOT_VERIFIED'},403);
+   if(env('SEP03_AGENT_COST_APPROVED')!=='true')return json({error:'AGENT_COST_APPROVAL_REQUIRED'},403);
+   if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_AGENT_TASK')return json({error:'EXPLICIT_TASK_CONFIRMATION_REQUIRED'},422);
+   const path=String(body.path||'');
+   if(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..'))return json({error:'PATH_NOT_AUTHORIZED'},422);
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
+   const writeToken=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
+   if(!/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(writeToken))return json({error:'AGENT_WRITE_CREDENTIAL_UNAVAILABLE'},503);
+   // Restrict the task's instructions and require PR-only review; never authorize deployment.
+   const prompt='GPIR owner-authorized bounded documentation/stylesheet proposal. Modify ONLY '+path+
+    '. Do not change workflows, authentication, secrets, payments, dependencies, or production deployment. Open a PR for review; do not merge. Requirement: '+instruction;
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks',{
+    method:'POST',headers:{Authorization:'Bearer '+writeToken,Accept:'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Delegation','Content-Type':'application/json'},
+    body:JSON.stringify({prompt,base_ref:'main',create_pull_request:true})
+   });
+   if(response.status!==201){console.error('SEP03_AGENT_SUBMISSION_HTTP',response.status);return json({error:'AGENT_TASK_CREATION_FAILED',upstream_status:response.status},502)}
+   const task=await response.json();
+   const id=String(task?.id||'');
+   const url=String(task?.html_url||'');
+   if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
+   return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,provider:'github_copilot',requires_review:true},201);
+  }
   if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
   const scope=String(body.scope||'');
   if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
