@@ -7,6 +7,7 @@ import {createDurableJobStore} from './durable-job-store.mjs';
 import {createDurableWorker} from './durable-worker.mjs';
 import {createGeminiCodeEditor,discoverGeminiTextModels} from './gemini-code-editor.mjs';
 import {createOpenRouterCodeEditor} from './openrouter-code-editor.mjs';
+import {createCodexCliEditor} from './codex-cli-editor.mjs';
 import {requestWithIndependentFallback} from './independent-provider-router.mjs';
 import {rankUsageAwareRoutes,recordQuotaOutcome} from './usage-aware-router.mjs';
 import {createCodingRunner} from './coding-runner.mjs';
@@ -58,6 +59,8 @@ const execute=async(job)=>{
  const key=process.env.GEMINI_API_KEY;
  const independentModel=(process.env.SEP01_OPENROUTER_MODEL||'').trim();
  const allowOpenRouter=Boolean(process.env.OPENROUTER_API_KEY&&/^[A-Za-z0-9_.:/-]+$/.test(independentModel));
+ const codexModel=(process.env.SEP01_CODEX_MODEL||'').trim();
+ const allowCodex=process.env.SEP01_CODEX_ENABLED==='true'&&process.env.SEP01_CODEX_AUTH_VERIFIED==='true'&&/^[-A-Za-z0-9_.]+$/.test(codexModel);
  // Only an explicitly configured independent route may be used; no provider-wide blind retry.
  let discovery;
  try{
@@ -73,16 +76,19 @@ const execute=async(job)=>{
  const selected=discovery.models;
  const routeReadiness={
   gemini:{ready:Boolean(key&&selected.length)},
-  openrouter:{ready:allowOpenRouter}
+  openrouter:{ready:allowOpenRouter},
+  codex:{ready:allowCodex}
  };
  const routeCandidates=[
   {id:'gemini',agent_id:'gemini',approved:true,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota:null,quota_failure_detection_verified:true},
+  {id:'codex',agent_id:'codex',approved:allowCodex,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota:null,quota_failure_detection_verified:true},
   {id:'openrouter',agent_id:'openrouter',approved:allowOpenRouter,healthy:true,capabilities:['code'],tier:'PUBLIC',estimated_cost:0,remaining_quota:null,quota_failure_detection_verified:true}
  ];
  const eligible=rankUsageAwareRoutes(job,routeCandidates,routeReadiness);
  const eligibleIds=new Set(eligible.map(route=>route.id));
  const selectedModels=eligibleIds.has('gemini')?selected:[];
  const fallbackAllowed=eligibleIds.has('openrouter');
+ const codexAllowed=eligibleIds.has('codex');
  console.log(JSON.stringify({event:'SEP01_USAGE_AWARE_ROUTES',eligible:[...eligibleIds],gemini_models:selectedModels.length,openrouter_authorized:fallbackAllowed}));
  console.log(JSON.stringify({event:'SEP01_GEMINI_MODEL_CANDIDATES',models:selectedModels,preferred_matched:discovery.preferredMatched,bounded_attempts:selectedModels.length,independent_fallback_enabled:fallbackAllowed}));
  const attempts=[];
@@ -90,13 +96,15 @@ const execute=async(job)=>{
   const routed=await requestWithIndependentFallback({
    geminiModels:selectedModels,
    geminiEdit:model=>createGeminiCodeEditor({apiKey:key,model})(args),
+   allowCodex:codexAllowed,
+   codexEdit:codexAllowed?()=>createCodexCliEditor({model:codexModel,enabled:true,authenticated:true})(args):undefined,
    allowOpenRouter:fallbackAllowed,
    openrouterEdit:fallbackAllowed?()=>createOpenRouterCodeEditor({apiKey:process.env.OPENROUTER_API_KEY,model:independentModel})(args):undefined,
    onAttempt:item=>{
     attempts.push(item);
     const route=routeCandidates.find(candidate=>candidate.id===item.provider);
     if(route)Object.assign(route,recordQuotaOutcome(route,item.status));
-    console.log(JSON.stringify({event:'SEP01_PROVIDER_RESULT',provider:item.provider,model:item.model||'approved-openrouter',status:item.status,attempt:attempts.length,max_attempts:selectedModels.length+(fallbackAllowed?1:0)}));
+    console.log(JSON.stringify({event:'SEP01_PROVIDER_RESULT',provider:item.provider,model:item.model||'approved-openrouter',status:item.status,attempt:attempts.length,max_attempts:selectedModels.length+(codexAllowed?1:0)+(fallbackAllowed?1:0)}));
    }
   });
   return routed.result;
