@@ -50,7 +50,7 @@ test('blocked or truncated responses never become edits',async()=>{
  const blocked=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash-lite',fetchImpl:async()=>jsonResponse(200,{candidates:[{finishReason:'SAFETY'}]})});
  assert.equal((await blocked(input)).status,'PROVIDER_UNAVAILABLE');
  const truncated=createGeminiCodeEditor({apiKey:'fixture',model:'gemini-2.5-flash-lite',fetchImpl:async()=>jsonResponse(200,{candidates:[{finishReason:'MAX_TOKENS',content:{parts:[]}}]})});
- assert.equal((await truncated(input)).status,'PROVIDER_BUSY');
+ assert.equal((await truncated(input)).status,'PROVIDER_RESPONSE_INVALID');
  assert.equal(normalizeGeminiModel('not a model'),null);
 });
 
