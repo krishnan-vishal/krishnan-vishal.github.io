@@ -29,7 +29,7 @@ export function createDurableWorker({store,execute,verifyCheckpoint,recoverCheck
     if(!saved)throw Error('CHECKPOINT_PERSIST_CONFLICT');
     return {status:'CHECKPOINTED',job:saved};
    }
-   const reason=['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE'].includes(result?.status)?result.status:'EXECUTION_NOT_VERIFIED';
+   const reason=['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID'].includes(result?.status)?result.status:'EXECUTION_NOT_VERIFIED';
    const paused=await store.compareAndSet(jobId,'CLAIMED',{status:'QUOTA_PAUSED',reason});
    return {status:'QUOTA_PAUSED',job:paused};
   }catch(e){
