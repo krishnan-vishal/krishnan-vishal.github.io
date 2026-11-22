@@ -15,6 +15,7 @@ $receipt = [ordered]@{
   schema = 'gpir.cloud-powershell-proof.v1'
   result = 'PASS'
   operation = 'workspace-proof'
+  request_id = $env:GPIR_PWSH_REQUEST_ID
   executor = 'github-hosted-ubuntu-pwsh'
   repository = $env:GITHUB_REPOSITORY
   commit = $env:GITHUB_SHA
