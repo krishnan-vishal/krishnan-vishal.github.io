@@ -99,9 +99,9 @@ Deno.serve(async request=>{
    const instruction=String(body.instruction||'').trim();
    if(!Array.isArray(paths)||paths.length<2||paths.length>3||new Set(paths).size!==paths.length||paths.some(path=>typeof path!=='string'||!developmentPath.test(path)||path.includes('..')||path.includes('//')))
     return json({error:'MULTIFILE_PATH_NOT_AUTHORIZED'},422);
-   if(!instruction||instruction.length>1000||/[\\x00-\\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
+   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
    const intent=classifyRequirement(instruction,'development');
-   if(intent.category!=='development'||intent.sensitive||/\\b(?:deploy|merge|publish|release|credentials|secrets|token|authentication|payment|entitlement)\\b/i.test(instruction))
+   if(intent.category!=='development'||intent.sensitive||/\b(?:deploy|merge|publish|release|credentials|secrets|token|authentication|payment|entitlement)\b/i.test(instruction))
     return json({error:'MULTIFILE_SENSITIVE_REVIEW_REQUIRED'},422);
    const ref=await github('git/ref/heads/main');
    const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
