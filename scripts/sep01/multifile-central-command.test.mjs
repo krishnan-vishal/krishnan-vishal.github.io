@@ -29,3 +29,21 @@ test('server keeps multi-file dispatch blocked independently of the client',()=>
  assert.match(gateway,/if\(body\.action==='multifile_submit'\)return json\(\{error:'MULTIFILE_EXECUTION_NOT_ENABLED',read_only:true\},403\)/);
  assert.match(gateway,/read_only:true,[\s\S]*?provider_api_spend:false/);
 });
+
+test('owner staging rechecks canonical plan and persists PLANNED without queueing',()=>{
+ assert.match(gateway,/body\.action==='multifile_stage'/);
+ assert.match(gateway,/if\(body\.plan_id!==planId\)return json\(\{error:'MULTIFILE_STALE_PLAN'\},409\)/);
+ assert.match(gateway,/status:'PLANNED'/);
+ assert.match(gateway,/cost_approved:false,remaining_budget:0,provider_attempt_reserved:false/);
+ assert.match(html,/commandRequest\(\{action:'multifile_stage',job_id:jobId,plan_id:plan\.plan_id,paths,instruction\}\)/);
+ assert.match(html,/Record this read-only plan \(no execution\)/);
+});
+test('owner approval and dispatch are separately confirmed and server gated',()=>{
+ assert.match(gateway,/body\.action==='multifile_approve'\|\|body\.action==='multifile_dispatch'/);
+ assert.match(gateway,/body\.confirmation!=='AUTHORIZE_ONE_MULTIFILE_JOB'/);
+ assert.match(gateway,/body\.confirmation!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH'/);
+ assert.match(gateway,/env\('SEP01_MULTIFILE_SPEND_CAP_VERIFIED'\)!=='true'/);
+ assert.match(gateway,/env\('SEP01_MULTIFILE_EXECUTION_ENABLED'\)!=='true'/);
+ assert.match(gateway,/p_expected_revision:row\.revision/);
+ assert.doesNotMatch(html,/commandRequest\(\{action:'multifile_dispatch'/);
+});
