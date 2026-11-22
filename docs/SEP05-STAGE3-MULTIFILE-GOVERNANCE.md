@@ -1,31 +1,29 @@
-# GPIR Stage 3A/3B — Governed multi-file preparation
+# GPIR SEP-05 — Stage 3 governed multi-file continuation
 
-## Scope
-This change introduces a **disabled**, testable, read-only multi-file manifest and checkpoint-validation contract. It does **not** enable multi-file provider calls, owner submissions, queue dispatch, commits, PR creation, merge, or deployment. The production gateway and existing SEP-01 single-file runner remain unchanged.
+## Non-activation status
+PR #676 is **draft and review-only**. No merge, production deployment, payable model execution, owner-submitted multi-file job or live two-file acceptance has been authorized or performed. The Central Command `multifile_submit` endpoint still rejects all execution. Neither of the Stage 3 activation environment flags is configured or enabled by this PR. The existing single-file production behavior remains unchanged.
 
-## Proposed limits
-- Two to three explicitly named, existing files.
-- Eligible paths: `docs/*.md` and `assets/css/*.css` within the existing non-sensitive file boundary.
-- Each file at most 100,000 bytes; combined at most 300,000 bytes.
-- Reject missing files, duplicate paths, traversal, protected directories, invalid repository metadata, malformed instructions, and stale base revisions.
-- Bind a canonical SHA-256 plan identifier to owner, base SHA, instruction, paths, file sizes, and blob SHAs.
-- Require separate owner approval before any future dispatch, and separate review before any merge or deployment.
+## Implemented on the existing PR
+- Owner-authenticated, read-only Central Command `multifile_plan` preview, with canonical SHA-256 owner/base/instruction/blob/size/path binding.
+- Strict two-to-three-file manifest in existing `docs/*.md` / `assets/css/*.css`; reject protected paths, duplicates, stale blobs, missing sources or total size over 300,000 bytes. Planning permits up to 100,000 bytes per file; execution additionally enforces the existing editor's 50,000-byte input ceiling before any provider call.
+- `multifile-runner.mjs`: isolated job branch, clean baseline, explicit bound approval, exact source Git blobs, at least two substantive file changes, strict staging/commit-path verification, single verified parent, provider-request ceiling, and rollback of all tracked/untracked changes on rejected transactions.
+- `multifile-provider-bridge.mjs`: dormant Gemini/OpenRouter route using the existing provider editors and independent fallback; no model access until a protected-store approval, matching owner, plan, branch, file locks, single-attempt policy and independently verified spend ceiling all pass. Maximum three actual API requests across the whole job, not three per file.
+- `multifile-approval-persistence.mjs`: a planned job is persisted using the existing service-role Supabase CAS RPC. Separate owner-authenticated confirmation persists explicit attempt/cost approval. A further explicitly authorized release queues the job; only the pre-existing `QUEUED -> CLAIMED` atomic CAS transition acquires persistent per-file and branch writer locks.
+- `multifile-checkpoint-recovery.mjs`: fail-closed remote-head, parent, manifest, original-blob, changed-path, commit-message and independent-test verification. Recovery never re-calls either provider. The existing durable Actions worker includes a dormant multi-file route and remote recovery hook.
 
-## Implementation status
-The pure `multifile-governance.mjs` module and its regression tests establish the **policy contract only**. The returned plan is always `enabled:false` and `read_only:true`. Neither the owner gateway nor the coding runner imports or invokes it yet.
+## Spend and execution safeguards
+- `SEP01_MULTIFILE_EXECUTION_ENABLED` must remain **unset/false** until independent acceptance and a separate owner release authorization.
+- `SEP01_MULTIFILE_SPEND_CAP_VERIFIED` must remain **unset/false** until account-side provider spending limits have been independently verified.
+- `SEP01_MULTIFILE_MAX_SPEND_USD` cannot exceed the explicitly approved provider ceiling. Per-job `multifile_approval.max_cost_usd` must be no larger than that ceiling. Booleans or a client-supplied plan alone are insufficient.
+- An owner approval does not immediately run a job. A separate `AUTHORIZE_ONE_MULTIFILE_DISPATCH` release is required; the current owner-facing gateway does not expose that action. No new database table, credentials or production API route is introduced.
+- The worker only operates inside `sep01/jobs/*` isolated branches and creates no automatic PR, merge or deployment. Existing Supabase RLS/CAS, GitHub review, and production governance remain in force.
 
-## Remaining work before Stage 3 acceptance
-1. Integrate the manifest with authenticated Central Command preview and approval, including server-side recomputation and an explicit cost/attempt budget.
-2. Implement bounded multi-file provider editing with atomic rollback, provider routing, total output size checks, and strict commit-path verification.
-3. Enforce per-file writer locks and remotely verified checkpoint recovery; never trust client-supplied plan IDs alone.
-4. Run an owner-approved, disposable two-file acceptance with provider evidence, CI and draft PR.
-5. Keep multi-file execution disabled until independent acceptance and owner authorization.
+## Acceptance gates remaining (NOT complete)
+1. Independent code/security review of PR #676 and latest CI evidence, including approval persistence, zero-spend defaults, lock contention, rollback and recovery.
+2. Owner-select exactly two non-sensitive existing documentation files, approve the canonical live plan and the specific Gemini/OpenRouter model/attempt/cost ceiling through the authenticated gateway. Provider caps and credentials must be verified separately. Do not use hypothetical approvals or simulated cost flags for live execution.
+3. Expose the governed owner approval/release flow only after separate authorization; verify protected server-side persistence, atomic locks, and the account-side spend ceiling. Gate the multi-file route on reviewed configuration.
+4. Perform **one** explicitly owner-approved two-file acceptance in a disposable branch. Require two actual edits, a pushed Git checkpoint, verified independent CI, provider/usage receipt, and a review-only draft PR or existing PR evidence. Never retry a one-shot acceptance automatically.
+5. Keep Stage 3 execution disabled until acceptance evidence is reviewed and the owner separately authorizes activation. Do not merge/deploy PR #676 implicitly.
 
-## Existing governance
-Do not change Supabase identity/entitlements, Payload/Contentful roles, intelligence confidence thresholds, live-alert retention, source validation, production releases, or protected code. No Copilot activation and no new execution route is enabled by this PR.
-
-## Stage 3A/3B implementation added in this PR
-- Owner-authenticated `multifile_plan` gateway action computes a read-only canonical plan from the current main tree; `multifile_submit` explicitly rejects dispatch.
-- `multifile-runner.mjs` provides an isolated multi-file edit transaction with owner/budget/branch/base assertions, up to three provider edit requests, regression-test hook, strict changed-path validation, atomic restoration of approved file bytes before commit, and parent-verified Git checkpoint.
-- `multifile-runner.test.mjs` covers owner approval, successful two-file checkpoint, provider failure, test failure, and unexpected files.
-- **Not yet connected:** Gemini/OpenRouter routing into the new runner, server-side approval persistence and multi-file writer locks, remote checkpoint recovery, and UI submit control. These remain blocked until independent review and acceptance. No production gateway deployment is part of this PR.
+## Existing architecture and policy preserved
+Supabase remains authoritative for identity, intelligence, entitlements and job governance; Payload/Contentful editorial authority, website navigation, Global Alerts, FX Smart Cards, ASK GPIR, publication confidence threshold and source-integrity controls are unchanged. No Aider activation, Copilot dependency, database migration, intelligence-rule relaxation or new product architecture is introduced.
