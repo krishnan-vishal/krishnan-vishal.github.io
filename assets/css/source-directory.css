@@ -38,3 +38,11 @@ body.central-bank-directory {
 .central-bank-directory .map-watermark { z-index: 0; }
 .central-bank-directory .authority-upper, .central-bank-directory .profile-action,
 .central-bank-directory .country-summary > :not(svg) { position: relative; z-index: 1; }
+
+.central-bank-directory .brand img {
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px;
+    flex-shrink: 0;
+}
+.central-bank-directory .source-type select { max-width: min(20rem, 72vw); }
