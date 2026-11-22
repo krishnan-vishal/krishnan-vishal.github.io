@@ -244,6 +244,48 @@ Deno.serve(async request=>{
     eligibility_verified:eligible,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
     reason:!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!writeConfigured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':'ELIGIBLE'});
   }
+  // Repository-wide coding-agent delegation. The existing bounded SEP worker is
+  // unchanged. Multi-file work is PR-only and never grants production release.
+  if(body.action==='agent_multifile_plan'||body.action==='agent_multifile_submit'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   const ref=await github('git/ref/heads/main');
+   const baseSha=String(ref?.object?.sha||'');
+   if(!/^[a-f0-9]{40}$/.test(baseSha))return json({error:'INVALID_BASE_REF'},502);
+   const planData=[owner,baseSha,'github_copilot','multifile_pr_only',instruction];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),b=>b.toString(16).padStart(2,'0')).join('');
+   const enabled=env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')==='true';
+   const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
+   const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
+   const token=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
+   const configured=/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(token);
+   const available=enabled&&eligible&&costApproved&&configured;
+   const reason=!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!configured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':null;
+   if(body.action==='agent_multifile_plan')return json({gateway_version:gatewayVersion,
+    category:'repository_wide_development',executor:'github_copilot',plan_id:planId,
+    base_sha:baseSha,executable:available,reason,requires_owner_approval:true,
+    scope:'MULTI_FILE_PR_ONLY',production_deployment:false,
+    cost_policy:'Existing owner-approved GitHub agent entitlement only; no API provider fallback',
+    review_required:true,message:'Coding agent may inspect repository and propose coordinated changes on a PR. No merge, production release, secrets, or unrestricted operational execution.'});
+   if(!available)return json({error:reason||'AGENT_NOT_AVAILABLE'},403);
+   if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_MULTIFILE_TASK'||body.plan_id!==planId)
+    return json({error:'MULTIFILE_APPROVAL_REQUIRED_OR_STALE'},403);
+   const prompt='GPIR owner-authorized multi-file repository development task. Inspect the complete repository and existing architecture. Implement only the approved requirement using the smallest coherent set of files. Preserve Supabase identity and source governance, Payload primary and Contentful BCP, 95% intelligence publication threshold, historical/live separation, security, and existing routes. Run relevant tests and provide a detailed PR with evidence. Do not access or print secrets, alter credentials, merge, deploy, execute production mutations, activate sources, or initiate paid external provider calls. Reuse existing open PRs where appropriate rather than duplicate work. Requirement: '+instruction;
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks',{
+    method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json',
+     'X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP04-Owner-Multifile','Content-Type':'application/json'},
+    body:JSON.stringify({prompt,base_ref:'main',create_pull_request:true})
+   });
+   if(response.status!==201){console.error('SEP04_MULTIFILE_AGENT_HTTP',response.status);
+    return json({error:'AGENT_TASK_CREATION_FAILED',upstream_status:response.status},502)}
+   const task=await response.json();
+   const id=String(task?.id||'');
+   const url=String(task?.html_url||'');
+   if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
+   return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,
+    provider:'github_copilot',scope:'MULTI_FILE_PR_ONLY',requires_review:true,production_deployment:false,
+    receipt_status:'AGENT_ACCEPTED_NOT_COMPLETED'},201);
+  }
   if(body.action==='agent_task_submit'){
    // No side effects until every independent authorization gate passes.
    if(env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')!=='true')return json({error:'AGENT_TASK_SUBMISSION_DISABLED'},403);
