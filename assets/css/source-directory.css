@@ -8,3 +8,9 @@
 .gpir-source-directory article { padding:1rem; background:#102039; border:1px solid #365274; border-radius:.75rem; color:#f5f7fa; }
 .gpir-source-directory article h3 { font-size:1rem; margin:0 0 .3rem; }
 .gpir-source-directory article p { margin:.35rem 0; }
+
+.gpir-footer-central-banks { max-width:68rem; margin:1rem auto 0; text-align:center; }
+.gpir-footer-central-banks h2 { margin:0 0 .5rem; font-size:.8rem; }
+.gpir-footer-central-bank-cards { display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem; }
+.gpir-footer-central-bank-cards a { display:block; padding:.3rem .65rem; border:1px solid #657990; border-radius:.4rem; font-size:.75rem; }
+.gpir-footer-central-bank-cards a:focus-visible { outline:2px solid #ffd473; outline-offset:2px; }
