@@ -240,9 +240,14 @@ Deno.serve(async request=>{
    const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
    const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
    const writeConfigured=Boolean(env('SEP03_GITHUB_AGENT_WRITE_TOKEN'));
-   return json({read_only_monitoring:true,submission_available:enabled&&eligible&&costApproved&&writeConfigured,
-    eligibility_verified:eligible,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
-    reason:!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!writeConfigured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':'ELIGIBLE'});
+   const gates={subscription:{status:'OWNER_REPORTED_PRO_PLUS',verified_by_github:false},
+    api_eligibility:{status:eligible?'CONFIGURED_NOT_PROVIDER_VERIFIED':'UNVERIFIED',verified:false},
+    credential:{status:writeConfigured?'CONFIGURED_NOT_PERMISSION_VERIFIED':'MISSING',verified:false},
+    allowance:{status:costApproved?'OWNER_APPROVAL_FLAG_SET_ALLOWANCE_UNVERIFIED':'NOT_AUTHORIZED',verified:false},
+    owner_approval:{status:'REQUIRED_PER_TASK',verified:false}};
+   return json({read_only_monitoring:true,submission_available:false,submission_gate:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED',gates,
+    eligibility_verified:false,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
+    reason:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED'});
   }
   // Repository-wide coding-agent delegation. The existing bounded SEP worker is
   // unchanged. Multi-file work is PR-only and never grants production release.
@@ -259,8 +264,8 @@ Deno.serve(async request=>{
    const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
    const token=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
    const configured=/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(token);
-   const available=enabled&&eligible&&costApproved&&configured;
-   const reason=!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!configured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':null;
+   const available=false; // Fail closed: configuration flags do not prove provider entitlement, token permission or remaining allowance.
+   const reason='PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED';
    if(body.action==='agent_multifile_plan')return json({gateway_version:gatewayVersion,
     category:'repository_wide_development',executor:'github_copilot',plan_id:planId,
     base_sha:baseSha,executable:available,reason,requires_owner_approval:true,
