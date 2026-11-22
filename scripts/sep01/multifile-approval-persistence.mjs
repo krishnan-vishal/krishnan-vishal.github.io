@@ -23,13 +23,15 @@ export function createMultifileApprovalPersistence({store,ownerUserId,maximumApp
    if(!saved)throw Error('MULTIFILE_APPROVAL_CONCURRENTLY_CHANGED');
    return saved;
   },
-  async claim({jobId}={}){
+  async queueApproved({actor,jobId,confirmation,executionReleased=false}={}){
+   requireOwner(actor);
+   if(confirmation!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH'||executionReleased!==true)throw Error('MULTIFILE_DISPATCH_APPROVAL_REQUIRED');
    if(!validId.test(jobId||''))throw Error('MULTIFILE_JOB_ID_INVALID');
    const job=await store.get(jobId);
    if(!job||job.status!=='APPROVED'||job.owner_user_id!==ownerUserId||job.multifile_approval?.status!=='APPROVED'||job.multifile_approval?.plan_id!==job.plan_id)throw Error('MULTIFILE_PERSISTED_APPROVAL_REQUIRED');
-   // Existing gpir_sep01_cas_job acquires the database advisory lock and checks all
-   // overlapping locked_paths and active branches in the SAME transaction.
-   const saved=await store.compareAndSet(jobId,'APPROVED',{status:'CLAIMED'});
+   // No provider request here. The existing durable worker will atomically transition
+   // QUEUED -> CLAIMED through gpir_sep01_cas_job, acquiring path and branch locks.
+   const saved=await store.compareAndSet(jobId,'APPROVED',{status:'QUEUED'});
    if(!saved)throw Error('MULTIFILE_CLAIM_CONCURRENTLY_CHANGED');
    return saved;
   }
