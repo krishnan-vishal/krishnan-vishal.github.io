@@ -1,0 +1,10 @@
+.gpir-source-page { margin:0; background:#07111f; color:#f5f7fa; font:1rem/1.55 system-ui,sans-serif; }
+.gpir-source-directory { box-sizing:border-box; width:min(100%, 76rem); margin:auto; padding:clamp(1rem,4vw,3rem); }
+.gpir-source-directory a { color:#f6cd72; }
+.gpir-source-directory :focus-visible { outline:2px solid #ffd473; outline-offset:3px; }
+.gpir-source-directory [data-directory-filters] { display:flex; flex-wrap:wrap; gap:1rem; }
+.gpir-source-directory select { margin-inline-start:.5rem; padding:.55rem; color:#f5f7fa; background:#13243c; border:1px solid #657990; border-radius:.45rem; }
+.gpir-source-directory [data-directory-cards] { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap:.75rem; }
+.gpir-source-directory article { padding:1rem; background:#102039; border:1px solid #365274; border-radius:.75rem; color:#f5f7fa; }
+.gpir-source-directory article h3 { font-size:1rem; margin:0 0 .3rem; }
+.gpir-source-directory article p { margin:.35rem 0; }
