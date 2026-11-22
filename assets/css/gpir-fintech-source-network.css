@@ -146,3 +146,25 @@ body.fintech-network {
 }
 .workflow li:nth-child(3n+2)::before { background: #664395; }
 .workflow li:nth-child(3n)::before { background: #18745e; }
+
+.locked-catalog {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #eaf4fb;
+}
+.locked-catalog h3 { margin: 0 0 8px; font-size: .9rem; }
+.locked-samples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 8px;
+}
+.locked-samples span {
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+    background: white;
+    filter: blur(3px);
+    user-select: none;
+}

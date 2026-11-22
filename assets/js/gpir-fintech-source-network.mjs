@@ -43,18 +43,29 @@ async function load() {
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
     if (!config?.url || !config.publishableKey) throw Error('Directory configuration unavailable');
     void loadAlerts(config.url);
+    const params = new URL(location.href).searchParams;
+    const previewOnly = params.get('view') === 'preview';
+    const fromMyGpir = params.get('from') === 'my-gpir' && !previewOnly;
+    if (fromMyGpir) {
+        get('entryContext').textContent = 'My GPIR / Trusted Source Network';
+        get('myGpirBack').hidden = false;
+    }
     const session = await window.GPIRReaderAuth?.sessionReady;
     const headers = new Headers();
     headers.set('apikey', config.publishableKey);
-    if (session?.access_token) headers.set('Authorization', 'Bearer ' + session.access_token);
+    if (!previewOnly && session?.access_token) headers.set('Authorization', 'Bearer ' + session.access_token);
     const [response, maps] = await Promise.all([
-        fetch(config.url + '/functions/v1/gpir-source-directory?catalog=fintech',{headers,cache:'no-store'}),
+        fetch(config.url + '/functions/v1/gpir-source-directory?catalog=fintech' + (previewOnly ? '&view=preview' : ''),{headers,cache:'no-store'}),
         fetch('/assets/data/gpir-source-network-map.json').then(r => r.ok ? r.json() : {}).catch(() => ({}))
     ]);
     if (!response.ok) throw Error('Source network unavailable');
-    const {cards,access,totals} = await response.json();
-    if (!Array.isArray(cards) || !totals) throw Error('Invalid source network response');
-    const full = access === 'ALLOW';
+    const {cards: returnedCards,access,totals} = await response.json();
+    if (!Array.isArray(returnedCards) || !totals) throw Error('Invalid source network response');
+    const full = !previewOnly && access === 'ALLOW';
+    const cards = full ? returnedCards : returnedCards.slice(0, Math.floor(totals.sources / 10));
+    get('lockedCatalog').hidden = full;
+    if (!full) get('lockedTitle').textContent =
+        (totals.sources - cards.length) + ' additional source records · subscriber access';
     get('approved').textContent = totals.approved;
     get('total').textContent = totals.sources;
     get('categories').textContent = totals.categories;
@@ -62,9 +73,18 @@ async function load() {
     get('access').textContent = full ? 'Full directory' : 'Public preview';
     get('unlock').hidden = full;
     const unlock = get('unlockLink');
-    if (access === 'UNAUTHENTICATED') unlock.href = '/reader/sign-in/?returnTo=' + encodeURIComponent(location.pathname + location.search);
-    else { unlock.href = '/reader/my-gpir/#plan'; unlock.textContent = 'View subscription options'; }
-    const params = new URL(location.href).searchParams;
+    function updateUnlock() {
+        if (session?.access_token) {
+            unlock.href = previewOnly ? '/reader/my-gpir/' : '/reader/my-gpir/#plan';
+            unlock.textContent = previewOnly ? 'Open My GPIR' : 'View subscription options';
+            return;
+        }
+        const target = new URL(location.href);
+        target.searchParams.delete('view');
+        target.searchParams.set('from','my-gpir');
+        unlock.href = '/reader/sign-in/?returnTo=' + encodeURIComponent(target.pathname + target.search);
+    }
+    updateUnlock();
     const groups = [...new Set(cards.flatMap(row => row.regions.map(groupOf)))];
     const regions = [...new Set([...Object.keys(palette), ...groups])];
     const matrices = [...new Set(cards.flatMap(row => row.sets))].sort();
@@ -101,7 +121,7 @@ async function load() {
         if (region) url.searchParams.set('region',region);
         else url.searchParams.delete('region');
         history.replaceState(null,'',url);
-        if (access === 'UNAUTHENTICATED') unlock.href = '/reader/sign-in/?returnTo=' + encodeURIComponent(url.pathname + url.search);
+        updateUnlock();
         syncMatrix();
         render();
         if (focusFilter) get('region').focus();
@@ -109,6 +129,8 @@ async function load() {
     function regionLink(name, label) {
         const link = node('a',label);
         const url = new URL(route,location.origin);
+        if (previewOnly) url.searchParams.set('view','preview');
+        if (fromMyGpir) url.searchParams.set('from','my-gpir');
         if (name) url.searchParams.set('region',name);
         if (get('status').value) url.searchParams.set('status',get('status').value);
         link.href = url.href;

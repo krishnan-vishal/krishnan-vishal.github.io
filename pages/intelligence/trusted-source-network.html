@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trusted Source Network · FINTECHOISIS GPIR</title>
 <link rel="stylesheet" href="/assets/css/reader-auth.css?v=3">
-<link rel="stylesheet" href="/assets/css/gpir-fintech-source-network.css?v=20261122network">
+<link rel="stylesheet" href="/assets/css/gpir-fintech-source-network.css?v=20261122access">
 </head>
 <body class="fintech-network">
-<header class="mast"><a class="brand" href="/"><img src="/assets/branding/logos/fo-mark.svg" width="46" height="46" alt=""><span><strong>GPIR</strong><small>FINTECHOISIS</small></span></a><div><h1>Global Announcements — Trusted Source Network</h1><p>Fintech associations, payment systems and validation sources</p></div><div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Ftrusted-source-network.html">Sign in</a><a class="gpir-reader-action" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Fpages%2Fintelligence%2Ftrusted-source-network.html">Create account</a></div></header>
+<header class="mast"><a class="brand" href="/"><img src="/assets/branding/logos/fo-mark.svg" width="46" height="46" alt=""><span><strong>GPIR</strong><small>FINTECHOISIS</small></span></a><div><h1>Global Announcements — Trusted Source Network</h1><p id="entryContext">Fintech associations, payment systems and validation sources</p></div><div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Ftrusted-source-network.html">Sign in</a><a class="gpir-reader-action" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Fpages%2Fintelligence%2Ftrusted-source-network.html">Create account</a></div></header>
 <div class="strip"><a href="/#market-ribbon"><strong>Live Global Alerts · 12 hours</strong></a><span id="alertState" role="status">Checking live alerts…</span><a href="/pages/intelligence/index.html">View archive →</a></div>
 <main class="shell">
-<aside><nav aria-label="Source Network navigation"><a href="/">GPIR Home</a><a href="/#market-ribbon">Live Alerts</a><a href="#network" aria-current="page">Source Network</a><a href="#filters">Browse by Region</a><a href="#source-categories">By Category</a><a href="/pages/risk/global-central-banks.html">Global Central Banks</a><a href="/pages/intelligence/index.html">Historical Archive</a><a href="/?ask=Fintech%20association%20and%20payment%20system%20sources#gpir-search">ASK GPIR</a></nav></aside>
+<aside><nav aria-label="Source Network navigation"><a href="/">GPIR Home</a><a href="/reader/my-gpir/" id="myGpirBack" hidden>← Back to My GPIR</a><a href="/#market-ribbon">Live Alerts</a><a href="#network" aria-current="page">Source Network</a><a href="#filters">Browse by Region</a><a href="#source-categories">By Category</a><a href="/pages/risk/global-central-banks.html">Global Central Banks</a><a href="/pages/intelligence/index.html">Historical Archive</a><a href="/?ask=Fintech%20association%20and%20payment%20system%20sources#gpir-search">ASK GPIR</a></nav></aside>
 <section id="network" aria-labelledby="title">
 <div class="metrics">
 <div><span aria-hidden="true">✓</span><div><strong id="approved">—</strong>Registry-approved</div></div>
@@ -26,6 +26,7 @@
 <p id="summary" role="status">Loading source network…</p>
 <section id="unlock" class="unlock" hidden><p>Full source records, official links and announcement targets require a signed-in subscriber account.</p><a id="unlockLink" href="/reader/sign-in/">Sign in</a></section>
 <div id="cards"></div>
+<section class="locked-catalog" id="lockedCatalog" hidden><h3 id="lockedTitle"></h3><div class="locked-samples" aria-hidden="true"><span>Source record · Official website</span><span>Source record · Announcement target</span><span>Source record · Coverage summary</span></div></section>
 <div class="lower-strips"><section class="workflow"><h2>Source to intelligence workflow</h2><ol><li>Discover</li><li>Fetch &amp; parse</li><li>Classify</li><li>Validate</li><li>Publish</li><li>Archive</li><li>Index</li></ol></section>
 <section class="workflow" id="source-categories"><h2>Source categories</h2><div id="categoryLinks"></div></section></div>
 </section></main>
@@ -34,5 +35,5 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script src="/scripts/m34/supabase-browser-client.js"></script>
 <script src="/assets/js/gpir-reader-auth.js"></script>
-<script type="module" src="/assets/js/gpir-fintech-source-network.mjs?v=20261122network"></script>
+<script type="module" src="/assets/js/gpir-fintech-source-network.mjs?v=20261122access"></script>
 </body></html>
