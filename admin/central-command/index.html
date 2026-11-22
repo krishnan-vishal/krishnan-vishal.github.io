@@ -242,6 +242,57 @@ async function showBoundedMultifilePlan(instruction,state){
  ];
  for(const [label,value] of rows){const p=document.createElement('p');p.className='plan-item';const strong=document.createElement('strong');strong.textContent=label+' · ';p.append(strong,document.createTextNode(value));state.append(p)}
  document.querySelector('#submit-directive').disabled=true;
+ const controls=document.createElement('div');controls.className='plan-item';
+ const stageButton=document.createElement('button');stageButton.type='button';stageButton.textContent='Record this read-only plan (no execution)';
+ const stageStatus=document.createElement('p');stageStatus.setAttribute('aria-live','polite');
+ controls.append(stageButton,stageStatus);state.append(controls);
+ stageButton.addEventListener('click',async()=>{
+  if(stageButton.disabled)return;
+  stageButton.disabled=true;
+  try{
+   if(document.querySelector('#directive-route').value!=='bounded_multifile_v1'||
+      document.querySelector('#directive-text').value.trim()!==instruction||
+      document.querySelector('#multifile-paths').value!==raw)throw Error('Plan changed. Generate a fresh plan.');
+   const jobId='sep01-owner-'+crypto.randomUUID();
+   const staged=await commandRequest({action:'multifile_stage',job_id:jobId,plan_id:plan.plan_id,paths,instruction});
+   if(staged.status!=='PLANNED'||staged.job_id!==jobId||staged.plan_id!==plan.plan_id||staged.dispatch_enabled!==false)
+    throw Error('PERSISTED_PLAN_RECEIPT_INVALID');
+   stageStatus.textContent='Owner-bound plan recorded: '+jobId+' · PLANNED. No approval, provider call or dispatch.';
+   const approvalLabel=document.createElement('label');approvalLabel.textContent='Separate approval confirmation (only after verified provider cap)';
+   const approvalInput=document.createElement('input');approvalInput.placeholder='AUTHORIZE_ONE_MULTIFILE_JOB';
+   approvalInput.setAttribute('aria-label','Stage 3 owner approval confirmation');
+   const approveButton=document.createElement('button');approveButton.type='button';approveButton.textContent='Record owner approval (subject to server cap verification)';
+   approveButton.disabled=true;
+   approvalInput.addEventListener('input',()=>{approveButton.disabled=approvalInput.value!=='AUTHORIZE_ONE_MULTIFILE_JOB'});
+   controls.append(approvalLabel,approvalInput,approveButton);
+   approveButton.addEventListener('click',async()=>{
+    approveButton.disabled=true;
+    try{
+     const approved=await commandRequest({action:'multifile_approve',job_id:jobId,plan_id:plan.plan_id,confirmation:approvalInput.value});
+     if(approved.status!=='APPROVED'||approved.plan_id!==plan.plan_id||approved.dispatch_enabled!==false)throw Error('APPROVAL_RECEIPT_INVALID');
+     approvalInput.disabled=true;
+     stageStatus.textContent='Owner approval persisted for '+jobId+'. No job dispatched.';
+     const dispatchLabel=document.createElement('label');dispatchLabel.textContent='Separate one-job dispatch authorization (only after server execution release)';
+     const dispatchInput=document.createElement('input');dispatchInput.placeholder='AUTHORIZE_ONE_MULTIFILE_DISPATCH';
+     dispatchInput.setAttribute('aria-label','Stage 3 dispatch authorization');
+     const dispatchButton=document.createElement('button');dispatchButton.type='button';dispatchButton.textContent='Authorize one isolated job';
+     dispatchButton.disabled=true;
+     dispatchInput.addEventListener('input',()=>{dispatchButton.disabled=dispatchInput.value!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH'});
+     controls.append(dispatchLabel,dispatchInput,dispatchButton);
+     dispatchButton.addEventListener('click',async()=>{
+      dispatchButton.disabled=true;
+      try{
+       const receipt=await commandRequest({action:'multifile_dispatch',job_id:jobId,plan_id:plan.plan_id,confirmation:dispatchInput.value});
+       if(receipt.status!=='QUEUED'||receipt.plan_id!==plan.plan_id||receipt.provider_request_performed!==false)throw Error('DISPATCH_RECEIPT_INVALID');
+       stageStatus.textContent='Isolated job queued: '+jobId+'. No merge or deployment.';
+      }catch(error){stageStatus.textContent='Dispatch blocked: '+String(error.message||error);dispatchButton.disabled=false}
+     });
+    }catch(error){stageStatus.textContent='Approval blocked: '+String(error.message||error);approveButton.disabled=false}
+   });
+   // Owner approval and dispatch require separate explicit confirmation and server-side
+   // verified provider limits; they are not automatically offered by read-only preview.
+  }catch(error){stageStatus.textContent='Plan not recorded: '+String(error.message||error);stageButton.disabled=false}
+ });
  return plan;
 }
 async function showRepositoryWidePlan(instruction,state){

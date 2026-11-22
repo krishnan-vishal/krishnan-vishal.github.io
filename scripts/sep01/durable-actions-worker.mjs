@@ -11,6 +11,8 @@ import {createCodexCliEditor} from './codex-cli-editor.mjs';
 import {requestWithIndependentFallback} from './independent-provider-router.mjs';
 import {rankUsageAwareRoutes,recordQuotaOutcome} from './usage-aware-router.mjs';
 import {createCodingRunner} from './coding-runner.mjs';
+import {createMultifileProviderBridge} from './multifile-provider-bridge.mjs';
+import {createMultifileCheckpointRecovery} from './multifile-checkpoint-recovery.mjs';
 const root=process.env.SEP01_WORKTREE,jobId=process.env.SEP01_JOB_ID;
 if(!root)throw Error('SEP01_ISOLATED_WORKTREE_REQUIRED');
 if(!process.env.GITHUB_ACTIONS||!process.env.GITHUB_REPOSITORY)throw Error('GITHUB_ACTIONS_REQUIRED');
@@ -53,7 +55,29 @@ function runRegressionTests(job){
  if(!tests.length)throw Error('SEP01_TESTS_NOT_FOUND');
  execFileSync(process.execPath,['--test',...tests],{cwd:sourceRoot,timeout:120000,stdio:'pipe'});
 }
+function runMultifileRegressionTests(job){
+ if(job.execution_route!=='bounded_multifile_v1'||!Array.isArray(job.locked_paths)||job.locked_paths.length<2||job.locked_paths.length>3)throw Error('MULTIFILE_JOB_SCOPE_INVALID');
+ let combinedBytes=0;
+ for(const path of job.locked_paths){
+  if(typeof path!=='string'||!/^(?:docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')||path.includes('//'))throw Error('MULTIFILE_PATH_NOT_AUTHORIZED');
+  const file=readFileSync(join(root,path),'utf8');
+  const bytes=Buffer.byteLength(file);
+  if(!file.trim()||bytes>100000)throw Error('MULTIFILE_OUTPUT_INVALID');
+  combinedBytes+=bytes;
+  if(path.endsWith('.css')&&/\b(?:@import|expression\s*\(|javascript\s*:)/i.test(file))throw Error('UNSAFE_STYLESHEET_OUTPUT');
+ }
+ if(combinedBytes>300000)throw Error('MULTIFILE_TOTAL_BYTES_EXCEEDED');
+ const files=readdirSync(join(sourceRoot,'scripts','sep01')).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>join('scripts','sep01',name));
+ if(!files.length)throw Error('SEP01_TESTS_NOT_FOUND');
+ execFileSync(process.execPath,['--test',...files],{cwd:sourceRoot,timeout:120000,stdio:'pipe'});
+}
+const multifileRecovery=createMultifileCheckpointRecovery({root,validateCheckpoint:async({commit,job})=>{
+ if(git('rev-parse','HEAD')!==commit||git('status','--porcelain'))return false;
+ runMultifileRegressionTests(job);
+ return true;
+}});
 const verifyCheckpoint=async(commit,job)=>{
+ if(job.execution_route==='bounded_multifile_v1')return multifileRecovery.verify(commit,job);
  if(!/^[a-f0-9]{40}$/.test(commit||'')||!/^sep01\/jobs\/[a-zA-Z0-9._-]+$/.test(job.branch))return false;
  git('fetch','--force','--no-tags','origin','refs/heads/'+job.branch+':refs/remotes/origin/'+job.branch);
  if(git('rev-parse','refs/remotes/origin/'+job.branch)!==commit||git('cat-file','-t',commit)!=='commit')return false;
@@ -66,6 +90,7 @@ const verifyCheckpoint=async(commit,job)=>{
  }catch{return false;}
 };
 const recoverCheckpoint=async job=>{
+ if(job.execution_route==='bounded_multifile_v1')return multifileRecovery.recover(job);
  if(!['CLAIMED','CHECKPOINTED','QUOTA_PAUSED'].includes(job.status))return null;
  git('fetch','--force','--no-tags','origin','refs/heads/'+job.branch+':refs/remotes/origin/'+job.branch);
  const commit=git('rev-parse','refs/remotes/origin/'+job.branch);
@@ -74,6 +99,28 @@ const recoverCheckpoint=async job=>{
  return {commit,step:'fresh runner verified remote checkpoint and tests without model execution'};
 };
 const execute=async(job)=>{
+ if(job.execution_route==='bounded_multifile_v1'){
+  // Owner release, verified account-side budget and the existing service-role CAS claim are all required.
+  // All flags default to false. This PR does not configure them or authorize provider spend.
+  const bridge=createMultifileProviderBridge({
+   store,root,ownerUserId:process.env.SEP01_OWNER_USER_ID,
+   runTests:async()=>runMultifileRegressionTests(job),
+   // Preserve the approved Gemini-primary/OpenRouter-fallback provider configuration.
+   // Stage 3 remains disabled at the workflow gate until the shared paid-test budget is authorized.
+   gemini:process.env.GEMINI_API_KEY&&process.env.SEP01_GEMINI_MODEL?{apiKey:process.env.GEMINI_API_KEY,model:process.env.SEP01_GEMINI_MODEL}:null,
+   // Never reuse the existing single-file OPENROUTER_API_KEY on the Stage 3 route.
+   openrouter:process.env.OPENROUTER_STAGE3_API_KEY&&process.env.SEP01_OPENROUTER_MODEL?{apiKey:process.env.OPENROUTER_STAGE3_API_KEY,model:process.env.SEP01_OPENROUTER_MODEL}:null,
+   executionEnabled:process.env.SEP01_MULTIFILE_EXECUTION_ENABLED==='true',
+   providerSpendCapVerified:process.env.SEP01_MULTIFILE_SPEND_CAP_VERIFIED==='true',
+   providerSpendCapUsd:Number(process.env.SEP01_MULTIFILE_MAX_SPEND_USD||0)
+  });
+  const result=await bridge(job.job_id);
+  if(result.status!=='SUCCESS')return result;
+  git('push','--porcelain','origin',result.commit+':refs/heads/'+job.branch);
+  if(!await verifyCheckpoint(result.commit,job))throw Error('MULTIFILE_REMOTE_CHECKPOINT_NOT_VERIFIED');
+  return {...result,step:'remote multi-file checkpoint verified',model_attempts:result.model_attempts};
+ }
+
  if(job.sensitivity_tier==='TIER_1'||['auth','payments','entitlements','security','secrets','pii'].includes(job.scope))throw Error('SENSITIVE_JOB_NOT_ALLOWED');
  if(job.locked_paths.length!==1||!job.instruction)throw Error('JOB_INSTRUCTION_OR_PATH_MISSING');
  if(job.scope!=='fixture'&&job.scope!=='development')throw Error('JOB_SCOPE_NOT_AUTHORIZED');
