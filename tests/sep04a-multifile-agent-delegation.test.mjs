@@ -31,3 +31,12 @@ test('one command box routes unsupported broad and multi-file work to governed a
  assert.match(ui,/id="directive-text"/);
  assert.match(ui,/Refresh agent tasks/);
 });
+
+test('read-only SEP-01 diagnostics bypass Copilot delegation without dispatch',()=>{
+ assert.match(gateway,/body\.action==='execution_diagnostic'/);
+ assert.match(gateway,/read_only:true,dispatch_performed:false/);
+ assert.match(gateway,/actions\/workflows\/.*?\/runs\?per_page=5/);
+ assert.match(ui,/action:'execution_diagnostic'/);
+ assert.match(ui,/Read-only SEP-01 workflow diagnostic/);
+ assert.match(gateway,/const available=false/);
+});
