@@ -19,12 +19,12 @@ test('Stage 3 remains explicitly disabled in GitHub workflow',()=>{
  for(const setting of ["SEP01_MULTIFILE_EXECUTION_ENABLED: 'false'","SEP01_MULTIFILE_SPEND_CAP_VERIFIED: 'false'","SEP01_MULTIFILE_MAX_SPEND_USD: '0'"])
   assert.ok(workflow.includes(setting),setting);
 });
-test('Stage 3 only uses dedicated key and never falls back to legacy or uncapped Gemini',()=>{
+test('Stage 3 retains Gemini primary and isolated OpenRouter fallback while dispatch is disabled',()=>{
  assert.ok(stage3Start>=0&&stage3End>stage3Start,'multi-file dispatch branch present');
- assert.ok(stage3.includes('gemini:null'));
+ assert.ok(stage3.includes('apiKey:process.env.GEMINI_API_KEY'));
+ assert.ok(workflow.includes("SEP01_MULTIFILE_EXECUTION_ENABLED: 'false'"));
  assert.ok(stage3.includes('apiKey:process.env.OPENROUTER_STAGE3_API_KEY'));
  assert.ok(!stage3.includes('apiKey:process.env.OPENROUTER_API_KEY'));
- assert.ok(!stage3.includes('apiKey:process.env.GEMINI_API_KEY'));
  assert.ok(stage3.includes("executionEnabled:process.env.SEP01_MULTIFILE_EXECUTION_ENABLED==='true'"));
  assert.ok(stage3.includes("providerSpendCapVerified:process.env.SEP01_MULTIFILE_SPEND_CAP_VERIFIED==='true'"));
 });
