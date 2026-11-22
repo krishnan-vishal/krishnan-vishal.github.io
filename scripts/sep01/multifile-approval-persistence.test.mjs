@@ -28,7 +28,8 @@ test('persisted plan to owner-approved CAS to locked claim, without dispatch',as
  assert.equal(staged.status,'PLANNED');assert.equal(staged.cost_approved,false);
  const approved=await p.approve({actor:'owner',jobId,planId:plan.plan_id,confirmation:'AUTHORIZE_ONE_MULTIFILE_JOB',maxProviderRequests:2,maxCostUsd:0,externalCapVerified:true});
  assert.equal(approved.status,'APPROVED');assert.equal(approved.multifile_approval.status,'APPROVED');
- const claimed=await p.claim({jobId});assert.equal(claimed.status,'CLAIMED');
+ const queued=await p.queueApproved({actor:'owner',jobId,confirmation:'AUTHORIZE_ONE_MULTIFILE_DISPATCH',executionReleased:true});assert.equal(queued.status,'QUEUED');
+ const claimed=await f.store.compareAndSet(jobId,'QUEUED',{status:'CLAIMED'});
  assert.equal(claimed.multifile_approval.plan_id,plan.plan_id);assert.equal(f.saves,1);
 });
 test('owner mismatch, absent confirmed cost cap, stale plan and repeated approval fail closed',async()=>{
@@ -50,6 +51,7 @@ test('same-file concurrent claims conflict via existing CAS contract',async()=>{
   await p.stage({actor:'owner',jobId,plan,instruction:'Improve both documents',branch:'sep01/jobs/'+jobId});
   await p.approve({actor:'owner',jobId,planId:plan.plan_id,confirmation:'AUTHORIZE_ONE_MULTIFILE_JOB',maxProviderRequests:2,maxCostUsd:0,externalCapVerified:true});
  }
- await p.claim({jobId:'sep01-owner-lock-one'});
- await assert.rejects(p.claim({jobId:'sep01-owner-lock-two'}),/WRITER_LOCK_CONFLICT/);
+ for(const jobId of ['sep01-owner-lock-one','sep01-owner-lock-two'])await p.queueApproved({actor:'owner',jobId,confirmation:'AUTHORIZE_ONE_MULTIFILE_DISPATCH',executionReleased:true});
+ await f.store.compareAndSet('sep01-owner-lock-one','QUEUED',{status:'CLAIMED'});
+ await assert.rejects(f.store.compareAndSet('sep01-owner-lock-two','QUEUED',{status:'CLAIMED'}),/WRITER_LOCK_CONFLICT/);
 });
