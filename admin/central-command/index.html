@@ -198,6 +198,21 @@ document.querySelector('#load-sep02-receipt').addEventListener('click',event=>lo
 
 let approvedDiscovery=null;
 
+async function showRepositoryWidePlan(instruction,state){
+ const plan=await commandRequest({action:'agent_multifile_plan',instruction});
+ state.replaceChildren();
+ const rows=[
+  ['Execution route','Repository-wide coding agent · PR-only · no production deployment'],
+  ['Provider',plan.executor||'Not verified'],
+  ['Repository baseline',plan.base_sha||'Unknown'],
+  ['Authorization',plan.executable?'Eligible; explicit one-task owner approval required':'BLOCKED · '+(plan.reason||'Provider unavailable')],
+  ['Scope','Inspect and edit multiple files; run tests; open PR for separate review'],
+  ['Safety','No secrets, automatic merge, production writes, or unapproved provider costs']
+ ];
+ for(const [label,value] of rows){const p=document.createElement('p');p.className='plan-item';const strong=document.createElement('strong');strong.textContent=label+' · ';p.append(strong,document.createTextNode(value));state.append(p)}
+ if(plan.executable&&plan.plan_id){approvedDiscovery={...plan,instruction,multifile:true};document.querySelector('#submit-directive').disabled=false}
+ return plan;
+}
 document.querySelector('#discover-directive-targets').addEventListener('click',async()=>{
  const state=document.querySelector('#directive-discovery-results');
  const instruction=document.querySelector('#directive-text').value.trim();
@@ -214,7 +229,11 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
    if(instruction!==directive.value.trim())return;
    if(result.category==='intelligence_operations'){
     if(!result.executable){
-     state.textContent='Intelligence operations · '+(result.message||'Scope review required')+' This directive has NOT been submitted.';
+     if(scope==='development'||scope==='release'){
+      await showRepositoryWidePlan(instruction,state);
+     }else{
+      state.textContent='Intelligence operations · '+(result.message||'Scope review required')+' No job was queued.';
+     }
      return;
     }
     approvedDiscovery={...result,instruction,operational:true};
@@ -226,6 +245,10 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
   const result=await commandRequest({action:'classify_requirement',instruction,scope});
   state.replaceChildren();
   if(instruction!==directive.value.trim()||scope!==mode.value)return;
+  if(!result.plan_id&&scope!=='research'){
+   await showRepositoryWidePlan(instruction,state);
+   return;
+  }
   const ready=result.reason==='OWNER_APPROVAL_REQUIRED'&&result.plan_id&&result.auto_suggested_target&&result.category==='development'&&!result.sensitive;
   const reasons={
    RELEASE_REVIEW_REQUIRED:'Use the existing GitHub and Supabase release review for production actions.',
@@ -271,6 +294,20 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
  button.disabled=true;
  try{
   const scope=document.querySelector('#directive-mode').value;
+  if(approvedDiscovery?.multifile){
+   const plan=approvedDiscovery;
+   if(plan.instruction!==document.querySelector('#directive-text').value.trim())throw Error('Requirement changed. Analyze again.');
+   if(!window.confirm('Authorize ONE repository-wide coding-agent task? Existing owner-approved agent entitlement may incur charges. The agent may modify multiple files and open a PR, but cannot merge or deploy.')){status.textContent='Owner cancelled delegation';return}
+   status.textContent='Delegating approved repository-wide task…';
+   const receipt=await commandRequest({action:'agent_multifile_submit',instruction:plan.instruction,plan_id:plan.plan_id,confirmation:'AUTHORIZE_ONE_GITHUB_MULTIFILE_TASK'});
+   approvedDiscovery=null;
+   const panel=document.querySelector('#live-job-receipt');
+   panel.replaceChildren();
+   panel.append(document.createTextNode('Coding agent '+receipt.task_id+' · '+receipt.state+' · PR review required · NOT deployed'));
+   if(receipt.url){const link=document.createElement('a');link.href=receipt.url;link.textContent=' · View authenticated task';link.rel='noopener noreferrer';link.target='_blank';panel.append(link)}
+   status.textContent='Delegation accepted; not complete. Refresh agent tasks to verify outcome.';
+   return;
+  }
   if(approvedDiscovery?.operational){
    const plan=approvedDiscovery;
    if(plan.instruction!==document.querySelector('#directive-text').value.trim())throw Error('Requirement changed. Analyze again.');
