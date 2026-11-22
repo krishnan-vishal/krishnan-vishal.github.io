@@ -1,24 +1,36 @@
 <!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Global Central Banks | FINTECHOISIS GPIR</title>
-    <link rel="stylesheet" href="/assets/css/source-directory.css">
-</head>
-<body class="gpir-source-page">
-    <main class="gpir-source-directory" data-source-directory>
-        <a href="/">FINTECHOISIS · GPIR</a>
-        <h1>Global Central Banks</h1>
-        <p>Central banks, fintech associations and payments associations by region.</p>
-        <div data-directory-filters></div>
-        <p data-directory-status role="status">Loading the source directory…</p>
-        <div data-directory-cards></div>
-    </main>
-    <script src="/assets/js/gpir-supabase-public-config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
-    <script src="/scripts/m34/supabase-browser-client.js"></script>
-    <script src="/assets/js/gpir-reader-auth.js"></script>
-    <script type="module" src="/assets/js/source-directory.mjs"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Central Banks · GPIR design preview</title>
+<link rel="stylesheet" href="/assets/css/source-directory.css?v=20261122"></head>
+<body><header class="top"><div class="wrap"><a class="brand" href="https://fintechoisis.com/">GPIR Home</a><a class="ask" href="https://fintechoisis.com/?ask=Global%20Central%20Banks%20and%20official%20monetary%20authorities#gpir-search">ASK GPIR</a><span class="category">Regulation, Risk &amp; Licensing</span></div></header>
+<div class="toolbar"><div class="wrap controls"><div class="title"><h1>Global Central Banks</h1><p>Sovereign Monetary Authorities, Prudential Regulators &amp; Licensing Portals</p></div><label class="search"><span class="sr">Find a country or bank</span><input id="search" type="search" placeholder="Find a country or bank"></label></div></div>
+<main class="wrap main">
+<div class="kpis" aria-label="Directory summary">
+ <div class="kpi"><span>Jurisdictions covered</span><strong id="total"></strong></div>
+ <div class="kpi"><span>Global regions</span><strong id="regionTotal"></strong></div>
+ <div class="kpi"><span>GPIR reference institutions</span><strong class="words">ECB · BIS · World Bank · FATF · OFAC</strong></div>
+ <div class="kpi"><span>Directory status</span><strong class="words" id="directoryStatus">Loading</strong></div>
+</div>
+<div class="regionbar"><nav id="pills" class="pills" aria-label="Global regions"></nav><label class="source-type">Source type <select id="sourceType"><option value="bank">Central banks</option><option value="association">Fintech and payments associations</option></select></label><div class="views" aria-label="Directory layout"><button id="cardsView" type="button" aria-label="Card view" aria-pressed="true">▦</button><button id="listView" type="button" aria-label="List view" aria-pressed="false">☷</button></div></div>
+<div class="workspace">
+<section class="results" aria-labelledby="resultsTitle"><header class="tabletop"><h2 id="resultsTitle"></h2><p id="resultCount" role="status">Loading the source directory…</p></header>
+<div class="unlock" id="unlock" hidden><p id="unlockText"></p><a id="unlockLink" target="_blank" rel="noopener noreferrer">Unlock full directory</a></div>
+<div id="cardGrid" class="cardgrid"></div><div id="tableView" class="scroller" hidden tabindex="0" role="region" aria-label="Central banks and monetary authorities"><table>
+<caption class="sr">Central banks and monetary authorities</caption><thead><tr>
+<th scope="col"><button data-sort="country">Jurisdiction <span aria-hidden="true"></span></button></th>
+<th scope="col"><button data-sort="name">Central bank / authority <span aria-hidden="true"></span></button></th>
+<th scope="col"><button data-sort="abbr">Abbreviation <span aria-hidden="true"></span></button></th>
+<th scope="col"><button data-sort="scope">Regulatory scope <span aria-hidden="true"></span></button></th>
+<th scope="col"><button data-sort="host">Official portal <span aria-hidden="true"></span></button></th>
+</tr></thead><tbody id="rows"></tbody></table></div></section></div></main>
+<footer class="cert"><div class="wrap"><div><strong>GPIR</strong> <span>Global Payments Intelligence Repository</span></div><div>Source Central Banks</div><nav id="footerRegions" aria-label="Central bank source regions"></nav><p>Reference institutions · ECB, BIS, World Bank, FATF, OFAC</p><p>Map outlines: Natural Earth. Illustrative boundaries.</p></div></footer>
+<dialog id="inspector" class="inspector" aria-labelledby="inspectorTitle"><header><h2 id="inspectorTitle"></h2><button id="closeInspector" type="button" aria-label="Close details">Close</button></header><div id="inspectorBody" class="details"></div></dialog>
+
+
+
+<script src="/assets/js/gpir-supabase-public-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script src="/scripts/m34/supabase-browser-client.js"></script>
+<script src="/assets/js/gpir-reader-auth.js"></script>
+<script type="module" src="/assets/js/source-directory.mjs?v=20261122"></script>
+</body></html>
