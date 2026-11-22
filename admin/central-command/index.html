@@ -208,6 +208,22 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
  if(!instruction){state.textContent='Enter your requirement first.';return}
  button.disabled=true;state.textContent='Checking scope and eligible repository targets (read-only)…';
  try{
+  const operational=/\\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\\b/i.test(instruction);
+  if(operational){
+   const result=await commandRequest({action:'intelligence_classify',instruction});
+   state.replaceChildren();
+   if(instruction!==directive.value.trim())return;
+   if(result.category==='intelligence_operations'){
+    if(!result.executable){
+     state.textContent='Intelligence operations · '+(result.message||'Scope review required')+' This directive has NOT been submitted.';
+     return;
+    }
+    approvedDiscovery={...result,instruction,operational:true};
+    state.textContent='Governed intelligence plan · '+result.source_id+' · '+result.month+' · PLAN ONLY (no production writes). Owner approval required to dispatch.';
+    document.querySelector('#submit-directive').disabled=false;
+    return;
+   }
+  }
   const result=await commandRequest({action:'classify_requirement',instruction,scope});
   state.replaceChildren();
   if(instruction!==directive.value.trim()||scope!==mode.value)return;
@@ -256,6 +272,17 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
  button.disabled=true;
  try{
   const scope=document.querySelector('#directive-mode').value;
+  if(approvedDiscovery?.operational){
+   const plan=approvedDiscovery;
+   if(plan.instruction!==document.querySelector('#directive-text').value.trim())throw Error('Requirement changed. Analyze again.');
+   if(!window.confirm('Authorize ONE PLAN-ONLY intelligence operation for '+plan.source_id+' / '+plan.month+'? No production writes.')){status.textContent='Operation cancelled';return}
+   status.textContent='Submitting governed intelligence plan…';
+   const receipt=await commandRequest({action:'intelligence_submit',source_id:plan.source_id,month:plan.month,mode:'plan',plan_id:plan.plan_id,confirmation:'AUTHORIZE_ONE_INTELLIGENCE_OPERATION'});
+   approvedDiscovery=null;
+   status.textContent='GitHub '+receipt.status+' · '+plan.source_id+' · '+plan.month+'. Verify actual run via Intelligence Operations receipts.';
+   await refreshIntelligenceReceipts();
+   return;
+  }
   if(scope!=='development')throw Error('Only bounded development is executable; use Copy governed directive for other types');
   const instruction=document.querySelector('#directive-text').value.trim();
   if(!instruction)throw Error('Enter a requirement');
