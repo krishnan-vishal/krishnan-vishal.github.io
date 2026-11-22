@@ -26,10 +26,10 @@ function externalLink(text,url) {
 }
 async function loadAlerts(url) {
     try {
-        const response = await fetch(url + '/functions/v1/gpir-public-alerts');
+        const response = await fetch(url + '/functions/v1/gpir-public-intelligence?view=relay');
         if (!response.ok) throw Error('Alerts unavailable');
-        const {alerts} = await response.json();
-        if (!Array.isArray(alerts)) throw Error('Invalid alerts response');
+        const {status, view, windowHours, items: alerts} = await response.json();
+        if (status !== 'OK' || view !== 'relay' || windowHours !== 12 || !Array.isArray(alerts)) throw Error('Invalid alerts response');
         get('liveCount').textContent = alerts.length;
         const headline = alerts[0]?.headline || alerts[0]?.title;
         get('alertState').textContent = alerts.length
@@ -117,9 +117,14 @@ async function load() {
     }
     function pick(region, focusFilter = true) {
         get('region').value = region;
+        if (focusFilter) {
+            // A map selection opens the region's directory independently of prior filters.
+            for (const id of ['search', 'matrix', 'category', 'status']) get(id).value = '';
+        }
         const url = new URL(location.href);
         if (region) url.searchParams.set('region',region);
         else url.searchParams.delete('region');
+        if (focusFilter) url.searchParams.delete('status');
         history.replaceState(null,'',url);
         updateUnlock();
         syncMatrix();
@@ -132,7 +137,6 @@ async function load() {
         if (previewOnly) url.searchParams.set('view','preview');
         if (fromMyGpir) url.searchParams.set('from','my-gpir');
         if (name) url.searchParams.set('region',name);
-        if (get('status').value) url.searchParams.set('status',get('status').value);
         link.href = url.href;
         link.addEventListener('click', event => {
             if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -178,7 +182,9 @@ async function load() {
         if (svg.childNodes.length) panel.append(svg);
         const links=node('nav','');links.setAttribute('aria-label','Map regions');
         for (const name of regions) {
-            links.append(regionLink(name,name));
+            const link = regionLink(name,name);
+            if (get('region').value === name) link.setAttribute('aria-current','true');
+            links.append(link);
         }
         panel.append(links);
         return panel;
@@ -238,28 +244,35 @@ async function load() {
         const root = get('cards');
         root.replaceChildren();
         root.classList.toggle('region-focus',Boolean(region));
+        root.append(mapPanel());
         if (region) {
-            root.append(regionLink('','← All regions'));
-            if (matched.length) root.append(renderPanel(region,matched,true));
+            const results = node('div','');
+            results.className = 'network-column region-results';
+            results.append(regionLink('','← All regions'));
+            if (matched.length) results.append(renderPanel(region,matched,true));
+            root.append(results);
         } else {
-            const columns = [['North America','APAC'], ['Map','GCC','LATAM'], ['Europe & UK','Africa','Oceania']];
-            columns[0].push(...regions.filter(name => !columns.flat().includes(name)));
-            for (const names of columns) {
+            const columns = [[], []];
+            for (const name of regions) {
+                const rows = matched.filter(row => rowGroups(row).includes(name));
+                if (!rows.length) continue;
+                const column = columns[0].length <= columns[1].length ? columns[0] : columns[1];
+                column.push(renderPanel(name,rows,false));
+            }
+            for (const panels of columns) {
                 const column = node('div','');
                 column.className = 'network-column';
-                for (const name of names) {
-                    if (name === 'Map') {
-                        column.append(mapPanel());
-                        continue;
-                    }
-                    const rows = matched.filter(row => rowGroups(row).includes(name));
-                    if (rows.length) column.append(renderPanel(name,rows,false));
-                }
+                column.append(...panels);
                 root.append(column);
             }
         }
-        if (!matched.length) root.append(node('p','No sources match these filters.'));
+        if (!matched.length) {
+            const empty = node('p','No sources match these filters. Reset filters or select another region on the map.');
+            empty.className = 'network-empty';
+            root.append(empty);
+        }
     }
+    get('resetFilters').onclick = () => pick('');
     get('search').oninput = render;
     get('region').onchange = () => pick(get('region').value,false);
     get('status').onchange = get('matrix').onchange = get('category').onchange = render;

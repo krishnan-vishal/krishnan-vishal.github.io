@@ -8,6 +8,7 @@ body.fintech-network {
     font: 14px/1.45 Inter, system-ui, sans-serif;
 }
 
+.fintech-network *, .fintech-network *::before, .fintech-network *::after { box-sizing: border-box; }
 .fintech-network a { color: #154c86; }
 .mast {
     display: grid;
@@ -78,7 +79,15 @@ body.fintech-network {
 .map-panel svg { display: block; width: 100%; height: auto; }
 .map-panel nav, #categoryLinks { display: flex; flex-wrap: wrap; gap: 5px; }
 .map-panel nav a, #categoryLinks button { padding: 5px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font: inherit; font-size: .75rem; }
-#cards.region-focus { grid-template-columns: minmax(0, 1fr); }
+#cards > .map-panel { grid-column: 2; grid-row: 1; }
+#cards > .network-column:nth-child(2) { grid-column: 1; grid-row: 1; }
+#cards > .network-column:nth-child(3) { grid-column: 3; grid-row: 1; }
+#cards.region-focus { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+#cards.region-focus > .map-panel { grid-column: 1; }
+#cards.region-focus > .region-results { grid-column: 2; }
+.map-panel nav a[aria-current] { background: #d7edfc; font-weight: 750; }
+#resetFilters { align-self: end; min-height: 36px; }
+#cards > .network-empty { grid-column: 1 / -1; }
 .region-focus .region-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; padding: 10px; }
 .region-focus article { padding: 10px; border: 1px solid var(--line); border-radius: 6px; }
 .region-focus .region-grid h4 { font-size: .95rem; }
@@ -101,7 +110,9 @@ body.fintech-network {
     .shell aside nav { display: flex; flex-wrap: wrap; }
     #cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .network-column { display: contents; }
-    .map-panel { grid-column: 1 / -1; grid-row: 1; }
+    #cards > .map-panel, #cards.region-focus > .map-panel { grid-column: 1 / -1; grid-row: 1; }
+    #cards.region-focus { grid-template-columns: minmax(0, 1fr); }
+    #cards.region-focus > .region-results { display: grid; grid-column: 1; grid-row: auto; }
     .map-panel svg { max-width: 420px; margin: auto; }
 }
 @media (max-width: 530px) {
