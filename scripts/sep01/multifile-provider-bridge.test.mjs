@@ -21,7 +21,7 @@ function fixture(){
  const instruction='Improve both documents';
  const plan=validateMultifileManifest({files:tree.map(x=>x.path),tree,baseSha:base_sha,ownerId:'owner',instruction});
  const job_id='sep01-owner-bridge-test';
- const multifile_approval={status:'APPROVED',owner_user_id:'owner',job_id,plan_id:plan.plan_id,base_sha,branch,instruction,locked_paths:tree.map(x=>x.path),single_attempt:true,cost_approved:true,max_provider_requests:3,approved_at:'2026-11-22T08:00:00Z',revision:2};
+ const multifile_approval={status:'APPROVED',owner_user_id:'owner',job_id,plan_id:plan.plan_id,base_sha,branch,instruction,locked_paths:tree.map(x=>x.path),single_attempt:true,cost_approved:true,max_provider_requests:3,approved_at:'2026-11-22T08:00:00Z',revision:2,max_cost_usd:0,external_cap_verified:true};
  const job={job_id,revision:2,status:'CLAIMED',owner_user_id:'owner',execution_route:'bounded_multifile_v1',branch,base_sha,plan_id:plan.plan_id,instruction,manifest:plan.manifest,locked_paths:tree.map(x=>x.path),single_attempt:true,cost_approved:true,multifile_approval};
  return {root,git,job,close:()=>rmSync(root,{recursive:true,force:true})};
 }
@@ -36,7 +36,7 @@ test('disabled bridge never touches persistence or a provider',async()=>{
 test('persisted approval binds both file edits before a local checkpoint',async()=>{
  const f=fixture();let calls=0;
  try{
-  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>f.job},ownerUserId:'owner',executionEnabled:true,runTests:async()=>{},gemini:{apiKey:'test',model:'gemini-test',fetchImpl:async()=>({ok:true,status:200,json:async()=>({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({content:'approved change '+(++calls)+'\n'})}]}}]})})}});
+  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>f.job},ownerUserId:'owner',executionEnabled:true,providerSpendCapVerified:true,providerSpendCapUsd:0,runTests:async()=>{},gemini:{apiKey:'test',model:'gemini-test',fetchImpl:async()=>({ok:true,status:200,json:async()=>({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({content:'approved change '+(++calls)+'\n'})}]}}]})})}});
   const result=await bridge(f.job.job_id);
   assert.equal(result.status,'SUCCESS');assert.equal(result.provider_requests,2);
   assert.deepEqual(result.changed_paths,['docs/a.md','docs/b.md']);
@@ -48,7 +48,7 @@ test('missing or forged approval, stale revision, and unauthorized locks fail be
  const f=fixture();let calls=0;
  try{
   let active=f.job;
-  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>active},ownerUserId:'owner',executionEnabled:true,runTests:async()=>{},gemini:{apiKey:'test',model:'gemini-test',fetchImpl:async()=>{calls++;throw Error('SHOULD_NOT_CALL')}}});
+  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>active},ownerUserId:'owner',executionEnabled:true,providerSpendCapVerified:true,providerSpendCapUsd:0,runTests:async()=>{},gemini:{apiKey:'test',model:'gemini-test',fetchImpl:async()=>{calls++;throw Error('SHOULD_NOT_CALL')}}});
   for(const patch of [
    {multifile_approval:null},
    {revision:1},
@@ -65,7 +65,7 @@ test('missing or forged approval, stale revision, and unauthorized locks fail be
 test('provider fallback stays within a three-call global budget',async()=>{
  const f=fixture();let geminiCalls=0,routerCalls=0;
  try{
-  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>f.job},ownerUserId:'owner',executionEnabled:true,runTests:async()=>{},
+  const bridge=createMultifileProviderBridge({root:f.root,store:{get:async()=>f.job},ownerUserId:'owner',executionEnabled:true,providerSpendCapVerified:true,providerSpendCapUsd:0,runTests:async()=>{},
    gemini:{apiKey:'test',model:'gemini-test',fetchImpl:async()=>{
     geminiCalls++;
     if(geminiCalls===1)return {ok:false,status:429};
