@@ -151,3 +151,49 @@
 @media (prefers-reduced-motion: reduce) {
     .announcement-archive-page .announcement-dashboard .announcement-dashboard-card { transition: none; }
 }
+
+/* The archive is a working index. Keep its title, status and filters above the results. */
+body.legal-page.announcement-archive-page .chapter-hero { padding: 14px 0 8px; }
+body.legal-page.announcement-archive-page .chapter-body { padding: 0 0 24px; }
+.announcement-archive-page .chapter-hero > .container,
+.announcement-archive-page .announcement-archive-wrap {
+    width: min(1440px, calc(100% - clamp(24px, 5vw, 80px)));
+}
+.announcement-archive-page .chapter-breadcrumb { margin: 0 0 4px; font-size: .75rem; }
+.announcement-archive-page .archive-title-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+.announcement-archive-page .archive-title-row h1 { margin: 0; font-size: clamp(23px, 2.3vw, 34px); line-height: 1.2; }
+.announcement-archive-page .announcement-archive-nav { margin: 0; font-size: .75rem; }
+.announcement-archive-page .announcement-dashboard,
+.announcement-archive-page .announcement-dashboard > section { padding: 0; margin-top: 0; }
+.announcement-archive-page .announcement-dashboard-heading {
+    display: flex;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 8px 10px;
+    border-top-width: 1px;
+    border-left: 3px solid #285d86;
+    border-radius: 7px;
+    margin-bottom: 5px;
+}
+.announcement-archive-page .announcement-dashboard-heading h2 { margin: 0; font: 750 .85rem/1.2 Inter, sans-serif; }
+.announcement-archive-page .announcement-dashboard-heading nav { margin-left: auto; gap: 5px 12px; font-size: .75rem; }
+.announcement-archive-page .announcement-dashboard-live { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding-block: 6px; margin-bottom: 5px; }
+.announcement-archive-page .announcement-dashboard-live h2 { font: 750 .8rem/1.4 Inter, sans-serif; }
+.announcement-archive-page .announcement-dashboard-live [data-live] { flex: 1 1 270px; }
+.announcement-archive-page .announcement-dashboard-live .ticker-empty { margin: 0; padding: 0; font-size: .8rem; }
+.announcement-archive-page .announcement-period-nav,
+.announcement-archive-page .announcement-dashboard-filters { margin-block: 5px; padding: 7px 9px; gap: 6px; border-radius: 7px; }
+.announcement-archive-page .announcement-period-nav button,
+.announcement-archive-page .announcement-dashboard-filters select,
+.announcement-archive-page [data-reset] { min-height: 34px; padding: 4px 8px; font-size: .78rem; }
+.announcement-archive-page .announcement-dashboard-results { margin: 10px 0 6px; }
+.announcement-archive-page .announcement-dashboard .announcement-dashboard-grid { gap: 8px; }
+.announcement-archive-page .announcement-dashboard .announcement-dashboard-card { gap: 6px; padding: 10px 12px; border-radius: 7px; border-top-width: 2px; }
+.announcement-archive-page .announcement-dashboard-card p { font-size: .82rem; line-height: 1.4; -webkit-line-clamp: 3; }
+.announcement-archive-page .announcement-dashboard-card h3 { font-size: .98rem; }
+.announcement-archive-page .supabase-archive-metadata { padding-top: 5px; }
+.announcement-archive-page .supabase-archive-actions a { padding: 4px 7px; }
+@media (max-width: 560px) {
+    .announcement-archive-page .announcement-dashboard-heading nav { width: 100%; margin-left: 0; }
+    .announcement-archive-page .announcement-period-nav { grid-template-columns: minmax(0, 1fr); }
+}
