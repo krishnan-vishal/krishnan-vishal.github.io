@@ -93,7 +93,7 @@ Deno.serve(async request=>{
  try{
   const body=await request.json();
   // Stage 3: authenticated read-only preview; execution remains disabled.
-  if(body.action==='multifile_plan'||body.action==='multifile_submit'){
+  if(body.action==='multifile_plan'||body.action==='multifile_stage'||body.action==='multifile_submit'){
    if(body.action==='multifile_submit')return json({error:'MULTIFILE_EXECUTION_NOT_ENABLED',read_only:true},403);
    const paths=body.paths;
    const instruction=String(body.instruction||'').trim();
@@ -118,6 +118,27 @@ Deno.serve(async request=>{
    entries.sort((a,b)=>a.path.localeCompare(b.path));
    const planData=[owner,ref.object.sha,instruction,entries];
    const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   if(body.action==='multifile_stage'){
+    // Recompute the canonical plan from the current main branch before persisting.
+    // Stage never queues a worker, calls a provider or records cost approval.
+    if(body.plan_id!==planId)return json({error:'MULTIFILE_STALE_PLAN'},409);
+    const jobId=String(body.job_id||'');
+    if(!/^sep01-owner-[a-z0-9-]{6,60}$/.test(jobId))return json({error:'INVALID_JOB_ID'},422);
+    const branch='sep01/jobs/'+jobId;
+    const payload={owner_user_id:owner,execution_route:'bounded_multifile_v1',status:'PLANNED',
+     scope:'development',capability:'code',sensitivity_tier:null,branch,base_sha:ref.object.sha,
+     plan_id:planId,manifest:entries,locked_paths:entries.map(x=>x.path),instruction,
+     single_attempt:true,cost_approved:false,remaining_budget:0,provider_attempt_reserved:false};
+    try{
+     const rows=await supa('gpir_sep01_jobs','POST',{job_id:jobId,idempotency_key:'multifile:'+jobId,revision:1,payload});
+     if(!Array.isArray(rows)||rows.length!==1||rows[0].job_id!==jobId)return json({error:'MULTIFILE_STAGE_NOT_PERSISTED'},409);
+     return json({execution_route:'bounded_multifile_v1',job_id:jobId,status:'PLANNED',plan_id:planId,
+      revision:1,dispatch_enabled:false,provider_api_spend:false,owner_approval_recorded:false});
+    }catch(error){
+     if(String(error).includes('JOB_STORE_HTTP_409'))return json({error:'MULTIFILE_JOB_ALREADY_EXISTS'},409);
+     throw error;
+    }
+   }
    return json({gateway_version:gatewayVersion,execution_route:'bounded_multifile_v1',enabled:false,read_only:true,
     plan_id:planId,base_sha:ref.object.sha,manifest:entries,total_bytes:total,
     provider_route:'gemini_openrouter',owner_approval_required:true,provider_api_spend:false,
