@@ -154,7 +154,7 @@ test('refinement keeps data contracts, periods, geography filters and the 12-hou
   assert.match(script, /view = 'cards', limit = 10, offset = 0/);
   assert.match(script, /gpir-public-intelligence\?\$\{m40Query/);
   assert.doesNotMatch(script, /await fetchHistory/);
-  assert.match(script, /LIVE_PATH = '\/functions\/v1\/gpir-public-alerts'/);
+  assert.match(script, /LIVE_PATH = '\/functions\/v1\/gpir-public-intelligence\?view=relay'/);
   assert.match(script, /12 \* 60 \* 60 \* 1000/);
   for (const period of ['24H', '7D', '30D', '8W', 'QTD', 'YTD', 'CUSTOM']) assert.match(page, new RegExp(`<option value="${period}">`));
   for (const geo of ['global', 'apac', 'europe', 'americas', 'mea', 'na', 'gcc', 'latam', 'afr']) assert.match(page, new RegExp(`<option value="${geo}">`));

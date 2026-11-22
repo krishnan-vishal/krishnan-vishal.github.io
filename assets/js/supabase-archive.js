@@ -2,8 +2,7 @@ const PUBLIC_INTELLIGENCE_API =
     "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence";
 
 const PAGE_SIZE = 100;
-const MAX_RECORDS = 5000;
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 25000;
 const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 const MONTH_NAMES = [
@@ -115,9 +114,7 @@ function formatUtcDate(value) {
         day: "numeric",
         month: "short",
         year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hourCycle: "h23",
+        ...(value.includes("T") ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" } : {}),
         timeZone: "UTC"
     }).format(date).toUpperCase() + " UTC";
 }
@@ -135,9 +132,9 @@ function isWithinLiveWindow(record, now = Date.now()) {
 function normalizeRecord(record) {
     const title = cleanText(record.title);
 
-    if (!title) return null;
+    if (!title || record.dataClass || record.status !== "GPIR_CLASSIFIED") return null;
 
-    const publishedAt = cleanText(record.publishedAt || record.published_at);
+    const publishedAt = cleanText(record.publishedAt || record.published_at || record.publicationDate || record.publishedDate);
     const period = parseArchivePeriod(
         record.archive_month_year || (
             record.publicationMonth && record.publicationYear
@@ -155,6 +152,7 @@ function normalizeRecord(record) {
         country: cleanText(record.country) || "Unspecified",
         category: cleanText(record.category) || "Payments",
         subcategory: cleanText(record.subcategory) || "Unspecified",
+        tickerEligible: record.tickerEligible === true,
         topicIds: Array.isArray(record.topicIds)
             ? record.topicIds.map(cleanText).filter(Boolean)
             : [],
@@ -179,380 +177,6 @@ function createElement(tagName, className, text) {
     }
 
     return element;
-}
-
-function installArchiveStyles() {
-    if (document.getElementById("supabase-archive-styles")) return;
-
-    const style = document.createElement("style");
-    style.id = "supabase-archive-styles";
-    style.textContent = `
-        [data-announcement-dashboard].supabase-archive {
-            --archive-bg: #07111f;
-            --archive-surface: #0c1a2b;
-            --archive-surface-hover: #10233a;
-            --archive-border: #314359;
-            --archive-amber: #f6b817;
-            --archive-amber-bright: #ffd35a;
-            --archive-text: #f4f7fb;
-            --archive-muted: #aebed1;
-            --archive-success: #6ee7b7;
-        }
-
-        .announcement-archive-page .announcement-archive-wrap {
-            padding-top: 0;
-            padding-bottom: 28px;
-        }
-
-        .announcement-archive-page .announcement-dashboard,
-        .announcement-archive-page .announcement-dashboard > section {
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-
-        .supabase-archive .announcement-dashboard-heading {
-            padding: 16px;
-            border: 1px solid var(--archive-border);
-            border-radius: 12px;
-            background: var(--archive-bg);
-            color: var(--archive-text);
-        }
-
-        .supabase-archive .announcement-dashboard-heading p {
-            color: #dce7f3;
-            line-height: 1.55;
-        }
-
-        .supabase-archive .announcement-dashboard-heading a {
-            color: var(--archive-amber-bright);
-            font-weight: 750;
-            text-decoration-thickness: 1px;
-            text-underline-offset: 2px;
-        }
-
-        .supabase-archive .announcement-dashboard-heading a:hover,
-        .supabase-archive .announcement-dashboard-heading a:focus-visible {
-            color: #ffffff;
-        }
-
-        .supabase-archive .announcement-dashboard-heading h2 {
-            color: var(--archive-amber-bright);
-        }
-
-        .supabase-archive [data-counts] {
-            color: var(--archive-success);
-            white-space: normal;
-            overflow-wrap: anywhere;
-        }
-
-        .supabase-archive .announcement-period-nav {
-            display: grid;
-            gap: 8px;
-            margin: 16px 0 14px;
-            padding: 12px;
-            border: 1px solid var(--archive-border);
-            border-radius: 12px;
-            background: var(--archive-bg);
-        }
-
-        .supabase-archive .announcement-period-years,
-        .supabase-archive .announcement-period-months {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .supabase-archive .announcement-period-nav button {
-            min-height: 36px;
-            padding: 7px 12px;
-            border: 1px solid #43566d;
-            border-radius: 7px;
-            background: #102033;
-            color: #dce7f3;
-            font: inherit;
-            font-size: 12px;
-            font-weight: 750;
-            cursor: pointer;
-        }
-
-        .supabase-archive .announcement-period-nav button:hover {
-            border-color: var(--archive-amber);
-            color: var(--archive-amber-bright);
-        }
-
-        .supabase-archive
-            .announcement-period-nav
-            button[aria-pressed="true"] {
-            border-color: var(--archive-amber);
-            background: var(--archive-amber);
-            color: #07111f;
-        }
-
-        .supabase-archive .announcement-period-nav button span {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 21px;
-            min-height: 21px;
-            margin-left: 5px;
-            padding: 0 5px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.16);
-            font-size: 10px;
-        }
-
-        .supabase-archive .announcement-dashboard-filters {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
-            gap: 10px;
-            align-items: end;
-            margin-bottom: 16px;
-            padding: 12px;
-            border: 1px solid var(--archive-border);
-            border-radius: 12px;
-            background: var(--archive-bg);
-        }
-
-        .supabase-archive .announcement-dashboard-filters label {
-            display: grid;
-            gap: 6px;
-            color: var(--archive-muted);
-            font-size: 11px;
-            font-weight: 750;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        .supabase-archive .announcement-dashboard-filters select {
-            width: 100%;
-            min-height: 40px;
-            padding: 8px 32px 8px 10px;
-            border: 1px solid #43566d;
-            border-radius: 7px;
-            background: #102033;
-            color: var(--archive-text);
-            font: inherit;
-            font-size: 13px;
-        }
-
-        .supabase-archive .announcement-dashboard-filters select:focus {
-            border-color: var(--archive-amber);
-            outline: 2px solid rgba(246, 184, 23, 0.3);
-            outline-offset: 1px;
-        }
-
-        .supabase-archive [data-reset] {
-            min-height: 40px;
-            padding: 8px 15px;
-            border: 1px solid var(--archive-amber);
-            border-radius: 7px;
-            background: transparent;
-            color: var(--archive-amber-bright);
-            font: inherit;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .supabase-archive [data-reset]:hover {
-            background: var(--archive-amber);
-            color: #07111f;
-        }
-
-        .supabase-archive .announcement-dashboard-results {
-            color: var(--archive-text);
-        }
-
-        .supabase-archive [data-results-count] {
-            color: #7A4B00;
-        }
-
-        .supabase-archive .announcement-dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit,
-                minmax(min(100%, 310px), 1fr)
-            );
-            gap: 12px;
-        }
-
-        .supabase-archive .supabase-announcement-card {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            padding: 16px;
-            overflow: hidden;
-            border: 1px solid var(--archive-border);
-            border-radius: 12px;
-            background:
-                linear-gradient(
-                    145deg,
-                    var(--archive-surface),
-                    var(--archive-bg)
-                );
-            color: var(--archive-text);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
-        }
-
-        .supabase-archive .supabase-announcement-card::before {
-            content: "";
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 3px;
-            background: var(--archive-amber);
-        }
-
-        .supabase-archive .supabase-announcement-card:hover {
-            border-color: rgba(246, 184, 23, 0.7);
-            background:
-                linear-gradient(
-                    145deg,
-                    var(--archive-surface-hover),
-                    var(--archive-bg)
-                );
-            transform: translateY(-2px);
-        }
-
-        .supabase-archive-card-topline {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .supabase-archive-category {
-            display: inline-flex;
-            align-items: center;
-            min-height: 25px;
-            padding: 4px 9px;
-            border: 1px solid rgba(246, 184, 23, 0.65);
-            border-radius: 999px;
-            background: rgba(246, 184, 23, 0.11);
-            color: var(--archive-amber-bright);
-            font-size: 10px;
-            font-weight: 850;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .supabase-archive-date {
-            color: var(--archive-muted);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-        }
-
-        .supabase-archive-title {
-            margin: 0 0 9px;
-            color: var(--archive-amber-bright);
-            font-size: 19px;
-            line-height: 1.35;
-        }
-
-        .supabase-archive-narration {
-            display: -webkit-box;
-            margin: 0 0 12px;
-            overflow: hidden;
-            color: #e5edf6;
-            font-size: 13px;
-            line-height: 1.55;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 5;
-        }
-
-        .supabase-archive-metadata {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 7px 13px;
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px solid rgba(174, 190, 209, 0.18);
-            color: var(--archive-muted);
-            font-size: 11px;
-        }
-
-        .supabase-archive-subcategory {
-            width: 100%;
-            color: #cdd9e6;
-        }
-
-        .supabase-archive-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            margin-top: 12px;
-        }
-
-        .supabase-archive-source,
-        .supabase-archive-ask {
-            display: inline-flex;
-            align-items: center;
-            align-self: flex-start;
-            min-height: 38px;
-            padding: 7px 13px;
-            border-radius: 7px;
-            background: var(--archive-amber);
-            color: #07111f;
-            font-size: 12px;
-            font-weight: 850;
-            text-decoration: none;
-        }
-
-        .supabase-archive-ask {
-            border: 1px solid var(--archive-amber);
-            background: transparent;
-            color: var(--archive-amber-bright);
-        }
-
-        .supabase-archive-source:hover,
-        .supabase-archive-source:focus-visible,
-        .supabase-archive-ask:hover,
-        .supabase-archive-ask:focus-visible {
-            background: var(--archive-amber-bright);
-            color: #07111f;
-        }
-
-        .supabase-archive-source-unavailable {
-            color: var(--archive-muted);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .supabase-archive-message {
-            grid-column: 1 / -1;
-            padding: 28px;
-            border: 1px dashed var(--archive-border);
-            border-radius: 10px;
-            background: var(--archive-bg);
-            color: var(--archive-muted);
-            text-align: center;
-        }
-
-        @media (max-width: 980px) {
-            .supabase-archive .announcement-dashboard-filters {
-                grid-template-columns: repeat(2, minmax(140px, 1fr));
-            }
-        }
-
-        @media (max-width: 600px) {
-            .supabase-archive .announcement-dashboard-filters {
-                grid-template-columns: 1fr;
-            }
-
-            .supabase-archive .announcement-dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .supabase-archive .supabase-announcement-card {
-                min-height: 0;
-            }
-        }
-    `;
-
-    document.head.appendChild(style);
 }
 
 function buildPeriods(records) {
@@ -596,6 +220,7 @@ function buildPeriods(records) {
 function populateDropdown(select, records, field) {
     if (!select) return;
 
+    const selected = select.value;
     const values = [...new Set(
         records.map(record => record[field]).filter(Boolean)
     )].sort((left, right) =>
@@ -616,6 +241,7 @@ function populateDropdown(select, records, field) {
         option.textContent = value;
         select.appendChild(option);
     }
+    select.value = values.includes(selected) ? selected : "";
 }
 
 function createTimelineButton({
@@ -779,52 +405,40 @@ function renderGrid(container, records, emptyMessage) {
 }
 
 async function fetchPublicIntelligence() {
-    const records = [];
-    let offset = 0;
+    const url = new URL(PUBLIC_INTELLIGENCE_API);
+    url.searchParams.set("scope", "history");
+    url.searchParams.set("collection", "announcements");
+    url.searchParams.set("limit", String(PAGE_SIZE));
 
-    while (offset < MAX_RECORDS) {
-        const url = new URL(PUBLIC_INTELLIGENCE_API);
-        url.searchParams.set("scope", "history");
-        url.searchParams.set("limit", String(PAGE_SIZE));
-        url.searchParams.set("offset", String(offset));
-        const controller = new AbortController();
-        const timeout = setTimeout(
-            () => controller.abort(),
-            REQUEST_TIMEOUT_MS
-        );
-        let response;
-
-        try {
-            response = await fetch(url.href, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        const records = [];
+        let total;
+        do {
+            url.searchParams.set("offset", String(records.length));
+            const response = await fetch(url.href, {
                 headers: { Accept: "application/json" },
                 signal: controller.signal
             });
-        } finally {
-            clearTimeout(timeout);
-        }
-
-        if (!response.ok) {
-            throw new Error(`Public intelligence API returned ${response.status}`);
-        }
-
-        const payload = await response.json();
-        const page = Array.isArray(payload.records) ? payload.records : [];
-        records.push(...page);
-
-        if (
-            page.length < PAGE_SIZE ||
-            records.length >= Number(payload.total || 0)
-        ) break;
-
-        offset += PAGE_SIZE;
+            if (!response.ok) throw new Error(`Public intelligence API returned ${response.status}`);
+            const payload = await response.json();
+            if (payload.collection !== "announcements" || !Array.isArray(payload.records) ||
+                !Number.isInteger(payload.total) || payload.total > 50000 ||
+                (total !== undefined && total !== payload.total) ||
+                (!payload.records.length && records.length < payload.total)) {
+                throw new Error("Invalid archive response");
+            }
+            total = payload.total;
+            records.push(...payload.records);
+        } while (records.length < total);
+        return records.map(normalizeRecord).filter(Boolean);
+    } finally {
+        clearTimeout(timeout);
     }
-
-    return records
-        .map(normalizeRecord)
-        .filter(Boolean);
 }
 
-function initializeArchiveInterface(root, records) {
+function initializeArchiveInterface(root, records, snapshot = false) {
     const yearOptions = root.querySelector("[data-year-options]");
     const monthOptions = root.querySelector("[data-month-options]");
     const archiveGrid = root.querySelector("[data-archive]");
@@ -832,7 +446,14 @@ function initializeArchiveInterface(root, records) {
     const resultsCount = root.querySelector("[data-results-count]");
     const archiveStatus = root.querySelector("[data-counts]");
     const resetButton = root.querySelector("[data-reset]");
-    const periods = buildPeriods(records);
+    const liveRecords = records.filter(record => record.tickerEligible &&
+        record.lifecycleStatus === "LIVE" && isWithinLiveWindow(record));
+    const liveSet = new Set(liveRecords);
+    const archiveRecords = records.filter(record => !liveSet.has(record));
+    const periods = buildPeriods(archiveRecords);
+    const PAGE_LENGTH = 24;
+    const moreButton = root.querySelector("[data-more]");
+    let visible = PAGE_LENGTH;
 
     const controls = {};
 
@@ -840,40 +461,20 @@ function initializeArchiveInterface(root, records) {
         controls[field] = root.querySelector(
             `[data-filter="${field}"]`
         );
-
-        populateDropdown(controls[field], records, field);
     }
 
-    let activeYear = periods.length ? periods[0].year : "";
+    let activeYear = "";
     let activeMonth = "";
 
-    function filteredRecords() {
-        return records.filter(record => {
-            if (
-                activeYear &&
-                record.period.year !== activeYear
-            ) {
-                return false;
-            }
+    function matchesPeriod(record) {
+        return (!activeYear || record.period.year === activeYear) &&
+            (!activeMonth || record.period.month === activeMonth);
+    }
 
-            if (
-                activeMonth &&
-                record.period.month !== activeMonth
-            ) {
-                return false;
-            }
-
-            return FILTER_FIELDS.every(field => {
-                const selectedValue = controls[field]
-                    ? controls[field].value
-                    : "";
-
-                return (
-                    !selectedValue ||
-                    record[field] === selectedValue
-                );
-            });
-        });
+    function clearDropdowns() {
+        for (const select of Object.values(controls)) {
+            if (select) select.value = "";
+        }
     }
 
     function renderTimeline() {
@@ -882,13 +483,14 @@ function initializeArchiveInterface(root, records) {
 
             yearFragment.appendChild(createTimelineButton({
                 label: "All years",
-                count: records.length,
+                count: archiveRecords.length,
                 value: "",
                 attribute: "data-year",
                 pressed: activeYear === "",
                 onClick() {
                     activeYear = "";
                     activeMonth = "";
+                    clearDropdowns();
                     render();
                 }
             }));
@@ -903,6 +505,7 @@ function initializeArchiveInterface(root, records) {
                     onClick() {
                         activeYear = period.year;
                         activeMonth = "";
+                        clearDropdowns();
                         render();
                     }
                 }));
@@ -932,6 +535,7 @@ function initializeArchiveInterface(root, records) {
             pressed: activeMonth === "",
             onClick() {
                 activeMonth = "";
+                clearDropdowns();
                 render();
             }
         }));
@@ -945,6 +549,7 @@ function initializeArchiveInterface(root, records) {
                 pressed: month.month === activeMonth,
                 onClick() {
                     activeMonth = month.month;
+                    clearDropdowns();
                     render();
                 }
             }));
@@ -953,59 +558,51 @@ function initializeArchiveInterface(root, records) {
         monthOptions.replaceChildren(monthFragment);
     }
 
+    function renderResults() {
+        const inPeriod = archiveRecords.filter(matchesPeriod);
+        for (const field of FILTER_FIELDS) {
+            populateDropdown(controls[field], inPeriod.filter(record => FILTER_FIELDS.every(other =>
+                other === field || !controls[other]?.value || record[other] === controls[other].value)), field);
+        }
+        const selected = inPeriod.filter(record => FILTER_FIELDS.every(field =>
+            !controls[field]?.value || record[field] === controls[field].value));
+        renderGrid(archiveGrid, selected.slice(0, visible),
+            "No approved announcements match the timeline and filters. Use Reset filters to see all records.");
+        resultsCount.textContent = `${selected.length} record${selected.length === 1 ? "" : "s"}`;
+        moreButton.hidden = selected.length <= visible;
+    }
+
     function render() {
+        visible = PAGE_LENGTH;
         renderTimeline();
-
-        const selected = filteredRecords();
-
-        renderGrid(
-            archiveGrid,
-            selected,
-            "No approved records match the selected timeline and filters."
-        );
-
-        if (resultsCount) {
-            resultsCount.textContent =
-                `${selected.length} record${selected.length === 1 ? "" : "s"}`;
-        }
+        renderResults();
     }
 
-    for (const field of FILTER_FIELDS) {
-        if (controls[field]) {
-            controls[field].addEventListener("change", render);
-        }
-    }
-
-    if (resetButton) {
-        resetButton.addEventListener("click", () => {
-            for (const field of FILTER_FIELDS) {
-                if (controls[field]) {
-                    controls[field].value = "";
-                }
-            }
-
-            activeYear = periods.length ? periods[0].year : "";
-            activeMonth = "";
-            render();
+    for (const select of Object.values(controls)) {
+        select?.addEventListener("change", () => {
+            visible = PAGE_LENGTH;
+            renderResults();
         });
     }
+    moreButton.addEventListener("click", () => {
+        visible += PAGE_LENGTH;
+        renderResults();
+    });
+    resetButton?.addEventListener("click", () => {
+        clearDropdowns();
+        activeYear = "";
+        activeMonth = "";
+        render();
+    });
 
-    const liveRecords = records.filter(record =>
-        isWithinLiveWindow(record)
-    );
-
-    renderGrid(
-        liveGrid,
-        liveRecords,
-        "No approved announcements were published in the latest 12 hours."
-    );
+    renderGrid(liveGrid, liveRecords, snapshot
+        ? "Live announcements are temporarily unavailable."
+        : "No validated announcements qualify for the latest 12 hours.");
 
     if (archiveStatus) {
-        archiveStatus.textContent =
-            `${liveRecords.length} live · ` +
-            `${records.length} approved Supabase records`;
-
-        archiveStatus.setAttribute("aria-live", "polite");
+        archiveStatus.textContent = snapshot
+            ? `${archiveRecords.length} saved records · live archive unavailable`
+            : `${records.length} total · ${liveRecords.length} live · ${archiveRecords.length} archived`;
     }
 
     render();
@@ -1021,7 +618,6 @@ async function initializeSupabaseArchive() {
     root.classList.add("supabase-archive");
     root.setAttribute("aria-busy", "true");
 
-    installArchiveStyles();
 
     const archiveStatus = root.querySelector("[data-counts]");
 
@@ -1033,41 +629,11 @@ async function initializeSupabaseArchive() {
     try {
         const records = await fetchPublicIntelligence();
 
-        if (!records.length) {
-            throw new Error(
-                "The canonical intelligence API returned no approved records"
-            );
-        }
-
-        /*
-         * Supabase is now authoritative for this browser session.
-         * Remove the embedded JSON only after a successful response so the
-         * server-rendered last-known-good archive remains visible if the
-         * database or CDN is unavailable.
-         */
-        const embeddedStaticData = root.querySelector(
-            "[data-canonical-announcements]"
-        );
-
-        if (embeddedStaticData) {
-            embeddedStaticData.remove();
-        }
-
         initializeArchiveInterface(root, records);
     } catch (error) {
-        console.error(
-            "[GPIR] Supabase announcement archive failed:",
-            error
-        );
-
-        /*
-         * Do not erase the existing server-rendered cards on failure.
-         * They remain the readable last-known-good archive.
-         */
-        if (archiveStatus) {
-            archiveStatus.textContent =
-                "Live archive unavailable · showing last-known-good snapshot";
-        }
+        console.error("[GPIR] Supabase announcement archive failed:", error);
+        const snapshot = JSON.parse(root.querySelector("[data-canonical-announcements]").textContent);
+        initializeArchiveInterface(root, snapshot.records.map(normalizeRecord).filter(Boolean), true);
     } finally {
         root.setAttribute("aria-busy", "false");
     }

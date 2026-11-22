@@ -191,6 +191,24 @@
             .filter(Boolean);
     }
 
+    // Resolve exact directory and country queries against already indexed public records.
+    const authorityQueries = [
+        { country: "United Arab Emirates", authority: "Central Bank of the UAE",
+          aliases: /^(?:cbuae|(?:uae|united arab emirates)(?: central bank)?|central bank(?: of(?: the)?)? (?:uae|united arab emirates))$/ },
+        { country: "India", authority: "Reserve Bank of India",
+          aliases: /^(?:rbi|reserve bank of india|india(?: central bank)?)$/ },
+        { country: "Singapore", authority: "Monetary Authority of Singapore",
+          aliases: /^(?:mas|monetary authority of singapore|singapore(?: central bank)?)$/ }
+    ];
+
+    function exactMatchRank(entry, entity) {
+        if (!entity || entry.type === "Global Announcement") return 0;
+        const titles = [entry.pageTitle, entry.sectionTitle];
+        if (titles.includes(entity.authority)) return 3;
+        if (entry.pageTitle !== entity.country || entry.country !== entity.country) return 0;
+        return entry.sectionTitle === "Regulatory Environment" ? 2 : 0;
+    }
+
     function scoreEntry(entry, query, words){
         const haystackTitle = (entry.pageTitle + " " + entry.sectionTitle).toLowerCase();
         const haystackText = entry.text.toLowerCase();
@@ -334,10 +352,12 @@
             if(!filteredEntries.length) return { results: [], total: 0, intent: intent.mode };
         }
 
+        const normalized = words.join(" ").replace(/-/g, " ").replace(/\s+/g, " ");
+        const entity = intent.mode === "GENERAL" && authorityQueries.find(item => item.aliases.test(normalized));
         const scored = filteredEntries
-            .map(entry => ({ entry, score: scoreEntry(entry, query, words) }))
-            .filter(r => r.score > 0)
-            .sort((a, b) => b.score - a.score);
+            .map(entry => ({ entry, rank: exactMatchRank(entry, entity), score: scoreEntry(entry, query, words) }))
+            .filter(r => r.rank > 0 || r.score > 0)
+            .sort((a, b) => b.rank - a.rank || b.score - a.score);
 
         const total = scored.length;
 

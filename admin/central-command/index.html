@@ -93,7 +93,9 @@ html body{background:#081c34!important;color:#102b4b!important}html body main{ma
 <a class="gpir-smart-tile" href="#provider-heading"><strong>Provider Status</strong><span>Review Gemini and OpenRouter routing</span></a>
 <a class="gpir-smart-tile" href="#governance-heading"><strong>Governance</strong><span>Review approvals and historical evidence</span></a>
 </nav></section>
-<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Issue one natural-language requirement. The gateway routes bounded coding, eligible repository-wide PR-only agent work and approved intelligence operations through one execution plan. Production changes require separate authorization.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-route">Execution route</label><select id="directive-route"><option value="bounded_sep01" selected>Gemini / OpenRouter — bounded one-file worker</option><option value="copilot_multifile">GitHub Copilot — repository-wide PR-only (verification required)</option></select><p class="muted">Gemini/OpenRouter is restricted to one eligible documentation or stylesheet file. Multi-file code cannot be delegated to this worker. Provider usage may incur charges.</p><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Eligible commands use one governed execution plan; unsupported or broad operations remain review-only.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section><details id="intelligence-advanced" class="card"><summary><strong>Advanced intelligence operation settings</strong> — optional source/month controls and verified receipts</summary><div class="advanced-operation-body"><h2 id="intelligence-operations-heading">Intelligence operations · advanced controls</h2><p class="muted">Run an existing verified historical source for one UTC month. This does not activate all sources or certify five-year coverage. Apply writes to production only after separate owner confirmation.</p><label for="intelligence-source">Verified source</label><select id="intelligence-source"><option value="FINTECHNEWS-SG-008">FinTech News Singapore</option><option value="ATLAS-APAC-009">Atlas Technologies Research</option></select><label for="intelligence-month">UTC month (YYYY-MM)</label><input id="intelligence-month" type="month" min="2021-11" max="2026-11" value="2026-11"><label for="intelligence-mode">Execution</label><select id="intelligence-mode"><option value="plan">Plan only — no ingestion writes</option><option value="apply">Apply — governed production ingestion and publication</option></select><div class="actions"><button type="button" id="intelligence-plan">Review operational plan</button><button type="button" id="intelligence-submit" disabled>Authorize and dispatch one bounded operation</button><button type="button" id="intelligence-refresh">Refresh execution receipts</button></div><p id="intelligence-plan-result" class="muted" role="status" aria-live="polite">Select a source and month to review the operational boundary.</p><div id="intelligence-receipts" role="status" aria-live="polite"></div></div></details></div>
+<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Issue one natural-language requirement. The gateway routes bounded coding, eligible repository-wide PR-only agent work and approved intelligence operations through one execution plan. Production changes require separate authorization.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-route">Execution route</label><select id="directive-route"><option value="bounded_sep01" selected>Gemini / OpenRouter — bounded one-file worker</option><option value="copilot_multifile">GitHub Copilot — repository-wide PR-only (verification required)</option><option value="bounded_multifile_v1">Gemini / OpenRouter — governed 2–3-file plan (READ-ONLY · execution disabled)</option></select><p class="muted">The existing bounded Gemini/OpenRouter worker edits one file only. The separate Stage 3 option previews an authenticated read-only multi-file plan; approval, submission, provider spending, merge and deployment remain disabled.</p><div id="multifile-plan-fields" hidden><label for="multifile-paths">Stage 3 file paths (2–3, one per line)</label><textarea id="multifile-paths" rows="3" maxlength="500" spellcheck="false">docs/SEP01-COPILOT-CLINE-EXECUTION-GATE.md
+docs/ARCHITECTURE.md</textarea><p class="muted">The two owner-selected acceptance documents are prefilled. Preview validates Git blobs and owner-bound plan identity. USD 0.25 is the approved ceiling, not spend authorization.</p></div><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Eligible commands use one governed execution plan; unsupported or broad operations remain review-only.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section><details id="intelligence-advanced" class="card"><summary><strong>Advanced intelligence operation settings</strong> — optional source/month controls and verified receipts</summary><div class="advanced-operation-body"><h2 id="intelligence-operations-heading">Intelligence operations · advanced controls</h2><p class="muted">Run an existing verified historical source for one UTC month. This does not activate all sources or certify five-year coverage. Apply writes to production only after separate owner confirmation.</p><label for="intelligence-source">Verified source</label><select id="intelligence-source"><option value="FINTECHNEWS-SG-008">FinTech News Singapore</option><option value="ATLAS-APAC-009">Atlas Technologies Research</option></select><label for="intelligence-month">UTC month (YYYY-MM)</label><input id="intelligence-month" type="month" min="2021-11" max="2026-11" value="2026-11"><label for="intelligence-mode">Execution</label><select id="intelligence-mode"><option value="plan">Plan only — no ingestion writes</option><option value="apply">Apply — governed production ingestion and publication</option></select><div class="actions"><button type="button" id="intelligence-plan">Review operational plan</button><button type="button" id="intelligence-submit" disabled>Authorize and dispatch one bounded operation</button><button type="button" id="intelligence-refresh">Refresh execution receipts</button></div><p id="intelligence-plan-result" class="muted" role="status" aria-live="polite">Select a source and month to review the operational boundary.</p><div id="intelligence-receipts" role="status" aria-live="polite"></div></div></details></div>
+<section class="card" aria-labelledby="cloud-pwsh-heading" id="cloud-pwsh"><h2 id="cloud-pwsh-heading">Cloud PowerShell · GitHub-hosted</h2><p class="muted">Run an approved, read-only repository workspace proof using PowerShell 7 in GitHub Actions. No local PC, arbitrary shell input, paid AI calls, or production changes.</p><div class="actions"><button type="button" id="cloud-pwsh-plan">Preview PowerShell plan</button><button type="button" id="cloud-pwsh-dispatch" disabled>Authorize one cloud proof</button><button type="button" id="cloud-pwsh-status">Refresh cloud receipt</button></div><p id="cloud-pwsh-result" role="status" aria-live="polite">Owner sign-in required. Preview the bounded operation before approval.</p><div id="cloud-pwsh-link"></div></section>
 <section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">Agent Monitoring</h2><p class="muted">Owner-authenticated task monitoring. Repository-wide task submission is available only from the single Issue a Command approval flow when existing eligibility and cost gates pass.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
 
 
@@ -148,6 +150,42 @@ async function commandRequest(body){
  if(!response.ok)throw Error(result.message||result.error||'Command failed');
  return result;
 }
+// Owner-only PowerShell cloud proof. No client-side GitHub credentials or shell commands.
+let cloudPwshApproved=false;
+let cloudPwshRequestId=sessionStorage.getItem('gpir_sep01_cloud_pwsh_request')||null;
+document.querySelector('#cloud-pwsh-plan').addEventListener('click',async()=>{
+ const out=document.querySelector('#cloud-pwsh-result');
+ cloudPwshApproved=false;document.querySelector('#cloud-pwsh-dispatch').disabled=true;
+ try{
+  const plan=await commandRequest({action:'cloud_powershell_plan',operation:'workspace-proof'});
+  if(plan.operation!=='workspace-proof'||plan.read_only!==true||plan.requires_owner_confirmation!==true)throw Error('UNEXPECTED_PWSH_PLAN');
+  out.textContent='Approved scope: read-only repository file verification on a GitHub-hosted PowerShell 7 runner. No production writes. Confirm once to dispatch.';
+  cloudPwshApproved=true;document.querySelector('#cloud-pwsh-dispatch').disabled=false;
+ }catch(error){out.textContent='Plan unavailable: '+String(error.message||error)}
+});
+document.querySelector('#cloud-pwsh-dispatch').addEventListener('click',async()=>{
+ const button=document.querySelector('#cloud-pwsh-dispatch'),out=document.querySelector('#cloud-pwsh-result');
+ if(!cloudPwshApproved)return;
+ cloudPwshApproved=false;button.disabled=true;
+ try{
+  const result=await commandRequest({action:'cloud_powershell_dispatch',operation:'workspace-proof',confirmation:'AUTHORIZE_CLOUD_POWERSHELL_PROOF'});
+  if(!/^sep01-pwsh-[0-9a-f-]{36}$/.test(result.request_id)||result.status!=='DISPATCH_REQUESTED')throw Error('INVALID_PWSH_DISPATCH_RECEIPT');
+  cloudPwshRequestId=result.request_id;sessionStorage.setItem('gpir_sep01_cloud_pwsh_request',cloudPwshRequestId);
+  out.textContent='Cloud dispatch requested · '+cloudPwshRequestId+'. Refresh to verify the GitHub run.';
+ }catch(error){out.textContent='Dispatch not verified: '+String(error.message||error)}
+});
+document.querySelector('#cloud-pwsh-status').addEventListener('click',async()=>{
+ const out=document.querySelector('#cloud-pwsh-result'),links=document.querySelector('#cloud-pwsh-link');
+ links.replaceChildren();
+ if(!cloudPwshRequestId){out.textContent='No cloud PowerShell request in this browser session.';return}
+ try{
+  const r=await commandRequest({action:'cloud_powershell_status',request_id:cloudPwshRequestId});
+  out.textContent='Cloud PowerShell · '+String(r.status)+' · '+(r.conclusion||'awaiting result')+(r.execution_verified?' · GitHub run succeeded':'');
+  if(typeof r.run_url==='string'&&r.run_url.startsWith('https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/')){
+   const link=document.createElement('a');link.href=r.run_url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='View cloud run and artifact receipt';links.append(link);
+  }
+ }catch(error){out.textContent='Cloud receipt unavailable: '+String(error.message||error)}
+});
 async function refreshConnectivity(){
  const button=document.querySelector('#refresh-connectivity');
  button.disabled=true;
@@ -219,6 +257,81 @@ document.querySelector('#load-sep02-receipt').addEventListener('click',event=>lo
 
 let approvedDiscovery=null;
 
+async function showBoundedMultifilePlan(instruction,state){
+ const raw=document.querySelector('#multifile-paths').value;
+ const paths=raw.split(/\r?\n/).map(path=>path.trim()).filter(Boolean);
+ if(paths.length<2||paths.length>3||new Set(paths).size!==paths.length)throw Error('Stage 3 requires 2–3 distinct existing files, one per line');
+ if(instruction.length>1000||/[\x00-\x1f]/.test(instruction))throw Error('Stage 3 requires one-line instruction under 1,000 characters');
+ const plan=await commandRequest({action:'multifile_plan',paths,instruction});
+ if(plan.execution_route!=='bounded_multifile_v1'||plan.enabled!==false||plan.read_only!==true||!Array.isArray(plan.manifest)||plan.manifest.length!==paths.length||!plan.manifest.every(item=>paths.includes(item.path)&&/^[a-f0-9]{40}$/.test(item.blob_sha))||!/^[a-f0-9]{64}$/.test(plan.plan_id||'')||!/^[a-f0-9]{40}$/.test(plan.base_sha||''))throw Error('MULTIFILE_READ_ONLY_PLAN_INVALID');
+ if(document.querySelector('#directive-route').value!=='bounded_multifile_v1'||document.querySelector('#directive-text').value.trim()!==instruction||document.querySelector('#multifile-paths').value!==raw)return;
+ state.replaceChildren();
+ const rows=[
+  ['Route','Stage 3 · Gemini/OpenRouter · read-only multi-file preview'],
+  ['Authorization','Owner-authenticated gateway plan · no submission'],
+  ['Plan ID',plan.plan_id],['Repository baseline',plan.base_sha],
+  ['Locked manifest',plan.manifest.map(item=>item.path+' · blob '+item.blob_sha+' · '+item.size+' bytes').join(' | ')],
+  ['Total source bytes',String(plan.total_bytes)],
+  ['Approved ceiling','USD 0.25 maximum; provider account-side cap not independently verified'],
+  ['Execution','BLOCKED · '+(plan.reason||'MULTIFILE_EXECUTION_NOT_ENABLED')],
+  ['Next gates','Independent security review, persisted owner approval and verified spend cap; separate dispatch authorization'],
+  ['Release','No paid model request, Git job, merge or deployment']
+ ];
+ for(const [label,value] of rows){const p=document.createElement('p');p.className='plan-item';const strong=document.createElement('strong');strong.textContent=label+' · ';p.append(strong,document.createTextNode(value));state.append(p)}
+ document.querySelector('#submit-directive').disabled=true;
+ const controls=document.createElement('div');controls.className='plan-item';
+ const stageButton=document.createElement('button');stageButton.type='button';stageButton.textContent='Record this read-only plan (no execution)';
+ const stageStatus=document.createElement('p');stageStatus.setAttribute('aria-live','polite');
+ controls.append(stageButton,stageStatus);state.append(controls);
+ stageButton.addEventListener('click',async()=>{
+  if(stageButton.disabled)return;
+  stageButton.disabled=true;
+  try{
+   if(document.querySelector('#directive-route').value!=='bounded_multifile_v1'||
+      document.querySelector('#directive-text').value.trim()!==instruction||
+      document.querySelector('#multifile-paths').value!==raw)throw Error('Plan changed. Generate a fresh plan.');
+   const jobId='sep01-owner-'+crypto.randomUUID();
+   const staged=await commandRequest({action:'multifile_stage',job_id:jobId,plan_id:plan.plan_id,paths,instruction});
+   if(staged.status!=='PLANNED'||staged.job_id!==jobId||staged.plan_id!==plan.plan_id||staged.dispatch_enabled!==false)
+    throw Error('PERSISTED_PLAN_RECEIPT_INVALID');
+   stageStatus.textContent='Owner-bound plan recorded: '+jobId+' · PLANNED. No approval, provider call or dispatch.';
+   const approvalLabel=document.createElement('label');approvalLabel.textContent='Separate approval confirmation (only after verified provider cap)';
+   const approvalInput=document.createElement('input');approvalInput.placeholder='AUTHORIZE_ONE_MULTIFILE_JOB';
+   approvalInput.setAttribute('aria-label','Stage 3 owner approval confirmation');
+   const approveButton=document.createElement('button');approveButton.type='button';approveButton.textContent='Record owner approval (subject to server cap verification)';
+   approveButton.disabled=true;
+   approvalInput.addEventListener('input',()=>{approveButton.disabled=approvalInput.value!=='AUTHORIZE_ONE_MULTIFILE_JOB'});
+   controls.append(approvalLabel,approvalInput,approveButton);
+   approveButton.addEventListener('click',async()=>{
+    approveButton.disabled=true;
+    try{
+     const approved=await commandRequest({action:'multifile_approve',job_id:jobId,plan_id:plan.plan_id,confirmation:approvalInput.value});
+     if(approved.status!=='APPROVED'||approved.plan_id!==plan.plan_id||approved.dispatch_enabled!==false)throw Error('APPROVAL_RECEIPT_INVALID');
+     approvalInput.disabled=true;
+     stageStatus.textContent='Owner approval persisted for '+jobId+'. No job dispatched.';
+     const dispatchLabel=document.createElement('label');dispatchLabel.textContent='Separate one-job dispatch authorization (only after server execution release)';
+     const dispatchInput=document.createElement('input');dispatchInput.placeholder='AUTHORIZE_ONE_MULTIFILE_DISPATCH';
+     dispatchInput.setAttribute('aria-label','Stage 3 dispatch authorization');
+     const dispatchButton=document.createElement('button');dispatchButton.type='button';dispatchButton.textContent='Authorize one isolated job';
+     dispatchButton.disabled=true;
+     dispatchInput.addEventListener('input',()=>{dispatchButton.disabled=dispatchInput.value!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH'});
+     controls.append(dispatchLabel,dispatchInput,dispatchButton);
+     dispatchButton.addEventListener('click',async()=>{
+      dispatchButton.disabled=true;
+      try{
+       const receipt=await commandRequest({action:'multifile_dispatch',job_id:jobId,plan_id:plan.plan_id,confirmation:dispatchInput.value});
+       if(receipt.status!=='QUEUED'||receipt.plan_id!==plan.plan_id||receipt.provider_request_performed!==false)throw Error('DISPATCH_RECEIPT_INVALID');
+       stageStatus.textContent='Isolated job queued: '+jobId+'. No merge or deployment.';
+      }catch(error){stageStatus.textContent='Dispatch blocked: '+String(error.message||error);dispatchButton.disabled=false}
+     });
+    }catch(error){stageStatus.textContent='Approval blocked: '+String(error.message||error);approveButton.disabled=false}
+   });
+   // Owner approval and dispatch require separate explicit confirmation and server-side
+   // verified provider limits; they are not automatically offered by read-only preview.
+  }catch(error){stageStatus.textContent='Plan not recorded: '+String(error.message||error);stageButton.disabled=false}
+ });
+ return plan;
+}
 async function showRepositoryWidePlan(instruction,state){
  const plan=await commandRequest({action:'agent_multifile_plan',instruction});
  state.replaceChildren();
@@ -249,6 +362,11 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
  if(!instruction){state.textContent='Enter your requirement first.';return}
  button.disabled=true;state.textContent='Checking scope and eligible repository targets (read-only)…';
  try{
+  if(executionRoute==='bounded_multifile_v1'){
+   if(scope!=='development')throw Error('Stage 3 planning is available for development only');
+   await showBoundedMultifilePlan(instruction,state);
+   return;
+  }
   // A diagnostic is not a repository-wide coding task. Inspect the existing workflow only.
   const diagnostic=/\b(?:diagnos(?:e|tic|tics)|inspect|audit|check|verify|status|blocker)\b/i.test(instruction)
     && /\b(?:central command|sep-01|sep01|execution|provider|workflow|copilot|github actions)\b/i.test(instruction)
@@ -353,6 +471,7 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
  try{
   const scope=document.querySelector('#directive-mode').value;
   const executionRoute=document.querySelector('#directive-route').value;
+  if(executionRoute==='bounded_multifile_v1')throw Error('Stage 3 is read-only; no owner dispatch is enabled.');
   if(approvedDiscovery?.multifile&&executionRoute!=='copilot_multifile')throw Error('Execution route changed. Analyze again.');
   if(approvedDiscovery?.multifile){
    const plan=approvedDiscovery;
@@ -421,9 +540,11 @@ document.querySelector('#refresh').addEventListener('click',refreshReceipt);
 const directive=document.querySelector('#directive-text');const mode=document.querySelector('#directive-mode');const directiveStatus=document.querySelector('#directive-status');
 function refreshDirectiveMode(){
  approvedDiscovery=null;document.querySelector('#submit-directive').disabled=true;
- document.querySelector('#directive-discovery-results').textContent='Analyze a requirement to preview scope and approval.';
+ const isStage3=document.querySelector('#directive-route').value==='bounded_multifile_v1';
+ document.querySelector('#multifile-plan-fields').hidden=!isStage3;
+ document.querySelector('#directive-discovery-results').textContent=isStage3?'Stage 3 read-only planning only. No provider call, cost or job submission.':'Analyze a requirement to preview scope and approval.';
 }
-mode.addEventListener('change',refreshDirectiveMode);directive.addEventListener('input',refreshDirectiveMode);refreshDirectiveMode();
+mode.addEventListener('change',refreshDirectiveMode);directive.addEventListener('input',refreshDirectiveMode);document.querySelector('#directive-route').addEventListener('change',refreshDirectiveMode);document.querySelector('#multifile-paths').addEventListener('input',refreshDirectiveMode);refreshDirectiveMode();
 function draft(){const requirement=directive.value.trim();if(!requirement)throw Error('Enter a requirement first');return 'GPIR OWNER DIRECTIVE\\nType: '+mode.value+'\\nRequirement: '+requirement+'\\nGovernance: Follow existing SEP-01 contracts, checkpoint and idempotency controls. No production mutation without explicit approval. This draft is not an executable job.'}document.querySelector('#copy-directive').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(draft());directiveStatus.textContent='Directive copied locally. NOT queued or executed.'}catch(e){directiveStatus.textContent='Copy unavailable: '+String(e.message||e)}});document.querySelector('#download-directive').addEventListener('click',()=>{try{const blob=new Blob([draft()+'\\n'],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gpir-owner-directive.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);directiveStatus.textContent='Draft saved locally. NOT queued or executed.'}catch(e){directiveStatus.textContent=String(e.message||e)}});
 
 // GPIR owner-only intelligence operations; separate approval from SEP single-file edits.

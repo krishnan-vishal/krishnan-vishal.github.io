@@ -101,3 +101,42 @@ test('Smart history paginates the complete RPW and BIS repository past 5,000 rec
   assert.equal(result.length, total);
   assert.deepEqual(offsets, [0, 1000, 2000, 3000, 4000, 5000, 6000]);
 });
+
+test('announcement pagination excludes verified reference classes and keeps technical history reachable', async () => {
+  const sourceDate = '2026-11-10T15:30:00.000Z';
+  const bank = { source_id: 'bank-fixture', source_status: 'GREEN', source_name: 'Bank Fixture',
+    official_url: 'https://bank.example' };
+  const { HYPERSWITCH_SOURCE_ID } = await import('../supabase/functions/gpir-public-intelligence/handler.mjs');
+  const repository = 'juspay/hyperswitch';
+  const technicalSource = { source_id: HYPERSWITCH_SOURCE_ID, source_status: 'GREEN',
+    source_name: 'Hyperswitch', official_url: 'https://github.com/' + repository };
+  const technical = {
+    id: 'release-test', source_id: HYPERSWITCH_SOURCE_ID, raw_title: 'Hyperswitch test release',
+    canonical_url: technicalSource.official_url + '/releases/tag/test',
+    source_published_at: '2026-11-11T01:00:00.000Z', ingestion_status: 'PROCESSED',
+    metadata: { provider: 'HYPERSWITCH', data_class: 'TECHNICAL_REFERENCE', record_type: 'SOFTWARE_RELEASE',
+      repository, publication_eligible: false, alert_eligible: false, settlement_telemetry: false }
+  };
+  const handler = createPublicIntelligenceHandler({
+    env: {}, now: () => Date.parse('2026-11-11T12:00:00.000Z'),
+    loadRows: async () => ({
+      sources: [bank, source, technicalSource], statisticalObservations: [row, technical],
+      announcements: ['one', 'two'].map(id => ({
+        id, source_id: bank.source_id, published_at: sourceDate, publication_status: 'approved',
+        title: 'Approved announcement ' + id, summary_narration: 'Verified source evidence for an eligible announcement fixture.',
+        canonical_url: bank.official_url + '/announcements/' + id
+      }))
+    })
+  });
+  const read = async query => (await handler(new Request('https://fintechoisis.com/functions/v1/gpir-public-intelligence?scope=history&limit=1&' + query))).json();
+  assert.equal((await read('')).records[0].id, technical.id);
+  const firstPage = await read('collection=announcements');
+  const secondPage = await read('collection=announcements&offset=1');
+  assert.equal(firstPage.total, 2);
+  assert.equal(secondPage.total, 2);
+  assert.deepEqual([firstPage.records[0].id, secondPage.records[0].id].sort(), ['one', 'two']);
+  const references = await read('collection=technical');
+  assert.equal(references.total, 1);
+  assert.equal(references.records[0].dataClass, 'TECHNICAL_REFERENCE');
+  assert.equal(references.records[0].tickerEligible, false);
+});

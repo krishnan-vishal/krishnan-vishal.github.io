@@ -17,7 +17,7 @@ export { compareCounts, isExecutiveEligible, referenceClass };
 const DAY = 86400000;
 const HISTORY_FLOOR = Date.parse('2024-11-08T00:00:00Z');
 const INTELLIGENCE_PATH = '/functions/v1/gpir-public-intelligence?scope=history&limit=1000';
-const LIVE_PATH = '/functions/v1/gpir-public-alerts';
+const LIVE_PATH = '/functions/v1/gpir-public-intelligence?view=relay';
 const EDITORIAL_PATH = '/assets/data/fx/editorial-public.json';
 const GOVERNED_ROUTES_PATH = '/routes.json';
 const LEGACY_PERIOD_DAYS = Object.freeze({ '7D': 7, '15D': 15, '30D': 30, '1Y': 365, MAX: null });
@@ -211,15 +211,18 @@ export async function fetchM40HistoryCursor(fetchImpl, origin, state, bounds, cu
 }
 
 export function normalizeLiveAlerts(value, historical) {
-  if (!Array.isArray(value?.alerts)) return [];
+  const relay = value?.status === 'OK' && value.view === 'relay' && value.windowHours === 12;
+  const items = relay ? value.items : value?.alerts;
+  if (!Array.isArray(items)) return [];
   const historyById = new Map(historical.map(record => [record.id, record]));
   // Overlapping reports of one development become one topic-level relay item that keeps
   // the original publication time and every individual source as supporting evidence.
-  return groupRelayItems(value.alerts.flatMap(item => {
+  return groupRelayItems(items.flatMap(item => {
     // Same approval gates as the homepage ticker; both read one governed API.
     if (!item || (item.publicationStatus && item.publicationStatus !== 'approved')) return [];
+    if (relay && (item.tickerEligible !== true || item.displayLifecycleStatus !== 'LIVE' || item.dataClass)) return [];
     if (item.tickerEligible === false || item.sourceVerified === false || item.hasUnresolvedRestrictions === true) return [];
-    if (historyById.has(item?.id)) return [historyById.get(item.id)];
+    if (!relay && historyById.has(item?.id)) return [historyById.get(item.id)];
     const publishedAt = Date.parse(item?.publishedAt || item?.published_at || '');
     const title = clean(item?.title || item?.headline, 240);
     const url = safeHttps(item?.canonicalUrl || item?.canonical_url || item?.sourceUrl || item?.url || item?.source?.url);
@@ -227,7 +230,8 @@ export function normalizeLiveAlerts(value, historical) {
     const record = {
       id: clean(item.id, 100), title, summary: clean(item?.summary || item?.summary_narration, 2000),
       url, publishedAt: new Date(publishedAt).toISOString(), category: clean(item.category, 100) || 'Payments',
-      topics: Array.isArray(item.topicHeaders) ? item.topicHeaders : [], keywords: [],
+      topics: item.topics || item.topicHeaders || [], keywords: [],
+      eventId: item.eventId, memberIds: item.memberIds, supportingSources: item.supportingSources,
       country: clean(item.country, 100), region: clean(item.region, 100), geography: clean(item.geography, 180),
       sourceName: clean(item?.source?.name || item?.sourceName, 140) || 'Authoritative source',
       lifecycle: 'LIVE', outcomeStatus: clean(item.outcomeStatus, 40)
@@ -604,20 +608,6 @@ function renderTimeline(root, records, state) {
     : '<div class="smi-empty"><strong>No validated records match this context.</strong><p>Broaden the filters or period. No sample signal, KPI or market-impact conclusion has been substituted.</p></div>';
 }
 
-// BIS statistics and software repository history stay available for audit, outside industry analytics.
-function renderReference(root, records) {
-  const target = root.querySelector('[data-smart-reference]');
-  if (!target) return;
-  const statistical = records.filter(record => referenceClass(record) === 'statistical');
-  const technical = records.filter(record => referenceClass(record) === 'technical');
-  target.hidden = !records.length;
-  if (!records.length) { target.innerHTML = ''; return; }
-  const list = items => items.slice(0, 12).map(recordMarkup).join('') + (items.length > 12 ? `<p class="smi-heat-note">Showing the latest 12 of ${items.length} records.</p>` : '');
-  target.innerHTML = `<summary>Historical reference data &amp; audit records <span>${plural(statistical.length, 'statistical observation')} · ${plural(technical.length, 'technical record')}</span></summary><div class="smp-reference-body"><p>BIS statistical observations are historical reference data, not breaking news. Software repository history is retained for auditability and is excluded from industry rankings, momentum and analytics.</p>${statistical.length ? `<h3>BIS statistical reference data</h3><div class="smi-results">${list(statistical)}</div>` : ''}${technical.length ? `<h3>Technical repository audit records</h3><div class="smi-results">${list(technical)}</div>` : ''}</div>`;
-}
-
-
-
 const WEEK_FORMAT = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const WEEK_FORMAT_YEAR = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
@@ -804,6 +794,30 @@ export async function initializeSmartIntelligence({ global = window,
     return false;
   }
   const origin = endpointOrigin(global);
+  const technicalHistory = root.querySelector('[data-smart-reference]');
+  const technicalResults = technicalHistory?.querySelector('[data-technical-results]');
+  async function loadTechnicalHistory() {
+    if (!technicalHistory.open || technicalResults.dataset.loaded) return;
+    technicalResults.dataset.loaded = 'pending';
+    technicalResults.textContent = 'Loading verified technical references…';
+    try {
+      const response = await fetchImpl(`${origin}/functions/v1/gpir-public-intelligence?scope=history&collection=technical&limit=12`);
+      if (!response.ok) throw new Error('Technical history unavailable');
+      const payload = await response.json();
+      if (payload.collection !== 'technical' || !Array.isArray(payload.records)) throw new Error('Invalid technical history');
+      const records = normalizeSmartRecords(payload).filter(record => referenceClass(record) === 'technical');
+      technicalResults.innerHTML = records.length
+        ? `<p>Showing the latest ${records.length} of ${Number(payload.total)} verified technical references.</p><div class="smi-results">${records.map(recordMarkup).join('')}</div>`
+        : '<p>No verified technical references are available.</p>';
+      technicalResults.dataset.loaded = 'true';
+    } catch {
+      delete technicalResults.dataset.loaded;
+      technicalResults.textContent = 'Technical history is temporarily unavailable. Reopen this section to retry.';
+    }
+  }
+  technicalHistory?.addEventListener('toggle', loadTechnicalHistory);
+  if (technicalHistory && global.location.hash === '#technical-history') technicalHistory.open = true;
+
   if (!origin || !fetchImpl) return false;
   const params = new URL(global.location.href).searchParams;
   const initialTopics = clean(params.get('topics'), 300).split(',').filter(id => SMART_TOPICS.some(topic => topic.id === id));
@@ -996,7 +1010,6 @@ export async function initializeSmartIntelligence({ global = window,
     renderCompareWindow(root, bounds);
     renderServerHeatmap(root,trendAggregate,requestNow);
     renderTimeline(root,records,state);
-    renderReference(root,[]);
     const subject = clean(params.get('subject'), 20).toUpperCase();
     const related = /^[A-Z]{3}\/[A-Z]{3}$/.test(subject) ? editorial.filter(item => item.pair === subject) : [];
     const queryTerms = [...state.topics].map(id => SMART_TOPICS.find(topic => topic.id === id)?.label || '').filter(Boolean);

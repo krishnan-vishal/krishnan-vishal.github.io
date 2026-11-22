@@ -603,7 +603,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     const initialYearCount = [...initialMonths.values()].reduce((sum, count) => sum + count, 0);
     const monthButtons = initialYear ? `<button type="button" data-month="" aria-pressed="true">All months <span>${initialYearCount}</span></button>${[...initialMonths.entries()].sort(([left], [right]) => right.localeCompare(left)).map(([month, count]) => `<button type="button" data-month="${escapeHtml(month)}" aria-pressed="false">${escapeHtml(month ? monthNames[Number(month) - 1] : "Undated")} <span>${count}</span></button>`).join("")}` : "";
     const initialArchive = archiveRecords.filter(record => periodFor(record).year === initialYear);
-    const embeddedRecords = JSON.stringify({ records: allRecords }).replace(/</g, "\\u003c");
+    const embeddedRecords = JSON.stringify({ records: publishedRecords }).replace(/</g, "\\u003c");
 
     // Reuses the same shared head/header markup as every generated intelligence
     // detail page (extracted from pages/legal/privacy-policy.html) instead of a
@@ -619,30 +619,41 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_OG_TWITTER_TITLE).join('content="Global Announcements">');
     archiveHeaderBlock = archiveHeaderBlock.replace(/<body(?: class="([^"]*)")?>/, (match, classes) => `<body class="${classes ? `${classes} ` : ""}announcement-archive-page">`);
 
-    const html = `${archiveHeaderBlock}<section class="chapter-hero">
-    <div class="container">
-        <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><strong>Global Announcements</strong></div>
-        <span class="chapter-part-tag">Reader Archive</span>
-        <h1>Global Announcements</h1>
-        <p class="chapter-hero-intro">A structured archive of GPIR-classified announcement records, preserving current publication status, historical supersessions and records awaiting full source verification.</p>
-        <nav class="announcement-archive-nav" aria-label="Global Announcements sections">
-          <span>Jump to</span>
-          <a href="#latest-12-hours">LIVE</a>
-          <!-- No separate "recent" data grouping exists (only live vs.
-               archive), so RECENT and ARCHIVE both open the repository
-               archive below, which already lists newest-first -- this
-               links there rather than fabricating a third bucket. -->
-          <a href="#historical-publications">RECENT</a>
-          <a href="#historical-publications">ARCHIVE</a>
-        </nav>
-    </div>
-</section>
-<section class="chapter-body">
+    archiveHeaderBlock = archiveHeaderBlock
+        .replace("</head>", '<link rel="stylesheet" href="/assets/css/reader-auth.css?v=3">\n<link rel="stylesheet" href="/assets/css/gpir-announcement-archive-fallback.css?v=20261122release">\n</head>')
+        .replace('<div class="header-actions">', '<div class="header-actions">\n    <div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Sign in</a><a class="gpir-reader-action" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Create account</a></div>');
+
+    const archiveMain = `<main class="chapter-body" id="chapter-content">
     <div class="container announcement-archive-wrap">
-      <section class="announcement-dashboard" data-announcement-dashboard>
-        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 12 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
+      <section class="announcement-dashboard" data-announcement-dashboard aria-label="Global Announcements">
+        <div class="archive-reference-hero">
+          <div>
+            <p class="chapter-breadcrumb"><a href="/">Home</a> / Global Announcements</p>
+            <h1>Global Announcements</h1>
+            <p>A reader archive of validated payments announcements and their original sources.</p>
+          </div>
+        <div class="announcement-dashboard-heading">
+          <h2>Reader archive</h2>
+          <strong data-counts role="status">${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong>
+          <div class="archive-lifecycle" aria-label="Announcement lifecycle">
+            <a href="#latest-12-hours">Live · 0–12h</a>
+            <a href="#awaiting-verification">Awaiting verification</a>
+            <a href="#historical-publications">Archive</a>
+          </div>
+          <nav aria-label="Explore announcement intelligence">
+            <a href="/pages/intelligence/smart.html#technical-history">Technical history</a>
+            <a href="/pages/intelligence/trusted-source-network.html?view=preview">Trusted Source Network</a>
+            <a href="../../assets/data/source-health.json">Source health (JSON)</a>
+            <a href="/reader/my-gpir/">My GPIR</a>
+          </nav>
+        </div>
+        </div>
         <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
-        <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
+        <div class="announcement-lifecycle-panels">
+          <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Current Alerts · Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
+          <section class="announcement-dashboard-history"><h2>Historical Publications</h2><a href="#historical-publications">Browse repository archive →</a></section>
+          <section id="awaiting-verification" class="announcement-dashboard-pending"><h2>Awaiting Verification</h2><p>${pending.length ? `${pending.length} developing record(s) remain excluded from public results pending source and publication validation.` : "No records are awaiting verification in this snapshot."}</p></section>
+        </div>
         <nav class="announcement-period-nav" data-period-nav aria-label="Archive Month and Year">
           <div class="announcement-period-years" data-year-options>${yearButtons}</div>
           <div class="announcement-period-months" data-month-options>${monthButtons}</div>
@@ -651,17 +662,29 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
           ${["region", "country", "category", "subcategory"].map(field => `<label>${escapeHtml(field.charAt(0).toUpperCase() + field.slice(1))}<select data-filter="${field}"><option value="">All</option></select></label>`).join("")}
           <button type="button" data-reset>Reset filters</button>
         </form>
-        <section id="historical-publications"><div class="announcement-dashboard-results"><h2>Repository archive</h2><strong data-results-count>${initialArchive.length} records</strong></div><div class="announcement-dashboard-grid" data-archive>${cards(initialArchive)}</div></section>
-        ${pending.length ? `<p class="announcement-dashboard-pending"><strong>${pending.length}</strong> developing record(s) remain excluded from public results pending source and publication validation.</p>` : ""}
+        <section id="historical-publications"><div class="announcement-dashboard-results"><h2>Repository archive</h2><strong data-results-count role="status">${initialArchive.length} records</strong></div><div class="announcement-dashboard-grid" data-archive>${cards(initialArchive)}</div><button type="button" data-more hidden>Show more announcements</button></section>
       </section>
     </div>
-</section>
+</main>`;
+    const html = `${archiveHeaderBlock}${archiveMain}
 ${footerBlock}
 <script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261113a"></script>
+<script src="/assets/js/gpir-supabase-public-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script src="/scripts/m34/supabase-browser-client.js"></script>
+<script src="/assets/js/gpir-reader-auth.js"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261122release"></script>
 </body>
 </html>`;
-    fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
+    // The production archive has a maintained navigation and reader shell.
+    // Rebuild the archive body without copying the legal page's navigation.
+    const currentArchive = path.join(OUTPUT_DIR, "index.html");
+    const mainPattern = /<main class="chapter-body" id="chapter-content">[\s\S]*?<\/main>/;
+    const existing = fs.existsSync(currentArchive) ? fs.readFileSync(currentArchive, "utf8") : "";
+    const rendered = mainPattern.test(existing)
+        ? existing.replace(mainPattern, () => archiveMain)
+        : html;
+    fs.writeFileSync(path.join(outputDir, "index.html"), rendered.replace(/[ \t]+$/gm, ""), "utf8");
     console.log(`Staged ${path.join(OUTPUT_DIR, "index.html")} (published: ${publishedRecords.length}, developing: ${pending.length})`);
 }
 

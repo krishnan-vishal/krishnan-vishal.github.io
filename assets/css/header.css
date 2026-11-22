@@ -111,18 +111,28 @@
 
 }
 
-.main-nav a.ask-gpir-btn{
-
-    color:#ffffff;
-
+.main-nav a.ask-gpir-btn {
+    background: #0f294d;
+    color: #fff;
 }
 
-.main-nav a.ask-gpir-btn:hover{
-
-    color:#071A2F;
-
+.main-nav a.ask-gpir-btn:hover {
+    background: #d4af37;
+    color: #071a2f;
 }
 
+.header .main-nav a.ask-gpir-btn:focus-visible,
+.header .header-actions .gpir-reader-action:focus-visible {
+    outline: 3px solid #175891;
+    outline-offset: 3px;
+}
+
+.header-actions .gpir-reader-state {
+    color: #14243a;
+    background: #fff;
+    padding: .25rem .5rem;
+    border-radius: .35rem;
+}
 
 /* ----------------------------------------------------------
    CONTAINER
