@@ -1856,3 +1856,9 @@ An additional CLI test proves a missing repository credential reports its exact
 access-only stage without a network call or repeated login. The combined focused
 inventory is now 40 tests. Actual encrypted handoff remains pending owner-side
 execution; no management-access or migration completion is claimed.
+
+## 2026-11-22 — Homepage and Trusted Source Network, PR #672
+
+PR #672 is the review branch for homepage contrast, public-index authority ranking and the regional Source Network. Baseline main is `216fd5cc7c354458899e5a3ec09875bf8e3c39c4`. The frontend uses the existing directory and public-alert endpoints. The announcement validator now recognizes the directory route as a tool page and still checks every canonical announcement page.
+
+Local checks passed for content, internal links, M-18 announcement validation, 29 production pipeline assertions, M29 source-network contracts and 25 focused ASK GPIR and entitlement assertions. The live guest API returned 96 catalog sources with restricted fields omitted. Signed-in access was exercised against the server handler with separate unpaid, subscriber and designated-reader fixtures. Live signed-in sessions, owner merge and deployed acceptance remain pending.

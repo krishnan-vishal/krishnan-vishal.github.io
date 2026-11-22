@@ -122,7 +122,7 @@ const script = fs.readFileSync(path.join(ROOT, "assets/js/script.js"), "utf8");
 const announcementsRuntime = fs.readFileSync(path.join(ROOT, "assets/js/announcements.js"), "utf8");
 const pageGenerator = fs.readFileSync(path.join(ROOT, "scripts/generate-intelligence-pages.js"), "utf8");
 const refreshFoundation = fs.readFileSync(path.join(ROOT, "scripts/refresh-announcements.js"), "utf8");
-const intelligenceToolPages = new Set(["index.html", "smart.html"]);
+const intelligenceToolPages = new Set(["index.html", "smart.html", "trusted-source-network.html"]);
 const pageFiles = fs.readdirSync(pagesDir)
     .filter(file => file.endsWith(".html") && !intelligenceToolPages.has(file));
 if(pageFiles.length !== classified.length) fail(`intelligence page count mismatch: ${pageFiles.length} pages for ${classified.length} published records`);

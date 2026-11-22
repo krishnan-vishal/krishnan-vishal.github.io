@@ -21,8 +21,10 @@ Deno.serve(async (request) => {
     if (!projectUrl || !serviceKey) return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
 
     try {
+        const params = new URL(request.url).searchParams;
+        const previewOnly = params.get('catalog') === 'fintech' && params.get('view') === 'preview';
         const token = request.headers.get("Authorization")?.match(/^Bearer ([^\s]+)$/i)?.[1];
-        const access = token
+        const access = token && !previewOnly
             ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' })
             : { decision: "UNAUTHENTICATED" };
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
@@ -31,23 +33,28 @@ Deno.serve(async (request) => {
         const databaseHeaders = new Headers();
         databaseHeaders.set("apikey", serviceKey);
         databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);
-        if (new URL(request.url).searchParams.get('catalog') === 'fintech') {
+        if (params.get('catalog') === 'fintech') {
             const result = await fetch(projectUrl + '/rest/v1/gpir_fintech_source_catalog?select=record', { headers: databaseHeaders });
             if (!result.ok) return reply({ error: 'DIRECTORY_UNAVAILABLE' }, 503);
             const records = (await result.json()).map((row: {record: Record<string, any>}) => row.record);
             const regions = [...new Set(records.flatMap((row: any) => row.regions))];
-            const buckets = new Map();
-            for (const row of records) {
-                const keys = row.regions.length ? row.regions : ['Global'];
-                for (const key of keys) buckets.set(key, [...(buckets.get(key) || []), row]);
+            const ranked = [...records].sort((a, b) =>
+                Number(b.approved) - Number(a.approved) || a.name.localeCompare(b.name));
+            const previewLimit = Math.floor(records.length / 10);
+            const preview = new Set(ranked.filter(row => row.approved).slice(0, previewLimit));
+            for (const region of [...new Set([...regions, 'Global'])].sort()) {
+                if (preview.size >= previewLimit) break;
+                const inRegion = (row: any) => row.regions.length ? row.regions.includes(region) : region === 'Global';
+                if ([...preview].some(inRegion)) continue;
+                const row = ranked.find(inRegion);
+                if (row) preview.add(row);
             }
-            const preview = new Map();
-            for (const [region, rows] of buckets) {
-                rows.sort((a: any, b: any) => Number(b.approved) - Number(a.approved) || a.name.localeCompare(b.name));
-                for (const row of rows.slice(0, Math.ceil(rows.length / 10))) preview.set(row, [...(preview.get(row) || []), region]);
+            for (const row of ranked) {
+                if (preview.size >= previewLimit) break;
+                preview.add(row);
             }
-            const cards = full ? records : [...preview].map(([row, previewRegions]) => ({
-                name: row.name, regions: previewRegions, category: row.category, approved: row.approved, sets: row.sets
+            const cards = full ? records : [...preview].map(row => ({
+                name: row.name, regions: row.regions, category: row.category, approved: row.approved, sets: row.sets
             }));
             return reply({ cards, access: access.decision, totals: {
                 sources: records.length, approved: records.filter((row: any) => row.approved).length,

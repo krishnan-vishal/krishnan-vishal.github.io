@@ -3463,3 +3463,7 @@ Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
 - **Permanent control:** Append-only `docs/GPIR_RED_BOOK.md` records binding owner decisions and protected accomplishments, with evidence and explicit status distinctions. Future workers read it before changing code and append new verified achievements after acceptance.
 - **Change exception:** Requires express owner approval, documented impact, targeted regression verification and rollback reference. Do not erase or rewrite prior history.
 - **Delivery:** Governance branch and PR only; production unchanged. Word master-control addendum prepared separately; prior published Word source not available for in-place amendment.
+
+## 2026-11-22 — PR #672 homepage and directory implementation
+
+The reviewed release candidate addresses homepage ASK GPIR and Reader contrast, ranks public authority or country profile matches before incidental mentions, and adds the map-led regional directory layout to the existing route. The local checks and live guest receipt are recorded in the project handoff. Production acceptance is pending. Recovery is a reviewed revert of the release commit on the existing Pages chain.
