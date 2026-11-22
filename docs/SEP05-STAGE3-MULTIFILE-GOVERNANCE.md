@@ -34,3 +34,11 @@ PR #676 is **draft and review-only**. No merge, production deployment, payable m
 
 ## Existing architecture and policy preserved
 Supabase remains authoritative for identity, intelligence, entitlements and job governance; Payload/Contentful editorial authority, website navigation, Global Alerts, FX Smart Cards, ASK GPIR, publication confidence threshold and source-integrity controls are unchanged. No Aider activation, Copilot dependency, database migration, intelligence-rule relaxation or new product architecture is introduced.
+
+## Final execution-gate disposition (2026-11-22)
+- **Read-only production planning: ACCEPTED**. The owner-authenticated production plan returned the approved two-file manifest, baseline `d8dc0bfb246e7bd4f65c9701c1d799885f387bf9`, and execution disabled. This does not authorize spending.
+- **Crash/retry budget remediation prepared on this PR:** before any provider request, the bridge now uses service-role CAS to persist `provider_attempt_reserved=true` on the claimed job. Any subsequent execution attempt with the same job identity is rejected before a provider call. Tests cover failed reservation and repeat execution after a simulated provider failure.
+- **Provider account-side cap: NOT VERIFIED**. An environment flag or owner-entered value is not independent evidence of a provider billing limit. USD 0.25 remains an upper bound for the proposed test, not permission to spend.
+- **Owner-facing stage/approve/dispatch HTTP workflow: NOT ENABLED**. The production gateway intentionally refuses `multifile_submit` with HTTP 403. Persisted approval primitives exist but are not connected to a production owner dispatch route.
+- **Live execution acceptance: NOT RUN**. No paid API call, branch execution, job receipt or acceptance PR is claimed. The production read-only release was isolated in PR #677; this draft PR must be reconciled with `main` before merge because both touched Central Command and the gateway.
+- **Release decision:** remain draft/dormant until new controller/security checks pass, production owner approval workflow is implemented and reviewed, account-side caps are verified, and the owner separately authorizes one paid dispatch. Do not infer approval from read-only acceptance.
