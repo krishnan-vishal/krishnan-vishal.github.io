@@ -66,7 +66,13 @@ async function load() {
     if (regions.includes(initial)) get('region').value = initial;
     if (params.get('status') === 'approved') get('status').value = 'approved';
 
-    function pick(region) { get('region').value = region; render(); }
+    function syncMatrix() {
+        const region = get('region').value;
+        const available = new Set(cards.filter(row => !region || row.regions.map(groupOf).includes(region)).flatMap(row => row.sets));
+        for (const option of get('matrix').options) option.disabled = Boolean(option.value && !available.has(option.value));
+        if (get('matrix').selectedOptions[0]?.disabled) get('matrix').value = '';
+    }
+    function pick(region) { get('region').value = region; syncMatrix(); render(); }
     function mapPanel() {
         const panel = node('section',''); panel.className = 'map-panel';
         panel.append(node('strong','Source network by region'));
@@ -130,7 +136,7 @@ async function load() {
             if(!panels.has(label))panels.set(label,[]);
             panels.get(label).push(row);
         }
-        const root=get('cards');root.replaceChildren();
+        const root=get('cards');root.replaceChildren();root.classList.toggle('region-focus',Boolean(region));
         if(!region)root.append(mapPanel());
         for(const [name,rows] of panels){
             const panel=node('section','');panel.className='region-panel';
@@ -143,7 +149,8 @@ async function load() {
         if(!matched.length)root.append(node('p','No sources match these filters.'));
     }
     get('search').oninput=render;
-    get('region').onchange=get('status').onchange=get('matrix').onchange=render;
-    render();
+    get('region').onchange=()=>{syncMatrix();render();};
+    get('status').onchange=get('matrix').onchange=render;
+    syncMatrix();render();
 }
 load().catch(()=>{get('summary').textContent='The source network is temporarily unavailable.';get('access').textContent='Unavailable';});
