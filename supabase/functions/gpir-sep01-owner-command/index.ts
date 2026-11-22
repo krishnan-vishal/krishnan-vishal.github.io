@@ -105,6 +105,32 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
+  // Narrow natural-language operational intent. Never infer production write approval,
+  // a source, or a month from a broad all-source/five-year directive.
+  if(body.action==='intelligence_classify'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\\x00-\\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!/\\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\\b/i.test(instruction))
+    return json({category:'not_intelligence',executable:false,reason:'NOT_INTELLIGENCE_OPERATION'});
+   const sourceMatches=[
+    /\\b(?:fintech\\s*news\\s*singapore|FINTECHNEWS-SG-008)\\b/i.test(instruction)?'FINTECHNEWS-SG-008':null,
+    /\\b(?:atlas\\s*(?:technologies|payments|research)|ATLAS-APAC-009)\\b/i.test(instruction)?'ATLAS-APAC-009':null
+   ].filter(Boolean);
+   const monthMatches=[...instruction.matchAll(/\\b(202[1-6]-(?:0[1-9]|1[0-2]))\\b/g)].map(m=>m[1]);
+   const broad=/\\b(?:all sources?|every source|five.year|5.year|36 topics?|activate all|entire archive|full backfill)\\b/i.test(instruction);
+   if(broad||sourceMatches.length!==1||monthMatches.length!==1)
+    return json({category:'intelligence_operations',executable:false,reason:'OPERATION_SCOPE_REQUIRES_REVIEW',
+      message:'Broad intelligence directives need a governed source-by-source coverage plan. No production job was queued.',
+      supported_sources:['FINTECHNEWS-SG-008','ATLAS-APAC-009'],max_sources:1,max_months:1});
+   const source_id=sourceMatches[0],month=monthMatches[0],mode='plan';
+   const main=await github('git/ref/heads/main');
+   const workflow='gpir-governed-intelligence-operations.yml';
+   const planData=[owner,main.object.sha,workflow,source_id,month,mode];
+   const plan_id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   return json({category:'intelligence_operations',executable:true,source_id,month,mode,plan_id,
+     requires_owner_approval:true,production_mutation:false,
+     message:'One approved source-month plan only. No production ingestion or provider charge.'});
+  }
   // Governed GPIR intelligence operations use the existing historical acquisition
   // script through a dedicated, allowlisted GitHub workflow. No arbitrary commands.
   if(['intelligence_plan','intelligence_submit','intelligence_status'].includes(body.action)){
