@@ -31,6 +31,13 @@ async function start() {
     get('approved').textContent = data.filter(row => row.approved).length;
     get('coverage').textContent = regions.length;
     const selectors = new Map();
+    const regionAliases = {
+        Europe: ['Europe', 'Europe & UK'],
+        Americas: ['Americas', 'North America', 'LATAM'],
+        APAC: ['APAC', 'Southeast Asia', 'Oceania'],
+        GCC: ['GCC', 'GCC / MENA', 'MENA', 'Middle East']
+    };
+    const matchesRegion = (row, label) => row.regions.some(name => (regionAliases[label] || [label]).includes(name));
     for (const name of ['', ...regions]) {
         const button = node('button', name || 'All regions');
         button.type = 'button';
@@ -42,13 +49,31 @@ async function start() {
         const matrix = get('matrix').value, status = get('status').value;
         const query = get('search').value.trim().toLowerCase();
         const filtered = data.filter(row =>
-            (!region || row.regions.includes(region)) &&
+            (!region || matchesRegion(row, region)) &&
             (!matrix || row.sets.includes(matrix)) &&
             (!status || row.approved === (status === 'approved')) &&
             [row.name, row.category, row.summary, ...row.regions].join(' ').toLowerCase().includes(query));
         for (const [name, button] of selectors) button.setAttribute('aria-pressed', String(name === region));
         get('summary').textContent = filtered.length + ' sources · ' + (region || 'All regions');
-        get('cards').replaceChildren(...filtered.map(row => {
+        const centralBankRegions = {'Europe & UK':'Europe',Europe:'Europe',Americas:'Americas','North America':'Americas',LATAM:'Americas',APAC:'Asia-Pacific',Oceania:'Asia-Pacific','Southeast Asia':'Asia-Pacific',GCC:'Middle East','GCC / MENA':'Middle East',MENA:'Middle East','Middle East':'Middle East',Africa:'Africa'};
+        const bankRegion = centralBankRegions[region];
+        get('centralBanks').href = '/pages/risk/global-central-banks.html' + (bankRegion ? '?region=' + encodeURIComponent(bankRegion) : '');
+        const sections = new Map();
+        for (const row of filtered) {
+            const label = region || row.regions[0] || 'Global';
+            if (!sections.has(label)) sections.set(label, []);
+            sections.get(label).push(row);
+        }
+        get('cards').replaceChildren(...[...sections].sort(([a],[b])=>a.localeCompare(b)).map(([label,rows])=>{
+            const section=node('section','');
+            const heading=node('h3',label+' · '+rows.length);
+            const grid=node('div',''); grid.className='region-grid';
+            section.append(heading,grid);
+            grid.append(...rows.map(renderCard));
+            return section;
+        }));
+    }
+    function renderCard(row) {
             const card = node('article', '');
             const tag = node('span', row.approved ? 'Registry-approved' : row.category === 'Validation reference' ? 'Validation reference' : 'Candidate');
             tag.className = 'tag' + (row.approved ? ' approved' : '');
@@ -62,7 +87,6 @@ async function start() {
             }
             if (links.childNodes.length) card.append(links);
             return card;
-        }));
     }
     get('search').oninput = render;
     get('status').onchange = get('matrix').onchange = render;

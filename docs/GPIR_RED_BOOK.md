@@ -27,3 +27,7 @@
 
 ## Authority
 Owner decisions govern any authorized change. This Red Book complements, and does not silently override, `AGENTS.md`, `docs/DEVELOPMENT_GOVERNANCE.md`, `docs/MASTER_PROJECT_LOG.md`, `docs/PROJECT_STATUS.md`, and approved architecture guardrails.
+
+## 2026-11-22 — GPIR logo visibility
+
+Owner directive. GPIR dashboard headers must render the approved FINTECHOISIS mark legibly against their actual background. Verify the asset loads and the complete mark is visible on desktop and mobile, including on navy headers. Use a light backing when the existing dark mark needs contrast.
