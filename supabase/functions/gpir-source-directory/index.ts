@@ -31,6 +31,29 @@ Deno.serve(async (request) => {
         const databaseHeaders = new Headers();
         databaseHeaders.set("apikey", serviceKey);
         databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);
+        if (new URL(request.url).searchParams.get('catalog') === 'fintech') {
+            const result = await fetch(projectUrl + '/rest/v1/gpir_fintech_source_catalog?select=record', { headers: databaseHeaders });
+            if (!result.ok) return reply({ error: 'DIRECTORY_UNAVAILABLE' }, 503);
+            const records = (await result.json()).map((row: {record: Record<string, any>}) => row.record);
+            const regions = [...new Set(records.flatMap((row: any) => row.regions))];
+            const buckets = new Map();
+            for (const row of records) {
+                const keys = row.regions.length ? row.regions : ['Global'];
+                for (const key of keys) buckets.set(key, [...(buckets.get(key) || []), row]);
+            }
+            const preview = new Map();
+            for (const [region, rows] of buckets) {
+                rows.sort((a: any, b: any) => Number(b.approved) - Number(a.approved) || a.name.localeCompare(b.name));
+                for (const row of rows.slice(0, Math.ceil(rows.length / 10))) preview.set(row, [...(preview.get(row) || []), region]);
+            }
+            const cards = full ? records : [...preview].map(([row, previewRegions]) => ({
+                name: row.name, regions: previewRegions, category: row.category, approved: row.approved, sets: row.sets
+            }));
+            return reply({ cards, access: access.decision, totals: {
+                sources: records.length, approved: records.filter((row: any) => row.approved).length,
+                regions: regions.length, categories: new Set(records.map((row: any) => row.category)).size
+            } });
+        }
         const response = await fetch(`${projectUrl}/rest/v1/gpir_source_directory?select=${select}&order=region,kind,name,country_code`, {
             headers: databaseHeaders
         });
