@@ -620,32 +620,28 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     archiveHeaderBlock = archiveHeaderBlock.replace(/<body(?: class="([^"]*)")?>/, (match, classes) => `<body class="${classes ? `${classes} ` : ""}announcement-archive-page">`);
 
     archiveHeaderBlock = archiveHeaderBlock
-        .replace("</head>", '<link rel="stylesheet" href="/assets/css/reader-auth.css?v=3">\n<link rel="stylesheet" href="/assets/css/gpir-announcement-archive-fallback.css?v=20261122compact">\n</head>')
+        .replace("</head>", '<link rel="stylesheet" href="/assets/css/reader-auth.css?v=3">\n<link rel="stylesheet" href="/assets/css/gpir-announcement-archive-fallback.css?v=20261122reference">\n</head>')
         .replace('<div class="header-actions">', '<div class="header-actions">\n    <div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Sign in</a><a class="gpir-reader-action" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Create account</a></div>');
 
-    const html = `${archiveHeaderBlock}<section class="chapter-hero">
-    <div class="container">
-        <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><strong>Global Announcements</strong></div>
-        <div class="archive-title-row">
-          <h1>Global Announcements</h1>
-          <nav class="announcement-archive-nav" aria-label="Global Announcements sections">
-            <a href="#latest-12-hours">Live updates</a>
-            <a href="#historical-publications">Archive</a>
-          </nav>
-        </div>
-    </div>
-</section>
-<section class="chapter-body">
+    const html = `${archiveHeaderBlock}<main class="chapter-body" id="chapter-content">
     <div class="container announcement-archive-wrap">
-      <section class="announcement-dashboard" data-announcement-dashboard>
+      <section class="announcement-dashboard" data-announcement-dashboard aria-label="Global Announcements">
+        <div class="archive-reference-hero">
+          <h1>Global<br> Announcements</h1>
         <div class="announcement-dashboard-heading">
-          <h2>Intelligence monitor</h2>
+          <h2>Live-to-Archive Intelligence</h2>
           <strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong>
+          <div class="archive-lifecycle" aria-label="Announcement lifecycle">
+            <a href="#latest-12-hours">Live · 0–12h</a>
+            <span>Recent · 12–48h</span>
+            <a href="#historical-publications">Archive</a>
+          </div>
           <nav aria-label="Explore announcement intelligence">
             <a href="/pages/intelligence/smart.html?period=YTD">Historical intelligence</a>
             <a href="/pages/intelligence/trusted-source-network.html?view=preview">Trusted Source Network</a>
             <a href="../../assets/data/source-health.json">Source health (JSON)</a>
           </nav>
+        </div>
         </div>
         <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
         <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
@@ -661,14 +657,14 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
         ${pending.length ? `<p class="announcement-dashboard-pending"><strong>${pending.length}</strong> developing record(s) remain excluded from public results pending source and publication validation.</p>` : ""}
       </section>
     </div>
-</section>
+</main>
 ${footerBlock}
 <script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
 <script src="/assets/js/gpir-supabase-public-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script src="/scripts/m34/supabase-browser-client.js"></script>
 <script src="/assets/js/gpir-reader-auth.js"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261122compact"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261122reference"></script>
 </body>
 </html>`;
     fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
