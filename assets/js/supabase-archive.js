@@ -114,9 +114,7 @@ function formatUtcDate(value) {
         day: "numeric",
         month: "short",
         year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hourCycle: "h23",
+        ...(value.includes("T") ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" } : {}),
         timeZone: "UTC"
     }).format(date).toUpperCase() + " UTC";
 }
@@ -134,9 +132,9 @@ function isWithinLiveWindow(record, now = Date.now()) {
 function normalizeRecord(record) {
     const title = cleanText(record.title);
 
-    if (!title) return null;
+    if (!title || record.dataClass || record.status !== "GPIR_CLASSIFIED") return null;
 
-    const publishedAt = cleanText(record.publishedAt || record.published_at);
+    const publishedAt = cleanText(record.publishedAt || record.published_at || record.publicationDate || record.publishedDate);
     const period = parseArchivePeriod(
         record.archive_month_year || (
             record.publicationMonth && record.publicationYear
@@ -154,6 +152,7 @@ function normalizeRecord(record) {
         country: cleanText(record.country) || "Unspecified",
         category: cleanText(record.category) || "Payments",
         subcategory: cleanText(record.subcategory) || "Unspecified",
+        tickerEligible: record.tickerEligible === true,
         topicIds: Array.isArray(record.topicIds)
             ? record.topicIds.map(cleanText).filter(Boolean)
             : [],
@@ -221,6 +220,7 @@ function buildPeriods(records) {
 function populateDropdown(select, records, field) {
     if (!select) return;
 
+    const selected = select.value;
     const values = [...new Set(
         records.map(record => record[field]).filter(Boolean)
     )].sort((left, right) =>
@@ -241,6 +241,7 @@ function populateDropdown(select, records, field) {
         option.textContent = value;
         select.appendChild(option);
     }
+    select.value = values.includes(selected) ? selected : "";
 }
 
 function createTimelineButton({
@@ -406,26 +407,38 @@ function renderGrid(container, records, emptyMessage) {
 async function fetchPublicIntelligence() {
     const url = new URL(PUBLIC_INTELLIGENCE_API);
     url.searchParams.set("scope", "history");
+    url.searchParams.set("collection", "announcements");
     url.searchParams.set("limit", String(PAGE_SIZE));
-    url.searchParams.set("offset", "0");
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-        const response = await fetch(url.href, {
-            headers: { Accept: "application/json" },
-            signal: controller.signal
-        });
-        if (!response.ok) throw new Error(`Public intelligence API returned ${response.status}`);
-        const payload = await response.json();
-        if (!Array.isArray(payload.records)) throw new Error("Invalid archive response");
-        return payload.records.map(normalizeRecord).filter(Boolean);
+        const records = [];
+        let total;
+        do {
+            url.searchParams.set("offset", String(records.length));
+            const response = await fetch(url.href, {
+                headers: { Accept: "application/json" },
+                signal: controller.signal
+            });
+            if (!response.ok) throw new Error(`Public intelligence API returned ${response.status}`);
+            const payload = await response.json();
+            if (payload.collection !== "announcements" || !Array.isArray(payload.records) ||
+                !Number.isInteger(payload.total) || payload.total > 50000 ||
+                (total !== undefined && total !== payload.total) ||
+                (!payload.records.length && records.length < payload.total)) {
+                throw new Error("Invalid archive response");
+            }
+            total = payload.total;
+            records.push(...payload.records);
+        } while (records.length < total);
+        return records.map(normalizeRecord).filter(Boolean);
     } finally {
         clearTimeout(timeout);
     }
 }
 
-function initializeArchiveInterface(root, records) {
+function initializeArchiveInterface(root, records, snapshot = false) {
     const yearOptions = root.querySelector("[data-year-options]");
     const monthOptions = root.querySelector("[data-month-options]");
     const archiveGrid = root.querySelector("[data-archive]");
@@ -433,7 +446,14 @@ function initializeArchiveInterface(root, records) {
     const resultsCount = root.querySelector("[data-results-count]");
     const archiveStatus = root.querySelector("[data-counts]");
     const resetButton = root.querySelector("[data-reset]");
-    const periods = buildPeriods(records);
+    const liveRecords = records.filter(record => record.tickerEligible &&
+        record.lifecycleStatus === "LIVE" && isWithinLiveWindow(record));
+    const liveSet = new Set(liveRecords);
+    const archiveRecords = records.filter(record => !liveSet.has(record));
+    const periods = buildPeriods(archiveRecords);
+    const PAGE_LENGTH = 24;
+    const moreButton = root.querySelector("[data-more]");
+    let visible = PAGE_LENGTH;
 
     const controls = {};
 
@@ -441,40 +461,20 @@ function initializeArchiveInterface(root, records) {
         controls[field] = root.querySelector(
             `[data-filter="${field}"]`
         );
-
-        populateDropdown(controls[field], records, field);
     }
 
-    let activeYear = periods.length ? periods[0].year : "";
+    let activeYear = "";
     let activeMonth = "";
 
-    function filteredRecords() {
-        return records.filter(record => {
-            if (
-                activeYear &&
-                record.period.year !== activeYear
-            ) {
-                return false;
-            }
+    function matchesPeriod(record) {
+        return (!activeYear || record.period.year === activeYear) &&
+            (!activeMonth || record.period.month === activeMonth);
+    }
 
-            if (
-                activeMonth &&
-                record.period.month !== activeMonth
-            ) {
-                return false;
-            }
-
-            return FILTER_FIELDS.every(field => {
-                const selectedValue = controls[field]
-                    ? controls[field].value
-                    : "";
-
-                return (
-                    !selectedValue ||
-                    record[field] === selectedValue
-                );
-            });
-        });
+    function clearDropdowns() {
+        for (const select of Object.values(controls)) {
+            if (select) select.value = "";
+        }
     }
 
     function renderTimeline() {
@@ -483,13 +483,14 @@ function initializeArchiveInterface(root, records) {
 
             yearFragment.appendChild(createTimelineButton({
                 label: "All years",
-                count: records.length,
+                count: archiveRecords.length,
                 value: "",
                 attribute: "data-year",
                 pressed: activeYear === "",
                 onClick() {
                     activeYear = "";
                     activeMonth = "";
+                    clearDropdowns();
                     render();
                 }
             }));
@@ -504,6 +505,7 @@ function initializeArchiveInterface(root, records) {
                     onClick() {
                         activeYear = period.year;
                         activeMonth = "";
+                        clearDropdowns();
                         render();
                     }
                 }));
@@ -533,6 +535,7 @@ function initializeArchiveInterface(root, records) {
             pressed: activeMonth === "",
             onClick() {
                 activeMonth = "";
+                clearDropdowns();
                 render();
             }
         }));
@@ -546,6 +549,7 @@ function initializeArchiveInterface(root, records) {
                 pressed: month.month === activeMonth,
                 onClick() {
                     activeMonth = month.month;
+                    clearDropdowns();
                     render();
                 }
             }));
@@ -554,59 +558,51 @@ function initializeArchiveInterface(root, records) {
         monthOptions.replaceChildren(monthFragment);
     }
 
+    function renderResults() {
+        const inPeriod = archiveRecords.filter(matchesPeriod);
+        for (const field of FILTER_FIELDS) {
+            populateDropdown(controls[field], inPeriod.filter(record => FILTER_FIELDS.every(other =>
+                other === field || !controls[other]?.value || record[other] === controls[other].value)), field);
+        }
+        const selected = inPeriod.filter(record => FILTER_FIELDS.every(field =>
+            !controls[field]?.value || record[field] === controls[field].value));
+        renderGrid(archiveGrid, selected.slice(0, visible),
+            "No approved announcements match the timeline and filters. Use Reset filters to see all records.");
+        resultsCount.textContent = `${selected.length} record${selected.length === 1 ? "" : "s"}`;
+        moreButton.hidden = selected.length <= visible;
+    }
+
     function render() {
+        visible = PAGE_LENGTH;
         renderTimeline();
-
-        const selected = filteredRecords();
-
-        renderGrid(
-            archiveGrid,
-            selected,
-            "No approved records match the selected timeline and filters."
-        );
-
-        if (resultsCount) {
-            resultsCount.textContent =
-                `${selected.length} record${selected.length === 1 ? "" : "s"}`;
-        }
+        renderResults();
     }
 
-    for (const field of FILTER_FIELDS) {
-        if (controls[field]) {
-            controls[field].addEventListener("change", render);
-        }
-    }
-
-    if (resetButton) {
-        resetButton.addEventListener("click", () => {
-            for (const field of FILTER_FIELDS) {
-                if (controls[field]) {
-                    controls[field].value = "";
-                }
-            }
-
-            activeYear = periods.length ? periods[0].year : "";
-            activeMonth = "";
-            render();
+    for (const select of Object.values(controls)) {
+        select?.addEventListener("change", () => {
+            visible = PAGE_LENGTH;
+            renderResults();
         });
     }
+    moreButton.addEventListener("click", () => {
+        visible += PAGE_LENGTH;
+        renderResults();
+    });
+    resetButton?.addEventListener("click", () => {
+        clearDropdowns();
+        activeYear = "";
+        activeMonth = "";
+        render();
+    });
 
-    const liveRecords = records.filter(record =>
-        isWithinLiveWindow(record)
-    );
-
-    renderGrid(
-        liveGrid,
-        liveRecords,
-        "No approved announcements were published in the latest 12 hours."
-    );
+    renderGrid(liveGrid, liveRecords, snapshot
+        ? "Live announcements are temporarily unavailable."
+        : "No validated announcements qualify for the latest 12 hours.");
 
     if (archiveStatus) {
-        archiveStatus.textContent =
-            `${liveRecords.length} live · ` +
-            `${records.length} recent approved records loaded`;
-
-        archiveStatus.setAttribute("aria-live", "polite");
+        archiveStatus.textContent = snapshot
+            ? `${archiveRecords.length} saved records · live archive unavailable`
+            : `${records.length} total · ${liveRecords.length} live · ${archiveRecords.length} archived`;
     }
 
     render();
@@ -633,41 +629,11 @@ async function initializeSupabaseArchive() {
     try {
         const records = await fetchPublicIntelligence();
 
-        if (!records.length) {
-            throw new Error(
-                "The canonical intelligence API returned no approved records"
-            );
-        }
-
-        /*
-         * Supabase is now authoritative for this browser session.
-         * Remove the embedded JSON only after a successful response so the
-         * server-rendered last-known-good archive remains visible if the
-         * database or CDN is unavailable.
-         */
-        const embeddedStaticData = root.querySelector(
-            "[data-canonical-announcements]"
-        );
-
-        if (embeddedStaticData) {
-            embeddedStaticData.remove();
-        }
-
         initializeArchiveInterface(root, records);
     } catch (error) {
-        console.error(
-            "[GPIR] Supabase announcement archive failed:",
-            error
-        );
-
-        /*
-         * Do not erase the existing server-rendered cards on failure.
-         * They remain the readable last-known-good archive.
-         */
-        if (archiveStatus) {
-            archiveStatus.textContent =
-                "Live archive unavailable · showing last-known-good snapshot";
-        }
+        console.error("[GPIR] Supabase announcement archive failed:", error);
+        const snapshot = JSON.parse(root.querySelector("[data-canonical-announcements]").textContent);
+        initializeArchiveInterface(root, snapshot.records.map(normalizeRecord).filter(Boolean), true);
     } finally {
         root.setAttribute("aria-busy", "false");
     }

@@ -370,6 +370,9 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
     const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
+    const collection = requestUrl.searchParams.get('collection');
+    if (collection && (!history || !['announcements', 'technical'].includes(collection)))
+      return response(400, { status: 'ERROR', code: 'INVALID_COLLECTION' }, origin, env);
     const date = requestUrl.searchParams.get('date');
     const year = requestUrl.searchParams.get('year');
     const lifecycle = requestUrl.searchParams.get('lifecycle');
@@ -535,7 +538,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         // Fetch all approved announcements in bounded PostgREST pages, not just the first 1,000.
         // Fail closed if a page cannot be retrieved; never report a truncated archive as complete.
         const announcements = [];
-        for (let page = 0; ; page++) {
+        for (let page = 0; collection !== 'technical'; page++) {
           const pageQuery = new URLSearchParams(announcementQuery);
           pageQuery.set('offset', String(page * 1000));
           const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${pageQuery}`, headers);
@@ -558,12 +561,12 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         }
         const [sources, topics, developments, topicSources, statisticalObservations] = await Promise.all([
           allRows('source_registry', sourceQuery),
-          allRows('gpir_intelligence_topics', topicQuery),
-          allRows('gpir_intelligence_developments', developmentsQuery),
-          allRows('gpir_intelligence_topic_sources', linksQuery),
-          history ? allRows('intelligence_raw_ingestion', new URLSearchParams({
+          collection === 'technical' ? [] : allRows('gpir_intelligence_topics', topicQuery),
+          collection === 'technical' ? [] : allRows('gpir_intelligence_developments', developmentsQuery),
+          collection === 'technical' ? [] : allRows('gpir_intelligence_topic_sources', linksQuery),
+          history && collection !== 'announcements' ? allRows('intelligence_raw_ingestion', new URLSearchParams({
             select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
-            source_id: `in.(${REFERENCE_SOURCE_IDS.join(',')})`, ingestion_status: 'eq.PROCESSED',
+            source_id: `in.(${(collection === 'technical' ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`, ingestion_status: 'eq.PROCESSED',
             order: 'discovered_at.desc,id.asc'
           })) : Promise.resolve([])
         ]);
@@ -587,6 +590,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         return response(200, { status: 'OK', view: 'relay', windowHours: 12, total: items.length, items,
           generatedAt: new Date(requestNow).toISOString() }, origin, env);
       }
+      if (collection === 'announcements') records = records.filter(record => !record.dataClass);
+      if (collection === 'technical') records = records.filter(record => record.dataClass === 'TECHNICAL_REFERENCE');
       if (date) records = records.filter(record=>record.publicationDate===date);
       if (year) records = records.filter(record=>record.publicationYear===year);
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
@@ -598,7 +603,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', source: history ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

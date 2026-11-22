@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import vm from "node:vm";
+import { groupRelayItems } from "../../supabase/functions/_shared/gpir-topic-intelligence.mjs";
+import { createPublicIntelligenceHandler } from "../../supabase/functions/gpir-public-intelligence/handler.mjs";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -100,7 +102,7 @@ function htmlEscape(value){
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-async function createAlertsHarness({ alerts = [], apiFailure = false, expectLiveBeforeArchive = false } = {}){
+async function createAlertsHarness({ alerts = [], handler, apiFailure = false, expectLiveBeforeArchive = false } = {}){
     const track = {
         classList: new FakeClassList(),
         style: { setProperty(){} },
@@ -170,9 +172,14 @@ async function createAlertsHarness({ alerts = [], apiFailure = false, expectLive
         fetch: async url => {
             if(String(url).includes("announcements.json")) return archiveReady;
             if(String(url).includes("content-registry.json")) return { ok: true, json: async () => ({ records: [] }) };
-            if(String(url).includes("gpir-public-alerts")){
+            if(String(url).includes("gpir-public-intelligence?view=relay")){
                 if(apiFailure) throw new Error("network unavailable");
-                return { ok: true, json: async () => ({ alerts, windowHours: 12 }) };
+                if (handler) return handler(new Request(url));
+                const items = groupRelayItems(alerts.map(alert => ({
+                    ...alert, canonicalUrl: alert.sourceUrl, source: { name: alert.sourceName, url: alert.sourceUrl },
+                    displayLifecycleStatus: "LIVE"
+                })));
+                return { ok: true, json: async () => ({ status: "OK", view: "relay", items, windowHours: 12 }) };
             }
             throw new Error(`Unexpected request: ${url}`);
         }
@@ -330,7 +337,21 @@ test("Search GPIR still returns indexed Australia and TerraPay research", async 
 });
 
 test("valid recent approved alert renders summary, classification and verified source", async () => {
-    const harness = await createAlertsHarness({ alerts: [validAlert()], expectLiveBeforeArchive: true });
+    const fixture = validAlert();
+    const handler = createPublicIntelligenceHandler({ env: {}, loadRows: async () => ({
+        announcements: [{
+            id: fixture.id, source_id: "fixture-central-bank", title: fixture.title,
+            summary_narration: fixture.summary, canonical_url: fixture.sourceUrl,
+            published_at: fixture.publishedAt, ticker_eligible: true,
+            publication_status: "approved", topic_headers: [fixture.category]
+        }],
+        sources: [{
+            source_id: "fixture-central-bank", source_name: fixture.sourceName,
+            official_url: "https://centralbank.example", source_status: "GREEN",
+            country: fixture.country
+        }]
+    }) });
+    const harness = await createAlertsHarness({ handler, expectLiveBeforeArchive: true });
     assert.match(harness.track.innerHTML, /Central bank launches verified instant-payment service/);
     assert.match(harness.track.innerHTML, /Payment Infrastructure/);
     assert.match(harness.track.innerHTML, /https:\/\/centralbank\.example\/releases\/instant-payments/);

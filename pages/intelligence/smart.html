@@ -218,7 +218,10 @@
             <div class="smi-section-heading"><div><p class="smi-kicker">LATEST VERIFIED DEVELOPMENTS</p><h2 id="smi-evidence-title">Source-linked intelligence timeline</h2></div><a data-smart-ask href="#gpir-ask-panel">Ask GPIR with this context</a></div>
             <p class="smp-note">Historical evidence from the governed archive, newest first. Live announcements appear only in the Live Global Alerts strip during their 12-hour window.</p>
             <div class="smp-results" data-smart-results></div>
-            <details class="smp-reference" data-smart-reference hidden></details>
+            <details class="smp-reference" id="technical-history" data-smart-reference>
+                <summary>Technical repository history</summary>
+                <div class="smp-reference-body" data-technical-results role="status"></div>
+            </details>
           </section>
 
           <section class="smx-tables" aria-labelledby="smx-tables-title">
@@ -248,7 +251,7 @@
   <script src="../../assets/js/gpir-smart-card-sections.js?v=20261109e" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js" integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script defer src="../../assets/js/content-search.js?v=20261117b"></script>
-  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261119e"></script>
+  <script type="module" src="../../assets/js/smart-intelligence.mjs?v=20261122release"></script>
   <script>
   document.querySelector("[data-smart-alert-nav]")?.addEventListener("click", event => {
     const target = document.getElementById("smart-live-alerts");

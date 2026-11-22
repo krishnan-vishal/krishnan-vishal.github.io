@@ -57,7 +57,7 @@ test('the destination page is the live-alert and topic-based historical dashboar
   assert.match(smartPage, /data-smart-live/);
   assert.match(smartPage, /LIVE GLOBAL ALERTS/);
   assert.match(smartPage, /smart-intelligence\.mjs/);
-  assert.match(smartScript, /gpir-public-alerts/);
+  assert.match(smartScript, /gpir-public-intelligence\?view=relay/);
   assert.match(smartScript, /SMART_TOPICS/);
 });
 
