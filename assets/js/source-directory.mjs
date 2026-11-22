@@ -62,8 +62,9 @@ async function initialize(directory) {
     const session = preview ? null : await window.GPIRReaderAuth?.sessionReady;
     const key = config?.publishableKey;
     if (!config?.url || !key) throw Error("Missing directory configuration");
-    const headers = { apikey: key };
-    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+    const headers = new Headers();
+    headers.set("apikey", key);
+    if (session?.access_token) headers.set("Authorization", `Bearer ${session.access_token}`);
     const response = await fetch(`${config.url}/functions/v1/gpir-source-directory`, { headers, cache: "no-store" });
     if (!response.ok) throw Error("Directory unavailable");
     const { cards, access } = await response.json();

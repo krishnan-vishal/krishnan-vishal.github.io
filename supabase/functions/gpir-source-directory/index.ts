@@ -28,8 +28,11 @@ Deno.serve(async (request) => {
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
         const full = access.decision === "ALLOW";
         const select = full ? "region,kind,country_code,country,name,official_url,summary,coverage" : "region,kind,name";
+        const databaseHeaders = new Headers();
+        databaseHeaders.set("apikey", serviceKey);
+        databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);
         const response = await fetch(`${projectUrl}/rest/v1/gpir_source_directory?select=${select}&order=region,kind,name,country_code`, {
-            headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+            headers: databaseHeaders
         });
         if (!response.ok) return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
 
