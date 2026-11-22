@@ -3,6 +3,13 @@
 ## Non-activation status
 PR #676 is **draft and review-only**. No merge, production deployment, payable model execution, owner-submitted multi-file job or live two-file acceptance has been authorized or performed. The Central Command `multifile_submit` endpoint still rejects all execution. Neither of the Stage 3 activation environment flags is configured or enabled by this PR. The existing single-file production behavior remains unchanged.
 
+## Central Command integration (review-only)
+- Central Command now displays a separate `Gemini / OpenRouter — governed 2–3-file plan` selection, explicitly labeled **READ-ONLY**. The old single-file and repository-wide Copilot routes are unchanged.
+- Owners can preview the canonical `multifile_plan` through the existing session-authenticated gateway, with the two proposed acceptance candidates prefilled: `docs/SEP01-COPILOT-CLINE-EXECUTION-GATE.md` and `docs/ARCHITECTURE.md`. The preview displays the live base commit, individual Git blobs, file sizes and plan ID; it is not a persisted approval.
+- The UI always leaves Stage 3 job submission disabled, and the gateway still rejects `multifile_submit` with HTTP 403. No provider call, spending, Git job, automatic PR, merge or deployment is enabled.
+- The owner-selected USD 0.25 ceiling is **not** a backend-bound spend authorization or evidence of independent provider account caps. No further execution approval can be inferred from the selection or preview. Implement authenticated persisted approval/release separately, only after review.
+- `multifile-central-command.test.mjs` covers the read-only route, existing gateway refusal and module syntax; deterministic CI does not prove production deployment or live acceptance.
+
 ## Implemented on the existing PR
 - Owner-authenticated, read-only Central Command `multifile_plan` preview, with canonical SHA-256 owner/base/instruction/blob/size/path binding.
 - Strict two-to-three-file manifest in existing `docs/*.md` / `assets/css/*.css`; reject protected paths, duplicates, stale blobs, missing sources or total size over 300,000 bytes. Planning permits up to 100,000 bytes per file; execution additionally enforces the existing editor's 50,000-byte input ceiling before any provider call.
