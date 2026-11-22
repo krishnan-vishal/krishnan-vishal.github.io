@@ -208,7 +208,7 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
  if(!instruction){state.textContent='Enter your requirement first.';return}
  button.disabled=true;state.textContent='Checking scope and eligible repository targets (read-only)…';
  try{
-  const operational=/\\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\\b/i.test(instruction);
+  const operational=/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction);
   if(operational){
    const result=await commandRequest({action:'intelligence_classify',instruction});
    state.replaceChildren();
