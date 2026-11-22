@@ -1,0 +1,31 @@
+name: SEP-01 cloud PowerShell workspace proof
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Preapproved read-only operation'
+        required: true
+        type: choice
+        options:
+          - workspace-proof
+permissions:
+  contents: read
+jobs:
+  cloud-powershell-proof:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.operation == 'workspace-proof' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Execute approved PowerShell cloud workspace proof
+        shell: pwsh
+        run: ./scripts/sep01/cloud-workspace-proof.ps1
+      - name: Retain non-sensitive execution receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: sep01-cloud-powershell-receipt
+          path: cloud-workspace-receipt.json
+          retention-days: 7
+          if-no-files-found: error
