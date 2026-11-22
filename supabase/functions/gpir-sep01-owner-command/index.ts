@@ -20,6 +20,64 @@ async function github(path,method='GET',body){
  if(!r.ok)throw Error('GITHUB_HTTP_'+r.status);
  return r.status===204?{}:r.json();
 }
+const gatewayVersion='sep04a-2';
+const maxFileBytes=100000;
+const developmentPath=/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/;
+const sensitiveTerms=/\b(auth(?:entication|orization)?|passwords?|secrets?|tokens?|credentials?|payments?|billing|entitlements?|deploy(?:ment)?|releases?|database|migration|schema|supabase|workflows?|github actions|edge functions?|api keys?|security|permissions?)\b/i;
+const constraintStart=/^(?:(?:please\s+)?(?:do not|don't|never|without|avoid|exclude|preserve|retain|leave|keep)\b|no\s+(?:new|changes?|production|deploy|release|provider|paid)\b)/i;
+function classifyRequirement(instruction,scope){
+ const clauses=instruction.replace(/^\s*\d+\.\s+/gm,'').split(/[\n;!?]+|\.(?=\s|$)|,\s*(?=(?:please\s+)?(?:do not|don't|never|without|preserve|retain|leave|keep|but|then)\b)|\s+(?:and\s+)?(?:but|then|also)\s+|\s+and\s+(?=(?:deploy|publish|release|roll\s*out|promote|push|merge|change|modify|update|remove|implement|disable|enable)\b)|\s+(?=(?:and\s+)?(?:without|do not|don't|never)\s)/i)
+  .map(clause=>clause.trim().replace(/^(?:[-*]\s+|\d+\.\s+|(?:constraints?|governance|acceptance criteria|requirements?|objective)\s*:\s*|and\s+|but\s+|then\s+)+/i,''))
+  .filter(clause=>clause&&!constraintStart.test(clause)&&!/^[\w /-]+\s+(?:must|should)\s+(?:remain|stay|be)\s+(?:unchanged|preserved|approval.gated|prohibited)$/i.test(clause));
+ const requested=clauses.join(' ');
+ const documentation=/\b(?:document(?:ation)?|docs|readme|markdown|guide|runbook|handbook|manual)\b|\.md\b/i;
+ const stylesheet=/\b(?:stylesheets?|css|layout|fonts?|spacing|visual|typography)\b|\.css\b/i;
+ const edit=/\b(?:add|amend|change|clarify|correct|edit|expand|fix|improve|implement|insert|remove|rename|replace|revise|rewrite|update|write)\b/i;
+ const research=/^(?:please\s+)?(?:research|analy[sz]e|investigate|compare|explain|find|summarize|assess|review|report on)\b/i;
+ const release=/\b(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i;
+ const requestsRelease=clauses.some(clause=>{
+  const action=clause.match(release);
+  if(!action)return false;
+  const prefix=clause.slice(0,action.index);
+  if(/\band\s*$/i.test(prefix))return true;
+  return !research.test(clause)&&!(edit.test(prefix)&&documentation.test(clause))&&
+   (/^(?:please\s+)?(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i.test(clause)||
+    /\b(?:and|to)\s+(?:deploy|publish|release|roll\s*out|promote|push|merge)\b/i.test(clause));
+ });
+ const isDocumentation=clauses.some(clause=>edit.test(clause)&&documentation.test(clause));
+ const isStylesheet=clauses.some(clause=>edit.test(clause)&&stylesheet.test(clause));
+ const kind=isDocumentation&&!isStylesheet?'documentation':isStylesheet&&!isDocumentation?'stylesheet':'application_code';
+ const inferred=requestsRelease?'release':clauses.length&&clauses.every(clause=>research.test(clause))?'research':'development';
+ const category=scope==='release'||inferred==='release'?'release':scope==='research'?'research':inferred;
+ const sensitive=sensitiveTerms.test(requested);
+ const explicitPaths=[...new Set((requested.match(/[\w/-]+\.(?:md|css|[cm]?[jt]sx?|html|json|ya?ml|sql|toml|txt|py|sh)\b/gi)||[]).map(path=>path.toLowerCase()))];
+ const unsupported=explicitPaths.some(path=>!path.endsWith('.md')&&!path.endsWith('.css'))||
+  clauses.some(clause=>edit.test(clause)&&!documentation.test(clause)&&!stylesheet.test(clause)&&/\b(?:application code|javascript|typescript|backend|server logic|source code)\b/i.test(clause));
+ const multiple=explicitPaths.length>1||(isDocumentation&&isStylesheet)||/\b(?:both|multiple|several|all|two|three)\s+(?:[\w-]+\s+){0,3}(?:files|pages|documents|stylesheets)\b/i.test(requested);
+ const reason=category==='release'?'RELEASE_REVIEW_REQUIRED':sensitive?'SENSITIVE_REVIEW_REQUIRED':
+  category==='research'?'RESEARCH_OUTSIDE_WORKER':multiple?'SINGLE_FILE_REQUIRED':
+  !edit.test(requested)?'REQUESTED_EDIT_REQUIRED':(kind==='application_code'||unsupported)?'APPLICATION_CODE_REVIEW_REQUIRED':null;
+ return {requested,category,kind,sensitive,reason,explicitPaths};
+}
+function rankTargets(tree,{requested,kind,explicitPaths}){
+ const normalize=value=>value.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const stop=new Set('add amend update fix change correct edit expand improve insert remove rename replace revise rewrite write docs document documentation readme markdown guide runbook handbook manual css stylesheet layout font spacing visual typography gpir file page component please should must this that the and for with from into about under section current existing'.split(' '));
+ const query=normalize(requested);
+ const words=new Set(query.split(' ').filter(word=>word.length>=3&&!stop.has(word)));
+ return tree.flatMap(entry=>{
+  if(entry.type!=='blob'||typeof entry.path!=='string'||!developmentPath.test(entry.path)||!Number.isSafeInteger(entry.size)||entry.size<0||
+    !entry.path.endsWith(kind==='documentation'?'.md':'.css'))return [];
+  const path=entry.path.toLowerCase();
+  const basename=path.split('/').at(-1);
+  const exact=explicitPaths.some(hint=>hint===path||hint===basename);
+  if(explicitPaths.length&&!exact)return [];
+  const stem=normalize(basename.replace(/\.[^.]+$/,''));
+  const tokens=[...new Set(stem.split(' ').filter(word=>words.has(word)))];
+  const phrase=stem.split(' ').length>1&&(' '+query+' ').includes(' '+stem+' ');
+  const score=exact?100:phrase?50:tokens.length;
+  return score?[{path:entry.path,score,size:entry.size}]:[];
+ }).sort((a,b)=>b.score-a.score||a.path.localeCompare(b.path));
+}
 Deno.serve(async request=>{
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(request.headers.get('Origin')!==allowedOrigin)return json({error:'ORIGIN_NOT_AUTHORIZED'},403);
@@ -45,7 +103,106 @@ Deno.serve(async request=>{
     const model=/^[-A-Za-z0-9_.:/]{1,120}$/.test(attempt.model||'')?attempt.model:null;
     return [{provider:attempt.provider,model,status:attempt.status}];
    }):[];
-   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts});
+   return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
+  }
+  // Narrow natural-language operational intent. Never infer production write approval,
+  // a source, or a month from a broad all-source/five-year directive.
+  if(body.action==='intelligence_classify'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction))
+    return json({category:'not_intelligence',executable:false,reason:'NOT_INTELLIGENCE_OPERATION'});
+   const sourceMatches=[
+    /\b(?:fintech\s*news\s*singapore|FINTECHNEWS-SG-008)\b/i.test(instruction)?'FINTECHNEWS-SG-008':null,
+    /\b(?:atlas\s*(?:technologies|payments|research)|ATLAS-APAC-009)\b/i.test(instruction)?'ATLAS-APAC-009':null
+   ].filter(Boolean);
+   const monthMatches=[...instruction.matchAll(/\b(202[1-6]-(?:0[1-9]|1[0-2]))\b/g)].map(m=>m[1]);
+   const broad=/\b(?:all sources?|every source|five.year|5.year|36 topics?|activate all|entire archive|full backfill)\b/i.test(instruction);
+   if(broad||sourceMatches.length!==1||monthMatches.length!==1)
+    return json({category:'intelligence_operations',executable:false,reason:'OPERATION_SCOPE_REQUIRES_REVIEW',
+      message:'Broad intelligence directives need a governed source-by-source coverage plan. No production job was queued.',
+      supported_sources:['FINTECHNEWS-SG-008','ATLAS-APAC-009'],max_sources:1,max_months:1});
+   const source_id=sourceMatches[0],month=monthMatches[0],mode='plan';
+   const main=await github('git/ref/heads/main');
+   const workflow='gpir-governed-intelligence-operations.yml';
+   const planData=[owner,main.object.sha,workflow,source_id,month,mode];
+   const plan_id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   return json({category:'intelligence_operations',executable:true,source_id,month,mode,plan_id,
+     requires_owner_approval:true,production_mutation:false,
+     message:'One approved source-month plan only. No production ingestion or provider charge.'});
+  }
+  // Governed GPIR intelligence operations use the existing historical acquisition
+  // script through a dedicated, allowlisted GitHub workflow. No arbitrary commands.
+  if(['intelligence_plan','intelligence_submit','intelligence_status'].includes(body.action)){
+   const workflow='gpir-governed-intelligence-operations.yml';
+   if(body.action==='intelligence_status'){
+    const runs=await github('actions/workflows/'+workflow+'/runs?per_page=30');
+    const entries=(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,30).map(run=>({
+     run_id:run.id, title:String(run.display_title||'').slice(0,160),
+     status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null,
+     created_at:run.created_at
+    }));
+    return json({gateway_version:gatewayVersion,operations:entries,read_only:true});
+   }
+   const source=String(body.source_id||'');
+   const month=String(body.month||'');
+   const mode=String(body.mode||'plan');
+   if(!['FINTECHNEWS-SG-008','ATLAS-APAC-009'].includes(source))return json({error:'SOURCE_NOT_APPROVED'},422);
+   if(!/^202[1-6]-(0[1-9]|1[0-2])$/.test(month)||month<'2021-11'||month>'2026-11')return json({error:'MONTH_NOT_APPROVED'},422);
+   if(!['plan','apply'].includes(mode))return json({error:'MODE_NOT_APPROVED'},422);
+   const main=await github('git/ref/heads/main');
+   const planData=[owner,main.object.sha,workflow,source,month,mode];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   if(body.action==='intelligence_plan')return json({
+    gateway_version:gatewayVersion,plan_id:planId,source_id:source,month,mode,
+    execution:'EXISTING_GOVERNED_SOURCE_MONTH_BACKFILL',max_sources:1,max_months:1,
+    production_mutation:mode==='apply',provider_api_spend:false,
+    requires_owner_approval:true,review_required:mode==='apply',
+    scope_limit:'Only two previously verified historical sources; this is not all-source activation or five-year acceptance.'
+   });
+   if(body.plan_id!==planId||body.confirmation!=='AUTHORIZE_ONE_INTELLIGENCE_OPERATION')return json({error:'OPERATION_APPROVAL_REQUIRED_OR_STALE'},403);
+   // Check recent workflow runs before dispatch. Existing pipeline dedupe and
+   // workflow concurrency are additional safeguards, not an atomic lock.
+   const prior=await github('actions/workflows/'+workflow+'/runs?per_page=100');
+   const title='GPIR intelligence '+mode+' '+source+' '+month;
+   const duplicate=(prior.workflow_runs||[]).find(run=>run.display_title===title);
+   if(duplicate)return json({error:'OPERATION_ALREADY_DISPATCHED',run_id:duplicate.id,url:duplicate.html_url||null},409);
+   await github('actions/workflows/'+workflow+'/dispatches','POST',{ref:'main',inputs:{mode,source_id:source,month}});
+   return json({status:'DISPATCH_REQUESTED',source_id:source,month,mode,workflow,
+    receipt_pending:true,message:'GitHub accepted dispatch. Verify actual run and outcome via intelligence_status.'},202);
+  }
+  const plannedSubmission=body.action==='submit_planned';
+  let plannedBase;
+  if(body.action==='classify_requirement'||plannedSubmission){
+   // Read-only classification and bounded repository discovery. No jobs, paid calls or mutations.
+   const instruction=String(body.instruction||'').trim();
+   const requestedScope=String(body.scope||'development');
+   if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+   const intent=classifyRequirement(instruction,requestedScope);
+   const {category,kind,sensitive}=intent;
+   const preview={gateway_version:gatewayVersion,category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
+   const block=(reason,candidates=[])=>plannedSubmission?json({error:reason},409):json({...preview,reason,candidates});
+   if(intent.reason)return block(intent.reason);
+   if(instruction.replace(/\s+/g,' ').length>1000)return block('WORKER_INSTRUCTION_LIMIT');
+   const ref=await github('git/ref/heads/main');
+   const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
+   if(tree.truncated||!Array.isArray(tree.tree))return block('REPOSITORY_DISCOVERY_INCOMPLETE');
+   const ranked=rankTargets(tree.tree,intent);
+   const eligible=ranked.filter(item=>item.size<=maxFileBytes).slice(0,8);
+   if(ranked[0]?.size>maxFileBytes&&(!eligible.length||ranked[0].score>=eligible[0].score))return block('MATCH_EXCEEDS_FILE_LIMIT',eligible);
+   const target=eligible[0]&&(eligible.length===1||eligible[0].score>eligible[1].score)?eligible[0].path:null;
+   const planId=target?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([owner,ref.object.sha,target,instruction])))),byte=>byte.toString(16).padStart(2,'0')).join(''):null;
+   if(!plannedSubmission){
+    if(!target)return block(eligible.length?'AMBIGUOUS_COMPONENT':'NO_SAFE_TARGET_IDENTIFIED',eligible);
+    return json({...preview,reason:'OWNER_APPROVAL_REQUIRED',candidates:eligible,review_required:true,auto_suggested_target:target,plan_id:planId});
+   }
+   if(!planId||body.plan_id!==planId)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
+   plannedBase=ref.object.sha;
+   body.path=target;
+   body.instruction=instruction.replace(/\s+/g,' ').trim();
   }
   if(body.action==='agent_tasks_list'){
    // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
@@ -87,6 +244,48 @@ Deno.serve(async request=>{
     eligibility_verified:eligible,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
     reason:!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!writeConfigured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':'ELIGIBLE'});
   }
+  // Repository-wide coding-agent delegation. The existing bounded SEP worker is
+  // unchanged. Multi-file work is PR-only and never grants production release.
+  if(body.action==='agent_multifile_plan'||body.action==='agent_multifile_submit'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   const ref=await github('git/ref/heads/main');
+   const baseSha=String(ref?.object?.sha||'');
+   if(!/^[a-f0-9]{40}$/.test(baseSha))return json({error:'INVALID_BASE_REF'},502);
+   const planData=[owner,baseSha,'github_copilot','multifile_pr_only',instruction];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),b=>b.toString(16).padStart(2,'0')).join('');
+   const enabled=env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')==='true';
+   const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
+   const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
+   const token=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
+   const configured=/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(token);
+   const available=enabled&&eligible&&costApproved&&configured;
+   const reason=!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!configured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':null;
+   if(body.action==='agent_multifile_plan')return json({gateway_version:gatewayVersion,
+    category:'repository_wide_development',executor:'github_copilot',plan_id:planId,
+    base_sha:baseSha,executable:available,reason,requires_owner_approval:true,
+    scope:'MULTI_FILE_PR_ONLY',production_deployment:false,
+    cost_policy:'Existing owner-approved GitHub agent entitlement only; no API provider fallback',
+    review_required:true,message:'Coding agent may inspect repository and propose coordinated changes on a PR. No merge, production release, secrets, or unrestricted operational execution.'});
+   if(!available)return json({error:reason||'AGENT_NOT_AVAILABLE'},403);
+   if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_MULTIFILE_TASK'||body.plan_id!==planId)
+    return json({error:'MULTIFILE_APPROVAL_REQUIRED_OR_STALE'},403);
+   const prompt='GPIR owner-authorized multi-file repository development task. Inspect the complete repository and existing architecture. Implement only the approved requirement using the smallest coherent set of files. Preserve Supabase identity and source governance, Payload primary and Contentful BCP, 95% intelligence publication threshold, historical/live separation, security, and existing routes. Run relevant tests and provide a detailed PR with evidence. Do not access or print secrets, alter credentials, merge, deploy, execute production mutations, activate sources, or initiate paid external provider calls. Reuse existing open PRs where appropriate rather than duplicate work. Requirement: '+instruction;
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks',{
+    method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json',
+     'X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP04-Owner-Multifile','Content-Type':'application/json'},
+    body:JSON.stringify({prompt,base_ref:'main',create_pull_request:true})
+   });
+   if(response.status!==201){console.error('SEP04_MULTIFILE_AGENT_HTTP',response.status);
+    return json({error:'AGENT_TASK_CREATION_FAILED',upstream_status:response.status},502)}
+   const task=await response.json();
+   const id=String(task?.id||'');
+   const url=String(task?.html_url||'');
+   if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
+   return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,
+    provider:'github_copilot',scope:'MULTI_FILE_PR_ONLY',requires_review:true,production_deployment:false,
+    receipt_status:'AGENT_ACCEPTED_NOT_COMPLETED'},201);
+  }
   if(body.action==='agent_task_submit'){
    // No side effects until every independent authorization gate passes.
    if(env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')!=='true')return json({error:'AGENT_TASK_SUBMISSION_DISABLED'},403);
@@ -114,7 +313,7 @@ Deno.serve(async request=>{
    if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
    return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,provider:'github_copilot',requires_review:true},201);
   }
-  if(body.action!=='submit')return json({error:'UNKNOWN_ACTION'},400);
+  if(body.action!=='submit'&&!plannedSubmission)return json({error:'UNKNOWN_ACTION'},400);
   const scope=String(body.scope||'');
   if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
   // Explicit non-sensitive file boundary. No arbitrary code, workflow, auth, payment, secret or deployment edits.
@@ -133,17 +332,18 @@ Deno.serve(async request=>{
   if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'A verified checkpoint already owns this file. Preserve its state and complete governed review before submitting another edit.'},409);
   if(scope==='development'){
    const file=await github('contents/'+path);
-   if(file.type!=='file'||file.size>100000)return json({error:'FILE_NOT_ELIGIBLE'},422);
+   if(file.type!=='file'||file.size>maxFileBytes)return json({error:'FILE_NOT_ELIGIBLE'},422);
   }
-  const jobId='sep01-owner-'+crypto.randomUUID().slice(0,18);
+  const jobId='sep01-owner-'+(plannedSubmission?body.plan_id.slice(0,40):crypto.randomUUID().slice(0,18));
   const branch='sep01/jobs/'+jobId;
   const ref=await github('git/ref/heads/main');
+  if(plannedBase&&plannedBase!==ref.object.sha)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
   await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
   if(scope==='fixture'){
    const fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: PENDING\n';
    await github('contents/'+sep02FixturePath,'PUT',{message:'SEP-02: seed isolated non-production acceptance fixture',content:btoa(fixture),branch});
   }
-  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture',acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
+  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture'||plannedSubmission,acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
   const queued=await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
   if(queued?.job_id!==jobId||queued?.status!=='QUEUED')throw Error('ACCEPTANCE_QUEUE_NOT_CONFIRMED');
   try{await github('actions/workflows/sep01-durable-dispatch.yml/dispatches','POST',{ref:'main',inputs:{job_id:jobId}})}

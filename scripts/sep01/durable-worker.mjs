@@ -20,14 +20,14 @@ export function createDurableWorker({store,execute,verifyCheckpoint,recoverCheck
    return recovered?{status:'RECOVERED_CHECKPOINT',job:recovered}:{status:'CONCURRENTLY_CLAIMED'};
   }
   // One-shot acceptance jobs may reconcile an existing remote checkpoint, but must never repeat provider execution.
-  if(initial.status==='QUOTA_PAUSED'&&initial.scope==='fixture'){
+  if(initial.status==='QUOTA_PAUSED'&&(initial.scope==='fixture'||initial.single_attempt===true)){
    const stopped=await store.compareAndSet(jobId,'QUOTA_PAUSED',{status:'BLOCKED',reason:'SINGLE_ATTEMPT_ALREADY_USED'});
    return stopped?{status:'BLOCKED',job:stopped}:{status:'CONCURRENTLY_CLAIMED'};
   }
   if(initial.status==='CLAIMED'||initial.status==='CHECKPOINTED')return {status:'BLOCKED',reason:'CLAIM_OR_CHECKPOINT_NOT_RECOVERABLE'};
   const claimed=await store.compareAndSet(jobId,initial.status,{status:'CLAIMED',reason:null});
   if(!claimed)return {status:'CONCURRENTLY_CLAIMED'};
-  const singleAttempt=claimed.scope==='fixture';
+  const singleAttempt=claimed.scope==='fixture'||claimed.single_attempt===true;
   try{
    const result=await execute(claimed);
    if(result?.status==='SUCCESS'&&/^[a-f0-9]{40}$/.test(result.commit||'')&&await verifyCheckpoint(result.commit,claimed)){

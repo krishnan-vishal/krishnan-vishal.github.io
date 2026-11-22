@@ -1,0 +1,73 @@
+name: GPIR Governed Intelligence Operations
+run-name: "GPIR intelligence ${{ inputs.mode }} ${{ inputs.source_id }} ${{ inputs.month }}"
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan (no writes) or apply (owner-authorized bounded historical month)"
+        required: true
+        type: choice
+        options: [plan, apply]
+      source_id:
+        description: "Existing validated historical acquisition source"
+        required: true
+        type: choice
+        options: [FINTECHNEWS-SG-008, ATLAS-APAC-009]
+      month:
+        description: "UTC month YYYY-MM, 2021-11 through 2026-11"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: "gpir-intelligence-${{ inputs.source_id }}-${{ inputs.month }}"
+  cancel-in-progress: false
+jobs:
+  bounded-acquisition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source and month before any network calls
+        env:
+          SOURCE: ${{ inputs.source_id }}
+          MONTH: ${{ inputs.month }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          node --input-type=module -e '
+            const {SOURCE,MONTH,MODE}=process.env;
+            if(!["FINTECHNEWS-SG-008","ATLAS-APAC-009"].includes(SOURCE))throw Error("SOURCE_NOT_APPROVED");
+            if(!/^(202[1-6])-(0[1-9]|1[0-2])$/.test(MONTH)||MONTH<"2021-11"||MONTH>"2026-11")throw Error("MONTH_NOT_APPROVED");
+            if(!["plan","apply"].includes(MODE))throw Error("MODE_NOT_APPROVED");
+          '
+      - name: Execute existing bounded acquisition and publisher
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          GPIR_EDGE_FUNCTION_SECRET: ${{ secrets.GPIR_EDGE_FUNCTION_SECRET }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SOURCE: ${{ inputs.source_id }}
+          MONTH: ${{ inputs.month }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          start="${MONTH}-01T00:00:00.000Z"
+          end="$(node -e 'const [y,m]=process.argv[1].split("-").map(Number);process.stdout.write(new Date(Date.UTC(y,m,1)).toISOString())' "$MONTH")"
+          if [ "$MODE" = "apply" ]; then
+            node scripts/intelligence/run-research-source-backfill.mjs --apply "--sources=$SOURCE" "--start=$start" "--end=$end"
+          else
+            node scripts/intelligence/run-research-source-backfill.mjs "--sources=$SOURCE" "--start=$start" "--end=$end"
+          fi
+      - name: Record actual outcome
+        if: always()
+        env:
+          SOURCE: ${{ inputs.source_id }}
+          MONTH: ${{ inputs.month }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          echo "GPIR governed intelligence operation: $MODE / $SOURCE / $MONTH" >> "$GITHUB_STEP_SUMMARY"
+          echo "This workflow uses the existing governed acquisition/publisher, not a new ingestion pipeline." >> "$GITHUB_STEP_SUMMARY"
+          echo "A successful workflow proves this bounded source-month operation only, not 36-topic or five-year coverage." >> "$GITHUB_STEP_SUMMARY"
