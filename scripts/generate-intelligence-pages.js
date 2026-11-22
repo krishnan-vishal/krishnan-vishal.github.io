@@ -619,6 +619,10 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     archiveHeaderBlock = archiveHeaderBlock.split(templateMarkers.TEMPLATE_OG_TWITTER_TITLE).join('content="Global Announcements">');
     archiveHeaderBlock = archiveHeaderBlock.replace(/<body(?: class="([^"]*)")?>/, (match, classes) => `<body class="${classes ? `${classes} ` : ""}announcement-archive-page">`);
 
+    archiveHeaderBlock = archiveHeaderBlock
+        .replace("</head>", '<link rel="stylesheet" href="/assets/css/reader-auth.css?v=3">\n<link rel="stylesheet" href="/assets/css/gpir-announcement-archive-fallback.css?v=20261122light">\n</head>')
+        .replace('<div class="header-actions">', '<div class="header-actions">\n    <div data-gpir-reader-actions data-reader-auth-state="fallback" aria-label="Reader account actions"><a class="gpir-reader-action" data-reader-auth-action="sign-in" href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Sign in</a><a class="gpir-reader-action" data-reader-auth-action="create-account" href="/reader/create-account/?returnTo=%2Fpages%2Fintelligence%2Findex.html">Create account</a></div>');
+
     const html = `${archiveHeaderBlock}<section class="chapter-hero">
     <div class="container">
         <div class="chapter-breadcrumb"><a href="../../index.html">Home</a><span>/</span><strong>Global Announcements</strong></div>
@@ -640,7 +644,15 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 <section class="chapter-body">
     <div class="container announcement-archive-wrap">
       <section class="announcement-dashboard" data-announcement-dashboard>
-        <div class="announcement-dashboard-heading"><div><h2>Live-to-archive intelligence</h2><p>Validated records appear live only when their exact source publication timestamp is inside the latest 12 hours. All older validated records remain searchable and discoverable here. <a href="../../assets/data/source-health.json">Source network coverage</a></p></div><strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong></div>
+        <div class="announcement-dashboard-heading">
+          <div><h2>Live-to-archive intelligence</h2><p>Verified announcements appear live for 12 hours from their source publication time. Browse up to 100 recent approved records below.</p></div>
+          <strong data-counts>${liveRecords.length} live · ${archiveRecords.length} archived · ${pending.length} awaiting validation</strong>
+          <nav aria-label="Explore announcement intelligence">
+            <a href="/pages/intelligence/smart.html?period=YTD">Historical intelligence</a>
+            <a href="/pages/intelligence/trusted-source-network.html?view=preview">Trusted Source Network</a>
+            <a href="../../assets/data/source-health.json">Operational source health snapshot (JSON)</a>
+          </nav>
+        </div>
         <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
         <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
         <nav class="announcement-period-nav" data-period-nav aria-label="Archive Month and Year">
@@ -658,7 +670,11 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
 </section>
 ${footerBlock}
 <script src="../../assets/js/announcement-lifecycle.js?v=20260909a"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261113a"></script>
+<script src="/assets/js/gpir-supabase-public-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script src="/scripts/m34/supabase-browser-client.js"></script>
+<script src="/assets/js/gpir-reader-auth.js"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261122light"></script>
 </body>
 </html>`;
     fs.writeFileSync(path.join(outputDir, "index.html"), html.replace(/[ \t]+$/gm, ""), "utf8");
