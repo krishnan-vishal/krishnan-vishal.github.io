@@ -31,3 +31,7 @@ Owner decisions govern any authorized change. This Red Book complements, and doe
 ## 2026-11-22 — GPIR logo visibility
 
 Owner directive. GPIR dashboard headers must render the approved FINTECHOISIS mark legibly against their actual background. Verify the asset loads and the complete mark is visible on desktop and mobile, including on navy headers. Use a light backing when the existing dark mark needs contrast.
+
+## 2026-11-22 — Homepage and Trusted Source Network release candidate
+
+PR #672 implementation checks confirm the direct country profiles rank first for CBUAE, RBI and the Monetary Authority of Singapore, while the existing publication and directory access contracts pass targeted tests. Governed production deployment and authenticated live directory acceptance remain pending.

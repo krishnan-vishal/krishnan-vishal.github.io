@@ -9,6 +9,7 @@ const palette = {
 const aliases = {Europe:'Europe & UK', 'GCC / MENA':'GCC', MENA:'GCC', 'Middle East':'GCC',
     'Southeast Asia':'APAC', 'Asia-Pacific':'APAC', Americas:'North America'};
 const groupOf = name => aliases[name] || name;
+const rowGroups = row => row.regions.length ? row.regions.map(groupOf) : ['Global'];
 function node(tag,text) {
     const element = document.createElement(tag);
     element.textContent = text;
@@ -23,23 +24,32 @@ function externalLink(text,url) {
         return a;
     } catch { return null; }
 }
+async function loadAlerts(url) {
+    try {
+        const response = await fetch(url + '/functions/v1/gpir-public-alerts');
+        if (!response.ok) throw Error('Alerts unavailable');
+        const {alerts} = await response.json();
+        if (!Array.isArray(alerts)) throw Error('Invalid alerts response');
+        get('liveCount').textContent = alerts.length;
+        const headline = alerts[0]?.headline || alerts[0]?.title;
+        get('alertState').textContent = alerts.length
+            ? alerts.length + ' verified live alerts' + (headline ? ' · ' + headline : '')
+            : 'No verified alerts in the last 12 hours';
+    } catch {
+        get('alertState').textContent = 'Live alerts temporarily unavailable';
+    }
+}
 async function load() {
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
     if (!config?.url || !config.publishableKey) throw Error('Directory configuration unavailable');
+    void loadAlerts(config.url);
     const session = await window.GPIRReaderAuth?.sessionReady;
     const headers = new Headers();
     headers.set('apikey', config.publishableKey);
     if (session?.access_token) headers.set('Authorization', 'Bearer ' + session.access_token);
-    fetch(config.url + '/functions/v1/gpir-public-alerts').then(response => {
-        if (!response.ok) throw Error('Alerts unavailable');
-        return response.json();
-    }).then(data => {
-        const count = Array.isArray(data.alerts) ? data.alerts.length : 0;
-        get('alertState').textContent = count ? count + ' verified live alerts' : 'No verified alerts in the last 12 hours';
-    }).catch(() => { get('alertState').textContent = 'Live alerts temporarily unavailable'; });
     const [response, maps] = await Promise.all([
         fetch(config.url + '/functions/v1/gpir-source-directory?catalog=fintech',{headers,cache:'no-store'}),
-        fetch('/assets/data/gpir-central-bank-map-outlines.json').then(r => r.ok ? r.json() : {}).catch(() => ({}))
+        fetch('/assets/data/gpir-source-network-map.json').then(r => r.ok ? r.json() : {}).catch(() => ({}))
     ]);
     if (!response.ok) throw Error('Source network unavailable');
     const {cards,access,totals} = await response.json();
@@ -62,56 +72,101 @@ async function load() {
     option(get('region'),'All regions','');
     for (const region of regions) option(get('region'),region,region);
     for (const matrix of matrices) option(get('matrix'),matrix,matrix);
+    for (const category of [...new Set(cards.map(row => row.category))].sort()) {
+        option(get('category'),category,category);
+        const button = node('button',category);
+        button.type = 'button';
+        button.dataset.category = category;
+        button.setAttribute('aria-pressed','false');
+        button.onclick = () => {
+            get('category').value = get('category').value === category ? '' : category;
+            render();
+            get('category').focus();
+        };
+        get('categoryLinks').append(button);
+    }
     const initial = groupOf(params.get('region'));
     if (regions.includes(initial)) get('region').value = initial;
     if (params.get('status') === 'approved') get('status').value = 'approved';
 
     function syncMatrix() {
         const region = get('region').value;
-        const available = new Set(cards.filter(row => !region || row.regions.map(groupOf).includes(region)).flatMap(row => row.sets));
+        const available = new Set(cards.filter(row => !region || rowGroups(row).includes(region)).flatMap(row => row.sets));
         for (const option of get('matrix').options) option.disabled = Boolean(option.value && !available.has(option.value));
         if (get('matrix').selectedOptions[0]?.disabled) get('matrix').value = '';
     }
-    function pick(region) { get('region').value = region; syncMatrix(); render(); }
+    function pick(region, focusFilter = true) {
+        get('region').value = region;
+        const url = new URL(location.href);
+        if (region) url.searchParams.set('region',region);
+        else url.searchParams.delete('region');
+        history.replaceState(null,'',url);
+        if (access === 'UNAUTHENTICATED') unlock.href = '/reader/sign-in/?returnTo=' + encodeURIComponent(url.pathname + url.search);
+        syncMatrix();
+        render();
+        if (focusFilter) get('region').focus();
+    }
+    function regionLink(name, label) {
+        const link = node('a',label);
+        const url = new URL(route,location.origin);
+        if (name) url.searchParams.set('region',name);
+        if (get('status').value) url.searchParams.set('status',get('status').value);
+        link.href = url.href;
+        link.addEventListener('click', event => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            pick(name);
+        });
+        return link;
+    }
     function mapPanel() {
         const panel = node('section',''); panel.className = 'map-panel';
         panel.append(node('strong','Source network by region'));
         const ns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(ns,'svg');
-        svg.setAttribute('viewBox','0 0 230 128');
+        svg.setAttribute('viewBox','0 0 1000 500');
         svg.setAttribute('aria-label','Select a region on the map');
-        const shapes = [
-            ['North America','Americas',4,6,.7,'0 0 100 35'],['LATAM','Americas',36,56,.82,'0 34 100 36'],
-            ['Europe & UK','Europe',84,9,.61],['Africa','Africa',91,45,.66],
-            ['GCC','Middle East',121,45,.45],['APAC','Asia-Pacific',151,18,.76],['Oceania','Asia-Pacific',170,79,.65,'0 37 100 33']
-        ];
-        for (const [name,key,x,y,scale,viewBox] of shapes) {
-            const outline = maps.region?.[key];
-            if (!outline) continue;
-            const a = document.createElementNS(ns,'a'); a.setAttribute('href',route+'?region='+encodeURIComponent(name)); a.setAttribute('aria-label',name);
-            a.addEventListener('click',event=>{event.preventDefault();pick(name);});
-            const inset = document.createElementNS(ns,'svg');
-            for (const [attribute,value] of Object.entries({x,y,width:100*scale,height:70*scale,viewBox:viewBox||'0 0 100 70'})) inset.setAttribute(attribute,value);
+        for (const [name, outline] of Object.entries(maps.shapes || {})) {
             const path = document.createElementNS(ns,'path');
-            path.setAttribute('d',outline);path.setAttribute('fill',palette[name][0]);
-            const title = document.createElementNS(ns,'title');title.textContent=name;
-            inset.append(title,path);a.append(inset);svg.append(a);
+            path.setAttribute('d',outline);
+            path.setAttribute('fill',palette[name][0]);
+            path.setAttribute('fill-opacity','.75');
+            svg.append(path);
+        }
+        const markers = {
+            'North America':[222,134], LATAM:[327,340], 'Europe & UK':[525,111],
+            Africa:[535,267], GCC:[631,198], APAC:[788,187], Oceania:[891,384]
+        };
+        for (const [name, [x,y]] of Object.entries(markers)) {
+            const a = document.createElementNS(ns,'a');
+            a.setAttribute('href',regionLink(name,name).href);
+            a.setAttribute('aria-label',name);
+            a.addEventListener('click',event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                pick(name);
+            });
+            const dot = document.createElementNS(ns,'circle');
+            for (const [key,value] of Object.entries({cx:x,cy:y,r:21,fill:palette[name][0]})) dot.setAttribute(key,value);
+            const title = document.createElementNS(ns,'title');
+            title.textContent = name;
+            a.append(title,dot);
+            svg.append(a);
         }
         if (svg.childNodes.length) panel.append(svg);
         const links=node('nav','');links.setAttribute('aria-label','Map regions');
         for (const name of regions) {
-            const a=node('a',name);a.href=route+'?region='+encodeURIComponent(name);
-            a.onclick=event=>{event.preventDefault();pick(name);};links.append(a);
+            links.append(regionLink(name,name));
         }
         panel.append(links);
         return panel;
     }
-    function renderCard(row) {
+    function renderCard(row, expanded) {
         const card=node('article','');
         const status=node('span',row.approved?'Registry-approved':row.category==='Validation reference'?'Validation reference':'Candidate');
         status.className='tag'+(row.approved?' approved':'');
         card.append(status,node('h4',row.name),node('p',row.category));
-        if (full) {
+        if (full && expanded) {
             if (row.summary) card.append(node('p',row.summary));
             const links=node('nav','');links.setAttribute('aria-label',row.name+' links');
             for (const [title,url] of [['Official website',row.site],['Announcement target',row.target]]) {
@@ -123,34 +178,73 @@ async function load() {
         }
         return card;
     }
-    function render() {
-        const region=get('region').value, matrix=get('matrix').value, status=get('status').value;
-        const query=get('search').value.trim().toLowerCase();
-        const matched=cards.filter(row=>(!region||row.regions.map(groupOf).includes(region))
-            &&(!matrix||row.sets.includes(matrix))&&(!status||row.approved===(status==='approved'))
-            &&[row.name,row.category,full?row.summary:'',...row.regions].join(' ').toLowerCase().includes(query));
-        get('summary').textContent=matched.length+' '+(full?'sources':'preview sources')+' · '+(region||'All regions');
-        const panels=new Map();
-        for(const row of matched){
-            const label=region||groupOf(row.regions[0])||'Global';
-            if(!panels.has(label))panels.set(label,[]);
-            panels.get(label).push(row);
+    function renderPanel(name, rows, expanded) {
+        const panel = node('section','');
+        panel.className = 'region-panel';
+        const [color,tint] = palette[name] || palette.Global;
+        panel.style.setProperty('--region',color);
+        panel.style.setProperty('--tint',tint);
+        const title = node('h3','');
+        const label = name + ' · ' + rows.length;
+        title.append(expanded ? document.createTextNode(label) : regionLink(name,label));
+        const grid = node('div','');
+        grid.className = 'region-grid';
+        const limit = expanded ? rows.length : 6;
+        grid.append(...rows.slice(0,limit).map(row => renderCard(row,expanded)));
+        panel.append(title,grid);
+        if (rows.length > limit || (full && !expanded)) {
+            const link = regionLink(name,'Explore ' + name + ' →');
+            link.className = 'region-more';
+            panel.append(link);
         }
-        const root=get('cards');root.replaceChildren();root.classList.toggle('region-focus',Boolean(region));
-        if(!region)root.append(mapPanel());
-        for(const [name,rows] of panels){
-            const panel=node('section','');panel.className='region-panel';
-            const [color,tint]=palette[name]||palette.Global;
-            panel.style.setProperty('--region',color);panel.style.setProperty('--tint',tint);
-            const title=node('h3',name+' · '+rows.length);
-            const grid=node('div','');grid.className='region-grid';grid.append(...rows.map(renderCard));
-            panel.append(title,grid);root.append(panel);
-        }
-        if(!matched.length)root.append(node('p','No sources match these filters.'));
+        return panel;
     }
-    get('search').oninput=render;
-    get('region').onchange=()=>{syncMatrix();render();};
-    get('status').onchange=get('matrix').onchange=render;
-    syncMatrix();render();
+    function render() {
+        const region = get('region').value;
+        const matrix = get('matrix').value;
+        const status = get('status').value;
+        const category = get('category').value;
+        const query = get('search').value.trim().toLowerCase();
+        const matched = cards.filter(row => (!region || rowGroups(row).includes(region))
+            && (!matrix || row.sets.includes(matrix)) && (!status || row.approved === (status === 'approved'))
+            && (!category || row.category === category)
+            && [row.name,row.category,full ? row.summary : '',...row.regions].join(' ').toLowerCase().includes(query));
+        get('summary').textContent = matched.length + ' ' + (full ? 'sources' : 'preview sources') + ' · ' + (region || 'All regions');
+        for (const button of get('categoryLinks').children) {
+            button.setAttribute('aria-pressed',String(button.dataset.category === category));
+        }
+        const root = get('cards');
+        root.replaceChildren();
+        root.classList.toggle('region-focus',Boolean(region));
+        if (region) {
+            root.append(regionLink('','← All regions'));
+            if (matched.length) root.append(renderPanel(region,matched,true));
+        } else {
+            const columns = [['North America','APAC'], ['Map','GCC','LATAM'], ['Europe & UK','Africa','Oceania']];
+            columns[0].push(...regions.filter(name => !columns.flat().includes(name)));
+            for (const names of columns) {
+                const column = node('div','');
+                column.className = 'network-column';
+                for (const name of names) {
+                    if (name === 'Map') {
+                        column.append(mapPanel());
+                        continue;
+                    }
+                    const rows = matched.filter(row => rowGroups(row).includes(name));
+                    if (rows.length) column.append(renderPanel(name,rows,false));
+                }
+                root.append(column);
+            }
+        }
+        if (!matched.length) root.append(node('p','No sources match these filters.'));
+    }
+    get('search').oninput = render;
+    get('region').onchange = () => pick(get('region').value,false);
+    get('status').onchange = get('matrix').onchange = get('category').onchange = render;
+    syncMatrix();
+    render();
 }
-load().catch(()=>{get('summary').textContent='The source network is temporarily unavailable.';get('access').textContent='Unavailable';});
+load().catch(() => {
+    get('summary').textContent = 'The source network is temporarily unavailable.';
+    get('access').textContent = 'Unavailable';
+});
