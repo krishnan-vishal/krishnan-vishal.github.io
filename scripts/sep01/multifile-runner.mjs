@@ -46,7 +46,7 @@ export function createMultifileRunner({root,plan,requestEdit,runTests,maxProvide
      changed.push(path);
     }
    }
-   if(!changed.length)throw Error('MULTIFILE_NO_CHANGES');
+   if(changed.length<2)throw Error('MULTIFILE_INSUFFICIENT_CHANGES');
    const totalOutput=allowed.reduce((sum,path)=>sum+Buffer.byteLength(readFileSync(safeFile(path))),0);
    if(totalOutput>300000)throw Error('MULTIFILE_OUTPUT_LIMIT');
    await runTests({job,root:base,changedPaths:changed});
