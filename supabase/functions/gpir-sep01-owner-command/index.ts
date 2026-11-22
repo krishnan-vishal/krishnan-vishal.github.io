@@ -109,7 +109,7 @@ Deno.serve(async request=>{
   // a source, or a month from a broad all-source/five-year directive.
   if(body.action==='intelligence_classify'){
    const instruction=String(body.instruction||'').trim();
-   if(!instruction||instruction.length>4000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction))
     return json({category:'not_intelligence',executable:false,reason:'NOT_INTELLIGENCE_OPERATION'});
    const sourceMatches=[
