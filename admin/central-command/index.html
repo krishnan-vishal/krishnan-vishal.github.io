@@ -94,6 +94,7 @@ html body{background:#081c34!important;color:#102b4b!important}html body main{ma
 <a class="gpir-smart-tile" href="#governance-heading"><strong>Governance</strong><span>Review approvals and historical evidence</span></a>
 </nav></section>
 <div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Bounded documentation and stylesheet changes can be submitted for verified checkpoints. Sensitive code and production releases remain approval-gated. No production changes are permitted.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Only bounded development directives can execute; other requirements remain drafts until separately authorized.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section></div>
+<section class="card" aria-labelledby="intelligence-operations-heading"><h2 id="intelligence-operations-heading">GPIR Intelligence Operations — Governed Execution</h2><p class="muted">Run an existing verified historical source for one UTC month. This does not activate all sources or certify five-year coverage. Apply writes to production only after separate owner confirmation.</p><label for="intelligence-source">Verified source</label><select id="intelligence-source"><option value="FINTECHNEWS-SG-008">FinTech News Singapore</option><option value="ATLAS-APAC-009">Atlas Technologies Research</option></select><label for="intelligence-month">UTC month (YYYY-MM)</label><input id="intelligence-month" type="month" min="2021-11" max="2026-11" value="2026-11"><label for="intelligence-mode">Execution</label><select id="intelligence-mode"><option value="plan">Plan only — no ingestion writes</option><option value="apply">Apply — governed production ingestion and publication</option></select><div class="actions"><button type="button" id="intelligence-plan">Review operational plan</button><button type="button" id="intelligence-submit" disabled>Authorize and dispatch one bounded operation</button><button type="button" id="intelligence-refresh">Refresh execution receipts</button></div><p id="intelligence-plan-result" class="muted" role="status" aria-live="polite">Select a source and month to review the operational boundary.</p><div id="intelligence-receipts" role="status" aria-live="polite"></div></section>
 <section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">Agent Monitoring</h2><p class="muted">Owner-authenticated, read-only task status. This does not submit an agent task, authorize spending or change provider routing.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
 
 
@@ -300,6 +301,67 @@ function refreshDirectiveMode(){
 }
 mode.addEventListener('change',refreshDirectiveMode);directive.addEventListener('input',refreshDirectiveMode);refreshDirectiveMode();
 function draft(){const requirement=directive.value.trim();if(!requirement)throw Error('Enter a requirement first');return 'GPIR OWNER DIRECTIVE\\nType: '+mode.value+'\\nRequirement: '+requirement+'\\nGovernance: Follow existing SEP-01 contracts, checkpoint and idempotency controls. No production mutation without explicit approval. This draft is not an executable job.'}document.querySelector('#copy-directive').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(draft());directiveStatus.textContent='Directive copied locally. NOT queued or executed.'}catch(e){directiveStatus.textContent='Copy unavailable: '+String(e.message||e)}});document.querySelector('#download-directive').addEventListener('click',()=>{try{const blob=new Blob([draft()+'\\n'],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='gpir-owner-directive.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);directiveStatus.textContent='Draft saved locally. NOT queued or executed.'}catch(e){directiveStatus.textContent=String(e.message||e)}});
+
+// GPIR owner-only intelligence operations; separate approval from SEP single-file edits.
+let intelligenceApproval=null;
+const intelligenceFields=['intelligence-source','intelligence-month','intelligence-mode'];
+for(const id of intelligenceFields)document.getElementById(id).addEventListener('change',()=>{
+ intelligenceApproval=null;
+ document.getElementById('intelligence-submit').disabled=true;
+ document.getElementById('intelligence-plan-result').textContent='Selection changed. Review the plan again.';
+});
+document.getElementById('intelligence-plan').addEventListener('click',async()=>{
+ const output=document.getElementById('intelligence-plan-result');
+ const button=document.getElementById('intelligence-plan');
+ intelligenceApproval=null;document.getElementById('intelligence-submit').disabled=true;
+ button.disabled=true;output.textContent='Requesting authenticated, read-only operational plan…';
+ try{
+  const source_id=document.getElementById('intelligence-source').value;
+  const month=document.getElementById('intelligence-month').value;
+  const mode=document.getElementById('intelligence-mode').value;
+  const plan=await commandRequest({action:'intelligence_plan',source_id,month,mode});
+  if(!plan.plan_id||plan.source_id!==source_id||plan.month!==month||plan.mode!==mode)throw Error('INVALID_OPERATION_PLAN');
+  intelligenceApproval=plan;
+  output.textContent='Source: '+source_id+' · Month: '+month+' · Mode: '+mode+' · Production writes: '+(plan.production_mutation?'YES':'NO')+' · Scope: '+plan.scope_limit+' · Owner approval required.';
+  document.getElementById('intelligence-submit').disabled=false;
+ }catch(error){output.textContent='Plan unavailable: '+String(error.message||error)}
+ finally{button.disabled=false}
+});
+document.getElementById('intelligence-submit').addEventListener('click',async()=>{
+ const button=document.getElementById('intelligence-submit');
+ const output=document.getElementById('intelligence-plan-result');
+ if(!intelligenceApproval)return;
+ const plan=intelligenceApproval;
+ if(plan.source_id!==document.getElementById('intelligence-source').value||plan.month!==document.getElementById('intelligence-month').value||plan.mode!==document.getElementById('intelligence-mode').value){output.textContent='Plan changed. Review again.';return}
+ const question=plan.mode==='apply'?'AUTHORIZE PRODUCTION WRITES for ONE approved source and ONE month? Existing governed fetch and publisher will run; source records may be inserted.':'Dispatch ONE plan-only GitHub workflow? No production ingestion writes.';
+ if(!window.confirm(question)){output.textContent='Owner cancelled operation';return}
+ button.disabled=true;intelligenceApproval=null;
+ try{
+  const result=await commandRequest({action:'intelligence_submit',source_id:plan.source_id,month:plan.month,mode:plan.mode,plan_id:plan.plan_id,confirmation:'AUTHORIZE_ONE_INTELLIGENCE_OPERATION'});
+  output.textContent='GitHub dispatch: '+result.status+'. This is NOT a completion receipt. Refresh execution receipts to verify the run.';
+  await refreshIntelligenceReceipts();
+ }catch(error){output.textContent='Dispatch NOT confirmed: '+String(error.message||error)+'. Check receipts before retrying.'}
+});
+async function refreshIntelligenceReceipts(){
+ const output=document.getElementById('intelligence-receipts');
+ const button=document.getElementById('intelligence-refresh');
+ button.disabled=true;output.textContent='Loading actual GitHub workflow runs…';
+ try{
+  const result=await commandRequest({action:'intelligence_status'});
+  if(!Array.isArray(result.operations))throw Error('INVALID_OPERATION_RECEIPT');
+  output.replaceChildren();
+  if(!result.operations.length){output.textContent='No operations recorded in recent workflow runs.';return}
+  for(const run of result.operations){
+   const row=document.createElement('p');
+   row.textContent=run.title+' · '+run.status+' · '+(run.conclusion||'pending')+' · ';
+   if(run.url){const link=document.createElement('a');link.href=run.url;link.textContent='GitHub receipt';link.rel='noopener noreferrer';link.target='_blank';row.append(link)}
+   output.append(row);
+  }
+ }catch(error){output.textContent='Receipts unavailable: '+String(error.message||error)}
+ finally{button.disabled=false}
+}
+document.getElementById('intelligence-refresh').addEventListener('click',refreshIntelligenceReceipts);
+
 // Public-safe, versioned provider snapshot. Never query private quotas or credentials.
 async function refreshProviders(){
  const target=document.querySelector('#tools');
