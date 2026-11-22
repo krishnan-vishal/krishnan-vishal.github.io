@@ -3839,7 +3839,7 @@ content="#0B1120">
   function openLinkedSearch(){
     if (location.hash !== '#gpir-search') return;
     const trigger = document.getElementById('search-toggle');
-    if (trigger) trigger.click();
+    if (trigger && trigger.getAttribute('aria-expanded') !== 'true') trigger.click();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openLinkedSearch, {once:true});
   else openLinkedSearch();
