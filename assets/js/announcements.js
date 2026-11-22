@@ -590,7 +590,8 @@
             fetch(CONTENT_REGISTRY_URL).then(r => { if(!r.ok) throw new Error("content registry fetch failed"); return r.json(); }).catch(() => ({ records: [] }))
         ])
             .then(([data, registryData]) => {
-                records = (data.records || []).filter(r => r && r.id);
+                const live = records.filter(record => record.gpirPublicFeed);
+                records = (data.records || []).filter(r => r && r.id).concat(live);
                 recordsById = {};
                 records.forEach(r => { recordsById[r.id] = r; });
                 contentRegistry = registryData.records || [];
@@ -600,30 +601,17 @@
                 // section simply stays empty rather than showing broken content.
             });
 
-        // Deliberately NOT gated on the trust engine's registry fetch
-        // (trust-engine.js's `.ready`): evaluateTrust() already falls back
-        // safely when the registry hasn't loaded yet (or never loads), and
-        // making the ticker wait on a second network round-trip it doesn't
-        // strictly need was itself a "blank ticker" risk on a slow or
-        // flaky connection — the GPIR performance standard's "no
-        // blank-page waiting" rule applies here too.
-        return dataReady.then(() => {
+        // The public relay can start while the static repository loads.
+        // Keep either response when the other finishes later.
+        renderTicker();
+        initializeDetailPanel();
+        const liveReady = refreshLiveFeed();
+        window.setInterval(refreshLiveFeed, LIVE_FEED_REFRESH_MS);
+        document.addEventListener("visibilitychange", () => {
+            if(document.visibilityState === "visible") refreshLiveFeed();
+        });
 
-            try{
-                renderTicker();
-                initializeDetailPanel();
-                refreshLiveFeed();
-                window.setInterval(refreshLiveFeed, LIVE_FEED_REFRESH_MS);
-                document.addEventListener('visibilitychange', () => {
-                    if(document.visibilityState === 'visible') refreshLiveFeed();
-                });
-            } catch(err){
-                // One malformed record must not blank the whole ticker
-                // silently forever -- surface it and leave whatever
-                // partial state exists rather than an inexplicable void.
-                console.error("[GPIR] announcements render failed:", err);
-            }
-
+        return Promise.all([dataReady, liveReady]).then(() => {
             document.dispatchEvent(new CustomEvent("gpir:announcementsready", { detail: { records: publishedRecords() } }));
 
         });

@@ -100,7 +100,7 @@ function htmlEscape(value){
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-async function createAlertsHarness({ alerts = [], apiFailure = false } = {}){
+async function createAlertsHarness({ alerts = [], apiFailure = false, expectLiveBeforeArchive = false } = {}){
     const track = {
         classList: new FakeClassList(),
         style: { setProperty(){} },
@@ -152,7 +152,9 @@ async function createAlertsHarness({ alerts = [], apiFailure = false } = {}){
         source: { name: "Archive Publisher", publicationTitle: "Archive Publisher", url: "https://archive.example/notice" }
     };
 
-    const windowTarget = {};
+    const windowTarget = { setInterval(){} };
+    let completeArchive;
+    const archiveReady = new Promise(resolve => { completeArchive = resolve; });
     const context = vm.createContext({
         document,
         window: windowTarget,
@@ -166,7 +168,7 @@ async function createAlertsHarness({ alerts = [], apiFailure = false } = {}){
         clearTimeout,
         console: { error(){} },
         fetch: async url => {
-            if(String(url).includes("announcements.json")) return { ok: true, json: async () => ({ records: [staticRecent] }) };
+            if(String(url).includes("announcements.json")) return archiveReady;
             if(String(url).includes("content-registry.json")) return { ok: true, json: async () => ({ records: [] }) };
             if(String(url).includes("gpir-public-alerts")){
                 if(apiFailure) throw new Error("network unavailable");
@@ -178,6 +180,11 @@ async function createAlertsHarness({ alerts = [], apiFailure = false } = {}){
     vm.runInContext(lifecycleSource, context);
     vm.runInContext(announcementsSource, context);
     for(let attempt = 0; attempt < 12; attempt += 1) await new Promise(resolve => setImmediate(resolve));
+    if(expectLiveBeforeArchive){
+        assert.match(track.innerHTML, /Central bank launches verified instant-payment service/);
+    }
+    completeArchive({ ok: true, json: async () => ({ records: [staticRecent] }) });
+    await new Promise(resolve => setImmediate(resolve));
     return { track, overlay, body, api: windowTarget.GPIRAnnouncements };
 }
 
@@ -323,7 +330,7 @@ test("Search GPIR still returns indexed Australia and TerraPay research", async 
 });
 
 test("valid recent approved alert renders summary, classification and verified source", async () => {
-    const harness = await createAlertsHarness({ alerts: [validAlert()] });
+    const harness = await createAlertsHarness({ alerts: [validAlert()], expectLiveBeforeArchive: true });
     assert.match(harness.track.innerHTML, /Central bank launches verified instant-payment service/);
     assert.match(harness.track.innerHTML, /Payment Infrastructure/);
     assert.match(harness.track.innerHTML, /https:\/\/centralbank\.example\/releases\/instant-payments/);
