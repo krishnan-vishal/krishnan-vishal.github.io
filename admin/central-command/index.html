@@ -248,6 +248,29 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
  if(!instruction){state.textContent='Enter your requirement first.';return}
  button.disabled=true;state.textContent='Checking scope and eligible repository targets (read-only)…';
  try{
+  // A diagnostic is not a repository-wide coding task. Inspect the existing workflow only.
+  const diagnostic=/\b(?:diagnos(?:e|tic|tics)|inspect|audit|check|verify|status|blocker)\b/i.test(instruction)
+    && /\b(?:central command|sep-01|sep01|execution|provider|workflow|copilot|github actions)\b/i.test(instruction)
+    && !/\b(?:implement|edit|modify|repair|fix|deploy|release|publish|migrate|change|update)\b/i.test(instruction);
+  if(diagnostic){
+   const result=await commandRequest({action:'execution_diagnostic'});
+   state.replaceChildren();
+   const heading=document.createElement('p');
+   heading.textContent='Read-only SEP-01 workflow diagnostic · no Copilot job or chargeable provider request submitted.';
+   state.append(heading);
+   const baseline=document.createElement('p');
+   baseline.textContent='Repository baseline: '+(result.repository_baseline||'Unavailable');
+   state.append(baseline);
+   const runs=Array.isArray(result.runs)?result.runs:[];
+   if(!runs.length){const p=document.createElement('p');p.textContent='No recent durable-dispatch workflow runs returned.';state.append(p)}
+   for(const run of runs){
+    const p=document.createElement('p');
+    p.textContent='Run '+run.run_id+' · '+run.status+' · '+(run.conclusion||'pending');
+    if(run.url){const a=document.createElement('a');a.href=run.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=' · View GitHub run';p.append(a)}
+    state.append(p);
+   }
+   return;
+  }
   const operational=/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction);
   const multiComponentRepair=/\b(?:fix|repair|implement|redesign|refactor|integrate|restore|smart cards?|dashboard|central command|coding agents?)\b/i.test(instruction);
   if(operational&&!multiComponentRepair){

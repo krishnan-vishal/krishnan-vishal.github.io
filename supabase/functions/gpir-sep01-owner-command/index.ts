@@ -105,6 +105,21 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
+  // Owner-only read-only diagnostic: uses existing GitHub Actions credentials, not Copilot.
+  if(body.action==='execution_diagnostic'){
+   const workflow='sep01-durable-dispatch.yml';
+   const [ref,runs]=await Promise.all([
+    github('git/ref/heads/main'),
+    github('actions/workflows/'+workflow+'/runs?per_page=5')
+   ]);
+   return json({gateway_version:gatewayVersion,read_only:true,dispatch_performed:false,
+    repository_baseline:ref.object?.sha||null,workflow,
+    runs:(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,5).map(run=>({
+     run_id:run.id,status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null
+    })),
+    message:'Read-only GitHub workflow inspection; no provider quota, write permission, or dispatch eligibility inferred.'});
+  }
   // Narrow natural-language operational intent. Never infer production write approval,
   // a source, or a month from a broad all-source/five-year directive.
   if(body.action==='intelligence_classify'){
