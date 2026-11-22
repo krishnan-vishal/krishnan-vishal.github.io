@@ -29,7 +29,7 @@ export function validateMultifileManifest({files,tree,baseSha,instruction,ownerI
 
 export function assertMultifileCheckpoint({plan,changedPaths,baseSha,planId}){
  if(!plan||plan.execution_route!=='bounded_multifile_v1'||plan.enabled!==false||baseSha!==plan.base_sha||planId!==plan.plan_id)throw Error('MULTIFILE_PLAN_STALE');
- if(!Array.isArray(changedPaths)||changedPaths.length<1||changedPaths.length>plan.manifest.length||new Set(changedPaths).size!==changedPaths.length)throw Error('MULTIFILE_UNEXPECTED_CHANGES');
+ if(!Array.isArray(changedPaths)||changedPaths.length<2||changedPaths.length>plan.manifest.length||new Set(changedPaths).size!==changedPaths.length)throw Error('MULTIFILE_UNEXPECTED_CHANGES');
  const allowed=new Set(plan.manifest.map(item=>item.path));
  if(changedPaths.some(path=>!allowed.has(path)))throw Error('MULTIFILE_UNEXPECTED_CHANGES');
  return true;
