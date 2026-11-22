@@ -1,7 +1,7 @@
 // Stage 3 multi-file transaction runner. Not wired to the production dispatcher.
 // Every provider request is separately bounded by the caller's explicit approved budget.
 import {execFileSync} from 'node:child_process';
-import {readFileSync,writeFileSync,realpathSync,statSync} from 'node:fs';
+import {readFileSync,writeFileSync,realpathSync,statSync,rmSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve,relative,isAbsolute} from 'node:path';
 import {assertMultifileCheckpoint} from './multifile-governance.mjs';
@@ -67,7 +67,16 @@ export function createMultifileRunner({root,plan,requestEdit,runTests,maxProvide
   } finally {
    if(!committed){
     if(git(base,['rev-parse','HEAD'])===approvedBaseSha){
-     git(base,['restore','--staged','--',...allowed]);
+     // The isolated worktree was verified clean before the transaction. Roll back
+     // every tracked test-side mutation, not just manifest paths.
+     git(base,['restore','--staged','--worktree','--','.']);
+     const extra=git(base,['ls-files','--others','--exclude-standard','-z']).split('\0').filter(Boolean);
+     for(const path of extra){
+      if(isAbsolute(path)||path.split(/[\\/]/).includes('..'))throw Error('MULTIFILE_UNSAFE_ROLLBACK_PATH');
+      const file=resolve(base,path),rel=relative(base,file);
+      if(!rel||rel.startsWith('..')||isAbsolute(rel))throw Error('MULTIFILE_UNSAFE_ROLLBACK_PATH');
+      rmSync(file,{force:true});
+     }
      for(const [path,value] of before)writeFileSync(safeFile(path),value,'utf8');
     }
    }
