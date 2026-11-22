@@ -76,7 +76,10 @@ async function initialize(directory) {
         if (!matches.length) status.append("No sources are listed in this view. ");
         if (preview) status.append(link(`${route}?region=${encodeURIComponent(region.value)}`, "Open the directory"));
         else if (access === "UNAUTHENTICATED") {
-            status.append("Public preview. ", link(`/reader/sign-in/?returnTo=${encodeURIComponent(location.pathname + location.search)}`, "Sign in"));
+            const returnTo = encodeURIComponent(location.pathname + location.search);
+            status.append("Full access requires a GPIR account and active subscription. ",
+                link(`/reader/sign-in/?returnTo=${returnTo}`, "Sign in"), " or ",
+                link(`/reader/create-account/?returnTo=${returnTo}`, "Create an account"));
         } else if (access === "DENY") status.append("Public preview. ", link("/reader/plan/", "View subscription plans"));
     }
     region.addEventListener("change", render);
