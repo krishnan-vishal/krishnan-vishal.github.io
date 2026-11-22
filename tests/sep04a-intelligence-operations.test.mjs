@@ -33,3 +33,13 @@ test('owner interface exposes separate production confirmation and real run stat
  assert.match(ui,/AUTHORIZE PRODUCTION WRITES/);
  assert.match(ui,/action:'intelligence_status'/);
 });
+
+test('natural-language operational commands route to a governed plan without implied production writes',()=>{
+ assert.match(gateway,/action==='intelligence_classify'/);
+ assert.match(gateway,/OPERATION_SCOPE_REQUIRES_REVIEW/);
+ assert.match(gateway,/mode='plan'/);
+ assert.match(gateway,/production_mutation:false/);
+ assert.match(ui,/action:'intelligence_classify'/);
+ assert.match(ui,/approvedDiscovery\?\.operational/);
+ assert.match(ui,/PLAN-ONLY intelligence operation/);
+});
