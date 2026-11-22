@@ -209,8 +209,8 @@ body.announcement-archive-page {
 .announcement-archive-page .header { background: #101b2d; color: #fff; border-bottom: 1px solid #27364c; }
 .announcement-archive-page .header .brand-text h1,
 .announcement-archive-page .header .repository-text,
-.announcement-archive-page .header .nav-list > li > a,
-.announcement-archive-page .header .nav-list > li > button { color: #f1f5fb; }
+.announcement-archive-page .header .main-nav > ul > li > a,
+.announcement-archive-page .header .main-nav > ul > li > button { color: #f1f5fb; }
 .announcement-archive-page .header .brand-logo { background: #fff; border-radius: 7px; padding: 4px; }
 .announcement-archive-page .header .search-toggle { background: #fff; color: #132b47; }
 .announcement-archive-page .header .nav-toggle span { background: #fff; }
@@ -298,4 +298,10 @@ body.legal-page.announcement-archive-page .chapter-body {
     .announcement-archive-page .archive-reference-hero { gap: 10px; }
     .announcement-archive-page .archive-reference-hero br { display: none; }
     .announcement-archive-page .archive-reference-hero br::after { content: " "; }
+}
+
+.announcement-archive-page .header .main-nav > ul > li > a:hover,
+.announcement-archive-page .header .main-nav > ul > li > a:focus-visible { color: #ffe0a0; }
+@media (max-width: 1100px) {
+    .announcement-archive-page .header.nav-open .main-nav { background: #101b2d; }
 }
