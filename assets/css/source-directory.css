@@ -25,3 +25,16 @@ body{background:radial-gradient(ellipse at 92% 2%,#77573066,transparent 21%),lin
 .cert nav a{min-width:116px;padding:9px 10px;border-bottom:3px solid var(--map-color,#7893ab)}.cert nav a .map-watermark{width:55%;opacity:.52}
 
 .source-type{color:white;display:flex;align-items:center;gap:5px;white-space:nowrap}.source-type select{max-width:11rem}.regionbar{flex-wrap:wrap}
+
+body.central-bank-directory {
+    background: linear-gradient(180deg, #081b30 0, #0b233b 390px, #57738c 710px, #e3edf6 980px) fixed;
+}
+.central-bank-directory .top .wrap { min-height: 54px; }
+.central-bank-directory .brand { display: inline-flex; align-items: center; gap: 10px; }
+.central-bank-directory .authority-card { grid-template-rows: 1fr auto; }
+.central-bank-directory .authority-upper { min-height: 88px; }
+.central-bank-directory .profile-action { min-height: 42px; }
+.central-bank-directory .flag-large:empty { display: none; }
+.central-bank-directory .map-watermark { z-index: 0; }
+.central-bank-directory .authority-upper, .central-bank-directory .profile-action,
+.central-bank-directory .country-summary > :not(svg) { position: relative; z-index: 1; }
