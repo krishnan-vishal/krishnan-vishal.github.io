@@ -23,3 +23,9 @@ The pure `multifile-governance.mjs` module and its regression tests establish th
 
 ## Existing governance
 Do not change Supabase identity/entitlements, Payload/Contentful roles, intelligence confidence thresholds, live-alert retention, source validation, production releases, or protected code. No Copilot activation and no new execution route is enabled by this PR.
+
+## Stage 3A/3B implementation added in this PR
+- Owner-authenticated `multifile_plan` gateway action computes a read-only canonical plan from the current main tree; `multifile_submit` explicitly rejects dispatch.
+- `multifile-runner.mjs` provides an isolated multi-file edit transaction with owner/budget/branch/base assertions, up to three provider edit requests, regression-test hook, strict changed-path validation, atomic restoration of approved file bytes before commit, and parent-verified Git checkpoint.
+- `multifile-runner.test.mjs` covers owner approval, successful two-file checkpoint, provider failure, test failure, and unexpected files.
+- **Not yet connected:** Gemini/OpenRouter routing into the new runner, server-side approval persistence and multi-file writer locks, remote checkpoint recovery, and UI submit control. These remain blocked until independent review and acceptance. No production gateway deployment is part of this PR.
