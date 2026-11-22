@@ -92,6 +92,36 @@ Deno.serve(async request=>{
  if(user.id!==owner||user.is_anonymous===true)return json({error:'OWNER_NOT_AUTHORIZED'},403);
  try{
   const body=await request.json();
+  // Cloud PowerShell: owner-authenticated, fixed operation only; never accept shell text.
+  if(body.action==='cloud_powershell_plan'){
+   if(body.operation!=='workspace-proof')return json({error:'PWSH_OPERATION_NOT_ALLOWED'},422);
+   return json({operation:'workspace-proof',executor:'github-hosted-ubuntu-pwsh',read_only:true,
+    requires_owner_confirmation:true,confirmation:'AUTHORIZE_CLOUD_POWERSHELL_PROOF',
+    files:['admin/central-command/index.html','scripts/sep01/durable-actions-worker.mjs','.github/workflows/sep01-durable-dispatch.yml'],
+    production_modified:false,local_machine_required:false});
+  }
+  if(body.action==='cloud_powershell_dispatch'){
+   if(body.operation!=='workspace-proof'||body.confirmation!=='AUTHORIZE_CLOUD_POWERSHELL_PROOF')
+    return json({error:'PWSH_OWNER_APPROVAL_REQUIRED'},403);
+   const requestId='sep01-pwsh-'+crypto.randomUUID();
+   await github('actions/workflows/sep01-cloud-powershell.yml/dispatches','POST',{
+    ref:'main',inputs:{operation:'workspace-proof',request_id:requestId}});
+   return json({request_id:requestId,status:'DISPATCH_REQUESTED',operation:'workspace-proof',
+    workflow_url:'https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-cloud-powershell.yml',
+    execution_verified:false});
+  }
+  if(body.action==='cloud_powershell_status'){
+   const requestId=String(body.request_id||'');
+   if(!/^sep01-pwsh-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId))
+    return json({error:'INVALID_PWSH_REQUEST_ID'},422);
+   const runs=await github('actions/workflows/sep01-cloud-powershell.yml/runs?event=workflow_dispatch&branch=main&per_page=100');
+   const run=Array.isArray(runs.workflow_runs)?runs.workflow_runs.find(item=>item.display_title==='Cloud PowerShell · '+requestId):null;
+   if(!run)return json({request_id:requestId,status:'PENDING_VISIBILITY',execution_verified:false});
+   return json({request_id:requestId,status:run.status,conclusion:run.conclusion||null,
+    run_id:run.id,run_url:run.html_url,execution_verified:run.status==='completed'&&run.conclusion==='success',
+    artifact_url:run.status==='completed'&&run.conclusion==='success'?
+     'https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/'+run.id:null});
+  }
   // Stage 3: authenticated read-only preview; execution remains disabled.
   if(body.action==='multifile_plan'||body.action==='multifile_stage'||body.action==='multifile_submit'){
    if(body.action==='multifile_submit')return json({error:'MULTIFILE_EXECUTION_NOT_ENABLED',read_only:true},403);
