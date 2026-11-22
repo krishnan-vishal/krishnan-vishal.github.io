@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -69,6 +69,8 @@ test('unapproved extra changed file fails closed',async()=>{
   const runner=createMultifileRunner({root:f.root,plan:f.plan,requestEdit:async()=>({status:'EDIT',content:'updated\n'}),runTests:async()=>{writeFileSync(join(f.root,'docs/extra.md'),'not allowed')}});
   await assert.rejects(runner(f.params),/UNEXPECTED_CHANGES/);
   assert.equal(f.run('rev-parse','HEAD'),f.plan.base_sha);
+  assert.equal(f.run('status','--porcelain'),'');
+  assert.equal(existsSync(join(f.root,'docs/extra.md')),false);
  }finally{f.close()}
 });
 
