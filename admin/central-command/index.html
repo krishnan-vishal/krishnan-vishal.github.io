@@ -93,11 +93,11 @@ html body{background:#081c34!important;color:#102b4b!important}html body main{ma
 <a class="gpir-smart-tile" href="#provider-heading"><strong>Provider Status</strong><span>Review Gemini and OpenRouter routing</span></a>
 <a class="gpir-smart-tile" href="#governance-heading"><strong>Governance</strong><span>Review approvals and historical evidence</span></a>
 </nav></section>
-<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Issue one natural-language requirement. The gateway routes eligible coding and bounded intelligence operations through the existing owner approval and execution plan. Production changes require separate authorization.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Eligible commands use one governed execution plan; unsupported or broad operations remain review-only.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section><details id="intelligence-advanced" class="card"><summary><strong>Advanced intelligence operation settings</strong> — optional source/month controls and verified receipts</summary><div class="advanced-operation-body"><h2 id="intelligence-operations-heading">Intelligence operations · advanced controls</h2><p class="muted">Run an existing verified historical source for one UTC month. This does not activate all sources or certify five-year coverage. Apply writes to production only after separate owner confirmation.</p><label for="intelligence-source">Verified source</label><select id="intelligence-source"><option value="FINTECHNEWS-SG-008">FinTech News Singapore</option><option value="ATLAS-APAC-009">Atlas Technologies Research</option></select><label for="intelligence-month">UTC month (YYYY-MM)</label><input id="intelligence-month" type="month" min="2021-11" max="2026-11" value="2026-11"><label for="intelligence-mode">Execution</label><select id="intelligence-mode"><option value="plan">Plan only — no ingestion writes</option><option value="apply">Apply — governed production ingestion and publication</option></select><div class="actions"><button type="button" id="intelligence-plan">Review operational plan</button><button type="button" id="intelligence-submit" disabled>Authorize and dispatch one bounded operation</button><button type="button" id="intelligence-refresh">Refresh execution receipts</button></div><p id="intelligence-plan-result" class="muted" role="status" aria-live="polite">Select a source and month to review the operational boundary.</p><div id="intelligence-receipts" role="status" aria-live="polite"></div></div></details></div>
-<section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">Agent Monitoring</h2><p class="muted">Owner-authenticated, read-only task status. This does not submit an agent task, authorize spending or change provider routing.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
+<div class="command-workspace"><section class="card" aria-labelledby="directive-heading"><h2 id="directive-heading">Issue a Command — Natural Language</h2><p class="muted">Authenticated owner submission uses the existing Supabase session. Issue one natural-language requirement. The gateway routes bounded coding, eligible repository-wide PR-only agent work and approved intelligence operations through one execution plan. Production changes require separate authorization.</p><label for="directive-mode">Directive type</label><select id="directive-mode"><option value="research">Research / analysis</option><option value="development" selected>Development</option><option value="release">Release proposal (approval required)</option></select><label for="directive-text">Your GPIR requirement</label><textarea id="directive-text" maxlength="4000" placeholder="Describe the change, expected outcome, constraints and acceptance criteria"></textarea><div class="actions"><button type="button" id="discover-directive-targets">Analyze &amp; generate execution plan</button><button type="button" id="submit-directive" disabled aria-describedby="directive-discovery-results">Approve and submit one job</button><button type="button" id="copy-directive">Copy governed directive</button><button type="button" id="download-directive">Save directive locally</button></div><p class="muted console-status" id="directive-status" role="status" aria-live="polite">Checking owner session. Eligible commands use one governed execution plan; unsupported or broad operations remain review-only.</p></section><section class="card" aria-labelledby="plan-heading"><h2 id="plan-heading">Execution Plan</h2><div id="directive-discovery-results" role="status" aria-live="polite">Analyze a requirement to preview scope and approval.</div></section><details id="intelligence-advanced" class="card"><summary><strong>Advanced intelligence operation settings</strong> — optional source/month controls and verified receipts</summary><div class="advanced-operation-body"><h2 id="intelligence-operations-heading">Intelligence operations · advanced controls</h2><p class="muted">Run an existing verified historical source for one UTC month. This does not activate all sources or certify five-year coverage. Apply writes to production only after separate owner confirmation.</p><label for="intelligence-source">Verified source</label><select id="intelligence-source"><option value="FINTECHNEWS-SG-008">FinTech News Singapore</option><option value="ATLAS-APAC-009">Atlas Technologies Research</option></select><label for="intelligence-month">UTC month (YYYY-MM)</label><input id="intelligence-month" type="month" min="2021-11" max="2026-11" value="2026-11"><label for="intelligence-mode">Execution</label><select id="intelligence-mode"><option value="plan">Plan only — no ingestion writes</option><option value="apply">Apply — governed production ingestion and publication</option></select><div class="actions"><button type="button" id="intelligence-plan">Review operational plan</button><button type="button" id="intelligence-submit" disabled>Authorize and dispatch one bounded operation</button><button type="button" id="intelligence-refresh">Refresh execution receipts</button></div><p id="intelligence-plan-result" class="muted" role="status" aria-live="polite">Select a source and month to review the operational boundary.</p><div id="intelligence-receipts" role="status" aria-live="polite"></div></div></details></div>
+<section class="card" aria-labelledby="sep03-agent-heading"><h2 id="sep03-agent-heading">Agent Monitoring</h2><p class="muted">Owner-authenticated task monitoring. Repository-wide task submission is available only from the single Issue a Command approval flow when existing eligibility and cost gates pass.</p><button type="button" id="load-agent-tasks">Refresh agent tasks</button><p id="agent-task-state" class="muted" role="status" aria-live="polite">Not loaded · Owner sign-in required</p><div id="agent-task-results" aria-live="polite"></div></section>
 
 
-<section class="grid"><div class="card"><h2 id="provider-heading">Provider Status</h2><div id="tools" aria-live="polite"><div class="tool"><strong>Gemini</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>OpenRouter</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>Codex</strong><span class="warn">Optional · runtime unverified</span></div><div class="tool"><strong>Copilot</strong><span class="warn">Not accepted for automated routing</span></div><div class="tool"><strong>Cline</strong><span class="warn">Interactive only · automated transport unsupported</span></div><div class="tool"><strong>Aider</strong><span class="warn">Parked after 12 failed runs</span></div></div><small><span id="provider-snapshot-status">Built-in public status fallback. No private credentials or quota values are queried from the browser.</span></small></div>
+<section class="grid"><div class="card"><h2 id="provider-heading">Provider Status</h2><div id="tools" aria-live="polite"><div class="tool"><strong>Gemini</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>OpenRouter</strong><span class="good">API coding route implemented · live availability unknown</span></div><div class="tool"><strong>Codex</strong><span class="warn">Optional · runtime unverified</span></div><div class="tool"><strong>Copilot</strong><span class="warn">Repository-wide PR delegation available only when existing eligibility, credential and cost gates pass</span></div><div class="tool"><strong>Cline</strong><span class="warn">Interactive only · automated transport unsupported</span></div><div class="tool"><strong>Aider</strong><span class="warn">Parked after 12 failed runs</span></div></div><small><span id="provider-snapshot-status">Built-in public status fallback. No private credentials or quota values are queried from the browser.</span></small></div>
 <div class="card"><h2 id="execution-supervision-heading">Execution</h2><p id="live-job-receipt" role="status" aria-live="polite">No current job in this session.</p><p class="note">Owner-authorized bounded commands are submitted through the protected gateway. GitHub Actions executes the queued job; releases remain separately governed.</p><p id="runstate" role="status" aria-live="polite">Public GitHub Actions status has not been loaded.</p><div id="runs"></div><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/workflows/sep01-durable-dispatch.yml" target="_blank" rel="noopener noreferrer">Open SEP workflow controls</a><a class="action" href="https://github.com/krishnan-vishal/krishnan-vishal.github.io/pulls" target="_blank" rel="noopener noreferrer">Review pull requests</a><p class="muted">Submitted commands dispatch through the protected gateway; production releases remain separately approval-gated.</p></div></section>
 <details class="card"><summary>Architecture connectivity</summary><div class="grid"><div><strong>GitHub</strong><p id="github-health" class="muted">Checking public workflow API on refresh</p></div><div><strong>Supabase</strong><p class="muted">Checkpoint recorded; live private status requires an owner-authenticated endpoint</p></div><div><strong>Payload / Cloudflare</strong><p class="muted">Production health not verified by this panel</p></div><div><strong>Global Alerts</strong><p class="muted">Source → publication → 12-hour relay → archive: pending live acceptance</p></div></div></details>
 
@@ -198,6 +198,21 @@ document.querySelector('#load-sep02-receipt').addEventListener('click',event=>lo
 
 let approvedDiscovery=null;
 
+async function showRepositoryWidePlan(instruction,state){
+ const plan=await commandRequest({action:'agent_multifile_plan',instruction});
+ state.replaceChildren();
+ const rows=[
+  ['Execution route','Repository-wide coding agent · PR-only · no production deployment'],
+  ['Provider',plan.executor||'Not verified'],
+  ['Repository baseline',plan.base_sha||'Unknown'],
+  ['Authorization',plan.executable?'Eligible; explicit one-task owner approval required':'BLOCKED · '+(plan.reason||'Provider unavailable')],
+  ['Scope','Inspect and edit multiple files; run tests; open PR for separate review'],
+  ['Safety','No secrets, automatic merge, production writes, or unapproved provider costs']
+ ];
+ for(const [label,value] of rows){const p=document.createElement('p');p.className='plan-item';const strong=document.createElement('strong');strong.textContent=label+' · ';p.append(strong,document.createTextNode(value));state.append(p)}
+ if(plan.executable&&plan.plan_id){approvedDiscovery={...plan,instruction,multifile:true};document.querySelector('#submit-directive').disabled=false}
+ return plan;
+}
 document.querySelector('#discover-directive-targets').addEventListener('click',async()=>{
  const state=document.querySelector('#directive-discovery-results');
  const instruction=document.querySelector('#directive-text').value.trim();
@@ -208,13 +223,18 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
  button.disabled=true;state.textContent='Checking scope and eligible repository targets (read-only)…';
  try{
   const operational=/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction);
-  if(operational){
+  const multiComponentRepair=/\b(?:fix|repair|implement|redesign|refactor|integrate|restore|smart cards?|dashboard|central command|coding agents?)\b/i.test(instruction);
+  if(operational&&!multiComponentRepair){
    const result=await commandRequest({action:'intelligence_classify',instruction});
    state.replaceChildren();
    if(instruction!==directive.value.trim())return;
    if(result.category==='intelligence_operations'){
     if(!result.executable){
-     state.textContent='Intelligence operations · '+(result.message||'Scope review required')+' This directive has NOT been submitted.';
+     if(scope==='development'||scope==='release'){
+      await showRepositoryWidePlan(instruction,state);
+     }else{
+      state.textContent='Intelligence operations · '+(result.message||'Scope review required')+' No job was queued.';
+     }
      return;
     }
     approvedDiscovery={...result,instruction,operational:true};
@@ -223,9 +243,17 @@ document.querySelector('#discover-directive-targets').addEventListener('click',a
     return;
    }
   }
+  if(multiComponentRepair&&scope!=='research'){
+   await showRepositoryWidePlan(instruction,state);
+   return;
+  }
   const result=await commandRequest({action:'classify_requirement',instruction,scope});
   state.replaceChildren();
   if(instruction!==directive.value.trim()||scope!==mode.value)return;
+  if(!result.plan_id&&scope!=='research'){
+   await showRepositoryWidePlan(instruction,state);
+   return;
+  }
   const ready=result.reason==='OWNER_APPROVAL_REQUIRED'&&result.plan_id&&result.auto_suggested_target&&result.category==='development'&&!result.sensitive;
   const reasons={
    RELEASE_REVIEW_REQUIRED:'Use the existing GitHub and Supabase release review for production actions.',
@@ -271,6 +299,20 @@ document.querySelector('#submit-directive').addEventListener('click',async()=>{
  button.disabled=true;
  try{
   const scope=document.querySelector('#directive-mode').value;
+  if(approvedDiscovery?.multifile){
+   const plan=approvedDiscovery;
+   if(plan.instruction!==document.querySelector('#directive-text').value.trim())throw Error('Requirement changed. Analyze again.');
+   if(!window.confirm('Authorize ONE repository-wide coding-agent task? Existing owner-approved agent entitlement may incur charges. The agent may modify multiple files and open a PR, but cannot merge or deploy.')){status.textContent='Owner cancelled delegation';return}
+   status.textContent='Delegating approved repository-wide task…';
+   const receipt=await commandRequest({action:'agent_multifile_submit',instruction:plan.instruction,plan_id:plan.plan_id,confirmation:'AUTHORIZE_ONE_GITHUB_MULTIFILE_TASK'});
+   approvedDiscovery=null;
+   const panel=document.querySelector('#live-job-receipt');
+   panel.replaceChildren();
+   panel.append(document.createTextNode('Coding agent '+receipt.task_id+' · '+receipt.state+' · PR review required · NOT deployed'));
+   if(receipt.url){const link=document.createElement('a');link.href=receipt.url;link.textContent=' · View authenticated task';link.rel='noopener noreferrer';link.target='_blank';panel.append(link)}
+   status.textContent='Delegation accepted; not complete. Refresh agent tasks to verify outcome.';
+   return;
+  }
   if(approvedDiscovery?.operational){
    const plan=approvedDiscovery;
    if(plan.instruction!==document.querySelector('#directive-text').value.trim())throw Error('Requirement changed. Analyze again.');
