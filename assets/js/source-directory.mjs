@@ -134,7 +134,7 @@ function filterButton(container,label,count,active,action){
 function render(){
  const isLocked=locked(),mode=access==='UNAUTHENTICATED'?'Signed out':'No active subscription',query=get('search').value.trim().toLowerCase();
  if(isLocked&&['abbr','scope','host'].includes(sort)){sort='country';direction=1;}
- const searched=all.filter(r=>r.kind===get('sourceType').value&&[r.country,r.name,r.sourceName,r.code,...(isLocked?[]:[r.abbr])].join(' ').toLowerCase().includes(query));
+ const searched=all.filter(r=>r.kind==='bank'&&[r.country,r.name,r.sourceName,r.code,...(isLocked?[]:[r.abbr])].join(' ').toLowerCase().includes(query));
  const matched=searched.filter(r=>inGroup(r,group));
  const shown=matched.filter(r=>!region||r.regions.has(region)).sort((a,b)=>direction*collator.compare(a[sort],b[sort])||collator.compare(a.name,b.name));
  const pills=get('pills');pills.replaceChildren();
@@ -189,7 +189,16 @@ function render(){
  }
 }
 for(const b of document.querySelectorAll('th button'))b.onclick=()=>{const key=b.dataset.sort;direction=sort===key?-direction:1;sort=key;render();};
-get('sourceType').onchange=render;get('search').oninput=render;render();
+const sourceType=get('sourceType');
+sourceType.onchange=()=>{
+ if(sourceType.value!=='association')return;
+ const labels={Europe:'Europe & UK',Americas:'Americas','Asia-Pacific':'APAC','Middle East':'GCC',Africa:'Africa'};
+ const target=new URL('/pages/intelligence/trusted-source-network.html',location.origin);
+ const selection=labels[group];
+ if(selection)target.searchParams.set('region',selection);
+ sourceType.value='bank';
+ location.assign(target.href);
+};get('search').oninput=render;render();
 
 }
 initialize().catch(()=>{
