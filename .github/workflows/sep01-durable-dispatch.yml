@@ -41,6 +41,12 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Dedicated Stage 3 acceptance key; never replace the existing one-file provider key.
+          OPENROUTER_STAGE3_API_KEY: ${{ secrets.OPENROUTER_STAGE3_API_KEY }}
+          # Stage 3 remains off until a separate reviewed release and paid-test authorization.
+          SEP01_MULTIFILE_EXECUTION_ENABLED: 'false'
+          SEP01_MULTIFILE_SPEND_CAP_VERIFIED: 'false'
+          SEP01_MULTIFILE_MAX_SPEND_USD: '0'
           SEP01_OPENROUTER_MODEL: ${{ vars.SEP01_OPENROUTER_MODEL || 'openai/gpt-4.1-mini' }}
           SEP01_GEMINI_MODEL: ${{ vars.SEP01_GEMINI_MODEL }}
           SEP01_CODEX_ENABLED: ${{ vars.SEP01_CODEX_ENABLED }}
