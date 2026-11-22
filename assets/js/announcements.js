@@ -473,7 +473,7 @@
     }
 
     // Production read-only feed; static archive remains separately available.
-    const LIVE_FEED_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-alerts";
+    const LIVE_FEED_URL = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=relay";
     function cleanText(value){
         return typeof value === "string" ? value.trim() : "";
     }
@@ -485,51 +485,19 @@
             return "";
         }
     }
-    // Topic-level relay: overlapping reports of one development collapse into one ticker
-    // item that keeps the original (earliest) publication time and every source as
-    // supporting evidence. Mirrors groupRelayItems in gpir-topic-intelligence.mjs.
-    function relayTokens(title){
-        return new Set(String(title || "").normalize("NFKC").toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ")
-            .filter(token => token.length > 2 && !["the","and","for","with","from","that","this","new","its","has","will","announces","announced","announce","launches","launched","launch","expands","expanded","says","said"].includes(token))
-            .map(token => token.replace(/s$/, "")));
-    }
-    function sameRelayTopic(left, right){
-        if(left.eventId && left.eventId === right.eventId) return true;
-        if(Math.abs(Date.parse(left.sourcePublicationTimestamp) - Date.parse(right.sourcePublicationTimestamp)) > 48 * 3600000) return false;
-        const leftCountry = (left.country || "").toLowerCase();
-        const rightCountry = (right.country || "").toLowerCase();
-        if(leftCountry && rightCountry && leftCountry !== rightCountry) return false;
-        let shared = 0;
-        left.relayTokens.forEach(token => { if(right.relayTokens.has(token)) shared += 1; });
-        const union = left.relayTokens.size + right.relayTokens.size - shared;
-        return shared >= 4 && union > 0 && shared / union >= 0.7;
-    }
-    function groupRelayRecords(items){
-        const groups = [];
-        items.slice().sort((a, b) => a.sourcePublicationTimestamp.localeCompare(b.sourcePublicationTimestamp) || a.id.localeCompare(b.id))
-            .forEach(item => {
-                item.relayTokens = relayTokens(item.title);
-                const group = groups.find(candidate => sameRelayTopic(candidate.lead, item));
-                if(group) group.members.push(item); else groups.push({ lead: item, members: [item] });
-            });
-        return groups.map(({ lead, members }) => {
-            const seen = new Set();
-            lead.supportingSources = members.map(member => member.source).filter(source => !seen.has(source.url) && seen.add(source.url));
-            lead.memberIds = members.map(member => member.id);
-            delete lead.relayTokens;
-            return lead;
-        });
-    }
     function normalizeLiveFeed(data){
-        return groupRelayRecords((Array.isArray(data.alerts) ? data.alerts : []).map(item => {
+        if (data.status !== "OK" || data.view !== "relay" || data.windowHours !== 12 || !Array.isArray(data.items)) {
+            throw new Error("Invalid governed alerts response");
+        }
+        return data.items.map(item => {
             if(!item || (item.publicationStatus && item.publicationStatus !== "approved")) return null;
-            if(item.tickerEligible === false || item.sourceVerified === false || item.hasUnresolvedRestrictions === true) return null;
+            if(item.tickerEligible !== true || item.displayLifecycleStatus !== "LIVE" || item.dataClass) return null;
             const id = cleanText(item.id);
             const headline = cleanText(item.headline || item.title);
             const summary = cleanText(item.summary);
             const category = cleanText(item.category);
-            const sourceName = cleanText(item.sourceName || item.publisher);
-            const sourceUrl = verifiedSourceUrl(item.sourceUrl);
+            const sourceName = cleanText(item.source?.name);
+            const sourceUrl = verifiedSourceUrl(item.source?.url);
             if(!id || !headline || !summary || !category || !sourceName || !sourceUrl || !item.publishedAt) return null;
             const timestamp = new Date(item.publishedAt);
             if(Number.isNaN(timestamp.getTime())) return null;
@@ -548,10 +516,15 @@
                 source: { name: sourceName, publicationTitle: sourceName, url: sourceUrl },
                 sourceOrgId: null,
                 eventId: cleanText(item.eventId),
+                supportingSources: (item.supportingSources || []).flatMap(source => {
+                    const url = verifiedSourceUrl(source?.url);
+                    const name = cleanText(source?.name);
+                    return url && name ? [{ name, url }] : [];
+                }),
                 gpirMapping: { href: `pages/intelligence/smart.html?alert=${encodeURIComponent(id)}` },
                 gpirPublicFeed: true
             };
-        }).filter(Boolean));
+        }).filter(Boolean);
     }
     // Keep the public ribbon synchronized while a reader leaves the homepage open.
     // This is a read-only refresh of the existing governed 12-hour API, not a
