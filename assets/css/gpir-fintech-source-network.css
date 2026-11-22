@@ -4,3 +4,5 @@
 #cards.region-focus{grid-template-columns:minmax(0,1fr)}
 #cards.region-focus .region-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;padding:12px}
 #cards.region-focus .region-grid article{padding:12px}#cards.region-focus .region-grid h4{font-size:.95rem}
+
+.fintech-network .mast [data-gpir-reader-actions]{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.fintech-network .mast [data-gpir-reader-actions] button{white-space:nowrap}

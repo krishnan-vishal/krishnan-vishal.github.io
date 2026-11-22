@@ -1,0 +1,24 @@
+.announcement-archive-page [data-archive] .announcement-dashboard-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .65rem;
+    min-width: 0;
+    color: #172b42;
+    background: #fff;
+    border: 1px solid #cfdae7;
+    padding: 1rem;
+    border-radius: .65rem;
+}
+.announcement-archive-page [data-archive] .announcement-dashboard-card h3,
+.announcement-archive-page [data-archive] .announcement-dashboard-card p {
+    color: #172b42;
+    margin: 0;
+    word-break: normal;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+.announcement-archive-page [data-archive] .announcement-dashboard-card a { color: #174a80; }
+.announcement-archive-page [data-archive] .announcement-card-meta-row,
+.announcement-archive-page [data-archive] .announcement-card-status-row { display: flex; flex-wrap: wrap; gap: .45rem; }
+.announcement-archive-page [data-gpir-reader-actions] { display: flex; flex-wrap: wrap; gap: .35rem; }

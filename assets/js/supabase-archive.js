@@ -2,8 +2,7 @@ const PUBLIC_INTELLIGENCE_API =
     "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence";
 
 const PAGE_SIZE = 100;
-const MAX_RECORDS = 5000;
-const REQUEST_TIMEOUT_MS = 8000;
+const REQUEST_TIMEOUT_MS = 25000;
 const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 const MONTH_NAMES = [
@@ -779,49 +778,25 @@ function renderGrid(container, records, emptyMessage) {
 }
 
 async function fetchPublicIntelligence() {
-    const records = [];
-    let offset = 0;
+    const url = new URL(PUBLIC_INTELLIGENCE_API);
+    url.searchParams.set("scope", "history");
+    url.searchParams.set("limit", String(PAGE_SIZE));
+    url.searchParams.set("offset", "0");
 
-    while (offset < MAX_RECORDS) {
-        const url = new URL(PUBLIC_INTELLIGENCE_API);
-        url.searchParams.set("scope", "history");
-        url.searchParams.set("limit", String(PAGE_SIZE));
-        url.searchParams.set("offset", String(offset));
-        const controller = new AbortController();
-        const timeout = setTimeout(
-            () => controller.abort(),
-            REQUEST_TIMEOUT_MS
-        );
-        let response;
-
-        try {
-            response = await fetch(url.href, {
-                headers: { Accept: "application/json" },
-                signal: controller.signal
-            });
-        } finally {
-            clearTimeout(timeout);
-        }
-
-        if (!response.ok) {
-            throw new Error(`Public intelligence API returned ${response.status}`);
-        }
-
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        const response = await fetch(url.href, {
+            headers: { Accept: "application/json" },
+            signal: controller.signal
+        });
+        if (!response.ok) throw new Error(`Public intelligence API returned ${response.status}`);
         const payload = await response.json();
-        const page = Array.isArray(payload.records) ? payload.records : [];
-        records.push(...page);
-
-        if (
-            page.length < PAGE_SIZE ||
-            records.length >= Number(payload.total || 0)
-        ) break;
-
-        offset += PAGE_SIZE;
+        if (!Array.isArray(payload.records)) throw new Error("Invalid archive response");
+        return payload.records.map(normalizeRecord).filter(Boolean);
+    } finally {
+        clearTimeout(timeout);
     }
-
-    return records
-        .map(normalizeRecord)
-        .filter(Boolean);
 }
 
 function initializeArchiveInterface(root, records) {
@@ -1003,7 +978,7 @@ function initializeArchiveInterface(root, records) {
     if (archiveStatus) {
         archiveStatus.textContent =
             `${liveRecords.length} live · ` +
-            `${records.length} approved Supabase records`;
+            `${records.length} recent approved records loaded`;
 
         archiveStatus.setAttribute("aria-live", "polite");
     }
