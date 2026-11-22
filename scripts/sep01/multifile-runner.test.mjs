@@ -22,8 +22,9 @@ function fixture(){
  const tree=['docs/a.md','docs/b.md'].map(path=>({type:'blob',path,size:Buffer.byteLength(readFileSync(join(root,path))),sha:blob(path)}));
  const instruction='Improve both documents';
  const plan=validateMultifileManifest({files:['docs/a.md','docs/b.md'],tree,baseSha:sha,ownerId:'owner',instruction});
- const job={owner_user_id:'owner',single_attempt:true,cost_approved:true,plan_id:plan.plan_id,execution_route:'bounded_multifile_v1',locked_paths:plan.manifest.map(x=>x.path),branch};
- const params={job,approvedPlanId:plan.plan_id,approvedBaseSha:sha,branch,providerBudgetApproved:true};
+ const job={job_id:'sep01-owner-test',instruction,sensitivity_tier:null,scope:'development',owner_user_id:'owner',single_attempt:true,cost_approved:true,plan_id:plan.plan_id,execution_route:'bounded_multifile_v1',locked_paths:plan.manifest.map(x=>x.path),branch};
+ const verifiedApproval={status:'APPROVED',owner_user_id:'owner',job_id:job.job_id,plan_id:plan.plan_id,base_sha:sha,branch,locked_paths:plan.manifest.map(x=>x.path),instruction,single_attempt:true,cost_approved:true,max_provider_requests:2,revision:1};
+ const params={job,approvedPlanId:plan.plan_id,approvedBaseSha:sha,branch,providerBudgetApproved:true,verifiedApproval};
  return {root,run,plan,params,close:()=>rmSync(root,{recursive:true,force:true})};
 }
 test('owner approval is mandatory before any provider request',async()=>{
@@ -32,6 +33,7 @@ test('owner approval is mandatory before any provider request',async()=>{
   const runner=createMultifileRunner({root:f.root,plan:f.plan,requestEdit:async()=>{requests++;return {status:'EDIT',content:'changed'}},runTests:async()=>{}});
   await assert.rejects(runner({...f.params,providerBudgetApproved:false}),/OWNER_APPROVAL_REQUIRED/);
   await assert.rejects(runner({...f.params,approvedPlanId:'invalid'}),/OWNER_APPROVAL_REQUIRED/);
+  await assert.rejects(runner({...f.params,verifiedApproval:null}),/OWNER_APPROVAL_REQUIRED/);
   assert.equal(requests,0);
  }finally{f.close()}
 });
@@ -67,5 +69,15 @@ test('unapproved extra changed file fails closed',async()=>{
   const runner=createMultifileRunner({root:f.root,plan:f.plan,requestEdit:async()=>({status:'EDIT',content:'updated\n'}),runTests:async()=>{writeFileSync(join(f.root,'docs/extra.md'),'not allowed')}});
   await assert.rejects(runner(f.params),/UNEXPECTED_CHANGES/);
   assert.equal(f.run('rev-parse','HEAD'),f.plan.base_sha);
+ }finally{f.close()}
+});
+
+test('forged approval and stale plan instruction fail before provider calls',async()=>{
+ const f=fixture();let requests=0;
+ try{
+  const runner=createMultifileRunner({root:f.root,plan:f.plan,requestEdit:async()=>{requests++;return {status:'EDIT',content:'new'}},runTests:async()=>{}});
+  await assert.rejects(runner({...f.params,verifiedApproval:{...f.params.verifiedApproval,instruction:'forged instruction'}}),/MULTIFILE_APPROVAL_STALE/);
+  await assert.rejects(runner({...f.params,job:{...f.params.job,instruction:'different instruction'}}),/MULTIFILE_APPROVAL_STALE/);
+  assert.equal(requests,0);
  }finally{f.close()}
 });
