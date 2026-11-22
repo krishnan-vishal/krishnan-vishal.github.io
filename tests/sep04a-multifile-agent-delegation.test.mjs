@@ -31,3 +31,23 @@ test('one command box routes unsupported broad and multi-file work to governed a
  assert.match(ui,/id="directive-text"/);
  assert.match(ui,/Refresh agent tasks/);
 });
+
+test('read-only SEP-01 diagnostics bypass Copilot delegation without dispatch',()=>{
+ assert.match(gateway,/body\.action==='execution_diagnostic'/);
+ assert.match(gateway,/read_only:true,dispatch_performed:false/);
+ assert.match(gateway,/actions\/workflows\/.*?\/runs\?per_page=5/);
+ assert.match(ui,/action:'execution_diagnostic'/);
+ assert.match(ui,/Read-only SEP-01 workflow diagnostic/);
+ assert.match(gateway,/const available=false/);
+});
+
+test('stage 2 explicitly selects bounded Gemini/OpenRouter without Copilot fallback',()=>{
+ assert.match(ui,/id="directive-route"/);
+ assert.match(ui,/value="bounded_sep01" selected/);
+ assert.match(ui,/value="copilot_multifile"/);
+ assert.match(ui,/execution_route:'bounded_sep01'/);
+ assert.match(ui,/Bounded Gemini\/OpenRouter route not eligible/);
+ assert.match(gateway,/EXECUTION_ROUTE_NOT_AUTHORIZED/);
+ assert.match(gateway,/provider_route:'gemini_openrouter_runtime_verified'/);
+ assert.match(gateway,/const available=false/);
+});

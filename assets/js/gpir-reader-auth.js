@@ -10,7 +10,7 @@
   const OWNED_ROUTES = new Set(['/', C2C, '/admin/central-command/', '/auth/callback/', '/reader/sign-in/',
     '/reader/create-account/', '/reader/my-gpir/', '/reader/profile/', '/reader/library/',
     '/reader/payments/', '/reader/plan/', '/pages/fx/intelligence.html',
-    '/pages/risk/global-country-risk-monitor.html']);
+    '/pages/risk/global-country-risk-monitor.html', '/pages/risk/global-central-banks.html', '/pages/intelligence/trusted-source-network.html']);
   const callback = '/auth/callback/';
 
   function safeReturnTo(value, origin = global.location.origin) {

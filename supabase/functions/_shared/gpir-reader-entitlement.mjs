@@ -39,7 +39,7 @@ async function read(fetchImpl, url, headers) {
 }
 
 export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, serviceKey, accessToken,
-  now = Date.now() }) {
+  now = Date.now(), directoryQaReaderId, directoryQaEmail }) {
   const environment = paymentEnvironment(supabaseUrl);
   if (!environment || !serviceKey) return { decision: 'ERROR', reason: 'ENTITLEMENT_CONFIGURATION' };
   if (!accessToken) return { decision: 'UNAUTHENTICATED', reason: 'SESSION_REQUIRED' };
@@ -47,6 +47,11 @@ export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, 
     requestHeaders(serviceKey, accessToken));
   if (user.status === 401 || user.status === 403) return { decision: 'UNAUTHENTICATED', reason: 'SESSION_INVALID' };
   if (!user.ok || !UUID.test(user.data?.id || '')) return { decision: 'ERROR', reason: 'SESSION_VERIFICATION_FAILED' };
+  const qaIdMatches = directoryQaReaderId && user.data.id === directoryQaReaderId;
+  const qaEmailMatches = directoryQaEmail && user.data.email?.toLowerCase() === directoryQaEmail;
+  if (user.data.email_confirmed_at && (qaIdMatches || (environment === 'PRODUCTION' && qaEmailMatches))) {
+    return { decision: 'ALLOW', userId: user.data.id };
+  }
   const query = new URLSearchParams({ select: 'id,status,effective_from,effective_until',
     user_id: `eq.${user.data.id}`, environment: `eq.${environment}`, order: 'updated_at.desc', limit: '1' });
   const subscriptions = await read(fetchImpl, `${supabaseUrl}/rest/v1/gpir_paypal_subscriptions?${query}`,

@@ -50,6 +50,18 @@ export function initializeMyGpirNavigation(global, document) {
   if (!global || !document) return false;
   const sync = () => syncMyGpirNavigation(document, global.location.hash);
   enableMyGpirKeyboardNavigation(document); sync();
+  const count = document.querySelector('[data-gpir-workspace-count]');
+  const workspaces = document.querySelector('.my-gpir-smart-library-grid');
+  if (count && workspaces && !navigationGlobals.has(global)) {
+    const refresh = () => {
+      count.textContent = String(workspaces.querySelectorAll('article:not([hidden]) a[href]').length);
+    };
+    refresh();
+    if (typeof global.MutationObserver === 'function') {
+      const observer = new global.MutationObserver(refresh);
+      observer.observe(workspaces, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'href'] });
+    }
+  }
   if (navigationGlobals.has(global)) return false;
   navigationGlobals.add(global);
   global.addEventListener('hashchange', sync);

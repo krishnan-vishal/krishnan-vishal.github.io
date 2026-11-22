@@ -105,6 +105,21 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
+  // Owner-only read-only diagnostic: uses existing GitHub Actions credentials, not Copilot.
+  if(body.action==='execution_diagnostic'){
+   const workflow='sep01-durable-dispatch.yml';
+   const [ref,runs]=await Promise.all([
+    github('git/ref/heads/main'),
+    github('actions/workflows/'+workflow+'/runs?per_page=5')
+   ]);
+   return json({gateway_version:gatewayVersion,read_only:true,dispatch_performed:false,
+    repository_baseline:ref.object?.sha||null,workflow,
+    runs:(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,5).map(run=>({
+     run_id:run.id,status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null
+    })),
+    message:'Read-only GitHub workflow inspection; no provider quota, write permission, or dispatch eligibility inferred.'});
+  }
   // Narrow natural-language operational intent. Never infer production write approval,
   // a source, or a month from a broad all-source/five-year directive.
   if(body.action==='intelligence_classify'){
@@ -181,9 +196,10 @@ Deno.serve(async request=>{
    if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
    if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+   if(body.execution_route!==undefined&&body.execution_route!=='bounded_sep01')return json({error:'EXECUTION_ROUTE_NOT_AUTHORIZED'},422);
    const intent=classifyRequirement(instruction,requestedScope);
    const {category,kind,sensitive}=intent;
-   const preview={gateway_version:gatewayVersion,category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
+   const preview={gateway_version:gatewayVersion,execution_route:'bounded_sep01',provider_route:'gemini_openrouter_runtime_verified',category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
    const block=(reason,candidates=[])=>plannedSubmission?json({error:reason},409):json({...preview,reason,candidates});
    if(intent.reason)return block(intent.reason);
    if(instruction.replace(/\s+/g,' ').length>1000)return block('WORKER_INSTRUCTION_LIMIT');
@@ -240,9 +256,14 @@ Deno.serve(async request=>{
    const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
    const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
    const writeConfigured=Boolean(env('SEP03_GITHUB_AGENT_WRITE_TOKEN'));
-   return json({read_only_monitoring:true,submission_available:enabled&&eligible&&costApproved&&writeConfigured,
-    eligibility_verified:eligible,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
-    reason:!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!writeConfigured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':'ELIGIBLE'});
+   const gates={subscription:{status:'OWNER_REPORTED_PRO_PLUS',verified_by_github:false},
+    api_eligibility:{status:eligible?'CONFIGURED_NOT_PROVIDER_VERIFIED':'UNVERIFIED',verified:false},
+    credential:{status:writeConfigured?'CONFIGURED_NOT_PERMISSION_VERIFIED':'MISSING',verified:false},
+    allowance:{status:costApproved?'OWNER_APPROVAL_FLAG_SET_ALLOWANCE_UNVERIFIED':'NOT_AUTHORIZED',verified:false},
+    owner_approval:{status:'REQUIRED_PER_TASK',verified:false}};
+   return json({read_only_monitoring:true,submission_available:false,submission_gate:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED',gates,
+    eligibility_verified:false,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
+    reason:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED'});
   }
   // Repository-wide coding-agent delegation. The existing bounded SEP worker is
   // unchanged. Multi-file work is PR-only and never grants production release.
@@ -259,8 +280,8 @@ Deno.serve(async request=>{
    const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
    const token=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
    const configured=/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(token);
-   const available=enabled&&eligible&&costApproved&&configured;
-   const reason=!eligible?'PLAN_ELIGIBILITY_NOT_VERIFIED':!costApproved?'COST_APPROVAL_REQUIRED':!configured?'WRITE_CREDENTIAL_REQUIRED':!enabled?'SUBMISSION_DISABLED':null;
+   const available=false; // Fail closed: configuration flags do not prove provider entitlement, token permission or remaining allowance.
+   const reason='PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED';
    if(body.action==='agent_multifile_plan')return json({gateway_version:gatewayVersion,
     category:'repository_wide_development',executor:'github_copilot',plan_id:planId,
     base_sha:baseSha,executable:available,reason,requires_owner_approval:true,
