@@ -23,11 +23,11 @@ Deno.serve(async (request) => {
     try {
         const token = request.headers.get("Authorization")?.match(/^Bearer ([^\s]+)$/i)?.[1];
         const access = token
-            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, directoryQaReaderId: qaReaderId })
+            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' })
             : { decision: "UNAUTHENTICATED" };
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
         const full = access.decision === "ALLOW";
-        const select = full ? "region,kind,country_code,country,name,official_url,summary,coverage" : "region,kind,name";
+        const select = full ? "region,kind,country_code,country,name,official_url,summary,coverage" : "region,kind,country_code,country,name";
         const databaseHeaders = new Headers();
         databaseHeaders.set("apikey", serviceKey);
         databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);

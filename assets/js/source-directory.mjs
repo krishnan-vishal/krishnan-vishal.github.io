@@ -32,21 +32,40 @@ const groups=new Map([
  ['All',[]],['Europe',['Europe/SEPA','UK','CIS']],['Americas',['North America & Canada','LATAM']],
  ['Asia-Pacific',['APAC','ASEAN','Far East','South Asia','Oceania']],['Middle East',['GCC']],['Africa',['Africa']]
 ]);
+const englishBankNames = {
+ AO:'National Bank of Angola', AR:'Central Bank of the Argentine Republic', AT:'Austrian National Bank',
+ BI:'Bank of the Republic of Burundi', BO:'Central Bank of Bolivia', BR:'Central Bank of Brazil',
+ CD:'Central Bank of the Congo', CL:'Central Bank of Chile', CO:'Bank of the Republic of Colombia',
+ CR:'Central Bank of Costa Rica', CU:'Central Bank of Cuba', CV:'Bank of Cabo Verde',
+ DE:'German Federal Bank', DK:'National Bank of Denmark', DO:'Central Bank of the Dominican Republic',
+ EC:'Central Bank of Ecuador', EE:'Bank of Estonia', ES:'Bank of Spain', FR:'Bank of France',
+ GN:'Central Bank of the Republic of Guinea', GT:'Bank of Guatemala', HN:'Central Bank of Honduras',
+ HT:'Bank of the Republic of Haiti', HU:'Central Bank of Hungary', IT:'Bank of Italy',
+ KM:'Central Bank of the Comoros', LU:'Central Bank of Luxembourg', LV:'Bank of Latvia',
+ MC:'Monaco Financial Security Authority', MX:'Bank of Mexico', MZ:'Bank of Mozambique',
+ NI:'Central Bank of Nicaragua', NL:'Central Bank of the Netherlands', NO:'Central Bank of Norway',
+ PA:'Superintendency of Banks of Panama', PE:'Central Reserve Bank of Peru', PH:'Central Bank of the Philippines',
+ PL:'National Bank of Poland', PT:'Bank of Portugal', PY:'Central Bank of Paraguay',
+ SE:'Central Bank of Sweden', SI:'Bank of Slovenia', ST:'Central Bank of São Tomé and Príncipe',
+ SV:'Central Reserve Bank of El Salvador', TL:'Central Bank of Timor-Leste', TN:'Central Bank of Tunisia',
+ UY:'Central Bank of Uruguay', VE:'Central Bank of Venezuela'
+};
 const abbreviations={AU:'RBA',BD:'BB',CA:'BoC',CN:'PBOC',EU:'ECB',GB:'BoE',HK:'HKMA',ID:'BI',IN:'RBI',JP:'BOJ',MY:'BNM',NZ:'RBNZ',PH:'BSP',SG:'MAS',TH:'BOT',US:'Fed'};
 const collator=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
 const get=id=>document.getElementById(id);
 const authorityRows=new Map();
 for(const item of source){
- const {region,kind,name}=item;
+ const {region,kind,name:sourceName}=item;
  const code=item.country_code||'',country=item.country||'',scope=item.coverage||'';
  let url='',host='';
  if(access==='ALLOW'&&item.official_url){
   try{const parsed=new URL(item.official_url);if(parsed.protocol==='https:'&&!parsed.username&&!parsed.password){url=parsed.href;host=parsed.hostname;}}catch{}
  }
- const key=kind+'|'+code+'|'+name;
+ const name=kind==='bank'?(englishBankNames[code]||sourceName.split(' / ')[0]):sourceName;
+ const key=kind+'|'+code+'|'+sourceName;
  if(authorityRows.has(key)){authorityRows.get(key).regions.add(region);continue;}
- const abbr=kind==='bank'?(name.match(/\(([A-Z][A-Z0-9–-]{1,9})\)/)?.[1]||abbreviations[code]||''):'';
- authorityRows.set(key,{kind,code,country,name,url,scope,abbr,host,regions:new Set([region])});
+ const abbr=kind==='bank'?(sourceName.match(/\(([A-Z][A-Z0-9–-]{1,9})\)/)?.[1]||abbreviations[code]||''):'';
+ authorityRows.set(key,{kind,code,country,name,sourceName,url,scope,abbr,host,regions:new Set([region])});
 }
 const all=[...authorityRows.values()];
 const regionNames=[...new Set(source.map(r=>r.region))].sort(collator.compare);
@@ -115,7 +134,7 @@ function filterButton(container,label,count,active,action){
 function render(){
  const isLocked=locked(),mode=access==='UNAUTHENTICATED'?'Signed out':'No active subscription',query=get('search').value.trim().toLowerCase();
  if(isLocked&&['abbr','scope','host'].includes(sort)){sort='country';direction=1;}
- const searched=all.filter(r=>r.kind===get('sourceType').value&&[r.country,r.name,r.code,...(isLocked?[]:[r.abbr])].join(' ').toLowerCase().includes(query));
+ const searched=all.filter(r=>r.kind===get('sourceType').value&&[r.country,r.name,r.sourceName,r.code,...(isLocked?[]:[r.abbr])].join(' ').toLowerCase().includes(query));
  const matched=searched.filter(r=>inGroup(r,group));
  const shown=matched.filter(r=>!region||r.regions.has(region)).sort((a,b)=>direction*collator.compare(a[sort],b[sort])||collator.compare(a.name,b.name));
  const pills=get('pills');pills.replaceChildren();
