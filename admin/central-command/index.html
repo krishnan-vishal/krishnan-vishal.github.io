@@ -206,6 +206,11 @@ async function showRepositoryWidePlan(instruction,state){
   ['Provider',plan.executor||'Not verified'],
   ['Repository baseline',plan.base_sha||'Unknown'],
   ['Authorization',plan.executable?'Eligible; explicit one-task owner approval required':'BLOCKED · '+(plan.reason||'Provider unavailable')],
+  ['1 · Subscription','Copilot Pro+ · owner-reported; GitHub entitlement not independently verified'],
+  ['2 · Agent-task API','UNVERIFIED · GitHub provider eligibility must be confirmed'],
+  ['3 · Write credential','UNVERIFIED · token presence does not prove agent-task write permission'],
+  ['4 · Remaining allowance','UNVERIFIED · no chargeable submission without confirmed remaining allowance'],
+  ['Owner approval','REQUIRED · separate approval for exactly one task'],
   ['Scope','Inspect and edit multiple files; run tests; open PR for separate review'],
   ['Safety','No secrets, automatic merge, production writes, or unapproved provider costs']
  ];
