@@ -242,6 +242,26 @@ async function showBoundedMultifilePlan(instruction,state){
  ];
  for(const [label,value] of rows){const p=document.createElement('p');p.className='plan-item';const strong=document.createElement('strong');strong.textContent=label+' · ';p.append(strong,document.createTextNode(value));state.append(p)}
  document.querySelector('#submit-directive').disabled=true;
+ const controls=document.createElement('div');controls.className='plan-item';
+ const stageButton=document.createElement('button');stageButton.type='button';stageButton.textContent='Record this read-only plan (no execution)';
+ const stageStatus=document.createElement('p');stageStatus.setAttribute('aria-live','polite');
+ controls.append(stageButton,stageStatus);state.append(controls);
+ stageButton.addEventListener('click',async()=>{
+  if(stageButton.disabled)return;
+  stageButton.disabled=true;
+  try{
+   if(document.querySelector('#directive-route').value!=='bounded_multifile_v1'||
+      document.querySelector('#directive-text').value.trim()!==instruction||
+      document.querySelector('#multifile-paths').value!==raw)throw Error('Plan changed. Generate a fresh plan.');
+   const jobId='sep01-owner-'+crypto.randomUUID();
+   const staged=await commandRequest({action:'multifile_stage',job_id:jobId,plan_id:plan.plan_id,paths,instruction});
+   if(staged.status!=='PLANNED'||staged.job_id!==jobId||staged.plan_id!==plan.plan_id||staged.dispatch_enabled!==false)
+    throw Error('PERSISTED_PLAN_RECEIPT_INVALID');
+   stageStatus.textContent='Owner-bound plan recorded: '+jobId+' · PLANNED. No approval, provider call or dispatch.';
+   // Owner approval and dispatch require separate explicit confirmation and server-side
+   // verified provider limits; they are not automatically offered by read-only preview.
+  }catch(error){stageStatus.textContent='Plan not recorded: '+String(error.message||error);stageButton.disabled=false}
+ });
  return plan;
 }
 async function showRepositoryWidePlan(instruction,state){
