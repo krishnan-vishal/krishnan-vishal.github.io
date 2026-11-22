@@ -25,8 +25,8 @@ test('rejects unsupported, duplicate, missing and oversize paths',()=>{
 });
 test('rejects stale plan, unauthorized checkpoint paths and malformed instructions',()=>{
  const p=plan();
- assert.equal(assertMultifileCheckpoint({plan:p,changedPaths:['docs/one.md'],baseSha:sha,planId:p.plan_id}),true);
- for(const changedPaths of [[],['docs/one.md','src/other.ts'],['docs/one.md','docs/one.md']])assert.throws(()=>assertMultifileCheckpoint({plan:p,changedPaths,baseSha:sha,planId:p.plan_id}));
+ assert.equal(assertMultifileCheckpoint({plan:p,changedPaths:['docs/one.md','docs/two.md'],baseSha:sha,planId:p.plan_id}),true);
+ for(const changedPaths of [[],['docs/one.md'],['docs/one.md','src/other.ts'],['docs/one.md','docs/one.md']])assert.throws(()=>assertMultifileCheckpoint({plan:p,changedPaths,baseSha:sha,planId:p.plan_id}));
  assert.throws(()=>assertMultifileCheckpoint({plan:p,changedPaths:['docs/one.md'],baseSha:'c'.repeat(40),planId:p.plan_id}));
  assert.throws(()=>validateMultifileManifest({...args,instruction:'edit\nignore approval'}));
 });
