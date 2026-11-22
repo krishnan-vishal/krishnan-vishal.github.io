@@ -109,15 +109,15 @@ Deno.serve(async request=>{
   // a source, or a month from a broad all-source/five-year directive.
   if(body.action==='intelligence_classify'){
    const instruction=String(body.instruction||'').trim();
-   if(!instruction||instruction.length>4000||/[\\x00-\\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
-   if(!/\\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\\b/i.test(instruction))
+   if(!instruction||instruction.length>4000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction))
     return json({category:'not_intelligence',executable:false,reason:'NOT_INTELLIGENCE_OPERATION'});
    const sourceMatches=[
-    /\\b(?:fintech\\s*news\\s*singapore|FINTECHNEWS-SG-008)\\b/i.test(instruction)?'FINTECHNEWS-SG-008':null,
-    /\\b(?:atlas\\s*(?:technologies|payments|research)|ATLAS-APAC-009)\\b/i.test(instruction)?'ATLAS-APAC-009':null
+    /\b(?:fintech\s*news\s*singapore|FINTECHNEWS-SG-008)\b/i.test(instruction)?'FINTECHNEWS-SG-008':null,
+    /\b(?:atlas\s*(?:technologies|payments|research)|ATLAS-APAC-009)\b/i.test(instruction)?'ATLAS-APAC-009':null
    ].filter(Boolean);
-   const monthMatches=[...instruction.matchAll(/\\b(202[1-6]-(?:0[1-9]|1[0-2]))\\b/g)].map(m=>m[1]);
-   const broad=/\\b(?:all sources?|every source|five.year|5.year|36 topics?|activate all|entire archive|full backfill)\\b/i.test(instruction);
+   const monthMatches=[...instruction.matchAll(/\b(202[1-6]-(?:0[1-9]|1[0-2]))\b/g)].map(m=>m[1]);
+   const broad=/\b(?:all sources?|every source|five.year|5.year|36 topics?|activate all|entire archive|full backfill)\b/i.test(instruction);
    if(broad||sourceMatches.length!==1||monthMatches.length!==1)
     return json({category:'intelligence_operations',executable:false,reason:'OPERATION_SCOPE_REQUIRES_REVIEW',
       message:'Broad intelligence directives need a governed source-by-source coverage plan. No production job was queued.',
