@@ -92,6 +92,37 @@ Deno.serve(async request=>{
  if(user.id!==owner||user.is_anonymous===true)return json({error:'OWNER_NOT_AUTHORIZED'},403);
  try{
   const body=await request.json();
+  // Stage 3: authenticated read-only preview; execution remains disabled.
+  if(body.action==='multifile_plan'||body.action==='multifile_submit'){
+   if(body.action==='multifile_submit')return json({error:'MULTIFILE_EXECUTION_NOT_ENABLED',read_only:true},403);
+   const paths=body.paths;
+   const instruction=String(body.instruction||'').trim();
+   if(!Array.isArray(paths)||paths.length<2||paths.length>3||new Set(paths).size!==paths.length||paths.some(path=>typeof path!=='string'||!developmentPath.test(path)||path.includes('..')||path.includes('//')))
+    return json({error:'MULTIFILE_PATH_NOT_AUTHORIZED'},422);
+   if(!instruction||instruction.length>1000||/[\\x00-\\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
+   const intent=classifyRequirement(instruction,'development');
+   if(intent.category!=='development'||intent.sensitive||/\\b(?:deploy|merge|publish|release|credentials|secrets|token|authentication|payment|entitlement)\\b/i.test(instruction))
+    return json({error:'MULTIFILE_SENSITIVE_REVIEW_REQUIRED'},422);
+   const ref=await github('git/ref/heads/main');
+   const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
+   if(tree.truncated||!Array.isArray(tree.tree))return json({error:'REPOSITORY_DISCOVERY_INCOMPLETE'},409);
+   let total=0;
+   const entries=[];
+   for(const path of paths){
+    const entry=tree.tree.find(item=>item.path===path&&item.type==='blob');
+    if(!entry||!Number.isSafeInteger(entry.size)||entry.size<0||entry.size>maxFileBytes||!/^[a-f0-9]{40}$/.test(String(entry.sha||'')))return json({error:'MULTIFILE_FILE_NOT_ELIGIBLE'},422);
+    total+=entry.size;
+    if(total>300000)return json({error:'MULTIFILE_TOTAL_BYTES_EXCEEDED'},422);
+    entries.push({path,size:entry.size,blob_sha:entry.sha});
+   }
+   entries.sort((a,b)=>a.path.localeCompare(b.path));
+   const planData=[owner,ref.object.sha,instruction,entries];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   return json({gateway_version:gatewayVersion,execution_route:'bounded_multifile_v1',enabled:false,read_only:true,
+    plan_id:planId,base_sha:ref.object.sha,manifest:entries,total_bytes:total,
+    provider_route:'gemini_openrouter',owner_approval_required:true,provider_api_spend:false,
+    requires_review:true,production_deployment:false,reason:'MULTIFILE_EXECUTION_NOT_ENABLED'});
+  }
   if(body.action==='status'){
    const jobId=String(body.job_id||'');
    if(!/^sep01-owner-[a-z0-9-]{6,60}$/.test(jobId))return json({error:'INVALID_JOB_ID'},400);
