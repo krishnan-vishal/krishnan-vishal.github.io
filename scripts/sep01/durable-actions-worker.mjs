@@ -105,8 +105,9 @@ const execute=async(job)=>{
   const bridge=createMultifileProviderBridge({
    store,root,ownerUserId:process.env.SEP01_OWNER_USER_ID,
    runTests:async()=>runMultifileRegressionTests(job),
-   // Stage 3 direct Gemini calls remain disabled until their billing cap is independently verified.
-   gemini:null,
+   // Preserve the approved Gemini-primary/OpenRouter-fallback provider configuration.
+   // Stage 3 remains disabled at the workflow gate until the shared paid-test budget is authorized.
+   gemini:process.env.GEMINI_API_KEY&&process.env.SEP01_GEMINI_MODEL?{apiKey:process.env.GEMINI_API_KEY,model:process.env.SEP01_GEMINI_MODEL}:null,
    // Never reuse the existing single-file OPENROUTER_API_KEY on the Stage 3 route.
    openrouter:process.env.OPENROUTER_STAGE3_API_KEY&&process.env.SEP01_OPENROUTER_MODEL?{apiKey:process.env.OPENROUTER_STAGE3_API_KEY,model:process.env.SEP01_OPENROUTER_MODEL}:null,
    executionEnabled:process.env.SEP01_MULTIFILE_EXECUTION_ENABLED==='true',
