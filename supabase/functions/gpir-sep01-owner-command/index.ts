@@ -144,6 +144,54 @@ Deno.serve(async request=>{
     provider_route:'gemini_openrouter',owner_approval_required:true,provider_api_spend:false,
     requires_review:true,production_deployment:false,reason:'MULTIFILE_EXECUTION_NOT_ENABLED'});
   }
+  // Stage 3 approvals are owner-authenticated, persisted through the existing
+  // service-role CAS RPC, and disabled until verified provider-side cost controls.
+  if(body.action==='multifile_approve'||body.action==='multifile_dispatch'){
+   const jobId=String(body.job_id||''),planId=String(body.plan_id||'');
+   if(!/^sep01-owner-[a-z0-9-]{6,60}$/.test(jobId)||!/^[a-f0-9]{64}$/.test(planId))return json({error:'INVALID_MULTIFILE_IDENTITY'},422);
+   const rows=await supa('gpir_sep01_jobs?job_id=eq.'+encodeURIComponent(jobId)+'&select=*');
+   const row=rows[0],job=row?.payload;
+   if(!row||job?.owner_user_id!==owner||job?.execution_route!=='bounded_multifile_v1'||job?.plan_id!==planId)
+    return json({error:'MULTIFILE_PLAN_NOT_FOUND_OR_STALE'},409);
+   const ref=await github('git/ref/heads/main');
+   if(ref.object?.sha!==job.base_sha)return json({error:'MULTIFILE_BASE_CHANGED_REPLAN_REQUIRED'},409);
+   if(body.action==='multifile_approve'){
+    if(job.status!=='PLANNED'||body.confirmation!=='AUTHORIZE_ONE_MULTIFILE_JOB')return json({error:'MULTIFILE_APPROVAL_REQUIRED'},403);
+    // Never accept account-cap verification or maximum cost from browser claims.
+    if(env('SEP01_MULTIFILE_SPEND_CAP_VERIFIED')!=='true'||env('SEP01_MULTIFILE_MAX_SPEND_USD')!=='0.25')
+     return json({error:'PROVIDER_ACCOUNT_CAP_NOT_VERIFIED'},403);
+    if(!Array.isArray(job.locked_paths)||job.locked_paths.length<2||job.locked_paths.length>3||!Array.isArray(job.manifest)||job.manifest.length!==job.locked_paths.length)
+     return json({error:'MULTIFILE_APPROVAL_SCOPE_INVALID'},409);
+    const approval={status:'APPROVED',owner_user_id:owner,job_id:jobId,plan_id:planId,
+     base_sha:job.base_sha,branch:job.branch,instruction:job.instruction,
+     locked_paths:job.locked_paths,single_attempt:true,cost_approved:true,
+     max_provider_requests:3,max_cost_usd:0.25,external_cap_verified:true,
+     approved_at:new Date().toISOString(),revision:row.revision};
+    const result=await supa('rpc/gpir_sep01_cas_job','POST',{
+     p_job_id:jobId,p_idempotency_key:row.idempotency_key,p_expected_revision:row.revision,
+     p_payload:{...job,job_id:jobId,idempotency_key:row.idempotency_key,status:'APPROVED',
+      cost_approved:true,multifile_approval:approval}});
+    if(!result)return json({error:'MULTIFILE_APPROVAL_CONCURRENTLY_CHANGED'},409);
+    return json({job_id:jobId,status:'APPROVED',plan_id:planId,dispatch_enabled:false,
+     provider_api_spend:false});
+   }
+   // Dispatch requires its own future owner decision and an explicit server release.
+   if(job.status!=='APPROVED'||job.multifile_approval?.plan_id!==planId||
+      body.confirmation!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH')
+    return json({error:'MULTIFILE_DISPATCH_APPROVAL_REQUIRED'},403);
+   if(env('SEP01_MULTIFILE_EXECUTION_ENABLED')!=='true'||
+      env('SEP01_MULTIFILE_SPEND_CAP_VERIFIED')!=='true'||
+      env('SEP01_MULTIFILE_MAX_SPEND_USD')!=='0.25')
+    return json({error:'MULTIFILE_EXECUTION_NOT_ENABLED'},403);
+   // No GitHub workflow dispatch here: the existing durable worker consumes only
+   // an explicitly queued job, using its service-role CAS writer locks.
+   const result=await supa('rpc/gpir_sep01_cas_job','POST',{
+    p_job_id:jobId,p_idempotency_key:row.idempotency_key,p_expected_revision:row.revision,
+    p_payload:{...job,job_id:jobId,idempotency_key:row.idempotency_key,status:'QUEUED'}});
+   if(!result)return json({error:'MULTIFILE_DISPATCH_CONCURRENTLY_CHANGED'},409);
+   return json({job_id:jobId,status:'QUEUED',plan_id:planId,dispatch_authorized:true,
+    provider_request_performed:false});
+  }
   if(body.action==='status'){
    const jobId=String(body.job_id||'');
    if(!/^sep01-owner-[a-z0-9-]{6,60}$/.test(jobId))return json({error:'INVALID_JOB_ID'},400);
