@@ -196,9 +196,10 @@ Deno.serve(async request=>{
    if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
    if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
    if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+   if(body.execution_route!==undefined&&body.execution_route!=='bounded_sep01')return json({error:'EXECUTION_ROUTE_NOT_AUTHORIZED'},422);
    const intent=classifyRequirement(instruction,requestedScope);
    const {category,kind,sensitive}=intent;
-   const preview={gateway_version:gatewayVersion,category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
+   const preview={gateway_version:gatewayVersion,execution_route:'bounded_sep01',provider_route:'gemini_openrouter_runtime_verified',category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
    const block=(reason,candidates=[])=>plannedSubmission?json({error:reason},409):json({...preview,reason,candidates});
    if(intent.reason)return block(intent.reason);
    if(instruction.replace(/\s+/g,' ').length>1000)return block('WORKER_INSTRUCTION_LIMIT');
