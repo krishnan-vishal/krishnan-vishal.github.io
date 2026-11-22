@@ -45,8 +45,8 @@ test('owner approval and dispatch are separately confirmed and server gated',()=
  assert.match(gateway,/env\('SEP01_MULTIFILE_SPEND_CAP_VERIFIED'\)!=='true'/);
  assert.match(gateway,/env\('SEP01_MULTIFILE_EXECUTION_ENABLED'\)!=='true'/);
  assert.match(gateway,/p_expected_revision:row\.revision/);
- assert.match(html,/commandRequest\\(\\{action:'multifile_approve'/);
- assert.match(html,/commandRequest\\(\\{action:'multifile_dispatch'/);
+ assert.match(html,/commandRequest\(\{action:'multifile_approve'/);
+ assert.match(html,/commandRequest\(\{action:'multifile_dispatch'/);
  assert.match(html,/approvalInput.value!=='AUTHORIZE_ONE_MULTIFILE_JOB'/);
  assert.match(html,/dispatchInput.value!=='AUTHORIZE_ONE_MULTIFILE_DISPATCH'/);
 });
