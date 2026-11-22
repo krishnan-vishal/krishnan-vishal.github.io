@@ -8,7 +8,7 @@ import {requestWithIndependentFallback} from './independent-provider-router.mjs'
 const failureStatuses=new Set(['QUOTA_EXHAUSTED','PROVIDER_BUSY','MODEL_UNAVAILABLE','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID']);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function createMultifileProviderBridge({store,root,runTests,ownerUserId,gemini,openrouter,executionEnabled=false,providerSpendCapVerified=false,providerSpendCapUsd=0}={}){
- if(!store||typeof store.get!=='function'||typeof runTests!=='function'||typeof ownerUserId!=='string'||!ownerUserId||!root)throw Error('MULTIFILE_BRIDGE_CONFIGURATION_INVALID');
+ if(!store||typeof store.get!=='function'||typeof store.compareAndSet!=='function'||typeof runTests!=='function'||typeof ownerUserId!=='string'||!ownerUserId||!root)throw Error('MULTIFILE_BRIDGE_CONFIGURATION_INVALID');
  // Configured provider credentials never authorize a job. Persisted, revisioned owner approval is mandatory.
  const geminiEdit=gemini?.apiKey&&gemini?.model?createGeminiCodeEditor(gemini):null;
  const openrouterEdit=openrouter?.apiKey&&openrouter?.model?createOpenRouterCodeEditor(openrouter):null;
@@ -24,6 +24,15 @@ export function createMultifileProviderBridge({store,root,runTests,ownerUserId,g
   if(approval.status!=='APPROVED'||approval.owner_user_id!==ownerUserId||approval.job_id!==jobId||approval.branch!==job.branch||approval.plan_id!==job.plan_id||approval.base_sha!==job.base_sha||approval.instruction!==job.instruction||approval.cost_approved!==true||approval.single_attempt!==true||!Number.isSafeInteger(approval.revision)||approval.revision<1||!Number.isSafeInteger(approval.max_provider_requests)||approval.max_provider_requests<2||approval.max_provider_requests>3||typeof approval.approved_at!=='string'||!/^202\d-\d\d-\d\dT/.test(approval.approved_at))throw Error('MULTIFILE_PERSISTED_APPROVAL_REQUIRED');
   if(!Array.isArray(job.manifest)||job.manifest.length<2||job.manifest.length>3||!same(job.locked_paths,job.manifest.map(x=>x.path))||!same(approval.locked_paths,job.locked_paths))throw Error('MULTIFILE_PERSISTED_LOCKS_INVALID');
   if(!geminiEdit&&!openrouterEdit)throw Error('MULTIFILE_PROVIDER_NOT_CONFIGURED');
+  // Atomically consume the single provider-execution opportunity before any API request.
+  // A worker crash or recovery must NEVER spend again for the same job identity.
+  if(job.provider_attempt_reserved===true)throw Error('MULTIFILE_PROVIDER_ATTEMPT_ALREADY_CONSUMED');
+  const reserved=await store.compareAndSet(jobId,'CLAIMED',{
+   status:'CLAIMED',provider_attempt_reserved:true,
+   provider_attempt_reserved_at:new Date().toISOString(),
+   provider_attempt_limit:approval.max_provider_requests
+  });
+  if(!reserved||reserved.provider_attempt_reserved!==true||reserved.status!=='CLAIMED')throw Error('MULTIFILE_PROVIDER_ATTEMPT_RESERVATION_FAILED');
   const plan=validateMultifileManifest({files:job.locked_paths,tree:job.manifest.map(item=>({type:'blob',path:item.path,size:item.size,sha:item.blob_sha})),baseSha:job.base_sha,instruction:job.instruction,ownerId:ownerUserId});
   if(plan.plan_id!==job.plan_id||!same(plan.manifest,job.manifest))throw Error('MULTIFILE_PERSISTED_PLAN_STALE');
   // Existing adapters accept at most 50k characters; reject before charging any provider.
