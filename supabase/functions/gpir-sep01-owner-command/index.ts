@@ -105,6 +105,47 @@ Deno.serve(async request=>{
    }):[];
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
+  // Governed GPIR intelligence operations use the existing historical acquisition
+  // script through a dedicated, allowlisted GitHub workflow. No arbitrary commands.
+  if(['intelligence_plan','intelligence_submit','intelligence_status'].includes(body.action)){
+   const workflow='gpir-governed-intelligence-operations.yml';
+   if(body.action==='intelligence_status'){
+    const runs=await github('actions/workflows/'+workflow+'/runs?per_page=30');
+    const entries=(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,30).map(run=>({
+     run_id:run.id, title:String(run.display_title||'').slice(0,160),
+     status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null,
+     created_at:run.created_at
+    }));
+    return json({gateway_version:gatewayVersion,operations:entries,read_only:true});
+   }
+   const source=String(body.source_id||'');
+   const month=String(body.month||'');
+   const mode=String(body.mode||'plan');
+   if(!['FINTECHNEWS-SG-008','ATLAS-APAC-009'].includes(source))return json({error:'SOURCE_NOT_APPROVED'},422);
+   if(!/^202[1-6]-(0[1-9]|1[0-2])$/.test(month)||month<'2021-11'||month>'2026-11')return json({error:'MONTH_NOT_APPROVED'},422);
+   if(!['plan','apply'].includes(mode))return json({error:'MODE_NOT_APPROVED'},422);
+   const main=await github('git/ref/heads/main');
+   const planData=[owner,main.object.sha,workflow,source,month,mode];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   if(body.action==='intelligence_plan')return json({
+    gateway_version:gatewayVersion,plan_id:planId,source_id:source,month,mode,
+    execution:'EXISTING_GOVERNED_SOURCE_MONTH_BACKFILL',max_sources:1,max_months:1,
+    production_mutation:mode==='apply',provider_api_spend:false,
+    requires_owner_approval:true,review_required:mode==='apply',
+    scope_limit:'Only two previously verified historical sources; this is not all-source activation or five-year acceptance.'
+   });
+   if(body.plan_id!==planId||body.confirmation!=='AUTHORIZE_ONE_INTELLIGENCE_OPERATION')return json({error:'OPERATION_APPROVAL_REQUIRED_OR_STALE'},403);
+   // Check recent workflow runs before dispatch. Existing pipeline dedupe and
+   // workflow concurrency are additional safeguards, not an atomic lock.
+   const prior=await github('actions/workflows/'+workflow+'/runs?per_page=100');
+   const title='GPIR intelligence '+mode+' '+source+' '+month;
+   const duplicate=(prior.workflow_runs||[]).find(run=>run.display_title===title);
+   if(duplicate)return json({error:'OPERATION_ALREADY_DISPATCHED',run_id:duplicate.id,url:duplicate.html_url||null},409);
+   await github('actions/workflows/'+workflow+'/dispatches','POST',{ref:'main',inputs:{mode,source_id:source,month}});
+   return json({status:'DISPATCH_REQUESTED',source_id:source,month,mode,workflow,
+    receipt_pending:true,message:'GitHub accepted dispatch. Verify actual run and outcome via intelligence_status.'},202);
+  }
   const plannedSubmission=body.action==='submit_planned';
   let plannedBase;
   if(body.action==='classify_requirement'||plannedSubmission){
