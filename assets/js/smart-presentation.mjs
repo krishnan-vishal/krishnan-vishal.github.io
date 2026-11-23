@@ -82,6 +82,7 @@ export function primaryThemeId(record) {
 // Software repository history and statistical series are reference data, never premium news.
 export function referenceClass(record) {
   if (!record) return null;
+  if (record.dataClass === 'REGULATORY_REFERENCE') return 'regulatory';
   if (record.dataClass === 'STATISTICAL_REFERENCE') return 'statistical';
   let host = '';
   try { host = new URL(record.url).hostname; } catch {}

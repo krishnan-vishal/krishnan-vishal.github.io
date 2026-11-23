@@ -108,14 +108,16 @@ function normalizeDimensions(value) {
 export function normalizeSmartRecords(value) {
   if (value?.status !== 'OK' || !Array.isArray(value.records)) return [];
   return value.records.flatMap(item => {
-    const publishedAt = Date.parse(item?.publishedAt || '');
+    const dateOnly = item?.dataClass === 'REGULATORY_REFERENCE' &&
+      item.publicationPrecision === 'DATE_ONLY' && /^\d{4}-\d{2}-\d{2}$/.test(item.publicationDate);
+    const publishedAt = Date.parse(dateOnly ? item.publicationDate : item?.publishedAt || '');
     const url = safeHttps(item?.canonicalUrl || item?.source?.url);
     const title = clean(item?.title || item?.headline, 240);
     const summary = clean(item?.summary, 2000);
     if (!Number.isFinite(publishedAt) || !url || !title || summary.length < 40) return [];
     const record = {
       id: clean(item.id, 100), title, summary, url,
-      publishedAt: new Date(publishedAt).toISOString(),
+      publishedAt: dateOnly ? item.publicationDate : new Date(publishedAt).toISOString(),
       category: clean(item.category, 100) || 'Payments',
       topics: Array.isArray(item.topics) ? item.topics.map(value => clean(value, 100)).filter(Boolean) : [],
       country: clean(item.country, 100), region: clean(item.region, 100),
@@ -377,6 +379,11 @@ export function buildHeatmapSelection(records, topicId, weekStart, now = Date.no
 
 // Distinguishes machine-readable statistics and GitHub repository history from announcements.
 export function evidenceKind(record) {
+  if (record?.dataClass === 'REGULATORY_REFERENCE') {
+    return { id: 'regulatory', label: 'Historical regulatory reference',
+      tag: 'Official regulatory evidence', note: 'Publication date as recorded by the source.',
+      linkLabel: 'Open official source' };
+  }
   if (record?.dataClass === 'STATISTICAL_REFERENCE' && record?.recordType === 'RPW_CORRIDOR_QUARTER') {
     return { id: 'statistical', label: 'World Bank RPW statistical reference',
       tag: 'World Bank Remittance Prices Worldwide',
