@@ -53,6 +53,7 @@ function createNavigationHarness({ mobile = false } = {}){
     const styleValues = new Map();
 
     item.classList = new FakeClassList();
+    item.getBoundingClientRect = () => ({ left: 100, right: 200 });
     trigger.classList = new FakeClassList();
     trigger.attributes = new Map();
     trigger.setAttribute = (name, value) => trigger.attributes.set(name, String(value));
@@ -62,6 +63,7 @@ function createNavigationHarness({ mobile = false } = {}){
     trigger.focus = () => { trigger.focused = true; };
     menu.id = "";
     menu.scrollHeight = 400;
+    menu.offsetWidth = 600;
     menu.style = {
         maxHeight: "",
         setProperty(name, value){ styleValues.set(name, value); },
@@ -95,7 +97,7 @@ function createNavigationHarness({ mobile = false } = {}){
     vm.runInContext(navigationSource, context);
     context.initializeMegaMenuHoverIntent();
     if(mobile) context.initializeMobileMegaAccordion();
-    return { document, item, trigger, menu, windowTarget };
+    return { document, item, trigger, menu, windowTarget, styleValues };
 }
 
 function htmlEscape(value){
@@ -224,6 +226,19 @@ test("desktop mega-menu opens after intentional hover and toggles on click", asy
     assert.equal(item.classList.contains("is-open"), false);
     trigger.fire("click");
     assert.equal(item.classList.contains("is-open"), true);
+});
+
+test("desktop mega-menu clamps its full width to both viewport edges", () => {
+    const { item, trigger, menu, windowTarget, styleValues } = createNavigationHarness();
+    item.getBoundingClientRect = () => ({ left: 0, right: 100 });
+    trigger.fire("click");
+    const left = 50 - menu.offsetWidth / 2 + parseFloat(styleValues.get("--edge-shift"));
+    assert.ok(left > 0);
+    trigger.fire("click");
+    item.getBoundingClientRect = () => ({ left: 1100, right: 1200 });
+    trigger.fire("click");
+    const right = 1150 + menu.offsetWidth / 2 + parseFloat(styleValues.get("--edge-shift"));
+    assert.ok(right < windowTarget.innerWidth);
 });
 
 test("desktop mega-menu cancels a pending hover when the pointer leaves", async () => {
