@@ -457,19 +457,13 @@ function initializeMegaMenuHoverIntent(){
 
             const applyEdgeGuard = () => {
 
-                menu.style.setProperty("--edge-shift", "0px");
-
-                const rect = menu.getBoundingClientRect();
-
-                let shift = 0;
-
-                if(rect.right > window.innerWidth - EDGE_MARGIN){
-                    shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
-                }
-
-                if(rect.left + shift < EDGE_MARGIN){
-                    shift += (EDGE_MARGIN - (rect.left + shift));
-                }
+                const anchor = item.getBoundingClientRect();
+                const width = menu.offsetWidth || menu.getBoundingClientRect().width;
+                const viewportWidth = document.documentElement?.clientWidth || window.innerWidth;
+                const center = (anchor.left + anchor.right) / 2;
+                const naturalLeft = center - width / 2;
+                const availableRight = Math.max(EDGE_MARGIN, viewportWidth - EDGE_MARGIN - width);
+                const shift = Math.min(availableRight, Math.max(EDGE_MARGIN, naturalLeft)) - naturalLeft;
 
                 menu.style.setProperty("--edge-shift", `${shift}px`);
 
