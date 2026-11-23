@@ -7,7 +7,7 @@
     <meta name="description" content="Official FATF country classifications, separate GPIR analytical ratings, OFAC sanctions-change evidence and historical status.">
     <link rel="canonical" href="https://fintechoisis.com/pages/risk/global-country-risk-monitor.html">
     <link rel="stylesheet" href="../../assets/css/global.css">
-    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261119polish">
+    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261123riskgrid">
 </head>
 <body class="country-risk-page" data-risk-auth="checking">
     <a class="skip-link" href="#country-risk-content">Skip to country risk monitor</a>
@@ -72,25 +72,38 @@
         <h2>OFAC Sanctions Intelligence</h2><p>Verified sanctions actions and entity/program evidence are distinct from country-level conclusions. No country is classified as sanctioned without authoritative evidence.</p>
         <h3>U.S. Treasury · OFAC</h3>
         <p>Russia-related programs include targeted measures, sectoral restrictions and general licenses. Check the program and action for the scope and effective date.</p>
-        <ul>
-          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information/russian-harmful-foreign-activities-sanctions">Russian Harmful Foreign Activities Sanctions</a></li>
-          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information/ukraine-russia-related-sanctions">Ukraine-/Russia-related Sanctions</a></li>
-          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information">All OFAC programs and country information</a></li>
-          <li><a href="https://ofac.treasury.gov/recent-actions/sanctions-list-updates">OFAC designations, removals and license updates</a></li>
+        <ul class="risk-source-stack">
+          <li><a class="risk-source-card" href="https://ofac.treasury.gov/sanctions-programs-and-country-information/russian-harmful-foreign-activities-sanctions"><span><small>Sanctions program</small><strong>Russian Harmful Foreign Activities Sanctions</strong><span class="risk-source-description">Program authorities, directives and general licenses.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="risk-source-card" href="https://ofac.treasury.gov/sanctions-programs-and-country-information/ukraine-russia-related-sanctions"><span><small>Sanctions program</small><strong>Ukraine-/Russia-related Sanctions</strong><span class="risk-source-description">Measures and licensing guidance under Ukraine- and Russia-related authorities.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="risk-source-card" href="https://ofac.treasury.gov/sanctions-programs-and-country-information"><span><small>Program directory</small><strong>All OFAC programs and country information</strong><span class="risk-source-description">Browse Treasury sanctions programs and country information.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="risk-source-card" href="https://ofac.treasury.gov/recent-actions/sanctions-list-updates"><span><small>Recent actions</small><strong>OFAC designations, removals and license updates</strong><span class="risk-source-description">Dated designations, removals, amendments and licensing notices.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
         </ul>
         <h3>UN Security Council</h3>
         <p>Use the consolidated list and committee notices for named entities and individuals, and consult the relevant resolutions for the applicable measures.</p>
-        <ul>
-          <li><a href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list">UN consolidated sanctions list · XML, HTML and PDF</a></li>
-          <li><a href="https://main.un.org/securitycouncil/en/content/list-updates-unsc-consolidated-list">UN sanctions list changes</a></li>
+        <ul class="risk-source-stack">
+          <li><a class="risk-source-card" href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list"><span><small>Consolidated list</small><strong>UN consolidated sanctions list · XML, HTML and PDF</strong><span class="risk-source-description">Search named individuals and entities across Security Council regimes.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
+          <li><a class="risk-source-card" href="https://main.un.org/securitycouncil/en/content/list-updates-unsc-consolidated-list"><span><small>Change notices</small><strong>UN sanctions list changes</strong><span class="risk-source-description">Review additions, amendments and removals published by sanctions committees.</span></span><span class="risk-source-arrow" aria-hidden="true">↗</span></a></li>
         </ul>
-        <a href="/intelligence-repository/?q=OFAC">Explore GPIR's verified OFAC intelligence</a>
+        <a class="risk-source-card risk-source-repository" href="/intelligence-repository/?q=OFAC">
+          <span><small>GPIR repository</small><strong>Explore verified OFAC intelligence</strong><span class="risk-source-description">Search source-linked announcements in GPIR.</span></span><span class="risk-source-arrow" aria-hidden="true">→</span>
+        </a>
       </section>
       <section class="risk-secondary-panel" data-risk-panel="fatf" hidden>
         <h2>FATF Intelligence</h2><p>Current official call-for-action and increased-monitoring designations from the validated FATF snapshot.</p>
-        <p>FATF removed the UAE from increased monitoring on 23 February 2024. Russia's FATF membership suspension, which began in February 2023, is a separate status.</p>
-        <p><a href="https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html">Official UAE FATF history</a> · <a href="https://www.fatf-gafi.org/en/publications/Mutualevaluations/Russia-FUR-2024.html">Official Russia FATF follow-up</a></p>
-        <div data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
+        <div class="risk-fatf-stack" data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
+        <h3>Country context</h3>
+        <div class="risk-fatf-context">
+          <article class="risk-fatf-card">
+            <header><h3>United Arab Emirates</h3><span>Removed from increased monitoring · 23 February 2024</span></header>
+            <p>FATF ended increased monitoring after the UAE addressed its action plan. Consult the dated FATF statements for the current designation.</p>
+            <a class="risk-fatf-source" href="https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html">Official UAE FATF history ↗</a>
+          </article>
+          <article class="risk-fatf-card">
+            <header><h3>Russia</h3><span>FATF membership suspension · February 2023</span></header>
+            <p>Membership suspension is a separate FATF status. Read the follow-up report for technical compliance findings.</p>
+            <a class="risk-fatf-source" href="https://www.fatf-gafi.org/en/publications/Mutualevaluations/Russia-FUR-2024.html">Official Russia FATF follow-up ↗</a>
+          </article>
+        </div>
         <button type="button" data-risk-show-fatf>Show FATF-designated countries</button>
         <a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">Official FATF source</a>
       </section>
@@ -111,7 +124,11 @@
         <a href="#risk-ask-gpir"><strong>◇ ASK GPIR</strong><span>Contextual country intelligence</span></a>
       </nav>
     </main>
-    <footer class="risk-dashboard-footer"><div class="country-risk-shell"><strong>GPIR<sup>®</sup></strong><span>Global Payments Intelligence Repository</span><small>Official sources: FATF · U.S. Treasury (OFAC)</small></div></footer>
+    <footer class="risk-dashboard-footer"><div class="country-risk-shell"><strong>GPIR<sup>®</sup></strong><span>Global Payments Intelligence Repository</span><nav class="risk-footer-sources" aria-label="Official regulatory sources">
+      <a href="https://www.fatf-gafi.org/en/topics/high-risk-and-other-monitored-jurisdictions.html">FATF</a>
+      <a href="https://ofac.treasury.gov/">U.S. Treasury / OFAC</a>
+      <a href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list">UN Security Council</a>
+    </nav></div></footer>
     </div>
     <script src="../../assets/js/gpir-supabase-public-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
@@ -136,7 +153,7 @@
           document.body.dataset.riskAuth = 'guest';
         } else {
           document.body.dataset.riskAuth = 'reader';
-          await import('../../assets/js/country-risk-monitor.js?v=20261123regulatory');
+          await import('../../assets/js/country-risk-monitor.js?v=20261123fatfcards');
         }
       } catch {
         status.textContent = 'Reader access could not be verified. Sign in to continue.';
