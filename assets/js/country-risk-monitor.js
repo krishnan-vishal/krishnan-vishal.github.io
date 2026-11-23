@@ -253,15 +253,28 @@ if (root) {
 
     function renderFatfSnapshot() {
         const groups = [
-            ["FATF_CALL_FOR_ACTION", "High Risk — Call for Action"],
-            ["FATF_INCREASED_MONITORING", "Grey List — Increased Monitoring"]
+            {
+                designation: "FATF_CALL_FOR_ACTION", label: "High Risk — Call for Action",
+                summary: "FATF calls for enhanced due diligence or countermeasures, depending on the jurisdiction. Use the dated statement to confirm which measures apply."
+            },
+            {
+                designation: "FATF_INCREASED_MONITORING", label: "Grey List — Increased Monitoring",
+                summary: "These jurisdictions are implementing FATF action plans. FATF calls for a risk-based approach and does not call for enhanced due diligence solely because of this listing."
+            }
         ];
-        fatfResults.innerHTML = groups.map(([designation, label]) => {
-            const names = dataset.countries.filter(country => country.fatfDesignation === designation)
-                .map(country => '<li>' + escapeHtml(country.countryName) + '</li>');
-            return '<section><h3>' + label + ' · ' + names.length + '</h3>' +
-                (names.length ? '<ul>' + names.join("") + '</ul>' : '<p>No designations in this snapshot.</p>') +
-                '</section>';
+        fatfResults.innerHTML = groups.map(({ designation, label, summary }) => {
+            const jurisdictions = dataset.countries.filter(country => country.fatfDesignation === designation);
+            const source = jurisdictions[0];
+            const sourceLink = source && /^https:\/\/www\.fatf-gafi\.org\//.test(source.sourceUrl)
+                ? '<a class="risk-fatf-source" href="' + escapeHtml(source.sourceUrl) + '">Read the official FATF statement ↗</a>' : '';
+            const date = source?.publicationDate ? ' · Statement dated ' + escapeHtml(source.publicationDate) : '';
+            const countries = jurisdictions.map(country => '<li>' + escapeHtml(country.countryName) + '</li>').join("");
+            const datedGuidance = designation === "FATF_CALL_FOR_ACTION" && source?.publicationDate === "2026-10-30"
+                ? '<p>In this statement, FATF calls for countermeasures for Iran and North Korea, and for proportionate enhanced due diligence for Myanmar.</p>' : '';
+            return '<article class="risk-fatf-card"><header><h3>' + label + '</h3><span>' + jurisdictions.length +
+                ' jurisdictions' + date + '</span></header><p>' + summary + '</p>' + datedGuidance +
+                (countries ? '<details><summary>View ' + jurisdictions.length + ' jurisdictions</summary><ul>' + countries + '</ul></details>' :
+                    '<p>No jurisdictions recorded in this snapshot.</p>') + sourceLink + '</article>';
         }).join("");
     }
 

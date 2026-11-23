@@ -491,3 +491,27 @@
 .risk-source-description { color: #d9e7f4; font-size: .88rem; }
 .risk-source-arrow { flex: none; }
 .risk-secondary-panel a.risk-source-repository { background: #163b60; }
+
+.risk-fatf-stack, .risk-fatf-context { display: grid; gap: 12px; margin-block: 16px; }
+.risk-fatf-context { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.risk-fatf-card {
+    padding: 14px 16px;
+    border: 1px solid #6688a5;
+    border-inline-start: 3px solid #dfb550;
+    border-radius: 10px;
+    background: #102e4d;
+    overflow-wrap: anywhere;
+}
+.risk-fatf-card header { display: grid; gap: 4px; }
+.risk-fatf-card h3 { margin: 0; color: #ffda7c; }
+.risk-fatf-card header span { color: #d9e7f4; font-size: .85rem; }
+.risk-fatf-card details { margin-block: 10px; }
+.risk-fatf-card summary { cursor: pointer; width: fit-content; }
+.risk-fatf-card ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 4px 20px;
+    padding-inline-start: 20px;
+}
+.risk-secondary-panel a.risk-fatf-source { margin: 4px 0 0; }
+.risk-fatf-card :is(a, summary):focus-visible { outline: 2px solid #ffda7c; outline-offset: 3px; }

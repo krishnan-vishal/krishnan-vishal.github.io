@@ -7,7 +7,7 @@
     <meta name="description" content="Official FATF country classifications, separate GPIR analytical ratings, OFAC sanctions-change evidence and historical status.">
     <link rel="canonical" href="https://fintechoisis.com/pages/risk/global-country-risk-monitor.html">
     <link rel="stylesheet" href="../../assets/css/global.css">
-    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261123sourcecredits">
+    <link rel="stylesheet" href="../../assets/css/country-risk-monitor.css?v=20261123fatfcards">
 </head>
 <body class="country-risk-page" data-risk-auth="checking">
     <a class="skip-link" href="#country-risk-content">Skip to country risk monitor</a>
@@ -90,9 +90,20 @@
       </section>
       <section class="risk-secondary-panel" data-risk-panel="fatf" hidden>
         <h2>FATF Intelligence</h2><p>Current official call-for-action and increased-monitoring designations from the validated FATF snapshot.</p>
-        <p>FATF removed the UAE from increased monitoring on 23 February 2024. Russia's FATF membership suspension, which began in February 2023, is a separate status.</p>
-        <p><a href="https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html">Official UAE FATF history</a> · <a href="https://www.fatf-gafi.org/en/publications/Mutualevaluations/Russia-FUR-2024.html">Official Russia FATF follow-up</a></p>
-        <div data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
+        <div class="risk-fatf-stack" data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
+        <h3>Country context</h3>
+        <div class="risk-fatf-context">
+          <article class="risk-fatf-card">
+            <header><h3>United Arab Emirates</h3><span>Removed from increased monitoring · 23 February 2024</span></header>
+            <p>FATF ended increased monitoring after the UAE addressed its action plan. Consult the dated FATF statements for the current designation.</p>
+            <a class="risk-fatf-source" href="https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html">Official UAE FATF history ↗</a>
+          </article>
+          <article class="risk-fatf-card">
+            <header><h3>Russia</h3><span>FATF membership suspension · February 2023</span></header>
+            <p>Membership suspension is a separate FATF status. Read the follow-up report for technical compliance findings.</p>
+            <a class="risk-fatf-source" href="https://www.fatf-gafi.org/en/publications/Mutualevaluations/Russia-FUR-2024.html">Official Russia FATF follow-up ↗</a>
+          </article>
+        </div>
         <button type="button" data-risk-show-fatf>Show FATF-designated countries</button>
         <a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">Official FATF source</a>
       </section>
@@ -142,7 +153,7 @@
           document.body.dataset.riskAuth = 'guest';
         } else {
           document.body.dataset.riskAuth = 'reader';
-          await import('../../assets/js/country-risk-monitor.js?v=20261123regulatory');
+          await import('../../assets/js/country-risk-monitor.js?v=20261123fatfcards');
         }
       } catch {
         status.textContent = 'Reader access could not be verified. Sign in to continue.';
