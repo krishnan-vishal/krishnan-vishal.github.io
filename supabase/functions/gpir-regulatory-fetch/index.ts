@@ -2,6 +2,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "jsr:@supabase/server@^1";
 import {
     FATF_STATEMENTS_URL,
+    UNSC_XML_URL,
+    regulatoryRedirect,
+    regulatoryPublicationTitle,
+    parseUnscSnapshot,
     OFAC_EXPORT_BASE,
     assertOfficialSourceUrl,
     lifecycleForTimestamp,
@@ -17,7 +21,8 @@ import {
 
 const OFAC_SOURCE_ID = "OFAC-US-001";
 const FATF_SOURCE_ID = "FATF-GLOBAL-001";
-const ALLOWED_SOURCES = [OFAC_SOURCE_ID, FATF_SOURCE_ID];
+const UNSC_SOURCE_ID = "UNSC-GLOBAL-001";
+const ALLOWED_SOURCES = [OFAC_SOURCE_ID, FATF_SOURCE_ID, UNSC_SOURCE_ID];
 const USER_AGENT = "GPIR-ResearchBot/1.0 (+https://fintechoisis.com)";
 const MAX_CURRENT_ACTIONS = 5;
 const FATF_LINK_LIMIT = 10;
@@ -68,18 +73,25 @@ function fatfStatementLinks(html: string) {
     return [...found.values()];
 }
 
-async function officialFetch(url: string, authority: "OFAC" | "FATF") {
-    const canonical = assertOfficialSourceUrl(url, authority);
-    const result = await fetch(canonical, {
-        redirect: "follow",
+async function officialFetch(url: string, authority: "OFAC" | "FATF" | "UNSC") {
+    let current = assertOfficialSourceUrl(url, authority);
+    const options = {
+        redirect: "manual" as const,
         headers: {
             "User-Agent": USER_AGENT,
             Accept: "application/xml,text/html,application/xhtml+xml;q=0.9,*/*;q=0.5"
         },
         signal: AbortSignal.timeout(45000)
-    });
-    const finalUrl = assertOfficialSourceUrl(result.url || canonical, authority);
-    return { result, finalUrl };
+    };
+    for (let hop = 0; hop <= 3; hop++) {
+        const result = await fetch(current, options);
+        if (![301, 302, 303, 307, 308].includes(result.status)) return { result, finalUrl: current };
+        const location = result.headers.get("location");
+        await result.body?.cancel();
+        if (!location) throw new Error(authority + "_REDIRECT_WITHOUT_LOCATION");
+        current = regulatoryRedirect(location, current, authority);
+    }
+    throw new Error(authority + "_TOO_MANY_REDIRECTS");
 }
 
 async function insertDocument(admin: any, row: Record<string, unknown>) {
@@ -134,6 +146,8 @@ async function insertSanctionsEvents(admin: any, documentId: string, events: Arr
 async function stageRelayRecord(admin: any, {
     sourceId, documentId, title, canonicalUrl, content, exactTimestamp, fingerprint, metadata
 }: Record<string, any>) {
+    const filteredTitle = regulatoryPublicationTitle(title);
+    if (!filteredTitle) return "OUT_OF_SCOPE";
     const { data: existing, error: readError } = await admin.from("intelligence_raw_ingestion")
         .select("id").eq("content_hash", fingerprint).limit(1);
     if (readError) throw new Error("RELAY_DEDUP_READ_FAILED:" + readError.message);
@@ -142,8 +156,8 @@ async function stageRelayRecord(admin: any, {
         source_id: sourceId,
         discovered_url: canonicalUrl,
         canonical_url: canonicalUrl,
-        raw_title: title.slice(0, 400),
-        raw_content: content.slice(0, 12000),
+        raw_title: filteredTitle.slice(0, 400),
+        raw_content: (filteredTitle === title ? content : filteredTitle + " — official regulatory notice.").slice(0, 12000),
         source_published_at: exactTimestamp,
         http_status: 200,
         content_hash: fingerprint,
@@ -210,6 +224,30 @@ async function recordFatfSnapshot(admin: any, statements: Array<Record<string, a
         if (error) throw new Error("FATF_HISTORY_INSERT_FAILED:" + error.message);
     }
     return { inserted: inserts.length, closed, unchanged: snapshot.rows.length - inserts.length };
+}
+
+async function handleUnscCurrent(admin: any, dryRun: boolean) {
+    const { result } = await officialFetch(UNSC_XML_URL, "UNSC");
+    if (!result.ok) throw new Error("UNSC_SNAPSHOT_HTTP_" + result.status);
+    const xml = await result.text();
+    const metadata = parseUnscSnapshot(xml);
+    const hash = await sha256Hex(xml);
+    if (!dryRun) {
+        await insertDocument(admin, {
+            source_id: UNSC_SOURCE_ID,
+            document_identity: "UNSC-CONSOLIDATED-XML",
+            canonical_url: UNSC_XML_URL,
+            document_kind: "UNSC_CURRENT_SNAPSHOT",
+            publication_date: metadata.publicationDate,
+            publication_precision: "DATE_ONLY",
+            content_sha256: hash,
+            media_type: result.headers.get("content-type"),
+            http_status: result.status,
+            validation_state: "VALIDATED",
+            metadata: { ...metadata, current_snapshot_only: true, historical_proof: false }
+        });
+    }
+    return { ...metadata, hash, databaseWritten: !dryRun };
 }
 
 async function handleOfacCurrent(admin: any, dryRun: boolean) {
@@ -536,12 +574,16 @@ async function loadSource(admin: any, sourceId: string) {
         .eq("source_id", sourceId).limit(2);
     if (error || !data || data.length !== 1) throw new Error("SOURCE_REGISTRY_LOOKUP_FAILED");
     const source = data[0];
-    const expected = sourceId === OFAC_SOURCE_ID ? "ofac-sls-regulatory-v1" : "fatf-country-classification-v1";
+    const [authority, expected] = sourceId === OFAC_SOURCE_ID
+        ? ["OFAC", "ofac-sls-regulatory-v1"]
+        : sourceId === UNSC_SOURCE_ID
+            ? ["UNSC", "unsc-consolidated-xml-v1"]
+            : ["FATF", "fatf-country-classification-v1"];
     if (source.source_status !== "GREEN" || source.trust_tier !== "T1" || source.parser_profile !== expected) {
         throw new Error("SOURCE_REGISTRY_CONTRACT_MISMATCH");
     }
-    assertOfficialSourceUrl(source.official_url, sourceId === OFAC_SOURCE_ID ? "OFAC" : "FATF");
-    assertOfficialSourceUrl(source.feed_or_index_url, sourceId === OFAC_SOURCE_ID ? "OFAC" : "FATF");
+    assertOfficialSourceUrl(source.official_url, authority);
+    assertOfficialSourceUrl(source.feed_or_index_url, authority);
     return source;
 }
 
@@ -558,7 +600,7 @@ export default {
         const mode = String(body.mode || "CURRENT").toUpperCase();
         const dryRun = body.dry_run !== false;
         if (!ALLOWED_SOURCES.includes(sourceId)) return response(400, { status: "ERROR", code: "SOURCE_NOT_ALLOWED" });
-        if (!["CURRENT", "BACKFILL"].includes(mode)) return response(400, { status: "ERROR", code: "MODE_NOT_ALLOWED" });
+        if (!["CURRENT", "BACKFILL"].includes(mode) || (sourceId === UNSC_SOURCE_ID && mode !== "CURRENT")) return response(400, { status: "ERROR", code: "MODE_NOT_ALLOWED" });
         const startedAt = new Date().toISOString();
         let runId: string | null = null;
         try {
@@ -573,7 +615,9 @@ export default {
                 if (error || !run?.id) throw new Error("RUN_CREATE_FAILED:" + (error?.message || "missing id"));
                 runId = run.id;
             }
-            const result = sourceId === OFAC_SOURCE_ID
+            const result = sourceId === UNSC_SOURCE_ID
+                ? await handleUnscCurrent(ctx.supabaseAdmin, dryRun)
+                : sourceId === OFAC_SOURCE_ID
                 ? mode === "BACKFILL"
                     ? await handleOfacBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
                     : await handleOfacCurrent(ctx.supabaseAdmin, dryRun)

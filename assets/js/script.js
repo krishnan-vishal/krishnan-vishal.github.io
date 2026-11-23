@@ -457,19 +457,13 @@ function initializeMegaMenuHoverIntent(){
 
             const applyEdgeGuard = () => {
 
-                menu.style.setProperty("--edge-shift", "0px");
-
-                const rect = menu.getBoundingClientRect();
-
-                let shift = 0;
-
-                if(rect.right > window.innerWidth - EDGE_MARGIN){
-                    shift -= (rect.right - (window.innerWidth - EDGE_MARGIN));
-                }
-
-                if(rect.left + shift < EDGE_MARGIN){
-                    shift += (EDGE_MARGIN - (rect.left + shift));
-                }
+                const anchor = item.getBoundingClientRect();
+                const width = menu.offsetWidth || menu.getBoundingClientRect().width;
+                const viewportWidth = document.documentElement?.clientWidth || window.innerWidth;
+                const center = (anchor.left + anchor.right) / 2;
+                const naturalLeft = center - width / 2;
+                const availableRight = Math.max(EDGE_MARGIN, viewportWidth - EDGE_MARGIN - width);
+                const shift = Math.min(availableRight, Math.max(EDGE_MARGIN, naturalLeft)) - naturalLeft;
 
                 menu.style.setProperty("--edge-shift", `${shift}px`);
 
@@ -1617,7 +1611,7 @@ function initializeReaderAssistant(){
     const script = document.querySelector('script[src*="assets/js/script.js"]');
     const scriptSrc = script ? script.getAttribute("src") : "assets/js/script.js";
     const dataPrefix = scriptSrc.replace(/assets\/js\/script\.js.*$/, "assets/data/");
-    const intelligenceRepositoryUrl = "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&limit=1000";
+    const intelligenceOrigin = "https://qlnvhfapctcpzqyuhhth.supabase.co";
     let contextPromise = null;
 
     // Each dataset settles independently (never rejects the shared
@@ -1640,18 +1634,27 @@ function initializeReaderAssistant(){
         contextPromise = Promise.all([
             settleDataset(dataPrefix + "content-registry.json", "content registry"),
             settleDataset(dataPrefix + "trusted-sources.json", "trusted source registry"),
-            settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository"),
             settleDataset(dataPrefix + "dashboard-metadata.json", "dashboard metadata"),
             settleDataset(dataPrefix + "dashboard-narratives.json", "dashboard narratives")
-        ]).then(([registry, sources, announcements, dashboards, narratives]) => ({
+        ]).then(([registry, sources, dashboards, narratives]) => ({
             registry: registry.ok ? (registry.data.records || []) : [],
             sources: sources.ok ? (sources.data.registry || []) : [],
-            announcements: announcements.ok ? (announcements.data.records || []) : [],
-            announcementsAvailable: announcements.ok,
+            announcements: [],
             dashboards: dashboards.ok ? (dashboards.data.records || []) : [],
             narratives: narratives.ok ? (narratives.data.records || []) : []
         }));
         return contextPromise;
+    };
+
+    const loadAnnouncementContext = async () => {
+        const context = await loadContext();
+        try {
+            const { fetchGovernedAskPage } = await import("/assets/js/gpir-governed-ask.mjs");
+            const page = await fetchGovernedAskPage(intelligenceOrigin, { limit: "1000" });
+            return { ...context, announcements: page.records, announcementsAvailable: true };
+        } catch {
+            return { ...context, announcementsAvailable: false };
+        }
     };
 
     const escape = (value) => {
@@ -1712,7 +1715,7 @@ function initializeReaderAssistant(){
             .filter(Boolean)
             .slice(0, 6);
         const sections = headings.length ? `<ul>${headings.map(heading => `<li>${escape(heading)}</li>`).join("")}</ul>` : "<p>No structured section headings were found on this page.</p>";
-        loadContext().then(context => {
+        loadAnnouncementContext().then(context => {
             const records = currentRecords(context.registry);
             const related = records.flatMap(record => relatedRecords(record, context));
             const sources = records.flatMap(record => sourceDetails(record, context));
@@ -1798,7 +1801,7 @@ function initializeReaderAssistant(){
 
         const looksLikeAnnouncementQuery = /\b(announcements?|regulation|regulatory|licen[cs](?:e|ing)|stablecoin|aml|cft|sanction|payments?|remittance|cross-border|pix|cbdc|fintech)\b/.test(normalized) && /\b(current|historical|archive|archived|superseded|latest|recent|update|change|expansion|launch|regulation|licen[cs](?:e|ing)|september|august|20\d{2}|india|singapore|australia|brazil|gcc|uae|qatar|rbi)\b/.test(normalized);
         if(/\bannouncements?\b/.test(normalized) || looksLikeAnnouncementQuery){
-            loadContext().then(context => answerAnnouncementQuery(normalized, context)).catch(error => {
+            loadAnnouncementContext().then(context => answerAnnouncementQuery(normalized, context)).catch(error => {
                 // loadContext() no longer rejects on a single dataset failure;
                 // reaching this is an unexpected error, not a normal degraded state.
                 console.error("[GPIR] ASK GPIR announcement resolver failed unexpectedly:", error);
@@ -1937,6 +1940,12 @@ function initializeReaderAssistant(){
     let incomingContext = "";
     try { incomingContext = askMatch ? decodeURIComponent(askMatch[1].replace(/\+/g, " ")) : ""; }
     catch { incomingContext = ""; }
+    if (askMatch) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("ask");
+        if (url.hash === "#gpir-search") url.hash = "";
+        window.history.replaceState(window.history.state, "", url);
+    }
     if(incomingContext){
         const safeContext = incomingContext.replace(/[\u0000-\u001f\u007f]/g, " ")
             .replace(/\s+/g, " ").trim().slice(0, 300);

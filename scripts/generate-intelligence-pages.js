@@ -584,11 +584,12 @@ function archiveCard(record){
 function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockTemplate, templateMarkers, outputDir){
     const pending = allRecords.filter(record => record.status !== "GPIR_CLASSIFIED");
     const byPublication = [...publishedRecords].sort((left, right) => String(right.publicationDate || right.publishedDate || "").localeCompare(String(left.publicationDate || left.publishedDate || "")));
-    const partitioned = announcementLifecycle.partition(byPublication, new Date());
+    const preview = byPublication.slice(0, Math.floor(byPublication.length / 10));
+    const partitioned = announcementLifecycle.partition(preview, new Date());
     const liveRecords = partitioned.live;
     const archiveRecords = partitioned.archive;
     const cards = records => records.length ? records.map(archiveCard).join("\n") : '<p class="ticker-empty">No newly validated announcements in the latest 12 hours.</p>';
-    const periodCounts = byPublication.reduce((years, record) => {
+    const periodCounts = preview.reduce((years, record) => {
         const period = periodFor(record);
         if(!years.has(period.year)) years.set(period.year, new Map());
         const months = years.get(period.year);
@@ -603,7 +604,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
     const initialYearCount = [...initialMonths.values()].reduce((sum, count) => sum + count, 0);
     const monthButtons = initialYear ? `<button type="button" data-month="" aria-pressed="true">All months <span>${initialYearCount}</span></button>${[...initialMonths.entries()].sort(([left], [right]) => right.localeCompare(left)).map(([month, count]) => `<button type="button" data-month="${escapeHtml(month)}" aria-pressed="false">${escapeHtml(month ? monthNames[Number(month) - 1] : "Undated")} <span>${count}</span></button>`).join("")}` : "";
     const initialArchive = archiveRecords.filter(record => periodFor(record).year === initialYear);
-    const embeddedRecords = JSON.stringify({ records: publishedRecords }).replace(/</g, "\\u003c");
+    const embeddedRecords = JSON.stringify({ records: preview }).replace(/</g, "\\u003c");
 
     // Reuses the same shared head/header markup as every generated intelligence
     // detail page (extracted from pages/legal/privacy-policy.html) instead of a
@@ -648,6 +649,7 @@ function generateArchive(allRecords, publishedRecords, footerBlock, headerBlockT
           </nav>
         </div>
         </div>
+        <p data-archive-preview>Public preview · <a href="/reader/my-gpir/">Open My GPIR for full subscriber access</a></p>
         <script type="application/json" data-canonical-announcements>${embeddedRecords}</script>
         <div class="announcement-lifecycle-panels">
           <section id="latest-12-hours" class="announcement-dashboard-live"><h2>Current Alerts · Latest 12 hours</h2><div class="announcement-dashboard-grid" data-live>${cards(liveRecords)}</div></section>
@@ -673,7 +675,7 @@ ${footerBlock}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script src="/scripts/m34/supabase-browser-client.js"></script>
 <script src="/assets/js/gpir-reader-auth.js"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261122release"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261123archiveaccess"></script>
 </body>
 </html>`;
     // The production archive has a maintained navigation and reader shell.

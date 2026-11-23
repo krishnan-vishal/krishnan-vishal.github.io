@@ -2,7 +2,8 @@ import { createPublicIntelligenceHandler } from './handler.mjs';
 
 const env = Object.fromEntries([
   'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY'
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'GPIR_ADMIN_READER_ID'
 ].map(name => [name, Deno.env.get(name)]));
 
 // M40 controlled activation: snapshot reads are eligible only for unfiltered aggregates.

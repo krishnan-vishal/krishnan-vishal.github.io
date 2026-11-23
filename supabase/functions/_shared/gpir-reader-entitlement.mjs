@@ -39,7 +39,7 @@ async function read(fetchImpl, url, headers) {
 }
 
 export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, serviceKey, accessToken,
-  now = Date.now(), directoryQaReaderId, directoryQaEmail }) {
+  now = Date.now(), directoryQaReaderId, directoryQaEmail, adminReaderId }) {
   const environment = paymentEnvironment(supabaseUrl);
   if (!environment || !serviceKey) return { decision: 'ERROR', reason: 'ENTITLEMENT_CONFIGURATION' };
   if (!accessToken) return { decision: 'UNAUTHENTICATED', reason: 'SESSION_REQUIRED' };
@@ -47,6 +47,11 @@ export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, 
     requestHeaders(serviceKey, accessToken));
   if (user.status === 401 || user.status === 403) return { decision: 'UNAUTHENTICATED', reason: 'SESSION_INVALID' };
   if (!user.ok || !UUID.test(user.data?.id || '')) return { decision: 'ERROR', reason: 'SESSION_VERIFICATION_FAILED' };
+  const configuredAdmin = UUID.test(adminReaderId || '') && user.data.id === adminReaderId;
+  const productionAdmin = environment === 'PRODUCTION' && user.data.app_metadata?.gpir_admin_reader === true;
+  if (user.data.email_confirmed_at && (configuredAdmin || productionAdmin)) {
+    return { decision: 'ALLOW', userId: user.data.id };
+  }
   const qaIdMatches = directoryQaReaderId && user.data.id === directoryQaReaderId;
   const qaEmailMatches = directoryQaEmail && user.data.email?.toLowerCase() === directoryQaEmail;
   if (user.data.email_confirmed_at && (qaIdMatches || (environment === 'PRODUCTION' && qaEmailMatches))) {

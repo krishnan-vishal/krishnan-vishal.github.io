@@ -1,3 +1,4 @@
+import { expertDirectory } from "../_shared/gpir-expert-directory.mjs";
 import { resolveSubscriberAccess } from "../_shared/gpir-reader-entitlement.mjs";
 
 const origin = "https://fintechoisis.com";
@@ -22,11 +23,12 @@ Deno.serve(async (request) => {
 
     try {
         const params = new URL(request.url).searchParams;
+        const experts = params.get('catalog') === 'experts';
         const fintech = params.get('catalog') === 'fintech';
         const previewOnly = fintech && params.get('view') === 'preview';
         const token = request.headers.get("Authorization")?.match(/^Bearer ([^\s]+)$/i)?.[1];
         const access = token && !previewOnly
-            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, ...(!fintech && { directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' }) })
+            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, adminReaderId: Deno.env.get("GPIR_ADMIN_READER_ID"), ...(!fintech && !experts && { directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' }) })
             : { decision: "UNAUTHENTICATED" };
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
         const full = access.decision === "ALLOW";
@@ -34,6 +36,16 @@ Deno.serve(async (request) => {
         const databaseHeaders = new Headers();
         databaseHeaders.set("apikey", serviceKey);
         databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);
+        if (experts) {
+            databaseHeaders.set("Content-Type", "application/json");
+            return reply(await expertDirectory(params, access.decision, async (query: Record<string, unknown>) => {
+                const result = await fetch(projectUrl + '/rest/v1/rpc/gpir_domain_experts', {
+                    method: 'POST', headers: databaseHeaders, body: JSON.stringify(query)
+                });
+                if (!result.ok) throw Error('Expert directory unavailable');
+                return result.json();
+            }));
+        }
         if (fintech) {
             const result = await fetch(projectUrl + '/rest/v1/gpir_fintech_source_catalog?select=record', { headers: databaseHeaders });
             if (!result.ok) return reply({ error: 'DIRECTORY_UNAVAILABLE' }, 503);

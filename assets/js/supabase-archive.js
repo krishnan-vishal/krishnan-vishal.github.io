@@ -1,7 +1,7 @@
 const PUBLIC_INTELLIGENCE_API =
     "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 1000;
 const REQUEST_TIMEOUT_MS = 25000;
 const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 
@@ -405,34 +405,27 @@ function renderGrid(container, records, emptyMessage) {
 }
 
 async function fetchPublicIntelligence() {
-    const url = new URL(PUBLIC_INTELLIGENCE_API);
-    url.searchParams.set("scope", "history");
-    url.searchParams.set("collection", "announcements");
-    url.searchParams.set("limit", String(PAGE_SIZE));
-
+    const { fetchGovernedAskPage } = await import("/assets/js/gpir-governed-ask.mjs");
+    const origin = new URL(PUBLIC_INTELLIGENCE_API).origin;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
         const records = [];
+        let access;
         let total;
         do {
-            url.searchParams.set("offset", String(records.length));
-            const response = await fetch(url.href, {
-                headers: { Accept: "application/json" },
-                signal: controller.signal
-            });
-            if (!response.ok) throw new Error(`Public intelligence API returned ${response.status}`);
-            const payload = await response.json();
-            if (payload.collection !== "announcements" || !Array.isArray(payload.records) ||
-                !Number.isInteger(payload.total) || payload.total > 50000 ||
-                (total !== undefined && total !== payload.total) ||
+            const payload = await fetchGovernedAskPage(origin, { limit: String(PAGE_SIZE), offset: String(records.length) },
+                (url, options) => fetch(url, { ...options, signal: controller.signal }));
+            if (!Number.isInteger(payload.total) || payload.total > 50000 ||
+                (total !== undefined && (total !== payload.total || access !== payload.access)) ||
                 (!payload.records.length && records.length < payload.total)) {
                 throw new Error("Invalid archive response");
             }
             total = payload.total;
+            access = payload.access;
             records.push(...payload.records);
         } while (records.length < total);
-        return records.map(normalizeRecord).filter(Boolean);
+        return { records: records.map(normalizeRecord).filter(Boolean), access };
     } finally {
         clearTimeout(timeout);
     }
@@ -627,8 +620,8 @@ async function initializeSupabaseArchive() {
     }
 
     try {
-        const records = await fetchPublicIntelligence();
-
+        const { records, access } = await fetchPublicIntelligence();
+        root.querySelector("[data-archive-preview]").hidden = access === "full";
         initializeArchiveInterface(root, records);
     } catch (error) {
         console.error("[GPIR] Supabase announcement archive failed:", error);

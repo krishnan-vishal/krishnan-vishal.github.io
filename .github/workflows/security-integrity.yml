@@ -45,7 +45,7 @@ jobs:
           node scripts/test-continuous-intelligence-recovery.js
 
       - name: Test OFAC and FATF regulatory source contracts
-        run: node --test tests/m42/regulatory-sources.test.mjs
+        run: node --test tests/m42/regulatory-sources.test.mjs tests/directory/domain-experts.test.mjs
 
       - name: Validate internal HTML links
         run: node scripts/validate-links.js

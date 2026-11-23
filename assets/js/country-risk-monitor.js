@@ -22,6 +22,7 @@ if (root) {
     const expandedRegions = new Set();
     const statusChecks = [...root.querySelectorAll("[data-risk-status-check]")];
     const profilePanel = root.querySelector(".risk-profiles-panel");
+    const fatfResults = root.querySelector("[data-risk-fatf-results]");
     let selectedCountryCode = null;
     const previous = root.querySelector("[data-risk-prev]");
     const next = root.querySelector("[data-risk-next]");
@@ -250,6 +251,33 @@ if (root) {
         if (selected) bindAsk();
     }
 
+    function renderFatfSnapshot() {
+        const groups = [
+            {
+                designation: "FATF_CALL_FOR_ACTION", label: "High Risk — Call for Action",
+                summary: "FATF calls for enhanced due diligence or countermeasures, depending on the jurisdiction. Use the dated statement to confirm which measures apply."
+            },
+            {
+                designation: "FATF_INCREASED_MONITORING", label: "Grey List — Increased Monitoring",
+                summary: "These jurisdictions are implementing FATF action plans. FATF calls for a risk-based approach and does not call for enhanced due diligence solely because of this listing."
+            }
+        ];
+        fatfResults.innerHTML = groups.map(({ designation, label, summary }) => {
+            const jurisdictions = dataset.countries.filter(country => country.fatfDesignation === designation);
+            const source = jurisdictions[0];
+            const sourceLink = source && /^https:\/\/www\.fatf-gafi\.org\//.test(source.sourceUrl)
+                ? '<a class="risk-fatf-source" href="' + escapeHtml(source.sourceUrl) + '">Read the official FATF statement ↗</a>' : '';
+            const date = source?.publicationDate ? ' · Statement dated ' + escapeHtml(source.publicationDate) : '';
+            const countries = jurisdictions.map(country => '<li>' + escapeHtml(country.countryName) + '</li>').join("");
+            const datedGuidance = designation === "FATF_CALL_FOR_ACTION" && source?.publicationDate === "2026-10-30"
+                ? '<p>In this statement, FATF calls for countermeasures for Iran and North Korea, and for proportionate enhanced due diligence for Myanmar.</p>' : '';
+            return '<article class="risk-fatf-card"><header><h3>' + label + '</h3><span>' + jurisdictions.length +
+                ' jurisdictions' + date + '</span></header><p>' + summary + '</p>' + datedGuidance +
+                (countries ? '<details><summary>View ' + jurisdictions.length + ' jurisdictions</summary><ul>' + countries + '</ul></details>' :
+                    '<p>No jurisdictions recorded in this snapshot.</p>') + sourceLink + '</article>';
+        }).join("");
+    }
+
     async function load() {
         try {
             const [riskResponse, registryResponse] = await Promise.all([
@@ -262,6 +290,7 @@ if (root) {
             if (risk?.schemaVersion !== "GPIR-COUNTRY-RISK-1" || !Array.isArray(risk.countries) ||
                 !Array.isArray(registry?.countries) || registry.countries.length < 150) throw new Error("INVALID_DATASET");
             dataset = risk;
+            renderFatfSnapshot();
             const classified = new Map(risk.countries.map(item => [ALPHA3_TO_ALPHA2[item.countryCode], item]));
             countries = registry.countries.filter(item => item.enabled !== false).map(item => {
                 const current = classified.get(item.countryCode);
@@ -301,6 +330,7 @@ if (root) {
         } catch {
             sourceStatus.textContent = "Country-risk evidence is temporarily unavailable. No cached classification is inferred.";
             summary.textContent = "Unavailable";
+            fatfResults.textContent = "The validated FATF snapshot could not be loaded.";
             cards.innerHTML = '<p class="risk-empty">The validated dataset could not be loaded. Use the official source links below.</p>';
         }
     }
@@ -322,8 +352,9 @@ if (root) {
         expandedRegions.clear(); render();
     });
     root.querySelector("[data-risk-show-fatf]")?.addEventListener("click", () => {
-        statusChecks.forEach(box => { box.checked = box.value === "FATF_CALL_FOR_ACTION"; });
-        category.value = "FATF_CALL_FOR_ACTION"; pageNumber = 1; render();
+        search.value = ""; region.value = ""; category.value = "";
+        statusChecks.forEach(box => { box.checked = box.value !== "FATF_NOT_LISTED_CURRENT_SNAPSHOT"; });
+        selectedCountryCode = null; pageNumber = 1; render();
         root.querySelector('[data-risk-tab="matrix"]')?.click();
     });
     statusChecks.forEach(box => box.addEventListener("change", () => {
@@ -364,8 +395,14 @@ if (root) {
             return (name.length > 3 && questionLower.includes(name)) || Boolean(aliases[country.countryCode2] && words.includes(aliases[country.countryCode2]));
         }).sort((a,b) => b.countryName.length - a.countryName.length);
         const country = mentioned[0];
+        const uaeHistory = country?.countryCode2 === "AE" && /fatf|grey|gray|monitoring/.test(questionLower)
+            ? " FATF removed the UAE from increased monitoring on 23 February 2024."
+            : "";
+        const fatfSource = uaeHistory
+            ? "https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html"
+            : country?.sourceUrl;
         const statusText = country
-            ? country.countryName + ": FATF publication status in the dated official FATF source: " + country.fatfLabel + ". GPIR reproduces the official FATF publication status; it does not independently designate jurisdictions or infer OFAC sanctions."
+            ? country.countryName + ": FATF publication status in the dated official FATF source: " + country.fatfLabel + "." + uaeHistory + " GPIR reproduces the official FATF publication status; it does not independently designate jurisdictions or infer OFAC sanctions."
             : "";
         try {
             const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
@@ -397,10 +434,10 @@ if (root) {
                 } else li.textContent = citation.title || "Verified record";
                 citations.append(li);
             });
-            if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+            if (fatfSource && /^https:\/\//i.test(fatfSource)) {
                 const li = document.createElement("li");
                 const a = document.createElement("a");
-                a.href = country.sourceUrl;
+                a.href = fatfSource;
                 a.target = "_blank";
                 a.rel = "noopener noreferrer";
                 a.textContent = "Official FATF classification source";
@@ -415,9 +452,9 @@ if (root) {
                 const paragraph = document.createElement("p");
                 paragraph.textContent = statusText || "The governed intelligence service did not respond within 10 seconds. No unsupported answer has been generated.";
                 globalAskTarget.append(paragraph);
-                if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+                if (fatfSource && /^https:\/\//i.test(fatfSource)) {
                     const a = document.createElement("a");
-                    a.href = country.sourceUrl;
+                    a.href = fatfSource;
                     a.textContent = "Verify official FATF evidence";
                     a.target = "_blank";
                     a.rel = "noopener noreferrer";

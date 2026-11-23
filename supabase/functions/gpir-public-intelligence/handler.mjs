@@ -257,8 +257,56 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
   });
 }
 
+const REGULATORY_REFERENCE_HOSTS = Object.freeze({
+  'OFAC-US-001': ['ofac.treasury.gov', 'www.federalregister.gov', 'www.govinfo.gov'],
+  'UNSC-GLOBAL-001': ['main.un.org', 'press.un.org', 'docs.un.org', 'digitallibrary.un.org'],
+  'CFPB-US-001': ['www.consumerfinance.gov', 'www.federalregister.gov', 'www.govinfo.gov'],
+  'ADB-REGIONAL-001': ['www.adb.org', 'asianbondsonline.adb.org'],
+  'FATF-GLOBAL-001': ['www.fatf-gafi.org']
+});
+
+export function normalizeRegulatoryReferences(rows, sources, now) {
+  const trustedSources = new Map(sources.filter(source =>
+    source.source_status === 'GREEN' && source.trust_tier === 'T1'
+  ).map(source => [source.source_id, source]));
+  return rows.flatMap(row => {
+    const source = trustedSources.get(row.source_id);
+    const metadata = row.metadata;
+    const date = row.publication_date;
+    const dateTime = Date.parse(date);
+    let url;
+    try { url = new URL(row.canonical_url); } catch { return []; }
+    if (!source || !Object.hasOwn(REGULATORY_REFERENCE_HOSTS, row.source_id) ||
+        row.validation_state !== 'VALIDATED' ||
+        metadata?.reader_reference !== true || row.publication_precision !== 'DATE_ONLY' ||
+        row.published_at !== null || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+        !Number.isFinite(dateTime) || new Date(dateTime).toISOString().slice(0, 10) !== date ||
+        dateTime > now || url.protocol !== 'https:' || url.username || url.password ||
+        !REGULATORY_REFERENCE_HOSTS[row.source_id].includes(url.host) ||
+        !/^[0-9a-f]{64}$/.test(row.content_sha256) ||
+        typeof metadata.title !== 'string' || !metadata.title.trim() ||
+        typeof metadata.summary !== 'string' || !metadata.summary.trim()) return [];
+    const title = metadata.title.trim().slice(0, 400);
+    return [{
+      id: row.id, title, headline: title, summary: metadata.summary.trim().slice(0, 2000),
+      status: 'GPIR_CLASSIFIED', contentStatus: 'CONTENT_VERIFIED',
+      dataClass: 'REGULATORY_REFERENCE', recordType: row.document_kind,
+      category: 'Regulatory Actions', topics: ['Regulatory Actions'],
+      lifecycleStatus: 'HISTORICAL', displayLifecycleStatus: 'ARCHIVED',
+      referenceDate: date, publicationDate: date, publishedDate: date,
+      publicationPrecision: 'DATE_ONLY', publishedAt: null,
+      publicationYear: date.slice(0, 4), publicationMonth: date.slice(5, 7),
+      tickerEligible: false, alertEligible: false, developments: [],
+      canonicalUrl: url.href, pageUrl: url.href,
+      country: source.country || 'Global', region: source.region_tags?.[0] || 'Global',
+      source: { name: source.source_name, url: url.href, trustTier: source.trust_tier },
+      sources: [{ name: source.source_name, url: url.href, publishedAt: null }]
+    }];
+  });
+}
+
 export function normalizeRepositoryRows({ announcements, sources, topics = [], developments = [],
-  topicSources = [], statisticalObservations = [], now = Date.now(),
+  topicSources = [], statisticalObservations = [], regulatoryDocuments = [], now = Date.now(),
   windowDays = PUBLIC_REPOSITORY_WINDOW_DAYS }) {
   const byAnnouncement = new Map(topics.map(t => [t.announcement_id,t]));
   const byTopicSources = new Map();
@@ -342,11 +390,12 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
   const references = [
     ...normalizeBisReferenceRows({ rows: statisticalObservations, sources }),
     ...normalizeRpwReferenceRows({ rows: statisticalObservations, sources }),
-    ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources })
+    ...normalizeTechnicalReferenceRows({ rows: statisticalObservations, sources }),
+    ...normalizeRegulatoryReferences(regulatoryDocuments, sources, now)
   ];
   if (!references.length) return announcementsNormalized;
   return [...announcementsNormalized, ...references]
-    .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) ||
+    .sort((left, right) => (right.publishedAt || right.publicationDate).localeCompare(left.publishedAt || left.publicationDate) ||
       String(left.id).localeCompare(String(right.id)));
 }
 
@@ -369,8 +418,10 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
-    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
-    const collection = requestUrl.searchParams.get('collection');
+    const askView = requestUrl.searchParams.get('view') === 'ask';
+    if (askView && topicContext) return response(400, { status: 'ERROR', code: 'INVALID_ASK_CONTEXT' }, origin, env, { private: true });
+    const history = askView || requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
+    const collection = askView ? 'announcements' : requestUrl.searchParams.get('collection');
     if (collection && (!history || !['announcements', 'technical'].includes(collection)))
       return response(400, { status: 'ERROR', code: 'INVALID_COLLECTION' }, origin, env);
     const date = requestUrl.searchParams.get('date');
@@ -384,19 +435,21 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     if (lifecycle && !['LIVE','ARCHIVED'].includes(lifecycle)) return response(400,{status:'ERROR',code:'INVALID_LIFECYCLE'},origin,env);
     if (topicContext && !/^[A-Za-z0-9._:-]{1,120}$/.test(topicContext))
       return response(400, { status: 'ERROR', code: 'INVALID_TOPIC_CONTEXT' }, origin, env, { private: true });
-    if (topicContext) {
+    let askFullAccess = false;
+    if (topicContext || askView) {
       // Enhanced topic intelligence is subscriber-only and decided on the server for every
       // request, before any repository data is read.
       const accessToken = /^Bearer\s+([^\s]+)$/i.exec(request.headers.get('authorization') || '')?.[1] || null;
       const access = entitlement
         ? await entitlement({ accessToken, now: requestNow })
         : config ? await resolveSubscriberAccess({ fetchImpl, supabaseUrl: config.url, serviceKey: config.key,
-          accessToken, now: requestNow }) : { decision: 'ERROR' };
-      if (access.decision === 'UNAUTHENTICATED')
+          accessToken, now: requestNow, adminReaderId: env.GPIR_ADMIN_READER_ID }) : { decision: 'ERROR' };
+      askFullAccess = access.decision === 'ALLOW';
+      if (!askView && access.decision === 'UNAUTHENTICATED')
         return response(401, { status: 'ERROR', code: access.reason || 'SESSION_REQUIRED' }, origin, env, { private: true });
-      if (access.decision === 'DENY')
+      if (!askView && access.decision === 'DENY')
         return response(403, { status: 'DENY', code: 'SUBSCRIPTION_REQUIRED' }, origin, env, { private: true });
-      if (access.decision !== 'ALLOW')
+      if ((!askView && access.decision !== 'ALLOW') || access.decision === 'ERROR')
         return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
     }
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
@@ -559,7 +612,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
             if (page >= 99) throw new Error('EVIDENCE_PAGE_LIMIT');
           }
         }
-        const [sources, topics, developments, topicSources, statisticalObservations] = await Promise.all([
+        const [sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments] = await Promise.all([
           allRows('source_registry', sourceQuery),
           collection === 'technical' ? [] : allRows('gpir_intelligence_topics', topicQuery),
           collection === 'technical' ? [] : allRows('gpir_intelligence_developments', developmentsQuery),
@@ -568,9 +621,15 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
             select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
             source_id: `in.(${(collection === 'technical' ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`, ingestion_status: 'eq.PROCESSED',
             order: 'discovered_at.desc,id.asc'
-          })) : Promise.resolve([])
+          })) : Promise.resolve([]),
+          history && !relayView && (askView || !collection) ?
+            allRows('gpir_regulatory_documents', new URLSearchParams({
+              select: 'id,source_id,canonical_url,document_kind,publication_date,published_at,publication_precision,content_sha256,validation_state,metadata',
+              validation_state: 'eq.VALIDATED', 'metadata->>reader_reference': 'eq.true',
+              publication_precision: 'eq.DATE_ONLY', order: 'publication_date.desc,id.asc'
+            })) : []
         ]);
-        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations };
+        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments };
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
       if (topicContext) {
@@ -590,24 +649,30 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         return response(200, { status: 'OK', view: 'relay', windowHours: 12, total: items.length, items,
           generatedAt: new Date(requestNow).toISOString() }, origin, env);
       }
-      if (collection === 'announcements') records = records.filter(record => !record.dataClass);
+      if (collection === 'announcements') records = records.filter(record =>
+        !record.dataClass || (askView && record.dataClass === 'REGULATORY_REFERENCE'));
       if (collection === 'technical') records = records.filter(record => record.dataClass === 'TECHNICAL_REFERENCE');
+      if (askView && !askFullAccess) {
+        // Choose a deterministic subset before filters or pagination so queries
+        // cannot expose different private records by changing their parameters.
+        records = records.slice(0, Math.floor(records.length / 10));
+      }
       if (date) records = records.filter(record=>record.publicationDate===date);
       if (year) records = records.filter(record=>record.publicationYear===year);
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
       if (category) records = records.filter(record=>record.category.toLowerCase()===category);
-      if (day) records = records.filter(record=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(record.publishedAt)).toLowerCase()===day);
+      if (day) records = records.filter(record=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(record.publishedAt || record.publicationDate)).toLowerCase()===day);
       if (queryText) records = records.filter(record => [
         record.title, record.summary, record.category, record.source?.name
       ].filter(Boolean).join(' ').toLowerCase().includes(queryText));
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', ...(askView && { access: askFullAccess ? 'full' : 'preview' }), collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()
-      }, origin, env);
+      }, origin, env, { private: askView });
     } catch {
       return response(503, { status: 'ERROR', code: 'REPOSITORY_UNAVAILABLE' }, origin, env);
     }
