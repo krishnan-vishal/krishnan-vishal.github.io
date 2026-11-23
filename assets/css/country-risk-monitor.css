@@ -453,3 +453,39 @@
 .country-risk-page .risk-global-answer{margin-top:8px;font-size:.83rem;line-height:1.5}
 .country-risk-page .risk-global-answer a{color:#ffe095}
 @media(max-width:760px){.country-risk-page .risk-global-ask{grid-template-columns:1fr}.country-risk-page .risk-history-nav{flex-wrap:wrap}.country-risk-page .risk-global-ask-controls{flex-wrap:wrap}}
+
+.risk-source-stack {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 12px 0 20px;
+    padding: 0;
+}
+
+.risk-secondary-panel a.risk-source-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0;
+    padding: 12px 16px;
+    border-color: #6688a5;
+    border-inline-start: 3px solid #dfb550;
+    border-radius: 10px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.risk-secondary-panel a.risk-source-card:hover,
+.risk-secondary-panel a.risk-source-card:focus-visible {
+    background: #19466c;
+    border-color: #ffda7c;
+}
+
+.risk-source-card:focus-visible { outline: 2px solid #ffda7c; outline-offset: 3px; }
+.risk-source-card small, .risk-source-card strong, .risk-source-description { display: block; }
+.risk-source-card small, .risk-source-arrow { color: #ffda7c; }
+.risk-source-card strong { margin-block: 2px; }
+.risk-source-description { color: #d9e7f4; font-size: .88rem; }
+.risk-source-arrow { flex: none; }
+.risk-secondary-panel a.risk-source-repository { background: #163b60; }
