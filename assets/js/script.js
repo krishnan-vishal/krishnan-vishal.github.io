@@ -1940,6 +1940,12 @@ function initializeReaderAssistant(){
     let incomingContext = "";
     try { incomingContext = askMatch ? decodeURIComponent(askMatch[1].replace(/\+/g, " ")) : ""; }
     catch { incomingContext = ""; }
+    if (askMatch) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("ask");
+        if (url.hash === "#gpir-search") url.hash = "";
+        window.history.replaceState(window.history.state, "", url);
+    }
     if(incomingContext){
         const safeContext = incomingContext.replace(/[\u0000-\u001f\u007f]/g, " ")
             .replace(/\s+/g, " ").trim().slice(0, 300);
