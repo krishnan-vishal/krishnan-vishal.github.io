@@ -44,7 +44,8 @@ async function load() {
     if (!config?.url || !config.publishableKey) throw Error('Directory configuration unavailable');
     void loadAlerts(config.url);
     const params = new URL(location.href).searchParams;
-    const previewOnly = params.get('view') === 'preview';
+    const previewOnly = params.get('view') === 'preview' || params.get('from') !== 'my-gpir';
+    if (previewOnly && params.get('embed') === '1') document.body.classList.add('homepage-network');
     const fromMyGpir = params.get('from') === 'my-gpir' && !previewOnly;
     if (fromMyGpir) {
         get('entryContext').textContent = 'My GPIR / Trusted Source Network';
@@ -81,6 +82,7 @@ async function load() {
         }
         const target = new URL(location.href);
         target.searchParams.delete('view');
+        target.searchParams.delete('embed');
         target.searchParams.set('from','my-gpir');
         unlock.href = '/reader/sign-in/?returnTo=' + encodeURIComponent(target.pathname + target.search);
     }
@@ -136,6 +138,7 @@ async function load() {
         const url = new URL(route,location.origin);
         if (previewOnly) url.searchParams.set('view','preview');
         if (fromMyGpir) url.searchParams.set('from','my-gpir');
+        if (params.get('embed') === '1') url.searchParams.set('embed','1');
         if (name) url.searchParams.set('region',name);
         link.href = url.href;
         link.addEventListener('click', event => {
@@ -252,16 +255,20 @@ async function load() {
             if (matched.length) results.append(renderPanel(region,matched,true));
             root.append(results);
         } else {
-            const columns = [[], []];
-            for (const name of regions) {
-                const rows = matched.filter(row => rowGroups(row).includes(name));
-                if (!rows.length) continue;
-                const column = columns[0].length <= columns[1].length ? columns[0] : columns[1];
-                column.push(renderPanel(name,rows,false));
-            }
-            for (const panels of columns) {
+            const layout = [
+                ['North America', 'APAC'],
+                ['GCC', 'LATAM'],
+                ['Europe & UK', 'Africa', 'Oceania']
+            ];
+            layout[2].push(...regions.filter(name => !layout.flat().includes(name)));
+            for (const [index, names] of layout.entries()) {
+                const panels = names.flatMap(name => {
+                    const rows = matched.filter(row => rowGroups(row).includes(name));
+                    return rows.length ? [renderPanel(name, rows, false)] : [];
+                });
                 const column = node('div','');
-                column.className = 'network-column';
+                column.className = 'network-column network-column-' + (index + 1);
+                if (index === 1) column.append(root.querySelector('.map-panel'));
                 column.append(...panels);
                 root.append(column);
             }

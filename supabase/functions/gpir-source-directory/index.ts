@@ -22,10 +22,11 @@ Deno.serve(async (request) => {
 
     try {
         const params = new URL(request.url).searchParams;
-        const previewOnly = params.get('catalog') === 'fintech' && params.get('view') === 'preview';
+        const fintech = params.get('catalog') === 'fintech';
+        const previewOnly = fintech && params.get('view') === 'preview';
         const token = request.headers.get("Authorization")?.match(/^Bearer ([^\s]+)$/i)?.[1];
         const access = token && !previewOnly
-            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' })
+            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, ...(!fintech && { directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' }) })
             : { decision: "UNAUTHENTICATED" };
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
         const full = access.decision === "ALLOW";
@@ -33,7 +34,7 @@ Deno.serve(async (request) => {
         const databaseHeaders = new Headers();
         databaseHeaders.set("apikey", serviceKey);
         databaseHeaders.set("Authorization", `Bearer ${serviceKey}`);
-        if (params.get('catalog') === 'fintech') {
+        if (fintech) {
             const result = await fetch(projectUrl + '/rest/v1/gpir_fintech_source_catalog?select=record', { headers: databaseHeaders });
             if (!result.ok) return reply({ error: 'DIRECTORY_UNAVAILABLE' }, 503);
             const records = (await result.json()).map((row: {record: Record<string, any>}) => row.record);
