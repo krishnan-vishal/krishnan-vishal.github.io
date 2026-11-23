@@ -137,3 +137,29 @@ test("FATF snapshot validation requires both designations on one publication dat
         { designation: "FATF_CALL_FOR_ACTION", publicationDate: "2026-10-30", rows: high }
     ]), /INCOMPLETE/);
 });
+
+test('regulatory download redirects are confined to the verified authority paths', async () => {
+    const { regulatoryRedirect, OFAC_EXPORT_BASE, UNSC_XML_URL } = await import('../../supabase/functions/_shared/gpir-regulatory-sources.mjs');
+    const s3 = 'https://wc2h-sls-prod-public-published.s3.us-gov-west-1.amazonaws.com';
+    const un = 'https://unsolprodfiles.blob.core.windows.net/publiclegacyxmlfiles/EN/';
+    assert.equal(regulatoryRedirect(s3 + '/Published/version/SDN.XML', OFAC_EXPORT_BASE + 'SDN.XML', 'OFAC'), s3 + '/Published/version/SDN.XML');
+    assert.throws(() => regulatoryRedirect(s3 + '/Published/version/other.xml', OFAC_EXPORT_BASE + 'SDN.XML', 'OFAC'));
+    assert.throws(() => regulatoryRedirect('https://example.com/SDN.XML', OFAC_EXPORT_BASE + 'SDN.XML', 'OFAC'));
+    assert.equal(regulatoryRedirect(un + 'consolidatedLegacyByNAME.xml', UNSC_XML_URL, 'UNSC'), un + 'consolidatedLegacyByNAME.xml');
+    assert.throws(() => regulatoryRedirect(un + 'other.xml', UNSC_XML_URL, 'UNSC'));
+});
+
+test('UN sanctions snapshot requires a date and both listing classes', async () => {
+    const { parseUnscSnapshot } = await import('../../supabase/functions/_shared/gpir-regulatory-sources.mjs');
+    const xml = '<CONSOLIDATED_LIST dateGenerated="2026-11-20T00:00:00Z"><INDIVIDUALS><INDIVIDUAL></INDIVIDUAL></INDIVIDUALS><ENTITIES><ENTITY></ENTITY></ENTITIES></CONSOLIDATED_LIST>';
+    assert.deepEqual(parseUnscSnapshot(xml), { individuals: 1, entities: 1, publicationDate: '2026-11-20' });
+    assert.throws(() => parseUnscSnapshot(xml.replace('<ENTITY></ENTITY>', '')));
+    assert.throws(() => parseUnscSnapshot('<!DOCTYPE test>' + xml));
+});
+
+test('OFAC recent actions derive each date from its official action URL', () => {
+    const html = '<a href="/recent-actions/20261120">First action</a> November 20, 2026' +
+        '<a href="/recent-actions/20261119">Second action</a> November 19, 2026' +
+        '<a href="/recent-actions/20260231">Invalid date</a>';
+    assert.deepEqual(parseOfacRecentActions(html).map(row => row.publicationDate), ['2026-11-20', '2026-11-19']);
+});

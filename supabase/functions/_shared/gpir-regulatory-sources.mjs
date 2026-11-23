@@ -1,7 +1,44 @@
 const OFFICIAL_HOSTS = Object.freeze({
     OFAC: new Set(["ofac.treasury.gov", "sanctionslist.ofac.treas.gov", "sanctionslistservice.ofac.treas.gov", "www.treasury.gov"]),
+    UNSC: new Set(["main.un.org", "scsanctions.un.org"]),
     FATF: new Set(["fatf-gafi.org", "www.fatf-gafi.org"])
 });
+
+export const UNSC_XML_URL = "https://scsanctions.un.org/resources/xml/en/name/consolidated.xml";
+
+export function regulatoryRedirect(location, canonical, authority) {
+    const target = new URL(location, canonical);
+    if (target.protocol === "https:" && !target.username && !target.password && !target.port) {
+        const original = new URL(canonical);
+        const filename = original.pathname.split("/").at(-1);
+        if (authority === "OFAC" &&
+            original.hostname === "sanctionslistservice.ofac.treas.gov" &&
+            (["SDN.XML", "CONSOLIDATED.XML"].includes(filename) ||
+                (original.pathname === "/api/download/delta" && /^DeltaArchive\/\d{4}-\d{2}-\d{2}_delta\.xml$/.test(original.searchParams.get("filename") || ""))) &&
+            target.hostname === "wc2h-sls-prod-public-published.s3.us-gov-west-1.amazonaws.com" &&
+            /^\/(?:Published|DeltaArchive)\//.test(target.pathname) &&
+            target.pathname.endsWith("/" + (original.searchParams.get("filename")?.split("/").at(-1) || filename))) {
+            return target.href;
+        }
+        if (authority === "UNSC" && canonical === UNSC_XML_URL &&
+            target.hostname === "unsolprodfiles.blob.core.windows.net" &&
+            target.pathname === "/publiclegacyxmlfiles/EN/consolidatedLegacyByNAME.xml") {
+            return target.href;
+        }
+    }
+    return assertOfficialSourceUrl(target.href, authority);
+}
+
+export function parseUnscSnapshot(xml) {
+    if (!/<CONSOLIDATED_LIST\b/i.test(xml) || /<!DOCTYPE|<!ENTITY/i.test(xml) ||
+        !/<\/CONSOLIDATED_LIST>\s*$/i.test(xml)) throw new Error("UNSC_INVALID_SNAPSHOT");
+    const individuals = (xml.match(/<INDIVIDUAL(?:\s[^>]*)?>/gi) || []).length;
+    const entities = (xml.match(/<ENTITY(?:\s[^>]*)?>/gi) || []).length;
+    const generated = xml.match(/<CONSOLIDATED_LIST\b[^>]*\bdateGenerated=["']([^"']+)["']/i)?.[1];
+    const date = generated?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    if (!individuals || !entities || !date || !Number.isFinite(Date.parse(date))) throw new Error("UNSC_INCOMPLETE_SNAPSHOT");
+    return { individuals, entities, publicationDate: date };
+}
 
 export const OFAC_EXPORT_BASE = "https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/";
 export const OFAC_DELTA_BASE = "https://sanctionslistservice.ofac.treas.gov/api/download/delta?filename=";
@@ -120,7 +157,7 @@ function parseEnglishDate(value) {
 export function assertOfficialSourceUrl(value, authority) {
     const url = new URL(value);
     const allowed = OFFICIAL_HOSTS[authority];
-    if (url.protocol !== "https:" || !allowed || !allowed.has(url.hostname.toLowerCase())) {
+    if (url.protocol !== "https:" || url.username || url.password || url.port || !allowed || !allowed.has(url.hostname.toLowerCase())) {
         throw new Error(authority + "_UNAPPROVED_SOURCE_URL");
     }
     url.hash = "";
@@ -206,14 +243,15 @@ export function parseOfacRecentActions(html, baseUrl = "https://ofac.treasury.go
     const text = String(html || "");
     const results = [];
     const seen = new Set();
-    const links = /<a\b[^>]*href=["']([^"']*\/recent-actions\/\d{8}_[^"'?#]+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    const links = /<a\b[^>]*href=["']((?:https:\/\/ofac\.treasury\.gov)?\/recent-actions\/(\d{4})(\d{2})(\d{2})(?:_[^"'?#/]+)?)["'][^>]*>([\s\S]*?)<\/a>/gi;
     let match;
     while ((match = links.exec(text)) !== null) {
         const url = assertOfficialSourceUrl(new URL(match[1], baseUrl).toString(), "OFAC");
         if (seen.has(url)) continue;
-        const nearby = text.slice(Math.max(0, match.index - 350), Math.min(text.length, links.lastIndex + 350));
-        const date = parseEnglishDate(decodeHtml(nearby));
-        const title = decodeHtml(match[2]);
+        const date = match.slice(2, 5).join("-");
+        const time = Date.parse(date);
+        if (!Number.isFinite(time) || new Date(time).toISOString().slice(0, 10) !== date) continue;
+        const title = decodeHtml(match[5]);
         if (!title || !date) continue;
         seen.add(url);
         results.push({
