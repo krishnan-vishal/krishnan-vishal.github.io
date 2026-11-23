@@ -73,7 +73,8 @@
         <a href="/intelligence-repository/?q=OFAC">Explore verified OFAC intelligence</a>
       </section>
       <section class="risk-secondary-panel" data-risk-panel="fatf" hidden>
-        <h2>FATF Intelligence</h2><p>Explore official call-for-action and increased-monitoring designations by selecting the corresponding filter in the country matrix.</p>
+        <h2>FATF Intelligence</h2><p>Current official call-for-action and increased-monitoring designations from the validated FATF snapshot.</p>
+        <div data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
         <button type="button" data-risk-show-fatf>Show FATF-designated countries</button>
         <a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">Official FATF source</a>
       </section>
@@ -119,7 +120,7 @@
           document.body.dataset.riskAuth = 'guest';
         } else {
           document.body.dataset.riskAuth = 'reader';
-          await import('../../assets/js/country-risk-monitor.js');
+          await import('../../assets/js/country-risk-monitor.js?v=20261123fatf');
         }
       } catch {
         status.textContent = 'Reader access could not be verified. Sign in to continue.';
