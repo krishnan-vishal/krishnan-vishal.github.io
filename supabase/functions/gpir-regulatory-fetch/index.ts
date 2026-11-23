@@ -292,6 +292,11 @@ async function handleOfacCurrent(admin: any, dryRun: boolean) {
         });
     }
 
+    const outcomes = await persistOfacActions(admin, actions);
+    return { snapshots: snapshots.length, actions: outcomes, indexFinalUrl };
+}
+
+async function persistOfacActions(admin: any, actions: ReturnType<typeof parseOfacRecentActions>) {
     const outcomes = [];
     for (const action of actions) {
         const { result, finalUrl } = await officialFetch(action.canonicalUrl, "OFAC");
@@ -338,7 +343,31 @@ async function handleOfacCurrent(admin: any, dryRun: boolean) {
         });
         outcomes.push({ url: action.canonicalUrl, exactTimestamp, relay, ...eventResult });
     }
-    return { snapshots: snapshots.length, actions: outcomes, indexFinalUrl };
+    return outcomes;
+}
+
+async function handleOfacNoticeBackfill(admin: any, from: string, to: string, page: unknown, dryRun: boolean) {
+    const window = validateBackfillWindow(from, to);
+    if (typeof page !== "number" || !Number.isSafeInteger(page) || page < 0 || page > 1000) {
+        throw new Error("OFAC_ARCHIVE_PAGE_INVALID");
+    }
+    const indexUrl = new URL("https://ofac.treasury.gov/recent-actions");
+    indexUrl.searchParams.set("page", String(page));
+    const { result, finalUrl } = await officialFetch(indexUrl.href, "OFAC");
+    if (!result.ok) throw new Error("OFAC_ARCHIVE_INDEX_HTTP_" + result.status);
+    const discovered = parseOfacRecentActions(await result.text(), finalUrl);
+    if (!discovered.length) throw new Error("OFAC_ARCHIVE_INDEX_NO_DATED_ACTIONS");
+    const dates = discovered.map(action => action.publicationDate).sort();
+    const actions = discovered.filter(action =>
+        regulatoryPublicationTitle(action.title) &&
+        action.publicationDate >= window.from.slice(0, 10) &&
+        action.publicationDate < window.to.slice(0, 10));
+    return {
+        window, page, discoveredCount: discovered.length,
+        oldestDate: dates[0], newestDate: dates.at(-1),
+        actions: dryRun ? actions : await persistOfacActions(admin, actions),
+        databaseWritten: !dryRun && actions.length > 0
+    };
 }
 
 async function handleOfacBackfill(admin: any, from: string, to: string, dryRun: boolean) {
@@ -619,7 +648,9 @@ export default {
                 ? await handleUnscCurrent(ctx.supabaseAdmin, dryRun)
                 : sourceId === OFAC_SOURCE_ID
                 ? mode === "BACKFILL"
-                    ? await handleOfacBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
+                    ? body.archive_page === undefined
+                        ? await handleOfacBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
+                        : await handleOfacNoticeBackfill(ctx.supabaseAdmin, body.from, body.to, body.archive_page, dryRun)
                     : await handleOfacCurrent(ctx.supabaseAdmin, dryRun)
                 : mode === "BACKFILL"
                     ? await handleFatfBackfill(ctx.supabaseAdmin, body.from, body.to, dryRun)
