@@ -458,7 +458,8 @@
 
 .risk-source-stack {
     display: grid;
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr));
+    gap: 12px;
     list-style: none;
     margin: 12px 0 20px;
     padding: 0;
@@ -515,3 +516,8 @@
 }
 .risk-secondary-panel a.risk-fatf-source { margin: 4px 0 0; }
 .risk-fatf-card :is(a, summary):focus-visible { outline: 2px solid #ffda7c; outline-offset: 3px; }
+
+.risk-source-stack > li { display: flex; min-width: 0; }
+.risk-source-stack a.risk-source-card { flex: 1; align-items: flex-start; }
+.risk-fatf-stack { grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); align-items: start; }
+.risk-secondary-panel a.risk-source-repository { max-width: 480px; }
