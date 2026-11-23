@@ -26,6 +26,15 @@
 <p id="expert-status" role="status">Checking directory access…</p>
 <p id="expert-access" hidden><a href="/reader/sign-in/?returnTo=%2Fpages%2Fintelligence%2Fdomain-experts.html">Sign in to access the subscriber directory</a></p>
 <noscript><p>Enable JavaScript to sign in and browse the expert directory.</p></noscript>
+<div id="expert-views" role="group" aria-label="Directory view" hidden>
+<button type="button" id="expert-show-domain" aria-controls="expert-domains" aria-pressed="false">Key figures by domain</button>
+<button type="button" id="expert-show-profiles" aria-controls="expert-browser" aria-pressed="true">Professional profiles</button>
+</div>
+<section id="expert-domains" hidden aria-labelledby="expert-domains-title">
+<h2 id="expert-domains-title">Key figures by domain</h2>
+<p id="expert-domains-empty" hidden>Domains will appear when their first expert profiles are published.</p>
+<ul id="expert-domain-list" class="expert-domain-list"></ul>
+</section>
 <div class="expert-grid" id="expert-browser" hidden>
 <form class="tools" id="expert-filters" aria-label="Filter experts">
 <label>Search names and expertise <input name="q" type="search" maxlength="100"></label>
