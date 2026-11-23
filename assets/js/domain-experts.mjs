@@ -5,6 +5,7 @@ const detail = get('profile');
 const heading = get('detail-title');
 const status = get('status');
 let currentPage = 1;
+let activeView = 'profiles';
 let filters = new URLSearchParams();
 let selectedButton = null;
 let pending = null;
@@ -110,6 +111,36 @@ function options(name, values) {
     control.value = selected;
 }
 
+function showView(view) {
+    activeView = view;
+    const byDomain = view === 'domain';
+    get('show-domain').setAttribute('aria-pressed', String(byDomain));
+    get('show-profiles').setAttribute('aria-pressed', String(!byDomain));
+    get('domains').hidden = !byDomain;
+    get('browser').hidden = byDomain;
+}
+
+function renderDomains(topics) {
+    const list = get('domain-list');
+    list.replaceChildren();
+    get('domains-empty').hidden = topics.length > 0;
+    for (const topic of topics) {
+        const row = element('li');
+        const button = element('button', topic);
+        button.type = 'button';
+        button.addEventListener('click', () => {
+            form.reset();
+            form.elements.namedItem('topic').value = topic;
+            filters = new URLSearchParams({ topic });
+            showView('profiles');
+            get('results-title').focus();
+            load(1, true);
+        });
+        row.append(button);
+        list.append(row);
+    }
+}
+
 async function load(page = 1, moveFocus = false) {
     pending?.abort();
     const request = new AbortController();
@@ -135,7 +166,7 @@ async function load(page = 1, moveFocus = false) {
         const data = await response.json();
         if (request.signal.aborted) return;
         if (data.access === 'DENY' || data.access === 'UNAUTHENTICATED') {
-            get('browser').hidden = true;
+            get('browser').hidden = get('domains').hidden = get('views').hidden = true;
             const access = get('access');
             const action = access.querySelector('a');
             if (data.access === 'DENY') {
@@ -151,7 +182,9 @@ async function load(page = 1, moveFocus = false) {
         }
         if (data.access !== 'ALLOW' || !Array.isArray(data.cards)) throw Error('Unavailable');
         get('access').hidden = true;
-        get('browser').hidden = false;
+        get('views').hidden = false;
+        showView(activeView);
+        renderDomains(data.topics);
         for (const [field, key] of [['region', 'regions'], ['industry', 'industries'], ['topic', 'topics']]) {
             options(field, data[key]);
         }
@@ -170,7 +203,7 @@ async function load(page = 1, moveFocus = false) {
             : data.total + ' matching profiles. Page ' + page + ' of ' + pages + '.';
         get('previous').disabled = page <= 1;
         get('next').disabled = page >= pages;
-        if (moveFocus) get('results-title').focus();
+        if (moveFocus && activeView === 'profiles') get('results-title').focus();
     } catch {
         if (!request.signal.aborted) status.textContent = 'The directory is temporarily unavailable. Reload the page to try again.';
     } finally {
@@ -185,9 +218,12 @@ form.addEventListener('submit', event => {
     load(1, true);
 });
 form.addEventListener('reset', () => {
+    if (activeView === 'domain') return;
     filters = new URLSearchParams();
     queueMicrotask(() => load(1, true));
 });
+get('show-domain').addEventListener('click', () => showView('domain'));
+get('show-profiles').addEventListener('click', () => showView('profiles'));
 get('previous').addEventListener('click', () => load(currentPage - 1, true));
 get('next').addEventListener('click', () => load(currentPage + 1, true));
 try {
