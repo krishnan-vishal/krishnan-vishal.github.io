@@ -26,3 +26,9 @@
 .expert-detail small { display: block; }
 @media (max-width: 60rem) { .expert-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .expert-detail { grid-column: 1 / -1; } }
 @media (max-width: 38rem) { .expert-grid { grid-template-columns: minmax(0, 1fr); } }
+
+#expert-views { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.expert-domain-list { list-style: none; padding: 0; display: grid; gap: .65rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+#expert-views button, .expert-domain-list button { min-height: 2.75rem; padding: .55rem .75rem; border: 1px solid #59708c; border-radius: .45rem; background: white; color: #112344; text-align: start; cursor: pointer; }
+.expert-domain-list button { width: 100%; border-inline-start: .25rem solid #a86b17; overflow-wrap: anywhere; }
+#expert-views button[aria-pressed="true"] { background: #152b4e; color: white; }
