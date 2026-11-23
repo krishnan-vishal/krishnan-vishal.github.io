@@ -14,12 +14,18 @@ export function governedTerms(query, max=3) {
 }
 export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=fetch}={}) {
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(String(origin||'')))throw Error('GOVERNED_ORIGIN_UNAVAILABLE');
+  const headers = { accept: 'application/json' };
+  try {
+    let session = await globalThis.GPIRReaderAuth?.sessionReady;
+    if (!session) session = (await globalThis.GPIR_SUPABASE_CLIENT?.auth.getSession())?.data?.session;
+    if (session?.access_token && globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url?.replace(/\/$/, '') === origin.replace(/\/$/, '')) headers.authorization = 'Bearer ' + session.access_token;
+  } catch { /* Use the public preview if the session is unavailable. */ }
   const searches=[String(query||'').trim().slice(0,120),...governedTerms(query)].filter(Boolean);
   const unique=[...new Set(searches)].slice(0,4);
   const records=new Map();
   for(const term of unique){
-    const params=new URLSearchParams({view:'history-records',kind:'announcements',q:term,limit:String(Math.min(25,Math.max(1,limit))),offset:'0'});
-    const response=await fetchImpl(origin.replace(/\/$/,'')+'/functions/v1/gpir-public-intelligence?'+params,{cache:'no-store',headers:{accept:'application/json'}});
+    const params=new URLSearchParams({view:'ask',q:term,limit:String(Math.min(25,Math.max(1,limit))),offset:'0'});
+    const response=await fetchImpl(origin.replace(/\/$/,'')+'/functions/v1/gpir-public-intelligence?'+params,{cache:'no-store',headers});
     if(!response.ok)throw Error('GOVERNED_HISTORY_UNAVAILABLE');
     const data=await response.json();
     if(data?.status!=='OK'||!Array.isArray(data.records))throw Error('GOVERNED_HISTORY_INVALID');
@@ -37,7 +43,7 @@ export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=
  * search hint, never an authorization bypass or evidence of a regulatory claim.
  */
 export function contextualAskQuery(question, context = {}) {
-  const clean = value => String(value ?? '').replace(/[<>\\x00-\\x1f]/g, ' ').trim().slice(0, 80);
+  const clean = value => String(value ?? '').replace(/[<>\x00-\x1f]/g, ' ').trim().slice(0, 80);
   const questionText = clean(question).slice(0, 120);
   if (!questionText) throw Error('ASK_QUESTION_REQUIRED');
   const hints = [context.topic, context.country, context.currencyPair, context.period]

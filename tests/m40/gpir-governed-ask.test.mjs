@@ -6,10 +6,12 @@ test('extracts bounded meaningful keywords from natural language',()=>{
   assert.deepEqual(governedTerms('Show recent money movement and remittances'),['money','movement','remittance']);
   assert.deepEqual(governedTerms('Frauds Report card'),['fraud']); 
 });
-test('queries existing governed M40 API with exact phrase then bounded keyword fallback',async()=>{
+test('queries the governed ASK API with exact phrase then bounded keyword fallback',async()=>{
   const queries=[];
   const fetchImpl=async url=>{
-    const term=new URL(url).searchParams.get('q');
+    const params = new URL(url).searchParams;
+    assert.equal(params.get('view'), 'ask');
+    const term = params.get('q');
     queries.push(term);
     return {ok:true,json:async()=>({status:'OK',records:term==='movement'?[{id:'a',title:'Money movement compliance'}]:[]})};
   };
@@ -21,7 +23,7 @@ test('does not invent records when governed endpoint fails',async()=>{
   await assert.rejects(()=>retrieveGovernedEvidence('https://example.supabase.co','fraud',{fetchImpl:async()=>({ok:false})}),/GOVERNED_HISTORY_UNAVAILABLE/);
 });
 
-test('builds bounded context-aware queries without requiring a separate ASK route', () => {
+test('builds bounded context-aware queries for governed ASK retrieval', () => {
   assert.equal(contextualAskQuery('What changed?', { topic: 'FATF', country: 'Nepal' }),
     'What changed? FATF Nepal');
   assert.equal(contextualAskQuery('What is the trend?', { currencyPair: 'USD/JPY', period: '1M' }),
@@ -54,4 +56,31 @@ test('Smart Intelligence uses the shared ASK core in the existing in-page panel'
   assert.match(source, /askResults\.append\(answerHeading, answerText\)/);
   assert.match(source, /askPanel\.id='gpir-ask-panel'/);
   assert.match(source, /if\(request!==askRequest\)return/);
+});
+
+test('ASK preview applies a fixed 10% cap before search; entitled readers can retrieve the full set', async () => {
+  const { createPublicIntelligenceHandler } = await import('../../supabase/functions/gpir-public-intelligence/handler.mjs');
+  const handler = createPublicIntelligenceHandler({
+    env: {},
+    now: () => Date.parse('2026-11-23T00:00:00Z'),
+    entitlement: async ({accessToken}) => ({decision: accessToken === 'allowed' ? 'ALLOW' : 'DENY'}),
+    loadRows: async () => ({
+      sources: [{source_id:'bank',source_name:'Bank',source_status:'GREEN',official_url:'https://bank.example'}],
+      announcements: Array.from({length: 20}, (_, i) => ({
+        id:String(i).padStart(2,'0'),source_id:'bank',publication_status:'approved',
+        title: 'Verified payment announcement ' + (i === 19 ? 'Bounded private example' : i),
+        summary_narration:'Official evidence for verified payment changes, including the scope and timing.',
+        canonical_url:'https://bank.example/actions/'+i,published_at:'2026-11-20T08:00:00Z'
+      }))
+    })
+  });
+  const request = (query='', token) => handler(new Request('https://example.test?view=ask&limit=25'+query, {
+    headers: token ? {authorization: 'Bearer '+token} : {}
+  }));
+  const preview = await request();
+  assert.match(preview.headers.get('cache-control'), /no-store/);
+  assert.equal((await preview.json()).total, 2);
+  assert.equal((await (await request('&q=Bounded%20private')).json()).total, 0);
+  assert.equal((await (await request('&q=Bounded%20private', 'allowed')).json()).total, 1);
+  assert.equal((await request('&topicContext=19')).status, 400);
 });

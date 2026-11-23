@@ -26,7 +26,7 @@ Deno.serve(async (request) => {
         const previewOnly = fintech && params.get('view') === 'preview';
         const token = request.headers.get("Authorization")?.match(/^Bearer ([^\s]+)$/i)?.[1];
         const access = token && !previewOnly
-            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, ...(!fintech && { directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' }) })
+            ? await resolveSubscriberAccess({ supabaseUrl: projectUrl, serviceKey, accessToken: token, adminReaderId: Deno.env.get("GPIR_ADMIN_READER_ID"), ...(!fintech && { directoryQaReaderId: qaReaderId, directoryQaEmail: 'testxyz@fintechoisis.com' }) })
             : { decision: "UNAUTHENTICATED" };
         if (access.decision === "ERROR") return reply({ error: "DIRECTORY_UNAVAILABLE" }, 503);
         const full = access.decision === "ALLOW";
