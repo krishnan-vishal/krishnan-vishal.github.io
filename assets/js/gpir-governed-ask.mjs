@@ -25,7 +25,7 @@ export async function fetchGovernedAskPage(origin, filters, fetchImpl = fetch) {
   const result = await fetchImpl(origin.replace(/\/$/, '') + '/functions/v1/gpir-public-intelligence?' + params, { cache: 'no-store', headers });
   if (!result.ok) throw Error('GOVERNED_HISTORY_UNAVAILABLE');
   const payload = await result.json();
-  if (payload?.status !== 'OK' || !Array.isArray(payload.records)) throw Error('GOVERNED_HISTORY_INVALID');
+  if (payload?.status !== 'OK' || !['preview', 'full'].includes(payload.access) || !Array.isArray(payload.records)) throw Error('GOVERNED_HISTORY_INVALID');
   return payload;
 }
 

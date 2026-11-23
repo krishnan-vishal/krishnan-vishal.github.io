@@ -13,7 +13,7 @@ test('queries the governed ASK API with exact phrase then bounded keyword fallba
     assert.equal(params.get('view'), 'ask');
     const term = params.get('q');
     queries.push(term);
-    return {ok:true,json:async()=>({status:'OK',records:term==='movement'?[{id:'a',title:'Money movement compliance'}]:[]})};
+    return {ok:true,json:async()=>({status:'OK',access:'preview',records:term==='movement'?[{id:'a',title:'Money movement compliance'}]:[]})};
   };
   const records=await retrieveGovernedEvidence('https://example.supabase.co','money movement',{fetchImpl});
   assert.equal(records.length,1);

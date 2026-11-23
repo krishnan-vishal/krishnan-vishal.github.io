@@ -612,7 +612,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', ...(askView && { access: askFullAccess ? 'full' : 'preview' }), collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()
