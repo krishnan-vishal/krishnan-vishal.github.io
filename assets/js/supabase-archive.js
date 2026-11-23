@@ -112,11 +112,11 @@ function formatUtcDate(value) {
 
     return new Intl.DateTimeFormat("en-GB", {
         day: "numeric",
-        month: "short",
+        month: "long",
         year: "numeric",
         ...(value.includes("T") ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" } : {}),
         timeZone: "UTC"
-    }).format(date).toUpperCase() + " UTC";
+    }).format(date) + (value.includes("T") ? " UTC" : "");
 }
 
 function isWithinLiveWindow(record, now = Date.now()) {
@@ -259,7 +259,7 @@ function createTimelineButton({
     button.append(document.createTextNode(label));
 
     const countBadge = document.createElement("span");
-    countBadge.textContent = String(count);
+    countBadge.textContent = `(${count} ${count === 1 ? "record" : "records"})`;
     button.appendChild(countBadge);
 
     button.addEventListener("click", onClick);
