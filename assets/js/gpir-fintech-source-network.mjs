@@ -44,7 +44,7 @@ async function load() {
     if (!config?.url || !config.publishableKey) throw Error('Directory configuration unavailable');
     void loadAlerts(config.url);
     const params = new URL(location.href).searchParams;
-    const previewOnly = params.get('view') === 'preview' || params.get('from') !== 'my-gpir';
+    const previewOnly = params.get('view') === 'preview' || params.get('embed') === '1';
     if (previewOnly && params.get('embed') === '1') document.body.classList.add('homepage-network');
     const fromMyGpir = params.get('from') === 'my-gpir' && !previewOnly;
     if (fromMyGpir) {
