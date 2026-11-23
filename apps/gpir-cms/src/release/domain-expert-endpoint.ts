@@ -36,7 +36,8 @@ export const domainExpertEndpoint: Endpoint = {
       const base = (process.env.GPIR_CORE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/, '')
       const key = process.env.GPIR_CORE_SUPABASE_SECRET_KEY || process.env.GPIR_SUPABASE_SECRET_KEY
       if (!/^https:\/\/[^/]+\.supabase\.co$/.test(base) || !key) throw Error('Missing Core authority')
-      const headers = new Headers({ apikey: key, 'content-type': 'application/json' })
+      const headers = new Headers({ 'content-type': 'application/json' })
+      headers.set('apikey', key)
       if (!key.startsWith('sb_secret_')) headers.set('authorization', 'Bearer ' + key)
       const response = await fetch(base + '/rest/v1/rpc/gpir_sync_domain_expert', {
         method: 'POST', headers, redirect: 'error', signal: AbortSignal.timeout(10000),

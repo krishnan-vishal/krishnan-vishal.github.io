@@ -11,9 +11,13 @@
 | Accessibility | WCAG 2.2 AA design target. Skip navigation, labeled native controls, visible focus, expandable native sections, announced results, focus restoration and responsive reflow. Complete keyboard, screen-reader, contrast and zoom acceptance on a deployed preview. |
 | Initial inventory | 13 distinct owner-brief candidates parsed in a dry run. No imported production records or published profiles verified. Candidate and editorial claims must be verified individually. Expansion toward 500 remains an editorial discovery and verification effort. |
 
+## Validation recorded on the feature branch
+
+The isolated GPIR-M35-RUNTIME-TEST PostgreSQL 17 check passed privilege separation, combined filters, projection redaction, pagination, expiry, idempotent sync, stale revision rejection and archive withdrawal. The temporary schema was rolled back and confirmed absent. The local browser runtime did not start, so rendered accessibility acceptance remains pending.
+
 ## Owner-reviewed rollout
 
-1. Validate the Core migration against an isolated project. Assert that anon and authenticated cannot call either RPC and that service-role requests receive only approved, unexpired projections. Test stale revision rejection and archive withdrawal with synthetic data.
+1. Use the recorded isolated migration acceptance as the release baseline. Repeat it if migration SQL changes.
 2. After approval, apply the Core migration, deploy the existing source-directory Edge Function with its new catalog option, and deploy the Payload editor and release endpoint via the existing pipelines. The Core connection uses the existing `GPIR_CORE_SUPABASE_URL` and `GPIR_CORE_SUPABASE_SECRET_KEY` configuration. Keep CMS and Core credentials server-side.
 3. Run `python scripts/import-domain-expert-brief.py PATH_TO_APPROVED_BRIEF.docx` for a dry run. To stage the private REVIEW records, supply the approved Payload origin in `PAYLOAD_PUBLIC_SERVER_URL` and an editor session JWT in `GPIR_PAYLOAD_EDITOR_TOKEN`, then add `--stage`. Re-running the importer preserves previously reviewed records.
 4. For each candidate, verify sources and clearance in Editorial Metadata. The Payload validation field contract is in `apps/gpir-cms/src/lib/domain-expert.mjs`. Document approval and sanctions screening scope. Set state to PUBLIC in Payload only after clearance. Call the admin-only `POST /api/release/domain-expert` with `{"id":"gpir-expert:<canonical suffix>"}`. To withdraw, set state to ARCHIVED and sync the same identity. Retain the Payload record and its version history. Only an explicit, successful sync changes reader delivery.

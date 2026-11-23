@@ -125,8 +125,9 @@ async function load(page = 1, moveFocus = false) {
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
     try {
         if (!config?.url || !config.publishableKey) throw Error('Unavailable');
-        const headers = { apikey: config.publishableKey };
-        if (session?.access_token) headers.Authorization = 'Bearer ' + session.access_token;
+        const headers = new Headers();
+        headers.set('apikey', config.publishableKey);
+        if (session?.access_token) headers.set('authorization', 'Bearer ' + session.access_token);
         const response = await fetch(config.url + '/functions/v1/gpir-source-directory?' + params, {
             headers, cache: 'no-store', signal: request.signal
         });

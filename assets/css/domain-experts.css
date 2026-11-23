@@ -25,4 +25,4 @@
 .expert-detail summary { display: list-item; padding: .55rem .25rem; font-weight: 700; cursor: pointer; }
 .expert-detail small { display: block; }
 @media (max-width: 60rem) { .expert-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .expert-detail { grid-column: 1 / -1; } }
-@media (max-width: 38rem) { .expert-grid { grid-template-columns: minmax(0, 1fr); } .expert-directory .mast { flex-wrap: wrap; } }
+@media (max-width: 38rem) { .expert-grid { grid-template-columns: minmax(0, 1fr); } }
