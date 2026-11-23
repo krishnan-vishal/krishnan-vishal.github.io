@@ -373,3 +373,15 @@ export function lifecycleForTimestamp(value, now = Date.now()) {
     if (!Number.isFinite(timestamp)) return "HISTORICAL_DATE_ONLY";
     return now - timestamp <= 12 * 60 * 60 * 1000 && timestamp <= now ? "LIVE_12_HOUR" : "ARCHIVED";
 }
+
+
+// Only publish the portions of an official notice that name an approved topic.
+// Source documents and snapshots remain available as private provenance.
+export function regulatoryPublicationTitle(title) {
+    const topics = /\b(?:payments?|remittances?|correspondent bank(?:ing|s)?|swift|fintechs?|digital assets?|virtual assets?|stablecoins?|banks?|banking|sanctions?|financial risk|currency|exchange rates?|foreign exchange|fx|financial regulat(?:ion|ions|ory)|card (?:payments?|networks?|issuance)|fatf|money laundering|diaspora|immigra(?:nts?|tion)|migration)\b/i;
+    const financialLink = /\b(?:payments?|remittances?|banks?|banking|financial (?:access|inclusion)|payment corridors?)\b/i;
+    const sanctionsLicence = /\b(?:russia|iran|cuba|venezuela|belarus|syria|ukraine|north korea)(?:-related)?\b.{0,40}\bgeneral licen[cs]e\b/i;
+    const migration = /\b(?:diaspora|immigra(?:nts?|tion)|migration)\b/i;
+    return String(title || '').split(';').map(part => part.trim()).filter(part =>
+        (topics.test(part) || sanctionsLicence.test(part)) && (!migration.test(part) || financialLink.test(part))).join('; ');
+}

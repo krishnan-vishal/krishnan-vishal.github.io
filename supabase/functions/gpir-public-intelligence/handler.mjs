@@ -369,8 +369,10 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const requestNow = now();
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
-    const history = requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
-    const collection = requestUrl.searchParams.get('collection');
+    const askView = requestUrl.searchParams.get('view') === 'ask';
+    if (askView && topicContext) return response(400, { status: 'ERROR', code: 'INVALID_ASK_CONTEXT' }, origin, env, { private: true });
+    const history = askView || requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
+    const collection = askView ? 'announcements' : requestUrl.searchParams.get('collection');
     if (collection && (!history || !['announcements', 'technical'].includes(collection)))
       return response(400, { status: 'ERROR', code: 'INVALID_COLLECTION' }, origin, env);
     const date = requestUrl.searchParams.get('date');
@@ -384,19 +386,21 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     if (lifecycle && !['LIVE','ARCHIVED'].includes(lifecycle)) return response(400,{status:'ERROR',code:'INVALID_LIFECYCLE'},origin,env);
     if (topicContext && !/^[A-Za-z0-9._:-]{1,120}$/.test(topicContext))
       return response(400, { status: 'ERROR', code: 'INVALID_TOPIC_CONTEXT' }, origin, env, { private: true });
-    if (topicContext) {
+    let askFullAccess = false;
+    if (topicContext || askView) {
       // Enhanced topic intelligence is subscriber-only and decided on the server for every
       // request, before any repository data is read.
       const accessToken = /^Bearer\s+([^\s]+)$/i.exec(request.headers.get('authorization') || '')?.[1] || null;
       const access = entitlement
         ? await entitlement({ accessToken, now: requestNow })
         : config ? await resolveSubscriberAccess({ fetchImpl, supabaseUrl: config.url, serviceKey: config.key,
-          accessToken, now: requestNow }) : { decision: 'ERROR' };
-      if (access.decision === 'UNAUTHENTICATED')
+          accessToken, now: requestNow, adminReaderId: env.GPIR_ADMIN_READER_ID }) : { decision: 'ERROR' };
+      askFullAccess = access.decision === 'ALLOW';
+      if (!askView && access.decision === 'UNAUTHENTICATED')
         return response(401, { status: 'ERROR', code: access.reason || 'SESSION_REQUIRED' }, origin, env, { private: true });
-      if (access.decision === 'DENY')
+      if (!askView && access.decision === 'DENY')
         return response(403, { status: 'DENY', code: 'SUBSCRIPTION_REQUIRED' }, origin, env, { private: true });
-      if (access.decision !== 'ALLOW')
+      if ((!askView && access.decision !== 'ALLOW') || access.decision === 'ERROR')
         return response(503, { status: 'ERROR', code: 'ENTITLEMENT_UNAVAILABLE' }, origin, env, { private: true });
     }
     // M40: exact server-side aggregates and bounded records; no repository-wide JS scan.
@@ -592,6 +596,11 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       }
       if (collection === 'announcements') records = records.filter(record => !record.dataClass);
       if (collection === 'technical') records = records.filter(record => record.dataClass === 'TECHNICAL_REFERENCE');
+      if (askView && !askFullAccess) {
+        // Choose a deterministic subset before filters or pagination so queries
+        // cannot expose different private records by changing their parameters.
+        records = records.slice(0, Math.floor(records.length / 10));
+      }
       if (date) records = records.filter(record=>record.publicationDate===date);
       if (year) records = records.filter(record=>record.publicationYear===year);
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
@@ -603,11 +612,11 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', ...(askView && { access: askFullAccess ? 'full' : 'preview' }), collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()
-      }, origin, env);
+      }, origin, env, { private: askView });
     } catch {
       return response(503, { status: 'ERROR', code: 'REPOSITORY_UNAVAILABLE' }, origin, env);
     }

@@ -163,3 +163,10 @@ test('OFAC recent actions derive each date from its official action URL', () => 
         '<a href="/recent-actions/20260231">Invalid date</a>';
     assert.deepEqual(parseOfacRecentActions(html).map(row => row.publicationDate), ['2026-11-20', '2026-11-19']);
 });
+
+test('regulatory publication keeps only approved topics within a mixed notice', async () => {
+    const { regulatoryPublicationTitle } = await import('../../supabase/functions/_shared/gpir-regulatory-sources.mjs');
+    assert.equal(regulatoryPublicationTitle('Illicit drugs general license; Russia-related general license; Banking sanctions update'), 'Russia-related general license; Banking sanctions update');
+    assert.equal(regulatoryPublicationTitle('Migration statistics; New diaspora remittance protections'), 'New diaspora remittance protections');
+    assert.equal(regulatoryPublicationTitle('Cultural exchange announcement'), '');
+});

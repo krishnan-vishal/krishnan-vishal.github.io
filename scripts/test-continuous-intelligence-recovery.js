@@ -186,10 +186,13 @@ check(archive.includes('id="historical-publications"') && archive.includes("data
     "historical announcements must remain accessible through the repository archive");
 check(search.includes("ANNOUNCEMENTS_URL") && search.includes("announcementEntries") && search.includes("record.status === \"GPIR_CLASSIFIED\""),
     "Search must continue indexing published historical announcements");
-check(ask.includes('gpir-public-intelligence?scope=history&limit=1000') &&
-    ask.includes('settleDataset(intelligenceRepositoryUrl, "authoritative intelligence repository")') &&
-    ask.includes("announcements: announcements.ok ? (announcements.data.records || []) : []"),
-"ASK GPIR must retrieve governed current and historical intelligence from the read-only authoritative repository API");
+const governedAsk = fs.readFileSync(path.join(ROOT, "assets/js/gpir-governed-ask.mjs"), "utf8");
+check(ask.includes('await import("/assets/js/gpir-governed-ask.mjs")') &&
+    ask.includes('await fetchGovernedAskPage(intelligenceOrigin, { limit: "1000" })') &&
+    ask.includes('announcements: page.records, announcementsAvailable: true') &&
+    governedAsk.includes("params.set('view', 'ask')") &&
+    governedAsk.includes("'/functions/v1/gpir-public-intelligence?'"),
+"ASK GPIR must retrieve governed current and historical intelligence through the entitlement-aware authoritative repository API");
 check(lifecycle.partition(publishedCorpus, new Date("2100-01-01T00:00:00.000Z")).archive.length === publishedCorpus.filter(lifecycle.isPublished).length, "archive must retain all expired published intelligence");
 
 immutablePaths.forEach(filePath => {

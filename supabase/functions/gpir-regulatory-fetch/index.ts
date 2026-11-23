@@ -4,6 +4,7 @@ import {
     FATF_STATEMENTS_URL,
     UNSC_XML_URL,
     regulatoryRedirect,
+    regulatoryPublicationTitle,
     parseUnscSnapshot,
     OFAC_EXPORT_BASE,
     assertOfficialSourceUrl,
@@ -145,6 +146,8 @@ async function insertSanctionsEvents(admin: any, documentId: string, events: Arr
 async function stageRelayRecord(admin: any, {
     sourceId, documentId, title, canonicalUrl, content, exactTimestamp, fingerprint, metadata
 }: Record<string, any>) {
+    const filteredTitle = regulatoryPublicationTitle(title);
+    if (!filteredTitle) return "OUT_OF_SCOPE";
     const { data: existing, error: readError } = await admin.from("intelligence_raw_ingestion")
         .select("id").eq("content_hash", fingerprint).limit(1);
     if (readError) throw new Error("RELAY_DEDUP_READ_FAILED:" + readError.message);
@@ -153,8 +156,8 @@ async function stageRelayRecord(admin: any, {
         source_id: sourceId,
         discovered_url: canonicalUrl,
         canonical_url: canonicalUrl,
-        raw_title: title.slice(0, 400),
-        raw_content: content.slice(0, 12000),
+        raw_title: filteredTitle.slice(0, 400),
+        raw_content: (filteredTitle === title ? content : filteredTitle + " — official regulatory notice.").slice(0, 12000),
         source_published_at: exactTimestamp,
         http_status: 200,
         content_hash: fingerprint,
