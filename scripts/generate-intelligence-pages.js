@@ -673,7 +673,7 @@ ${footerBlock}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
 <script src="/scripts/m34/supabase-browser-client.js"></script>
 <script src="/assets/js/gpir-reader-auth.js"></script>
-<script src="../../assets/js/supabase-archive.js?v=20261122release"></script>
+<script src="../../assets/js/supabase-archive.js?v=20261123archive"></script>
 </body>
 </html>`;
     // The production archive has a maintained navigation and reader shell.
