@@ -12,6 +12,7 @@ import { Regions } from './collections/Regions'
 import { ReleaseEvents } from './collections/ReleaseEvents'
 import { ResearchPublications } from './collections/ResearchPublications'
 import { Users } from './collections/Users'
+import { domainExpertEndpoint } from './release/domain-expert-endpoint'
 import { editorialEndpoint } from './release/editorial-endpoint'
 import { siteReleaseEndpoint } from './release/site-endpoint'
 import { observatoryEditionEndpoint } from './release/observatory-edition'
@@ -29,7 +30,7 @@ export default buildConfig({
   admin: { user: Users.slug, meta: { titleSuffix: '— GPIR Editorial' } },
   collections: [Users, Regions, Countries, Chapters, EditorialMetadata, Media, ResearchPublications, ReleaseEvents],
   editor: lexicalEditor(),
-  endpoints: [releaseEndpoint, siteReleaseEndpoint, editorialEndpoint, observatoryEditionEndpoint],
+  endpoints: [releaseEndpoint, siteReleaseEndpoint, editorialEndpoint, observatoryEditionEndpoint, domainExpertEndpoint],
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000',
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],

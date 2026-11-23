@@ -1862,3 +1862,7 @@ execution; no management-access or migration completion is claimed.
 PR #672 is the review branch for homepage contrast, public-index authority ranking and the regional Source Network. Baseline main is `216fd5cc7c354458899e5a3ec09875bf8e3c39c4`. The frontend uses the existing directory and public-alert endpoints. The announcement validator now recognizes the directory route as a tool page and still checks every canonical announcement page.
 
 Local checks passed for content, internal links, M-18 announcement validation, 29 production pipeline assertions, M29 source-network contracts and 25 focused ASK GPIR and entitlement assertions. The live guest API returned 96 catalog sources with restricted fields omitted. Signed-in access was exercised against the server handler with separate unpaid, subscriber and designated-reader fixtures. Live signed-in sessions, owner merge and deployed acceptance remain pending.
+
+## 2026-11-23 — Domain Experts and Global Leaders review candidate
+
+Repository → Directory now has a proposed expert Smart Card destination in the feature branch. The 13 supplied candidates parsed successfully in a local dry run. Owner approval, private editorial import and profile verification are pending. See [release evidence and rollout](GPIR_DOMAIN_EXPERT_DIRECTORY.md).

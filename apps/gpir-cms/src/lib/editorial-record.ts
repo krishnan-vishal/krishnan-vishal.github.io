@@ -1,5 +1,6 @@
 import { researchTypes } from '../release/editorial-source'
 import { APIError } from 'payload'
+import { expertError, expertPrefix } from './domain-expert.mjs'
 import { roleOf } from './access'
 import { sha256 } from '../migration/contentful'
 import { stableJson } from '../release/release'
@@ -8,6 +9,19 @@ import { stableJson } from '../release/release'
 // A published mirror is imported only from the actual Contentful Delivery API.
 export function guardEditorialRecord({ data, originalDoc, req }: any) {
   const next = { ...originalDoc, ...data }
+  const oldKey = String(originalDoc?.sourceRecordKey || '')
+  const newKey = String(next.sourceRecordKey || '')
+  if (oldKey.startsWith(expertPrefix) || newKey.startsWith(expertPrefix)) {
+    if (originalDoc && oldKey !== newKey) throw new APIError('Expert identity is immutable.', 409)
+    if (!originalDoc && next.sourcePayload?.state !== 'REVIEW') throw new APIError('New experts require editorial review.', 409)
+    if (originalDoc?.sourcePayload?.state === 'PUBLIC' && roleOf(req.user) !== 'admin')
+      throw new APIError('Only an admin can amend a published expert.', 403)
+    if (originalDoc?.sourcePayload?.state === 'PUBLIC' && next.sourcePayload?.state === 'REVIEW')
+      throw new APIError('Archive the public edition before returning to review.', 409)
+    const error = expertError(newKey, next.sourcePayload, roleOf(req.user))
+    if (error) throw new APIError(error, 409)
+    return { ...data, sourceHash: sha256(stableJson(next.sourcePayload)) }
+  }
   if (String(originalDoc?.sourceRecordKey || '').startsWith('m41:editorial:') && next.sourceRecordKey !== originalDoc.sourceRecordKey) throw new APIError('Editorial source key is immutable.', 409)
   if (!String(next.sourceRecordKey || '').startsWith('m41:editorial:')) return data
   const value = next.sourcePayload
