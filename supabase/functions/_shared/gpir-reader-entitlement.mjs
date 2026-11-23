@@ -47,7 +47,9 @@ export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, 
     requestHeaders(serviceKey, accessToken));
   if (user.status === 401 || user.status === 403) return { decision: 'UNAUTHENTICATED', reason: 'SESSION_INVALID' };
   if (!user.ok || !UUID.test(user.data?.id || '')) return { decision: 'ERROR', reason: 'SESSION_VERIFICATION_FAILED' };
-  if (UUID.test(adminReaderId || '') && user.data.id === adminReaderId && user.data.email_confirmed_at) {
+  const configuredAdmin = UUID.test(adminReaderId || '') && user.data.id === adminReaderId;
+  const productionAdmin = environment === 'PRODUCTION' && user.data.app_metadata?.gpir_admin_reader === true;
+  if (user.data.email_confirmed_at && (configuredAdmin || productionAdmin)) {
     return { decision: 'ALLOW', userId: user.data.id };
   }
   const qaIdMatches = directoryQaReaderId && user.data.id === directoryQaReaderId;
