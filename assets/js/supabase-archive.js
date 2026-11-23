@@ -1,7 +1,7 @@
 const PUBLIC_INTELLIGENCE_API =
     "https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 1000;
 const REQUEST_TIMEOUT_MS = 25000;
 const LIVE_WINDOW_MS = 12 * 60 * 60 * 1000;
 

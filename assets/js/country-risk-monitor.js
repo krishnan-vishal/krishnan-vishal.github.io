@@ -22,6 +22,7 @@ if (root) {
     const expandedRegions = new Set();
     const statusChecks = [...root.querySelectorAll("[data-risk-status-check]")];
     const profilePanel = root.querySelector(".risk-profiles-panel");
+    const fatfResults = root.querySelector("[data-risk-fatf-results]");
     let selectedCountryCode = null;
     const previous = root.querySelector("[data-risk-prev]");
     const next = root.querySelector("[data-risk-next]");
@@ -250,6 +251,20 @@ if (root) {
         if (selected) bindAsk();
     }
 
+    function renderFatfSnapshot() {
+        const groups = [
+            ["FATF_CALL_FOR_ACTION", "High Risk — Call for Action"],
+            ["FATF_INCREASED_MONITORING", "Grey List — Increased Monitoring"]
+        ];
+        fatfResults.innerHTML = groups.map(([designation, label]) => {
+            const names = dataset.countries.filter(country => country.fatfDesignation === designation)
+                .map(country => '<li>' + escapeHtml(country.countryName) + '</li>');
+            return '<section><h3>' + label + ' · ' + names.length + '</h3>' +
+                (names.length ? '<ul>' + names.join("") + '</ul>' : '<p>No designations in this snapshot.</p>') +
+                '</section>';
+        }).join("");
+    }
+
     async function load() {
         try {
             const [riskResponse, registryResponse] = await Promise.all([
@@ -262,6 +277,7 @@ if (root) {
             if (risk?.schemaVersion !== "GPIR-COUNTRY-RISK-1" || !Array.isArray(risk.countries) ||
                 !Array.isArray(registry?.countries) || registry.countries.length < 150) throw new Error("INVALID_DATASET");
             dataset = risk;
+            renderFatfSnapshot();
             const classified = new Map(risk.countries.map(item => [ALPHA3_TO_ALPHA2[item.countryCode], item]));
             countries = registry.countries.filter(item => item.enabled !== false).map(item => {
                 const current = classified.get(item.countryCode);
@@ -301,6 +317,7 @@ if (root) {
         } catch {
             sourceStatus.textContent = "Country-risk evidence is temporarily unavailable. No cached classification is inferred.";
             summary.textContent = "Unavailable";
+            fatfResults.textContent = "The validated FATF snapshot could not be loaded.";
             cards.innerHTML = '<p class="risk-empty">The validated dataset could not be loaded. Use the official source links below.</p>';
         }
     }
@@ -322,8 +339,9 @@ if (root) {
         expandedRegions.clear(); render();
     });
     root.querySelector("[data-risk-show-fatf]")?.addEventListener("click", () => {
-        statusChecks.forEach(box => { box.checked = box.value === "FATF_CALL_FOR_ACTION"; });
-        category.value = "FATF_CALL_FOR_ACTION"; pageNumber = 1; render();
+        search.value = ""; region.value = ""; category.value = "";
+        statusChecks.forEach(box => { box.checked = box.value !== "FATF_NOT_LISTED_CURRENT_SNAPSHOT"; });
+        selectedCountryCode = null; pageNumber = 1; render();
         root.querySelector('[data-risk-tab="matrix"]')?.click();
     });
     statusChecks.forEach(box => box.addEventListener("change", () => {
