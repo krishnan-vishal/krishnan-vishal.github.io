@@ -12,7 +12,7 @@ export function governedTerms(query, max=3) {
   }
   return terms;
 }
-export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=fetch}={}) {
+export async function fetchGovernedAskPage(origin, filters, fetchImpl = fetch) {
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(String(origin||'')))throw Error('GOVERNED_ORIGIN_UNAVAILABLE');
   const headers = { accept: 'application/json' };
   try {
@@ -20,15 +20,21 @@ export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=
     if (!session) session = (await globalThis.GPIR_SUPABASE_CLIENT?.auth.getSession())?.data?.session;
     if (session?.access_token && globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url?.replace(/\/$/, '') === origin.replace(/\/$/, '')) headers.authorization = 'Bearer ' + session.access_token;
   } catch { /* Use the public preview if the session is unavailable. */ }
+  const params = new URLSearchParams(filters);
+  params.set('view', 'ask');
+  const result = await fetchImpl(origin.replace(/\/$/, '') + '/functions/v1/gpir-public-intelligence?' + params, { cache: 'no-store', headers });
+  if (!result.ok) throw Error('GOVERNED_HISTORY_UNAVAILABLE');
+  const payload = await result.json();
+  if (payload?.status !== 'OK' || !Array.isArray(payload.records)) throw Error('GOVERNED_HISTORY_INVALID');
+  return payload;
+}
+
+export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=fetch}={}) {
   const searches=[String(query||'').trim().slice(0,120),...governedTerms(query)].filter(Boolean);
   const unique=[...new Set(searches)].slice(0,4);
   const records=new Map();
   for(const term of unique){
-    const params=new URLSearchParams({view:'ask',q:term,limit:String(Math.min(25,Math.max(1,limit))),offset:'0'});
-    const response=await fetchImpl(origin.replace(/\/$/,'')+'/functions/v1/gpir-public-intelligence?'+params,{cache:'no-store',headers});
-    if(!response.ok)throw Error('GOVERNED_HISTORY_UNAVAILABLE');
-    const data=await response.json();
-    if(data?.status!=='OK'||!Array.isArray(data.records))throw Error('GOVERNED_HISTORY_INVALID');
+    const data = await fetchGovernedAskPage(origin, { q: term, limit: String(Math.min(25, Math.max(1, limit))) }, fetchImpl);
     for(const item of data.records){
       if(!item?.id||records.has(item.id))continue;
       records.set(item.id,item);
