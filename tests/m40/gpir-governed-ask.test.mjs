@@ -70,7 +70,9 @@ test('ASK preview applies a fixed 10% cap before search; entitled readers can re
         id:String(i).padStart(2,'0'),source_id:'bank',publication_status:'approved',
         title: 'Verified payment announcement ' + (i === 19 ? 'Bounded private example' : i),
         summary_narration:'Official evidence for verified payment changes, including the scope and timing.',
-        canonical_url:'https://bank.example/actions/'+i,published_at:'2026-11-20T08:00:00Z'
+        canonical_url:'https://bank.example/actions/'+i,
+        ticker_eligible: i === 0,
+        published_at: i === 0 ? '2026-11-22T21:00:00Z' : '2026-11-20T08:00:00Z'
       }))
     })
   });
@@ -79,7 +81,9 @@ test('ASK preview applies a fixed 10% cap before search; entitled readers can re
   }));
   const preview = await request();
   assert.match(preview.headers.get('cache-control'), /no-store/);
-  assert.equal((await preview.json()).total, 2);
+  const previewData = await preview.json();
+  assert.equal(previewData.total, 2);
+  assert.deepEqual(previewData.records.map(record => record.displayLifecycleStatus), ['LIVE', 'ARCHIVED']);
   assert.equal((await (await request('&q=Bounded%20private')).json()).total, 0);
   assert.equal((await (await request('&q=Bounded%20private', 'allowed')).json()).total, 1);
   assert.equal((await request('&topicContext=19')).status, 400);
