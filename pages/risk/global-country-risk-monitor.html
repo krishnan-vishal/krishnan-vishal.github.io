@@ -70,10 +70,26 @@
       </section>
       <section class="risk-secondary-panel" data-risk-panel="ofac" hidden>
         <h2>OFAC Sanctions Intelligence</h2><p>Verified sanctions actions and entity/program evidence are distinct from country-level conclusions. No country is classified as sanctioned without authoritative evidence.</p>
-        <a href="/intelligence-repository/?q=OFAC">Explore verified OFAC intelligence</a>
+        <h3>U.S. Treasury · OFAC</h3>
+        <p>Russia-related programs include targeted measures, sectoral restrictions and general licenses. Check the program and action for the scope and effective date.</p>
+        <ul>
+          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information/russian-harmful-foreign-activities-sanctions">Russian Harmful Foreign Activities Sanctions</a></li>
+          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information/ukraine-russia-related-sanctions">Ukraine-/Russia-related Sanctions</a></li>
+          <li><a href="https://ofac.treasury.gov/sanctions-programs-and-country-information">All OFAC programs and country information</a></li>
+          <li><a href="https://ofac.treasury.gov/recent-actions/sanctions-list-updates">OFAC designations, removals and license updates</a></li>
+        </ul>
+        <h3>UN Security Council</h3>
+        <p>Use the consolidated list and committee notices for named entities and individuals, and consult the relevant resolutions for the applicable measures.</p>
+        <ul>
+          <li><a href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list">UN consolidated sanctions list · XML, HTML and PDF</a></li>
+          <li><a href="https://main.un.org/securitycouncil/en/content/list-updates-unsc-consolidated-list">UN sanctions list changes</a></li>
+        </ul>
+        <a href="/intelligence-repository/?q=OFAC">Explore GPIR's verified OFAC intelligence</a>
       </section>
       <section class="risk-secondary-panel" data-risk-panel="fatf" hidden>
         <h2>FATF Intelligence</h2><p>Current official call-for-action and increased-monitoring designations from the validated FATF snapshot.</p>
+        <p>FATF removed the UAE from increased monitoring on 23 February 2024. Russia's FATF membership suspension, which began in February 2023, is a separate status.</p>
+        <p><a href="https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html">Official UAE FATF history</a> · <a href="https://www.fatf-gafi.org/en/publications/Mutualevaluations/Russia-FUR-2024.html">Official Russia FATF follow-up</a></p>
         <div data-risk-fatf-results aria-live="polite">Loading the FATF snapshot…</div>
         <button type="button" data-risk-show-fatf>Show FATF-designated countries</button>
         <a href="https://www.fatf-gafi.org/en/countries/black-and-grey-lists.html" target="_blank" rel="noopener noreferrer">Official FATF source</a>
@@ -120,7 +136,7 @@
           document.body.dataset.riskAuth = 'guest';
         } else {
           document.body.dataset.riskAuth = 'reader';
-          await import('../../assets/js/country-risk-monitor.js?v=20261123fatf');
+          await import('../../assets/js/country-risk-monitor.js?v=20261123regulatory');
         }
       } catch {
         status.textContent = 'Reader access could not be verified. Sign in to continue.';

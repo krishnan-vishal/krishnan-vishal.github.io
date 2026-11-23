@@ -382,8 +382,14 @@ if (root) {
             return (name.length > 3 && questionLower.includes(name)) || Boolean(aliases[country.countryCode2] && words.includes(aliases[country.countryCode2]));
         }).sort((a,b) => b.countryName.length - a.countryName.length);
         const country = mentioned[0];
+        const uaeHistory = country?.countryCode2 === "AE" && /fatf|grey|gray|monitoring/.test(questionLower)
+            ? " FATF removed the UAE from increased monitoring on 23 February 2024."
+            : "";
+        const fatfSource = uaeHistory
+            ? "https://www.fatf-gafi.org/en/countries/detail/United-Arab-Emirates.html"
+            : country?.sourceUrl;
         const statusText = country
-            ? country.countryName + ": FATF publication status in the dated official FATF source: " + country.fatfLabel + ". GPIR reproduces the official FATF publication status; it does not independently designate jurisdictions or infer OFAC sanctions."
+            ? country.countryName + ": FATF publication status in the dated official FATF source: " + country.fatfLabel + "." + uaeHistory + " GPIR reproduces the official FATF publication status; it does not independently designate jurisdictions or infer OFAC sanctions."
             : "";
         try {
             const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
@@ -415,10 +421,10 @@ if (root) {
                 } else li.textContent = citation.title || "Verified record";
                 citations.append(li);
             });
-            if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+            if (fatfSource && /^https:\/\//i.test(fatfSource)) {
                 const li = document.createElement("li");
                 const a = document.createElement("a");
-                a.href = country.sourceUrl;
+                a.href = fatfSource;
                 a.target = "_blank";
                 a.rel = "noopener noreferrer";
                 a.textContent = "Official FATF classification source";
@@ -433,9 +439,9 @@ if (root) {
                 const paragraph = document.createElement("p");
                 paragraph.textContent = statusText || "The governed intelligence service did not respond within 10 seconds. No unsupported answer has been generated.";
                 globalAskTarget.append(paragraph);
-                if (country?.sourceUrl && /^https:\/\//i.test(country.sourceUrl)) {
+                if (fatfSource && /^https:\/\//i.test(fatfSource)) {
                     const a = document.createElement("a");
-                    a.href = country.sourceUrl;
+                    a.href = fatfSource;
                     a.textContent = "Verify official FATF evidence";
                     a.target = "_blank";
                     a.rel = "noopener noreferrer";
