@@ -395,9 +395,11 @@
 .risk-dashboard-footer{padding:13px 0;border-top:3px solid #d4aa48;background:#07182c}
 .risk-dashboard-footer>div{display:flex;align-items:center;gap:16px}
 .risk-dashboard-footer strong{font-size:1.4rem}
-.risk-dashboard-footer small{margin-left:auto;color:#e3edf7}
+.risk-footer-sources{display:flex;flex-wrap:wrap;gap:4px 12px;margin-inline-start:auto;font-size:.82rem}
+.risk-footer-sources a{color:#e3edf7;text-underline-offset:3px}
+.risk-footer-sources a:hover,.risk-footer-sources a:focus-visible{color:#ffda7c}
 @media(max-width:1150px){.risk-hero-grid{grid-template-columns:1fr}.risk-country-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.risk-kpis{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:760px){.risk-workspace{grid-template-columns:1fr}.risk-dashboard-tabs{grid-template-columns:repeat(2,1fr)}.risk-country-grid,.risk-cards{grid-template-columns:1fr}.risk-kpis{grid-template-columns:repeat(2,1fr)}.risk-quicklinks{grid-template-columns:repeat(2,1fr)}.risk-dashboard-footer>div{flex-wrap:wrap}.risk-dashboard-footer small{margin-left:0}.risk-results-head{display:block}.risk-results-head p{text-align:left}}
+@media(max-width:760px){.risk-workspace{grid-template-columns:1fr}.risk-dashboard-tabs{grid-template-columns:repeat(2,1fr)}.risk-country-grid,.risk-cards{grid-template-columns:1fr}.risk-kpis{grid-template-columns:repeat(2,1fr)}.risk-quicklinks{grid-template-columns:repeat(2,1fr)}.risk-dashboard-footer>div{flex-wrap:wrap}.risk-footer-sources{margin-inline-start:0}.risk-results-head{display:block}.risk-results-head p{text-align:left}}
 
 /* M42 visual polish: preserve existing dashboard behavior and data sources */
 .country-risk-page[data-risk-auth="reader"] .country-risk-hero{
