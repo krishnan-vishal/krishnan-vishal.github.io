@@ -994,3 +994,7 @@ explicit for both existing Payload CLI stages; query/data errors still fail.
 No new settings/secrets or CMS/Contentful change. 50 focused tests PASS locally;
 required CI/private execution and actual live acceptance pending.
 Details: [consolidated report](M41-FULL-CUTOVER-REPORT.md).
+
+## 2026-11-23 — Domain Experts and Global Leaders
+
+**IN PROGRESS.** Repository directory, private REVIEW importer and entitled reader projection in owner review. Pending isolated migration validation, live accessibility acceptance, private staging of the initial 13 candidates, individual evidence and publication clearance and successive discovery batches. See [release evidence and rollout](GPIR_DOMAIN_EXPERT_DIRECTORY.md).
