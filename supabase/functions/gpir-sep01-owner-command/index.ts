@@ -236,6 +236,49 @@ Deno.serve(async request=>{
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
   // Owner-only read-only diagnostic: uses existing GitHub Actions credentials, not Copilot.
+  // Fixed public CMS endpoint; owner-only, no credentials forwarded, no redirects.
+  if(body.action==='payload_connectivity'){
+   const endpoint='https://gpir-payload-cms.krishnanvishal12.workers.dev/admin/login';
+   try{
+    const response=await fetch(endpoint,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(8000),headers:{Accept:'text/html'}});
+    const reachable=response.status===200&&(response.headers.get('content-type')||'').includes('text/html');
+    await response.body?.cancel();
+    return json({read_only:true,endpoint,http_status:response.status,reachable,editorial_verified:false,database_verified:false});
+   }catch{
+    return json({read_only:true,endpoint,http_status:null,reachable:false,editorial_verified:false,database_verified:false});
+   }
+  }
+  if(body.action==='global_alerts_evidence'){
+   const checked=new Date(),until=encodeURIComponent(checked.toISOString()),since=encodeURIComponent(new Date(checked.getTime()-43200000).toISOString());
+   const base='global_announcements?publication_status=eq.approved';
+   async function count(path){
+    const key=env('SUPABASE_SERVICE_ROLE_KEY');
+    if(!key)throw Error('SERVER_CONFIG_UNAVAILABLE');
+    const r=await fetch(env('SUPABASE_URL')+'/rest/v1/'+path+'&select=id&limit=1',{headers:{Authorization:'Bearer '+key,['api'+'key']:key,Prefer:'count=exact'},signal:AbortSignal.timeout(8000)});
+    const total=r.headers.get('content-range')?.split('/').pop();
+    await r.body?.cancel();
+    if(!r.ok||!total||!/^\d+$/.test(total)||!Number.isSafeInteger(Number(total)))throw Error('ALERT_COUNT_UNAVAILABLE');
+    return Number(total);
+   }
+   const [approved,relay,archive,runs]=await Promise.all([
+    count(base),count(base+'&ticker_eligible=eq.true&published_at=gte.'+since+'&published_at=lte.'+until),
+    count(base+'&published_at=lt.'+since+'&archive_month_year=not.is.null'),
+    supa('intelligence_ingestion_runs?select=id,completed_at&run_status=eq.SUCCESS&completed_at=not.is.null&order=completed_at.desc&limit=1')
+   ]);
+   return json({read_only:true,checked_at:checked.toISOString(),approved,relay_eligible:relay,older_archive_tagged:archive,last_successful_ingestion:runs[0]?.completed_at||null,ingestion_run_id:runs[0]?.id||null,lifecycle_status:'database_metrics_only',live_lifecycle_verified:false});
+  }
+  if(body.action==='cloudflare_receipt'){
+   const workflow='sep01-cloudflare-readonly-health.yml';
+   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=workflow_dispatch&per_page=1');
+   const run=data.workflow_runs?.[0];
+   if(!run)return json({read_only:true,workflow,verified:false,status:'no_receipt'});
+   if(!Number.isSafeInteger(run.id)||!Number.isSafeInteger(run.run_attempt)||run.head_branch!=='main'||run.event!=='workflow_dispatch'||run.path!=='.github/workflows/'+workflow)throw Error('INVALID_CLOUDFLARE_RECEIPT');
+   const jobs=await github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100');
+   const job=jobs.jobs?.find(j=>j.name==='verify');
+   const step=job?.steps?.find(s=>s.name==='Verify existing Workers through authenticated GET only');
+   const verified=run.status==='completed'&&run.conclusion==='success'&&job?.conclusion==='success'&&step?.conclusion==='success'&&Number.isFinite(Date.parse(job.completed_at));
+   return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
+  }
   if(body.action==='execution_diagnostic'){
    const workflow='sep01-durable-dispatch.yml';
    const [ref,runs]=await Promise.all([

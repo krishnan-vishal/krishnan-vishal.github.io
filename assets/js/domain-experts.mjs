@@ -1,10 +1,25 @@
 const get = id => document.getElementById('expert-' + id);
 const form = get('filters');
-const results = get('results');
+const cards = get('regional-cards');
 const detail = get('profile');
 const heading = get('detail-title');
 const status = get('status');
-let currentPage = 1;
+const regions = ['APAC','CIS','SEPA / Europe / UK','South Asia','Americas','LATAM','Africa','GCC / Middle East'];
+const geography = {
+  "APAC": "Australia|Brunei|Cambodia|China|Fiji|Hong Kong|Indonesia|Japan|Kiribati|Laos|Macau|Malaysia|Marshall Islands|Micronesia|Mongolia|Myanmar|Nauru|New Zealand|North Korea|Palau|Papua New Guinea|Philippines|Samoa|Singapore|Solomon Islands|South Korea|Taiwan|Thailand|Timor-Leste|Tonga|Tuvalu|Vanuatu|Vietnam",
+  "CIS": "Armenia|Azerbaijan|Belarus|Georgia|Kazakhstan|Kyrgyzstan|Moldova|Russia|Tajikistan|Turkmenistan|Ukraine|Uzbekistan",
+  "SEPA / Europe / UK": "Albania|Andorra|Austria|Belgium|Bosnia and Herzegovina|Bulgaria|Croatia|Cyprus|Czechia|Denmark|Estonia|Finland|France|Germany|Greece|Hungary|Iceland|Ireland|Italy|Kosovo|Latvia|Liechtenstein|Lithuania|Luxembourg|Malta|Monaco|Montenegro|Netherlands|North Macedonia|Norway|Poland|Portugal|Romania|San Marino|Serbia|Slovakia|Slovenia|Spain|Sweden|Switzerland|United Kingdom|Vatican City",
+  "South Asia": "Afghanistan|Bangladesh|Bhutan|India|Maldives|Nepal|Pakistan|Sri Lanka",
+  "Americas": "Canada|United States",
+  "LATAM": "Antigua and Barbuda|Argentina|Bahamas|Barbados|Belize|Bolivia|Brazil|Chile|Colombia|Costa Rica|Cuba|Dominica|Dominican Republic|Ecuador|El Salvador|Grenada|Guatemala|Guyana|Haiti|Honduras|Jamaica|Mexico|Nicaragua|Panama|Paraguay|Peru|Saint Kitts and Nevis|Saint Lucia|Saint Vincent and the Grenadines|Suriname|Trinidad and Tobago|Uruguay|Venezuela",
+  "Africa": "Algeria|Angola|Benin|Botswana|Burkina Faso|Burundi|Cabo Verde|Cameroon|Central African Republic|Chad|Comoros|Democratic Republic of the Congo|Republic of the Congo|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Ivory Coast|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome and Principe|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe",
+  "GCC / Middle East": "Bahrain|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Oman|Palestine|Qatar|Saudi Arabia|Syria|Turkey|United Arab Emirates|Yemen"
+};
+function countryOptions(published = []) {
+    const region = filters.get('region');
+    const names = region ? (geography[region] || '').split('|') : Object.values(geography).flatMap(value => value.split('|'));
+    return [...new Set([...names, ...published].filter(Boolean))].sort((a,b) => a.localeCompare(b));
+}
 let activeView = 'profiles';
 let filters = new URLSearchParams();
 let selectedButton = null;
@@ -48,6 +63,7 @@ function claim(item) {
 function appendSection(label, items) {
     if (!items?.length) return;
     const section = element('details');
+    section.open = true;
     section.append(element('summary', label), ...items.map(claim));
     detail.append(section);
 }
@@ -56,6 +72,20 @@ function initials(name) {
     return name.trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0]).join('');
 }
 
+function portraitNode(card) {
+    const fallback = element('span', initials(card.name));
+    fallback.className = 'expert-initials';
+    fallback.setAttribute('aria-hidden','true');
+    const url = safeUrl(card.portrait?.url);
+    if (!url || !card.portrait.identityConfirmed || !card.portrait.reuseLicense) return fallback;
+    const image = element('img');
+    image.alt = '';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('error', () => image.replaceWith(fallback), {once:true});
+    image.src = url;
+    return image;
+}
 function showProfile(card, button) {
     selectedButton?.removeAttribute('aria-current');
     selectedButton = button;
@@ -78,7 +108,14 @@ function showProfile(card, button) {
         fallback.replaceWith(image);
         image.src = portrait;
     }
-    detail.append(identity, claim(card.summary), element('p', card.topics.join(' · ')));
+    const overview = element('section');
+    overview.className = 'expert-overview';
+    overview.append(element('h3','Executive summary'), claim(card.summary), element('h3','Key expertise'));
+    const tags = element('div');
+    tags.className = 'expert-tags';
+    for (const topic of card.topics || []) tags.append(element('span',topic));
+    overview.append(tags);
+    detail.append(identity, overview);
     appendSection('Career history', card.career);
     appendSection('Qualifications', card.qualifications);
     appendSection('Significant contribution', [card.contribution]);
@@ -88,7 +125,8 @@ function showProfile(card, button) {
     const official = element('p');
     official.append(link(card.officialBio.url, 'Official biography · ' + card.officialBio.publisher),
         ' · Checked ' + card.officialBio.checkedAt);
-    sources.append(element('summary', 'Sources'), official, element('p', 'Last reviewed ' + card.checkedAt));
+    sources.open = true;
+    sources.append(element('summary', 'Verification & official sources'), official, element('p', 'Last reviewed ' + card.checkedAt));
     if (card.linkedin?.identityConfirmed) sources.append(link(card.linkedin.url, 'LinkedIn profile'));
     const back = element('button', 'Back to selected result');
     back.type = 'button';
@@ -103,7 +141,10 @@ function resetProfile() {
     get('placeholder').hidden = false;
     detail.replaceChildren();
 }
-
+/**
+ * @param {string} name
+ * @param {string[]} values
+ */
 function options(name, values) {
     const control = form.elements.namedItem(name);
     const selected = filters.get(name) || '';
@@ -120,6 +161,45 @@ function showView(view) {
     get('browser').hidden = byDomain;
 }
 
+function renderRegionalCards(profiles, jurisdictions) {
+    cards.replaceChildren();
+    const grouped = new Map((filters.get('region') ? [filters.get('region')] : regions).map(region => [region, []]));
+    for (const p of profiles) {
+        const region = filters.get('region') || p.regions?.[0] || 'Global';
+        if (!grouped.has(region)) grouped.set(region, []);
+        grouped.get(region).push(p);
+    }
+    const regionOrder = ['Global', 'Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East', 'Latin America'];
+    const sorted = [...grouped.entries()].sort((a, b) => {
+        const ia = regionOrder.indexOf(a[0]);
+        const ib = regionOrder.indexOf(b[0]);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    for (const [region, people] of sorted) {
+        people.sort((a, b) => (a.sortKey || a.name || '').localeCompare(b.sortKey || b.name || ''));
+        const card = element('div');
+        card.className = 'region-card';
+        card.append(element('h3', region));
+        card.append(element('p', people.length ? people.length + ' profiles on this page' : 'No published profiles on this page.'));
+        const list = element('ul');
+        for (const p of people) {
+            const row = element('li');
+            const button = element('button');
+            button.className = 'expert-person-card';
+            const info = element('span');
+            info.className = 'expert-person-info';
+            info.append(element('strong', p.name), element('span', p.title), element('small', p.employer), element('small', p.jurisdiction), element('small', (p.topics || []).join(' · ')));
+            button.append(portraitNode(p), info);
+            button.type = 'button';
+            button.addEventListener('click', () => showProfile(p, button));
+            row.append(button);
+            list.append(row);
+        }
+        card.append(list);
+        cards.append(card);
+    }
+}
+
 function renderDomains(topics) {
     const list = get('domain-list');
     list.replaceChildren();
@@ -130,29 +210,27 @@ function renderDomains(topics) {
         button.type = 'button';
         button.addEventListener('click', () => {
             form.reset();
-            form.elements.namedItem('topic').value = topic;
             filters = new URLSearchParams({ topic });
             showView('profiles');
             get('results-title').focus();
-            load(1, true);
+            load();
         });
         row.append(button);
         list.append(row);
     }
 }
 
-async function load(page = 1, moveFocus = false) {
+async function load() {
     pending?.abort();
     const request = new AbortController();
     pending = request;
     const params = new URLSearchParams(filters);
-    params.set('page', page);
     params.set('catalog', 'experts');
-    status.textContent = 'Loading experts…';
-    results.replaceChildren();
+    status.textContent = 'Loading directory…';
+    cards.replaceChildren();
+    get('pagination').hidden = true;
     resetProfile();
     get('browser').setAttribute('aria-busy', 'true');
-    get('previous').disabled = get('next').disabled = true;
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
     try {
         if (!config?.url || !config.publishableKey) throw Error('Unavailable');
@@ -184,26 +262,17 @@ async function load(page = 1, moveFocus = false) {
         get('access').hidden = true;
         get('views').hidden = false;
         showView(activeView);
-        renderDomains(data.topics);
-        for (const [field, key] of [['region', 'regions'], ['industry', 'industries'], ['topic', 'topics']]) {
-            options(field, data[key]);
-        }
-        for (const card of data.cards) {
-            const row = element('li');
-            const button = element('button', card.name + ' · ' + card.title);
-            button.type = 'button';
-            button.addEventListener('click', () => showProfile(card, button));
-            row.append(button);
-            results.append(row);
-        }
-        currentPage = page;
-        const pages = Math.ceil(data.total / 20);
-        status.textContent = data.total === 0
-            ? (filters.size ? 'No published experts match these filters.' : 'No expert profiles have been published yet.')
-            : data.total + ' matching profiles. Page ' + page + ' of ' + pages + '.';
+        renderDomains(data.topics || []);
+        options('region', [...new Set([...regions, ...(data.regions || [])])]);
+        options('jurisdiction', countryOptions(data.jurisdictions || []));
+        renderRegionalCards(data.cards, data.jurisdictions || []);
+        const page = Number(filters.get('page') || 1);
+        const total = data.total;
+        status.textContent = total + ' matching published expert profiles.';
+        get('page-label').textContent = total ? 'Page ' + page + ' of ' + Math.ceil(total / 20) : 'No results';
         get('previous').disabled = page <= 1;
-        get('next').disabled = page >= pages;
-        if (moveFocus && activeView === 'profiles') get('results-title').focus();
+        get('next').disabled = page * 20 >= total || page >= 1000;
+        get('pagination').hidden = total <= 20;
     } catch {
         if (!request.signal.aborted) status.textContent = 'The directory is temporarily unavailable. Reload the page to try again.';
     } finally {
@@ -211,21 +280,30 @@ async function load(page = 1, moveFocus = false) {
     }
 }
 
-for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') form.elements.namedItem('letter').add(new Option(letter));
+form.elements.namedItem('region').addEventListener('change', () => {
+    form.elements.namedItem('jurisdiction').value = '';
+    filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
+    options('jurisdiction', countryOptions());
+    load();
+});
 form.addEventListener('submit', event => {
     event.preventDefault();
     filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
-    load(1, true);
+    load();
 });
 form.addEventListener('reset', () => {
     if (activeView === 'domain') return;
     filters = new URLSearchParams();
-    queueMicrotask(() => load(1, true));
+    queueMicrotask(() => load());
 });
+for (const [id, delta] of [['previous', -1], ['next', 1]]) {
+    get(id).addEventListener('click', () => {
+        filters.set('page', String(Math.max(1, Math.min(1000, Number(filters.get('page') || 1) + delta))));
+        load();
+    });
+}
 get('show-domain').addEventListener('click', () => showView('domain'));
 get('show-profiles').addEventListener('click', () => showView('profiles'));
-get('previous').addEventListener('click', () => load(currentPage - 1, true));
-get('next').addEventListener('click', () => load(currentPage + 1, true));
 try {
     session = await window.GPIRReaderAuth?.sessionReady;
 } catch {}
