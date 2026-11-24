@@ -252,7 +252,9 @@ async function handleUnscCurrent(admin: any, dryRun: boolean) {
 
 async function handleOfacCurrent(admin: any, dryRun: boolean) {
     const snapshots = [];
+    const snapshotFailures: string[] = [];
     for (const file of ["SDN.XML", "CONSOLIDATED.XML"]) {
+        try {
         const sourceUrl = OFAC_EXPORT_BASE + file;
         const { result, finalUrl } = await officialFetch(sourceUrl, "OFAC");
         if (!result.ok) throw new Error("OFAC_SNAPSHOT_HTTP_" + result.status);
@@ -260,6 +262,9 @@ async function handleOfacCurrent(admin: any, dryRun: boolean) {
         const metadata = parseOfacSnapshotMetadata(xml, sourceUrl);
         const hash = await sha256Hex(xml);
         snapshots.push({ file, hash, metadata, finalUrl, xml, status: result.status, contentType: result.headers.get("content-type") });
+        } catch {
+            snapshotFailures.push(file);
+        }
     }
     const { result: indexResponse, finalUrl: indexFinalUrl } = await officialFetch("https://ofac.treasury.gov/recent-actions", "OFAC");
     if (!indexResponse.ok) throw new Error("OFAC_RECENT_ACTIONS_HTTP_" + indexResponse.status);
@@ -267,7 +272,7 @@ async function handleOfacCurrent(admin: any, dryRun: boolean) {
     const actions = parseOfacRecentActions(indexHtml).slice(0, MAX_CURRENT_ACTIONS);
     if (dryRun) return {
         snapshots: snapshots.map(item => ({ file: item.file, hash: item.hash, ...item.metadata })),
-        actions, databaseWritten: false
+        actions, snapshotFailures, databaseWritten: false
     };
 
     for (const item of snapshots) {
@@ -338,7 +343,7 @@ async function handleOfacCurrent(admin: any, dryRun: boolean) {
         });
         outcomes.push({ url: action.canonicalUrl, exactTimestamp, relay, ...eventResult });
     }
-    return { snapshots: snapshots.length, actions: outcomes, indexFinalUrl };
+    return { snapshots: snapshots.length, snapshotFailures, actions: outcomes, indexFinalUrl };
 }
 
 async function handleOfacBackfill(admin: any, from: string, to: string, dryRun: boolean) {
