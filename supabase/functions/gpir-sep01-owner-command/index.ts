@@ -236,6 +236,18 @@ Deno.serve(async request=>{
    return json({job_id:row.job_id,status:row.payload.status,revision:row.revision,updated_at:row.updated_at,checkpoint:row.payload.checkpoint_commit||null,provider:row.payload.provider||null,model_attempts:modelAttempts,pr_url:row.payload.pr_url||null});
   }
   // Owner-only read-only diagnostic: uses existing GitHub Actions credentials, not Copilot.
+  // Fixed public CMS endpoint; owner-only, no credentials forwarded, no redirects.
+  if(body.action==='payload_connectivity'){
+   const endpoint='https://gpir-payload-cms.krishnanvishal12.workers.dev/admin/login';
+   try{
+    const response=await fetch(endpoint,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(8000),headers:{Accept:'text/html'}});
+    const reachable=response.status===200&&(response.headers.get('content-type')||'').includes('text/html');
+    await response.body?.cancel();
+    return json({read_only:true,endpoint,http_status:response.status,reachable,editorial_verified:false,database_verified:false});
+   }catch{
+    return json({read_only:true,endpoint,http_status:null,reachable:false,editorial_verified:false,database_verified:false});
+   }
+  }
   if(body.action==='execution_diagnostic'){
    const workflow='sep01-durable-dispatch.yml';
    const [ref,runs]=await Promise.all([
