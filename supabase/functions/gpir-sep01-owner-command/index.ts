@@ -248,6 +248,18 @@ Deno.serve(async request=>{
     return json({read_only:true,endpoint,http_status:null,reachable:false,editorial_verified:false,database_verified:false});
    }
   }
+  if(body.action==='cloudflare_receipt'){
+   const workflow='sep01-cloudflare-readonly-health.yml';
+   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=workflow_dispatch&per_page=1');
+   const run=data.workflow_runs?.[0];
+   if(!run)return json({read_only:true,workflow,verified:false,status:'no_receipt'});
+   if(!Number.isSafeInteger(run.id)||!Number.isSafeInteger(run.run_attempt)||run.head_branch!=='main'||run.event!=='workflow_dispatch'||run.path!=='.github/workflows/'+workflow)throw Error('INVALID_CLOUDFLARE_RECEIPT');
+   const jobs=await github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100');
+   const job=jobs.jobs?.find(j=>j.name==='verify');
+   const step=job?.steps?.find(s=>s.name==='Verify existing Workers through authenticated GET only');
+   const verified=run.status==='completed'&&run.conclusion==='success'&&job?.conclusion==='success'&&step?.conclusion==='success'&&Number.isFinite(Date.parse(job.completed_at));
+   return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
+  }
   if(body.action==='execution_diagnostic'){
    const workflow='sep01-durable-dispatch.yml';
    const [ref,runs]=await Promise.all([
