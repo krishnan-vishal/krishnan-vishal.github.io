@@ -204,7 +204,19 @@ async function refreshConnectivity(){
  }catch(error){set('#payload-health','Unavailable · CMS endpoint request failed')}
  try{
   const response=await fetch('/',{method:'GET',cache:'no-store',credentials:'same-origin'});
-  set('#cloudflare-health',response.ok?'Site delivery reachable · HTTP '+response.status+'; Cloudflare provider health not verified':'Site delivery degraded · HTTP '+response.status);
+  const delivery=response.ok?'Site delivery reachable · HTTP '+response.status:'Site delivery degraded · HTTP '+response.status;
+  try{
+   const receipt=await commandRequest({action:'cloudflare_receipt'});
+   if(receipt.read_only!==true||receipt.workflow!=='sep01-cloudflare-readonly-health.yml'||typeof receipt.verified!=='boolean')throw Error('INVALID_CLOUDFLARE_RECEIPT');
+   const valid=receipt.verified&&Number.isSafeInteger(receipt.run_id)&&Number.isFinite(Date.parse(receipt.completed_at));
+   set('#cloudflare-health',delivery+'; '+(valid?'Last authenticated Worker verification passed · '+new Date(receipt.completed_at).toLocaleString():'Latest provider verification not confirmed · '+String(receipt.conclusion||receipt.status||'unknown'))+'; no fresh provider check');
+   if(Number.isSafeInteger(receipt.run_id)){
+    const link=document.createElement('a');
+    link.href='https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/'+receipt.run_id;
+    link.target='_blank';link.rel='noopener noreferrer';link.textContent='View verification receipt';
+    document.querySelector('#cloudflare-health').append(' · ',link);
+   }
+  }catch{set('#cloudflare-health',delivery+'; authenticated verification receipt unavailable')}
  }catch(error){set('#cloudflare-health','Site delivery unavailable · request failed')}
  button.disabled=false;
 }
