@@ -41,3 +41,15 @@
 #expert-views button, .expert-domain-list button { min-height: 2.75rem; padding: .55rem .75rem; border: 1px solid #59708c; border-radius: .45rem; background: white; color: #112344; text-align: start; cursor: pointer; }
 .expert-domain-list button { width: 100%; border-inline-start: .25rem solid #a86b17; overflow-wrap: anywhere; }
 #expert-views button[aria-pressed="true"] { background: #152b4e; color: white; }
+
+/* Full-width regional directory, separate from selected profile */
+.expert-grid { grid-template-columns: minmax(0,1fr); }
+.expert-grid .tools { grid-template-columns: repeat(2,minmax(0,1fr)) auto auto; align-items:end; gap:.75rem; padding:1rem; background:#152b4e; color:white; border-radius:.75rem; }
+.expert-grid .tools select { color:#112344; background:white; }
+#expert-regional-cards.region-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,19rem),1fr)); gap:1rem; }
+#expert-regional-cards .region-card { border:1px solid #b8863b; border-radius:.75rem; padding:1rem; }
+#expert-regional-cards .region-card h3 { background:#152b4e; color:white; padding:.8rem; border-radius:.4rem; }
+#expert-regional-cards > p { grid-column:1/-1; }
+.expert-detail:has(#expert-placeholder:not([hidden])) { display:none; }
+@media(max-width:48rem){.expert-grid .tools {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:30rem){.expert-grid .tools {grid-template-columns:minmax(0,1fr);}}
