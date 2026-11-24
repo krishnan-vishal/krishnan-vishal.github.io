@@ -198,8 +198,9 @@ async function refreshConnectivity(){
   set('#supabase-health','Verified · owner-authenticated gateway returned job '+receipt.status+' (not a database-wide health check)');
  }catch(error){set('#supabase-health','Not verified · '+String(error.message||error).slice(0,120))}
  try{
-  const response=await fetch('/admin/login',{method:'GET',cache:'no-store',credentials:'same-origin',redirect:'follow'});
-  set('#payload-health',response.ok?'Reachable · /admin/login HTTP '+response.status+'; CMS database/auth not verified':'Unavailable · /admin/login HTTP '+response.status);
+  const result=await commandRequest({action:'payload_connectivity'});
+  if(result.read_only!==true||result.endpoint!=='https://gpir-payload-cms.krishnanvishal12.workers.dev/admin/login'||typeof result.reachable!=='boolean')throw Error('INVALID_PAYLOAD_CONNECTIVITY');
+  set('#payload-health',result.reachable&&result.http_status===200?'Reachable · dedicated CMS Worker HTTP 200; editorial/database not verified':'Not verified · CMS Worker '+(Number.isInteger(result.http_status)?'HTTP '+result.http_status:'request failed'));
  }catch(error){set('#payload-health','Unavailable · CMS endpoint request failed')}
  try{
   const response=await fetch('/',{method:'GET',cache:'no-store',credentials:'same-origin'});
