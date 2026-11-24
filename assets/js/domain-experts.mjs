@@ -232,6 +232,11 @@ async function load() {
     }
 }
 
+form.elements.namedItem('region').addEventListener('change', () => {
+    form.elements.namedItem('jurisdiction').value = '';
+    filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
+    load();
+});
 form.addEventListener('submit', event => {
     event.preventDefault();
     filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
