@@ -70,3 +70,12 @@ body.expert-directory {background:radial-gradient(ellipse at 75% 0%,#234458,#071
 .expert-profile-identity :is(img,span) {width:9rem;height:9rem;border:2px solid #cba56b;}
 .expert-detail details {background:#f8f0e1;color:#102438;border:1px solid #d8bd91;border-radius:.6rem;padding:.7rem;margin:.65rem 0;}
 .expert-detail details a {color:#174b72;}
+
+#expert-regional-cards .expert-person-card {display:grid;grid-template-columns:5rem minmax(0,1fr);gap:.7rem;align-items:start;padding:.7rem;}
+.expert-person-card img,.expert-initials {width:5rem;height:6rem;object-fit:cover;border:1px solid #cba56b;border-radius:.45rem;}
+.expert-initials {display:grid;place-items:center;background:#234458;color:#f4d49a;font-size:1.5rem;}
+.expert-person-info {display:grid;gap:.3rem;}.expert-person-info strong {font: bold 1.2rem Georgia,serif;color:#f4d49a;}
+.expert-overview {background:#f8f0e1;color:#102438;padding:1rem;border-radius:.6rem;}.expert-overview a {color:#174b72;}
+.expert-tags {display:flex;flex-wrap:wrap;gap:.4rem;}.expert-tags span {background:#ead2a7;color:#102438;padding:.35rem .65rem;border-radius:.4rem;}
+#expert-profile {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;}#expert-profile .expert-profile-identity,#expert-profile .expert-overview {grid-column:1/-1;}#expert-profile details {margin:0;}
+@media(max-width:45rem){#expert-profile {grid-template-columns:minmax(0,1fr);}}
