@@ -140,8 +140,6 @@ function renderRegionalCards(profiles, jurisdictions) {
         const ib = regionOrder.indexOf(b[0]);
         return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
     });
-    options('region', [...grouped.keys()].sort());
-    options('jurisdiction', jurisdictions.sort());
     for (const [region, people] of sorted) {
         people.sort((a, b) => (a.sortKey || a.name || '').localeCompare(b.sortKey || b.name || ''));
         const card = element('div');
@@ -223,6 +221,8 @@ async function load() {
         get('views').hidden = false;
         showView(activeView);
         renderDomains(data.topics || []);
+        options('region', data.regions || []);
+        options('jurisdiction', data.jurisdictions || []);
         renderRegionalCards(data.cards, data.jurisdictions || []);
         status.textContent = data.cards.length + ' published expert profiles.';
     } catch {
