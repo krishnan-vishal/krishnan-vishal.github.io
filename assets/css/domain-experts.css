@@ -13,8 +13,6 @@
 .expert-grid button { padding: .55rem .75rem; border: 1px solid #59708c; border-radius: .4rem; background: white; color: #112344; cursor: pointer; text-align: start; }
 .expert-grid button:disabled { opacity: .6; cursor: default; }
 .expert-grid button[aria-current="true"] { background: #152b4e; color: #fff; border-color: #152b4e; }
-.expert-results { list-style: none; padding: 0; display: grid; gap: .4rem; }
-.expert-results button { width: 100%; }
 .expert-detail { border: 1px solid #a86b17; border-radius: .75rem; background: #fff; color: #112344; padding: 1rem; }
 .expert-detail h2 { background: #152b4e; color: #fff; border-radius: .4rem; padding: .75rem; margin: 0 0 .75rem; }
 .expert-directory :is(.mast, .expert-grid) { overflow-wrap: anywhere; }
@@ -24,8 +22,19 @@
 .expert-detail details { border-top: 1px solid #cbd5e1; padding: .35rem 0; }
 .expert-detail summary { display: list-item; padding: .55rem .25rem; font-weight: 700; cursor: pointer; }
 .expert-detail small { display: block; }
-@media (max-width: 60rem) { .expert-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .expert-detail { grid-column: 1 / -1; } }
-@media (max-width: 38rem) { .expert-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Region card integration */
+#expert-regional-cards.region-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+#expert-regional-cards .region-card { background: #ffffff; color: #142b4a; border: 1px solid rgba(20, 43, 74, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 10px 30px rgba(20, 43, 74, 0.07); transition: transform 180ms ease, box-shadow 180ms ease; }
+#expert-regional-cards .region-card:hover { transform: translateY(-5px); box-shadow: 0 18px 42px rgba(20, 43, 74, 0.12); }
+#expert-regional-cards .region-card h3 { color: #142b4a; margin: 0 0 .5rem; font-size: 1.1rem; border-bottom: 2px solid #b8863b; padding-bottom: .35rem; }
+#expert-regional-cards .region-card ul { list-style: none; padding: 0; margin: .5rem 0 0; display: grid; gap: .35rem; }
+#expert-regional-cards .region-card button { width: 100%; min-height: 2.4rem; padding: .4rem .6rem; border: 1px solid #59708c; border-radius: .4rem; background: white; color: #112344; cursor: pointer; text-align: start; font-size: .875rem; overflow-wrap: anywhere; }
+#expert-regional-cards .region-card button:hover { background: #f0f2f5; }
+#expert-regional-cards .region-card button[aria-current="true"] { background: #152b4e; color: #fff; border-color: #152b4e; }
+
+@media (max-width: 60rem) { .expert-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .expert-detail { grid-column: 1 / -1; } #expert-regional-cards.region-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 38rem) { .expert-grid { grid-template-columns: minmax(0, 1fr); } #expert-regional-cards.region-grid { grid-template-columns: minmax(0, 1fr); } }
 
 #expert-views { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
 .expert-domain-list { list-style: none; padding: 0; display: grid; gap: .65rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }

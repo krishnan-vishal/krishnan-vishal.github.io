@@ -32,13 +32,11 @@ test('Guests, unpaid readers and verification failures never query expert rows',
     }
 });
 
-test('Entitled request passes bounded, parameterized combined filters', async () => {
-    const query = new URLSearchParams({ q: 'Q'.repeat(128), region: 'Global', industry: 'Payments',
-        topic: 'Cards', title: 'Director', letter: 'e', page: '9000' });
+test('Entitled request passes bounded, parameterized filters', async () => {
+    const query = new URLSearchParams({ q: 'Q'.repeat(128), region: 'Global', jurisdiction: 'Switzerland' });
     const payload = await expertDirectory(query, 'ALLOW', async filters => {
-        assert.deepEqual(filters, { p_query: 'Q'.repeat(100), p_region: 'Global', p_industry: 'Payments',
-            p_topic: 'Cards', p_title: 'Director', p_letter: 'E', p_page: 1000 });
-        return { cards: [], total: 0 };
+        assert.deepEqual(filters, { p_query: 'Q'.repeat(100), p_region: 'Global', p_jurisdiction: 'Switzerland', p_page: 1 });
+        return { cards: [], total: 0, jurisdictions: [] };
     });
     assert.equal(payload.access, 'ALLOW');
 });
@@ -59,5 +57,13 @@ test('Both Repository menus replace the placeholder and retain Industry Particip
     for (const page of ['index.html', 'pages/intelligence/index.html']) {
         const markup = readFileSync(page, 'utf8');
         assert.match(markup, /<strong>Directory<\/strong>[\s\S]+?Industry Participants[\s\S]+?href="\/pages\/intelligence\/domain-experts.html"><strong>Domain Experts/);
+    }
+});
+
+
+test('Chapter and region menus include Domain Experts alongside Industry Participants', () => {
+    for (const page of ['pages/chapters/industry-participants.html', 'pages/regions/africa.html']) {
+        const markup = readFileSync(page, 'utf8');
+        assert.match(markup, /Industry Participants[^]*?href="\.\.\/\.\.\/pages\/intelligence\/domain-experts\.html"><strong>Domain Experts/);
     }
 });
