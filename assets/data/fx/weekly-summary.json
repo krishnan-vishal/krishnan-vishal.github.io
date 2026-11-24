@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-23T12:22:23.622Z",
+  "generatedAt": "2026-11-24T00:19:26.127Z",
   "source": "fx_historical_archive",
   "summaries": [
     {
       "pair": "USD/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 93.959855,
-      "latestRate": 92.753491,
+      "latestRate": 92.995018,
       "high": 93.959855,
       "low": 92.753491,
-      "weeklyChange": -1.2063640000000078,
-      "weeklyChangePercent": -1.283914284456918,
+      "weeklyChange": -0.9648370000000028,
+      "weeklyChangePercent": -1.026860886492431,
       "direction": "down",
       "rangePercent": 1.3006130410768126,
       "observations": [
@@ -39,10 +39,14 @@
         {
           "date": "2026-11-23",
           "rate": 92.753491
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 92.995018
         }
       ],
       "statements": [
-        "USD/INR closed the 5-day observation period 1.3% below the period's starting level.",
+        "USD/INR closed the 6-day observation period 1.0% below the period's starting level.",
         "The pair traded within a 1.3% high-low range during the period."
       ]
     },
@@ -50,15 +54,15 @@
       "pair": "EUR/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 103.413504,
-      "latestRate": 101.800055,
+      "latestRate": 101.56275,
       "high": 103.413504,
-      "low": 101.800055,
-      "weeklyChange": -1.6134490000000028,
-      "weeklyChangePercent": -1.5601917908129317,
+      "low": 101.56275,
+      "weeklyChange": -1.8507540000000091,
+      "weeklyChangePercent": -1.7896637560990187,
       "direction": "down",
-      "rangePercent": 1.5849195759275403,
+      "rangePercent": 1.822276375935084,
       "observations": [
         {
           "date": "2026-11-17",
@@ -83,26 +87,30 @@
         {
           "date": "2026-11-23",
           "rate": 101.800055
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 101.56275
         }
       ],
       "statements": [
-        "EUR/INR closed the 5-day observation period 1.6% below the period's starting level.",
-        "The pair traded within a 1.6% high-low range during the period."
+        "EUR/INR closed the 6-day observation period 1.8% below the period's starting level.",
+        "The pair traded within a 1.8% high-low range during the period."
       ]
     },
     {
       "pair": "GBP/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 123.915906,
-      "latestRate": 121.472348,
+      "latestRate": 121.297006,
       "high": 123.915906,
-      "low": 121.472348,
-      "weeklyChange": -2.44355800000001,
-      "weeklyChangePercent": -1.971948621349716,
+      "low": 121.297006,
+      "weeklyChange": -2.6189000000000107,
+      "weeklyChangePercent": -2.1134494227076956,
       "direction": "down",
-      "rangePercent": 2.0116166685112646,
+      "rangePercent": 2.159080497007495,
       "observations": [
         {
           "date": "2026-11-17",
@@ -127,24 +135,28 @@
         {
           "date": "2026-11-23",
           "rate": 121.472348
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 121.297006
         }
       ],
       "statements": [
-        "GBP/INR closed the 5-day observation period 2.0% below the period's starting level.",
-        "The pair traded within a 2.0% high-low range during the period."
+        "GBP/INR closed the 6-day observation period 2.1% below the period's starting level.",
+        "The pair traded within a 2.2% high-low range during the period."
       ]
     },
     {
       "pair": "AED/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 25.584712,
-      "latestRate": 25.256226,
+      "latestRate": 25.321993,
       "high": 25.584712,
       "low": 25.256226,
-      "weeklyChange": -0.32848599999999806,
-      "weeklyChangePercent": -1.2839151755939173,
+      "weeklyChange": -0.2627190000000006,
+      "weeklyChangePercent": -1.0268593213009416,
       "direction": "down",
       "rangePercent": 1.3006139555450527,
       "observations": [
@@ -171,10 +183,14 @@
         {
           "date": "2026-11-23",
           "rate": 25.256226
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 25.321993
         }
       ],
       "statements": [
-        "AED/INR closed the 5-day observation period 1.3% below the period's starting level.",
+        "AED/INR closed the 6-day observation period 1.0% below the period's starting level.",
         "The pair traded within a 1.3% high-low range during the period."
       ]
     },
@@ -182,13 +198,13 @@
       "pair": "SGD/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 72.899542,
-      "latestRate": 71.953191,
+      "latestRate": 72.02222,
       "high": 72.899542,
       "low": 71.953191,
-      "weeklyChange": -0.9463509999999928,
-      "weeklyChangePercent": -1.2981576756682407,
+      "weeklyChange": -0.8773219999999924,
+      "weeklyChangePercent": -1.2034670944846162,
       "direction": "down",
       "rangePercent": 1.31523145373774,
       "observations": [
@@ -215,10 +231,14 @@
         {
           "date": "2026-11-23",
           "rate": 71.953191
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 72.02222
         }
       ],
       "statements": [
-        "SGD/INR closed the 5-day observation period 1.3% below the period's starting level.",
+        "SGD/INR closed the 6-day observation period 1.2% below the period's starting level.",
         "The pair traded within a 1.3% high-low range during the period."
       ]
     },
@@ -226,13 +246,13 @@
       "pair": "AUD/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 63.355055,
-      "latestRate": 61.547904,
+      "latestRate": 61.630307,
       "high": 63.355055,
       "low": 61.547904,
-      "weeklyChange": -1.8071509999999975,
-      "weeklyChangePercent": -2.8524180114751654,
+      "weeklyChange": -1.7247479999999982,
+      "weeklyChangePercent": -2.7223526204815043,
       "direction": "down",
       "rangePercent": 2.9361698490983503,
       "observations": [
@@ -259,10 +279,14 @@
         {
           "date": "2026-11-23",
           "rate": 61.547904
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 61.630307
         }
       ],
       "statements": [
-        "AUD/INR closed the 5-day observation period 2.9% below the period's starting level.",
+        "AUD/INR closed the 6-day observation period 2.7% below the period's starting level.",
         "The pair traded within a 2.9% high-low range during the period."
       ]
     },
@@ -270,13 +294,13 @@
       "pair": "CAD/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 65.735153,
-      "latestRate": 64.715907,
+      "latestRate": 64.760438,
       "high": 65.735153,
       "low": 64.715907,
-      "weeklyChange": -1.0192459999999954,
-      "weeklyChangePercent": -1.5505341563592245,
+      "weeklyChange": -0.9747150000000033,
+      "weeklyChangePercent": -1.4827911026540141,
       "direction": "down",
       "rangePercent": 1.5749543616842074,
       "observations": [
@@ -303,10 +327,14 @@
         {
           "date": "2026-11-23",
           "rate": 64.715907
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 64.760438
         }
       ],
       "statements": [
-        "CAD/INR closed the 5-day observation period 1.6% below the period's starting level.",
+        "CAD/INR closed the 6-day observation period 1.5% below the period's starting level.",
         "The pair traded within a 1.6% high-low range during the period."
       ]
     },
@@ -314,13 +342,13 @@
       "pair": "JPY/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.588794,
-      "latestRate": 0.584453,
+      "latestRate": 0.584647,
       "high": 0.588794,
       "low": 0.584453,
-      "weeklyChange": -0.004341000000000039,
-      "weeklyChangePercent": -0.737269741199815,
+      "weeklyChange": -0.004147000000000012,
+      "weeklyChangePercent": -0.7043210358801231,
       "direction": "down",
       "rangePercent": 0.7427457810978879,
       "observations": [
@@ -347,10 +375,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.584453
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.584647
         }
       ],
       "statements": [
-        "JPY/INR closed the 5-day observation period 0.7% below the period's starting level.",
+        "JPY/INR closed the 6-day observation period 0.7% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -358,13 +390,13 @@
       "pair": "CNY/INR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 14.067411,
-      "latestRate": 13.882458,
+      "latestRate": 13.922871,
       "high": 14.067411,
       "low": 13.877827,
-      "weeklyChange": -0.18495300000000015,
-      "weeklyChangePercent": -1.3147621833185945,
+      "weeklyChange": -0.14453999999999922,
+      "weeklyChangePercent": -1.0274811761737768,
       "direction": "down",
       "rangePercent": 1.3660928328332669,
       "observations": [
@@ -391,10 +423,14 @@
         {
           "date": "2026-11-23",
           "rate": 13.882458
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 13.922871
         }
       ],
       "statements": [
-        "CNY/INR closed the 5-day observation period 1.3% below the period's starting level.",
+        "CNY/INR closed the 6-day observation period 1.0% below the period's starting level.",
         "The pair traded within a 1.4% high-low range during the period."
       ]
     },
@@ -402,15 +438,15 @@
       "pair": "EUR/USD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.100614,
-      "latestRate": 1.097533,
+      "latestRate": 1.092131,
       "high": 1.100614,
-      "low": 1.097386,
-      "weeklyChange": -0.0030809999999998894,
-      "weeklyChangePercent": -0.27993465465639084,
+      "low": 1.092131,
+      "weeklyChange": -0.008483000000000018,
+      "weeklyChangePercent": -0.770751598653117,
       "direction": "down",
-      "rangePercent": 0.29415356128108144,
+      "rangePercent": 0.7767383216848546,
       "observations": [
         {
           "date": "2026-11-17",
@@ -435,26 +471,30 @@
         {
           "date": "2026-11-23",
           "rate": 1.097533
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.092131
         }
       ],
       "statements": [
-        "EUR/USD closed the 5-day observation period 0.3% below the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "EUR/USD closed the 6-day observation period 0.8% below the period's starting level.",
+        "The pair traded within a 0.8% high-low range during the period."
       ]
     },
     {
       "pair": "GBP/USD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.318818,
-      "latestRate": 1.309626,
+      "latestRate": 1.304339,
       "high": 1.319965,
-      "low": 1.309584,
-      "weeklyChange": -0.009192000000000089,
-      "weeklyChangePercent": -0.696987757218971,
+      "low": 1.304339,
+      "weeklyChange": -0.01447900000000013,
+      "weeklyChangePercent": -1.0978770383783154,
       "direction": "down",
-      "rangePercent": 0.792694473970358,
+      "rangePercent": 1.1980014398097534,
       "observations": [
         {
           "date": "2026-11-17",
@@ -479,24 +519,28 @@
         {
           "date": "2026-11-23",
           "rate": 1.309626
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.304339
         }
       ],
       "statements": [
-        "GBP/USD closed the 5-day observation period 0.7% below the period's starting level.",
-        "The pair traded within a 0.8% high-low range during the period."
+        "GBP/USD closed the 6-day observation period 1.1% below the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "USD/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 159.580113,
-      "latestRate": 158.701406,
+      "latestRate": 159.06171,
       "high": 159.74951,
       "low": 158.701406,
-      "weeklyChange": -0.8787070000000199,
-      "weeklyChangePercent": -0.5506369079961861,
+      "weeklyChange": -0.5184030000000064,
+      "weeklyChangePercent": -0.3248543883409873,
       "direction": "down",
       "rangePercent": 0.66042515086476,
       "observations": [
@@ -523,10 +567,14 @@
         {
           "date": "2026-11-23",
           "rate": 158.701406
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 159.06171
         }
       ],
       "statements": [
-        "USD/JPY closed the 5-day observation period 0.6% below the period's starting level.",
+        "USD/JPY closed the 6-day observation period 0.3% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -534,13 +582,13 @@
       "pair": "USD/CNY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 6.679257,
-      "latestRate": 6.681345,
+      "latestRate": 6.679299,
       "high": 6.693346,
       "low": 6.679257,
-      "weeklyChange": 0.002088000000000534,
-      "weeklyChangePercent": 0.03126096211001514,
+      "weeklyChange": 0.000042000000000541604,
+      "weeklyChangePercent": 0.0006288124562438847,
       "direction": "up",
       "rangePercent": 0.21093663561680948,
       "observations": [
@@ -567,10 +615,14 @@
         {
           "date": "2026-11-23",
           "rate": 6.681345
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 6.679299
         }
       ],
       "statements": [
-        "USD/CNY closed the 5-day observation period 0.0% above the period's starting level.",
+        "USD/CNY closed the 6-day observation period 0.0% above the period's starting level.",
         "The pair traded within a 0.2% high-low range during the period."
       ]
     },
@@ -578,13 +630,13 @@
       "pair": "USD/CHF",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.839814,
-      "latestRate": 0.840419,
+      "latestRate": 0.841327,
       "high": 0.843437,
       "low": 0.839814,
-      "weeklyChange": 0.0006050000000000777,
-      "weeklyChangePercent": 0.07203976118522408,
+      "weeklyChange": 0.0015130000000000976,
+      "weeklyChangePercent": 0.18015893995576374,
       "direction": "up",
       "rangePercent": 0.4314050492132833,
       "observations": [
@@ -611,10 +663,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.840419
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.841327
         }
       ],
       "statements": [
-        "USD/CHF closed the 5-day observation period 0.1% above the period's starting level.",
+        "USD/CHF closed the 6-day observation period 0.2% above the period's starting level.",
         "The pair traded within a 0.4% high-low range during the period."
       ]
     },
@@ -622,15 +678,15 @@
       "pair": "USD/CAD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.42937,
-      "latestRate": 1.433241,
-      "high": 1.433441,
+      "latestRate": 1.435985,
+      "high": 1.435985,
       "low": 1.42937,
-      "weeklyChange": 0.003870999999999958,
-      "weeklyChangePercent": 0.27081861239566785,
+      "weeklyChange": 0.0066150000000000375,
+      "weeklyChangePercent": 0.4627912996634907,
       "direction": "up",
-      "rangePercent": 0.2848107907679562,
+      "rangePercent": 0.4627912996634907,
       "observations": [
         {
           "date": "2026-11-17",
@@ -655,24 +711,28 @@
         {
           "date": "2026-11-23",
           "rate": 1.433241
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.435985
         }
       ],
       "statements": [
-        "USD/CAD closed the 5-day observation period 0.3% above the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "USD/CAD closed the 6-day observation period 0.5% above the period's starting level.",
+        "The pair traded within a 0.5% high-low range during the period."
       ]
     },
     {
       "pair": "USD/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 7.846956,
-      "latestRate": 7.838987,
+      "latestRate": 7.842241,
       "high": 7.846956,
       "low": 7.838737,
-      "weeklyChange": -0.007968999999999227,
-      "weeklyChangePercent": -0.10155530373815308,
+      "weeklyChange": -0.004715000000000025,
+      "weeklyChangePercent": -0.06008699424337316,
       "direction": "down",
       "rangePercent": 0.10485107486065079,
       "observations": [
@@ -699,10 +759,14 @@
         {
           "date": "2026-11-23",
           "rate": 7.838987
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 7.842241
         }
       ],
       "statements": [
-        "USD/HKD closed the 5-day observation period 0.1% below the period's starting level.",
+        "USD/HKD closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.1% high-low range during the period."
       ]
     },
@@ -710,7 +774,7 @@
       "pair": "USD/AED",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.6725,
       "latestRate": 3.6725,
       "high": 3.6725,
@@ -743,6 +807,10 @@
         {
           "date": "2026-11-23",
           "rate": 3.6725
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.6725
         }
       ],
       "statements": [
@@ -754,15 +822,15 @@
       "pair": "USD/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.288895,
-      "latestRate": 1.289081,
-      "high": 1.290845,
+      "latestRate": 1.291199,
+      "high": 1.291199,
       "low": 1.288508,
-      "weeklyChange": 0.00018600000000001948,
-      "weeklyChangePercent": 0.014430966060076229,
+      "weeklyChange": 0.0023040000000000838,
+      "weeklyChangePercent": 0.1787577731312546,
       "direction": "up",
-      "rangePercent": 0.18137256423708922,
+      "rangePercent": 0.2088462004116388,
       "observations": [
         {
           "date": "2026-11-17",
@@ -787,10 +855,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.289081
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.291199
         }
       ],
       "statements": [
-        "USD/SGD closed the 5-day observation period 0.0% above the period's starting level.",
+        "USD/SGD closed the 6-day observation period 0.2% above the period's starting level.",
         "The pair traded within a 0.2% high-low range during the period."
       ]
     },
@@ -798,7 +870,7 @@
       "pair": "USD/SAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.75,
       "latestRate": 3.75,
       "high": 3.75,
@@ -831,6 +903,10 @@
         {
           "date": "2026-11-23",
           "rate": 3.75
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.75
         }
       ],
       "statements": [
@@ -842,7 +918,7 @@
       "pair": "USD/QAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.64,
       "latestRate": 3.64,
       "high": 3.64,
@@ -875,6 +951,10 @@
         {
           "date": "2026-11-23",
           "rate": 3.64
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.64
         }
       ],
       "statements": [
@@ -886,15 +966,15 @@
       "pair": "USD/KWD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.311177,
-      "latestRate": 0.310445,
-      "high": 0.311342,
+      "latestRate": 0.311688,
+      "high": 0.311688,
       "low": 0.310445,
-      "weeklyChange": -0.0007319999999999549,
-      "weeklyChangePercent": -0.23523589468371855,
-      "direction": "down",
-      "rangePercent": 0.28894006989965404,
+      "weeklyChange": 0.0005110000000000392,
+      "weeklyChangePercent": 0.1642152215620175,
+      "direction": "up",
+      "rangePercent": 0.4003929842645216,
       "observations": [
         {
           "date": "2026-11-17",
@@ -919,18 +999,22 @@
         {
           "date": "2026-11-23",
           "rate": 0.310445
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.311688
         }
       ],
       "statements": [
-        "USD/KWD closed the 5-day observation period 0.2% below the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "USD/KWD closed the 6-day observation period 0.2% above the period's starting level.",
+        "The pair traded within a 0.4% high-low range during the period."
       ]
     },
     {
       "pair": "USD/BHD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.376,
       "latestRate": 0.376,
       "high": 0.376,
@@ -963,6 +1047,10 @@
         {
           "date": "2026-11-23",
           "rate": 0.376
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.376
         }
       ],
       "statements": [
@@ -974,7 +1062,7 @@
       "pair": "USD/OMR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.384497,
       "latestRate": 0.384497,
       "high": 0.384497,
@@ -1007,6 +1095,10 @@
         {
           "date": "2026-11-23",
           "rate": 0.384497
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.384497
         }
       ],
       "statements": [
@@ -1018,13 +1110,13 @@
       "pair": "EUR/GBP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.834546,
-      "latestRate": 0.838051,
+      "latestRate": 0.837306,
       "high": 0.838051,
       "low": 0.833242,
-      "weeklyChange": 0.0035049999999999804,
-      "weeklyChangePercent": 0.4199888322513055,
+      "weeklyChange": 0.0027599999999999847,
+      "weeklyChangePercent": 0.3307187380923262,
       "direction": "up",
       "rangePercent": 0.5771432549007314,
       "observations": [
@@ -1051,10 +1143,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.838051
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.837306
         }
       ],
       "statements": [
-        "EUR/GBP closed the 5-day observation period 0.4% above the period's starting level.",
+        "EUR/GBP closed the 6-day observation period 0.3% above the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -1062,15 +1158,15 @@
       "pair": "AUD/USD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.674278,
-      "latestRate": 0.663564,
+      "latestRate": 0.662727,
       "high": 0.674278,
-      "low": 0.663555,
-      "weeklyChange": -0.010714000000000001,
-      "weeklyChangePercent": -1.5889588567326831,
+      "low": 0.662727,
+      "weeklyChange": -0.011551000000000089,
+      "weeklyChangePercent": -1.7130916328280157,
       "direction": "down",
-      "rangePercent": 1.6159926456736875,
+      "rangePercent": 1.7429499628052108,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1095,26 +1191,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.663564
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.662727
         }
       ],
       "statements": [
-        "AUD/USD closed the 5-day observation period 1.6% below the period's starting level.",
-        "The pair traded within a 1.6% high-low range during the period."
+        "AUD/USD closed the 6-day observation period 1.7% below the period's starting level.",
+        "The pair traded within a 1.7% high-low range during the period."
       ]
     },
     {
       "pair": "NZD/USD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.550372,
-      "latestRate": 0.547374,
+      "latestRate": 0.54485,
       "high": 0.550372,
-      "low": 0.547374,
-      "weeklyChange": -0.002997999999999945,
-      "weeklyChangePercent": -0.5447224786144544,
+      "low": 0.54485,
+      "weeklyChange": -0.005522000000000027,
+      "weeklyChangePercent": -1.0033213898962934,
       "direction": "down",
-      "rangePercent": 0.5477059560738992,
+      "rangePercent": 1.0134899513627653,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1139,24 +1239,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.547374
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.54485
         }
       ],
       "statements": [
-        "NZD/USD closed the 5-day observation period 0.5% below the period's starting level.",
-        "The pair traded within a 0.5% high-low range during the period."
+        "NZD/USD closed the 6-day observation period 1.0% below the period's starting level.",
+        "The pair traded within a 1.0% high-low range during the period."
       ]
     },
     {
       "pair": "USD/PKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 276.55578,
-      "latestRate": 276.545746,
+      "latestRate": 276.548085,
       "high": 276.818953,
       "low": 276.460596,
-      "weeklyChange": -0.01003400000001875,
-      "weeklyChangePercent": -0.0036282011534955983,
+      "weeklyChange": -0.007695000000012442,
+      "weeklyChangePercent": -0.0027824404899483355,
       "direction": "down",
       "rangePercent": 0.1296231742190168,
       "observations": [
@@ -1183,10 +1287,14 @@
         {
           "date": "2026-11-23",
           "rate": 276.545746
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 276.548085
         }
       ],
       "statements": [
-        "USD/PKR closed the 5-day observation period 0.0% below the period's starting level.",
+        "USD/PKR closed the 6-day observation period 0.0% below the period's starting level.",
         "The pair traded within a 0.1% high-low range during the period."
       ]
     },
@@ -1194,13 +1302,13 @@
       "pair": "USD/BDT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 124.589647,
-      "latestRate": 124.425063,
+      "latestRate": 124.461097,
       "high": 124.86223,
       "low": 124.388033,
-      "weeklyChange": -0.16458400000000495,
-      "weeklyChangePercent": -0.13210086388639092,
+      "weeklyChange": -0.12855000000000416,
+      "weeklyChangePercent": -0.10317871757033245,
       "direction": "down",
       "rangePercent": 0.38122397192341145,
       "observations": [
@@ -1227,10 +1335,14 @@
         {
           "date": "2026-11-23",
           "rate": 124.425063
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 124.461097
         }
       ],
       "statements": [
-        "USD/BDT closed the 5-day observation period 0.1% below the period's starting level.",
+        "USD/BDT closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.4% high-low range during the period."
       ]
     },
@@ -1238,15 +1350,15 @@
       "pair": "USD/LKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 332.677303,
-      "latestRate": 332.392719,
+      "latestRate": 332.377239,
       "high": 332.677303,
-      "low": 332.392719,
-      "weeklyChange": -0.2845839999999953,
-      "weeklyChangePercent": -0.0855435575056334,
+      "low": 332.377239,
+      "weeklyChange": -0.3000640000000203,
+      "weeklyChangePercent": -0.0901967153437036,
       "direction": "down",
-      "rangePercent": 0.08561679715974624,
+      "rangePercent": 0.09027814326360065,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1271,10 +1383,14 @@
         {
           "date": "2026-11-23",
           "rate": 332.392719
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 332.377239
         }
       ],
       "statements": [
-        "USD/LKR closed the 5-day observation period 0.1% below the period's starting level.",
+        "USD/LKR closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.1% high-low range during the period."
       ]
     },
@@ -1282,15 +1398,15 @@
       "pair": "USD/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.483068,
-      "latestRate": 1.507013,
-      "high": 1.507035,
+      "latestRate": 1.508917,
+      "high": 1.508917,
       "low": 1.483068,
-      "weeklyChange": 0.023944999999999883,
-      "weeklyChangePercent": 1.614558469335181,
+      "weeklyChange": 0.02584900000000001,
+      "weeklyChangePercent": 1.7429409844997,
       "direction": "up",
-      "rangePercent": 1.6160418807498949,
+      "rangePercent": 1.7429409844997,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1315,26 +1431,30 @@
         {
           "date": "2026-11-23",
           "rate": 1.507013
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.508917
         }
       ],
       "statements": [
-        "USD/AUD closed the 5-day observation period 1.6% above the period's starting level.",
-        "The pair traded within a 1.6% high-low range during the period."
+        "USD/AUD closed the 6-day observation period 1.7% above the period's starting level.",
+        "The pair traded within a 1.7% high-low range during the period."
       ]
     },
     {
       "pair": "USD/EUR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.908584,
-      "latestRate": 0.911134,
-      "high": 0.911256,
+      "latestRate": 0.915641,
+      "high": 0.915641,
       "low": 0.908584,
-      "weeklyChange": 0.0025500000000000522,
-      "weeklyChangePercent": 0.2806564940610942,
+      "weeklyChange": 0.007057000000000091,
+      "weeklyChangePercent": 0.7767030896427949,
       "direction": "up",
-      "rangePercent": 0.29408398122793356,
+      "rangePercent": 0.7767030896427949,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1359,26 +1479,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.911134
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.915641
         }
       ],
       "statements": [
-        "USD/EUR closed the 5-day observation period 0.3% above the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "USD/EUR closed the 6-day observation period 0.8% above the period's starting level.",
+        "The pair traded within a 0.8% high-low range during the period."
       ]
     },
     {
       "pair": "USD/GBP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.758255,
-      "latestRate": 0.763577,
-      "high": 0.763601,
+      "latestRate": 0.766672,
+      "high": 0.766672,
       "low": 0.757596,
-      "weeklyChange": 0.005321999999999938,
-      "weeklyChangePercent": 0.7018746991447387,
+      "weeklyChange": 0.008417000000000008,
+      "weeklyChangePercent": 1.1100487303084066,
       "direction": "up",
-      "rangePercent": 0.7926388206907016,
+      "rangePercent": 1.1979999894402784,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1403,26 +1527,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.763577
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.766672
         }
       ],
       "statements": [
-        "USD/GBP closed the 5-day observation period 0.7% above the period's starting level.",
-        "The pair traded within a 0.8% high-low range during the period."
+        "USD/GBP closed the 6-day observation period 1.1% above the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "USD/RUB",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 82.518177,
-      "latestRate": 81.988351,
+      "latestRate": 81.917395,
       "high": 82.518177,
-      "low": 81.988351,
-      "weeklyChange": -0.5298259999999999,
-      "weeklyChangePercent": -0.6420718673898963,
+      "low": 81.917395,
+      "weeklyChange": -0.6007819999999953,
+      "weeklyChangePercent": -0.7280601945435553,
       "direction": "down",
-      "rangePercent": 0.6462210710885012,
+      "rangePercent": 0.733399786455606,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1447,24 +1575,28 @@
         {
           "date": "2026-11-23",
           "rate": 81.988351
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 81.917395
         }
       ],
       "statements": [
-        "USD/RUB closed the 5-day observation period 0.6% below the period's starting level.",
-        "The pair traded within a 0.6% high-low range during the period."
+        "USD/RUB closed the 6-day observation period 0.7% below the period's starting level.",
+        "The pair traded within a 0.7% high-low range during the period."
       ]
     },
     {
       "pair": "USD/KZT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 444.74347,
-      "latestRate": 455.698773,
+      "latestRate": 454.802635,
       "high": 455.698773,
       "low": 443.928114,
-      "weeklyChange": 10.955303000000015,
-      "weeklyChangePercent": 2.4632858578002312,
+      "weeklyChange": 10.059165000000007,
+      "weeklyChangePercent": 2.261790375471956,
       "direction": "up",
       "rangePercent": 2.651478613044098,
       "observations": [
@@ -1491,10 +1623,14 @@
         {
           "date": "2026-11-23",
           "rate": 455.698773
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 454.802635
         }
       ],
       "statements": [
-        "USD/KZT closed the 5-day observation period 2.5% above the period's starting level.",
+        "USD/KZT closed the 6-day observation period 2.3% above the period's starting level.",
         "The pair traded within a 2.7% high-low range during the period."
       ]
     },
@@ -1502,13 +1638,13 @@
       "pair": "USD/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 11981.61766,
-      "latestRate": 11921.409559,
+      "latestRate": 11960.809956,
       "high": 11987.908877,
       "low": 11921.409559,
-      "weeklyChange": -60.20810100000017,
-      "weeklyChangePercent": -0.502503941525373,
+      "weeklyChange": -20.80770400000074,
+      "weeklyChangePercent": -0.17366356188669052,
       "direction": "down",
       "rangePercent": 0.5578142221428577,
       "observations": [
@@ -1535,10 +1671,14 @@
         {
           "date": "2026-11-23",
           "rate": 11921.409559
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 11960.809956
         }
       ],
       "statements": [
-        "USD/UZS closed the 5-day observation period 0.5% below the period's starting level.",
+        "USD/UZS closed the 6-day observation period 0.2% below the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -1546,15 +1686,15 @@
       "pair": "USD/BRL",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 5.714693,
-      "latestRate": 5.945309,
-      "high": 5.945309,
+      "latestRate": 5.958461,
+      "high": 5.958461,
       "low": 5.714693,
-      "weeklyChange": 0.23061600000000038,
-      "weeklyChangePercent": 4.035492370281315,
+      "weeklyChange": 0.2437680000000002,
+      "weeklyChangePercent": 4.26563596679647,
       "direction": "up",
-      "rangePercent": 4.035492370281315,
+      "rangePercent": 4.26563596679647,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1579,26 +1719,30 @@
         {
           "date": "2026-11-23",
           "rate": 5.945309
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 5.958461
         }
       ],
       "statements": [
-        "USD/BRL closed the 5-day observation period 4.0% above the period's starting level.",
-        "The pair traded within a 4.0% high-low range during the period."
+        "USD/BRL closed the 6-day observation period 4.3% above the period's starting level.",
+        "The pair traded within a 4.3% high-low range during the period."
       ]
     },
     {
       "pair": "USD/MXN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 18.548392,
-      "latestRate": 19.113379,
-      "high": 19.123957,
+      "latestRate": 19.184157,
+      "high": 19.184157,
       "low": 18.442572,
-      "weeklyChange": 0.5649869999999986,
-      "weeklyChangePercent": 3.046016064357485,
+      "weeklyChange": 0.6357649999999992,
+      "weeklyChangePercent": 3.4276017026165895,
       "direction": "up",
-      "rangePercent": 3.694631095923076,
+      "rangePercent": 4.0210497754868495,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1623,18 +1767,22 @@
         {
           "date": "2026-11-23",
           "rate": 19.113379
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 19.184157
         }
       ],
       "statements": [
-        "USD/MXN closed the 5-day observation period 3.0% above the period's starting level.",
-        "The pair traded within a 3.7% high-low range during the period."
+        "USD/MXN closed the 6-day observation period 3.4% above the period's starting level.",
+        "The pair traded within a 4.0% high-low range during the period."
       ]
     },
     {
       "pair": "USD/ARS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1549.6732,
       "latestRate": 1575.9572,
       "high": 1575.9572,
@@ -1667,10 +1815,14 @@
         {
           "date": "2026-11-23",
           "rate": 1575.9572
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1575.9572
         }
       ],
       "statements": [
-        "USD/ARS closed the 5-day observation period 1.7% above the period's starting level.",
+        "USD/ARS closed the 6-day observation period 1.7% above the period's starting level.",
         "The pair traded within a 1.7% high-low range during the period."
       ]
     },
@@ -1678,13 +1830,13 @@
       "pair": "USD/ZAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 16.959311,
-      "latestRate": 17.513472,
+      "latestRate": 17.428652,
       "high": 17.529792,
       "low": 16.926458,
-      "weeklyChange": 0.5541610000000006,
-      "weeklyChangePercent": 3.267591472318661,
+      "weeklyChange": 0.469341,
+      "weeklyChangePercent": 2.767453229674248,
       "direction": "up",
       "rangePercent": 3.5644433111759133,
       "observations": [
@@ -1711,10 +1863,14 @@
         {
           "date": "2026-11-23",
           "rate": 17.513472
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 17.428652
         }
       ],
       "statements": [
-        "USD/ZAR closed the 5-day observation period 3.3% above the period's starting level.",
+        "USD/ZAR closed the 6-day observation period 2.8% above the period's starting level.",
         "The pair traded within a 3.6% high-low range during the period."
       ]
     },
@@ -1722,15 +1878,15 @@
       "pair": "USD/NGN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1350.055103,
-      "latestRate": 1367.642612,
-      "high": 1376.736792,
+      "latestRate": 1380.144451,
+      "high": 1380.144451,
       "low": 1350.055103,
-      "weeklyChange": 17.587509000000182,
-      "weeklyChangePercent": 1.30272527105882,
+      "weeklyChange": 30.089347999999973,
+      "weeklyChangePercent": 2.2287496216367377,
       "direction": "up",
-      "rangePercent": 1.976340739034265,
+      "rangePercent": 2.2287496216367377,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1755,25 +1911,29 @@
         {
           "date": "2026-11-23",
           "rate": 1367.642612
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1380.144451
         }
       ],
       "statements": [
-        "USD/NGN closed the 5-day observation period 1.3% above the period's starting level.",
-        "The pair traded within a 2.0% high-low range during the period."
+        "USD/NGN closed the 6-day observation period 2.2% above the period's starting level.",
+        "The pair traded within a 2.2% high-low range during the period."
       ]
     },
     {
       "pair": "USD/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 129.980012,
-      "latestRate": 129.915267,
+      "latestRate": 130.093683,
       "high": 130.099085,
       "low": 129.915267,
-      "weeklyChange": -0.06474499999998784,
-      "weeklyChangePercent": -0.0498115048642924,
-      "direction": "down",
+      "weeklyChange": 0.11367100000001074,
+      "weeklyChangePercent": 0.08745267695467727,
+      "direction": "up",
       "rangePercent": 0.1414906840779554,
       "observations": [
         {
@@ -1799,10 +1959,14 @@
         {
           "date": "2026-11-23",
           "rate": 129.915267
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 130.093683
         }
       ],
       "statements": [
-        "USD/KES closed the 5-day observation period 0.0% below the period's starting level.",
+        "USD/KES closed the 6-day observation period 0.1% above the period's starting level.",
         "The pair traded within a 0.1% high-low range during the period."
       ]
     },
@@ -1810,15 +1974,15 @@
       "pair": "USD/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 53.681178,
-      "latestRate": 54.166609,
-      "high": 54.166609,
+      "latestRate": 54.330891,
+      "high": 54.330891,
       "low": 53.681178,
-      "weeklyChange": 0.4854309999999984,
-      "weeklyChangePercent": 0.9042852971669109,
+      "weeklyChange": 0.6497129999999984,
+      "weeklyChangePercent": 1.2103180746145294,
       "direction": "up",
-      "rangePercent": 0.9042852971669109,
+      "rangePercent": 1.2103180746145294,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1843,26 +2007,30 @@
         {
           "date": "2026-11-23",
           "rate": 54.166609
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 54.330891
         }
       ],
       "statements": [
-        "USD/EGP closed the 5-day observation period 0.9% above the period's starting level.",
-        "The pair traded within a 0.9% high-low range during the period."
+        "USD/EGP closed the 6-day observation period 1.2% above the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "USD/THB",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 33.886826,
-      "latestRate": 33.943445,
-      "high": 33.964642,
+      "latestRate": 33.998037,
+      "high": 33.998037,
       "low": 33.82355,
-      "weeklyChange": 0.056618999999997754,
-      "weeklyChangePercent": 0.16708262969213392,
+      "weeklyChange": 0.11121099999999728,
+      "weeklyChangePercent": 0.32818358379152207,
       "direction": "up",
-      "rangePercent": 0.4171413113052901,
+      "rangePercent": 0.5158742946852095,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1887,26 +2055,30 @@
         {
           "date": "2026-11-23",
           "rate": 33.943445
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 33.998037
         }
       ],
       "statements": [
-        "USD/THB closed the 5-day observation period 0.2% above the period's starting level.",
-        "The pair traded within a 0.4% high-low range during the period."
+        "USD/THB closed the 6-day observation period 0.3% above the period's starting level.",
+        "The pair traded within a 0.5% high-low range during the period."
       ]
     },
     {
       "pair": "USD/MYR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 4.094237,
-      "latestRate": 4.112368,
-      "high": 4.114705,
+      "latestRate": 4.122789,
+      "high": 4.122789,
       "low": 4.093341,
-      "weeklyChange": 0.01813100000000034,
-      "weeklyChangePercent": 0.44284197519587515,
+      "weeklyChange": 0.028552000000000355,
+      "weeklyChangePercent": 0.6973704746452234,
       "direction": "up",
-      "rangePercent": 0.5219208465651937,
+      "rangePercent": 0.7194123333482445,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1931,26 +2103,30 @@
         {
           "date": "2026-11-23",
           "rate": 4.112368
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 4.122789
         }
       ],
       "statements": [
-        "USD/MYR closed the 5-day observation period 0.4% above the period's starting level.",
-        "The pair traded within a 0.5% high-low range during the period."
+        "USD/MYR closed the 6-day observation period 0.7% above the period's starting level.",
+        "The pair traded within a 0.7% high-low range during the period."
       ]
     },
     {
       "pair": "USD/IDR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 18273.211135,
-      "latestRate": 18276.102736,
+      "latestRate": 18195.480115,
       "high": 18291.407129,
-      "low": 18238.998573,
-      "weeklyChange": 2.891600999999355,
-      "weeklyChangePercent": 0.01582426306266917,
-      "direction": "up",
-      "rangePercent": 0.28734338560441147,
+      "low": 18195.480115,
+      "weeklyChange": -77.7310200000029,
+      "weeklyChangePercent": -0.42538237765511866,
+      "direction": "down",
+      "rangePercent": 0.5272024337567242,
       "observations": [
         {
           "date": "2026-11-17",
@@ -1975,24 +2151,28 @@
         {
           "date": "2026-11-23",
           "rate": 18276.102736
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 18195.480115
         }
       ],
       "statements": [
-        "USD/IDR closed the 5-day observation period 0.0% above the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "USD/IDR closed the 6-day observation period 0.4% below the period's starting level.",
+        "The pair traded within a 0.5% high-low range during the period."
       ]
     },
     {
       "pair": "USD/PHP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 63.93553,
-      "latestRate": 63.908027,
+      "latestRate": 63.848367,
       "high": 63.984688,
       "low": 63.673716,
-      "weeklyChange": -0.027503000000002942,
-      "weeklyChangePercent": -0.04301677017458515,
+      "weeklyChange": -0.08716299999999677,
+      "weeklyChangePercent": -0.13632951818808223,
       "direction": "down",
       "rangePercent": 0.488383621273179,
       "observations": [
@@ -2019,10 +2199,14 @@
         {
           "date": "2026-11-23",
           "rate": 63.908027
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 63.848367
         }
       ],
       "statements": [
-        "USD/PHP closed the 5-day observation period 0.0% below the period's starting level.",
+        "USD/PHP closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.5% high-low range during the period."
       ]
     },
@@ -2030,15 +2214,15 @@
       "pair": "USD/VND",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 25747.080419,
-      "latestRate": 25779.206142,
-      "high": 25783.122794,
+      "latestRate": 25800.612967,
+      "high": 25800.612967,
       "low": 25703.83069,
-      "weeklyChange": 32.12572299999738,
-      "weeklyChangePercent": 0.12477423644620408,
+      "weeklyChange": 53.532547999999224,
+      "weeklyChangePercent": 0.20791696428809456,
       "direction": "up",
-      "rangePercent": 0.30848360680670245,
+      "rangePercent": 0.37652861228056145,
       "observations": [
         {
           "date": "2026-11-17",
@@ -2063,26 +2247,30 @@
         {
           "date": "2026-11-23",
           "rate": 25779.206142
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 25800.612967
         }
       ],
       "statements": [
-        "USD/VND closed the 5-day observation period 0.1% above the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "USD/VND closed the 6-day observation period 0.2% above the period's starting level.",
+        "The pair traded within a 0.4% high-low range during the period."
       ]
     },
     {
       "pair": "USD/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.816952,
-      "latestRate": 1.826906,
-      "high": 1.826906,
+      "latestRate": 1.835368,
+      "high": 1.835368,
       "low": 1.816952,
-      "weeklyChange": 0.009954000000000018,
-      "weeklyChangePercent": 0.5478405593543483,
+      "weeklyChange": 0.01841600000000021,
+      "weeklyChangePercent": 1.0135655757554527,
       "direction": "up",
-      "rangePercent": 0.5478405593543483,
+      "rangePercent": 1.0135655757554527,
       "observations": [
         {
           "date": "2026-11-17",
@@ -2107,24 +2295,28 @@
         {
           "date": "2026-11-23",
           "rate": 1.826906
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.835368
         }
       ],
       "statements": [
-        "USD/NZD closed the 5-day observation period 0.5% above the period's starting level.",
-        "The pair traded within a 0.5% high-low range during the period."
+        "USD/NZD closed the 6-day observation period 1.0% above the period's starting level.",
+        "The pair traded within a 1.0% high-low range during the period."
       ]
     },
     {
       "pair": "INR/PKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 2.94334,
-      "latestRate": 2.981513,
+      "latestRate": 2.973795,
       "high": 2.981513,
       "low": 2.94334,
-      "weeklyChange": 0.03817300000000001,
-      "weeklyChangePercent": 1.2969279797780757,
+      "weeklyChange": 0.0304549999999999,
+      "weeklyChangePercent": 1.0347088681565806,
       "direction": "up",
       "rangePercent": 1.2969279797780757,
       "observations": [
@@ -2151,10 +2343,14 @@
         {
           "date": "2026-11-23",
           "rate": 2.981513
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 2.973795
         }
       ],
       "statements": [
-        "INR/PKR closed the 5-day observation period 1.3% above the period's starting level.",
+        "INR/PKR closed the 6-day observation period 1.0% above the period's starting level.",
         "The pair traded within a 1.3% high-low range during the period."
       ]
     },
@@ -2162,13 +2358,13 @@
       "pair": "INR/BDT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.325988,
-      "latestRate": 1.34146,
+      "latestRate": 1.338363,
       "high": 1.34146,
       "low": 1.325988,
-      "weeklyChange": 0.015472000000000152,
-      "weeklyChangePercent": 1.1668280557591888,
+      "weeklyChange": 0.012375000000000025,
+      "weeklyChangePercent": 0.9332663644014897,
       "direction": "up",
       "rangePercent": 1.1668280557591888,
       "observations": [
@@ -2195,10 +2391,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.34146
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.338363
         }
       ],
       "statements": [
-        "INR/BDT closed the 5-day observation period 1.2% above the period's starting level.",
+        "INR/BDT closed the 6-day observation period 0.9% above the period's starting level.",
         "The pair traded within a 1.2% high-low range during the period."
       ]
     },
@@ -2206,13 +2406,13 @@
       "pair": "INR/LKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.540632,
-      "latestRate": 3.583614,
+      "latestRate": 3.57414,
       "high": 3.583614,
       "low": 3.540632,
-      "weeklyChange": 0.042981999999999854,
-      "weeklyChangePercent": 1.213964060653574,
+      "weeklyChange": 0.03350799999999987,
+      "weeklyChangePercent": 0.946384713237633,
       "direction": "up",
       "rangePercent": 1.213964060653574,
       "observations": [
@@ -2239,10 +2439,14 @@
         {
           "date": "2026-11-23",
           "rate": 3.583614
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.57414
         }
       ],
       "statements": [
-        "INR/LKR closed the 5-day observation period 1.2% above the period's starting level.",
+        "INR/LKR closed the 6-day observation period 0.9% above the period's starting level.",
         "The pair traded within a 1.2% high-low range during the period."
       ]
     },
@@ -2250,13 +2454,13 @@
       "pair": "INR/CNY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.071086,
-      "latestRate": 0.072033,
+      "latestRate": 0.071824,
       "high": 0.072057,
       "low": 0.071086,
-      "weeklyChange": 0.0009470000000000034,
-      "weeklyChangePercent": 1.3321891793039466,
+      "weeklyChange": 0.0007380000000000025,
+      "weeklyChangePercent": 1.038179106997162,
       "direction": "up",
       "rangePercent": 1.3659511014827106,
       "observations": [
@@ -2283,10 +2487,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.072033
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.071824
         }
       ],
       "statements": [
-        "INR/CNY closed the 5-day observation period 1.3% above the period's starting level.",
+        "INR/CNY closed the 6-day observation period 1.0% above the period's starting level.",
         "The pair traded within a 1.4% high-low range during the period."
       ]
     },
@@ -2294,13 +2502,13 @@
       "pair": "INR/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.698386,
-      "latestRate": 1.711002,
+      "latestRate": 1.710433,
       "high": 1.711002,
       "low": 1.698386,
-      "weeklyChange": 0.01261599999999996,
-      "weeklyChangePercent": 0.7428228918514379,
+      "weeklyChange": 0.012047000000000141,
+      "weeklyChangePercent": 0.7093204960474321,
       "direction": "up",
       "rangePercent": 0.7428228918514379,
       "observations": [
@@ -2327,10 +2535,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.711002
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.710433
         }
       ],
       "statements": [
-        "INR/JPY closed the 5-day observation period 0.7% above the period's starting level.",
+        "INR/JPY closed the 6-day observation period 0.7% above the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -2338,13 +2550,13 @@
       "pair": "INR/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.015784,
-      "latestRate": 0.016248,
+      "latestRate": 0.016226,
       "high": 0.016248,
       "low": 0.015784,
-      "weeklyChange": 0.00046399999999999914,
-      "weeklyChangePercent": 2.939685757729341,
+      "weeklyChange": 0.0004420000000000014,
+      "weeklyChangePercent": 2.8003041054232227,
       "direction": "up",
       "rangePercent": 2.939685757729341,
       "observations": [
@@ -2371,10 +2583,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.016248
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.016226
         }
       ],
       "statements": [
-        "INR/AUD closed the 5-day observation period 2.9% above the period's starting level.",
+        "INR/AUD closed the 6-day observation period 2.8% above the period's starting level.",
         "The pair traded within a 2.9% high-low range during the period."
       ]
     },
@@ -2382,13 +2598,13 @@
       "pair": "INR/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.013718,
-      "latestRate": 0.013898,
+      "latestRate": 0.013885,
       "high": 0.013898,
       "low": 0.013718,
-      "weeklyChange": 0.00018000000000000134,
-      "weeklyChangePercent": 1.3121446274967294,
+      "weeklyChange": 0.00016700000000000048,
+      "weeklyChangePercent": 1.2173786266219602,
       "direction": "up",
       "rangePercent": 1.3121446274967294,
       "observations": [
@@ -2415,10 +2631,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.013898
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.013885
         }
       ],
       "statements": [
-        "INR/SGD closed the 5-day observation period 1.3% above the period's starting level.",
+        "INR/SGD closed the 6-day observation period 1.2% above the period's starting level.",
         "The pair traded within a 1.3% high-low range during the period."
       ]
     },
@@ -2426,13 +2646,13 @@
       "pair": "INR/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.083514,
-      "latestRate": 0.084514,
+      "latestRate": 0.08433,
       "high": 0.084514,
       "low": 0.083514,
-      "weeklyChange": 0.0010000000000000009,
-      "weeklyChangePercent": 1.1974040280671514,
+      "weeklyChange": 0.0008159999999999973,
+      "weeklyChangePercent": 0.9770816869027914,
       "direction": "up",
       "rangePercent": 1.1974040280671514,
       "observations": [
@@ -2459,10 +2679,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.084514
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.08433
         }
       ],
       "statements": [
-        "INR/HKD closed the 5-day observation period 1.2% above the period's starting level.",
+        "INR/HKD closed the 6-day observation period 1.0% above the period's starting level.",
         "The pair traded within a 1.2% high-low range during the period."
       ]
     },
@@ -2470,13 +2694,13 @@
       "pair": "PKR/BDT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.450505,
-      "latestRate": 0.449926,
+      "latestRate": 0.450052,
       "high": 0.451061,
       "low": 0.44971,
-      "weeklyChange": -0.0005789999999999962,
-      "weeklyChangePercent": -0.12852243593300766,
+      "weeklyChange": -0.0004529999999999812,
+      "weeklyChangePercent": -0.10055382293203877,
       "direction": "down",
       "rangePercent": 0.30041582353071783,
       "observations": [
@@ -2503,10 +2727,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.449926
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.450052
         }
       ],
       "statements": [
-        "PKR/BDT closed the 5-day observation period 0.1% below the period's starting level.",
+        "PKR/BDT closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.3% high-low range during the period."
       ]
     },
@@ -2514,13 +2742,13 @@
       "pair": "PKR/LKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.20293,
-      "latestRate": 1.201945,
+      "latestRate": 1.201879,
       "high": 1.203195,
       "low": 1.201212,
-      "weeklyChange": -0.0009850000000000136,
-      "weeklyChangePercent": -0.08188340136167636,
+      "weeklyChange": -0.0010510000000001352,
+      "weeklyChangePercent": -0.08737000490470227,
       "direction": "down",
       "rangePercent": 0.16508326590144523,
       "observations": [
@@ -2547,10 +2775,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.201945
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.201879
         }
       ],
       "statements": [
-        "PKR/LKR closed the 5-day observation period 0.1% below the period's starting level.",
+        "PKR/LKR closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.2% high-low range during the period."
       ]
     },
@@ -2558,14 +2790,14 @@
       "pair": "PKR/CNY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.024152,
-      "latestRate": 0.02416,
+      "latestRate": 0.024152,
       "high": 0.024206,
       "low": 0.024131,
-      "weeklyChange": 0.000008000000000001062,
-      "weeklyChangePercent": 0.033123550844654945,
-      "direction": "up",
+      "weeklyChange": 0,
+      "weeklyChangePercent": 0,
+      "direction": "unchanged",
       "rangePercent": 0.3108035307281036,
       "observations": [
         {
@@ -2591,10 +2823,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.02416
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.024152
         }
       ],
       "statements": [
-        "PKR/CNY closed the 5-day observation period 0.0% above the period's starting level.",
+        "PKR/CNY closed the observation period unchanged from the period's starting level.",
         "The pair traded within a 0.3% high-low range during the period."
       ]
     },
@@ -2602,13 +2838,13 @@
       "pair": "PKR/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.577027,
-      "latestRate": 0.57387,
+      "latestRate": 0.575168,
       "high": 0.577838,
       "low": 0.57387,
-      "weeklyChange": -0.0031569999999999654,
-      "weeklyChangePercent": -0.5471147797243398,
+      "weeklyChange": -0.001858999999999944,
+      "weeklyChangePercent": -0.322168633356835,
       "direction": "down",
       "rangePercent": 0.6914457978287716,
       "observations": [
@@ -2635,10 +2871,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.57387
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.575168
         }
       ],
       "statements": [
-        "PKR/JPY closed the 5-day observation period 0.5% below the period's starting level.",
+        "PKR/JPY closed the 6-day observation period 0.3% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -2646,15 +2886,15 @@
       "pair": "PKR/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.005363,
-      "latestRate": 0.005449,
-      "high": 0.005449,
+      "latestRate": 0.005456,
+      "high": 0.005456,
       "low": 0.005362,
-      "weeklyChange": 0.00008600000000000014,
-      "weeklyChangePercent": 1.6035800857728912,
+      "weeklyChange": 0.0000930000000000002,
+      "weeklyChangePercent": 1.7341040462427786,
       "direction": "up",
-      "rangePercent": 1.6225289071242126,
+      "rangePercent": 1.7530772099962764,
       "observations": [
         {
           "date": "2026-11-17",
@@ -2679,25 +2919,29 @@
         {
           "date": "2026-11-23",
           "rate": 0.005449
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.005456
         }
       ],
       "statements": [
-        "PKR/AUD closed the 5-day observation period 1.6% above the period's starting level.",
-        "The pair traded within a 1.6% high-low range during the period."
+        "PKR/AUD closed the 6-day observation period 1.7% above the period's starting level.",
+        "The pair traded within a 1.8% high-low range during the period."
       ]
     },
     {
       "pair": "PKR/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.004661,
-      "latestRate": 0.004661,
+      "latestRate": 0.004669,
       "high": 0.004669,
       "low": 0.004655,
-      "weeklyChange": 0,
-      "weeklyChangePercent": 0,
-      "direction": "unchanged",
+      "weeklyChange": 0.000008000000000000194,
+      "weeklyChangePercent": 0.17163698777086878,
+      "direction": "up",
       "rangePercent": 0.30075187969925077,
       "observations": [
         {
@@ -2723,10 +2967,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.004661
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.004669
         }
       ],
       "statements": [
-        "PKR/SGD closed the observation period unchanged from the period's starting level.",
+        "PKR/SGD closed the 6-day observation period 0.2% above the period's starting level.",
         "The pair traded within a 0.3% high-low range during the period."
       ]
     },
@@ -2734,13 +2982,13 @@
       "pair": "PKR/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.028374,
-      "latestRate": 0.028346,
+      "latestRate": 0.028358,
       "high": 0.028374,
       "low": 0.02834,
-      "weeklyChange": -0.000028000000000000247,
-      "weeklyChangePercent": -0.09868189187284221,
+      "weeklyChange": -0.000015999999999998654,
+      "weeklyChangePercent": -0.05638965249876173,
       "direction": "down",
       "rangePercent": 0.11997177134791569,
       "observations": [
@@ -2767,10 +3015,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.028346
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.028358
         }
       ],
       "statements": [
-        "PKR/HKD closed the 5-day observation period 0.1% below the period's starting level.",
+        "PKR/HKD closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.1% high-low range during the period."
       ]
     },
@@ -2778,13 +3030,13 @@
       "pair": "BDT/LKR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 2.670184,
-      "latestRate": 2.671429,
+      "latestRate": 2.670531,
       "high": 2.6741,
       "low": 2.663853,
-      "weeklyChange": 0.0012449999999999406,
-      "weeklyChangePercent": 0.046626000305594696,
+      "weeklyChange": 0.00034700000000009723,
+      "weeklyChangePercent": 0.012995359121322622,
       "direction": "up",
       "rangePercent": 0.3846683732172953,
       "observations": [
@@ -2811,10 +3063,14 @@
         {
           "date": "2026-11-23",
           "rate": 2.671429
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 2.670531
         }
       ],
       "statements": [
-        "BDT/LKR closed the 5-day observation period 0.0% above the period's starting level.",
+        "BDT/LKR closed the 6-day observation period 0.0% above the period's starting level.",
         "The pair traded within a 0.4% high-low range during the period."
       ]
     },
@@ -2822,13 +3078,13 @@
       "pair": "BDT/CNY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.05361,
-      "latestRate": 0.053698,
+      "latestRate": 0.053666,
       "high": 0.05381,
       "low": 0.053498,
-      "weeklyChange": 0.00008800000000000474,
-      "weeklyChangePercent": 0.1641484797612474,
+      "weeklyChange": 0.000056000000000000494,
+      "weeklyChangePercent": 0.10445812348442547,
       "direction": "up",
       "rangePercent": 0.5831993719391375,
       "observations": [
@@ -2855,10 +3111,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.053698
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.053666
         }
       ],
       "statements": [
-        "BDT/CNY closed the 5-day observation period 0.2% above the period's starting level.",
+        "BDT/CNY closed the 6-day observation period 0.1% above the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -2866,13 +3126,13 @@
       "pair": "BDT/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.280846,
-      "latestRate": 1.275478,
+      "latestRate": 1.278003,
       "high": 1.283999,
       "low": 1.275478,
-      "weeklyChange": -0.005368000000000039,
-      "weeklyChangePercent": -0.41909800241403256,
+      "weeklyChange": -0.002842999999999929,
+      "weeklyChangePercent": -0.221962671546769,
       "direction": "down",
       "rangePercent": 0.668063267261372,
       "observations": [
@@ -2899,10 +3159,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.275478
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.278003
         }
       ],
       "statements": [
-        "BDT/JPY closed the 5-day observation period 0.4% below the period's starting level.",
+        "BDT/JPY closed the 6-day observation period 0.2% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -2910,15 +3174,15 @@
       "pair": "BDT/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.011904,
-      "latestRate": 0.012112,
-      "high": 0.012116,
+      "latestRate": 0.012124,
+      "high": 0.012124,
       "low": 0.011888,
-      "weeklyChange": 0.00020799999999999985,
-      "weeklyChangePercent": 1.7473118279569881,
+      "weeklyChange": 0.0002199999999999997,
+      "weeklyChangePercent": 1.84811827956989,
       "direction": "up",
-      "rangePercent": 1.9179004037685126,
+      "rangePercent": 1.9851951547779283,
       "observations": [
         {
           "date": "2026-11-17",
@@ -2943,24 +3207,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.012112
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.012124
         }
       ],
       "statements": [
-        "BDT/AUD closed the 5-day observation period 1.7% above the period's starting level.",
-        "The pair traded within a 1.9% high-low range during the period."
+        "BDT/AUD closed the 6-day observation period 1.8% above the period's starting level.",
+        "The pair traded within a 2.0% high-low range during the period."
       ]
     },
     {
       "pair": "BDT/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.010345,
-      "latestRate": 0.01036,
+      "latestRate": 0.010374,
       "high": 0.010375,
       "low": 0.010319,
-      "weeklyChange": 0.000014999999999999389,
-      "weeklyChangePercent": 0.14499758337360452,
+      "weeklyChange": 0.000028999999999999512,
+      "weeklyChangePercent": 0.2803286611889755,
       "direction": "up",
       "rangePercent": 0.542688244984984,
       "observations": [
@@ -2987,10 +3255,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.01036
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.010374
         }
       ],
       "statements": [
-        "BDT/SGD closed the 5-day observation period 0.1% above the period's starting level.",
+        "BDT/SGD closed the 6-day observation period 0.3% above the period's starting level.",
         "The pair traded within a 0.5% high-low range during the period."
       ]
     },
@@ -2998,13 +3270,13 @@
       "pair": "BDT/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.062982,
-      "latestRate": 0.063002,
+      "latestRate": 0.06301,
       "high": 0.063049,
       "low": 0.062839,
-      "weeklyChange": 0.000020000000000006124,
-      "weeklyChangePercent": 0.03175510463307949,
+      "weeklyChange": 0.000028000000000000247,
+      "weeklyChangePercent": 0.04445714648629807,
       "direction": "up",
       "rangePercent": 0.3341873677174811,
       "observations": [
@@ -3031,10 +3303,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.063002
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.06301
         }
       ],
       "statements": [
-        "BDT/HKD closed the 5-day observation period 0.0% above the period's starting level.",
+        "BDT/HKD closed the 6-day observation period 0.0% above the period's starting level.",
         "The pair traded within a 0.3% high-low range during the period."
       ]
     },
@@ -3042,13 +3318,13 @@
       "pair": "LKR/CNY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.020077,
-      "latestRate": 0.020101,
+      "latestRate": 0.020096,
       "high": 0.020123,
       "low": 0.020077,
-      "weeklyChange": 0.000023999999999999716,
-      "weeklyChangePercent": 0.11953977187826724,
+      "weeklyChange": 0.000018999999999998185,
+      "weeklyChangePercent": 0.09463565273695365,
       "direction": "up",
       "rangePercent": 0.22911789610000213,
       "observations": [
@@ -3075,10 +3351,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.020101
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.020096
         }
       ],
       "statements": [
-        "LKR/CNY closed the 5-day observation period 0.1% above the period's starting level.",
+        "LKR/CNY closed the 6-day observation period 0.1% above the period's starting level.",
         "The pair traded within a 0.2% high-low range during the period."
       ]
     },
@@ -3086,13 +3366,13 @@
       "pair": "LKR/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.479684,
-      "latestRate": 0.477452,
+      "latestRate": 0.478558,
       "high": 0.480253,
       "low": 0.477255,
-      "weeklyChange": -0.0022320000000000118,
-      "weeklyChangePercent": -0.46530632666505695,
+      "weeklyChange": -0.0011260000000000159,
+      "weeklyChangePercent": -0.2347378690971589,
       "direction": "down",
       "rangePercent": 0.6281757131931569,
       "observations": [
@@ -3119,10 +3399,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.477452
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.478558
         }
       ],
       "statements": [
-        "LKR/JPY closed the 5-day observation period 0.5% below the period's starting level.",
+        "LKR/JPY closed the 6-day observation period 0.2% below the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -3130,15 +3414,15 @@
       "pair": "LKR/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.004458,
-      "latestRate": 0.004534,
-      "high": 0.004534,
+      "latestRate": 0.00454,
+      "high": 0.00454,
       "low": 0.004458,
-      "weeklyChange": 0.00007599999999999968,
-      "weeklyChangePercent": 1.7048003589053315,
+      "weeklyChange": 0.00008199999999999961,
+      "weeklyChangePercent": 1.8393898609241726,
       "direction": "up",
-      "rangePercent": 1.7048003589053315,
+      "rangePercent": 1.8393898609241726,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3163,26 +3447,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.004534
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.00454
         }
       ],
       "statements": [
-        "LKR/AUD closed the 5-day observation period 1.7% above the period's starting level.",
-        "The pair traded within a 1.7% high-low range during the period."
+        "LKR/AUD closed the 6-day observation period 1.8% above the period's starting level.",
+        "The pair traded within a 1.8% high-low range during the period."
       ]
     },
     {
       "pair": "LKR/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.003874,
-      "latestRate": 0.003878,
-      "high": 0.003881,
+      "latestRate": 0.003885,
+      "high": 0.003885,
       "low": 0.003874,
-      "weeklyChange": 0.000004000000000000097,
-      "weeklyChangePercent": 0.10325245224574336,
+      "weeklyChange": 0.000011000000000000159,
+      "weeklyChangePercent": 0.2839442436757914,
       "direction": "up",
-      "rangePercent": 0.18069179143004807,
+      "rangePercent": 0.2839442436757914,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3207,25 +3495,29 @@
         {
           "date": "2026-11-23",
           "rate": 0.003878
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.003885
         }
       ],
       "statements": [
-        "LKR/SGD closed the 5-day observation period 0.1% above the period's starting level.",
-        "The pair traded within a 0.2% high-low range during the period."
+        "LKR/SGD closed the 6-day observation period 0.3% above the period's starting level.",
+        "The pair traded within a 0.3% high-low range during the period."
       ]
     },
     {
       "pair": "LKR/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.023587,
-      "latestRate": 0.023584,
+      "latestRate": 0.023594,
       "high": 0.023602,
       "low": 0.023566,
-      "weeklyChange": -0.000002999999999999531,
-      "weeklyChangePercent": -0.012718870564291902,
-      "direction": "down",
+      "weeklyChange": 0.000007000000000000062,
+      "weeklyChangePercent": 0.02967736465001934,
+      "direction": "up",
       "rangePercent": 0.1527624543834393,
       "observations": [
         {
@@ -3251,10 +3543,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.023584
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.023594
         }
       ],
       "statements": [
-        "LKR/HKD closed the 5-day observation period 0.0% below the period's starting level.",
+        "LKR/HKD closed the 6-day observation period 0.0% above the period's starting level.",
         "The pair traded within a 0.2% high-low range during the period."
       ]
     },
@@ -3262,13 +3558,13 @@
       "pair": "CNY/JPY",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 23.891896,
-      "latestRate": 23.752913,
+      "latestRate": 23.814132,
       "high": 23.891896,
       "low": 23.717207,
-      "weeklyChange": -0.13898299999999963,
-      "weeklyChangePercent": -0.581716076447008,
+      "weeklyChange": -0.07776399999999839,
+      "weeklyChangePercent": -0.32548274946449784,
       "direction": "down",
       "rangePercent": 0.7365496282930818,
       "observations": [
@@ -3295,10 +3591,14 @@
         {
           "date": "2026-11-23",
           "rate": 23.752913
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 23.814132
         }
       ],
       "statements": [
-        "CNY/JPY closed the 5-day observation period 0.6% below the period's starting level.",
+        "CNY/JPY closed the 6-day observation period 0.3% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -3306,15 +3606,15 @@
       "pair": "CNY/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.222041,
-      "latestRate": 0.225555,
-      "high": 0.225555,
+      "latestRate": 0.225909,
+      "high": 0.225909,
       "low": 0.222041,
-      "weeklyChange": 0.003514000000000017,
-      "weeklyChangePercent": 1.5825906026364578,
+      "weeklyChange": 0.0038680000000000103,
+      "weeklyChangePercent": 1.742020617813832,
       "direction": "up",
-      "rangePercent": 1.5825906026364578,
+      "rangePercent": 1.742020617813832,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3339,26 +3639,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.225555
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.225909
         }
       ],
       "statements": [
-        "CNY/AUD closed the 5-day observation period 1.6% above the period's starting level.",
-        "The pair traded within a 1.6% high-low range during the period."
+        "CNY/AUD closed the 6-day observation period 1.7% above the period's starting level.",
+        "The pair traded within a 1.7% high-low range during the period."
       ]
     },
     {
       "pair": "CNY/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.19297,
-      "latestRate": 0.192937,
-      "high": 0.192995,
+      "latestRate": 0.193314,
+      "high": 0.193314,
       "low": 0.192666,
-      "weeklyChange": -0.00003300000000000525,
-      "weeklyChangePercent": -0.017101103798520624,
-      "direction": "down",
-      "rangePercent": 0.17076183654614513,
+      "weeklyChange": 0.00034400000000001096,
+      "weeklyChangePercent": 0.17826605171788928,
+      "direction": "up",
+      "rangePercent": 0.3363333437139971,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3383,24 +3687,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.192937
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.193314
         }
       ],
       "statements": [
-        "CNY/SGD closed the 5-day observation period 0.0% below the period's starting level.",
-        "The pair traded within a 0.2% high-low range during the period."
+        "CNY/SGD closed the 6-day observation period 0.2% above the period's starting level.",
+        "The pair traded within a 0.3% high-low range during the period."
       ]
     },
     {
       "pair": "CNY/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.174825,
-      "latestRate": 1.173265,
+      "latestRate": 1.174111,
       "high": 1.174825,
       "low": 1.171124,
-      "weeklyChange": -0.0015600000000000058,
-      "weeklyChangePercent": -0.13278573404549662,
+      "weeklyChange": -0.0007140000000001034,
+      "weeklyChangePercent": -0.06077500904390896,
       "direction": "down",
       "rangePercent": 0.31602118989961386,
       "observations": [
@@ -3427,10 +3735,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.173265
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.174111
         }
       ],
       "statements": [
-        "CNY/HKD closed the 5-day observation period 0.1% below the period's starting level.",
+        "CNY/HKD closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.3% high-low range during the period."
       ]
     },
@@ -3438,13 +3750,13 @@
       "pair": "JPY/AUD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.009294,
-      "latestRate": 0.009496,
+      "latestRate": 0.009486,
       "high": 0.009496,
       "low": 0.009294,
-      "weeklyChange": 0.00020199999999999906,
-      "weeklyChangePercent": 2.173445233483958,
+      "weeklyChange": 0.00019199999999999946,
+      "weeklyChangePercent": 2.0658489347966373,
       "direction": "up",
       "rangePercent": 2.173445233483958,
       "observations": [
@@ -3471,10 +3783,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.009496
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.009486
         }
       ],
       "statements": [
-        "JPY/AUD closed the 5-day observation period 2.2% above the period's starting level.",
+        "JPY/AUD closed the 6-day observation period 2.1% above the period's starting level.",
         "The pair traded within a 2.2% high-low range during the period."
       ]
     },
@@ -3482,13 +3798,13 @@
       "pair": "JPY/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.008077,
-      "latestRate": 0.008123,
+      "latestRate": 0.008118,
       "high": 0.008123,
       "low": 0.008077,
-      "weeklyChange": 0.000045999999999999167,
-      "weeklyChangePercent": 0.569518385539175,
+      "weeklyChange": 0.00004099999999999937,
+      "weeklyChangePercent": 0.5076142131979617,
       "direction": "up",
       "rangePercent": 0.569518385539175,
       "observations": [
@@ -3515,10 +3831,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.008123
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.008118
         }
       ],
       "statements": [
-        "JPY/SGD closed the 5-day observation period 0.6% above the period's starting level.",
+        "JPY/SGD closed the 6-day observation period 0.5% above the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -3526,13 +3846,13 @@
       "pair": "JPY/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.049173,
-      "latestRate": 0.049395,
+      "latestRate": 0.049303,
       "high": 0.049395,
       "low": 0.049104,
-      "weeklyChange": 0.00022199999999999998,
-      "weeklyChangePercent": 0.4514672686230248,
+      "weeklyChange": 0.00012999999999999817,
+      "weeklyChangePercent": 0.2643727248693351,
       "direction": "up",
       "rangePercent": 0.5926197458455514,
       "observations": [
@@ -3559,10 +3879,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.049395
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.049303
         }
       ],
       "statements": [
-        "JPY/HKD closed the 5-day observation period 0.5% above the period's starting level.",
+        "JPY/HKD closed the 6-day observation period 0.3% above the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -3570,13 +3894,13 @@
       "pair": "AUD/SGD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.869073,
-      "latestRate": 0.855388,
+      "latestRate": 0.855712,
       "high": 0.869073,
       "low": 0.855388,
-      "weeklyChange": -0.013684999999999947,
-      "weeklyChangePercent": -1.5746663398816838,
+      "weeklyChange": -0.013360999999999956,
+      "weeklyChangePercent": -1.5373852369133498,
       "direction": "down",
       "rangePercent": 1.5998587775372048,
       "observations": [
@@ -3603,10 +3927,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.855388
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.855712
         }
       ],
       "statements": [
-        "AUD/SGD closed the 5-day observation period 1.6% below the period's starting level.",
+        "AUD/SGD closed the 6-day observation period 1.5% below the period's starting level.",
         "The pair traded within a 1.6% high-low range during the period."
       ]
     },
@@ -3614,15 +3942,15 @@
       "pair": "AUD/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 5.291029,
-      "latestRate": 5.201672,
+      "latestRate": 5.197265,
       "high": 5.291029,
-      "low": 5.20143,
-      "weeklyChange": -0.08935699999999969,
-      "weeklyChangePercent": -1.6888397323091535,
+      "low": 5.197265,
+      "weeklyChange": -0.09376400000000018,
+      "weeklyChangePercent": -1.7721316590780392,
       "direction": "down",
-      "rangePercent": 1.7225839817127169,
+      "rangePercent": 1.80410273480379,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3647,26 +3975,30 @@
         {
           "date": "2026-11-23",
           "rate": 5.201672
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 5.197265
         }
       ],
       "statements": [
-        "AUD/HKD closed the 5-day observation period 1.7% below the period's starting level.",
-        "The pair traded within a 1.7% high-low range during the period."
+        "AUD/HKD closed the 6-day observation period 1.8% below the period's starting level.",
+        "The pair traded within a 1.8% high-low range during the period."
       ]
     },
     {
       "pair": "SGD/HKD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 6.088127,
-      "latestRate": 6.081066,
+      "latestRate": 6.073611,
       "high": 6.08935,
-      "low": 6.076858,
-      "weeklyChange": -0.007061000000000206,
-      "weeklyChangePercent": -0.1159798407621951,
+      "low": 6.073611,
+      "weeklyChange": -0.014516000000000417,
+      "weeklyChangePercent": -0.23843129422235146,
       "direction": "down",
-      "rangePercent": 0.2055667583478164,
+      "rangePercent": 0.25913743899633923,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3691,26 +4023,30 @@
         {
           "date": "2026-11-23",
           "rate": 6.081066
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 6.073611
         }
       ],
       "statements": [
-        "SGD/HKD closed the 5-day observation period 0.1% below the period's starting level.",
-        "The pair traded within a 0.2% high-low range during the period."
+        "SGD/HKD closed the 6-day observation period 0.2% below the period's starting level.",
+        "The pair traded within a 0.3% high-low range during the period."
       ]
     },
     {
       "pair": "EUR/CHF",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.924311,
-      "latestRate": 0.922388,
+      "latestRate": 0.918839,
       "high": 0.926092,
-      "low": 0.922179,
-      "weeklyChange": -0.001923000000000008,
-      "weeklyChangePercent": -0.20804685868717432,
+      "low": 0.918839,
+      "weeklyChange": -0.005472000000000032,
+      "weeklyChangePercent": -0.5920085339241914,
       "direction": "down",
-      "rangePercent": 0.4243210916752665,
+      "rangePercent": 0.7893657104237048,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3735,26 +4071,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.922388
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.918839
         }
       ],
       "statements": [
-        "EUR/CHF closed the 5-day observation period 0.2% below the period's starting level.",
-        "The pair traded within a 0.4% high-low range during the period."
+        "EUR/CHF closed the 6-day observation period 0.6% below the period's starting level.",
+        "The pair traded within a 0.8% high-low range during the period."
       ]
     },
     {
       "pair": "EUR/RUB",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 90.820636,
-      "latestRate": 89.984954,
+      "latestRate": 89.464534,
       "high": 90.820636,
-      "low": 89.984954,
-      "weeklyChange": -0.8356819999999914,
-      "weeklyChangePercent": -0.9201455052571879,
+      "low": 89.464534,
+      "weeklyChange": -1.3561019999999928,
+      "weeklyChangePercent": -1.4931650555717237,
       "direction": "down",
-      "rangePercent": 0.9286908120217424,
+      "rangePercent": 1.5157984280117,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3779,24 +4119,28 @@
         {
           "date": "2026-11-23",
           "rate": 89.984954
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 89.464534
         }
       ],
       "statements": [
-        "EUR/RUB closed the 5-day observation period 0.9% below the period's starting level.",
-        "The pair traded within a 0.9% high-low range during the period."
+        "EUR/RUB closed the 6-day observation period 1.5% below the period's starting level.",
+        "The pair traded within a 1.5% high-low range during the period."
       ]
     },
     {
       "pair": "EUR/KZT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 489.490757,
-      "latestRate": 500.144625,
+      "latestRate": 496.704096,
       "high": 500.144625,
       "low": 487.162307,
-      "weeklyChange": 10.653868000000045,
-      "weeklyChangePercent": 2.1765207713615817,
+      "weeklyChange": 7.213339000000019,
+      "weeklyChangePercent": 1.473641513520963,
       "direction": "up",
       "rangePercent": 2.6648855655411,
       "observations": [
@@ -3823,10 +4167,14 @@
         {
           "date": "2026-11-23",
           "rate": 500.144625
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 496.704096
         }
       ],
       "statements": [
-        "EUR/KZT closed the 5-day observation period 2.2% above the period's starting level.",
+        "EUR/KZT closed the 6-day observation period 1.5% above the period's starting level.",
         "The pair traded within a 2.7% high-low range during the period."
       ]
     },
@@ -3834,15 +4182,15 @@
       "pair": "EUR/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 13187.132571,
-      "latestRate": 13084.145207,
+      "latestRate": 13062.77237,
       "high": 13187.132571,
-      "low": 13084.145207,
-      "weeklyChange": -102.98736400000053,
-      "weeklyChangePercent": -0.7809685952993407,
+      "low": 13062.77237,
+      "weeklyChange": -124.3602009999995,
+      "weeklyChangePercent": -0.9430420171363234,
       "direction": "down",
-      "rangePercent": 0.7871157218960123,
+      "rangePercent": 0.9520199654217776,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3867,26 +4215,30 @@
         {
           "date": "2026-11-23",
           "rate": 13084.145207
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 13062.77237
         }
       ],
       "statements": [
-        "EUR/UZS closed the 5-day observation period 0.8% below the period's starting level.",
-        "The pair traded within a 0.8% high-low range during the period."
+        "EUR/UZS closed the 6-day observation period 0.9% below the period's starting level.",
+        "The pair traded within a 1.0% high-low range during the period."
       ]
     },
     {
       "pair": "GBP/CHF",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.107561,
-      "latestRate": 1.100634,
+      "latestRate": 1.097375,
       "high": 1.10971,
-      "low": 1.100498,
-      "weeklyChange": -0.0069270000000001275,
-      "weeklyChangePercent": -0.6254283059804496,
+      "low": 1.097375,
+      "weeklyChange": -0.010186000000000028,
+      "weeklyChangePercent": -0.9196784646624455,
       "direction": "down",
-      "rangePercent": 0.8370755785108195,
+      "rangePercent": 1.1240460189087582,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3911,26 +4263,30 @@
         {
           "date": "2026-11-23",
           "rate": 1.100634
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.097375
         }
       ],
       "statements": [
-        "GBP/CHF closed the 5-day observation period 0.6% below the period's starting level.",
-        "The pair traded within a 0.8% high-low range during the period."
+        "GBP/CHF closed the 6-day observation period 0.9% below the period's starting level.",
+        "The pair traded within a 1.1% high-low range during the period."
       ]
     },
     {
       "pair": "GBP/RUB",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 108.82642,
-      "latestRate": 107.374045,
+      "latestRate": 106.848033,
       "high": 108.82642,
-      "low": 107.374045,
-      "weeklyChange": -1.4523750000000035,
-      "weeklyChangePercent": -1.334579415550014,
+      "low": 106.848033,
+      "weeklyChange": -1.978386999999998,
+      "weeklyChangePercent": -1.8179289551195361,
       "direction": "down",
-      "rangePercent": 1.3526313551845826,
+      "rangePercent": 1.8515895374508187,
       "observations": [
         {
           "date": "2026-11-17",
@@ -3955,24 +4311,28 @@
         {
           "date": "2026-11-23",
           "rate": 107.374045
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 106.848033
         }
       ],
       "statements": [
-        "GBP/RUB closed the 5-day observation period 1.3% below the period's starting level.",
-        "The pair traded within a 1.4% high-low range during the period."
+        "GBP/RUB closed the 6-day observation period 1.8% below the period's starting level.",
+        "The pair traded within a 1.9% high-low range during the period."
       ]
     },
     {
       "pair": "GBP/KZT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 586.535493,
-      "latestRate": 596.794787,
+      "latestRate": 593.216702,
       "high": 596.794787,
       "low": 584.102874,
-      "weeklyChange": 10.259294000000068,
-      "weeklyChangePercent": 1.749134386996094,
+      "weeklyChange": 6.681209000000081,
+      "weeklyChangePercent": 1.1390971355931363,
       "direction": "up",
       "rangePercent": 2.1728900104675737,
       "observations": [
@@ -3999,10 +4359,14 @@
         {
           "date": "2026-11-23",
           "rate": 596.794787
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 593.216702
         }
       ],
       "statements": [
-        "GBP/KZT closed the 5-day observation period 1.7% above the period's starting level.",
+        "GBP/KZT closed the 6-day observation period 1.1% above the period's starting level.",
         "The pair traded within a 2.2% high-low range during the period."
       ]
     },
@@ -4010,15 +4374,15 @@
       "pair": "GBP/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 15801.567626,
-      "latestRate": 15612.583353,
+      "latestRate": 15600.947936,
       "high": 15818.498973,
-      "low": 15612.583353,
-      "weeklyChange": -188.98427300000003,
-      "weeklyChangePercent": -1.1959843318902366,
+      "low": 15600.947936,
+      "weeklyChange": -200.61968999999954,
+      "weeklyChangePercent": -1.2696189058476617,
       "direction": "down",
-      "rangePercent": 1.3189080586105086,
+      "rangePercent": 1.394473194144754,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4043,24 +4407,28 @@
         {
           "date": "2026-11-23",
           "rate": 15612.583353
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 15600.947936
         }
       ],
       "statements": [
-        "GBP/UZS closed the 5-day observation period 1.2% below the period's starting level.",
-        "The pair traded within a 1.3% high-low range during the period."
+        "GBP/UZS closed the 6-day observation period 1.3% below the period's starting level.",
+        "The pair traded within a 1.4% high-low range during the period."
       ]
     },
     {
       "pair": "CHF/RUB",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 98.257682,
-      "latestRate": 97.556518,
+      "latestRate": 97.366892,
       "high": 98.257682,
       "low": 97.247063,
-      "weeklyChange": -0.7011640000000057,
-      "weeklyChangePercent": -0.7135971312655286,
+      "weeklyChange": -0.8907899999999955,
+      "weeklyChangePercent": -0.9065856041668023,
       "direction": "down",
       "rangePercent": 1.0392283003960805,
       "observations": [
@@ -4087,10 +4455,14 @@
         {
           "date": "2026-11-23",
           "rate": 97.556518
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 97.366892
         }
       ],
       "statements": [
-        "CHF/RUB closed the 5-day observation period 0.7% below the period's starting level.",
+        "CHF/RUB closed the 6-day observation period 0.9% below the period's starting level.",
         "The pair traded within a 1.0% high-low range during the period."
       ]
     },
@@ -4098,13 +4470,13 @@
       "pair": "CHF/KZT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 529.573775,
-      "latestRate": 542.228071,
+      "latestRate": 540.577724,
       "high": 542.228071,
       "low": 526.576384,
-      "weeklyChange": 12.654296000000045,
-      "weeklyChangePercent": 2.3895246700990898,
+      "weeklyChange": 11.003949000000034,
+      "weeklyChangePercent": 2.0778878259219002,
       "direction": "up",
       "rangePercent": 2.9723488321117033,
       "observations": [
@@ -4131,10 +4503,14 @@
         {
           "date": "2026-11-23",
           "rate": 542.228071
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 540.577724
         }
       ],
       "statements": [
-        "CHF/KZT closed the 5-day observation period 2.4% above the period's starting level.",
+        "CHF/KZT closed the 6-day observation period 2.1% above the period's starting level.",
         "The pair traded within a 3.0% high-low range during the period."
       ]
     },
@@ -4142,13 +4518,13 @@
       "pair": "CHF/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 14266.989667,
-      "latestRate": 14185.078585,
+      "latestRate": 14216.600627,
       "high": 14266.989667,
       "low": 14185.078585,
-      "weeklyChange": -81.91108200000053,
-      "weeklyChangePercent": -0.5741300997046592,
+      "weeklyChange": -50.38904000000002,
+      "weeklyChangePercent": -0.3531862093974279,
       "direction": "down",
       "rangePercent": 0.5774453874835586,
       "observations": [
@@ -4175,10 +4551,14 @@
         {
           "date": "2026-11-23",
           "rate": 14185.078585
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 14216.600627
         }
       ],
       "statements": [
-        "CHF/UZS closed the 5-day observation period 0.6% below the period's starting level.",
+        "CHF/UZS closed the 6-day observation period 0.4% below the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -4186,13 +4566,13 @@
       "pair": "RUB/KZT",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 5.389642,
-      "latestRate": 5.558092,
+      "latestRate": 5.551967,
       "high": 5.558092,
       "low": 5.389642,
-      "weeklyChange": 0.16845,
-      "weeklyChangePercent": 3.125439500434352,
+      "weeklyChange": 0.16232500000000005,
+      "weeklyChangePercent": 3.0117955886494885,
       "direction": "up",
       "rangePercent": 3.125439500434352,
       "observations": [
@@ -4219,10 +4599,14 @@
         {
           "date": "2026-11-23",
           "rate": 5.558092
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 5.551967
         }
       ],
       "statements": [
-        "RUB/KZT closed the 5-day observation period 3.1% above the period's starting level.",
+        "RUB/KZT closed the 6-day observation period 3.0% above the period's starting level.",
         "The pair traded within a 3.1% high-low range during the period."
       ]
     },
@@ -4230,13 +4614,13 @@
       "pair": "RUB/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 145.199738,
-      "latestRate": 145.4037,
+      "latestRate": 146.010624,
       "high": 146.082461,
       "low": 145.199738,
-      "weeklyChange": 0.20396199999998998,
-      "weeklyChangePercent": 0.14046995043475216,
+      "weeklyChange": 0.8108860000000107,
+      "weeklyChangePercent": 0.5584624402008292,
       "direction": "up",
       "rangePercent": 0.6079370473795198,
       "observations": [
@@ -4263,10 +4647,14 @@
         {
           "date": "2026-11-23",
           "rate": 145.4037
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 146.010624
         }
       ],
       "statements": [
-        "RUB/UZS closed the 5-day observation period 0.1% above the period's starting level.",
+        "RUB/UZS closed the 6-day observation period 0.6% above the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -4274,13 +4662,13 @@
       "pair": "KZT/UZS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 26.940514,
-      "latestRate": 26.160723,
+      "latestRate": 26.298902,
       "high": 26.974841,
       "low": 26.160723,
-      "weeklyChange": -0.7797909999999995,
-      "weeklyChangePercent": -2.8944919165239367,
+      "weeklyChange": -0.6416120000000021,
+      "weeklyChangePercent": -2.3815878197424225,
       "direction": "down",
       "rangePercent": 3.1119858575774093,
       "observations": [
@@ -4307,10 +4695,14 @@
         {
           "date": "2026-11-23",
           "rate": 26.160723
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 26.298902
         }
       ],
       "statements": [
-        "KZT/UZS closed the 5-day observation period 2.9% below the period's starting level.",
+        "KZT/UZS closed the 6-day observation period 2.4% below the period's starting level.",
         "The pair traded within a 3.1% high-low range during the period."
       ]
     },
@@ -4318,13 +4710,13 @@
       "pair": "BRL/MXN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.245737,
-      "latestRate": 3.214867,
+      "latestRate": 3.21965,
       "high": 3.245737,
       "low": 3.189818,
-      "weeklyChange": -0.030870000000000175,
-      "weeklyChangePercent": -0.9510936961312692,
+      "weeklyChange": -0.02608699999999997,
+      "weeklyChangePercent": -0.8037311710714692,
       "direction": "down",
       "rangePercent": 1.7530467255498676,
       "observations": [
@@ -4351,10 +4743,14 @@
         {
           "date": "2026-11-23",
           "rate": 3.214867
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.21965
         }
       ],
       "statements": [
-        "BRL/MXN closed the 5-day observation period 1.0% below the period's starting level.",
+        "BRL/MXN closed the 6-day observation period 0.8% below the period's starting level.",
         "The pair traded within a 1.8% high-low range during the period."
       ]
     },
@@ -4362,15 +4758,15 @@
       "pair": "BRL/ARS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 271.173482,
-      "latestRate": 265.075743,
+      "latestRate": 264.490646,
       "high": 271.173482,
-      "low": 265.075743,
-      "weeklyChange": -6.09773899999999,
-      "weeklyChangePercent": -2.248648708209599,
+      "low": 264.490646,
+      "weeklyChange": -6.682835999999952,
+      "weeklyChangePercent": -2.464413537308914,
       "direction": "down",
-      "rangePercent": 2.300376085336481,
+      "rangePercent": 2.5266814161737696,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4395,26 +4791,30 @@
         {
           "date": "2026-11-23",
           "rate": 265.075743
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 264.490646
         }
       ],
       "statements": [
-        "BRL/ARS closed the 5-day observation period 2.2% below the period's starting level.",
-        "The pair traded within a 2.3% high-low range during the period."
+        "BRL/ARS closed the 6-day observation period 2.5% below the period's starting level.",
+        "The pair traded within a 2.5% high-low range during the period."
       ]
     },
     {
       "pair": "BRL/ZAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 2.967668,
-      "latestRate": 2.945763,
+      "latestRate": 2.925026,
       "high": 2.967668,
-      "low": 2.927591,
-      "weeklyChange": -0.021905000000000285,
-      "weeklyChangePercent": -0.7381216497263267,
+      "low": 2.925026,
+      "weeklyChange": -0.04264200000000029,
+      "weeklyChangePercent": -1.4368857971983486,
       "direction": "down",
-      "rangePercent": 1.3689412216392296,
+      "rangePercent": 1.4578331953288721,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4439,24 +4839,28 @@
         {
           "date": "2026-11-23",
           "rate": 2.945763
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 2.925026
         }
       ],
       "statements": [
-        "BRL/ZAR closed the 5-day observation period 0.7% below the period's starting level.",
-        "The pair traded within a 1.4% high-low range during the period."
+        "BRL/ZAR closed the 6-day observation period 1.4% below the period's starting level.",
+        "The pair traded within a 1.5% high-low range during the period."
       ]
     },
     {
       "pair": "BRL/NGN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 236.242805,
-      "latestRate": 230.037263,
+      "latestRate": 231.627672,
       "high": 236.242805,
       "low": 229.574873,
-      "weeklyChange": -6.205542000000008,
-      "weeklyChangePercent": -2.6267644426250394,
+      "weeklyChange": -4.615133000000014,
+      "weeklyChangePercent": -1.9535549453029963,
       "direction": "down",
       "rangePercent": 2.904469427714769,
       "observations": [
@@ -4483,10 +4887,14 @@
         {
           "date": "2026-11-23",
           "rate": 230.037263
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 231.627672
         }
       ],
       "statements": [
-        "BRL/NGN closed the 5-day observation period 2.6% below the period's starting level.",
+        "BRL/NGN closed the 6-day observation period 2.0% below the period's starting level.",
         "The pair traded within a 2.9% high-low range during the period."
       ]
     },
@@ -4494,15 +4902,15 @@
       "pair": "BRL/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 22.744881,
-      "latestRate": 21.851727,
+      "latestRate": 21.833437,
       "high": 22.744881,
-      "low": 21.851727,
-      "weeklyChange": -0.8931539999999991,
-      "weeklyChangePercent": -3.926835229430302,
+      "low": 21.833437,
+      "weeklyChange": -0.9114439999999995,
+      "weeklyChangePercent": -4.007248927791706,
       "direction": "down",
-      "rangePercent": 4.0873382685039,
+      "rangePercent": 4.174532850691348,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4527,24 +4935,28 @@
         {
           "date": "2026-11-23",
           "rate": 21.851727
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 21.833437
         }
       ],
       "statements": [
-        "BRL/KES closed the 5-day observation period 3.9% below the period's starting level.",
-        "The pair traded within a 4.1% high-low range during the period."
+        "BRL/KES closed the 6-day observation period 4.0% below the period's starting level.",
+        "The pair traded within a 4.2% high-low range during the period."
       ]
     },
     {
       "pair": "BRL/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 9.393537,
-      "latestRate": 9.110815,
+      "latestRate": 9.118276,
       "high": 9.393537,
       "low": 9.062814,
-      "weeklyChange": -0.2827219999999997,
-      "weeklyChangePercent": -3.009750214429343,
+      "weeklyChange": -0.2752610000000004,
+      "weeklyChangePercent": -2.9303232637503895,
       "direction": "down",
       "rangePercent": 3.649230801823813,
       "observations": [
@@ -4571,10 +4983,14 @@
         {
           "date": "2026-11-23",
           "rate": 9.110815
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 9.118276
         }
       ],
       "statements": [
-        "BRL/EGP closed the 5-day observation period 3.0% below the period's starting level.",
+        "BRL/EGP closed the 6-day observation period 2.9% below the period's starting level.",
         "The pair traded within a 3.6% high-low range during the period."
       ]
     },
@@ -4582,13 +4998,13 @@
       "pair": "MXN/ARS",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 83.547577,
-      "latestRate": 82.453092,
+      "latestRate": 82.14889,
       "high": 84.167366,
       "low": 82.13598,
-      "weeklyChange": -1.094485000000006,
-      "weeklyChangePercent": -1.3100140534297073,
+      "weeklyChange": -1.3986870000000096,
+      "weeklyChangePercent": -1.674120363777886,
       "direction": "down",
       "rangePercent": 2.47319871267135,
       "observations": [
@@ -4615,10 +5031,14 @@
         {
           "date": "2026-11-23",
           "rate": 82.453092
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 82.14889
         }
       ],
       "statements": [
-        "MXN/ARS closed the 5-day observation period 1.3% below the period's starting level.",
+        "MXN/ARS closed the 6-day observation period 1.7% below the period's starting level.",
         "The pair traded within a 2.5% high-low range during the period."
       ]
     },
@@ -4626,15 +5046,15 @@
       "pair": "MXN/ZAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.914328,
-      "latestRate": 0.916294,
+      "latestRate": 0.908492,
       "high": 0.920725,
-      "low": 0.914328,
-      "weeklyChange": 0.0019660000000000233,
-      "weeklyChangePercent": 0.21502130526463406,
-      "direction": "up",
-      "rangePercent": 0.6996395166723524,
+      "low": 0.908492,
+      "weeklyChange": -0.005836000000000063,
+      "weeklyChangePercent": -0.638282979412209,
+      "direction": "down",
+      "rangePercent": 1.3465170854559039,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4659,24 +5079,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.916294
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.908492
         }
       ],
       "statements": [
-        "MXN/ZAR closed the 5-day observation period 0.2% above the period's starting level.",
-        "The pair traded within a 0.7% high-low range during the period."
+        "MXN/ZAR closed the 6-day observation period 0.6% below the period's starting level.",
+        "The pair traded within a 1.3% high-low range during the period."
       ]
     },
     {
       "pair": "MXN/NGN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 72.78556,
-      "latestRate": 71.554204,
+      "latestRate": 71.941887,
       "high": 73.348685,
       "low": 71.097278,
-      "weeklyChange": -1.2313560000000052,
-      "weeklyChangePercent": -1.6917586400379487,
+      "weeklyChange": -0.8436730000000097,
+      "weeklyChangePercent": -1.1591213971562624,
       "direction": "down",
       "rangePercent": 3.1666570976177177,
       "observations": [
@@ -4703,10 +5127,14 @@
         {
           "date": "2026-11-23",
           "rate": 71.554204
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 71.941887
         }
       ],
       "statements": [
-        "MXN/NGN closed the 5-day observation period 1.7% below the period's starting level.",
+        "MXN/NGN closed the 6-day observation period 1.2% below the period's starting level.",
         "The pair traded within a 3.2% high-low range during the period."
       ]
     },
@@ -4714,15 +5142,15 @@
       "pair": "MXN/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 7.007616,
-      "latestRate": 6.797085,
+      "latestRate": 6.781308,
       "high": 7.054281,
-      "low": 6.795839,
-      "weeklyChange": -0.21053099999999958,
-      "weeklyChangePercent": -3.004317017370809,
+      "low": 6.781308,
+      "weeklyChange": -0.2263079999999995,
+      "weeklyChangePercent": -3.2294577785084044,
       "direction": "down",
-      "rangePercent": 3.8029447136696386,
+      "rangePercent": 4.025373865926742,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4747,24 +5175,28 @@
         {
           "date": "2026-11-23",
           "rate": 6.797085
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 6.781308
         }
       ],
       "statements": [
-        "MXN/KES closed the 5-day observation period 3.0% below the period's starting level.",
-        "The pair traded within a 3.8% high-low range during the period."
+        "MXN/KES closed the 6-day observation period 3.2% below the period's starting level.",
+        "The pair traded within a 4.0% high-low range during the period."
       ]
     },
     {
       "pair": "MXN/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 2.894115,
-      "latestRate": 2.833963,
+      "latestRate": 2.832071,
       "high": 2.912701,
       "low": 2.813952,
-      "weeklyChange": -0.06015200000000043,
-      "weeklyChangePercent": -2.0784246652258265,
+      "weeklyChange": -0.06204400000000021,
+      "weeklyChangePercent": -2.1437987087589887,
       "direction": "down",
       "rangePercent": 3.5092638396106333,
       "observations": [
@@ -4791,10 +5223,14 @@
         {
           "date": "2026-11-23",
           "rate": 2.833963
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 2.832071
         }
       ],
       "statements": [
-        "MXN/EGP closed the 5-day observation period 2.1% below the period's starting level.",
+        "MXN/EGP closed the 6-day observation period 2.1% below the period's starting level.",
         "The pair traded within a 3.5% high-low range during the period."
       ]
     },
@@ -4802,13 +5238,13 @@
       "pair": "ARS/ZAR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.010944,
-      "latestRate": 0.011113,
+      "latestRate": 0.011059,
       "high": 0.011139,
       "low": 0.010904,
-      "weeklyChange": 0.000168999999999999,
-      "weeklyChangePercent": 1.5442251461988212,
+      "weeklyChange": 0.00011499999999999878,
+      "weeklyChangePercent": 1.0508040935672402,
       "direction": "up",
       "rangePercent": 2.1551724137930948,
       "observations": [
@@ -4835,10 +5271,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.011113
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.011059
         }
       ],
       "statements": [
-        "ARS/ZAR closed the 5-day observation period 1.5% above the period's starting level.",
+        "ARS/ZAR closed the 6-day observation period 1.1% above the period's starting level.",
         "The pair traded within a 2.2% high-low range during the period."
       ]
     },
@@ -4846,15 +5286,15 @@
       "pair": "ARS/NGN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.871187,
-      "latestRate": 0.867817,
-      "high": 0.873588,
+      "latestRate": 0.87575,
+      "high": 0.87575,
       "low": 0.865605,
-      "weeklyChange": -0.003370000000000095,
-      "weeklyChangePercent": -0.3868285454213728,
-      "direction": "down",
-      "rangePercent": 0.9222451349056526,
+      "weeklyChange": 0.004562999999999984,
+      "weeklyChangePercent": 0.5237681462188926,
+      "direction": "up",
+      "rangePercent": 1.1720126385591663,
       "observations": [
         {
           "date": "2026-11-17",
@@ -4879,24 +5319,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.867817
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.87575
         }
       ],
       "statements": [
-        "ARS/NGN closed the 5-day observation period 0.4% below the period's starting level.",
-        "The pair traded within a 0.9% high-low range during the period."
+        "ARS/NGN closed the 6-day observation period 0.5% above the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "ARS/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.083876,
-      "latestRate": 0.082436,
+      "latestRate": 0.082549,
       "high": 0.083876,
       "low": 0.082436,
-      "weeklyChange": -0.0014400000000000107,
-      "weeklyChangePercent": -1.7168200677190264,
+      "weeklyChange": -0.0013270000000000087,
+      "weeklyChangePercent": -1.582097381849407,
       "direction": "down",
       "rangePercent": 1.7468096462710598,
       "observations": [
@@ -4923,10 +5367,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.082436
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.082549
         }
       ],
       "statements": [
-        "ARS/KES closed the 5-day observation period 1.7% below the period's starting level.",
+        "ARS/KES closed the 6-day observation period 1.6% below the period's starting level.",
         "The pair traded within a 1.7% high-low range during the period."
       ]
     },
@@ -4934,13 +5382,13 @@
       "pair": "ARS/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.03464,
-      "latestRate": 0.034371,
+      "latestRate": 0.034475,
       "high": 0.03464,
       "low": 0.034147,
-      "weeklyChange": -0.0002689999999999984,
-      "weeklyChangePercent": -0.7765588914549608,
+      "weeklyChange": -0.00016499999999999848,
+      "weeklyChangePercent": -0.4763279445727439,
       "direction": "down",
       "rangePercent": 1.4437578703839296,
       "observations": [
@@ -4967,10 +5415,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.034371
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.034475
         }
       ],
       "statements": [
-        "ARS/EGP closed the 5-day observation period 0.8% below the period's starting level.",
+        "ARS/EGP closed the 6-day observation period 0.5% below the period's starting level.",
         "The pair traded within a 1.4% high-low range during the period."
       ]
     },
@@ -4978,13 +5430,13 @@
       "pair": "ZAR/NGN",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 79.60554,
-      "latestRate": 78.09089,
+      "latestRate": 79.18825,
       "high": 79.918575,
       "low": 77.711665,
-      "weeklyChange": -1.5146500000000032,
-      "weeklyChangePercent": -1.9026942094733645,
+      "weeklyChange": -0.4172900000000084,
+      "weeklyChangePercent": -0.5241971852712868,
       "direction": "down",
       "rangePercent": 2.839869664354776,
       "observations": [
@@ -5011,10 +5463,14 @@
         {
           "date": "2026-11-23",
           "rate": 78.09089
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 79.18825
         }
       ],
       "statements": [
-        "ZAR/NGN closed the 5-day observation period 1.9% below the period's starting level.",
+        "ZAR/NGN closed the 6-day observation period 0.5% below the period's starting level.",
         "The pair traded within a 2.8% high-low range during the period."
       ]
     },
@@ -5022,13 +5478,13 @@
       "pair": "ZAR/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 7.664227,
-      "latestRate": 7.418019,
+      "latestRate": 7.464357,
       "high": 7.686138,
       "low": 7.413855,
-      "weeklyChange": -0.2462080000000002,
-      "weeklyChangePercent": -3.2124309470478916,
+      "weeklyChange": -0.19987000000000066,
+      "weeklyChangePercent": -2.6078298568140093,
       "direction": "down",
       "rangePercent": 3.672623756466775,
       "observations": [
@@ -5055,10 +5511,14 @@
         {
           "date": "2026-11-23",
           "rate": 7.418019
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 7.464357
         }
       ],
       "statements": [
-        "ZAR/KES closed the 5-day observation period 3.2% below the period's starting level.",
+        "ZAR/KES closed the 6-day observation period 2.6% below the period's starting level.",
         "The pair traded within a 3.7% high-low range during the period."
       ]
     },
@@ -5066,13 +5526,13 @@
       "pair": "ZAR/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 3.165292,
-      "latestRate": 3.092854,
+      "latestRate": 3.117332,
       "high": 3.173594,
       "low": 3.069854,
-      "weeklyChange": -0.072438,
-      "weeklyChangePercent": -2.2885092433810215,
+      "weeklyChange": -0.04795999999999978,
+      "weeklyChangePercent": -1.5151840651668087,
       "direction": "down",
       "rangePercent": 3.3793138045001543,
       "observations": [
@@ -5099,10 +5559,14 @@
         {
           "date": "2026-11-23",
           "rate": 3.092854
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 3.117332
         }
       ],
       "statements": [
-        "ZAR/EGP closed the 5-day observation period 2.3% below the period's starting level.",
+        "ZAR/EGP closed the 6-day observation period 1.5% below the period's starting level.",
         "The pair traded within a 3.4% high-low range during the period."
       ]
     },
@@ -5110,15 +5574,15 @@
       "pair": "NGN/KES",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.096278,
-      "latestRate": 0.094992,
+      "latestRate": 0.094261,
       "high": 0.096278,
-      "low": 0.0944,
-      "weeklyChange": -0.0012860000000000094,
-      "weeklyChangePercent": -1.335715324373179,
+      "low": 0.094261,
+      "weeklyChange": -0.002017000000000005,
+      "weeklyChangePercent": -2.094974968320909,
       "direction": "down",
-      "rangePercent": 1.989406779661022,
+      "rangePercent": 2.139803312080293,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5143,24 +5607,28 @@
         {
           "date": "2026-11-23",
           "rate": 0.094992
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.094261
         }
       ],
       "statements": [
-        "NGN/KES closed the 5-day observation period 1.3% below the period's starting level.",
-        "The pair traded within a 2.0% high-low range during the period."
+        "NGN/KES closed the 6-day observation period 2.1% below the period's starting level.",
+        "The pair traded within a 2.1% high-low range during the period."
       ]
     },
     {
       "pair": "NGN/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.039762,
-      "latestRate": 0.039606,
+      "latestRate": 0.039366,
       "high": 0.039776,
       "low": 0.039088,
-      "weeklyChange": -0.00015599999999999642,
-      "weeklyChangePercent": -0.3923343896182195,
+      "weeklyChange": -0.0003960000000000005,
+      "weeklyChangePercent": -0.9959257582616583,
       "direction": "down",
       "rangePercent": 1.7601309864920212,
       "observations": [
@@ -5187,10 +5655,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.039606
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.039366
         }
       ],
       "statements": [
-        "NGN/EGP closed the 5-day observation period 0.4% below the period's starting level.",
+        "NGN/EGP closed the 6-day observation period 1.0% below the period's starting level.",
         "The pair traded within a 1.8% high-low range during the period."
       ]
     },
@@ -5198,15 +5670,15 @@
       "pair": "KES/EGP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.412996,
-      "latestRate": 0.416938,
-      "high": 0.416938,
+      "latestRate": 0.417629,
+      "high": 0.417629,
       "low": 0.412898,
-      "weeklyChange": 0.003942000000000001,
-      "weeklyChangePercent": 0.9544886633284587,
+      "weeklyChange": 0.004632999999999998,
+      "weeklyChangePercent": 1.1218026324710162,
       "direction": "up",
-      "rangePercent": 0.9784498835063352,
+      "rangePercent": 1.1458035640763542,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5231,26 +5703,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.416938
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.417629
         }
       ],
       "statements": [
-        "KES/EGP closed the 5-day observation period 1.0% above the period's starting level.",
-        "The pair traded within a 1.0% high-low range during the period."
+        "KES/EGP closed the 6-day observation period 1.1% above the period's starting level.",
+        "The pair traded within a 1.1% high-low range during the period."
       ]
     },
     {
       "pair": "THB/MYR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.120821,
-      "latestRate": 0.121154,
-      "high": 0.121255,
+      "latestRate": 0.121266,
+      "high": 0.121266,
       "low": 0.120821,
-      "weeklyChange": 0.00033299999999999996,
-      "weeklyChangePercent": 0.275614338566971,
+      "weeklyChange": 0.00044500000000000095,
+      "weeklyChangePercent": 0.3683134554423494,
       "direction": "up",
-      "rangePercent": 0.3592090778920915,
+      "rangePercent": 0.3683134554423494,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5275,10 +5751,14 @@
         {
           "date": "2026-11-23",
           "rate": 0.121154
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.121266
         }
       ],
       "statements": [
-        "THB/MYR closed the 5-day observation period 0.3% above the period's starting level.",
+        "THB/MYR closed the 6-day observation period 0.4% above the period's starting level.",
         "The pair traded within a 0.4% high-low range during the period."
       ]
     },
@@ -5286,15 +5766,15 @@
       "pair": "THB/IDR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 539.242334,
-      "latestRate": 538.428045,
+      "latestRate": 535.192079,
       "high": 540.398687,
-      "low": 536.999582,
-      "weeklyChange": -0.8142890000000307,
-      "weeklyChangePercent": -0.1510061337283713,
+      "low": 535.192079,
+      "weeklyChange": -4.050254999999993,
+      "weeklyChangePercent": -0.7511010810215788,
       "direction": "down",
-      "rangePercent": 0.6329809396387879,
+      "rangePercent": 0.9728484789476789,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5319,24 +5799,28 @@
         {
           "date": "2026-11-23",
           "rate": 538.428045
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 535.192079
         }
       ],
       "statements": [
-        "THB/IDR closed the 5-day observation period 0.2% below the period's starting level.",
-        "The pair traded within a 0.6% high-low range during the period."
+        "THB/IDR closed the 6-day observation period 0.8% below the period's starting level.",
+        "The pair traded within a 1.0% high-low range during the period."
       ]
     },
     {
       "pair": "THB/PHP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.886737,
-      "latestRate": 1.88278,
+      "latestRate": 1.878002,
       "high": 1.886737,
       "low": 1.874706,
-      "weeklyChange": -0.00395700000000021,
-      "weeklyChangePercent": -0.20972716388135762,
+      "weeklyChange": -0.00873500000000016,
+      "weeklyChangePercent": -0.4629686066473577,
       "direction": "down",
       "rangePercent": 0.6417539603543235,
       "observations": [
@@ -5363,10 +5847,14 @@
         {
           "date": "2026-11-23",
           "rate": 1.88278
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.878002
         }
       ],
       "statements": [
-        "THB/PHP closed the 5-day observation period 0.2% below the period's starting level.",
+        "THB/PHP closed the 6-day observation period 0.5% below the period's starting level.",
         "The pair traded within a 0.6% high-low range during the period."
       ]
     },
@@ -5374,13 +5862,13 @@
       "pair": "THB/VND",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 759.796164,
-      "latestRate": 759.475243,
+      "latestRate": 758.885372,
       "high": 760.151998,
       "low": 756.782029,
-      "weeklyChange": -0.32092099999999846,
-      "weeklyChangePercent": -0.04223777576218435,
+      "weeklyChange": -0.9107920000000149,
+      "weeklyChangePercent": -0.11987320325560567,
       "direction": "down",
       "rangePercent": 0.4453024610604334,
       "observations": [
@@ -5407,10 +5895,14 @@
         {
           "date": "2026-11-23",
           "rate": 759.475243
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 758.885372
         }
       ],
       "statements": [
-        "THB/VND closed the 5-day observation period 0.0% below the period's starting level.",
+        "THB/VND closed the 6-day observation period 0.1% below the period's starting level.",
         "The pair traded within a 0.4% high-low range during the period."
       ]
     },
@@ -5418,15 +5910,15 @@
       "pair": "THB/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.053618,
-      "latestRate": 0.053822,
-      "high": 0.053822,
+      "latestRate": 0.053985,
+      "high": 0.053985,
       "low": 0.053618,
-      "weeklyChange": 0.0002040000000000028,
-      "weeklyChangePercent": 0.38046924540266847,
+      "weeklyChange": 0.00036699999999999927,
+      "weeklyChangePercent": 0.6844716326606723,
       "direction": "up",
-      "rangePercent": 0.38046924540266847,
+      "rangePercent": 0.6844716326606723,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5451,26 +5943,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.053822
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.053985
         }
       ],
       "statements": [
-        "THB/NZD closed the 5-day observation period 0.4% above the period's starting level.",
-        "The pair traded within a 0.4% high-low range during the period."
+        "THB/NZD closed the 6-day observation period 0.7% above the period's starting level.",
+        "The pair traded within a 0.7% high-low range during the period."
       ]
     },
     {
       "pair": "MYR/IDR",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 4463.154218,
-      "latestRate": 4444.179785,
+      "latestRate": 4413.39106,
       "high": 4465.350435,
-      "low": 4432.638202,
-      "weeklyChange": -18.974432999999408,
-      "weeklyChangePercent": -0.42513505187598266,
+      "low": 4413.39106,
+      "weeklyChange": -49.76315799999975,
+      "weeklyChangePercent": -1.1149773359679984,
       "direction": "down",
-      "rangePercent": 0.7379856308877292,
+      "rangePercent": 1.1773118287868278,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5495,24 +5991,28 @@
         {
           "date": "2026-11-23",
           "rate": 4444.179785
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 4413.39106
         }
       ],
       "statements": [
-        "MYR/IDR closed the 5-day observation period 0.4% below the period's starting level.",
-        "The pair traded within a 0.7% high-low range during the period."
+        "MYR/IDR closed the 6-day observation period 1.1% below the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "MYR/PHP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 15.615982,
-      "latestRate": 15.540445,
+      "latestRate": 15.486693,
       "high": 15.615982,
       "low": 15.474673,
-      "weeklyChange": -0.07553700000000063,
-      "weeklyChangePercent": -0.4837159776439332,
+      "weeklyChange": -0.129289,
+      "weeklyChangePercent": -0.827927439977838,
       "direction": "down",
       "rangePercent": 0.9131630762084696,
       "observations": [
@@ -5539,10 +6039,14 @@
         {
           "date": "2026-11-23",
           "rate": 15.540445
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 15.486693
         }
       ],
       "statements": [
-        "MYR/PHP closed the 5-day observation period 0.5% below the period's starting level.",
+        "MYR/PHP closed the 6-day observation period 0.8% below the period's starting level.",
         "The pair traded within a 0.9% high-low range during the period."
       ]
     },
@@ -5550,13 +6054,13 @@
       "pair": "MYR/VND",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 6288.615051,
-      "latestRate": 6268.701182,
+      "latestRate": 6258.048367,
       "high": 6288.615051,
       "low": 6246.822236,
-      "weeklyChange": -19.913868999999977,
-      "weeklyChangePercent": -0.3166654158109634,
+      "weeklyChange": -30.56668399999944,
+      "weeklyChangePercent": -0.48606384318497603,
       "direction": "down",
       "rangePercent": 0.6690252006716426,
       "observations": [
@@ -5583,10 +6087,14 @@
         {
           "date": "2026-11-23",
           "rate": 6268.701182
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 6258.048367
         }
       ],
       "statements": [
-        "MYR/VND closed the 5-day observation period 0.3% below the period's starting level.",
+        "MYR/VND closed the 6-day observation period 0.5% below the period's starting level.",
         "The pair traded within a 0.7% high-low range during the period."
       ]
     },
@@ -5594,15 +6102,15 @@
       "pair": "MYR/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.443783,
-      "latestRate": 0.444247,
-      "high": 0.444286,
+      "latestRate": 0.445176,
+      "high": 0.445176,
       "low": 0.442591,
-      "weeklyChange": 0.00046400000000001995,
-      "weeklyChangePercent": 0.10455560487896562,
+      "weeklyChange": 0.001393000000000033,
+      "weeklyChangePercent": 0.31389214999223336,
       "direction": "up",
-      "rangePercent": 0.38297208935563576,
+      "rangePercent": 0.5840606790467957,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5627,26 +6135,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.444247
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.445176
         }
       ],
       "statements": [
-        "MYR/NZD closed the 5-day observation period 0.1% above the period's starting level.",
-        "The pair traded within a 0.4% high-low range during the period."
+        "MYR/NZD closed the 6-day observation period 0.3% above the period's starting level.",
+        "The pair traded within a 0.6% high-low range during the period."
       ]
     },
     {
       "pair": "IDR/PHP",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.003499,
-      "latestRate": 0.003497,
-      "high": 0.003499,
+      "latestRate": 0.003509,
+      "high": 0.003509,
       "low": 0.003484,
-      "weeklyChange": -0.0000019999999999998318,
-      "weeklyChangePercent": -0.05715918833952078,
-      "direction": "down",
-      "rangePercent": 0.43053960964408217,
+      "weeklyChange": 0.000010000000000000026,
+      "weeklyChangePercent": 0.2857959416976287,
+      "direction": "up",
+      "rangePercent": 0.7175660160734744,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5671,26 +6183,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.003497
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.003509
         }
       ],
       "statements": [
-        "IDR/PHP closed the 5-day observation period 0.1% below the period's starting level.",
-        "The pair traded within a 0.4% high-low range during the period."
+        "IDR/PHP closed the 6-day observation period 0.3% above the period's starting level.",
+        "The pair traded within a 0.7% high-low range during the period."
       ]
     },
     {
       "pair": "IDR/VND",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 1.409007,
-      "latestRate": 1.410542,
-      "high": 1.410542,
+      "latestRate": 1.417968,
+      "high": 1.417968,
       "low": 1.406284,
-      "weeklyChange": 0.001535000000000064,
-      "weeklyChangePercent": 0.10894197118964377,
+      "weeklyChange": 0.008960999999999997,
+      "weeklyChangePercent": 0.6359798070556071,
       "direction": "up",
-      "rangePercent": 0.3027837904719013,
+      "rangePercent": 0.8308421343057167,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5715,26 +6231,30 @@
         {
           "date": "2026-11-23",
           "rate": 1.410542
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 1.417968
         }
       ],
       "statements": [
-        "IDR/VND closed the 5-day observation period 0.1% above the period's starting level.",
-        "The pair traded within a 0.3% high-low range during the period."
+        "IDR/VND closed the 6-day observation period 0.6% above the period's starting level.",
+        "The pair traded within a 0.8% high-low range during the period."
       ]
     },
     {
       "pair": "IDR/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.000099,
-      "latestRate": 0.0001,
-      "high": 0.0001,
+      "latestRate": 0.000101,
+      "high": 0.000101,
       "low": 0.000099,
-      "weeklyChange": 0.0000010000000000000108,
-      "weeklyChangePercent": 1.010101010101021,
+      "weeklyChange": 0.000002000000000000008,
+      "weeklyChangePercent": 2.0202020202020283,
       "direction": "up",
-      "rangePercent": 1.010101010101021,
+      "rangePercent": 2.0202020202020283,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5759,26 +6279,30 @@
         {
           "date": "2026-11-23",
           "rate": 0.0001
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.000101
         }
       ],
       "statements": [
-        "IDR/NZD closed the 5-day observation period 1.0% above the period's starting level.",
-        "The pair traded within a 1.0% high-low range during the period."
+        "IDR/NZD closed the 6-day observation period 2.0% above the period's starting level.",
+        "The pair traded within a 2.0% high-low range during the period."
       ]
     },
     {
       "pair": "PHP/VND",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 402.703793,
-      "latestRate": 403.379784,
-      "high": 403.680393,
+      "latestRate": 404.091979,
+      "high": 404.091979,
       "low": 402.703793,
-      "weeklyChange": 0.6759909999999536,
-      "weeklyChangePercent": 0.16786308243189393,
+      "weeklyChange": 1.388185999999962,
+      "weeklyChangePercent": 0.3447163955567615,
       "direction": "up",
-      "rangePercent": 0.24251075281030743,
+      "rangePercent": 0.3447163955567615,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5803,26 +6327,30 @@
         {
           "date": "2026-11-23",
           "rate": 403.379784
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 404.091979
         }
       ],
       "statements": [
-        "PHP/VND closed the 5-day observation period 0.2% above the period's starting level.",
-        "The pair traded within a 0.2% high-low range during the period."
+        "PHP/VND closed the 6-day observation period 0.3% above the period's starting level.",
+        "The pair traded within a 0.3% high-low range during the period."
       ]
     },
     {
       "pair": "PHP/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.028419,
-      "latestRate": 0.028586,
-      "high": 0.028601,
+      "latestRate": 0.028746,
+      "high": 0.028746,
       "low": 0.028419,
-      "weeklyChange": 0.00016700000000000048,
-      "weeklyChangePercent": 0.587635032900526,
+      "weeklyChange": 0.0003270000000000009,
+      "weeklyChangePercent": 1.1506386572363592,
       "direction": "up",
-      "rangePercent": 0.6404166226820142,
+      "rangePercent": 1.1506386572363592,
       "observations": [
         {
           "date": "2026-11-17",
@@ -5847,18 +6375,22 @@
         {
           "date": "2026-11-23",
           "rate": 0.028586
+        },
+        {
+          "date": "2026-11-24",
+          "rate": 0.028746
         }
       ],
       "statements": [
-        "PHP/NZD closed the 5-day observation period 0.6% above the period's starting level.",
-        "The pair traded within a 0.6% high-low range during the period."
+        "PHP/NZD closed the 6-day observation period 1.2% above the period's starting level.",
+        "The pair traded within a 1.2% high-low range during the period."
       ]
     },
     {
       "pair": "VND/NZD",
       "kind": "DATA_OBSERVATION",
       "dataCompleteness": "COMPLETE",
-      "observedDays": 6,
+      "observedDays": 7,
       "weeklyStartLevel": 0.000071,
       "latestRate": 0.000071,
       "high": 0.000071,
@@ -5890,6 +6422,10 @@
         },
         {
           "date": "2026-11-23",
+          "rate": 0.000071
+        },
+        {
+          "date": "2026-11-24",
           "rate": 0.000071
         }
       ],
