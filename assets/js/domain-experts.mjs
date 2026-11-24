@@ -5,6 +5,21 @@ const detail = get('profile');
 const heading = get('detail-title');
 const status = get('status');
 const regions = ['APAC','CIS','SEPA / Europe / UK','South Asia','Americas','LATAM','Africa','GCC / Middle East'];
+const geography = {
+  "APAC": "Australia|Brunei|Cambodia|China|Fiji|Hong Kong|Indonesia|Japan|Kiribati|Laos|Macau|Malaysia|Marshall Islands|Micronesia|Mongolia|Myanmar|Nauru|New Zealand|North Korea|Palau|Papua New Guinea|Philippines|Samoa|Singapore|Solomon Islands|South Korea|Taiwan|Thailand|Timor-Leste|Tonga|Tuvalu|Vanuatu|Vietnam",
+  "CIS": "Armenia|Azerbaijan|Belarus|Georgia|Kazakhstan|Kyrgyzstan|Moldova|Russia|Tajikistan|Turkmenistan|Ukraine|Uzbekistan",
+  "SEPA / Europe / UK": "Albania|Andorra|Austria|Belgium|Bosnia and Herzegovina|Bulgaria|Croatia|Cyprus|Czechia|Denmark|Estonia|Finland|France|Germany|Greece|Hungary|Iceland|Ireland|Italy|Kosovo|Latvia|Liechtenstein|Lithuania|Luxembourg|Malta|Monaco|Montenegro|Netherlands|North Macedonia|Norway|Poland|Portugal|Romania|San Marino|Serbia|Slovakia|Slovenia|Spain|Sweden|Switzerland|United Kingdom|Vatican City",
+  "South Asia": "Afghanistan|Bangladesh|Bhutan|India|Maldives|Nepal|Pakistan|Sri Lanka",
+  "Americas": "Canada|United States",
+  "LATAM": "Antigua and Barbuda|Argentina|Bahamas|Barbados|Belize|Bolivia|Brazil|Chile|Colombia|Costa Rica|Cuba|Dominica|Dominican Republic|Ecuador|El Salvador|Grenada|Guatemala|Guyana|Haiti|Honduras|Jamaica|Mexico|Nicaragua|Panama|Paraguay|Peru|Saint Kitts and Nevis|Saint Lucia|Saint Vincent and the Grenadines|Suriname|Trinidad and Tobago|Uruguay|Venezuela",
+  "Africa": "Algeria|Angola|Benin|Botswana|Burkina Faso|Burundi|Cabo Verde|Cameroon|Central African Republic|Chad|Comoros|Democratic Republic of the Congo|Republic of the Congo|Djibouti|Egypt|Equatorial Guinea|Eritrea|Eswatini|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea-Bissau|Ivory Coast|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Mauritius|Morocco|Mozambique|Namibia|Niger|Nigeria|Rwanda|Sao Tome and Principe|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Tanzania|Togo|Tunisia|Uganda|Zambia|Zimbabwe",
+  "GCC / Middle East": "Bahrain|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Oman|Palestine|Qatar|Saudi Arabia|Syria|Turkey|United Arab Emirates|Yemen"
+};
+function countryOptions(published = []) {
+    const region = filters.get('region');
+    const names = region ? (geography[region] || '').split('|') : Object.values(geography).flatMap(value => value.split('|'));
+    return [...new Set([...names, ...published].filter(Boolean))].sort((a,b) => a.localeCompare(b));
+}
 let activeView = 'profiles';
 let filters = new URLSearchParams();
 let selectedButton = null;
@@ -221,7 +236,7 @@ async function load() {
         showView(activeView);
         renderDomains(data.topics || []);
         options('region', [...new Set([...regions, ...(data.regions || [])])]);
-        options('jurisdiction', data.jurisdictions || []);
+        options('jurisdiction', countryOptions(data.jurisdictions || []));
         renderRegionalCards(data.cards, data.jurisdictions || []);
         const page = Number(filters.get('page') || 1);
         const total = data.total;
@@ -240,6 +255,7 @@ async function load() {
 form.elements.namedItem('region').addEventListener('change', () => {
     form.elements.namedItem('jurisdiction').value = '';
     filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
+    options('jurisdiction', countryOptions());
     load();
 });
 form.addEventListener('submit', event => {
