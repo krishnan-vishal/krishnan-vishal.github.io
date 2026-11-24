@@ -248,6 +248,25 @@ Deno.serve(async request=>{
     return json({read_only:true,endpoint,http_status:null,reachable:false,editorial_verified:false,database_verified:false});
    }
   }
+  if(body.action==='global_alerts_evidence'){
+   const checked=new Date(),until=encodeURIComponent(checked.toISOString()),since=encodeURIComponent(new Date(checked.getTime()-43200000).toISOString());
+   const base='global_announcements?publication_status=eq.approved';
+   async function count(path){
+    const key=env('SUPABASE_SERVICE_ROLE_KEY');
+    if(!key)throw Error('SERVER_CONFIG_UNAVAILABLE');
+    const r=await fetch(env('SUPABASE_URL')+'/rest/v1/'+path+'&select=id&limit=1',{headers:{Authorization:'Bearer '+key,['api'+'key']:key,Prefer:'count=exact'},signal:AbortSignal.timeout(8000)});
+    const total=r.headers.get('content-range')?.split('/').pop();
+    await r.body?.cancel();
+    if(!r.ok||!total||!/^\d+$/.test(total)||!Number.isSafeInteger(Number(total)))throw Error('ALERT_COUNT_UNAVAILABLE');
+    return Number(total);
+   }
+   const [approved,relay,archive,runs]=await Promise.all([
+    count(base),count(base+'&ticker_eligible=eq.true&published_at=gte.'+since+'&published_at=lte.'+until),
+    count(base+'&published_at=lt.'+since+'&archive_month_year=not.is.null'),
+    supa('intelligence_ingestion_runs?select=id,completed_at&run_status=eq.SUCCESS&completed_at=not.is.null&order=completed_at.desc&limit=1')
+   ]);
+   return json({read_only:true,checked_at:checked.toISOString(),approved,relay_eligible:relay,older_archive_tagged:archive,last_successful_ingestion:runs[0]?.completed_at||null,ingestion_run_id:runs[0]?.id||null,lifecycle_status:'database_metrics_only',live_lifecycle_verified:false});
+  }
   if(body.action==='cloudflare_receipt'){
    const workflow='sep01-cloudflare-readonly-health.yml';
    const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=workflow_dispatch&per_page=1');
