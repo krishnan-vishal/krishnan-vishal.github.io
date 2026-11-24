@@ -63,6 +63,7 @@ function claim(item) {
 function appendSection(label, items) {
     if (!items?.length) return;
     const section = element('details');
+    section.open = true;
     section.append(element('summary', label), ...items.map(claim));
     detail.append(section);
 }
@@ -71,6 +72,20 @@ function initials(name) {
     return name.trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0]).join('');
 }
 
+function portraitNode(card) {
+    const fallback = element('span', initials(card.name));
+    fallback.className = 'expert-initials';
+    fallback.setAttribute('aria-hidden','true');
+    const url = safeUrl(card.portrait?.url);
+    if (!url || !card.portrait.identityConfirmed || !card.portrait.reuseLicense) return fallback;
+    const image = element('img');
+    image.alt = '';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('error', () => image.replaceWith(fallback), {once:true});
+    image.src = url;
+    return image;
+}
 function showProfile(card, button) {
     selectedButton?.removeAttribute('aria-current');
     selectedButton = button;
@@ -93,7 +108,14 @@ function showProfile(card, button) {
         fallback.replaceWith(image);
         image.src = portrait;
     }
-    detail.append(identity, claim(card.summary), element('p', card.topics.join(' · ')));
+    const overview = element('section');
+    overview.className = 'expert-overview';
+    overview.append(element('h3','Executive summary'), claim(card.summary), element('h3','Key expertise'));
+    const tags = element('div');
+    tags.className = 'expert-tags';
+    for (const topic of card.topics || []) tags.append(element('span',topic));
+    overview.append(tags);
+    detail.append(identity, overview);
     appendSection('Career history', card.career);
     appendSection('Qualifications', card.qualifications);
     appendSection('Significant contribution', [card.contribution]);
@@ -103,7 +125,8 @@ function showProfile(card, button) {
     const official = element('p');
     official.append(link(card.officialBio.url, 'Official biography · ' + card.officialBio.publisher),
         ' · Checked ' + card.officialBio.checkedAt);
-    sources.append(element('summary', 'Sources'), official, element('p', 'Last reviewed ' + card.checkedAt));
+    sources.open = true;
+    sources.append(element('summary', 'Verification & official sources'), official, element('p', 'Last reviewed ' + card.checkedAt));
     if (card.linkedin?.identityConfirmed) sources.append(link(card.linkedin.url, 'LinkedIn profile'));
     const back = element('button', 'Back to selected result');
     back.type = 'button';
@@ -161,7 +184,12 @@ function renderRegionalCards(profiles, jurisdictions) {
         const list = element('ul');
         for (const p of people) {
             const row = element('li');
-            const button = element('button', p.name + ' · ' + (p.title || ''));
+            const button = element('button');
+            button.className = 'expert-person-card';
+            const info = element('span');
+            info.className = 'expert-person-info';
+            info.append(element('strong', p.name), element('span', p.title), element('small', p.employer), element('small', p.jurisdiction), element('small', (p.topics || []).join(' · ')));
+            button.append(portraitNode(p), info);
             button.type = 'button';
             button.addEventListener('click', () => showProfile(p, button));
             row.append(button);
