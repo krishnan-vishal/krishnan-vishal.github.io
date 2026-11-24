@@ -1,10 +1,9 @@
 const get = id => document.getElementById('expert-' + id);
 const form = get('filters');
-const results = get('results');
+const cards = get('regional-cards');
 const detail = get('profile');
 const heading = get('detail-title');
 const status = get('status');
-let currentPage = 1;
 let activeView = 'profiles';
 let filters = new URLSearchParams();
 let selectedButton = null;
@@ -103,7 +102,10 @@ function resetProfile() {
     get('placeholder').hidden = false;
     detail.replaceChildren();
 }
-
+/**
+ * @param {string} name
+ * @param {string[]} values
+ */
 function options(name, values) {
     const control = form.elements.namedItem(name);
     const selected = filters.get(name) || '';
@@ -120,6 +122,43 @@ function showView(view) {
     get('browser').hidden = byDomain;
 }
 
+function renderRegionalCards(profiles, jurisdictions) {
+    cards.replaceChildren();
+    if (!profiles.length) {
+        cards.appendChild(element('p', filters.size ? 'No published experts match these filters.' : 'No expert profiles have been published yet.'));
+        return;
+    }
+    const grouped = new Map();
+    for (const p of profiles) {
+        const region = p.regions?.[0] || 'Global';
+        if (!grouped.has(region)) grouped.set(region, []);
+        grouped.get(region).push(p);
+    }
+    const regionOrder = ['Global', 'Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East', 'Latin America'];
+    const sorted = [...grouped.entries()].sort((a, b) => {
+        const ia = regionOrder.indexOf(a[0]);
+        const ib = regionOrder.indexOf(b[0]);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    for (const [region, people] of sorted) {
+        people.sort((a, b) => (a.sortKey || a.name || '').localeCompare(b.sortKey || b.name || ''));
+        const card = element('div');
+        card.className = 'region-card';
+        card.append(element('h3', region + ' (' + people.length + ')'));
+        const list = element('ul');
+        for (const p of people) {
+            const row = element('li');
+            const button = element('button', p.name + ' · ' + (p.title || ''));
+            button.type = 'button';
+            button.addEventListener('click', () => showProfile(p, button));
+            row.append(button);
+            list.append(row);
+        }
+        card.append(list);
+        cards.append(card);
+    }
+}
+
 function renderDomains(topics) {
     const list = get('domain-list');
     list.replaceChildren();
@@ -130,29 +169,26 @@ function renderDomains(topics) {
         button.type = 'button';
         button.addEventListener('click', () => {
             form.reset();
-            form.elements.namedItem('topic').value = topic;
             filters = new URLSearchParams({ topic });
             showView('profiles');
             get('results-title').focus();
-            load(1, true);
+            load();
         });
         row.append(button);
         list.append(row);
     }
 }
 
-async function load(page = 1, moveFocus = false) {
+async function load() {
     pending?.abort();
     const request = new AbortController();
     pending = request;
     const params = new URLSearchParams(filters);
-    params.set('page', page);
     params.set('catalog', 'experts');
-    status.textContent = 'Loading experts…';
-    results.replaceChildren();
+    status.textContent = 'Loading directory…';
+    cards.replaceChildren();
     resetProfile();
     get('browser').setAttribute('aria-busy', 'true');
-    get('previous').disabled = get('next').disabled = true;
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
     try {
         if (!config?.url || !config.publishableKey) throw Error('Unavailable');
@@ -184,26 +220,11 @@ async function load(page = 1, moveFocus = false) {
         get('access').hidden = true;
         get('views').hidden = false;
         showView(activeView);
-        renderDomains(data.topics);
-        for (const [field, key] of [['region', 'regions'], ['industry', 'industries'], ['topic', 'topics']]) {
-            options(field, data[key]);
-        }
-        for (const card of data.cards) {
-            const row = element('li');
-            const button = element('button', card.name + ' · ' + card.title);
-            button.type = 'button';
-            button.addEventListener('click', () => showProfile(card, button));
-            row.append(button);
-            results.append(row);
-        }
-        currentPage = page;
-        const pages = Math.ceil(data.total / 20);
-        status.textContent = data.total === 0
-            ? (filters.size ? 'No published experts match these filters.' : 'No expert profiles have been published yet.')
-            : data.total + ' matching profiles. Page ' + page + ' of ' + pages + '.';
-        get('previous').disabled = page <= 1;
-        get('next').disabled = page >= pages;
-        if (moveFocus && activeView === 'profiles') get('results-title').focus();
+        renderDomains(data.topics || []);
+        options('region', data.regions || []);
+        options('jurisdiction', data.jurisdictions || []);
+        renderRegionalCards(data.cards, data.jurisdictions || []);
+        status.textContent = data.cards.length + ' published expert profiles.';
     } catch {
         if (!request.signal.aborted) status.textContent = 'The directory is temporarily unavailable. Reload the page to try again.';
     } finally {
@@ -211,21 +232,23 @@ async function load(page = 1, moveFocus = false) {
     }
 }
 
-for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') form.elements.namedItem('letter').add(new Option(letter));
+form.elements.namedItem('region').addEventListener('change', () => {
+    form.elements.namedItem('jurisdiction').value = '';
+    filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
+    load();
+});
 form.addEventListener('submit', event => {
     event.preventDefault();
     filters = new URLSearchParams([...new FormData(form)].filter(([, value]) => value.trim()));
-    load(1, true);
+    load();
 });
 form.addEventListener('reset', () => {
     if (activeView === 'domain') return;
     filters = new URLSearchParams();
-    queueMicrotask(() => load(1, true));
+    queueMicrotask(() => load());
 });
 get('show-domain').addEventListener('click', () => showView('domain'));
 get('show-profiles').addEventListener('click', () => showView('profiles'));
-get('previous').addEventListener('click', () => load(currentPage - 1, true));
-get('next').addEventListener('click', () => load(currentPage + 1, true));
 try {
     session = await window.GPIRReaderAuth?.sessionReady;
 } catch {}
