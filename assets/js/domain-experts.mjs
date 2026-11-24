@@ -4,6 +4,7 @@ const cards = get('regional-cards');
 const detail = get('profile');
 const heading = get('detail-title');
 const status = get('status');
+const regions = ['APAC','CIS','SEPA / Europe / UK','South Asia','Americas','LATAM','Africa','GCC / Middle East'];
 let activeView = 'profiles';
 let filters = new URLSearchParams();
 let selectedButton = null;
@@ -124,13 +125,9 @@ function showView(view) {
 
 function renderRegionalCards(profiles, jurisdictions) {
     cards.replaceChildren();
-    if (!profiles.length) {
-        cards.appendChild(element('p', filters.size ? 'No published experts match these filters.' : 'No expert profiles have been published yet.'));
-        return;
-    }
-    const grouped = new Map();
+    const grouped = new Map((filters.get('region') ? [filters.get('region')] : regions).map(region => [region, []]));
     for (const p of profiles) {
-        const region = p.regions?.[0] || 'Global';
+        const region = filters.get('region') || p.regions?.[0] || 'Global';
         if (!grouped.has(region)) grouped.set(region, []);
         grouped.get(region).push(p);
     }
@@ -144,7 +141,8 @@ function renderRegionalCards(profiles, jurisdictions) {
         people.sort((a, b) => (a.sortKey || a.name || '').localeCompare(b.sortKey || b.name || ''));
         const card = element('div');
         card.className = 'region-card';
-        card.append(element('h3', region + ' (' + people.length + ')'));
+        card.append(element('h3', region));
+        card.append(element('p', people.length ? people.length + ' profiles on this page' : 'No published profiles on this page.'));
         const list = element('ul');
         for (const p of people) {
             const row = element('li');
@@ -187,6 +185,7 @@ async function load() {
     params.set('catalog', 'experts');
     status.textContent = 'Loading directory…';
     cards.replaceChildren();
+    get('pagination').hidden = true;
     resetProfile();
     get('browser').setAttribute('aria-busy', 'true');
     const config = window.GPIR_SUPABASE_PUBLIC_CONFIG;
@@ -221,10 +220,16 @@ async function load() {
         get('views').hidden = false;
         showView(activeView);
         renderDomains(data.topics || []);
-        options('region', data.regions || []);
+        options('region', [...new Set([...regions, ...(data.regions || [])])]);
         options('jurisdiction', data.jurisdictions || []);
         renderRegionalCards(data.cards, data.jurisdictions || []);
-        status.textContent = data.cards.length + ' published expert profiles.';
+        const page = Number(filters.get('page') || 1);
+        const total = data.total;
+        status.textContent = total + ' matching published expert profiles.';
+        get('page-label').textContent = total ? 'Page ' + page + ' of ' + Math.ceil(total / 20) : 'No results';
+        get('previous').disabled = page <= 1;
+        get('next').disabled = page * 20 >= total || page >= 1000;
+        get('pagination').hidden = total <= 20;
     } catch {
         if (!request.signal.aborted) status.textContent = 'The directory is temporarily unavailable. Reload the page to try again.';
     } finally {
@@ -247,6 +252,12 @@ form.addEventListener('reset', () => {
     filters = new URLSearchParams();
     queueMicrotask(() => load());
 });
+for (const [id, delta] of [['previous', -1], ['next', 1]]) {
+    get(id).addEventListener('click', () => {
+        filters.set('page', String(Math.max(1, Math.min(1000, Number(filters.get('page') || 1) + delta))));
+        load();
+    });
+}
 get('show-domain').addEventListener('click', () => showView('domain'));
 get('show-profiles').addEventListener('click', () => showView('profiles'));
 try {
