@@ -170,12 +170,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-      - run: npm ci
-        working-directory: apps/gpir-cms
       - name: Verify configured credentials without printing values
         env:
-          PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
-          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
           GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
@@ -185,19 +181,16 @@ jobs:
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
           MODE: ${{ inputs.mode }}
         run: |
-          node -e 'const keys=["PAYLOAD_DATABASE_URI","PAYLOAD_SECRET","PAYLOAD_PUBLIC_SERVER_URL"]; if(process.env.MODE==="CLASSIFY_AND_SYNC_BCP") keys.push("PAYLOAD_RELEASE_API_KEY","GPIR_RELEASE_SIGNING_SECRET","GPIR_PAYLOAD_SITE_SNAPSHOT","CONTENTFUL_SPACE_ID","CONTENTFUL_ENVIRONMENT","CONTENTFUL_MANAGEMENT_TOKEN"); const missing=keys.filter(k=>!process.env[k]); if(missing.length){console.error("Missing configured settings: "+missing.join(", "));process.exit(1)}'
+          node -e 'const keys=["PAYLOAD_RELEASE_API_KEY","PAYLOAD_PUBLIC_SERVER_URL"]; if(process.env.MODE==="CLASSIFY_AND_SYNC_BCP") keys.push("GPIR_RELEASE_SIGNING_SECRET","GPIR_PAYLOAD_SITE_SNAPSHOT","CONTENTFUL_SPACE_ID","CONTENTFUL_ENVIRONMENT","CONTENTFUL_MANAGEMENT_TOKEN"); const missing=keys.filter(k=>!process.env[k]); if(missing.length){console.error("Missing configured settings: "+missing.join(", "));process.exit(1)}'
       - name: Resolve chapter identities and optionally apply
-        working-directory: apps/gpir-cms
         env:
-          PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
-          PAYLOAD_DATABASE_CA_CERT: ${{ secrets.PAYLOAD_DATABASE_CA_CERT }}
-          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
           MODE: ${{ inputs.mode }}
         run: |
-          npx --no-install tsx src/migration/classify-money-movement-markets.ts
+          node scripts/m41/classify-money-movement-markets.cjs
           if [ "$MODE" = "CLASSIFY_AND_SYNC_BCP" ]; then
-            npx --no-install tsx src/migration/classify-money-movement-markets.ts --apply
+            node scripts/m41/classify-money-movement-markets.cjs --apply
           fi
       - name: Synchronize existing Contentful BCP and verify recovery
         if: inputs.mode == 'CLASSIFY_AND_SYNC_BCP'
