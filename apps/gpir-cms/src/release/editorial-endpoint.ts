@@ -18,11 +18,28 @@ export const editorialEndpoint: Endpoint = {
         'High-Risk Payments': ['gaming-payments', 'betting-payments', 'adult-content-payments'],
         'Regional Structure': ['government-payments', 'travel-payments'],
       }
+      const inventory: any[] = []
+      for (let page = 1; ; page++) {
+        const result = await req.payload.find({ collection: 'chapters', page, limit: 100, depth: 0, req, overrideAccess: true, sort: 'id' })
+        inventory.push(...result.docs)
+        if (!result.hasNextPage) break
+        if (page >= 1000) return Response.json({ error: 'CHAPTER_INVENTORY_INCOMPLETE' }, { status: 409 })
+      }
+      const canonicalPath = (value: unknown) => {
+        if (typeof value !== 'string') return ''
+        try {
+          const url = new URL(value, 'https://fintechoisis.com')
+          if (url.origin !== 'https://fintechoisis.com') return ''
+          return url.pathname.replace(/\/$/, '')
+        } catch { return '' }
+      }
       const plan: any[] = [], missing: string[] = []
       for (const [category, slugs] of Object.entries(groups)) for (const slug of slugs) {
-        const result = await req.payload.find({ collection: 'chapters', where: { slug: { equals: slug } }, limit: 2, depth: 0, req, overrideAccess: true })
-        if (result.totalDocs > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
-        const doc = result.docs[0]
+        const expectedPath = '/pages/chapters/' + slug + '.html'
+        const candidates = inventory.filter(doc => doc.slug === slug || doc.canonicalId === slug || canonicalPath(doc.canonicalUrl) === expectedPath)
+        if (candidates.length > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
+        const doc = candidates[0]
+        if (doc && doc.canonicalUrl && canonicalPath(doc.canonicalUrl) !== expectedPath) return Response.json({ error: 'CHAPTER_CANONICAL_URL_MISMATCH', slug }, { status: 409 })
         if (!doc) { missing.push(slug); continue }
         const previous = doc.sourceModel
         if (previous != null && (typeof previous !== 'object' || Array.isArray(previous))) return Response.json({ error: 'INVALID_METADATA', slug }, { status: 409 })
