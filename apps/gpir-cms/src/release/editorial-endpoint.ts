@@ -9,6 +9,37 @@ export const editorialEndpoint: Endpoint = {
     let input: any
     try { input = await req.json!() } catch { return Response.json({ error: 'INVALID_JSON' }, { status: 400 }) }
     const action = input.action || 'published'
+    if (action === 'classify-money-movement-markets') {
+      if (typeof input.apply !== 'boolean') return Response.json({ error: 'INVALID_MODE' }, { status: 400 })
+      const groups = {
+        'Global B2B Payments (SME & Trade)': ['trade-payments', 'education-payments'],
+        'Global B2C & C2B Payments': ['marketplace-ecommerce', 'gig-economy-creator-payments', 'healthcare-payments'],
+        'Bill Payments': ['bill-payments'],
+        'High-Risk Payments': ['gaming-payments', 'betting-payments', 'adult-content-payments'],
+        'Regional Structure': ['government-payments', 'travel-payments'],
+      }
+      const plan: any[] = [], missing: string[] = []
+      for (const [category, slugs] of Object.entries(groups)) for (const slug of slugs) {
+        const result = await req.payload.find({ collection: 'chapters', where: { slug: { equals: slug } }, limit: 2, depth: 0, req, overrideAccess: false })
+        if (result.totalDocs > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
+        const doc = result.docs[0]
+        if (!doc) { missing.push(slug); continue }
+        const previous = doc.sourceModel
+        if (previous != null && (typeof previous !== 'object' || Array.isArray(previous))) return Response.json({ error: 'INVALID_METADATA', slug }, { status: 409 })
+        plan.push({ id: doc.id, slug, category, sourceModel: { ...(previous || {}), moneyMovementMarkets: { category, homepageResearchDesk: false } } })
+      }
+      const matched = plan.map(({ slug, category }) => ({ slug, category }))
+      if (missing.length) return Response.json({ matched, missing, error: 'UNRESOLVED_CHAPTERS' }, { status: 409 })
+      if (!input.apply) return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
+      // Only fixed server-owned slugs and metadata are writable by this action.
+      for (const item of plan) {
+        await req.payload.update({ collection: 'chapters', id: item.id, data: { sourceModel: item.sourceModel }, req, overrideAccess: true })
+        const verified = await req.payload.findByID({ collection: 'chapters', id: item.id, depth: 0, req, overrideAccess: false })
+        const actual = verified.sourceModel as any
+        if (actual?.moneyMovementMarkets?.category !== item.category || actual.moneyMovementMarkets.homepageResearchDesk !== false) throw new Error('Chapter read-back failed')
+      }
+      return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
+    }
     if (!['published', 'publication', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
     const client: any = req.payload
     const namespace = { sourceRecordKey: { contains: 'm41:editorial:' } }
