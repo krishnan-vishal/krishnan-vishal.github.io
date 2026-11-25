@@ -26,12 +26,28 @@ function unpack(index, chunks) {
     if (site.sha256(bytes) !== index.digest) throw new Error('BCP archive digest mismatch.');
     return JSON.parse(zlib.gunzipSync(bytes, { maxOutputLength: 1024 * 1024 * 1024 }).toString('utf8'));
 }
+// Fixed-size batches preserve input order and stop scheduling after a failed batch.
+async function boundedMap(items, width, fn) {
+    const results = [];
+    for (let offset = 0; offset < items.length; offset += width) {
+        const batch = await Promise.allSettled(items.slice(offset, offset + width).map(fn));
+        const failed = batch.find(item => item.status === 'rejected');
+        if (failed) throw failed.reason;
+        results.push(...batch.map(item => item.value));
+    }
+    return results;
+}
 function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms))) {
     const { CONTENTFUL_SPACE_ID: space, CONTENTFUL_ENVIRONMENT: environment, CONTENTFUL_MANAGEMENT_TOKEN: token } = env;
     if (!space || !environment || !token) throw new Error('Private Contentful BCP management settings are required.');
     const base = `https://api.contentful.com/spaces/${encodeURIComponent(space)}/environments/${encodeURIComponent(environment)}`;
+    let nextRequest = 0;
     async function call(method, route, body, extra = {}) {
         for (let attempt = 0; attempt < 5; attempt++) {
+            const now = Date.now();
+            const slot = Math.max(now, nextRequest);
+            nextRequest = slot + 250;
+            if (slot > now) await new Promise(resolve => setTimeout(resolve, slot - now));
             const response = await fetchImpl(base + route, { method, redirect: 'error', signal: AbortSignal.timeout(60000),
                 headers: { authorization: `Bearer ${token}`, 'content-type': 'application/vnd.contentful.management.v1+json', ...extra },
                 body: body ? JSON.stringify(body) : undefined });
@@ -69,7 +85,7 @@ function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve =>
         if (!locale) throw new Error('Contentful default locale is unavailable.');
         return locale;
     }
-    async function store(id, body, locale) {
+    async function store(id, body, locale, inventory) {
         const route = `/entries/${encodeURIComponent(id)}`;
         if (Buffer.byteLength(body, 'utf8') > 48000) throw new Error('BCP object exceeds bounded Contentful field size.');
         const digest = site.sha256(body);
@@ -78,7 +94,7 @@ function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve =>
             if (existing.sys.contentType?.sys?.id !== TYPE || existing.fields?.digest?.[locale] !== digest || existing.fields?.body?.[locale] !== body) throw new Error('Immutable Contentful BCP object conflicts.');
             return true;
         }
-        if (matches(await call('GET', route))) return;
+        if (matches(inventory ? inventory.get(id) : await call('GET', route))) return;
         for (let attempt = 0; attempt < 3; attempt++) {
             try {
                 await call('PUT', route, { fields: { digest: { [locale]: digest }, body: { [locale]: body } } }, { 'x-contentful-content-type': TYPE });
@@ -101,14 +117,35 @@ function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve =>
         if (values.length !== 1 || digests.length !== 1 || site.sha256(values[0]) !== digests[0]) throw new Error('Contentful BCP object failed integrity.');
         return values[0];
     }
-    return { ensureModel, store, read };
+    async function inventory(ids) {
+        const found = new Map();
+        for (let offset = 0; offset < ids.length; offset += 40) {
+            const group = ids.slice(offset, offset + 40);
+            const query = new URLSearchParams({ 'sys.id[in]': group.join(','), limit: String(group.length) });
+            const result = await call('GET', '/entries?' + query);
+            if (!Array.isArray(result?.items) || result.total !== result.items.length) throw new Error('Incomplete Contentful BCP inventory.');
+            for (const entry of result.items) {
+                if (!group.includes(entry.sys?.id) || found.has(entry.sys.id)) throw new Error('Unexpected Contentful BCP inventory object.');
+                found.set(entry.sys.id, entry);
+            }
+        }
+        return found;
+    }
+    return { ensureModel, store, read, inventory };
 }
 async function sync(records, snapshot, env, fetchImpl = fetch) {
     if (env.GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED !== 'true') throw new Error('Contentful is read-only. BCP synchronization needs separate explicit authorization and is not a primary-cutover gate.');
     const remote = management(env, fetchImpl);
     const locale = await remote.ensureModel();
     const archive = pack(records);
-    for (const chunk of archive.chunks) await remote.store(chunk.id, chunk.body, locale);
+    const unique = [...new Map(archive.chunks.map(chunk => [chunk.id, chunk])).values()];
+    console.log('BCP: recovery chunks=' + unique.length);
+    for (let offset = 0; offset < unique.length; offset += 40) {
+        const batch = unique.slice(offset, offset + 40);
+        const existing = await remote.inventory(batch.map(chunk => chunk.id));
+        await boundedMap(batch, 4, chunk => remote.store(chunk.id, chunk.body, locale, existing));
+        console.log('BCP: chunks verified or stored ' + Math.min(offset + 40, unique.length) + '/' + unique.length);
+    }
     // Commit the root only after every immutable chunk exists. Interrupted runs retry safely.
     // Bound Text-field size even for a complete media repository. Large chunk
     // inventories are split into immutable index pages before committing the root.
@@ -136,7 +173,19 @@ async function recover(snapshot, env, fetchImpl = fetch) {
         index.chunks.push(...group);
     }
     const chunks = new Map();
-    for (const id of index.chunks) chunks.set(id, await remote.read(id));
+    const unique = [...new Set(index.chunks)];
+    for (let offset = 0; offset < unique.length; offset += 40) {
+        const batch = unique.slice(offset, offset + 40);
+        const entries = await remote.inventory(batch);
+        for (const id of batch) {
+            const entry = entries.get(id);
+            const values = Object.values(entry?.fields?.body || {});
+            const digests = Object.values(entry?.fields?.digest || {});
+            if (entry?.sys?.contentType?.sys?.id !== TYPE || values.length !== 1 || digests.length !== 1 || site.sha256(values[0]) !== digests[0]) throw new Error('Contentful BCP object failed integrity.');
+            chunks.set(id, values[0]);
+        }
+        console.log('BCP: readback chunks ' + Math.min(offset + 40, unique.length) + '/' + unique.length);
+    }
     return unpack(index, chunks);
 }
-module.exports = { pack, unpack, management, sync, recover };
+module.exports = { pack, unpack, management, sync, recover, boundedMap };
