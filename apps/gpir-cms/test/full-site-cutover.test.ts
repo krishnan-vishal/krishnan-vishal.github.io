@@ -81,7 +81,7 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
     if (route.startsWith('/content_types/')) return Response.json({ sys: { version: 2, publishedVersion: 1 }, fields: [{ id: 'digest', type: 'Symbol' }, { id: 'body', type: 'Text' }] })
     if (options.method === 'GET') return entries.has(route) ? Response.json(entries.get(route)) : new Response('', { status: 404 })
     assert.equal(options.method, 'PUT')
-    assert.ok(route.startsWith('/entries/m41-bcp-'))
+    assert.match(route, /^\/entries\/[a-f0-9]{64}$/)
     writes++
     const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
     entries.set(route, value)
@@ -91,6 +91,8 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
   const snapshot = site.sha256(site.canonical(records))
   assert.deepEqual(await bcp.sync(records, snapshot, env, fake), records)
   const initial = writes
+  assert.ok(initial >= 3, 'chunk, index and root must be written')
+  assert.equal(entries.size, initial, 'recovery IDs must be distinct')
   assert.deepEqual(await bcp.sync(records, snapshot, env, fake), records)
   assert.equal(writes, initial)
 })
