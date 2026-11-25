@@ -159,3 +159,66 @@ test('bounded BCP batches preserve order and stop after a failed batch', async (
   }), /stop/)
   assert.deepEqual(started, [1,2])
 })
+
+
+test('incremental BCP retains verified migration baseline and recovers only new or revised records', async () => {
+  const entries = new Map<string, any>()
+  let writes = 0
+  const env = { GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true', CONTENTFUL_SPACE_ID: 'test-space',
+    CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test-management' }
+  const fake = async (url: string, options: any) => {
+    const route = new URL(url).pathname.split('/environments/test')[1]
+    if (route === '/locales') return Response.json({ items: [{ default: true, code: 'en-US' }] })
+    if (route.startsWith('/content_types/')) return Response.json({ sys: { version: 2, publishedVersion: 1 },
+      fields: [{ id: 'digest', type: 'Symbol' }, { id: 'body', type: 'Text' }] })
+    if (route === '/entries') {
+      const ids = new URL(url).searchParams.get('sys.id[in]')!.split(',')
+      const items = ids.filter(id => entries.has('/entries/' + id)).map(id => ({
+        ...entries.get('/entries/' + id),
+        sys: { ...entries.get('/entries/' + id).sys, id },
+      }))
+      return Response.json({ items, total: items.length })
+    }
+    if (options.method === 'GET') return entries.has(route) ?
+      Response.json(entries.get(route)) : new Response('', { status: 404 })
+    assert.equal(options.method, 'PUT')
+    assert.ok(!entries.has(route), 'immutable objects must never be overwritten')
+    const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
+    entries.set(route, value)
+    writes++
+    return Response.json(value)
+  }
+  const original = [
+    { sourceRecordKey: 'm41:one', sourceHash: 'a', sourcePayload: { content: 'original' } },
+    { sourceRecordKey: 'm41:two', sourceHash: 'b', sourcePayload: { content: 'original 2' } },
+  ]
+  const base = { snapshot: site.sha256(site.canonical(original)), records: original.length,
+    verifiedAt: '2026-11-25T08:12:53.739Z' }
+  assert.deepEqual(await bcp.sync(original, base.snapshot, env, fake), original)
+  const originalEntries = new Map(entries)
+  const baselineResult = await bcp.incrementalSync(original, base.snapshot, env, base, fake)
+  assert.deepEqual([baselineResult.changed, baselineResult.unchanged], [0, 2])
+  const checkpointWrites = writes
+  assert.ok(checkpointWrites > originalEntries.size, 'bootstrap baseline index once')
+  const revised = [
+    original[0],
+    { sourceRecordKey: 'm41:two', sourceHash: 'c', sourcePayload: { content: 'revision' } },
+    { sourceRecordKey: 'm41:three', sourceHash: 'd', sourcePayload: { content: 'new publication' } },
+  ]
+  const revisedSnapshot = site.sha256(site.canonical(revised))
+  const delta = await bcp.incrementalSync(revised, revisedSnapshot, env, base, fake)
+  assert.deepEqual([delta.changed, delta.unchanged], [2, 1])
+  assert.deepEqual(await bcp.recoverIncremental(revisedSnapshot, env, fake), revised)
+  assert.deepEqual(await bcp.recover(base.snapshot, env, fake), original)
+  const deltaWrites = writes
+  assert.equal((await bcp.incrementalSync(revised, revisedSnapshot, env, base, fake)).reused, true)
+  assert.equal(writes, deltaWrites, 'unchanged schedule creates no recovery objects')
+  for (const [key, value] of originalEntries) assert.deepEqual(entries.get(key), value)
+  const reduced = [original[0]]
+  const reducedHash = site.sha256(site.canonical(reduced))
+  await bcp.incrementalSync(reduced, reducedHash, env, base, fake)
+  assert.deepEqual(await bcp.recoverIncremental(reducedHash, env, fake), reduced)
+  const ambiguous = [{ sourceRecordKey: 'duplicate' }, { sourceRecordKey: 'duplicate' }]
+  await assert.rejects(bcp.incrementalSync(ambiguous, site.sha256(site.canonical(ambiguous)), env, base, fake),
+    /unique bounded source record keys/)
+})

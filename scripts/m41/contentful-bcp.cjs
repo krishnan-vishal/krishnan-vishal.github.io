@@ -109,13 +109,20 @@ function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve =>
         }
         // Recovery records intentionally remain unpublished; current site delivery is untouched.
     }
-    async function read(id) {
-        const entry = await call('GET', `/entries/${encodeURIComponent(id)}`);
-        if (!entry || entry.sys.contentType?.sys?.id !== TYPE) throw new Error('Contentful BCP object missing.');
+    async function maybeRead(id) {
+        if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('Invalid Contentful BCP identifier.');
+        const entry = await call('GET', `/entries/${id}`);
+        if (!entry) return null;
+        if (entry.sys.contentType?.sys?.id !== TYPE) throw new Error('Contentful BCP object type conflict.');
         const values = Object.values(entry.fields?.body || {});
         const digests = Object.values(entry.fields?.digest || {});
-        if (values.length !== 1 || digests.length !== 1 || site.sha256(values[0]) !== digests[0]) throw new Error('Contentful BCP object failed integrity.');
+        if (values.length !== 1 || digests.length !== 1 || typeof values[0] !== 'string' || site.sha256(values[0]) !== digests[0]) throw new Error('Contentful BCP object failed integrity.');
         return values[0];
+    }
+    async function read(id) {
+        const body = await maybeRead(id);
+        if (body === null) throw new Error('Contentful BCP object missing.');
+        return body;
     }
     async function inventory(ids) {
         const found = new Map();
@@ -131,7 +138,7 @@ function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve =>
         }
         return found;
     }
-    return { ensureModel, store, read, inventory };
+    return { ensureModel, store, read, maybeRead, inventory };
 }
 async function sync(records, snapshot, env, fetchImpl = fetch) {
     if (env.GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED !== 'true') throw new Error('Contentful is read-only. BCP synchronization needs separate explicit authorization and is not a primary-cutover gate.');
@@ -188,4 +195,207 @@ async function recover(snapshot, env, fetchImpl = fetch) {
     }
     return unpack(index, chunks);
 }
-module.exports = { pack, unpack, management, sync, recover, boundedMap };
+
+// The full migrated archive was already read back and verified in run #145.
+// Store only compact hashes for the baseline; later editions write immutable
+// per-record overlays and a commit-last manifest, never a second full archive.
+const INDEX_GROUP = 40;
+const INDEX_SCHEMA = 'gpir-bcp-baseline-index/v1';
+const OVERLAY_SCHEMA = 'gpir-bcp-overlay/v1';
+const RECORD_SCHEMA = 'gpir-bcp-record/v1';
+function rowsFor(records) {
+    const seen = new Set();
+    return records.map(record => {
+        const key = record?.sourceRecordKey;
+        if (typeof key !== 'string' || !key || key.length > 512 || seen.has(key))
+            throw new Error('BCP recovery requires unique bounded source record keys.');
+        seen.add(key);
+        return [key, site.sha256(site.canonical(record))];
+    });
+}
+async function storePages(remote, rows, kind, locale) {
+    const ids = [];
+    for (let offset = 0; offset < rows.length; offset += INDEX_GROUP) {
+        const body = site.canonical(rows.slice(offset, offset + INDEX_GROUP));
+        const id = recoveryId(kind, body);
+        await remote.store(id, body, locale);
+        ids.push(id);
+    }
+    return ids;
+}
+async function readPages(remote, ids, kind, count) {
+    if (!Array.isArray(ids) || ids.length < 1 || ids.length > 1000 ||
+        ids.some(id => !/^[a-f0-9]{64}$/.test(id))) throw new Error('Invalid BCP index pages.');
+    const rows = [];
+    for (const id of ids) {
+        const body = await remote.read(id);
+        if (recoveryId(kind, body) !== id) throw new Error('BCP index page identity mismatch.');
+        const page = JSON.parse(body);
+        if (!Array.isArray(page) || page.length < 1 || page.length > INDEX_GROUP) throw new Error('BCP index page is invalid.');
+        rows.push(...page);
+    }
+    if (rows.length !== count) throw new Error('BCP index record count mismatch.');
+    return rows;
+}
+async function baselineRows(remote, env, base, locale, fetchImpl) {
+    if (!/^[a-f0-9]{64}$/.test(base?.snapshot || '') || !Number.isSafeInteger(base.records) ||
+        base.records < 1 || !Number.isFinite(Date.parse(base.verifiedAt)))
+        throw new Error('The authenticated BCP baseline receipt is required.');
+    const id = recoveryId('baseline-index-root', base.snapshot);
+    const prior = await remote.maybeRead(id);
+    if (prior !== null) {
+        const index = JSON.parse(prior);
+        if (index.schema !== INDEX_SCHEMA || index.snapshot !== base.snapshot || index.records !== base.records)
+            throw new Error('BCP baseline index conflict.');
+        const rows = await readPages(remote, index.pages, 'baseline-index-page', base.records);
+        if (rows.some(row => !Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string' ||
+            !/^[a-f0-9]{64}$/.test(row[1])) || new Set(rows.map(row => row[0])).size !== rows.length)
+            throw new Error('BCP baseline index is corrupt.');
+        return rows;
+    }
+    // Only on the first incremental run: retrieve the verified full archive to
+    // derive exact baseline hashes. Never infer its contents from current Payload.
+    console.log('BCP: deriving baseline index from previously verified full recovery');
+    const records = await recover(base.snapshot, env, fetchImpl);
+    if (records.length !== base.records || site.sha256(site.canonical(records)) !== base.snapshot)
+        throw new Error('Authenticated full BCP baseline does not match the receipt.');
+    const rows = rowsFor(records);
+    const pages = await storePages(remote, rows, 'baseline-index-page', locale);
+    const body = site.canonical({ schema: INDEX_SCHEMA, snapshot: base.snapshot, records: rows.length, pages });
+    await remote.store(id, body, locale);
+    if (await remote.read(id) !== body) throw new Error('BCP baseline index readback mismatch.');
+    return rows;
+}
+async function storeDelta(remote, record, key, hash, locale) {
+    const id = recoveryId('delta-record', key + ':' + hash);
+    const existing = await remote.maybeRead(id);
+    if (existing !== null) {
+        const index = JSON.parse(existing);
+        if (index.schema !== RECORD_SCHEMA || index.key !== key || index.hash !== hash)
+            throw new Error('BCP incremental record conflict.');
+        return { id, index };
+    }
+    const archive = pack([record]);
+    const unique = [...new Map(archive.chunks.map(chunk => [chunk.id, chunk])).values()];
+    for (let offset = 0; offset < unique.length; offset += 40) {
+        const batch = unique.slice(offset, offset + 40);
+        const present = await remote.inventory(batch.map(chunk => chunk.id));
+        await boundedMap(batch, 4, chunk => remote.store(chunk.id, chunk.body, locale, present));
+    }
+    const groups = [];
+    for (let offset = 0; offset < archive.chunks.length; offset += 256) {
+        const body = site.canonical(archive.chunks.slice(offset, offset + 256).map(chunk => chunk.id));
+        const groupId = recoveryId('delta-chunk-group', body);
+        await remote.store(groupId, body, locale);
+        groups.push(groupId);
+    }
+    const index = { schema: RECORD_SCHEMA, key, hash, digest: archive.digest, groups };
+    await remote.store(id, site.canonical(index), locale);
+    return { id, index };
+}
+async function readDelta(remote, id, expectedKey, expectedHash) {
+    const index = JSON.parse(await remote.read(id));
+    if (index.schema !== RECORD_SCHEMA || index.key !== expectedKey || index.hash !== expectedHash ||
+        id !== recoveryId('delta-record', expectedKey + ':' + expectedHash) ||
+        !/^[a-f0-9]{64}$/.test(index.digest)) throw new Error('BCP incremental record identity mismatch.');
+    if (!Array.isArray(index.groups) || index.groups.length < 1 || index.groups.length > 1000)
+        throw new Error('BCP incremental record groups invalid.');
+    const chunks = [];
+    for (const groupId of index.groups) {
+        const body = await remote.read(groupId);
+        if (recoveryId('delta-chunk-group', body) !== groupId) throw new Error('BCP incremental group mismatch.');
+        const group = JSON.parse(body);
+        if (!Array.isArray(group) || group.length < 1 || group.length > 256 ||
+            group.some(id => !/^[a-f0-9]{64}$/.test(id))) throw new Error('Invalid BCP incremental chunks.');
+        chunks.push(...group);
+    }
+    const bytes = new Map();
+    const unique = [...new Set(chunks)];
+    for (let offset = 0; offset < unique.length; offset += 40) {
+        const batch = unique.slice(offset, offset + 40);
+        const existing = await remote.inventory(batch);
+        for (const chunkId of batch) {
+            const entry = existing.get(chunkId);
+            const values = Object.values(entry?.fields?.body || {});
+            const digests = Object.values(entry?.fields?.digest || {});
+            if (entry?.sys?.contentType?.sys?.id !== TYPE || values.length !== 1 ||
+                digests.length !== 1 || site.sha256(values[0]) !== digests[0])
+                throw new Error('BCP incremental chunk failed integrity.');
+            bytes.set(chunkId, values[0]);
+        }
+    }
+    const restored = unpack({ digest: index.digest, chunks }, bytes);
+    if (restored.length !== 1 || site.sha256(site.canonical(restored[0])) !== expectedHash ||
+        restored[0]?.sourceRecordKey !== expectedKey) throw new Error('BCP incremental readback mismatch.');
+    return restored[0];
+}
+async function incrementalSync(records, snapshot, env, base, fetchImpl = fetch) {
+    if (env.GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED !== 'true')
+        throw new Error('Contentful BCP synchronization is not authorized.');
+    if (!/^[a-f0-9]{64}$/.test(snapshot) || site.sha256(site.canonical(records)) !== snapshot)
+        throw new Error('BCP source recovery snapshot mismatch.');
+    const rows = rowsFor(records);
+    const remote = management(env, fetchImpl);
+    const locale = await remote.ensureModel();
+    const id = recoveryId('overlay-root', snapshot);
+    const prior = await remote.maybeRead(id);
+    if (prior !== null) {
+        const root = JSON.parse(prior);
+        if (root.schema !== OVERLAY_SCHEMA || root.snapshot !== snapshot ||
+            root.baseline !== base.snapshot || root.records !== rows.length ||
+            !Number.isSafeInteger(root.changed) || root.changed < 0 || root.changed > rows.length)
+            throw new Error('Existing BCP incremental root conflicts.');
+        // Immutable root was committed only after all deltas were read back.
+        return { records: rows.length, changed: root.changed, unchanged: rows.length - root.changed, reused: true };
+    }
+    const baseline = await baselineRows(remote, env, base, locale, fetchImpl);
+    const baseMap = new Map(baseline);
+    const manifest = [];
+    let changed = 0;
+    for (let offset = 0; offset < records.length; offset++) {
+        const [key, hash] = rows[offset];
+        let delta = null;
+        if (baseMap.get(key) !== hash) {
+            const result = await storeDelta(remote, records[offset], key, hash, locale);
+            if (site.canonical(await readDelta(remote, result.id, key, hash)) !== site.canonical(records[offset]))
+                throw new Error('BCP incremental record readback differs from Payload.');
+            delta = result.id;
+            changed++;
+            if (changed % 20 === 0) console.log('BCP: new/revised records verified=' + changed);
+        }
+        manifest.push([key, hash, delta]);
+    }
+    const pages = await storePages(remote, manifest, 'overlay-page', locale);
+    const root = { schema: OVERLAY_SCHEMA, snapshot, baseline: base.snapshot,
+        records: records.length, changed, pages };
+    const body = site.canonical(root);
+    await remote.store(id, body, locale);
+    if (await remote.read(id) !== body) throw new Error('BCP incremental root readback mismatch.');
+    console.log('BCP: unchanged baseline=' + (records.length - changed) + '; new/revised=' + changed);
+    return { records: rows.length, changed, unchanged: rows.length - changed, reused: false };
+}
+async function recoverIncremental(snapshot, env, fetchImpl = fetch) {
+    if (!/^[a-f0-9]{64}$/.test(snapshot)) throw new Error('Invalid BCP incremental snapshot.');
+    const remote = management(env, fetchImpl);
+    const root = JSON.parse(await remote.read(recoveryId('overlay-root', snapshot)));
+    if (root.schema !== OVERLAY_SCHEMA || root.snapshot !== snapshot ||
+        !/^[a-f0-9]{64}$/.test(root.baseline) || !Number.isSafeInteger(root.records))
+        throw new Error('Invalid BCP incremental root.');
+    const rows = await readPages(remote, root.pages, 'overlay-page', root.records);
+    const baseline = await recover(root.baseline, env, fetchImpl);
+    const baseMap = new Map(baseline.map(record => [record.sourceRecordKey, record]));
+    const records = [];
+    for (const row of rows) {
+        if (!Array.isArray(row) || row.length !== 3 || typeof row[0] !== 'string' ||
+            !/^[a-f0-9]{64}$/.test(row[1])) throw new Error('Invalid BCP incremental manifest.');
+        const [key, hash, delta] = row;
+        const record = delta ? await readDelta(remote, delta, key, hash) : baseMap.get(key);
+        if (!record || site.sha256(site.canonical(record)) !== hash)
+            throw new Error('BCP incremental baseline record mismatch.');
+        records.push(record);
+    }
+    if (site.sha256(site.canonical(records)) !== snapshot) throw new Error('BCP incremental full recovery mismatch.');
+    return records;
+}
+
+module.exports = { pack, unpack, management, sync, recover, boundedMap, incrementalSync, recoverIncremental, rowsFor };
