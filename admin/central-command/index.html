@@ -218,7 +218,7 @@ async function refreshConnectivity(){
    }
   }catch{set('#cloudflare-health',delivery+'; authenticated verification receipt unavailable')}
  }catch(error){set('#cloudflare-health','Site delivery unavailable · request failed')}
- try{
+ const bcpCheck=(async()=>{
   try{
    const bcp=await commandRequest({action:'contentful_bcp_receipt'});
    if(bcp.read_only!==true||bcp.dispatch_performed!==false||
@@ -243,7 +243,7 @@ async function refreshConnectivity(){
     ' · Latest scheduled execution: '+(schedule?.status||'Unavailable')+
     ' / '+(schedule?.conclusion||'Pending')+
     ' · Latest failure: '+(failure?formatDate(failure.completed_at):
-     'None found in inspected runs'));
+     'None found in three recent runs'));
 
    if(valid&&Number.isSafeInteger(success.run_id)){
     const link=document.createElement('a');
@@ -257,6 +257,10 @@ async function refreshConnectivity(){
    set('#contentful-bcp-health','BCP evidence unavailable · synchronization not verified');
   }
 
+
+ })();
+ const alertsCheck=(async()=>{
+ try{
   const evidence=await commandRequest({action:'global_alerts_evidence'});
   if(evidence.read_only!==true||evidence.lifecycle_status!=='database_metrics_only'||![evidence.approved,evidence.relay_eligible,evidence.older_archive_tagged].every(n=>Number.isSafeInteger(n)&&n>=0)||!Number.isFinite(Date.parse(evidence.checked_at)))throw Error('INVALID_ALERT_EVIDENCE');
   const last=evidence.last_successful_ingestion&&Number.isFinite(Date.parse(evidence.last_successful_ingestion))?new Date(evidence.last_successful_ingestion).toLocaleString():'Unavailable';
@@ -266,6 +270,8 @@ async function refreshConnectivity(){
    document.querySelector('#global-alerts-health').append(' · ',link);
   }
  }catch{set('#global-alerts-health','Database evidence unavailable · lifecycle not verified')}
+ })();
+ await Promise.allSettled([bcpCheck,alertsCheck]);
  button.disabled=false;
 }
 document.querySelector('#refresh-connectivity').addEventListener('click',refreshConnectivity);
