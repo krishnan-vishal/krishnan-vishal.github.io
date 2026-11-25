@@ -237,13 +237,13 @@ async function refreshConnectivity(){
 
    set('#contentful-bcp-health',
     (valid?'BCP_READBACK_VERIFIED · Last successful readback: '+
-     formatDate(success.verified_at)+' · Records: '+success.records:
+     formatDate(success.verified_at)+' · Records: '+success.records+' · Execution: '+(success.event==='schedule'?'scheduled':'governed/manual'):
      'Verified readback receipt unavailable')+
     ' · Reconciliation: configured every 30 minutes'+
     ' · Latest scheduled execution: '+(schedule?.status||'Unavailable')+
     ' / '+(schedule?.conclusion||'Pending')+
     ' · Latest failure: '+(failure?formatDate(failure.completed_at):
-     'None found in three recent runs'));
+     'None found in three recent scheduled runs'));
 
    if(valid&&Number.isSafeInteger(success.run_id)){
     const link=document.createElement('a');
