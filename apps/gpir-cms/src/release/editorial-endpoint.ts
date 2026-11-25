@@ -65,7 +65,12 @@ export const editorialEndpoint: Endpoint = {
             const bytes = Buffer.from(blob.body, 'base64')
             if (hash(bytes) !== file.sha256 || bytes.length !== file.bytes)
               return Response.json({ error: 'MANAGED_CHAPTER_HASH_MISMATCH', slug }, { status: 409 })
-            managed.push({ slug, category, canonicalUrl: 'https://fintechoisis.com' + expectedPath, sha256: file.sha256 })
+            if (slug !== 'adult-content-payments') {
+              const reference = { slug, category, canonicalUrl: 'https://fintechoisis.com' + expectedPath, sha256: file.sha256 }
+              managed.push(reference)
+              plan.push({ slug, category, reference, sourceModel: { managedSnapshot: snapshot, managedPath: file.path, managedSha256: file.sha256, moneyMovementMarkets: { category, homepageResearchDesk: false } } })
+              continue
+            }
           }
           missing.push(slug); continue
         }
@@ -75,15 +80,22 @@ export const editorialEndpoint: Endpoint = {
       }
       const matched = plan.map(({ slug, category }) => ({ slug, category }))
       if (missing.some(slug => slug !== 'adult-content-payments') || plan.length < 10) return Response.json({ matched, missing, managed, error: 'UNRESOLVED_EXISTING_CHAPTERS' }, { status: 409 })
-      if (!input.apply) return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
+      if (!input.apply) return Response.json({ matched, missing, managed, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
       // Only fixed server-owned slugs and metadata are writable by this action.
       for (const item of plan) {
-        await req.payload.update({ collection: 'chapters', id: item.id, data: { sourceModel: item.sourceModel }, req, overrideAccess: true })
+        if (item.reference) {
+          const existing = await req.payload.find({ collection: 'chapters', where: { or: [{ slug: { equals: item.slug } }, { canonicalId: { equals: item.slug } }, { canonicalUrl: { equals: item.reference.canonicalUrl } }] }, limit: 2, depth: 0, req, overrideAccess: true })
+          if (existing.totalDocs !== 0) return Response.json({ error: 'CHAPTER_INVENTORY_CHANGED', slug: item.slug }, { status: 409 })
+          const created = await req.payload.create({ collection: 'chapters', data: { canonicalId: item.slug, slug: item.slug, title: item.slug.split('-').map((part: string) => part.charAt(0).toUpperCase() + part.slice(1)).join(' '), canonicalUrl: item.reference.canonicalUrl, publicationState: 'DRAFT', sourceModel: item.sourceModel }, req, overrideAccess: true })
+          item.id = created.id
+        } else {
+          await req.payload.update({ collection: 'chapters', id: item.id, data: { sourceModel: item.sourceModel }, req, overrideAccess: true })
+        }
         const verified = await req.payload.findByID({ collection: 'chapters', id: item.id, depth: 0, req, overrideAccess: false })
         const actual = verified.sourceModel as any
         if (actual?.moneyMovementMarkets?.category !== item.category || actual.moneyMovementMarkets.homepageResearchDesk !== false) throw new Error('Chapter read-back failed')
       }
-      return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
+      return Response.json({ matched, missing, managed, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
     }
     if (!['published', 'publication', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
     const client: any = req.payload
