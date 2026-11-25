@@ -12,7 +12,7 @@ for (const filename of ['index.html', 'pages/intelligence/index.html']) {
   const doc = fs.readFileSync(filename, 'utf8');
   const start = doc.indexOf('<span>Money Movement Markets</span>');
   assert(start >= 0, filename + ': markets menu absent');
-  const end = doc.indexOf('<div class="mega-col mega-col--headed">', start + 100);
+  const end = doc.indexOf('<div class="mega-col mega-col--headed">', doc.indexOf('Regional Structure', start) + 100);
   assert(end > start, filename + ': menu structure absent');
   const marketMenu = doc.slice(start, end);
   for (const [group, slugs] of Object.entries(groups)) {
