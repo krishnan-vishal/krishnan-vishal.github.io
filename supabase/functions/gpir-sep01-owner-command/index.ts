@@ -281,7 +281,7 @@ Deno.serve(async request=>{
   }
   if(body.action==='contentful_bcp_receipt'){
    const workflow='m40-contentful-editorial-draft-handoff.yml';
-   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=100');
+   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=3');
    const runs=(data.workflow_runs||[]).filter(run=>
     Number.isSafeInteger(run.id)&&
     Number.isSafeInteger(run.run_attempt)&&
@@ -289,8 +289,9 @@ Deno.serve(async request=>{
     run.event==='schedule'&&
     run.path==='.github/workflows/'+workflow);
    let lastSuccess=null,latestFailure=null,latestSchedule=null;
-   for(const run of runs){
-    const jobs=await github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100');
+   const recentJobs=await Promise.all(runs.map(run=>github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100')));
+   for(const [i,run] of runs.entries()){
+    const jobs=recentJobs[i];
     const job=jobs.jobs?.find(j=>j.name==='reconcile-bcp');
     if(!latestSchedule){
      latestSchedule={run_id:run.id,status:job?.status||run.status,
