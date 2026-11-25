@@ -31,7 +31,7 @@ async function main() {
     fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 });
     if (process.env.GITHUB_OUTPUT) {
         fs.appendFileSync(process.env.GITHUB_OUTPUT,
-            `verified_records=${report.records}\nverified_at=${report.verifiedAt}\n`);
+            `verified_records=${report.records}\nverified_at=${report.verifiedAt}\nverified_epoch=${Date.parse(report.verifiedAt)}\n`);
     }
     console.log(JSON.stringify(report));
 }

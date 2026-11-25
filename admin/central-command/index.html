@@ -230,14 +230,14 @@ async function refreshConnectivity(){
    const schedule=bcp.latest_schedule;
    const valid=success?.status==='BCP_READBACK_VERIFIED'&&
     Number.isSafeInteger(success.records)&&success.records>0&&
-    Number.isFinite(Date.parse(success.receipt_created_at));
+    Number.isFinite(Date.parse(success.verified_at));
 
    const formatDate=value=>Number.isFinite(Date.parse(value))?
     new Date(value).toLocaleString('en-GB'):'Unavailable';
 
    set('#contentful-bcp-health',
-    (valid?'BCP_READBACK_VERIFIED · Last verified receipt: '+
-     formatDate(success.receipt_created_at)+' · Records: '+success.records:
+    (valid?'BCP_READBACK_VERIFIED · Last successful readback: '+
+     formatDate(success.verified_at)+' · Records: '+success.records:
      'Verified readback receipt unavailable')+
     ' · Reconciliation: configured every 30 minutes'+
     ' · Latest scheduled execution: '+(schedule?.status||'Unavailable')+

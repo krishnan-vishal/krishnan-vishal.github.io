@@ -36,8 +36,11 @@ function management(env, fetchImpl = fetch) {
                 headers: { authorization: `Bearer ${token}`, 'content-type': 'application/vnd.contentful.management.v1+json', ...extra },
                 body: body ? JSON.stringify(body) : undefined });
             if (response.status === 404 && method === 'GET') return null;
-            if (response.status === 429 && attempt < 4) {
-                const seconds = Math.max(1, Math.min(30, Number(response.headers.get('x-contentful-ratelimit-reset')) || 2));
+            if ((response.status === 429 ||
+                (method === 'GET' &&
+                 [408, 500, 502, 503, 504].includes(response.status)))
+                && attempt < 4) {
+                const seconds = Math.max(1, Math.min(30, Number(response.headers.get('x-contentful-ratelimit-reset')) || Math.pow(2, attempt + 1)));
                 await new Promise(resolve => setTimeout(resolve, seconds * 1000));
                 continue;
             }

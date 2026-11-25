@@ -281,7 +281,7 @@ Deno.serve(async request=>{
   }
   if(body.action==='contentful_bcp_receipt'){
    const workflow='m40-contentful-editorial-draft-handoff.yml';
-   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=20');
+   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=100');
    const runs=(data.workflow_runs||[]).filter(run=>
     Number.isSafeInteger(run.id)&&
     Number.isSafeInteger(run.run_attempt)&&
@@ -306,10 +306,15 @@ Deno.serve(async request=>{
      for(const artifact of artifacts.artifacts||[]){
       if(artifact.expired||typeof artifact.name!=='string'||
        !artifact.name.startsWith(prefix))continue;
-      const count=artifact.name.slice(prefix.length);
-      if(!/^[0-9]+$/.test(count)||!Number.isSafeInteger(Number(count))||
-       Number(count)<=0||!Number.isFinite(Date.parse(artifact.created_at)))continue;
-      lastSuccess={run_id:run.id,records:Number(count),
+      const match=artifact.name.slice(prefix.length).match(/^([0-9]+)-([0-9]{13})$/);
+      if(!match)continue;
+      const count=Number(match[1]),epoch=Number(match[2]);
+      if(!Number.isSafeInteger(count)||count<=0||
+       !Number.isSafeInteger(epoch)||
+       epoch<Date.parse(run.created_at)||
+       epoch>Date.parse(artifact.created_at))continue;
+      lastSuccess={run_id:run.id,records:count,
+       verified_at:new Date(epoch).toISOString(),
        receipt_created_at:artifact.created_at,status:'BCP_READBACK_VERIFIED'};
       break;
      }
