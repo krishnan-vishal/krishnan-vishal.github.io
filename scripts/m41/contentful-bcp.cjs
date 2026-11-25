@@ -282,10 +282,13 @@ async function storeDelta(remote, record, key, hash, locale) {
         const present = await remote.inventory(batch.map(chunk => chunk.id));
         await boundedMap(batch, 4, chunk => remote.store(chunk.id, chunk.body, locale, present));
     }
-    const groups = await storePages(remote,
-        Array.from({ length: Math.ceil(archive.chunks.length / 256) }, (_, i) =>
-            archive.chunks.slice(i * 256, (i + 1) * 256).map(chunk => chunk.id)),
-        'delta-chunk-group', locale);
+    const groups = [];
+    for (let offset = 0; offset < archive.chunks.length; offset += 256) {
+        const body = site.canonical(archive.chunks.slice(offset, offset + 256).map(chunk => chunk.id));
+        const groupId = recoveryId('delta-chunk-group', body);
+        await remote.store(groupId, body, locale);
+        groups.push(groupId);
+    }
     const index = { schema: RECORD_SCHEMA, key, hash, digest: archive.digest, groups };
     await remote.store(id, site.canonical(index), locale);
     return { id, index };
