@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       approved_pr_head:
-        description: 'Exact reviewed PR #585 commit SHA'
+        description: 'Exact reviewed PR #585 or #705 commit SHA'
         required: true
         type: string
 permissions:
@@ -41,7 +41,10 @@ jobs:
         working-directory: .
         run: |
           test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
-          gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/585 --jq '.head.sha' | grep -Fx "$APPROVED_SHA"
+          # Preserve the original approved PR route; require merged, non-draft PR #705.
+          if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/585 --jq '.head.sha' | grep -Fx "$APPROVED_SHA"; then
+            gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/705 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/task1-money-movement-markets" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"
+          fi
           node - <<'NODE'
           const fs = require('fs');
           const config = JSON.parse(fs.readFileSync('apps/gpir-cms/wrangler.jsonc','utf8'));
