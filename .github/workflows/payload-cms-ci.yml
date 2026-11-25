@@ -19,7 +19,7 @@ on:
       mode:
         type: choice
         default: VALIDATE
-        options: [VALIDATE, REPAIR_MANAGEMENT, CLASSIFY_CHAPTERS_DRY_RUN, CLASSIFY_AND_SYNC_BCP]
+        options: [VALIDATE, REPAIR_MANAGEMENT, CLASSIFY_CHAPTERS_DRY_RUN, CLASSIFY_AND_SYNC_BCP, SYNC_BCP_ONLY]
       recipient_public_key:
         type: string
         required: false
@@ -156,12 +156,12 @@ jobs:
       github.actor == 'krishnan-vishal' &&
       github.repository == 'krishnan-vishal/krishnan-vishal.github.io' &&
       (github.ref == 'refs/heads/gpir/task1-money-movement-markets' || github.ref == 'refs/heads/main') &&
-      (inputs.mode == 'CLASSIFY_CHAPTERS_DRY_RUN' || inputs.mode == 'CLASSIFY_AND_SYNC_BCP')
+      (inputs.mode == 'CLASSIFY_CHAPTERS_DRY_RUN' || inputs.mode == 'CLASSIFY_AND_SYNC_BCP' || (inputs.mode == 'SYNC_BCP_ONLY' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: payload-production-cutover
     concurrency:
-      group: gpir-cms-chapter-classification
+      group: gpir-contentful-bcp
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
@@ -181,8 +181,9 @@ jobs:
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
           MODE: ${{ inputs.mode }}
         run: |
-          node -e 'const keys=["PAYLOAD_RELEASE_API_KEY","PAYLOAD_PUBLIC_SERVER_URL"]; if(process.env.MODE==="CLASSIFY_AND_SYNC_BCP") keys.push("GPIR_RELEASE_SIGNING_SECRET","GPIR_PAYLOAD_SITE_SNAPSHOT","CONTENTFUL_SPACE_ID","CONTENTFUL_ENVIRONMENT","CONTENTFUL_MANAGEMENT_TOKEN"); const missing=keys.filter(k=>!process.env[k]); if(missing.length){console.error("Missing configured settings: "+missing.join(", "));process.exit(1)}'
+          node -e 'const keys=["PAYLOAD_RELEASE_API_KEY","PAYLOAD_PUBLIC_SERVER_URL"]; if(["CLASSIFY_AND_SYNC_BCP","SYNC_BCP_ONLY"].includes(process.env.MODE)) keys.push("GPIR_RELEASE_SIGNING_SECRET","GPIR_PAYLOAD_SITE_SNAPSHOT","CONTENTFUL_SPACE_ID","CONTENTFUL_ENVIRONMENT","CONTENTFUL_MANAGEMENT_TOKEN"); const missing=keys.filter(k=>!process.env[k]); if(missing.length){console.error("Missing configured settings: "+missing.join(", "));process.exit(1)}'
       - name: Resolve chapter identities and optionally apply
+        if: inputs.mode != 'SYNC_BCP_ONLY'
         env:
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
@@ -193,7 +194,7 @@ jobs:
             node scripts/m41/classify-money-movement-markets.cjs --apply
           fi
       - name: Synchronize existing Contentful BCP and verify recovery
-        if: inputs.mode == 'CLASSIFY_AND_SYNC_BCP'
+        if: inputs.mode == 'CLASSIFY_AND_SYNC_BCP' || inputs.mode == 'SYNC_BCP_ONLY'
         env:
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
@@ -203,4 +204,13 @@ jobs:
           CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
           GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true'
+        id: bcp_sync
         run: node scripts/m41/sync-site-bcp.cjs
+      - name: Retain authenticated BCP evidence
+        if: steps.bcp_sync.outcome == 'success' && steps.bcp_sync.outputs.verified_records != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bcp-verified-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.bcp_sync.outputs.verified_records }}-${{ steps.bcp_sync.outputs.verified_epoch }}
+          path: .migration-data/m41-bcp-recovery.json
+          if-no-files-found: error
+          retention-days: 90

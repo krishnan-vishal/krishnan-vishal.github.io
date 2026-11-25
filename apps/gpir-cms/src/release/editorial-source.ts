@@ -63,9 +63,10 @@ export async function referenceBackupRecords(client: any, req: any) {
   const records: any[] = []
   for (const collection of ['regions', 'countries', 'chapters', 'media', 'editorial-metadata']) {
     for (let page = 1; ; page++) {
-      const result = await client.find({ collection, page, limit: 100, depth: 0, req, overrideAccess: true, sort: 'id',
-        ...(collection === 'editorial-metadata' ? { where: { sourceRecordKey: { not_contains: 'm41:' } } } : {}) })
+      const result = await client.find({ collection, page, limit: 100, depth: 0, req, overrideAccess: true, sort: 'id' })
       for (const doc of result.docs) {
+        // Preserve the original exclusion without relying on adapter-specific negative string filters.
+        if (collection === 'editorial-metadata' && String(doc.sourceRecordKey || '').includes('m41:')) continue
         const sourcePayload = { kind: 'payload-reference', collection, document: doc }
         records.push({ sourceRecordKey: `m41:reference:${collection}:${doc.id}`, sourcePayload, sourceHash: sha256(stableJson(sourcePayload)) })
       }

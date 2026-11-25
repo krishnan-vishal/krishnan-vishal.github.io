@@ -1,4 +1,6 @@
 import type { Endpoint } from 'payload'
+import { createHash } from 'node:crypto'
+import { stableJson } from './release'
 import { allNative, nativeBackupRecords, referenceBackupRecords, resolvedEditorialRecords } from './editorial-source'
 import { roleOf } from '../lib/access'
 
@@ -18,27 +20,82 @@ export const editorialEndpoint: Endpoint = {
         'High-Risk Payments': ['gaming-payments', 'betting-payments', 'adult-content-payments'],
         'Regional Structure': ['government-payments', 'travel-payments'],
       }
+      const inventory: any[] = []
+      for (let page = 1; ; page++) {
+        const result = await req.payload.find({ collection: 'chapters', page, limit: 100, depth: 0, req, overrideAccess: true, sort: 'id' })
+        inventory.push(...result.docs)
+        if (!result.hasNextPage) break
+        if (page >= 1000) return Response.json({ error: 'CHAPTER_INVENTORY_INCOMPLETE' }, { status: 409 })
+      }
+      const canonicalPath = (value: unknown) => {
+        if (typeof value !== 'string') return ''
+        try {
+          const url = new URL(value, 'https://fintechoisis.com')
+          if (url.origin !== 'https://fintechoisis.com') return ''
+          return url.pathname.replace(/\/$/, '')
+        } catch { return '' }
+      }
+      const snapshot = 'f2540980b555942c5807d56bc8370ee2ce48d13dd689bd91a29ca011e84fcfea'
+      const hash = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
+      const lookup = async (key: string) => {
+        const result = await req.payload.find({ collection: 'editorial-metadata', where: { sourceRecordKey: { equals: key } }, limit: 2, depth: 0, req, overrideAccess: true })
+        const record = result.docs[0]
+        if (result.docs.length !== 1 || hash(stableJson(record.sourcePayload)) !== record.sourceHash) throw Error('MANAGED_RECORD_INTEGRITY_FAILED')
+        return record.sourcePayload as any
+      }
+      const manifest = await lookup('m41:manifest:' + snapshot)
+      const { snapshot: manifestId, ...manifestBody } = manifest
+      if (manifestId !== snapshot || manifest.schema !== 'gpir-managed-site/v1' || hash(stableJson(manifestBody)) !== snapshot)
+        return Response.json({ error: 'MANAGED_SNAPSHOT_INTEGRITY_FAILED' }, { status: 409 })
+      const managed: any[] = []
       const plan: any[] = [], missing: string[] = []
       for (const [category, slugs] of Object.entries(groups)) for (const slug of slugs) {
-        const result = await req.payload.find({ collection: 'chapters', where: { slug: { equals: slug } }, limit: 2, depth: 0, req, overrideAccess: true })
-        if (result.totalDocs > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
-        const doc = result.docs[0]
-        if (!doc) { missing.push(slug); continue }
+        const expectedPath = '/pages/chapters/' + slug + '.html'
+        const candidates = inventory.filter(doc => doc.slug === slug || doc.canonicalId === slug || canonicalPath(doc.canonicalUrl) === expectedPath)
+        if (candidates.length > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
+        const doc = candidates[0]
+        if (doc && doc.canonicalUrl && canonicalPath(doc.canonicalUrl) !== expectedPath) return Response.json({ error: 'CHAPTER_CANONICAL_URL_MISMATCH', slug }, { status: 409 })
+        if (!doc) {
+          const files = manifest.files.filter((file: any) => file.path === expectedPath.slice(1))
+          if (files.length === 1 && /^[a-f0-9]{64}$/.test(files[0].sha256)) {
+            const file = files[0]
+            const blob = await lookup('m41:blob:' + file.sha256)
+            if (blob.kind !== 'site-bytes' || blob.encoding !== 'base64' || typeof blob.body !== 'string')
+              return Response.json({ error: 'MANAGED_CHAPTER_BLOB_INVALID', slug }, { status: 409 })
+            const bytes = Buffer.from(blob.body, 'base64')
+            if (hash(bytes) !== file.sha256 || bytes.length !== file.bytes)
+              return Response.json({ error: 'MANAGED_CHAPTER_HASH_MISMATCH', slug }, { status: 409 })
+            if (slug !== 'adult-content-payments') {
+              const reference = { slug, category, canonicalUrl: 'https://fintechoisis.com' + expectedPath, sha256: file.sha256 }
+              managed.push(reference)
+              plan.push({ slug, category, reference, sourceModel: { managedSnapshot: snapshot, managedPath: file.path, managedSha256: file.sha256, moneyMovementMarkets: { category, homepageResearchDesk: false } } })
+              continue
+            }
+          }
+          missing.push(slug); continue
+        }
         const previous = doc.sourceModel
         if (previous != null && (typeof previous !== 'object' || Array.isArray(previous))) return Response.json({ error: 'INVALID_METADATA', slug }, { status: 409 })
         plan.push({ id: doc.id, slug, category, sourceModel: { ...(previous || {}), moneyMovementMarkets: { category, homepageResearchDesk: false } } })
       }
       const matched = plan.map(({ slug, category }) => ({ slug, category }))
-      if (missing.some(slug => slug !== 'adult-content-payments') || plan.length < 10) return Response.json({ matched, missing, error: 'UNRESOLVED_EXISTING_CHAPTERS' }, { status: 409 })
-      if (!input.apply) return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
+      if (missing.some(slug => slug !== 'adult-content-payments') || plan.length < 10) return Response.json({ matched, missing, managed, error: 'UNRESOLVED_EXISTING_CHAPTERS' }, { status: 409 })
+      if (!input.apply) return Response.json({ matched, missing, managed, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
       // Only fixed server-owned slugs and metadata are writable by this action.
       for (const item of plan) {
-        await req.payload.update({ collection: 'chapters', id: item.id, data: { sourceModel: item.sourceModel }, req, overrideAccess: true })
+        if (item.reference) {
+          const existing = await req.payload.find({ collection: 'chapters', where: { or: [{ slug: { equals: item.slug } }, { canonicalId: { equals: item.slug } }, { canonicalUrl: { equals: item.reference.canonicalUrl } }] }, limit: 2, depth: 0, req, overrideAccess: true })
+          if (existing.totalDocs !== 0) return Response.json({ error: 'CHAPTER_INVENTORY_CHANGED', slug: item.slug }, { status: 409 })
+          const created = await req.payload.create({ collection: 'chapters', data: { canonicalId: item.slug, slug: item.slug, title: item.slug.split('-').map((part: string) => part.charAt(0).toUpperCase() + part.slice(1)).join(' '), canonicalUrl: item.reference.canonicalUrl, publicationState: 'DRAFT', sourceModel: item.sourceModel }, req, overrideAccess: true })
+          item.id = created.id
+        } else {
+          await req.payload.update({ collection: 'chapters', id: item.id, data: { sourceModel: item.sourceModel }, req, overrideAccess: true })
+        }
         const verified = await req.payload.findByID({ collection: 'chapters', id: item.id, depth: 0, req, overrideAccess: false })
         const actual = verified.sourceModel as any
         if (actual?.moneyMovementMarkets?.category !== item.category || actual.moneyMovementMarkets.homepageResearchDesk !== false) throw new Error('Chapter read-back failed')
       }
-      return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
+      return Response.json({ matched, missing, managed, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
     }
     if (!['published', 'publication', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
     const client: any = req.payload

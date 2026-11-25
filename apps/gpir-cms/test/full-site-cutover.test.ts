@@ -79,9 +79,17 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
     const route = new URL(url).pathname.split('/environments/test')[1]
     if (route === '/locales') return Response.json({ items: [{ default: true, code: 'en-US' }] })
     if (route.startsWith('/content_types/')) return Response.json({ sys: { version: 2, publishedVersion: 1 }, fields: [{ id: 'digest', type: 'Symbol' }, { id: 'body', type: 'Text' }] })
+    if (route === '/entries') {
+      const ids = new URL(url).searchParams.get('sys.id[in]')!.split(',')
+      const items = ids.filter(id => entries.has('/entries/' + id)).map(id => {
+        const entry = entries.get('/entries/' + id)
+        return { ...entry, sys: { ...entry.sys, id } }
+      })
+      return Response.json({ items, total: items.length })
+    }
     if (options.method === 'GET') return entries.has(route) ? Response.json(entries.get(route)) : new Response('', { status: 404 })
     assert.equal(options.method, 'PUT')
-    assert.ok(route.startsWith('/entries/m41-bcp-'))
+    assert.match(route, /^\/entries\/[a-f0-9]{64}$/)
     writes++
     const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
     entries.set(route, value)
@@ -91,6 +99,8 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
   const snapshot = site.sha256(site.canonical(records))
   assert.deepEqual(await bcp.sync(records, snapshot, env, fake), records)
   const initial = writes
+  assert.ok(initial >= 3, 'chunk, index and root must be written')
+  assert.equal(entries.size, initial, 'recovery IDs must be distinct')
   assert.deepEqual(await bcp.sync(records, snapshot, env, fake), records)
   assert.equal(writes, initial)
 })
@@ -99,4 +109,116 @@ test('Contentful BCP writes are denied by default before any network request', a
   let calls = 0
   await assert.rejects(bcp.sync([], '0'.repeat(64), {}, async () => { calls++; return Response.json({}) }), /read-only/)
   assert.equal(calls, 0)
+})
+
+test('BCP ambiguous PUT recovery is bounded and never overwrites conflicting objects', async () => {
+  const env = { CONTENTFUL_SPACE_ID: 'test', CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test' }
+  for (const mode of ['committed', 'transient', 'persistent', 'conflict', 'invalid', 'network']) {
+    let writes = 0, reads = 0
+    const delays: number[] = []
+    let entry: any = null
+    const fake = async (_url: string, options: any) => {
+      if (options.method === 'GET') {
+        reads++
+        return entry ? Response.json(entry) : new Response('', { status: 404 })
+      }
+      writes++
+      const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
+      if (mode === 'invalid') return new Response('', { status: 400 })
+      if (mode === 'conflict') entry = { ...value, fields: {} }
+      if (mode === 'committed') entry = value
+      if (mode === 'network' && writes === 1) { entry = value; throw new TypeError('network failure') }
+      if (mode === 'transient' && writes === 2) { entry = value; return Response.json(value) }
+      return new Response('', { status: 500 })
+    }
+    const remote = bcp.management(env, fake, async (ms: number) => { delays.push(ms) })
+    const operation = remote.store('a'.repeat(64), 'immutable bytes', 'en-US')
+    if (mode === 'persistent') await assert.rejects(operation, /HTTP 500/)
+    else if (mode === 'conflict') await assert.rejects(operation, /conflicts/)
+    else if (mode === 'invalid') await assert.rejects(operation, /HTTP 400/)
+    else await operation
+    assert.equal(writes, mode === 'persistent' ? 3 : mode === 'transient' ? 2 : 1, mode)
+    assert.equal(reads, mode === 'persistent' ? 4 : mode === 'invalid' ? 1 : 2, mode)
+    assert.deepEqual(delays, mode === 'persistent' ? [1000, 2000] : mode === 'transient' ? [1000] : [], mode)
+  }
+})
+
+test('bounded BCP batches preserve order and stop after a failed batch', async () => {
+  let active = 0, peak = 0
+  const result = await bcp.boundedMap([1,2,3,4,5,6,7], 3, async (value: number) => {
+    active++; peak = Math.max(peak, active)
+    await Promise.resolve()
+    active--; return value * 2
+  })
+  assert.deepEqual(result, [2,4,6,8,10,12,14])
+  assert.equal(peak, 3)
+  const started: number[] = []
+  await assert.rejects(bcp.boundedMap([1,2,3,4,5], 2, async (value: number) => {
+    started.push(value)
+    if (value === 2) throw new Error('stop')
+  }), /stop/)
+  assert.deepEqual(started, [1,2])
+})
+
+
+test('incremental BCP retains verified migration baseline and recovers only new or revised records', async () => {
+  const entries = new Map<string, any>()
+  let writes = 0
+  const env = { GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true', CONTENTFUL_SPACE_ID: 'test-space',
+    CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test-management' }
+  const fake = async (url: string, options: any) => {
+    const route = new URL(url).pathname.split('/environments/test')[1]
+    if (route === '/locales') return Response.json({ items: [{ default: true, code: 'en-US' }] })
+    if (route.startsWith('/content_types/')) return Response.json({ sys: { version: 2, publishedVersion: 1 },
+      fields: [{ id: 'digest', type: 'Symbol' }, { id: 'body', type: 'Text' }] })
+    if (route === '/entries') {
+      const ids = new URL(url).searchParams.get('sys.id[in]')!.split(',')
+      const items = ids.filter(id => entries.has('/entries/' + id)).map(id => ({
+        ...entries.get('/entries/' + id),
+        sys: { ...entries.get('/entries/' + id).sys, id },
+      }))
+      return Response.json({ items, total: items.length })
+    }
+    if (options.method === 'GET') return entries.has(route) ?
+      Response.json(entries.get(route)) : new Response('', { status: 404 })
+    assert.equal(options.method, 'PUT')
+    assert.ok(!entries.has(route), 'immutable objects must never be overwritten')
+    const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
+    entries.set(route, value)
+    writes++
+    return Response.json(value)
+  }
+  const original = [
+    { sourceRecordKey: 'm41:one', sourceHash: 'a', sourcePayload: { content: 'original' } },
+    { sourceRecordKey: 'm41:two', sourceHash: 'b', sourcePayload: { content: 'original 2' } },
+  ]
+  const base = { snapshot: site.sha256(site.canonical(original)), records: original.length,
+    verifiedAt: '2026-11-25T08:12:53.739Z' }
+  assert.deepEqual(await bcp.sync(original, base.snapshot, env, fake), original)
+  const originalEntries = new Map(entries)
+  const baselineResult = await bcp.incrementalSync(original, base.snapshot, env, base, fake)
+  assert.deepEqual([baselineResult.changed, baselineResult.unchanged], [0, 2])
+  const checkpointWrites = writes
+  assert.ok(checkpointWrites > originalEntries.size, 'bootstrap baseline index once')
+  const revised = [
+    original[0],
+    { sourceRecordKey: 'm41:two', sourceHash: 'c', sourcePayload: { content: 'revision' } },
+    { sourceRecordKey: 'm41:three', sourceHash: 'd', sourcePayload: { content: 'new publication' } },
+  ]
+  const revisedSnapshot = site.sha256(site.canonical(revised))
+  const delta = await bcp.incrementalSync(revised, revisedSnapshot, env, base, fake)
+  assert.deepEqual([delta.changed, delta.unchanged], [2, 1])
+  assert.deepEqual(await bcp.recoverIncremental(revisedSnapshot, env, fake), revised)
+  assert.deepEqual(await bcp.recover(base.snapshot, env, fake), original)
+  const deltaWrites = writes
+  assert.equal((await bcp.incrementalSync(revised, revisedSnapshot, env, base, fake)).reused, true)
+  assert.equal(writes, deltaWrites, 'unchanged schedule creates no recovery objects')
+  for (const [key, value] of originalEntries) assert.deepEqual(entries.get(key), value)
+  const reduced = [original[0]]
+  const reducedHash = site.sha256(site.canonical(reduced))
+  await bcp.incrementalSync(reduced, reducedHash, env, base, fake)
+  assert.deepEqual(await bcp.recoverIncremental(reducedHash, env, fake), reduced)
+  const ambiguous = [{ sourceRecordKey: 'duplicate' }, { sourceRecordKey: 'duplicate' }]
+  await assert.rejects(bcp.incrementalSync(ambiguous, site.sha256(site.canonical(ambiguous)), env, base, fake),
+    /unique bounded source record keys/)
 })
