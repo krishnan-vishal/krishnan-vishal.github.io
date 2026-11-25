@@ -79,6 +79,14 @@ test('BCP sync is idempotent and verifies recovery by reading Contentful', async
     const route = new URL(url).pathname.split('/environments/test')[1]
     if (route === '/locales') return Response.json({ items: [{ default: true, code: 'en-US' }] })
     if (route.startsWith('/content_types/')) return Response.json({ sys: { version: 2, publishedVersion: 1 }, fields: [{ id: 'digest', type: 'Symbol' }, { id: 'body', type: 'Text' }] })
+    if (route === '/entries') {
+      const ids = new URL(url).searchParams.get('sys.id[in]')!.split(',')
+      const items = ids.filter(id => entries.has('/entries/' + id)).map(id => {
+        const entry = entries.get('/entries/' + id)
+        return { ...entry, sys: { ...entry.sys, id } }
+      })
+      return Response.json({ items, total: items.length })
+    }
     if (options.method === 'GET') return entries.has(route) ? Response.json(entries.get(route)) : new Response('', { status: 404 })
     assert.equal(options.method, 'PUT')
     assert.match(route, /^\/entries\/[a-f0-9]{64}$/)
@@ -133,4 +141,21 @@ test('BCP ambiguous PUT recovery is bounded and never overwrites conflicting obj
     assert.equal(reads, mode === 'persistent' ? 4 : mode === 'invalid' ? 1 : 2, mode)
     assert.deepEqual(delays, mode === 'persistent' ? [1000, 2000] : mode === 'transient' ? [1000] : [], mode)
   }
+})
+
+test('bounded BCP batches preserve order and stop after a failed batch', async () => {
+  let active = 0, peak = 0
+  const result = await bcp.boundedMap([1,2,3,4,5,6,7], 3, async (value: number) => {
+    active++; peak = Math.max(peak, active)
+    await Promise.resolve()
+    active--; return value * 2
+  })
+  assert.deepEqual(result, [2,4,6,8,10,12,14])
+  assert.equal(peak, 3)
+  const started: number[] = []
+  await assert.rejects(bcp.boundedMap([1,2,3,4,5], 2, async (value: number) => {
+    started.push(value)
+    if (value === 2) throw new Error('stop')
+  }), /stop/)
+  assert.deepEqual(started, [1,2])
 })
