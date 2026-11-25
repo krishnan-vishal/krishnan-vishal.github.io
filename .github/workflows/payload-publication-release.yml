@@ -19,7 +19,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: gpir-payload-governed-release
+  group: gpir-contentful-bcp
   cancel-in-progress: false
 
 jobs:
