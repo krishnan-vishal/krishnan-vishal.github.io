@@ -19,7 +19,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: gpir-payload-governed-release
+  group: gpir-contentful-bcp
   cancel-in-progress: false
 
 jobs:
@@ -76,6 +76,23 @@ jobs:
           Owner review and merge remain required; no production acceptance is claimed by this proposal.
           BODY
           gh pr create --base "$DEFAULT_BRANCH" --head "$edition_branch" --title "M41: publish reviewed Payload edition" --body-file "$RUNNER_TEMP/m41-publication-body.md"
+      - name: Synchronize reviewed Payload edition to passive Contentful BCP
+        if: inputs.mode == 'RELEASE'
+        env:
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true'
+        id: bcp_sync
+        run: node scripts/m41/sync-site-bcp.cjs
+      - name: Retain authenticated BCP evidence
+        if: steps.bcp_sync.outcome == 'success' && steps.bcp_sync.outputs.verified_records != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bcp-verified-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.bcp_sync.outputs.verified_records }}-${{ steps.bcp_sync.outputs.verified_epoch }}
+          path: .migration-data/m41-bcp-recovery.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Save the verified source and staging evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,6 +101,7 @@ jobs:
           path: |
             .cloudflare-preview-dist/assets/data/cms-source.json
             .migration-data/m41-cutover/pages-stage-report.json
+            .migration-data/m41-bcp-recovery.json
           if-no-files-found: warn
           retention-days: 7
 

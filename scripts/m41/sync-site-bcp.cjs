@@ -24,11 +24,15 @@ async function main() {
     const recoverySnapshot = site.sha256(site.canonical(records));
     const restored = await bcp.sync(records, recoverySnapshot, process.env);
     if (site.canonical(restored) !== site.canonical(records)) throw new Error('Contentful read-back recovery differs from Payload.');
-    const report = { status: 'BCP_READBACK_VERIFIED', snapshot: source.manifest.snapshot, recoverySnapshot, records: records.length,
+    const report = { status: 'BCP_READBACK_VERIFIED', verifiedAt: new Date().toISOString(), snapshot: source.manifest.snapshot, recoverySnapshot, records: records.length,
         managedFiles: source.manifest.files.length, existingContentfulEntriesModified: 0, existingContentfulEntriesDeleted: 0 };
     const output = path.resolve(process.argv[2] || '.migration-data/m41-bcp-recovery.json');
     fs.mkdirSync(path.dirname(output), { recursive: true });
     fs.writeFileSync(output, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 });
+    if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT,
+            `verified_records=${report.records}\nverified_at=${report.verifiedAt}\nverified_epoch=${Date.parse(report.verifiedAt)}\n`);
+    }
     console.log(JSON.stringify(report));
 }
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -4,12 +4,14 @@ const zlib = require('node:zlib');
 const site = require('./site-content.cjs');
 const TYPE = 'gpirPayloadRecoveryV1';
 const CHUNK_BYTES = 24000;
+// Domain-separated full SHA-256 IDs fit the Contentful 64-character limit.
+const recoveryId = (kind, value) => site.sha256(`m41-bcp:${kind}:${value}`);
 function pack(records) {
     const bytes = zlib.gzipSync(Buffer.from(site.canonical(records)), { level: 9 });
     const chunks = [];
     for (let offset = 0; offset < bytes.length; offset += CHUNK_BYTES) {
         const body = bytes.subarray(offset, offset + CHUNK_BYTES).toString('base64');
-        chunks.push({ id: `m41-bcp-${site.sha256(body)}`, body });
+        chunks.push({ id: recoveryId('chunk', body), body });
     }
     return { digest: site.sha256(bytes), chunks };
 }
@@ -17,7 +19,7 @@ function unpack(index, chunks) {
     if (!Array.isArray(index.chunks) || !index.chunks.length) throw new Error('BCP index has no chunks.');
     const encoded = index.chunks.map(id => {
         const body = chunks.get(id);
-        if (typeof body !== 'string' || `m41-bcp-${site.sha256(body)}` !== id) throw new Error('BCP chunk missing or corrupt.');
+        if (typeof body !== 'string' || recoveryId('chunk', body) !== id && `m41-bcp-${site.sha256(body)}` !== id) throw new Error('BCP chunk missing or corrupt.');
         return Buffer.from(body, 'base64');
     });
     const bytes = Buffer.concat(encoded);
@@ -34,12 +36,20 @@ function management(env, fetchImpl = fetch) {
                 headers: { authorization: `Bearer ${token}`, 'content-type': 'application/vnd.contentful.management.v1+json', ...extra },
                 body: body ? JSON.stringify(body) : undefined });
             if (response.status === 404 && method === 'GET') return null;
-            if (response.status === 429 && attempt < 4) {
-                const seconds = Math.max(1, Math.min(30, Number(response.headers.get('x-contentful-ratelimit-reset')) || 2));
+            if ((response.status === 429 ||
+                (method === 'GET' &&
+                 [408, 500, 502, 503, 504].includes(response.status)))
+                && attempt < 4) {
+                const seconds = Math.max(1, Math.min(30, Number(response.headers.get('x-contentful-ratelimit-reset')) || Math.pow(2, attempt + 1)));
                 await new Promise(resolve => setTimeout(resolve, seconds * 1000));
                 continue;
             }
-            if (!response.ok) throw new Error(`Contentful BCP request failed: HTTP ${response.status}`);
+            if (!response.ok) {
+                const detail = await response.json().catch(() => ({}));
+                const code = /^[A-Za-z0-9_-]{1,80}$/.test(detail?.sys?.id || '') ? detail.sys.id : 'UNKNOWN';
+                const resource = route.split('/')[1];
+                throw new Error(`Contentful BCP request failed: HTTP ${response.status}; ${method} ${resource}; code=${code}`);
+            }
             return response.json();
         }
         throw new Error('Contentful BCP retry budget exhausted.');
@@ -93,18 +103,18 @@ async function sync(records, snapshot, env, fetchImpl = fetch) {
     const groups = [];
     for (let offset = 0; offset < archive.chunks.length; offset += 256) {
         const body = site.canonical(archive.chunks.slice(offset, offset + 256).map(chunk => chunk.id));
-        const id = `m41-bcp-index-${site.sha256(body)}`;
+        const id = recoveryId('index', body);
         await remote.store(id, body, locale);
         groups.push(id);
     }
     const index = { schema: 'gpir-contentful-bcp/v1', snapshot, digest: archive.digest, groups };
-    await remote.store(`m41-bcp-root-${snapshot}`, site.canonical(index), locale);
+    await remote.store(recoveryId('root', snapshot), site.canonical(index), locale);
     return recover(snapshot, env, fetchImpl);
 }
 async function recover(snapshot, env, fetchImpl = fetch) {
     if (!/^[a-f0-9]{64}$/.test(snapshot)) throw new Error('Invalid BCP snapshot.');
     const remote = management(env, fetchImpl);
-    const index = JSON.parse(await remote.read(`m41-bcp-root-${snapshot}`));
+    const index = JSON.parse(await remote.read(recoveryId('root', snapshot)));
     if (index.schema !== 'gpir-contentful-bcp/v1' || index.snapshot !== snapshot) throw new Error('Contentful BCP snapshot mismatch.');
     if (!Array.isArray(index.groups) || !index.groups.length || index.groups.length > 10000) throw new Error('Invalid BCP index pages.');
     index.chunks = [];

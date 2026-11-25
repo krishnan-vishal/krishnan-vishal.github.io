@@ -279,6 +279,54 @@ Deno.serve(async request=>{
    const verified=run.status==='completed'&&run.conclusion==='success'&&job?.conclusion==='success'&&step?.conclusion==='success'&&Number.isFinite(Date.parse(job.completed_at));
    return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
   }
+  if(body.action==='contentful_bcp_receipt'){
+   const workflow='m40-contentful-editorial-draft-handoff.yml';
+   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=100');
+   const runs=(data.workflow_runs||[]).filter(run=>
+    Number.isSafeInteger(run.id)&&
+    Number.isSafeInteger(run.run_attempt)&&
+    run.head_branch==='main'&&
+    run.event==='schedule'&&
+    run.path==='.github/workflows/'+workflow);
+   let lastSuccess=null,latestFailure=null,latestSchedule=null;
+   for(const run of runs){
+    const jobs=await github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100');
+    const job=jobs.jobs?.find(j=>j.name==='reconcile-bcp');
+    if(!latestSchedule){
+     latestSchedule={run_id:run.id,status:job?.status||run.status,
+      conclusion:job?.conclusion||null,updated_at:run.updated_at};
+    }
+    if(!latestFailure&&job?.conclusion==='failure'){
+     latestFailure={run_id:run.id,completed_at:job.completed_at,
+      status:'failure'};
+    }
+    if(!lastSuccess&&job?.conclusion==='success'){
+     const artifacts=await github('actions/runs/'+run.id+'/artifacts?per_page=100');
+     const prefix='bcp-verified-'+run.id+'-'+run.run_attempt+'-';
+     for(const artifact of artifacts.artifacts||[]){
+      if(artifact.expired||typeof artifact.name!=='string'||
+       !artifact.name.startsWith(prefix))continue;
+      const match=artifact.name.slice(prefix.length).match(/^([0-9]+)-([0-9]{13})$/);
+      if(!match)continue;
+      const count=Number(match[1]),epoch=Number(match[2]);
+      if(!Number.isSafeInteger(count)||count<=0||
+       !Number.isSafeInteger(epoch)||
+       epoch<Date.parse(run.created_at)||
+       epoch>Date.parse(artifact.created_at))continue;
+      lastSuccess={run_id:run.id,records:count,
+       verified_at:new Date(epoch).toISOString(),
+       receipt_created_at:artifact.created_at,status:'BCP_READBACK_VERIFIED'};
+      break;
+     }
+    }
+    if(lastSuccess&&latestFailure)break;
+   }
+   return json({read_only:true,dispatch_performed:false,
+    workflow,schedule_minutes:30,last_success:lastSuccess,
+    latest_failure:latestFailure,latest_schedule:latestSchedule,
+    inspected_runs:runs.length});
+  }
+
   if(body.action==='execution_diagnostic'){
    const workflow='sep01-durable-dispatch.yml';
    const [ref,runs]=await Promise.all([

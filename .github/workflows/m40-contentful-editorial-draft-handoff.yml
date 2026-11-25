@@ -61,3 +61,47 @@ jobs:
           path: m40-draft-handoff-report.json
           if-no-files-found: ignore
           retention-days: 14
+
+  reconcile-bcp:
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && github.repository == 'krishnan-vishal/krishnan-vishal.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: payload-production-cutover
+    concurrency:
+      group: gpir-contentful-bcp
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Reconcile existing passive Contentful recovery
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT || secrets.GPIR_PAYLOAD_SITE_SNAPSHOT }}
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true'
+        id: bcp_sync
+        run: node scripts/m41/sync-site-bcp.cjs
+      - name: Retain authenticated BCP evidence
+        if: steps.bcp_sync.outcome == 'success' && steps.bcp_sync.outputs.verified_records != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bcp-verified-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.bcp_sync.outputs.verified_records }}-${{ steps.bcp_sync.outputs.verified_epoch }}
+          path: .migration-data/m41-bcp-recovery.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Retain verified BCP receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m41-bcp-reconciliation-${{ github.run_id }}
+          path: .migration-data/m41-bcp-recovery.json
+          if-no-files-found: ignore
+          retention-days: 14
