@@ -1,4 +1,6 @@
 import type { Endpoint } from 'payload'
+import { createHash } from 'node:crypto'
+import { stableJson } from './release'
 import { allNative, nativeBackupRecords, referenceBackupRecords, resolvedEditorialRecords } from './editorial-source'
 import { roleOf } from '../lib/access'
 
@@ -33,6 +35,19 @@ export const editorialEndpoint: Endpoint = {
           return url.pathname.replace(/\/$/, '')
         } catch { return '' }
       }
+      const snapshot = 'f2540980b555942c5807d56bc8370ee2ce48d13dd689bd91a29ca011e84fcfea'
+      const hash = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex')
+      const lookup = async (key: string) => {
+        const result = await req.payload.find({ collection: 'editorial-metadata', where: { sourceRecordKey: { equals: key } }, limit: 2, depth: 0, req, overrideAccess: true })
+        const record = result.docs[0]
+        if (result.docs.length !== 1 || hash(stableJson(record.sourcePayload)) !== record.sourceHash) throw Error('MANAGED_RECORD_INTEGRITY_FAILED')
+        return record.sourcePayload as any
+      }
+      const manifest = await lookup('m41:manifest:' + snapshot)
+      const { snapshot: manifestId, ...manifestBody } = manifest
+      if (manifestId !== snapshot || manifest.schema !== 'gpir-managed-site/v1' || hash(stableJson(manifestBody)) !== snapshot)
+        return Response.json({ error: 'MANAGED_SNAPSHOT_INTEGRITY_FAILED' }, { status: 409 })
+      const managed: any[] = []
       const plan: any[] = [], missing: string[] = []
       for (const [category, slugs] of Object.entries(groups)) for (const slug of slugs) {
         const expectedPath = '/pages/chapters/' + slug + '.html'
@@ -40,13 +55,26 @@ export const editorialEndpoint: Endpoint = {
         if (candidates.length > 1) return Response.json({ error: 'AMBIGUOUS_CHAPTER', slug }, { status: 409 })
         const doc = candidates[0]
         if (doc && doc.canonicalUrl && canonicalPath(doc.canonicalUrl) !== expectedPath) return Response.json({ error: 'CHAPTER_CANONICAL_URL_MISMATCH', slug }, { status: 409 })
-        if (!doc) { missing.push(slug); continue }
+        if (!doc) {
+          const files = manifest.files.filter((file: any) => file.path === expectedPath.slice(1))
+          if (files.length === 1 && /^[a-f0-9]{64}$/.test(files[0].sha256)) {
+            const file = files[0]
+            const blob = await lookup('m41:blob:' + file.sha256)
+            if (blob.kind !== 'site-bytes' || blob.encoding !== 'base64' || typeof blob.body !== 'string')
+              return Response.json({ error: 'MANAGED_CHAPTER_BLOB_INVALID', slug }, { status: 409 })
+            const bytes = Buffer.from(blob.body, 'base64')
+            if (hash(bytes) !== file.sha256 || bytes.length !== file.bytes)
+              return Response.json({ error: 'MANAGED_CHAPTER_HASH_MISMATCH', slug }, { status: 409 })
+            managed.push({ slug, category, canonicalUrl: 'https://fintechoisis.com' + expectedPath, sha256: file.sha256 })
+          }
+          missing.push(slug); continue
+        }
         const previous = doc.sourceModel
         if (previous != null && (typeof previous !== 'object' || Array.isArray(previous))) return Response.json({ error: 'INVALID_METADATA', slug }, { status: 409 })
         plan.push({ id: doc.id, slug, category, sourceModel: { ...(previous || {}), moneyMovementMarkets: { category, homepageResearchDesk: false } } })
       }
       const matched = plan.map(({ slug, category }) => ({ slug, category }))
-      if (missing.some(slug => slug !== 'adult-content-payments') || plan.length < 10) return Response.json({ matched, missing, error: 'UNRESOLVED_EXISTING_CHAPTERS' }, { status: 409 })
+      if (missing.some(slug => slug !== 'adult-content-payments') || plan.length < 10) return Response.json({ matched, missing, managed, error: 'UNRESOLVED_EXISTING_CHAPTERS' }, { status: 409 })
       if (!input.apply) return Response.json({ matched, missing, status: 'PAYLOAD_CLASSIFICATION_DRY_RUN_VERIFIED' })
       // Only fixed server-owned slugs and metadata are writable by this action.
       for (const item of plan) {
