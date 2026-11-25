@@ -280,52 +280,63 @@ Deno.serve(async request=>{
    return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
   }
   if(body.action==='contentful_bcp_receipt'){
-   const workflow='m40-contentful-editorial-draft-handoff.yml';
-   const data=await github('actions/workflows/'+workflow+'/runs?branch=main&event=schedule&per_page=3');
-   const runs=(data.workflow_runs||[]).filter(run=>
-    Number.isSafeInteger(run.id)&&
-    Number.isSafeInteger(run.run_attempt)&&
-    run.head_branch==='main'&&
-    run.event==='schedule'&&
-    run.path==='.github/workflows/'+workflow);
-   let lastSuccess=null,latestFailure=null,latestSchedule=null;
-   const recentJobs=await Promise.all(runs.map(run=>github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100')));
+   // One bounded repository-artifact lookup covers scheduled, approved release
+   // and manual BCP receipts; never traverse dozens of workflow runs.
+   const scheduleWorkflow='m40-contentful-editorial-draft-handoff.yml';
+   const [scheduleData,artifactData]=await Promise.all([
+    github('actions/workflows/'+scheduleWorkflow+'/runs?branch=main&event=schedule&per_page=3'),
+    github('actions/artifacts?per_page=100')
+   ]);
+   const runs=(scheduleData.workflow_runs||[]).filter(run=>
+    Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&
+    run.head_branch==='main'&&run.event==='schedule'&&
+    run.path==='.github/workflows/'+scheduleWorkflow);
+   const recentJobs=await Promise.all(runs.map(run=>
+    github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100')));
+   let latestSchedule=null,latestFailure=null;
    for(const [i,run] of runs.entries()){
-    const jobs=recentJobs[i];
-    const job=jobs.jobs?.find(j=>j.name==='reconcile-bcp');
-    if(!latestSchedule){
-     latestSchedule={run_id:run.id,status:job?.status||run.status,
-      conclusion:job?.conclusion||null,updated_at:run.updated_at};
-    }
-    if(!latestFailure&&job?.conclusion==='failure'){
-     latestFailure={run_id:run.id,completed_at:job.completed_at,
-      status:'failure'};
-    }
-    if(!lastSuccess&&job?.conclusion==='success'){
-     const artifacts=await github('actions/runs/'+run.id+'/artifacts?per_page=100');
-     const prefix='bcp-verified-'+run.id+'-'+run.run_attempt+'-';
-     for(const artifact of artifacts.artifacts||[]){
-      if(artifact.expired||typeof artifact.name!=='string'||
-       !artifact.name.startsWith(prefix))continue;
-      const match=artifact.name.slice(prefix.length).match(/^([0-9]+)-([0-9]{13})$/);
-      if(!match)continue;
-      const count=Number(match[1]),epoch=Number(match[2]);
-      if(!Number.isSafeInteger(count)||count<=0||
-       !Number.isSafeInteger(epoch)||
-       epoch<Date.parse(run.created_at)||
-       epoch>Date.parse(artifact.created_at))continue;
-      lastSuccess={run_id:run.id,records:count,
-       verified_at:new Date(epoch).toISOString(),
-       receipt_created_at:artifact.created_at,status:'BCP_READBACK_VERIFIED'};
-      break;
-     }
-    }
-    if(lastSuccess&&latestFailure)break;
+    const job=recentJobs[i].jobs?.find(j=>j.name==='reconcile-bcp');
+    if(!latestSchedule)latestSchedule=job?{
+     run_id:run.id,status:job.status,conclusion:job.conclusion||null,
+     updated_at:run.updated_at}:{
+     run_id:run.id,status:'not_executed',conclusion:'not_executed',
+     updated_at:run.updated_at};
+    if(!latestFailure&&['failure','cancelled','timed_out'].includes(job?.conclusion))
+     latestFailure={run_id:run.id,completed_at:job.completed_at,status:job.conclusion};
    }
-   return json({read_only:true,dispatch_performed:false,
-    workflow,schedule_minutes:30,last_success:lastSuccess,
-    latest_failure:latestFailure,latest_schedule:latestSchedule,
-    inspected_runs:runs.length});
+   const candidates=(artifactData.artifacts||[]).flatMap(artifact=>{
+    if(artifact.expired||typeof artifact.name!=='string')return [];
+    const match=artifact.name.match(/^bcp-verified-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]{13})$/);
+    if(!match)return [];
+    const runId=Number(match[1]),attempt=Number(match[2]);
+    const count=Number(match[3]),epoch=Number(match[4]);
+    if(![runId,attempt,count,epoch].every(Number.isSafeInteger)||
+     runId<1||attempt<1||count<1||artifact.workflow_run?.id!==runId||
+     !Number.isFinite(Date.parse(artifact.created_at))||
+     epoch>Date.parse(artifact.created_at))return [];
+    return [{run_id:runId,attempt,records:count,epoch,
+     receipt_created_at:artifact.created_at}];
+   }).sort((a,b)=>b.epoch-a.epoch).slice(0,1);
+   let lastSuccess=null;
+   if(candidates.length){
+    const candidate=candidates[0];
+    const run=await github('actions/runs/'+candidate.run_id);
+    if(run.status==='completed'&&run.conclusion==='success'&&run.head_branch==='main'&&
+     run.run_attempt===candidate.attempt&&
+     (run.event==='schedule'||run.event==='workflow_dispatch')&&
+     [scheduleWorkflow,'payload-cms-ci.yml','payload-publication-release.yml'].some(
+      workflow=>run.path==='.github/workflows/'+workflow)&&
+     candidate.epoch>=Date.parse(run.created_at)){
+     lastSuccess={run_id:candidate.run_id,records:candidate.records,
+      verified_at:new Date(candidate.epoch).toISOString(),
+      receipt_created_at:candidate.receipt_created_at,
+      event:run.event,workflow:run.path,status:'BCP_READBACK_VERIFIED'};
+    }
+   }
+   return json({read_only:true,dispatch_performed:false,workflow:scheduleWorkflow,
+    schedule_minutes:30,last_success:lastSuccess,latest_failure:latestFailure,
+    latest_schedule:latestSchedule,inspected_runs:runs.length,
+    artifact_lookup_bounded:true});
   }
 
   if(body.action==='execution_diagnostic'){
