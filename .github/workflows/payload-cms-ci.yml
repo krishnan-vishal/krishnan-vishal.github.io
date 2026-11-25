@@ -161,7 +161,7 @@ jobs:
     timeout-minutes: 30
     environment: payload-production-cutover
     concurrency:
-      group: gpir-cms-chapter-classification
+      group: gpir-contentful-bcp
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
