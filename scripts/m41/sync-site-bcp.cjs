@@ -9,9 +9,17 @@ async function main() {
     const keys = new Set(source.manifest.files.map(item => `m41:blob:${item.sha256}`));
     keys.add(`m41:manifest:${source.manifest.snapshot}`);
     for (const name of ['manifest.json', 'entries.json', 'assets.json', 'locales.json', 'contentTypes.json', 'tags.json', 'editorInterfaces.json']) keys.add(`m41:archive:${source.manifest.contentfulArchiveSnapshot || source.manifest.snapshot}:${name}`);
-    const records = [];
-    for (const key of [...keys].sort()) records.push(await source.record(key));
+    const orderedKeys = [...keys].sort();
+    let completed = 0;
+    console.log('BCP: retrieving Payload records=' + orderedKeys.length);
+    const records = await bcp.boundedMap(orderedKeys, 6, async key => {
+        const record = await source.record(key);
+        completed++;
+        if (completed % 50 === 0 || completed === orderedKeys.length) console.log('BCP: Payload records ' + completed + '/' + orderedKeys.length);
+        return record;
+    });
     if (source.manifest.nativeResearch?.length) records.push(await source.record(`m41:research-release:${source.manifest.snapshot}`));
+    console.log('BCP: exporting editorial references');
     const editorial = await source.request('/api/release/editorial-entries', { method: 'POST', body: JSON.stringify({ action: 'export' }) });
     if (!Array.isArray(editorial.records)) throw new Error('Payload editorial backup is incomplete.');
     records.push(...editorial.records);
@@ -21,6 +29,7 @@ async function main() {
         const sourcePayload = { kind: 'media-bytes', mediaId: media.id, sha256: site.sha256(bytes), body: bytes.toString('base64') };
         records.push({ sourceRecordKey: `m41:media:${media.id}`, sourcePayload, sourceHash: site.sha256(site.canonical(sourcePayload)) });
     }
+    console.log('BCP: source records ready=' + records.length);
     const recoverySnapshot = site.sha256(site.canonical(records));
     const restored = await bcp.sync(records, recoverySnapshot, process.env);
     if (site.canonical(restored) !== site.canonical(records)) throw new Error('Contentful read-back recovery differs from Payload.');
