@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       approved_pr_head:
-        description: 'Exact reviewed PR #585, #705 or #706 commit SHA'
+        description: 'Exact reviewed PR #585, #705, #706 or #707 commit SHA'
         required: true
         type: string
 permissions:
@@ -44,7 +44,9 @@ jobs:
           # Preserve the original approved PR route; require merged, non-draft PR #705.
           if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/585 --jq '.head.sha' | grep -Fx "$APPROVED_SHA"; then
             if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/705 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/task1-money-movement-markets" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-              gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/706 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/cms-chapter-reconciliation" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"
+              if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/706 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/cms-chapter-reconciliation" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
+                gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/707 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/fix-editorial-bcp-export" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"
+              fi
             fi
           fi
           node - <<'NODE'
