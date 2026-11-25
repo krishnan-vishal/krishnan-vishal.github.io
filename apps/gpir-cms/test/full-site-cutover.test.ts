@@ -102,3 +102,35 @@ test('Contentful BCP writes are denied by default before any network request', a
   await assert.rejects(bcp.sync([], '0'.repeat(64), {}, async () => { calls++; return Response.json({}) }), /read-only/)
   assert.equal(calls, 0)
 })
+
+test('BCP ambiguous PUT recovery is bounded and never overwrites conflicting objects', async () => {
+  const env = { CONTENTFUL_SPACE_ID: 'test', CONTENTFUL_ENVIRONMENT: 'test', CONTENTFUL_MANAGEMENT_TOKEN: 'test' }
+  for (const mode of ['committed', 'transient', 'persistent', 'conflict', 'invalid', 'network']) {
+    let writes = 0, reads = 0
+    const delays: number[] = []
+    let entry: any = null
+    const fake = async (_url: string, options: any) => {
+      if (options.method === 'GET') {
+        reads++
+        return entry ? Response.json(entry) : new Response('', { status: 404 })
+      }
+      writes++
+      const value = { ...JSON.parse(options.body), sys: { contentType: { sys: { id: 'gpirPayloadRecoveryV1' } } } }
+      if (mode === 'invalid') return new Response('', { status: 400 })
+      if (mode === 'conflict') entry = { ...value, fields: {} }
+      if (mode === 'committed') entry = value
+      if (mode === 'network' && writes === 1) { entry = value; throw new TypeError('network failure') }
+      if (mode === 'transient' && writes === 2) { entry = value; return Response.json(value) }
+      return new Response('', { status: 500 })
+    }
+    const remote = bcp.management(env, fake, async (ms: number) => { delays.push(ms) })
+    const operation = remote.store('a'.repeat(64), 'immutable bytes', 'en-US')
+    if (mode === 'persistent') await assert.rejects(operation, /HTTP 500/)
+    else if (mode === 'conflict') await assert.rejects(operation, /conflicts/)
+    else if (mode === 'invalid') await assert.rejects(operation, /HTTP 400/)
+    else await operation
+    assert.equal(writes, mode === 'persistent' ? 3 : mode === 'transient' ? 2 : 1, mode)
+    assert.equal(reads, mode === 'persistent' ? 4 : mode === 'invalid' ? 1 : 2, mode)
+    assert.deepEqual(delays, mode === 'persistent' ? [1000, 2000] : mode === 'transient' ? [1000] : [], mode)
+  }
+})

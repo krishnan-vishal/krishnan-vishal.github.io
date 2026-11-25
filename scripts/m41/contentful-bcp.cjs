@@ -26,7 +26,7 @@ function unpack(index, chunks) {
     if (site.sha256(bytes) !== index.digest) throw new Error('BCP archive digest mismatch.');
     return JSON.parse(zlib.gunzipSync(bytes, { maxOutputLength: 1024 * 1024 * 1024 }).toString('utf8'));
 }
-function management(env, fetchImpl = fetch) {
+function management(env, fetchImpl = fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms))) {
     const { CONTENTFUL_SPACE_ID: space, CONTENTFUL_ENVIRONMENT: environment, CONTENTFUL_MANAGEMENT_TOKEN: token } = env;
     if (!space || !environment || !token) throw new Error('Private Contentful BCP management settings are required.');
     const base = `https://api.contentful.com/spaces/${encodeURIComponent(space)}/environments/${encodeURIComponent(environment)}`;
@@ -72,13 +72,25 @@ function management(env, fetchImpl = fetch) {
     async function store(id, body, locale) {
         const route = `/entries/${encodeURIComponent(id)}`;
         if (Buffer.byteLength(body, 'utf8') > 48000) throw new Error('BCP object exceeds bounded Contentful field size.');
-        const existing = await call('GET', route);
         const digest = site.sha256(body);
-        if (existing) {
+        function matches(existing) {
+            if (!existing) return false;
             if (existing.sys.contentType?.sys?.id !== TYPE || existing.fields?.digest?.[locale] !== digest || existing.fields?.body?.[locale] !== body) throw new Error('Immutable Contentful BCP object conflicts.');
-            return;
+            return true;
         }
-        await call('PUT', route, { fields: { digest: { [locale]: digest }, body: { [locale]: body } } }, { 'x-contentful-content-type': TYPE });
+        if (matches(await call('GET', route))) return;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                await call('PUT', route, { fields: { digest: { [locale]: digest }, body: { [locale]: body } } }, { 'x-contentful-content-type': TYPE });
+                break;
+            } catch (error) {
+                if (!/HTTP (408|409|500|502|503|504); PUT entries;/.test(error.message) &&
+                    !['TypeError', 'TimeoutError', 'AbortError'].includes(error.name)) throw error;
+                if (matches(await call('GET', route))) return;
+                if (attempt === 2 || /HTTP 409;/.test(error.message)) throw error;
+                await sleep(1000 * Math.pow(2, attempt));
+            }
+        }
         // Recovery records intentionally remain unpublished; current site delivery is untouched.
     }
     async function read(id) {
