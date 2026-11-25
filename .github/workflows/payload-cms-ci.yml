@@ -19,7 +19,7 @@ on:
       mode:
         type: choice
         default: VALIDATE
-        options: [VALIDATE, REPAIR_MANAGEMENT]
+        options: [VALIDATE, REPAIR_MANAGEMENT, CLASSIFY_CHAPTERS_DRY_RUN, CLASSIFY_AND_SYNC_BCP]
       recipient_public_key:
         type: string
         required: false
@@ -149,3 +149,64 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+
+  classify-chapters:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.actor == 'krishnan-vishal' &&
+      github.repository == 'krishnan-vishal/krishnan-vishal.github.io' &&
+      (github.ref == 'refs/heads/gpir/task1-money-movement-markets' || github.ref == 'refs/heads/main') &&
+      (inputs.mode == 'CLASSIFY_CHAPTERS_DRY_RUN' || inputs.mode == 'CLASSIFY_AND_SYNC_BCP')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: gpir-cms-chapter-classification
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - run: npm ci
+        working-directory: apps/gpir-cms
+      - name: Verify configured credentials without printing values
+        env:
+          PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT || secrets.GPIR_PAYLOAD_SITE_SNAPSHOT }}
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          node -e 'const keys=["PAYLOAD_DATABASE_URI","PAYLOAD_SECRET","PAYLOAD_PUBLIC_SERVER_URL"]; if(process.env.MODE==="CLASSIFY_AND_SYNC_BCP") keys.push("PAYLOAD_RELEASE_API_KEY","GPIR_RELEASE_SIGNING_SECRET","GPIR_PAYLOAD_SITE_SNAPSHOT","CONTENTFUL_SPACE_ID","CONTENTFUL_ENVIRONMENT","CONTENTFUL_MANAGEMENT_TOKEN"); const missing=keys.filter(k=>!process.env[k]); if(missing.length){console.error("Missing configured settings: "+missing.join(", "));process.exit(1)}'
+      - name: Resolve chapter identities and optionally apply
+        working-directory: apps/gpir-cms
+        env:
+          PAYLOAD_DATABASE_URI: ${{ secrets.PAYLOAD_DATABASE_URI }}
+          PAYLOAD_DATABASE_CA_CERT: ${{ secrets.PAYLOAD_DATABASE_CA_CERT }}
+          PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          npx --no-install tsx src/migration/classify-money-movement-markets.ts
+          if [ "$MODE" = "CLASSIFY_AND_SYNC_BCP" ]; then
+            npx --no-install tsx src/migration/classify-money-movement-markets.ts --apply
+          fi
+      - name: Synchronize existing Contentful BCP and verify recovery
+        if: inputs.mode == 'CLASSIFY_AND_SYNC_BCP'
+        env:
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT || secrets.GPIR_PAYLOAD_SITE_SNAPSHOT }}
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true'
+        run: node scripts/m41/sync-site-bcp.cjs
