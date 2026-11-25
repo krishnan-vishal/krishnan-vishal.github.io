@@ -159,6 +159,7 @@ jobs:
       (inputs.mode == 'CLASSIFY_CHAPTERS_DRY_RUN' || inputs.mode == 'CLASSIFY_AND_SYNC_BCP')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: payload-production-cutover
     concurrency:
       group: gpir-cms-chapter-classification
       cancel-in-progress: false
