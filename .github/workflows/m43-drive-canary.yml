@@ -1,0 +1,30 @@
+name: M43 Drive Canary
+on:
+  push:
+    branches: [feat/m43-4a-google-drive-cloud-archive]
+    paths: ['.github/workflows/m43-drive-canary.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpir-m43-drive-canary
+  cancel-in-progress: false
+jobs:
+  canary:
+    if: github.ref == 'refs/heads/feat/m43-4a-google-drive-cloud-archive'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify synthetic encrypted upload and readback
+        env:
+          GPIR_DRIVE_CLIENT_ID: ${{ secrets.GPIR_DRIVE_CLIENT_ID }}
+          GPIR_DRIVE_CLIENT_SECRET: ${{ secrets.GPIR_DRIVE_CLIENT_SECRET }}
+          GPIR_DRIVE_REFRESH_TOKEN: ${{ secrets.GPIR_DRIVE_REFRESH_TOKEN }}
+          GPIR_ARCHIVE_KEY: ${{ secrets.GPIR_ARCHIVE_KEY }}
+        run: node scripts/m43/m43-drive-archive.cjs --canary
