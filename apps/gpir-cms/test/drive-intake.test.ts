@@ -20,7 +20,7 @@ test('Drive intake rejects anonymous requests and altered reviewed bytes before 
     body.set('file', new Blob([Buffer.from('ffd8ff', 'hex')], { type: 'image/jpeg' }))
     const signature = signArtifact({ purpose: 'gpir-drive-draft-intake-v1', review }, secret).signature
     const result = await driveIntakeEndpoint.handler(request({
-      user: { role: 'release-service' } as PayloadRequest['user'],
+      user: { role: 'release-service', collection: 'users', id: 'fixture' } as PayloadRequest['user'],
       headers: new Headers({ 'content-length': '500', 'x-gpir-intake-signature': signature }),
       formData: async () => body,
     }))
