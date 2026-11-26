@@ -1,10 +1,10 @@
 name: GPIR Governed Intelligence Operations
-run-name: "GPIR intelligence ${{ inputs.mode }} ${{ inputs.source_id }} ${{ inputs.month }}"
+run-name: "GPIR intelligence ${{ inputs.mode }} ${{ inputs.source_id }} ${{ inputs.month }}${{ inputs.through_month && format(' through {0}', inputs.through_month) || '' }}"
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "plan (no writes) or apply (owner-authorized bounded historical month)"
+        description: "plan (no writes) or apply (owner-authorized bounded historical months)"
         required: true
         type: choice
         options: [plan, apply]
@@ -17,10 +17,14 @@ on:
         description: "UTC month YYYY-MM, 2021-11 through 2026-11"
         required: true
         type: string
+      through_month:
+        description: "Optional inclusive final UTC month (up to three months total)"
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
-  group: "gpir-intelligence-${{ inputs.source_id }}-${{ inputs.month }}"
+  group: "gpir-intelligence-${{ inputs.source_id }}"
   cancel-in-progress: false
 jobs:
   bounded-acquisition:
@@ -35,12 +39,17 @@ jobs:
         env:
           SOURCE: ${{ inputs.source_id }}
           MONTH: ${{ inputs.month }}
+          THROUGH_MONTH: ${{ inputs.through_month }}
           MODE: ${{ inputs.mode }}
         run: |
           node --input-type=module -e '
             const {SOURCE,MONTH,MODE}=process.env;
+            const last=process.env.THROUGH_MONTH||MONTH;
             if(!["FINTECHNEWS-SG-008","ATLAS-APAC-009"].includes(SOURCE))throw Error("SOURCE_NOT_APPROVED");
             if(!/^(202[1-6])-(0[1-9]|1[0-2])$/.test(MONTH)||MONTH<"2021-11"||MONTH>"2026-11")throw Error("MONTH_NOT_APPROVED");
+            if(!/^(202[1-6])-(0[1-9]|1[0-2])$/.test(last)||last<MONTH||last>"2026-11")throw Error("END_MONTH_NOT_APPROVED");
+            const monthIndex=value=>Number(value.slice(0,4))*12+Number(value.slice(5));
+            if(monthIndex(last)-monthIndex(MONTH)>2)throw Error("BACKFILL_BATCH_TOO_LARGE");
             if(!["plan","apply"].includes(MODE))throw Error("MODE_NOT_APPROVED");
           '
       - name: Execute existing bounded acquisition and publisher
@@ -50,12 +59,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SOURCE: ${{ inputs.source_id }}
           MONTH: ${{ inputs.month }}
+          THROUGH_MONTH: ${{ inputs.through_month }}
           MODE: ${{ inputs.mode }}
         shell: bash
         run: |
           set -euo pipefail
           start="${MONTH}-01T00:00:00.000Z"
-          end="$(node -e 'const [y,m]=process.argv[1].split("-").map(Number);process.stdout.write(new Date(Date.UTC(y,m,1)).toISOString())' "$MONTH")"
+          end="$(node -e 'const [y,m]=process.argv[1].split("-").map(Number);process.stdout.write(new Date(Date.UTC(y,m,1)).toISOString())' "${THROUGH_MONTH:-$MONTH}")"
           if [ "$MODE" = "apply" ]; then
             node scripts/intelligence/run-research-source-backfill.mjs --apply "--sources=$SOURCE" "--start=$start" "--end=$end"
           else
@@ -66,8 +76,9 @@ jobs:
         env:
           SOURCE: ${{ inputs.source_id }}
           MONTH: ${{ inputs.month }}
+          THROUGH_MONTH: ${{ inputs.through_month }}
           MODE: ${{ inputs.mode }}
         run: |
-          echo "GPIR governed intelligence operation: $MODE / $SOURCE / $MONTH" >> "$GITHUB_STEP_SUMMARY"
+          echo "GPIR governed intelligence operation: $MODE / $SOURCE / $MONTH through ${THROUGH_MONTH:-$MONTH}" >> "$GITHUB_STEP_SUMMARY"
           echo "This workflow uses the existing governed acquisition/publisher, not a new ingestion pipeline." >> "$GITHUB_STEP_SUMMARY"
-          echo "A successful workflow proves this bounded source-month operation only, not 36-topic or five-year coverage." >> "$GITHUB_STEP_SUMMARY"
+          echo "A successful workflow proves this bounded source and month range only, not 36-topic or five-year coverage." >> "$GITHUB_STEP_SUMMARY"
