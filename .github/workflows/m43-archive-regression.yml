@@ -48,11 +48,21 @@ jobs:
           export PGDATABASE=postgresql://postgres:synthetic-only@127.0.0.1:55432/postgres
           psql "$PGDATABASE" -X -v ON_ERROR_STOP=1 -c "CREATE TABLE public.fixture(id integer PRIMARY KEY, value text NOT NULL); INSERT INTO public.fixture VALUES (1,'alpha'),(2,'beta'); CREATE VIEW public.fixture_view AS SELECT * FROM public.fixture;"
           node - <<'NODE'
-          const {exportNativePostgres,restorePostgresIsolated}=require('./scripts/m43/m43-production-archive.cjs');
+          const fs=require('node:fs/promises'),crypto=require('node:crypto');
+          const {snapshot}=require('./scripts/m43/m43-stream-archive.cjs');
+          const {exportNativePostgres,verifyDriveSnapshot}=require('./scripts/m43/m43-production-archive.cjs');
+          const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
           (async()=>{
             const backup=await exportNativePostgres({SUPABASE_DB_URL:process.env.PGDATABASE});
-            const result=await restorePostgresIsolated(backup.file,backup.sourceManifest);
-            if(result.status!=='ISOLATED_LOGICAL_RESTORE_VERIFIED')throw Error('Runtime recovery not verified');
-            console.log('Synthetic PostgreSQL recovery passed');
+            const store=new Map();
+            const send=async bytes=>{const key=sha(bytes);store.set(key,Buffer.from(bytes));return {status:'READBACK_VERIFIED',identity:key};};
+            const load=async(digest,identity)=>{if(digest!==identity)throw Error('Snapshot identity mismatch');return store.get(digest);};
+            const manifestSnapshot=await snapshot(backup.manifestFile,send);
+            const source=await verifyDriveSnapshot(manifestSnapshot,sha(await fs.readFile(backup.manifestFile)),load,'reconciliation-manifest');
+            const dumpSnapshot=await snapshot(backup.file,send);
+            const result=await verifyDriveSnapshot(dumpSnapshot,sha(await fs.readFile(backup.file)),load,source.recoveredManifest);
+            if(result.database?.status!=='ISOLATED_LOGICAL_RESTORE_VERIFIED'||
+               result.database.reconciliation.tables!==1)throw Error('Runtime recovery not verified');
+            console.log('Synthetic PostgreSQL recovered-manifest SHA-256 restoration passed');
           })().catch(e=>{console.error(e.message);process.exitCode=1});
           NODE
