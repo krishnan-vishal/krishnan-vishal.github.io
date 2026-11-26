@@ -55,7 +55,6 @@ async function exportSupabase(env){
 }
 async function exportContentful(env){
  need(env,['CONTENTFUL_SPACE_ID','CONTENTFUL_ENVIRONMENT','CONTENTFUL_MANAGEMENT_TOKEN']);
- await command('npm',['ci','--no-audit','--no-fund'],{cwd:'apps/gpir-cms'});
  const dest=path.join(target,'contentful');
  await command('npm',['run','contentful:export','--','--output='+dest],{cwd:'apps/gpir-cms',env});
  const stat=await fsp.stat(dest);
@@ -105,7 +104,9 @@ async function verifyDriveSnapshot(result,expected,load){
  const fh=await fsp.open(recovered,'wx',0o600);
  let restoreResult;
  try{
-  restoreResult=await restore(manifest,load,async b=>{await fh.write(b)});
+  restoreResult=await restore(manifest,load,async b=>{
+   let done=0;while(done<b.length){const {bytesWritten}=await fh.write(b,done,b.length-done);if(!bytesWritten)throw Error('Recovery write stopped');done+=bytesWritten;}
+  });
  }finally{await fh.close();}
  try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');}
  finally{await fsp.rm(recovered,{force:true});}
