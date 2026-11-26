@@ -33,3 +33,13 @@ test('production exports refuse to run without existing source credentials',asyn
  const {exportSupabase}=require('./m43-production-archive.cjs');
  await assert.rejects(exportSupabase({}),/REQUIRED_EXISTING_CREDENTIAL_UNAVAILABLE/);
 });
+
+test('reconciliation rejects schema, inventory and record discrepancies',()=>{
+ const {reconcile}=require('./m43-production-archive.cjs');
+ const source={inventory:[['public','example','r']],records:[['public','example',['2','10','20']]],schema:['definition']};
+ assert.deepEqual(reconcile(source,structuredClone(source)),{tables:1,inventoryObjects:1,schemaObjects:1});
+ for(const key of ['inventory','records','schema']){
+  const changed=structuredClone(source);changed[key]=[];
+  assert.throws(()=>reconcile(source,changed),/mismatch/);
+ }
+});
