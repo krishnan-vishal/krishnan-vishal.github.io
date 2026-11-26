@@ -88,7 +88,7 @@ async function fingerprint(query){
  }
  return {inventory,records,schema};
 }
-function reconcile(source,restored){if(JSON.stringify(source)!==JSON.stringify(restored))throw Error('PostgreSQL inventory or record fingerprint mismatch');return {tables:source.records.length,inventoryObjects:source.inventory.length,schemaObjects:source.schema.length};}
+function reconcile(source,restored){for(const key of ['inventory','records','schema'])if(JSON.stringify(source[key])!==JSON.stringify(restored[key]))throw Error('PostgreSQL inventory or record fingerprint mismatch');return {tables:source.records.length,inventoryObjects:source.inventory.length,schemaObjects:source.schema.length};}
 async function exportNativePostgres(env){
  // A service_role REST key cannot replace database-level pg_dump access.
  // Reuse a pre-existing database connection secret when available.
