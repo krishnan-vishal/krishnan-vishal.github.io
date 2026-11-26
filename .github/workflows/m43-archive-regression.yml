@@ -27,3 +27,42 @@ jobs:
         run: node scripts/m43/m43-drive-archive.cjs --self-test
       - name: Streaming and synthetic recovery
         run: node --test scripts/m43/m43-stream-archive.test.cjs scripts/m43/m43-production-archive.test.cjs
+
+      - name: PostgreSQL 17 snapshot and isolated restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc >/dev/null
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client-17
+          export PATH=/usr/lib/postgresql/17/bin:$PATH
+          docker run -d --name m43-fixture -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD=synthetic-only postgres:17
+          trap 'docker rm -fv m43-fixture >/dev/null 2>&1 || true' EXIT
+          for i in $(seq 1 60); do
+            if docker exec m43-fixture pg_isready -h 127.0.0.1 -U postgres; then break; fi
+            sleep 1
+          done
+          export PGDATABASE=postgresql://postgres:synthetic-only@127.0.0.1:55432/postgres
+          psql "$PGDATABASE" -X -v ON_ERROR_STOP=1 -c "CREATE TABLE public.fixture(id integer PRIMARY KEY, value text NOT NULL); INSERT INTO public.fixture VALUES (1,'alpha'),(2,'beta'); CREATE VIEW public.fixture_view AS SELECT * FROM public.fixture;"
+          node - <<'NODE'
+          const fs=require('node:fs/promises'),crypto=require('node:crypto');
+          const {snapshot}=require('./scripts/m43/m43-stream-archive.cjs');
+          const {exportNativePostgres,verifyDriveSnapshot}=require('./scripts/m43/m43-production-archive.cjs');
+          const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+          (async()=>{
+            const backup=await exportNativePostgres({SUPABASE_DB_URL:process.env.PGDATABASE});
+            const store=new Map();
+            const send=async bytes=>{const key=sha(bytes);store.set(key,Buffer.from(bytes));return {status:'READBACK_VERIFIED',identity:key};};
+            const load=async(digest,identity)=>{if(digest!==identity)throw Error('Snapshot identity mismatch');return store.get(digest);};
+            const manifestSnapshot=await snapshot(backup.manifestFile,send);
+            const source=await verifyDriveSnapshot(manifestSnapshot,sha(await fs.readFile(backup.manifestFile)),load,'reconciliation-manifest');
+            const dumpSnapshot=await snapshot(backup.file,send);
+            const result=await verifyDriveSnapshot(dumpSnapshot,sha(await fs.readFile(backup.file)),load,source.recoveredManifest);
+            if(result.database?.status!=='ISOLATED_LOGICAL_RESTORE_VERIFIED'||
+               result.database.reconciliation.tables!==1)throw Error('Runtime recovery not verified');
+            console.log('Synthetic PostgreSQL recovered-manifest SHA-256 restoration passed');
+          })().catch(e=>{console.error(e.message);process.exitCode=1});
+          NODE
