@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { nativeBackupRecords, resolvedEditorialRecords } from '../src/release/editorial-source'
 import { guardEditorialRecord } from '../src/lib/editorial-record'
 const require = createRequire(import.meta.url)
-const { applyResearchEdition, mergeFxEditorial } = require('../../../scripts/m41/research-edition.cjs')
+const { applyResearchEdition, renderFirstResearchEdition, mergeResearchRoutes, mergeFxEditorial } = require('../../../scripts/m41/research-edition.cjs')
 const id = 'VK-GPIR-P-000000000001-8'
 const uuid = '11111111-1111-4111-8111-111111111111'
 const fields = { gpirPublicationId: id, supabaseRecordId: uuid, editionLineageId: 'VK-GPIR-L-000000000001-8', canonicalUrlCandidate: '/research/',
@@ -60,4 +60,27 @@ test('native BCP keeps the pending draft and delivered published version separat
   assert.equal(record.sourcePayload.document.validationStatus, 'WARN')
   assert.equal(record.sourcePayload.publishedDocument.publicationTitle, 'Delivered edition')
   assert.equal(record.sourcePayload.publishedDocument.validationStatus, 'PASS')
+})
+
+test('first-time research routes are admitted only with approved identity and safe protected shell', () => {
+  const record = { entryId: 'source-id', fields, presentation: { accessClass: 'ENTITLED' } }
+  const decision = { identity: id, supabaseRecordId: uuid, route: '/research/', accessClass: 'ENTITLED', releaseEligible: true }
+  const rendered = renderFirstResearchEdition(record, decision)
+  assert.match(rendered.html, /data-gpir-publication-id="VK-GPIR-P-000000000001-8"/)
+  assert.match(rendered.html, /gpir-protected-publication\.mjs/)
+  assert.doesNotMatch(rendered.html, /Reviewed body/)
+  assert.throws(() => renderFirstResearchEdition(record, { ...decision, releaseEligible: false }), /authority mismatch/)
+  assert.throws(() => renderFirstResearchEdition({ ...record, fields: { ...fields, validationStatus: 'WARN' } }, decision), /authority mismatch/)
+
+  const existing = { schemaVersion: '1.0.0', deploymentEligible: false, recordCount: 0, routes: [] }
+  const routes = mergeResearchRoutes(existing, [record], [decision])
+  assert.equal(routes.recordCount, 1)
+  assert.equal(existing.routes.length, 0)
+  assert.equal(routes.routes[0].route, '/research/')
+  assert.equal(routes.routes[0].authAuthority, 'supabase')
+  assert.equal(routes.routes[0].controlledValidation, false)
+  assert.equal(routes.deploymentEligible, false)
+  assert.deepEqual(mergeResearchRoutes(routes, [record], [decision]), routes)
+  assert.throws(() => mergeResearchRoutes({ ...routes, routes: [{ ...routes.routes[0], identity: 'different-id' }] }, [record], [decision]), /collision/)
+  assert.throws(() => mergeResearchRoutes({ ...routes, routes: [{ ...routes.routes[0], route: '/other/' }] }, [record], [decision]), /collision/)
 })
