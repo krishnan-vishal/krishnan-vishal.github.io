@@ -60,11 +60,11 @@ async function session(bin,args,opts,work){
  const p=spawn(bin,args,{...opts,stdio:['pipe','pipe','ignore']});
  const lines=readline.createInterface({input:p.stdout,crlfDelay:Infinity})[Symbol.asyncIterator]();
  const ended=new Promise(resolve=>{p.once('error',()=>resolve(-1));p.once('close',resolve);});
- async function query(sql){
+ async function query(sql,onRow){
   const marker='GPIR_'+crypto.randomUUID();
   p.stdin.write(sql+';\n\\echo '+marker+'\n');
   const result=[];
-  for(;;){const row=await lines.next();if(row.done)throw Error('PostgreSQL session ended');if(row.value===marker)return result;result.push(row.value);}
+  for(;;){const row=await lines.next();if(row.done)throw Error('PostgreSQL session ended');if(row.value===marker)return result;if(onRow)onRow(row.value);else result.push(row.value);}
  }
  try{return await work(query);}finally{p.stdin.end();if(await ended!==0)throw Error('PostgreSQL session failed');}
 }
@@ -77,8 +77,14 @@ async function fingerprint(query){
  for(const [schema,table,kind] of inventory){
   if(kind!=='r'&&kind!=='m')continue;
   const name=quoteIdent(schema)+'.'+quoteIdent(table);
-  const rows=await query("SELECT json_build_array(count(*)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),1,16))::bit(64)::bigint::numeric),0)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),17,16))::bit(64)::bigint::numeric),0)::text)::text FROM "+name+" t");
-  records.push([schema,table,JSON.parse(rows[0])]);
+  // SQL orders canonical row JSON; Node streams SHA-256 without storing source records.
+  const digest=crypto.createHash('sha256');let count=0;
+  await query("SELECT row_to_json(t)::text FROM "+name+" t ORDER BY 1 COLLATE \"C\"",line=>{
+   const bytes=Buffer.from(line,'utf8');const length=Buffer.allocUnsafe(8);
+   length.writeBigUInt64BE(BigInt(bytes.length));
+   digest.update(length);digest.update(bytes);count++;
+  });
+  records.push([schema,table,String(count),digest.digest('hex')]);
  }
  return {inventory,records,schema};
 }
@@ -103,10 +109,13 @@ async function exportNativePostgres(env){
   await query('ROLLBACK');
   return manifest;
  });
- const manifestFile=path.join(target,'postgres-reconciliation.json');
- await writePrivate(manifestFile,JSON.stringify(source));
  await command('pg_restore',['--list',out]);
  if(!(await fsp.stat(out)).size)throw Error('Empty PostgreSQL dump');
+ source.format='GPIR-M43-POSTGRES-RECONCILIATION-v2';
+ source.rowHashMethod='SHA256_SORTED_ROW_JSON_LENGTH_PREFIXED';
+ source.dumpSha256=await hashFile(out);
+ const manifestFile=path.join(target,'postgres-reconciliation.json');
+ await writePrivate(manifestFile,JSON.stringify(source));
  return {source:'supabase_postgresql',file:out,status:'POSTGRESQL_LOGICAL_DUMP',sourceManifest:source,manifestFile};
 }
 async function exportContentful(env){
@@ -154,8 +163,18 @@ async function exportPayload(env){
  return {file,status:'DIRECT_PAYLOAD_EXPORT',records:ordered.length,editorial:editorial.records.length};
 }
 async function hashFile(file){const h=crypto.createHash('sha256');const stream=fs.createReadStream(file);for await(const b of stream)h.update(b);return h.digest('hex');}
+const SHA256_RE=/^[a-f0-9]{64}$/;
+function validateReconciliationManifest(manifest,dumpDigest){
+ if(!manifest||manifest.format!=='GPIR-M43-POSTGRES-RECONCILIATION-v2'||manifest.rowHashMethod!=='SHA256_SORTED_ROW_JSON_LENGTH_PREFIXED'||!SHA256_RE.test(manifest.dumpSha256)||
+  !Array.isArray(manifest.inventory)||!Array.isArray(manifest.schema)||!Array.isArray(manifest.records)||
+  !manifest.records.every(row=>Array.isArray(row)&&row.length===4&&typeof row[0]==='string'&&typeof row[1]==='string'&&/^\d+$/.test(row[2])&&SHA256_RE.test(row[3]))||
+  !manifest.schema.every(value=>SHA256_RE.test(value))||(dumpDigest&&manifest.dumpSha256!==dumpDigest))
+  throw Error('M43 recovered PostgreSQL manifest invalid or dump identity mismatch');
+ return manifest;
+}
 async function restorePostgresIsolated(file,source){
  // Docker has no network and receives only the recovered dump, not production credentials.
+ validateReconciliationManifest(source,await hashFile(file));
  const name='gpir-m43-restore-'+crypto.randomUUID();
  const cleanEnv={PATH:process.env.PATH,HOME:process.env.HOME};
  const opts={env:cleanEnv};
@@ -175,7 +194,7 @@ async function restorePostgresIsolated(file,source){
   if(!Number.isSafeInteger(count)||count<1)throw Error('Restored database has no application tables');
   const restored=await session('docker',['exec','-i',name,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery'],opts,async query=>{await query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const result=await fingerprint(query);await query('ROLLBACK');return result;});
   const reconciliation=reconcile(source,restored);
-  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,reconciliation,coverage:'CATALOG_DEFINITIONS_AND_RECORD_FINGERPRINTS',ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
+  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,reconciliation,coverage:'CATALOG_DEFINITIONS_AND_SORTED_SHA256_RECORDS',ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
  }finally{
   await command('docker',['rm','-f','-v',name],opts);
  }
@@ -193,7 +212,13 @@ async function verifyDriveSnapshot(result,expected,load,postgres=false){
    let done=0;while(done<b.length){const {bytesWritten}=await fh.write(b,done,b.length-done);if(!bytesWritten)throw Error('Recovery write stopped');done+=bytesWritten;}
   });
  }finally{await fh.close();}
- try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');if(postgres)restoreResult.database=await restorePostgresIsolated(recovered,postgres);}
+ try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');if(postgres==='reconciliation-manifest'){
+   const recoveredManifest=JSON.parse(await fsp.readFile(recovered,'utf8'));
+   restoreResult.recoveredManifest=validateReconciliationManifest(recoveredManifest);
+  }else if(postgres){
+   validateReconciliationManifest(postgres,expected);
+   restoreResult.database=await restorePostgresIsolated(recovered,postgres);
+  }}
  finally{await fsp.rm(recovered,{force:true});}
  return restoreResult;
 }
@@ -215,12 +240,15 @@ async function main(){
  exports.push({source:'contentful_bcp',...await exportContentful(env)});
  const payload=await exportPayload(env);
  if(payload.file)exports.push({source:'payload_direct',...payload});
- const verified=[];
+ const verified=[];let recoveredSourceManifest=null;
  for(const item of exports){
   const expected=await hashFile(item.file);
   const snap=await snapshot(item.file,sendRetry,env);
   const load=await driveLoader(env);
-  const recovery=await verifyDriveSnapshot(snap,expected,load,item.source==='supabase_postgresql'?item.sourceManifest:false);
+  const mode=item.source==='postgres_reconciliation_manifest'?'reconciliation-manifest':
+   item.source==='supabase_postgresql'?(recoveredSourceManifest||(()=>{throw Error('Recovered PostgreSQL manifest required')})()):false;
+  const recovery=await verifyDriveSnapshot(snap,expected,load,mode);
+  if(item.source==='postgres_reconciliation_manifest')recoveredSourceManifest=recovery.recoveredManifest;
   verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status,...(recovery.database?{database:recovery.database}:{})});
  }
  const fullDatabase=postgres?'ISOLATED_RESTORE_PARTIAL_RECONCILIATION_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
@@ -235,4 +263,4 @@ async function main(){
  console.log(JSON.stringify({status:report.status,sources:verified.map(x=>({source:x.source,status:x.status,recovery:x.recovery,bytes:x.bytes})),fullDatabase,payloadStatus:payload.status,verifiedAt:report.verifiedAt}));
 }
 if(require.main===module)main().catch(error=>{console.error('M43_ARCHIVE_FAILED: '+String(error.message).slice(0,200));process.exitCode=1});
-module.exports={exportSupabase,verifyDriveSnapshot,reconcile,exportNativePostgres,restorePostgresIsolated};
+module.exports={exportSupabase,verifyDriveSnapshot,reconcile,exportNativePostgres,restorePostgresIsolated,validateReconciliationManifest};
