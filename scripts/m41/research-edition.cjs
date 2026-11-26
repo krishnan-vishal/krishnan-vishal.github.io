@@ -3,11 +3,15 @@ const { adaptPublication } = require('../m35/contentful-publication-adapter');
 const renderer = require('../m35/contentful-publication-renderer');
 const { buildFxEditorialIndex } = require('../m39/build-fx-editorial-bridge');
 
-function applyResearchEdition(original, record, decision) {
+function approvedResearchPublication(record, decision) {
     const publication = adaptPublication(record);
     if (!decision || decision.releaseEligible !== true || decision.identity !== publication.identity ||
         decision.supabaseRecordId !== publication.supabaseRecordId || decision.route !== publication.route ||
         decision.accessClass !== publication.accessClass || record.fields.validationStatus !== 'PASS') throw new Error('Research release authority mismatch.');
+    return publication;
+}
+function applyResearchEdition(original, record, decision) {
+    const publication = approvedResearchPublication(record, decision);
     const mains = [...original.matchAll(/<main\b[^>]*>[\s\S]*?<\/main\s*>/gi)];
     if (mains.length !== 1 || !mains[0][0].includes(`data-gpir-publication-id="${publication.identity}"`)) throw new Error('Research route requires its existing identity-bound content slot.');
     let main;
@@ -28,10 +32,49 @@ function applyResearchEdition(original, record, decision) {
     // slot, ASK links and footer stay byte-for-byte intact around the main slot.
     return { html: output, publication };
 }
+// First-time publications have no identity-bound HTML slot in the inherited
+// snapshot. Generate only after the same Supabase and reviewer checks as edits.
+function renderFirstResearchEdition(record, decision) {
+    const publication = approvedResearchPublication(record, decision);
+    const html = renderer.renderPublicationPage(publication);
+    if (!html.includes(`data-gpir-publication-id="${renderer.escapeHtml(publication.identity)}"`) ||
+        !html.includes('/assets/js/gpir-protected-publication.mjs')) throw new Error('First research route is missing its governed reader shell.');
+    return { html, publication };
+}
+function mergeResearchRoutes(current, records, decisions) {
+    if (!current || current.schemaVersion !== '1.0.0' || !Array.isArray(current.routes) ||
+        records.length !== decisions.length) throw new Error('Invalid governed research route inventory.');
+    const routes = current.routes.map(row => ({ ...row }));
+    records.forEach((record, index) => {
+        const publication = approvedResearchPublication(record, decisions[index]);
+        const byId = routes.filter(row => row.identity === publication.identity);
+        const byPath = routes.filter(row => row.route === publication.route);
+        if (byId.length > 1 || byPath.length > 1 ||
+            (byId.length && byId[0].route !== publication.route) ||
+            (byPath.length && byPath[0].identity !== publication.identity)) {
+            throw new Error('Research route or publication identity collision.');
+        }
+        if (!byId.length) routes.push({
+            identity: publication.identity,
+            route: publication.route,
+            canonicalUrl: publication.canonicalUrl,
+            publicationType: publication.publicationType,
+            authAuthority: 'supabase',
+            controlledValidation: false,
+        });
+        else {
+            byId[0].publicationType = publication.publicationType;
+            byId[0].authAuthority = 'supabase';
+            byId[0].controlledValidation = false;
+        }
+    });
+    routes.sort((a, b) => a.route.localeCompare(b.route, 'en'));
+    return { ...current, recordCount: routes.length, routes };
+}
 function mergeFxEditorial(current, records) {
     const replacementIds = new Set(records.map(record => record.fields.gpirPublicationId));
     const generated = buildFxEditorialIndex({ source: { mode: 'delivery' }, records });
     return { ...current, records: [...(current.records || []).filter(record => !replacementIds.has(record.publicationId)), ...generated.records]
         .sort((a,b) => a.pair.localeCompare(b.pair) || a.title.localeCompare(b.title)) };
 }
-module.exports = { applyResearchEdition, mergeFxEditorial };
+module.exports = { applyResearchEdition, renderFirstResearchEdition, mergeResearchRoutes, mergeFxEditorial };
