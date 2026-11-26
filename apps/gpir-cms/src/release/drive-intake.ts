@@ -63,8 +63,12 @@ export const driveIntakeEndpoint: Endpoint = {
       if (!/^https:\/\/[^/]+$/.test(origin) || !key) return reply({ error: 'INTAKE_AUTHORITY_UNAVAILABLE' }, 503)
       const response = await fetch(`${origin}/rest/v1/rpc/gpir_drive_draft_identity`, {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
-        headers: { 'content-type': 'application/json', apikey: key,
-          ...(!key.startsWith('sb_secret_') ? { authorization: `Bearer ${key}` } : {}) },
+        headers: (() => {
+          const headers = new Headers({ 'content-type': 'application/json' })
+          headers.set('apikey', key)
+          if (!key.startsWith('sb_secret_')) headers.set('authorization', `Bearer ${key}`)
+          return headers
+        })(),
         body: JSON.stringify({ p_sha256: hash }),
       })
       if (!response.ok) return reply({ error: 'INTAKE_IDENTITY_REFUSED' }, 503)
