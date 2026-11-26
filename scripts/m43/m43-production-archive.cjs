@@ -89,6 +89,7 @@ async function exportNativePostgres(env){
  const connection=env.SUPABASE_DB_URL||env.DATABASE_URL;
  if(!connection)return null;
  if(!/^postgres(?:ql)?:\/\//.test(connection))throw Error('Invalid existing PostgreSQL connection URI');
+ await mk(target);
  const out=path.join(target,'supabase-postgresql.dump');
  const source=await session('psql',['-X','-qAt','-v','ON_ERROR_STOP=1'],{env:{...env,PGDATABASE:connection}},async query=>{
   await query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
@@ -231,4 +232,4 @@ async function main(){
  console.log(JSON.stringify({status:report.status,sources:verified.map(x=>({source:x.source,status:x.status,recovery:x.recovery,bytes:x.bytes})),fullDatabase,payloadStatus:payload.status,verifiedAt:report.verifiedAt}));
 }
 if(require.main===module)main().catch(error=>{console.error('M43_ARCHIVE_FAILED: '+String(error.message).slice(0,200));process.exitCode=1});
-module.exports={exportSupabase,verifyDriveSnapshot,reconcile};
+module.exports={exportSupabase,verifyDriveSnapshot,reconcile,exportNativePostgres,restorePostgresIsolated};
