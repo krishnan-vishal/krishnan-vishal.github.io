@@ -67,14 +67,17 @@ async function exportNativePostgres(env){
  return {source:'supabase_postgresql',file:out,status:'POSTGRESQL_LOGICAL_DUMP'};
 }
 async function exportContentful(env){
- need(env,['CONTENTFUL_SPACE_ID','CONTENTFUL_ENVIRONMENT','CONTENTFUL_MANAGEMENT_TOKEN']);
- const dest=path.join(target,'contentful');
- await command('npm',['run','contentful:export','--','--output='+dest],{cwd:'apps/gpir-cms',env});
- const stat=await fsp.stat(dest);
- if(!stat.isDirectory()||!(await fsp.readdir(dest)).length)throw Error('Empty Contentful export');
- const file=path.join(target,'contentful.tar.gz');
- await command('tar',['-czf',file,'-C',target,'contentful']);
- return {file,status:'CONTENTFUL_EXPORT',payloadRecovery:'CONTENTFUL_BCP_COPY'};
+ need(env,['CONTENTFUL_SPACE_ID','CONTENTFUL_ENVIRONMENT','CONTENTFUL_MANAGEMENT_TOKEN','GPIR_BCP_RECEIPT']);
+ const receipt=JSON.parse(await fsp.readFile(env.GPIR_BCP_RECEIPT,'utf8'));
+ const {recoverIncremental}=require('../m41/contentful-bcp.cjs');
+ const site=require('../m41/site-content.cjs');
+ if(receipt.status!=='BCP_READBACK_VERIFIED'||!Number.isSafeInteger(receipt.records)||receipt.records<1||
+ !/^[a-f0-9]{64}$/.test(receipt.recoverySnapshot||'')||!Number.isFinite(Date.parse(receipt.verifiedAt)))throw Error('Invalid existing BCP receipt');
+ const records=await recoverIncremental(receipt.recoverySnapshot,env);
+ if(records.length!==receipt.records||site.sha256(site.canonical(records))!==receipt.recoverySnapshot)throw Error('BCP recovery receipt mismatch');
+ const file=path.join(target,'contentful-bcp.json');
+ await writePrivate(file,site.canonical({receipt,records}));
+ return {file,status:'CONTENTFUL_BCP_RECOVERY_VERIFIED',records:records.length,payloadRecovery:'CONTENTFUL_BCP_COPY'};
 }
 async function exportPayload(env){
  const required=['PAYLOAD_PUBLIC_SERVER_URL','PAYLOAD_RELEASE_API_KEY','GPIR_RELEASE_SIGNING_SECRET','GPIR_PAYLOAD_SITE_SNAPSHOT'];
