@@ -79,7 +79,7 @@ async function fingerprint(query){
   const name=quoteIdent(schema)+'.'+quoteIdent(table);
   // SQL orders canonical row JSON; Node streams SHA-256 without storing source records.
   const digest=crypto.createHash('sha256');let count=0;
-  await query("SELECT row_to_json(t)::text FROM "+name+" t ORDER BY 1 COLLATE \"C\"",line=>{
+  await query("SELECT row_to_json(t)::text FROM "+name+" t ORDER BY row_to_json(t)::text COLLATE \"C\"",line=>{
    const bytes=Buffer.from(line,'utf8');const length=Buffer.allocUnsafe(8);
    length.writeBigUInt64BE(BigInt(bytes.length));
    digest.update(length);digest.update(bytes);count++;
