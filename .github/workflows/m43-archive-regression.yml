@@ -32,8 +32,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc >/dev/null
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-17
+          export PATH=/usr/lib/postgresql/17/bin:$PATH
           docker run -d --name m43-fixture -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD=synthetic-only postgres:17
           trap 'docker rm -fv m43-fixture >/dev/null 2>&1 || true' EXIT
           for i in $(seq 1 60); do
