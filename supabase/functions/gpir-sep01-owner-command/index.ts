@@ -279,6 +279,37 @@ Deno.serve(async request=>{
    const verified=run.status==='completed'&&run.conclusion==='success'&&job?.conclusion==='success'&&step?.conclusion==='success'&&Number.isFinite(Date.parse(job.completed_at));
    return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
   }
+  if(body.action==='m43_archive_receipt'){
+   // Owner-authenticated read-only GitHub Actions evidence; no Drive credentials in browser.
+   const workflow='m43-production-archive.yml';
+   const results=await github('actions/workflows/'+workflow+'/runs?branch=main&per_page=5');
+   const runs=(results.workflow_runs||[]).filter(run=>
+    Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&run.head_branch==='main'&&
+    ['schedule','workflow_dispatch'].includes(run.event)&&
+    run.path==='.github/workflows/'+workflow);
+   let lastSuccess=null;
+   for(const run of runs){
+    if(run.status!=='completed'||run.conclusion!=='success')continue;
+    const [jobs,artifacts]=await Promise.all([
+     github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100'),
+     github('actions/runs/'+run.id+'/artifacts?per_page=100')
+    ]);
+    const job=jobs.jobs?.find(j=>j.name==='archive');
+    const step=job?.steps?.find(s=>s.name==='Export existing sources, archive and independently recover');
+    const receipt=(artifacts.artifacts||[]).find(a=>!a.expired&&a.workflow_run?.id===run.id&&
+     new RegExp('^m43-verified-'+run.id+'-'+run.run_attempt+'-[0-9]{13}$').test(a.name||''));
+    if(job?.conclusion==='success'&&step?.conclusion==='success'&&receipt){
+     lastSuccess={run_id:run.id,attempt:run.run_attempt,verified_at:job.completed_at,
+      receipt_artifact_id:receipt.id,receipt_name:receipt.name,
+      event:run.event,status:'SOURCE_ARCHIVES_READBACK_VERIFIED'};
+     break;
+    }
+   }
+   return json({read_only:true,dispatch_performed:false,workflow,
+    last_success:lastSuccess,latest_run:runs[0]?{run_id:runs[0].id,status:runs[0].status,
+     conclusion:runs[0].conclusion||null,event:runs[0].event,updated_at:runs[0].updated_at}:null,
+    full_postgresql_recovery_verified:false,verified:!!lastSuccess});
+  }
   if(body.action==='contentful_bcp_receipt'){
    // One bounded repository-artifact lookup covers scheduled, approved release
    // and manual BCP receipts; never traverse dozens of workflow runs.

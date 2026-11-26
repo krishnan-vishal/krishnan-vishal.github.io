@@ -43,8 +43,19 @@ async function main() {
       // rather than releasing the record or disguising refusal as an empty estate.
       if (!decision.releaseEligible) throw new Error('Supabase withheld a reviewed research record; no new edition committed.')
       const record = legacyRecord(publication)
-      const file = path.join(root, site.safePath(`${decision.route.replace(/^\/+|\/+$/g, '')}/index.html`))
-      const rendered = editions.applyResearchEdition(await readFile(file, 'utf8'), record, decision)
+      const relative = site.safePath(`${decision.route.replace(/^\/+|\/+$/g, '')}/index.html`)
+      const file = path.join(root, relative)
+      // Existing pages retain their identity-bound shell; first-time pages
+      // require the same native PASS and Supabase release authority as edits.
+      const inParent = original.files.some((item: any) => item.path === relative)
+      let priorHtml: string | null = null
+      try { priorHtml = await readFile(file, 'utf8') }
+      catch (error: any) { if (error.code !== 'ENOENT') throw error }
+      if (inParent !== (priorHtml !== null)) throw new Error('Inherited research route integrity mismatch.')
+      const rendered = priorHtml === null
+        ? editions.renderFirstResearchEdition(record, decision)
+        : editions.applyResearchEdition(priorHtml, record, decision)
+      if (priorHtml === null) await mkdir(path.dirname(file), { recursive: true })
       await writeFile(file, rendered.html)
       released.push(record); decisions.push(decision)
     }
@@ -70,13 +81,9 @@ async function main() {
     }
     if (released.length) {
     const routesFile = path.join(root, 'routes.json')
-    const routes = JSON.parse(await readFile(routesFile, 'utf8'))
-    for (const record of released) {
-      const existing = routes.routes.find((row: any) => row.identity === record.fields.gpirPublicationId)
-      if (!existing || existing.route !== record.fields.canonicalUrlCandidate) throw new Error('Existing search/ASK route identity must be preserved.')
-      existing.publicationType = record.fields.publicationType
-      existing.authAuthority = 'supabase'; existing.controlledValidation = false
-    }
+    const routes = editions.mergeResearchRoutes(JSON.parse(await readFile(routesFile, 'utf8')), released, decisions)
+    // Only approved identities enter Search/ASK public route metadata; protected
+    // editorial bytes remain behind the existing Supabase reader boundary.
     await writeFile(routesFile, JSON.stringify(routes, null, 2) + '\n')
     const fx = path.join(root, 'assets/data/fx/editorial-public.json')
     await writeFile(fx, JSON.stringify(editions.mergeFxEditorial(JSON.parse(await readFile(fx, 'utf8')), released), null, 2) + '\n')
