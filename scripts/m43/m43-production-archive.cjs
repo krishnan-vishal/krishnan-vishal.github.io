@@ -89,14 +89,17 @@ async function exportNativePostgres(env){
  const connection=env.SUPABASE_DB_URL||env.DATABASE_URL;
  if(!connection)return null;
  if(!/^postgres(?:ql)?:\/\//.test(connection))throw Error('Invalid existing PostgreSQL connection URI');
+ const uri=new URL(connection);
+ const pgEnv={...process.env,...env,PGHOST:uri.hostname,PGPORT:uri.port||'5432',PGUSER:decodeURIComponent(uri.username),PGPASSWORD:decodeURIComponent(uri.password),PGDATABASE:decodeURIComponent(uri.pathname.slice(1))};
+ for(const [key,value] of uri.searchParams){const allowed={sslmode:'PGSSLMODE',sslrootcert:'PGSSLROOTCERT',connect_timeout:'PGCONNECT_TIMEOUT',application_name:'PGAPPNAME'};if(!allowed[key])throw Error('Unsupported PostgreSQL connection parameter');pgEnv[allowed[key]]=value;}
  await mk(target);
  const out=path.join(target,'supabase-postgresql.dump');
- const source=await session('psql',['-X','-qAt','-v','ON_ERROR_STOP=1'],{env:{...env,PGDATABASE:connection}},async query=>{
+ const source=await session('psql',['-X','-qAt','-v','ON_ERROR_STOP=1'],{env:pgEnv},async query=>{
   await query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
   const [id]=await query('SELECT pg_export_snapshot()');
   if(!/^[0-9A-Fa-f-]+$/.test(id))throw Error('Invalid snapshot identifier');
   const manifest=await fingerprint(query);
-  await command('pg_dump',['--format=custom','--no-owner','--no-acl','--snapshot='+id,'--file='+out],{env:{...env,PGDATABASE:connection}});
+  await command('pg_dump',['--format=custom','--no-owner','--no-acl','--snapshot='+id,'--file='+out],{env:pgEnv});
   await query('ROLLBACK');
   return manifest;
  });
