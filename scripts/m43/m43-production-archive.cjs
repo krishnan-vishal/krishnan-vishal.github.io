@@ -111,7 +111,31 @@ async function exportPayload(env){
  return {file,status:'DIRECT_PAYLOAD_EXPORT',records:ordered.length,editorial:editorial.records.length};
 }
 async function hashFile(file){const h=crypto.createHash('sha256');const stream=fs.createReadStream(file);for await(const b of stream)h.update(b);return h.digest('hex');}
-async function verifyDriveSnapshot(result,expected,load){
+async function restorePostgresIsolated(file){
+ // Docker has no network and receives only the recovered dump, not production credentials.
+ const name='gpir-m43-restore-'+crypto.randomUUID();
+ const cleanEnv={PATH:process.env.PATH,HOME:process.env.HOME};
+ const opts={env:cleanEnv};
+ try{
+  await command('docker',['run','-d','--name',name,'--network','none','-e','POSTGRES_HOST_AUTH_METHOD=trust','postgres:17'],opts);
+  let ready=false;
+  for(let i=0;i<60;i++){
+   try{await command('docker',['exec',name,'pg_isready','-U','postgres'],opts);ready=true;break;}catch{await new Promise(r=>setTimeout(r,1000));}
+  }
+  if(!ready)throw Error('Isolated PostgreSQL not ready');
+  await command('docker',['cp',file,name+':/tmp/recovered.dump'],opts);
+  await command('docker',['exec',name,'createdb','-U','postgres','gpir_recovery'],opts);
+  await command('docker',['exec',name,'pg_restore','--exit-on-error','--no-owner','--no-acl','-U','postgres','-d','gpir_recovery','/tmp/recovered.dump'],opts);
+  const sql="SELECT count(*) FROM pg_catalog.pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema')";
+  const result=await run('docker',['exec',name,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery','-Atc',sql],opts);
+  const count=Number(result.stdout.trim());
+  if(!Number.isSafeInteger(count)||count<1)throw Error('Restored database has no application tables');
+  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
+ }finally{
+  await command('docker',['rm','-f','-v',name],opts);
+ }
+}
+async function verifyDriveSnapshot(result,expected,load,postgres=false){
  if(!result.manifestIdentity)throw Error('Manifest identity missing');
  const raw=await load(result.manifestSha256,result.manifestIdentity);
  if(sha(raw)!==result.manifestSha256)throw Error('Downloaded manifest differs');
@@ -124,7 +148,7 @@ async function verifyDriveSnapshot(result,expected,load){
    let done=0;while(done<b.length){const {bytesWritten}=await fh.write(b,done,b.length-done);if(!bytesWritten)throw Error('Recovery write stopped');done+=bytesWritten;}
   });
  }finally{await fh.close();}
- try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');}
+ try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');if(postgres)restoreResult.database=await restorePostgresIsolated(recovered);}
  finally{await fsp.rm(recovered,{force:true});}
  return restoreResult;
 }
@@ -151,10 +175,10 @@ async function main(){
   const expected=await hashFile(item.file);
   const snap=await snapshot(item.file,sendRetry,env);
   const load=await driveLoader(env);
-  const recovery=await verifyDriveSnapshot(snap,expected,load);
-  verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status});
+  const recovery=await verifyDriveSnapshot(snap,expected,load,item.source==='supabase_postgresql');
+  verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status,...(recovery.database?{database:recovery.database}:{})});
  }
- const fullDatabase=postgres?'POSTGRESQL_LOGICAL_DUMP_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
+ const fullDatabase=postgres?'ISOLATED_LOGICAL_RESTORE_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
  const report={format:'GPIR-M43.4B-RECEIPT-v1',runId:env.GITHUB_RUN_ID,attempt:env.GITHUB_RUN_ATTEMPT,commit:env.GITHUB_SHA,verifiedAt:new Date().toISOString(),
   status:'PRODUCTION_SOURCE_ARCHIVES_READBACK_VERIFIED',fullDatabase,payloadStatus:payload.status,
   sources:verified};
