@@ -62,13 +62,16 @@ async function session(bin,args,opts,work){
  const ended=new Promise(resolve=>{p.once('error',()=>resolve(-1));p.once('close',resolve);});
  async function query(sql){
   const marker='GPIR_'+crypto.randomUUID();
-  p.stdin.write(sql+';\n\\\\echo '+marker+'\n');
+  p.stdin.write(sql+';\n\\echo '+marker+'\n');
   const result=[];
   for(;;){const row=await lines.next();if(row.done)throw Error('PostgreSQL session ended');if(row.value===marker)return result;result.push(row.value);}
  }
  try{return await work(query);}finally{p.stdin.end();if(await ended!==0)throw Error('PostgreSQL session failed');}
 }
+const schemaSQL="WITH ns AS (SELECT oid,nspname FROM pg_namespace WHERE nspname NOT IN ('pg_catalog','information_schema') AND nspname NOT LIKE 'pg_toast%' AND nspname NOT LIKE 'pg_temp_%'), objects AS (\nSELECT jsonb_build_array('schema',nspname) AS item FROM ns\nUNION ALL SELECT jsonb_build_array('column',n.nspname,c.relname,a.attname,a.attnum,format_type(a.atttypid,a.atttypmod),a.attnotnull,a.attidentity,a.attgenerated,pg_get_expr(d.adbin,d.adrelid)) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN ns n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind IN ('r','p','v','m','f')\nUNION ALL SELECT jsonb_build_array('constraint',n.nspname,c.relname,k.conname,pg_get_constraintdef(k.oid)) FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid JOIN ns n ON n.oid=c.relnamespace\nUNION ALL SELECT jsonb_build_array('index',n.nspname,c.relname,pg_get_indexdef(c.oid)) FROM pg_class c JOIN ns n ON n.oid=c.relnamespace WHERE c.relkind IN ('i','I')\nUNION ALL SELECT jsonb_build_array('view',n.nspname,c.relname,pg_get_viewdef(c.oid)) FROM pg_class c JOIN ns n ON n.oid=c.relnamespace WHERE c.relkind IN ('v','m')\nUNION ALL SELECT jsonb_build_array('routine',n.nspname,p.proname,pg_get_function_identity_arguments(p.oid),pg_get_functiondef(p.oid)) FROM pg_proc p JOIN ns n ON n.oid=p.pronamespace WHERE p.prokind IN ('f','p','w')\nUNION ALL SELECT jsonb_build_array('trigger',n.nspname,c.relname,t.tgname,pg_get_triggerdef(t.oid),t.tgenabled) FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN ns n ON n.oid=c.relnamespace WHERE NOT t.tgisinternal\nUNION ALL SELECT jsonb_build_array('extension',e.extname,e.extversion,n.nspname) FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace\n) SELECT item::text FROM objects ORDER BY item::text COLLATE \"C\"";
 async function fingerprint(query){
+ await query("SET LOCAL search_path TO pg_catalog");
+ const schema=(await query(schemaSQL)).map(line=>crypto.createHash('sha256').update(line).digest('hex'));
  const inventory=(await query(inventorySQL)).map(JSON.parse);
  const records=[];
  for(const [schema,table,kind] of inventory){
@@ -77,9 +80,9 @@ async function fingerprint(query){
   const rows=await query("SELECT json_build_array(count(*)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),1,16))::bit(64)::bigint::numeric),0)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),17,16))::bit(64)::bigint::numeric),0)::text)::text FROM "+name+" t");
   records.push([schema,table,JSON.parse(rows[0])]);
  }
- return {inventory,records};
+ return {inventory,records,schema};
 }
-function reconcile(source,restored){if(JSON.stringify(source)!==JSON.stringify(restored))throw Error('PostgreSQL inventory or record fingerprint mismatch');return {tables:source.records.length,inventoryObjects:source.inventory.length};}
+function reconcile(source,restored){if(JSON.stringify(source)!==JSON.stringify(restored))throw Error('PostgreSQL inventory or record fingerprint mismatch');return {tables:source.records.length,inventoryObjects:source.inventory.length,schemaObjects:source.schema.length};}
 async function exportNativePostgres(env){
  // A service_role REST key cannot replace database-level pg_dump access.
  // Reuse a pre-existing database connection secret when available.
@@ -166,9 +169,9 @@ async function restorePostgresIsolated(file,source){
   const result=await run('docker',['exec',name,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery','-Atc',sql],opts);
   const count=Number(result.stdout.trim());
   if(!Number.isSafeInteger(count)||count<1)throw Error('Restored database has no application tables');
-  const restored=await session('docker',['exec','-i',name,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery'],opts,fingerprint);
+  const restored=await session('docker',['exec','-i',name,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery'],opts,async query=>{await query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const result=await fingerprint(query);await query('ROLLBACK');return result;});
   const reconciliation=reconcile(source,restored);
-  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,reconciliation,coverage:'INVENTORY_AND_RECORD_FINGERPRINTS_ONLY',ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
+  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,reconciliation,coverage:'CATALOG_DEFINITIONS_AND_RECORD_FINGERPRINTS',ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
  }finally{
   await command('docker',['rm','-f','-v',name],opts);
  }
