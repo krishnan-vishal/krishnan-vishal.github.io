@@ -1,0 +1,29 @@
+name: M43 Archive Regression
+on:
+  push:
+    branches: [feat/m43-4a-google-drive-cloud-archive]
+    paths:
+      - 'scripts/m43/**'
+      - '.github/workflows/m43-archive-regression.yml'
+  pull_request:
+    paths:
+      - 'scripts/m43/**'
+      - '.github/workflows/m43-archive-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Encryption and tamper rejection
+        run: node scripts/m43/m43-drive-archive.cjs --self-test
+      - name: Streaming and synthetic recovery
+        run: node --test scripts/m43/m43-stream-archive.test.cjs
