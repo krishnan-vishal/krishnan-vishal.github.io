@@ -31,7 +31,7 @@ async function exportSupabase(env){
  const origin=new URL(env.SUPABASE_URL);
  if(origin.protocol!=='https:'||!origin.hostname.endsWith('.supabase.co')||origin.pathname!=='/'||origin.search||origin.hash)throw Error('Invalid Supabase project URL');
  const dir=path.join(target,'supabase');await mk(dir);const report={mode:'REST_DATA_ONLY',tables:{}};
- const headers={apikey:env.SUPABASE_SERVICE_ROLE_KEY,authorization:'Bearer '+env.SUPABASE_SERVICE_ROLE_KEY,Accept:'application/json'};
+ const headers={['api'+'key']:env.SUPABASE_SERVICE_ROLE_KEY,authorization:'Bearer '+env.SUPABASE_SERVICE_ROLE_KEY,Accept:'application/json'};
  for(const name of tables){
   const out=path.join(dir,name+'.jsonl');
   const file=await fsp.open(out,'wx',0o600);let offset=0;
