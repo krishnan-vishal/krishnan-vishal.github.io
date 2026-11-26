@@ -23,7 +23,7 @@ async function snapshot(path, send = archive, env = process.env) {
       hash.update(b);
       const receipt = await send(b, env);
       if (receipt.status !== 'READBACK_VERIFIED') throw Error('Chunk not verified');
-      chunks.push({index:chunks.length, offset, bytes:b.length, sha256:digest(b)});
+      chunks.push({index:chunks.length, offset, bytes:b.length, sha256:digest(b), ...(receipt.identity?{identity:receipt.identity}:{})});
       offset += b.length;
     }
     const after = await file.stat();
@@ -32,11 +32,11 @@ async function snapshot(path, send = archive, env = process.env) {
     const encoded = Buffer.from(JSON.stringify(manifest));
     const receipt = await send(encoded, env);
     if (receipt.status !== 'READBACK_VERIFIED') throw Error('Manifest not verified');
-    return {status:'CHUNKS_AND_MANIFEST_READBACK_VERIFIED', bytes:offset, chunks:chunks.length, manifestSha256:digest(encoded), verifiedAt:new Date().toISOString()};
+    return {status:'CHUNKS_AND_MANIFEST_READBACK_VERIFIED', bytes:offset, chunks:chunks.length, manifestSha256:digest(encoded), manifestIdentity:receipt.identity||null, manifest, verifiedAt:new Date().toISOString()};
   } finally { await file.close(); }
 }
 if (require.main === module) {
   if (!process.argv[2]) { console.error('Snapshot path required'); process.exitCode=1; }
-  else snapshot(process.argv[2]).then(r=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});
+  else snapshot(process.argv[2]).then(({manifest,...r})=>console.log(JSON.stringify(r))).catch(e=>{console.error(e.message);process.exitCode=1;});
 }
 module.exports={snapshot,SIZE};

@@ -1,0 +1,60 @@
+name: M43 Production Encrypted Archive
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: gpir-m43-production-archive
+  cancel-in-progress: false
+jobs:
+  archive:
+    # Production source credentials and source data are never made available to PRs.
+    if: github.ref == 'refs/heads/main'
+    environment: contentful-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+          cache-dependency-path: apps/gpir-cms/package-lock.json
+      - name: Verify M43 archival regression
+        run: |
+          node scripts/m43/m43-drive-archive.cjs --self-test
+          node --test scripts/m43/m43-stream-archive.test.cjs scripts/m43/m43-production-archive.test.cjs
+      - name: Install existing CMS export dependencies without production credentials
+        run: npm ci --no-audit --no-fund
+        working-directory: apps/gpir-cms
+      - name: Export existing sources, archive and independently recover
+        id: verified
+        env:
+          GPIR_DRIVE_CLIENT_ID: ${{ secrets.GPIR_DRIVE_CLIENT_ID }}
+          GPIR_DRIVE_CLIENT_SECRET: ${{ secrets.GPIR_DRIVE_CLIENT_SECRET }}
+          GPIR_DRIVE_REFRESH_TOKEN: ${{ secrets.GPIR_DRIVE_REFRESH_TOKEN }}
+          GPIR_ARCHIVE_KEY: ${{ secrets.GPIR_ARCHIVE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT }}
+        run: node scripts/m43/m43-production-archive.cjs
+      - name: Publish verified receipt (no plaintext backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: m43-verified-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.verified.outputs.verified_epoch }}
+          path: ${{ runner.temp }}/gpir-m43-verified-receipt.json
+          if-no-files-found: error
+          retention-days: 90
