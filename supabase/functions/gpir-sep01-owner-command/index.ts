@@ -279,6 +279,363 @@ Deno.serve(async request=>{
    const verified=run.status==='completed'&&run.conclusion==='success'&&job?.conclusion==='success'&&step?.conclusion==='success'&&Number.isFinite(Date.parse(job.completed_at));
    return json({read_only:true,workflow,verified,status:run.status,conclusion:run.conclusion||null,run_id:run.id,completed_at:job?.completed_at||null});
   }
+  if(body.action==='m43_archive_receipt'){
+   // Owner-authenticated read-only GitHub Actions evidence; no Drive credentials in browser.
+   const workflow='m43-production-archive.yml';
+   const results=await github('actions/workflows/'+workflow+'/runs?branch=main&per_page=5');
+   const runs=(results.workflow_runs||[]).filter(run=>
+    Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&run.head_branch==='main'&&
+    ['schedule','workflow_dispatch'].includes(run.event)&&
+    run.path==='.github/workflows/'+workflow);
+   let lastSuccess=null;
+   for(const run of runs){
+    if(run.status!=='completed'||run.conclusion!=='success')continue;
+    const [jobs,artifacts]=await Promise.all([
+     github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100'),
+     github('actions/runs/'+run.id+'/artifacts?per_page=100')
+    ]);
+    const job=jobs.jobs?.find(j=>j.name==='archive');
+    const step=job?.steps?.find(s=>s.name==='Export existing sources, archive and independently recover');
+    const receipt=(artifacts.artifacts||[]).find(a=>!a.expired&&a.workflow_run?.id===run.id&&
+     new RegExp('^m43-verified-'+run.id+'-'+run.run_attempt+'-[0-9]{13}
+   // One bounded repository-artifact lookup covers scheduled, approved release
+   // and manual BCP receipts; never traverse dozens of workflow runs.
+   const scheduleWorkflow='m40-contentful-editorial-draft-handoff.yml';
+   const [scheduleData,artifactData]=await Promise.all([
+    github('actions/workflows/'+scheduleWorkflow+'/runs?branch=main&event=schedule&per_page=3'),
+    github('actions/artifacts?per_page=100')
+   ]);
+   const runs=(scheduleData.workflow_runs||[]).filter(run=>
+    Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&
+    run.head_branch==='main'&&run.event==='schedule'&&
+    run.path==='.github/workflows/'+scheduleWorkflow);
+   const recentJobs=await Promise.all(runs.map(run=>
+    github('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs?per_page=100')));
+   let latestSchedule=null,latestFailure=null;
+   for(const [i,run] of runs.entries()){
+    const job=recentJobs[i].jobs?.find(j=>j.name==='reconcile-bcp');
+    if(!latestSchedule)latestSchedule=job?{
+     run_id:run.id,status:job.status,conclusion:job.conclusion||null,
+     updated_at:run.updated_at}:{
+     run_id:run.id,status:'not_executed',conclusion:'not_executed',
+     updated_at:run.updated_at};
+    if(!latestFailure&&['failure','cancelled','timed_out'].includes(job?.conclusion))
+     latestFailure={run_id:run.id,completed_at:job.completed_at,status:job.conclusion};
+   }
+   const candidates=(artifactData.artifacts||[]).flatMap(artifact=>{
+    if(artifact.expired||typeof artifact.name!=='string')return [];
+    const match=artifact.name.match(/^bcp-verified-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]{13})$/);
+    if(!match)return [];
+    const runId=Number(match[1]),attempt=Number(match[2]);
+    const count=Number(match[3]),epoch=Number(match[4]);
+    if(![runId,attempt,count,epoch].every(Number.isSafeInteger)||
+     runId<1||attempt<1||count<1||artifact.workflow_run?.id!==runId||
+     !Number.isFinite(Date.parse(artifact.created_at))||
+     epoch>Date.parse(artifact.created_at))return [];
+    return [{run_id:runId,attempt,records:count,epoch,
+     receipt_created_at:artifact.created_at}];
+   }).sort((a,b)=>b.epoch-a.epoch).slice(0,1);
+   let lastSuccess=null;
+   if(candidates.length){
+    const candidate=candidates[0];
+    const run=await github('actions/runs/'+candidate.run_id);
+    if(run.status==='completed'&&run.conclusion==='success'&&run.head_branch==='main'&&
+     run.run_attempt===candidate.attempt&&
+     (run.event==='schedule'||run.event==='workflow_dispatch')&&
+     [scheduleWorkflow,'payload-cms-ci.yml','payload-publication-release.yml'].some(
+      workflow=>run.path==='.github/workflows/'+workflow)&&
+     candidate.epoch>=Date.parse(run.created_at)){
+     lastSuccess={run_id:candidate.run_id,records:candidate.records,
+      verified_at:new Date(candidate.epoch).toISOString(),
+      receipt_created_at:candidate.receipt_created_at,
+      event:run.event,workflow:run.path,status:'BCP_READBACK_VERIFIED'};
+    }
+   }
+   return json({read_only:true,dispatch_performed:false,workflow:scheduleWorkflow,
+    schedule_minutes:30,last_success:lastSuccess,latest_failure:latestFailure,
+    latest_schedule:latestSchedule,inspected_runs:runs.length,
+    artifact_lookup_bounded:true});
+  }
+
+  if(body.action==='execution_diagnostic'){
+   const workflow='sep01-durable-dispatch.yml';
+   const [ref,runs]=await Promise.all([
+    github('git/ref/heads/main'),
+    github('actions/workflows/'+workflow+'/runs?per_page=5')
+   ]);
+   return json({gateway_version:gatewayVersion,read_only:true,dispatch_performed:false,
+    repository_baseline:ref.object?.sha||null,workflow,
+    runs:(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,5).map(run=>({
+     run_id:run.id,status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null
+    })),
+    message:'Read-only GitHub workflow inspection; no provider quota, write permission, or dispatch eligibility inferred.'});
+  }
+  // Narrow natural-language operational intent. Never infer production write approval,
+  // a source, or a month from a broad all-source/five-year directive.
+  if(body.action==='intelligence_classify'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!/\b(?:ingest(?:ion)?|backfill|historical|global alerts?|intelligence sources?)\b/i.test(instruction))
+    return json({category:'not_intelligence',executable:false,reason:'NOT_INTELLIGENCE_OPERATION'});
+   const sourceMatches=[
+    /\b(?:fintech\s*news\s*singapore|FINTECHNEWS-SG-008)\b/i.test(instruction)?'FINTECHNEWS-SG-008':null,
+    /\b(?:atlas\s*(?:technologies|payments|research)|ATLAS-APAC-009)\b/i.test(instruction)?'ATLAS-APAC-009':null
+   ].filter(Boolean);
+   const monthMatches=[...instruction.matchAll(/\b(202[1-6]-(?:0[1-9]|1[0-2]))\b/g)].map(m=>m[1]);
+   const broad=/\b(?:all sources?|every source|five.year|5.year|36 topics?|activate all|entire archive|full backfill)\b/i.test(instruction);
+   if(broad||sourceMatches.length!==1||monthMatches.length!==1)
+    return json({category:'intelligence_operations',executable:false,reason:'OPERATION_SCOPE_REQUIRES_REVIEW',
+      message:'Broad intelligence directives need a governed source-by-source coverage plan. No production job was queued.',
+      supported_sources:['FINTECHNEWS-SG-008','ATLAS-APAC-009'],max_sources:1,max_months:1});
+   const source_id=sourceMatches[0],month=monthMatches[0],mode='plan';
+   const main=await github('git/ref/heads/main');
+   const workflow='gpir-governed-intelligence-operations.yml';
+   const planData=[owner,main.object.sha,workflow,source_id,month,mode];
+   const plan_id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   return json({category:'intelligence_operations',executable:true,source_id,month,mode,plan_id,
+     requires_owner_approval:true,production_mutation:false,
+     message:'One approved source-month plan only. No production ingestion or provider charge.'});
+  }
+  // Governed GPIR intelligence operations use the existing historical acquisition
+  // script through a dedicated, allowlisted GitHub workflow. No arbitrary commands.
+  if(['intelligence_plan','intelligence_submit','intelligence_status'].includes(body.action)){
+   const workflow='gpir-governed-intelligence-operations.yml';
+   if(body.action==='intelligence_status'){
+    const runs=await github('actions/workflows/'+workflow+'/runs?per_page=30');
+    const entries=(Array.isArray(runs.workflow_runs)?runs.workflow_runs:[]).slice(0,30).map(run=>({
+     run_id:run.id, title:String(run.display_title||'').slice(0,160),
+     status:run.status,conclusion:run.conclusion||null,
+     url:typeof run.html_url==='string'&&run.html_url.startsWith('https://github.com/')?run.html_url:null,
+     created_at:run.created_at
+    }));
+    return json({gateway_version:gatewayVersion,operations:entries,read_only:true});
+   }
+   const source=String(body.source_id||'');
+   const month=String(body.month||'');
+   const mode=String(body.mode||'plan');
+   if(!['FINTECHNEWS-SG-008','ATLAS-APAC-009'].includes(source))return json({error:'SOURCE_NOT_APPROVED'},422);
+   if(!/^202[1-6]-(0[1-9]|1[0-2])$/.test(month)||month<'2021-11'||month>'2026-11')return json({error:'MONTH_NOT_APPROVED'},422);
+   if(!['plan','apply'].includes(mode))return json({error:'MODE_NOT_APPROVED'},422);
+   const main=await github('git/ref/heads/main');
+   const planData=[owner,main.object.sha,workflow,source,month,mode];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),x=>x.toString(16).padStart(2,'0')).join('');
+   if(body.action==='intelligence_plan')return json({
+    gateway_version:gatewayVersion,plan_id:planId,source_id:source,month,mode,
+    execution:'EXISTING_GOVERNED_SOURCE_MONTH_BACKFILL',max_sources:1,max_months:1,
+    production_mutation:mode==='apply',provider_api_spend:false,
+    requires_owner_approval:true,review_required:mode==='apply',
+    scope_limit:'Only two previously verified historical sources; this is not all-source activation or five-year acceptance.'
+   });
+   if(body.plan_id!==planId||body.confirmation!=='AUTHORIZE_ONE_INTELLIGENCE_OPERATION')return json({error:'OPERATION_APPROVAL_REQUIRED_OR_STALE'},403);
+   // Check recent workflow runs before dispatch. Existing pipeline dedupe and
+   // workflow concurrency are additional safeguards, not an atomic lock.
+   const prior=await github('actions/workflows/'+workflow+'/runs?per_page=100');
+   const title='GPIR intelligence '+mode+' '+source+' '+month;
+   const duplicate=(prior.workflow_runs||[]).find(run=>run.display_title===title);
+   if(duplicate)return json({error:'OPERATION_ALREADY_DISPATCHED',run_id:duplicate.id,url:duplicate.html_url||null},409);
+   await github('actions/workflows/'+workflow+'/dispatches','POST',{ref:'main',inputs:{mode,source_id:source,month}});
+   return json({status:'DISPATCH_REQUESTED',source_id:source,month,mode,workflow,
+    receipt_pending:true,message:'GitHub accepted dispatch. Verify actual run and outcome via intelligence_status.'},202);
+  }
+  const plannedSubmission=body.action==='submit_planned';
+  let plannedBase;
+  if(body.action==='classify_requirement'||plannedSubmission){
+   // Read-only classification and bounded repository discovery. No jobs, paid calls or mutations.
+   const instruction=String(body.instruction||'').trim();
+   const requestedScope=String(body.scope||'development');
+   if(plannedSubmission&&(requestedScope!=='development'||body.confirmation!=='AUTHORIZE_ONE_SEP_JOB'))return json({error:'PLAN_APPROVAL_REQUIRED'},403);
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   if(!['development','research','release'].includes(requestedScope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+   if(body.execution_route!==undefined&&body.execution_route!=='bounded_sep01')return json({error:'EXECUTION_ROUTE_NOT_AUTHORIZED'},422);
+   const intent=classifyRequirement(instruction,requestedScope);
+   const {category,kind,sensitive}=intent;
+   const preview={gateway_version:gatewayVersion,execution_route:'bounded_sep01',provider_route:'gemini_openrouter_runtime_verified',category,kind,sensitive,executable:false,read_only:true,max_file_bytes:maxFileBytes};
+   const block=(reason,candidates=[])=>plannedSubmission?json({error:reason},409):json({...preview,reason,candidates});
+   if(intent.reason)return block(intent.reason);
+   if(instruction.replace(/\s+/g,' ').length>1000)return block('WORKER_INSTRUCTION_LIMIT');
+   const ref=await github('git/ref/heads/main');
+   const tree=await github('git/trees/'+encodeURIComponent(ref.object.sha)+'?recursive=1');
+   if(tree.truncated||!Array.isArray(tree.tree))return block('REPOSITORY_DISCOVERY_INCOMPLETE');
+   const ranked=rankTargets(tree.tree,intent);
+   const eligible=ranked.filter(item=>item.size<=maxFileBytes).slice(0,8);
+   if(ranked[0]?.size>maxFileBytes&&(!eligible.length||ranked[0].score>=eligible[0].score))return block('MATCH_EXCEEDS_FILE_LIMIT',eligible);
+   const target=eligible[0]&&(eligible.length===1||eligible[0].score>eligible[1].score)?eligible[0].path:null;
+   const planId=target?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([owner,ref.object.sha,target,instruction])))),byte=>byte.toString(16).padStart(2,'0')).join(''):null;
+   if(!plannedSubmission){
+    if(!target)return block(eligible.length?'AMBIGUOUS_COMPONENT':'NO_SAFE_TARGET_IDENTIFIED',eligible);
+    return json({...preview,reason:'OWNER_APPROVAL_REQUIRED',candidates:eligible,review_required:true,auto_suggested_target:target,plan_id:planId});
+   }
+   if(!planId||body.plan_id!==planId)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
+   plannedBase=ref.object.sha;
+   body.path=target;
+   body.instruction=instruction.replace(/\s+/g,' ').trim();
+  }
+  if(body.action==='agent_tasks_list'){
+   // Read-only SEP-03 monitoring. Never reuse the SEP-01 execution credential.
+   const agentToken=env('SEP03_GITHUB_AGENT_READ_TOKEN');
+   if(!agentToken)return json({error:'AGENT_MONITOR_CREDENTIAL_NOT_CONFIGURED'},503);
+   // Reject malformed secret values before constructing a privileged outbound header.
+   // Never log or return the credential; GitHub PATs must be single-line ASCII.
+   const normalizedAgentToken=agentToken.trim();
+   if(!/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(normalizedAgentToken))return json({error:'AGENT_MONITOR_CREDENTIAL_INVALID_FORMAT'},503);
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks?per_page=20',{
+    method:'GET',headers:{Authorization:'Bearer '+normalizedAgentToken,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Monitor'}
+   });
+   if(!response.ok){
+    console.error('SEP03_AGENT_TASKS_HTTP',response.status);
+    return json({error:'AGENT_TASKS_UPSTREAM_UNAVAILABLE',upstream_status:response.status},502);
+   }
+   const data=await response.json();
+   const source=Array.isArray(data)?data:Array.isArray(data?.tasks)?data.tasks:[];
+   const tasks=source.slice(0,20).map(task=>{
+    const id=String(task?.id??task?.task_id??'');
+    const state=String(task?.status??task?.state??'unknown');
+    const url=String(task?.html_url??task?.url??'');
+    return {
+     id:/^[a-zA-Z0-9_-]{1,120}$/.test(id)?id:null,
+     state:/^[a-zA-Z0-9_ -]{1,80}$/.test(state)?state:'unknown',
+     url:url.startsWith('https://github.com/')?url:null
+    };
+   });
+   return json({tasks,read_only:true,source_count:source.length});
+  }
+  if(body.action==='agent_delegation_eligibility'){
+   // GitHub's Agent tasks creation API requires Copilot Business/Enterprise.
+   // A Pro+ subscription or read-only PAT is not sufficient evidence.
+   const enabled=env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')==='true';
+   const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
+   const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
+   const writeConfigured=Boolean(env('SEP03_GITHUB_AGENT_WRITE_TOKEN'));
+   const gates={subscription:{status:'OWNER_REPORTED_PRO_PLUS',verified_by_github:false},
+    api_eligibility:{status:eligible?'CONFIGURED_NOT_PROVIDER_VERIFIED':'UNVERIFIED',verified:false},
+    credential:{status:writeConfigured?'CONFIGURED_NOT_PERMISSION_VERIFIED':'MISSING',verified:false},
+    allowance:{status:costApproved?'OWNER_APPROVAL_FLAG_SET_ALLOWANCE_UNVERIFIED':'NOT_AUTHORIZED',verified:false},
+    owner_approval:{status:'REQUIRED_PER_TASK',verified:false}};
+   return json({read_only_monitoring:true,submission_available:false,submission_gate:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED',gates,
+    eligibility_verified:false,owner_cost_approved:costApproved,write_credential_configured:writeConfigured,
+    reason:'PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED'});
+  }
+  // Repository-wide coding-agent delegation. The existing bounded SEP worker is
+  // unchanged. Multi-file work is PR-only and never grants production release.
+  if(body.action==='agent_multifile_plan'||body.action==='agent_multifile_submit'){
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>4000||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(instruction))return json({error:'INVALID_REQUIREMENT'},422);
+   const ref=await github('git/ref/heads/main');
+   const baseSha=String(ref?.object?.sha||'');
+   if(!/^[a-f0-9]{40}$/.test(baseSha))return json({error:'INVALID_BASE_REF'},502);
+   const planData=[owner,baseSha,'github_copilot','multifile_pr_only',instruction];
+   const planId=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(planData)))),b=>b.toString(16).padStart(2,'0')).join('');
+   const enabled=env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')==='true';
+   const eligible=env('SEP03_AGENT_PLAN_ELIGIBLE')==='true';
+   const costApproved=env('SEP03_AGENT_COST_APPROVED')==='true';
+   const token=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
+   const configured=/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(token);
+   const available=false; // Fail closed: configuration flags do not prove provider entitlement, token permission or remaining allowance.
+   const reason='PROVIDER_AND_ALLOWANCE_VERIFICATION_REQUIRED';
+   if(body.action==='agent_multifile_plan')return json({gateway_version:gatewayVersion,
+    category:'repository_wide_development',executor:'github_copilot',plan_id:planId,
+    base_sha:baseSha,executable:available,reason,requires_owner_approval:true,
+    scope:'MULTI_FILE_PR_ONLY',production_deployment:false,
+    cost_policy:'Existing owner-approved GitHub agent entitlement only; no API provider fallback',
+    review_required:true,message:'Coding agent may inspect repository and propose coordinated changes on a PR. No merge, production release, secrets, or unrestricted operational execution.'});
+   if(!available)return json({error:reason||'AGENT_NOT_AVAILABLE'},403);
+   if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_MULTIFILE_TASK'||body.plan_id!==planId)
+    return json({error:'MULTIFILE_APPROVAL_REQUIRED_OR_STALE'},403);
+   const prompt='GPIR owner-authorized multi-file repository development task. Inspect the complete repository and existing architecture. Implement only the approved requirement using the smallest coherent set of files. Preserve Supabase identity and source governance, Payload primary and Contentful BCP, 95% intelligence publication threshold, historical/live separation, security, and existing routes. Run relevant tests and provide a detailed PR with evidence. Do not access or print secrets, alter credentials, merge, deploy, execute production mutations, activate sources, or initiate paid external provider calls. Reuse existing open PRs where appropriate rather than duplicate work. Requirement: '+instruction;
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks',{
+    method:'POST',headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json',
+     'X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP04-Owner-Multifile','Content-Type':'application/json'},
+    body:JSON.stringify({prompt,base_ref:'main',create_pull_request:true})
+   });
+   if(response.status!==201){console.error('SEP04_MULTIFILE_AGENT_HTTP',response.status);
+    return json({error:'AGENT_TASK_CREATION_FAILED',upstream_status:response.status},502)}
+   const task=await response.json();
+   const id=String(task?.id||'');
+   const url=String(task?.html_url||'');
+   if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
+   return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,
+    provider:'github_copilot',scope:'MULTI_FILE_PR_ONLY',requires_review:true,production_deployment:false,
+    receipt_status:'AGENT_ACCEPTED_NOT_COMPLETED'},201);
+  }
+  if(body.action==='agent_task_submit'){
+   // No side effects until every independent authorization gate passes.
+   if(env('SEP03_AGENT_TASK_SUBMISSION_ENABLED')!=='true')return json({error:'AGENT_TASK_SUBMISSION_DISABLED'},403);
+   if(env('SEP03_AGENT_PLAN_ELIGIBLE')!=='true')return json({error:'AGENT_PLAN_NOT_VERIFIED'},403);
+   if(env('SEP03_AGENT_COST_APPROVED')!=='true')return json({error:'AGENT_COST_APPROVAL_REQUIRED'},403);
+   if(body.confirmation!=='AUTHORIZE_ONE_GITHUB_AGENT_TASK')return json({error:'EXPLICIT_TASK_CONFIRMATION_REQUIRED'},422);
+   const path=String(body.path||'');
+   if(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..'))return json({error:'PATH_NOT_AUTHORIZED'},422);
+   const instruction=String(body.instruction||'').trim();
+   if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},422);
+   const writeToken=env('SEP03_GITHUB_AGENT_WRITE_TOKEN').trim();
+   if(!/^(github_pat_|ghp_)[\x21-\x7e]{10,500}$/.test(writeToken))return json({error:'AGENT_WRITE_CREDENTIAL_UNAVAILABLE'},503);
+   // Restrict the task's instructions and require PR-only review; never authorize deployment.
+   const prompt='GPIR owner-authorized bounded documentation/stylesheet proposal. Modify ONLY '+path+
+    '. Do not change workflows, authentication, secrets, payments, dependencies, or production deployment. Open a PR for review; do not merge. Requirement: '+instruction;
+   const response=await fetch('https://api.github.com/agents/repos/krishnan-vishal/krishnan-vishal.github.io/tasks',{
+    method:'POST',headers:{Authorization:'Bearer '+writeToken,Accept:'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2026-03-10','User-Agent':'GPIR-SEP03-Owner-Delegation','Content-Type':'application/json'},
+    body:JSON.stringify({prompt,base_ref:'main',create_pull_request:true})
+   });
+   if(response.status!==201){console.error('SEP03_AGENT_SUBMISSION_HTTP',response.status);return json({error:'AGENT_TASK_CREATION_FAILED',upstream_status:response.status},502)}
+   const task=await response.json();
+   const id=String(task?.id||'');
+   const url=String(task?.html_url||'');
+   if(!/^[a-zA-Z0-9_-]{1,120}$/.test(id))return json({error:'AGENT_TASK_RESPONSE_INVALID'},502);
+   return json({task_id:id,state:String(task?.state||'queued'),url:url.startsWith('https://github.com/')?url:null,provider:'github_copilot',requires_review:true},201);
+  }
+  if(body.action!=='submit'&&!plannedSubmission)return json({error:'UNKNOWN_ACTION'},400);
+  const scope=String(body.scope||'');
+  if(!['fixture','development'].includes(scope))return json({error:'SCOPE_NOT_AUTHORIZED'},422);
+  // Explicit non-sensitive file boundary. No arbitrary code, workflow, auth, payment, secret or deployment edits.
+  const path=String(body.path||'');
+  if(scope==='development'&&(!/^(docs\/[a-zA-Z0-9/_-]+\.md|assets\/css\/[a-zA-Z0-9/_-]+\.css)$/.test(path)||path.includes('..')))return json({error:'PATH_NOT_AUTHORIZED'},422);
+  const instruction=String(body.instruction||'').trim();
+  if(!instruction||instruction.length>1000||/[\x00-\x1f]/.test(instruction))return json({error:'INVALID_INSTRUCTION'},400);
+  if(scope==='fixture'&&instruction!==sep02FixtureInstruction)return json({error:'FIXTURE_INSTRUCTION_NOT_AUTHORIZED'},422);
+  const target=scope==='fixture'?sep02FixturePath:path;
+  const existing=await supa('gpir_sep01_jobs?select=job_id,payload&limit=1000');
+  if(scope==='fixture'){
+   const previous=existing.find(row=>row.payload?.acceptance_series==='SEP02'&&row.payload?.owner_user_id===owner);
+   if(previous)return json({error:'ACCEPTANCE_ALREADY_SUBMITTED',job_id:previous.job_id,message:'SEP-02 is one-shot. Check the existing acceptance receipt; do not submit again.'},409);
+  }
+  const lockHolder=existing.find(row=>['CLAIMED','CHECKPOINTED','PR_READY','CI_VERIFIED','RELEASE_ELIGIBLE'].includes(row.payload?.status)&&row.payload?.locked_paths?.includes(target));
+  if(lockHolder)return json({error:'WRITER_LOCK_CONFLICT',message:'A verified checkpoint already owns this file. Preserve its state and complete governed review before submitting another edit.'},409);
+  if(scope==='development'){
+   const file=await github('contents/'+path);
+   if(file.type!=='file'||file.size>maxFileBytes)return json({error:'FILE_NOT_ELIGIBLE'},422);
+  }
+  const jobId='sep01-owner-'+(plannedSubmission?body.plan_id.slice(0,40):crypto.randomUUID().slice(0,18));
+  const branch='sep01/jobs/'+jobId;
+  const ref=await github('git/ref/heads/main');
+  if(plannedBase&&plannedBase!==ref.object.sha)return json({error:'PLAN_STALE_OR_AMBIGUOUS'},409);
+  await github('git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});
+  if(scope==='fixture'){
+   const fixture='SEP-02 bounded provider failover acceptance fixture.\nSTATE: PENDING\n';
+   await github('contents/'+sep02FixturePath,'PUT',{message:'SEP-02: seed isolated non-production acceptance fixture',content:btoa(fixture),branch});
+  }
+  const payload={job_id:jobId,idempotency_key:scope==='fixture'?'owner:sep02-once:'+owner:'owner:'+jobId,branch,locked_paths:[target],scope,instruction,capability:'code',remaining_budget:0,sensitivity_tier:null,single_attempt:scope==='fixture'||plannedSubmission,acceptance_series:scope==='fixture'?'SEP02':null,status:'QUEUED',owner_user_id:owner};
+  const queued=await supa('rpc/gpir_sep01_cas_job','POST',{p_job_id:jobId,p_idempotency_key:payload.idempotency_key,p_expected_revision:null,p_payload:payload});
+  if(queued?.job_id!==jobId||queued?.status!=='QUEUED')throw Error('ACCEPTANCE_QUEUE_NOT_CONFIRMED');
+  try{await github('actions/workflows/sep01-durable-dispatch.yml/dispatches','POST',{ref:'main',inputs:{job_id:jobId}})}
+  catch(error){return json({job_id:jobId,status:'QUEUED',dispatch:'PENDING',message:'Job queued; dispatcher trigger unavailable. Scheduled dispatcher may pick it up.'},202)}
+  return json({job_id:jobId,status:'QUEUED',dispatch:'REQUESTED'},202);
+ }catch(error){console.error('SEP01_COMMAND_ERROR',String(error?.message||error));return json({error:'COMMAND_GATEWAY_ERROR',detail:String(error?.message||error).replace(/[^A-Z0-9_]/gi,'_').slice(0,100)},500)}
+});
+).test(a.name||''));
+    if(job?.conclusion==='success'&&step?.conclusion==='success'&&receipt){
+     lastSuccess={run_id:run.id,attempt:run.run_attempt,verified_at:job.completed_at,
+      receipt_artifact_id:receipt.id,receipt_name:receipt.name,
+      event:run.event,status:'SOURCE_ARCHIVES_READBACK_VERIFIED'};
+     break;
+    }
+   }
+   return json({read_only:true,dispatch_performed:false,workflow,
+    last_success:lastSuccess,latest_run:runs[0]?{run_id:runs[0].id,status:runs[0].status,
+     conclusion:runs[0].conclusion||null,event:runs[0].event,updated_at:runs[0].updated_at}:null,
+    full_postgresql_recovery_verified:false,verified:!!lastSuccess});
+  }
   if(body.action==='contentful_bcp_receipt'){
    // One bounded repository-artifact lookup covers scheduled, approved release
    // and manual BCP receipts; never traverse dozens of workflow runs.
