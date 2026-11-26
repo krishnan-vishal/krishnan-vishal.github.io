@@ -1,16 +1,9 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
-import { getPayload } from 'payload'
-import { allNative } from '../release/editorial-source'
-import { canonicalPath, GPIR_LINEAGE_ID, GPIR_PUBLICATION_ID, UUID } from '../lib/identity'
-import { contentfulToLexical } from '../lib/richText'
+import type { DriveReview } from '../release/drive-intake'
+import { signArtifact } from '../release/release'
 
-type Editorial = {
-  publicationId: string; lineageId: string; recordId: string; route: string
-  title: string; summary: string; body: string; chapterSlug: string
-  category: string; region?: string; country?: string; direction?: string
-}
-type Intake = { id: string; size: number; mime: string; editorial?: Editorial }
+type Intake = { id: string; size: number; mime: string; editorial?: DriveReview }
 
 const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
 const identity = (value: string) => value.trim().toUpperCase()
@@ -54,8 +47,10 @@ async function main() {
         item.size <= 0 || item.size > 20_000_000 || typeof item.mime !== 'string')) {
     throw new Error('Expected the fixed 92-file Drive inventory with unique IDs, sizes and MIME types')
   }
-  for (const name of ['PAYLOAD_DATABASE_URI', 'PAYLOAD_SECRET', 'S3_BUCKET', 'S3_ENDPOINT',
-    'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY']) value(name)
+  const origin = new URL(value('PAYLOAD_PUBLIC_SERVER_URL')).origin
+  if (origin !== 'https://gpir-payload-cms.krishnanvishal12.workers.dev') throw new Error('Unexpected production Worker origin')
+  const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
+  const signingSecret = value('GPIR_RELEASE_SIGNING_SECRET')
   const oauth = await (await request('https://oauth2.googleapis.com/token', {
     method: 'POST', body: new URLSearchParams({
       grant_type: 'refresh_token', client_id: value('GPIR_DRIVE_CLIENT_ID'),
@@ -72,122 +67,81 @@ async function main() {
     sources.push({ item, bytes, hash: digest(bytes) })
   }
 
-  const { default: config } = await import('../payload.config')
-  const payload = await getPayload({ config })
-  try {
-    const [latest, published, media, entries, assets] = await Promise.all([
-      allNative(payload, undefined, true), allNative(payload),
-      payload.find({ collection: 'media', pagination: false, depth: 0, overrideAccess: true }),
-      contentfulInventory('entries'), contentfulInventory('assets'),
-    ])
-    const hashes = new Set<string>(media.docs.flatMap(doc => doc.sourceSha256 ? [doc.sourceSha256] : []))
-    const candidateSizes = new Set(inventory.map(item => item.size))
-    const downloadedAssets = new Set<string>()
-    for (const asset of assets) {
-      for (const file of Object.values(asset.fields?.file || {}) as any[]) {
-        if (!file.url || (file.details?.size != null && !candidateSizes.has(file.details.size))) continue
-        const url = new URL(file.url.startsWith('//') ? `https:${file.url}` : file.url)
-        if (url.protocol !== 'https:' || !['images.ctfassets.net', 'assets.ctfassets.net', 'downloads.ctfassets.net', 'files.ctfassets.net'].includes(url.host)) {
-          throw new Error('Contentful comparison asset is outside approved delivery hosts')
-        }
-        if (downloadedAssets.has(url.href)) continue
-        downloadedAssets.add(url.href)
-        hashes.add(digest(Buffer.from(await (await request(url.href, {}, 'Contentful asset comparison')).arrayBuffer())))
-      }
+  const [estate, entries, assets] = await Promise.all([
+    (await request(origin + '/api/release/editorial-entries', {
+      method: 'POST', headers: { authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'export' }),
+    }, 'Payload inventory')).json(),
+    contentfulInventory('entries'), contentfulInventory('assets'),
+  ])
+  if (!Array.isArray(estate.records)) throw new Error('Invalid Payload estate')
+  const hashes = new Set<string>()
+  const titles = new Set<string>()
+  const routes = new Set<string>()
+  for (const row of estate.records) {
+    const source = row.sourcePayload
+    for (const doc of [source?.document, source?.publishedDocument, source?.fields]) {
+      if (doc?.publicationTitle) titles.add(identity(doc.publicationTitle))
+      if (doc?.canonicalUrlCandidate) routes.add(identity(doc.canonicalUrlCandidate))
+      if (doc?.sourceHash) hashes.add(doc.sourceHash)
+      if (doc?.sourceSha256 && !doc.sourceMetadata?.driveDraft) hashes.add(doc.sourceSha256)
     }
-    const registry = JSON.parse(await readFile('../../assets/data/dashboard-metadata.json', 'utf8'))
-    for (const dashboard of registry.records) {
-      if (!dashboard.imagePath || !/^assets\/[\w./ -]+$/.test(dashboard.imagePath) || dashboard.imagePath.includes('..')) continue
-      const image = await readFile(`../../${dashboard.imagePath}`).catch((error: NodeJS.ErrnoException) => {
-        if (error.code !== 'ENOENT') throw error
-      })
-      if (image) hashes.add(digest(image))
-    }
-    const known = new Map<string, Set<string>>()
-    const remember = (key: string, raw: unknown) => {
-      if (typeof raw !== 'string' || !raw.trim()) return
-      if (!known.has(key)) known.set(key, new Set())
-      known.get(key)!.add(identity(raw))
-    }
-    const fields = ['gpirPublicationId', 'supabaseRecordId', 'canonicalUrlCandidate', 'slug', 'publicationTitle'] as const
-    for (const doc of [...latest, ...published]) {
-      for (const field of fields) remember(field, doc[field])
-      remember('sourceHash', doc.sourceHash)
-    }
-    for (const entry of entries) {
-      for (const field of fields) {
-        for (const localized of Object.values(entry.fields?.[field] || {})) remember(field, localized)
-      }
-    }
-    const counts = { acquired: sources.length, duplicateBytes: 0, existingIdentity: 0, held: 0, imported: 0 }
-    sources.sort((a, b) => Number(Boolean(b.item.editorial)) - Number(Boolean(a.item.editorial)))
-    const seen = new Set<string>()
-    for (const { item, bytes, hash } of sources) {
-      if (seen.has(hash) || known.get('sourceHash')?.has(identity(hash))) {
-        counts.duplicateBytes++
-        continue
-      }
-      seen.add(hash)
-      const editorial = item.editorial
-      // A media row without a corresponding draft can be a checkpoint from an interrupted write.
-      const reusable = media.docs.find(doc => doc.sourceSha256 === hash &&
-        (doc.sourceMetadata as { driveId?: string } | null)?.driveId === item.id)
-      if (hashes.has(hash) && !reusable) {
-        counts.duplicateBytes++
-        continue
-      }
-      const extensions: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'application/pdf': 'pdf' }
-      const ext = extensions[item.mime]
-      if (!editorial || !ext) {
-        counts.held++
-        continue
-      }
-      const route = canonicalPath(editorial.route)
-      const slug = route.replace(/^\//, '').replace(/\/$/, '')
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
-          !GPIR_PUBLICATION_ID.test(editorial.publicationId) || !GPIR_LINEAGE_ID.test(editorial.lineageId) ||
-          !UUID.test(editorial.recordId) || ![editorial.title, editorial.summary, editorial.body, editorial.category]
-            .every(text => typeof text === 'string' && text.trim())) {
-        throw new Error('Invalid editorial identity, canonical route or source text')
-      }
-      const keys = [editorial.publicationId, editorial.recordId, route, slug, editorial.title]
-      if (fields.some((field, index) => known.get(field)?.has(identity(keys[index])))) {
-        counts.existingIdentity++
-        continue
-      }
-      const chapter = await payload.find({ collection: 'chapters', where: { slug: { equals: editorial.chapterSlug } },
-        limit: 2, depth: 0, overrideAccess: true })
-      if (chapter.totalDocs !== 1) throw new Error('Editorial mapping must reference one existing GPIR chapter')
-      const asset = reusable || await payload.create({ collection: 'media', overrideAccess: true,
-        file: { name: `${hash}.${ext}`, data: bytes, mimetype: item.mime, size: bytes.length },
-        data: { alt: editorial.title, sourceSha256: hash, sourceMetadata: { driveId: item.id } } })
-      await payload.create({ collection: 'research-publications', draft: true, overrideAccess: true, data: {
-        _status: 'draft', validationStatus: 'WARN', accessClass: 'ENTITLED', migrationStatus: 'IMPORTED',
-        publicationStatus: 'CURRENT', publicationType: 'Research Publication', slug,
-        publicationTitle: editorial.title, gpirPublicationId: editorial.publicationId,
-        editionLineageId: editorial.lineageId, supabaseRecordId: editorial.recordId,
-        canonicalUrlCandidate: route, canonicalUrl: `https://fintechoisis.com${route}`,
-        executiveSummary: editorial.summary,
-        editorialBody: contentfulToLexical({ nodeType: 'document', data: {}, content: editorial.body.split(/\n+/).filter(Boolean)
-          .map(text => ({ nodeType: 'paragraph', data: {}, content: [{ nodeType: 'text', value: text, marks: [], data: {} }] })) }),
-        chapters: [chapter.docs[0].id], dashboardAsset: asset.id,
-        useCasePaymentCategory: editorial.category, regionLabel: editorial.region,
-        countryMarket: editorial.country, directionScope: editorial.direction,
-        sourceHash: hash, sourceLineage: { source: 'google-drive', fileId: item.id },
-        sourceValidationSummary: 'Drive bytes were reconciled against existing CMS records. Editorial and release validation are pending.',
-      } })
-      fields.forEach((field, index) => remember(field, keys[index]))
-      counts.imported++
-    }
-    console.log(JSON.stringify(counts))
-  } finally {
-    await payload.destroy()
   }
+  for (const item of entries) {
+    for (const title of Object.values(item.fields?.publicationTitle || {})) if (typeof title === 'string') titles.add(identity(title))
+    for (const route of Object.values(item.fields?.canonicalUrlCandidate || {})) if (typeof route === 'string') routes.add(identity(route))
+  }
+  const candidateSizes = new Set(inventory.map(item => item.size))
+  const downloaded = new Set<string>()
+  for (const asset of assets) {
+    for (const file of Object.values(asset.fields?.file || {}) as any[]) {
+      if (!file.url || (file.details?.size != null && !candidateSizes.has(file.details.size))) continue
+      const url = new URL(file.url.startsWith('//') ? 'https:' + file.url : file.url)
+      if (url.protocol !== 'https:' || !['images.ctfassets.net', 'assets.ctfassets.net', 'downloads.ctfassets.net', 'files.ctfassets.net'].includes(url.host)) {
+        throw new Error('Unexpected Contentful asset host')
+      }
+      if (downloaded.has(url.href)) continue
+      downloaded.add(url.href)
+      hashes.add(digest(Buffer.from(await (await request(url.href, {}, 'Contentful asset comparison')).arrayBuffer())))
+    }
+  }
+  const registry = JSON.parse(await readFile('../../assets/data/dashboard-metadata.json', 'utf8'))
+  for (const dashboard of registry.records) {
+    if (typeof dashboard.imagePath !== 'string' || !/^assets\/[\w./ -]+$/.test(dashboard.imagePath) || dashboard.imagePath.includes('..')) continue
+    const image = await readFile('../../' + dashboard.imagePath).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== 'ENOENT') throw error
+    })
+    if (image) hashes.add(digest(image))
+  }
+  const counts = { acquired: sources.length, excluded: 0, held: 0, drafts: 0 }
+  sources.sort((a, b) => Number(Boolean(b.item.editorial)) - Number(Boolean(a.item.editorial)))
+  for (const { item, bytes, hash } of sources) {
+    if (hashes.has(hash)) { counts.excluded++; continue }
+    hashes.add(hash)
+    const review = item.editorial
+    if (!review || review.hash !== hash || !['image/png', 'image/jpeg'].includes(item.mime)) {
+      counts.held++; continue
+    }
+    if (titles.has(identity(review.title)) || routes.has(identity('/' + review.routeSlug + '/'))) {
+      counts.excluded++; continue
+    }
+    const form = new FormData()
+    form.set('review', JSON.stringify(review))
+    form.set('file', new Blob([new Uint8Array(bytes)], { type: item.mime }), 'dashboard')
+    const signature = signArtifact({ purpose: 'gpir-drive-draft-intake-v1', review }, signingSecret).signature
+    const response = await request(origin + '/api/release/drive-draft-intake', {
+      method: 'POST', headers: { authorization, 'x-gpir-intake-signature': signature }, body: form,
+    }, 'Payload draft intake')
+    const outcome = await response.json() as { status: string }
+    if (outcome.status === 'DRAFT_CREATED') counts.drafts++
+    else if (['EXISTING_RECORD', 'EXISTING_MEDIA'].includes(outcome.status)) counts.excluded++
+    else throw new Error('Unrecognized Worker intake response')
+  }
+  console.log(JSON.stringify(counts))
 }
 main().catch(error => {
-  // Provider and database errors can contain private source material.
   const message = String(error?.message || '')
-  console.error(/^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Drive acquisition|Contentful inventory|Contentful asset comparison) returned HTTP \d{3})$/.test(message)
-    ? message : 'Drive editorial intake failed. Existing draft and media identities can be reused on retry.')
+  console.error(/^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Drive acquisition|Contentful inventory|Contentful asset comparison|Payload draft intake|Payload inventory) returned HTTP \d{3})$/.test(message)
+    ? message : 'Drive editorial intake failed.')
   process.exitCode = 1
 })
