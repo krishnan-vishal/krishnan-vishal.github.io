@@ -204,6 +204,7 @@ async function verifyDriveSnapshot(result,expected,load,postgres=false){
  const raw=await load(result.manifestSha256,result.manifestIdentity);
  if(sha(raw)!==result.manifestSha256)throw Error('Downloaded manifest differs');
  const manifest=JSON.parse(raw.toString('utf8'));
+ await mk(target);
  const recovered=path.join(target,'verify-'+crypto.randomUUID());
  const fh=await fsp.open(recovered,'wx',0o600);
  let restoreResult;
