@@ -5,6 +5,7 @@ on:
     - cron: '17 2 * * *'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: gpir-m43-production-archive
   cancel-in-progress: false
@@ -29,9 +30,20 @@ jobs:
         run: |
           node scripts/m43/m43-drive-archive.cjs --self-test
           node --test scripts/m43/m43-stream-archive.test.cjs scripts/m43/m43-production-archive.test.cjs
-      - name: Install existing CMS export dependencies without production credentials
-        run: npm ci --no-audit --no-fund
-        working-directory: apps/gpir-cms
+      - name: Retrieve latest successful existing BCP receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/m40-contentful-editorial-draft-handoff.yml/runs?branch=main&event=schedule&status=success&per_page=20" --jq '.workflow_runs[0].id')
+          test "$run_id" != null && test -n "$run_id"
+          artifact=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/artifacts?per_page=100" --jq '[.artifacts[] | select(.expired == false and (.name | startswith("bcp-verified-")))] | sort_by(.created_at) | last | .name')
+          test "$artifact" != null && test -n "$artifact"
+          mkdir -m 700 "$RUNNER_TEMP/m43-bcp-receipt"
+          gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "$RUNNER_TEMP/m43-bcp-receipt"
+          test -f "$RUNNER_TEMP/m43-bcp-receipt/m41-bcp-recovery.json"
+          echo "GPIR_BCP_RECEIPT=$RUNNER_TEMP/m43-bcp-receipt/m41-bcp-recovery.json" >> "$GITHUB_ENV"
       - name: Export existing sources, archive and independently recover
         id: verified
         env:
@@ -46,7 +58,7 @@ jobs:
           CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID }}
           CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
-          PAYLOAD_PUBLIC_SERVER_URL: ${{ secrets.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL || secrets.PAYLOAD_PUBLIC_SERVER_URL }}
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
           GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
           GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ vars.GPIR_PAYLOAD_SITE_SNAPSHOT }}
