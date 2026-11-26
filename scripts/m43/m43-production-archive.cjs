@@ -53,6 +53,19 @@ async function exportSupabase(env){
  await command('tar',['-czf',path.join(target,'supabase-data.tar.gz'),'-C',target,'supabase']);
  return {file:path.join(target,'supabase-data.tar.gz'),status:'REST_DATA_ONLY',rows:Object.values(report.tables).reduce((a,b)=>a+b,0)};
 }
+async function exportNativePostgres(env){
+ // A service_role REST key cannot replace database-level pg_dump access.
+ // Reuse a pre-existing database connection secret when available.
+ const connection=env.SUPABASE_DB_URL||env.DATABASE_URL;
+ if(!connection)return null;
+ if(!/^postgres(?:ql)?:\/\//.test(connection))throw Error('Invalid existing PostgreSQL connection URI');
+ const out=path.join(target,'supabase-postgresql.dump');
+ await command('pg_dump',['--format=custom','--no-owner','--no-acl','--file='+out],
+  {env:{...env,PGDATABASE:connection}});
+ await command('pg_restore',['--list',out]);
+ if(!(await fsp.stat(out)).size)throw Error('Empty PostgreSQL dump');
+ return {source:'supabase_postgresql',file:out,status:'POSTGRESQL_LOGICAL_DUMP'};
+}
 async function exportContentful(env){
  need(env,['CONTENTFUL_SPACE_ID','CONTENTFUL_ENVIRONMENT','CONTENTFUL_MANAGEMENT_TOKEN']);
  const dest=path.join(target,'contentful');
@@ -125,6 +138,8 @@ async function main(){
  await mk(target);
  const exports=[{source:'github_repository',file:await exportRepository(),status:'GIT_BUNDLE_VERIFIED'}];
  exports.push({source:'supabase_data',...await exportSupabase(env)});
+ const postgres=await exportNativePostgres(env);
+ if(postgres)exports.push(postgres);
  exports.push({source:'contentful_bcp',...await exportContentful(env)});
  const payload=await exportPayload(env);
  if(payload.file)exports.push({source:'payload_direct',...payload});
@@ -136,7 +151,7 @@ async function main(){
   const recovery=await verifyDriveSnapshot(snap,expected,load);
   verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status});
  }
- const fullDatabase='NOT_FULL_DATABASE_BACKUP';
+ const fullDatabase=postgres?'POSTGRESQL_LOGICAL_DUMP_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
  const report={format:'GPIR-M43.4B-RECEIPT-v1',runId:env.GITHUB_RUN_ID,attempt:env.GITHUB_RUN_ATTEMPT,commit:env.GITHUB_SHA,verifiedAt:new Date().toISOString(),
   status:'PRODUCTION_SOURCE_ARCHIVES_READBACK_VERIFIED',fullDatabase,payloadStatus:payload.status,
   sources:verified};
