@@ -5,7 +5,8 @@ const fs=require('node:fs');
 const fsp=require('node:fs/promises');
 const path=require('node:path');
 const crypto=require('node:crypto');
-const {execFile}=require('node:child_process');
+const {execFile,spawn}=require('node:child_process');
+const readline=require('node:readline');
 const {promisify}=require('node:util');
 const {snapshot}=require('./m43-stream-archive.cjs');
 const {archive}=require('./m43-drive-archive.cjs');
@@ -53,6 +54,32 @@ async function exportSupabase(env){
  await command('tar',['-czf',path.join(target,'supabase-data.tar.gz'),'-C',target,'supabase']);
  return {file:path.join(target,'supabase-data.tar.gz'),status:'REST_DATA_ONLY',rows:Object.values(report.tables).reduce((a,b)=>a+b,0)};
 }
+const inventorySQL = "SELECT json_build_array(n.nspname,c.relname,c.relkind)::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind IN ('r','p','v','m','S','i','I') AND n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_toast%' AND n.nspname NOT LIKE 'pg_temp_%' ORDER BY n.nspname COLLATE \"C\",c.relname COLLATE \"C\"";
+function quoteIdent(s){return '"'+s.replace(/"/g,'""')+'"';}
+async function session(bin,args,opts,work){
+ const p=spawn(bin,args,{...opts,stdio:['pipe','pipe','ignore']});
+ const lines=readline.createInterface({input:p.stdout,crlfDelay:Infinity})[Symbol.asyncIterator]();
+ const ended=new Promise(resolve=>{p.once('error',()=>resolve(-1));p.once('close',resolve);});
+ async function query(sql){
+  const marker='GPIR_'+crypto.randomUUID();
+  p.stdin.write(sql+';\n\\\\echo '+marker+'\n');
+  const result=[];
+  for(;;){const row=await lines.next();if(row.done)throw Error('PostgreSQL session ended');if(row.value===marker)return result;result.push(row.value);}
+ }
+ try{return await work(query);}finally{p.stdin.end();if(await ended!==0)throw Error('PostgreSQL session failed');}
+}
+async function fingerprint(query){
+ const inventory=(await query(inventorySQL)).map(JSON.parse);
+ const records=[];
+ for(const [schema,table,kind] of inventory){
+  if(kind!=='r'&&kind!=='m')continue;
+  const name=quoteIdent(schema)+'.'+quoteIdent(table);
+  const rows=await query("SELECT json_build_array(count(*)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),1,16))::bit(64)::bigint::numeric),0)::text,coalesce(sum(('x'||substr(md5(row_to_json(t)::text),17,16))::bit(64)::bigint::numeric),0)::text)::text FROM "+name+" t");
+  records.push([schema,table,JSON.parse(rows[0])]);
+ }
+ return {inventory,records};
+}
+function reconcile(source,restored){if(JSON.stringify(source)!==JSON.stringify(restored))throw Error('PostgreSQL inventory or record fingerprint mismatch');return {tables:source.records.length,inventoryObjects:source.inventory.length};}
 async function exportNativePostgres(env){
  // A service_role REST key cannot replace database-level pg_dump access.
  // Reuse a pre-existing database connection secret when available.
@@ -60,11 +87,20 @@ async function exportNativePostgres(env){
  if(!connection)return null;
  if(!/^postgres(?:ql)?:\/\//.test(connection))throw Error('Invalid existing PostgreSQL connection URI');
  const out=path.join(target,'supabase-postgresql.dump');
- await command('pg_dump',['--format=custom','--no-owner','--no-acl','--file='+out],
-  {env:{...env,PGDATABASE:connection}});
+ const source=await session('psql',['-X','-qAt','-v','ON_ERROR_STOP=1'],{env:{...env,PGDATABASE:connection}},async query=>{
+  await query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+  const [id]=await query('SELECT pg_export_snapshot()');
+  if(!/^[0-9A-Fa-f-]+$/.test(id))throw Error('Invalid snapshot identifier');
+  const manifest=await fingerprint(query);
+  await command('pg_dump',['--format=custom','--no-owner','--no-acl','--snapshot='+id,'--file='+out],{env:{...env,PGDATABASE:connection}});
+  await query('ROLLBACK');
+  return manifest;
+ });
+ const manifestFile=path.join(target,'postgres-reconciliation.json');
+ await writePrivate(manifestFile,JSON.stringify(source));
  await command('pg_restore',['--list',out]);
  if(!(await fsp.stat(out)).size)throw Error('Empty PostgreSQL dump');
- return {source:'supabase_postgresql',file:out,status:'POSTGRESQL_LOGICAL_DUMP'};
+ return {source:'supabase_postgresql',file:out,status:'POSTGRESQL_LOGICAL_DUMP',sourceManifest:source,manifestFile};
 }
 async function exportContentful(env){
  need(env,['CONTENTFUL_SPACE_ID','CONTENTFUL_ENVIRONMENT','CONTENTFUL_MANAGEMENT_TOKEN','GPIR_BCP_RECEIPT']);
@@ -111,7 +147,7 @@ async function exportPayload(env){
  return {file,status:'DIRECT_PAYLOAD_EXPORT',records:ordered.length,editorial:editorial.records.length};
 }
 async function hashFile(file){const h=crypto.createHash('sha256');const stream=fs.createReadStream(file);for await(const b of stream)h.update(b);return h.digest('hex');}
-async function restorePostgresIsolated(file){
+async function restorePostgresIsolated(file,source){
  // Docker has no network and receives only the recovered dump, not production credentials.
  const name='gpir-m43-restore-'+crypto.randomUUID();
  const cleanEnv={PATH:process.env.PATH,HOME:process.env.HOME};
@@ -130,7 +166,9 @@ async function restorePostgresIsolated(file){
   const result=await run('docker',['exec',name,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery','-Atc',sql],opts);
   const count=Number(result.stdout.trim());
   if(!Number.isSafeInteger(count)||count<1)throw Error('Restored database has no application tables');
-  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
+  const restored=await session('docker',['exec','-i',name,'psql','-X','-qAt','-v','ON_ERROR_STOP=1','-U','postgres','-d','gpir_recovery'],opts,fingerprint);
+  const reconciliation=reconcile(source,restored);
+  return {status:'ISOLATED_LOGICAL_RESTORE_VERIFIED',tables:count,reconciliation,coverage:'INVENTORY_AND_RECORD_FINGERPRINTS_ONLY',ownershipAndGrants:'NOT_RESTORED',storageObjects:'NOT_VERIFIED',platformConfiguration:'NOT_VERIFIED',managedServices:'NOT_VERIFIED'};
  }finally{
   await command('docker',['rm','-f','-v',name],opts);
  }
@@ -148,7 +186,7 @@ async function verifyDriveSnapshot(result,expected,load,postgres=false){
    let done=0;while(done<b.length){const {bytesWritten}=await fh.write(b,done,b.length-done);if(!bytesWritten)throw Error('Recovery write stopped');done+=bytesWritten;}
   });
  }finally{await fh.close();}
- try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');if(postgres)restoreResult.database=await restorePostgresIsolated(recovered);}
+ try{if(restoreResult.sha256!==expected||await hashFile(recovered)!==expected)throw Error('Reconstructed archive differs');if(postgres)restoreResult.database=await restorePostgresIsolated(recovered,postgres);}
  finally{await fsp.rm(recovered,{force:true});}
  return restoreResult;
 }
@@ -166,7 +204,7 @@ async function main(){
  const exports=[{source:'github_repository',file:await exportRepository(),status:'GIT_BUNDLE_VERIFIED'}];
  exports.push({source:'supabase_data',...await exportSupabase(env)});
  const postgres=await exportNativePostgres(env);
- if(postgres)exports.push(postgres);
+ if(postgres){exports.push({source:'postgres_reconciliation_manifest',file:postgres.manifestFile,status:'SOURCE_SNAPSHOT_FINGERPRINT'});exports.push(postgres);}
  exports.push({source:'contentful_bcp',...await exportContentful(env)});
  const payload=await exportPayload(env);
  if(payload.file)exports.push({source:'payload_direct',...payload});
@@ -175,10 +213,10 @@ async function main(){
   const expected=await hashFile(item.file);
   const snap=await snapshot(item.file,sendRetry,env);
   const load=await driveLoader(env);
-  const recovery=await verifyDriveSnapshot(snap,expected,load,item.source==='supabase_postgresql');
+  const recovery=await verifyDriveSnapshot(snap,expected,load,item.source==='supabase_postgresql'?item.sourceManifest:false);
   verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status,...(recovery.database?{database:recovery.database}:{})});
  }
- const fullDatabase=postgres?'ISOLATED_LOGICAL_RESTORE_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
+ const fullDatabase=postgres?'ISOLATED_RESTORE_PARTIAL_RECONCILIATION_VERIFIED':'NOT_FULL_DATABASE_BACKUP';
  const report={format:'GPIR-M43.4B-RECEIPT-v1',runId:env.GITHUB_RUN_ID,attempt:env.GITHUB_RUN_ATTEMPT,commit:env.GITHUB_SHA,verifiedAt:new Date().toISOString(),
   status:'PRODUCTION_SOURCE_ARCHIVES_READBACK_VERIFIED',fullDatabase,payloadStatus:payload.status,
   sources:verified};
@@ -190,4 +228,4 @@ async function main(){
  console.log(JSON.stringify({status:report.status,sources:verified.map(x=>({source:x.source,status:x.status,recovery:x.recovery,bytes:x.bytes})),fullDatabase,payloadStatus:payload.status,verifiedAt:report.verifiedAt}));
 }
 if(require.main===module)main().catch(error=>{console.error('M43_ARCHIVE_FAILED: '+String(error.message).slice(0,200));process.exitCode=1});
-module.exports={exportSupabase,verifyDriveSnapshot};
+module.exports={exportSupabase,verifyDriveSnapshot,reconcile};
