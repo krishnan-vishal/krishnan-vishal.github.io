@@ -9,7 +9,7 @@ async function restore(manifest,load,write){
  if(manifest.format!=='GPIR-M43-v1'||!Array.isArray(manifest.chunks))throw Error('Invalid manifest');
  for(const [index,c] of manifest.chunks.entries()){
   if(c.index!==index||c.offset!==offset||!Number.isSafeInteger(c.bytes)||c.bytes<1||c.bytes>16*1024*1024)throw Error('Invalid chunk layout');
-  const b=await load(c.sha256);
+  const b=await load(c.sha256,c.identity);
   if(b.length!==c.bytes||sha(b)!==c.sha256)throw Error('Chunk integrity failure');
   hash.update(b);await write(b);offset+=b.length;
  }
@@ -34,7 +34,8 @@ async function driveLoader(env){
  for(const f of p.files||[])if(f.appProperties?.gpirIdentity)index.set(f.appProperties.gpirIdentity,f.id);
  pageToken=p.nextPageToken;
  }while(pageToken);
- return async(identity,expectedSha)=>{
+ return async(expectedSha,identity)=>{
+ if(!/^[a-f0-9]{64}$/i.test(identity||'')||!/^[a-f0-9]{64}$/i.test(expectedSha||''))throw Error('Invalid manifest identity');
  const id=index.get(identity);if(!id)throw Error('Archive object missing');
  const b=open(Buffer.from(await(await checked(base+'/files/'+encodeURIComponent(id)+'?alt=media',{headers})).arrayBuffer()),key);
  if(sha(b)!==expectedSha||crypto.createHmac('sha256',key).update(b).digest('hex')!==identity)throw Error('Archive identity mismatch');
