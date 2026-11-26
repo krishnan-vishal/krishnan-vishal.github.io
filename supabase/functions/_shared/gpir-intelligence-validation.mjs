@@ -115,11 +115,18 @@ function sourceTimestamp(html) {
     ...jsonLdObjects(html).map(item => item.datePublished),
     html.match(/<time\b[^>]*datetime=["']([^"']+)["']/i)?.[1]
   ].filter(value => typeof value === 'string' && value.trim());
-  for (const value of candidates) {
+  let dateOnly = null;
+  for (const candidate of candidates) {
+    const value = candidate.trim();
     const time = Date.parse(value);
-    if (Number.isFinite(time)) return new Date(time).toISOString();
+    if (!Number.isFinite(time)) continue;
+    const iso = new Date(time).toISOString();
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/i.test(value))
+      return { value: iso, precision: 'EXACT' };
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value) && iso.slice(0, 10) === value)
+      dateOnly ??= { value, precision: 'DATE_ONLY' };
   }
-  return null;
+  return dateOnly;
 }
 
 function canonicalUrl(html, responseUrl) {
@@ -281,8 +288,11 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
       new URL(canonical).pathname.replace(/\/+$/, '') !== new URL(candidate.canonical_url).pathname.replace(/\/+$/, ''))
     return review('CANONICAL_URL_NOT_VERIFIED', { sourceHttpStatus: response.status });
 
-  const publishedAt = sourceTimestamp(html);
+  const publication = sourceTimestamp(html);
+  const publishedAt = publication?.value;
   if (!publishedAt) return review('SOURCE_TIMESTAMP_MISSING', { canonicalUrl: canonical, sourceHttpStatus: response.status });
+  if (publication.precision === 'DATE_ONLY' && confidence < 95)
+    return thresholdReview();
   const publishedTime = Date.parse(publishedAt);
   const candidateTime = Date.parse(candidate.published_at || '');
   if (!Number.isFinite(candidateTime) || publishedTime > now() + 5 * 60 * 1000)
@@ -323,7 +333,9 @@ async function validateAgainstSource({ candidate, source, fetchImpl, now, timeou
     validationPayload: {
       source_verified: true,
       canonical_verified: true,
-      timestamp_verified: true,
+      timestamp_verified: publication.precision === 'EXACT',
+      publication_precision: publication.precision,
+      publication_date: publishedAt.slice(0, 10),
       content_verified: true,
       relevance_verified: true,
       summary_grounded: true,
