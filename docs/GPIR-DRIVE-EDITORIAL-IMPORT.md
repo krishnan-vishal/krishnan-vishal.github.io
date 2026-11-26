@@ -39,3 +39,25 @@ approved records in a signed edition. Use the existing
 prepared snapshot. Its publication review and Contentful synchronization remain
 the release controls. Verify the live publication routes, Search and ASK GPIR
 through the existing delivery path after Pages publishes the reviewed edition.
+
+## First-time governed publication routes
+
+After a native research draft is independently reviewed, marked PASS and authorized
+by the existing Supabase release decision, `prepare-site-release.ts` can now
+create its first canonical HTML route in the immutable managed edition. It uses
+the already-approved M35 publication renderer, the Supabase-protected reader
+shell and the existing GPIR header/footer. Existing identity-bound HTML pages
+continue to use the update path, preserving their navigation and other content.
+
+The same edition extends `routes.json` with the authorized publication identity,
+canonical URL and Supabase access authority. Any conflict between route and
+publication identity fails closed. This preserves existing site Search route
+discovery; full ASK GPIR answer-level retrieval and live entitlement behavior
+still require verification against the released production edition.
+
+This does **not** promote WARN drafts, create Supabase approval records, generate
+unverified editorial identities, bypass the reviewed Pages PR, or trigger RELEASE
+automatically. The first cloud intake still requires the complete protected
+manifest and the existing production credential references. Production is not
+complete until its actual publication URL, protected access behavior and Search/
+ASK responses have been checked.
