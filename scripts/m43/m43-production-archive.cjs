@@ -127,11 +127,11 @@ async function main(){
  exports.push({source:'contentful_bcp',...await exportContentful(env)});
  const payload=await exportPayload(env);
  if(payload.file)exports.push({source:'payload_direct',...payload});
- const load=await driveLoader(env);
  const verified=[];
  for(const item of exports){
   const expected=await hashFile(item.file);
   const snap=await snapshot(item.file,sendRetry,env);
+  const load=await driveLoader(env);
   const recovery=await verifyDriveSnapshot(snap,expected,load);
   verified.push({source:item.source,status:item.status,bytes:snap.bytes,chunks:snap.chunks,sha256:expected,manifestSha256:snap.manifestSha256,manifestIdentity:snap.manifestIdentity,recovery:recovery.status});
  }
