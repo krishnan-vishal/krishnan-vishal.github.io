@@ -51,8 +51,11 @@ export function reconcileDriveCandidates(
   return candidates.map(candidate => {
     const row = rowByHash.get(candidate.hash)
     if (!row) return { candidate, disposition: 'EXCLUDED_UNMATCHED', reason: 'NOT_IN_APPROVED_DISTRIBUTION_MATRIX' }
+    const menuPath = Array.isArray(row.menu) && row.menu.every(item => typeof item === 'string')
+      ? row.menu.map(item => item.trim()) : []
+    if (menuPath.length === 3 && menuPath[2] === '') menuPath.pop()
     if (!digest.test(row.sha256) || row.bytes !== candidate.size || row.filename !== candidate.name ||
-        !Array.isArray(row.menu) || row.menu.length !== 3 || row.menu.some(item => typeof item !== 'string' || !item.trim()) ||
+        ![2, 3].includes(menuPath.length) || menuPath.some(item => !item) ||
         typeof row.reference !== 'string' || !row.reference.trim() || typeof row.useCase !== 'string' || !row.useCase.trim()) {
       throw new Error('DRIVE_RECONCILIATION_ROW_MISMATCH')
     }
@@ -72,7 +75,7 @@ export function reconcileDriveCandidates(
       reason: 'APPROVED_HASH_BOUND_EDITORIAL_MAPPING',
       review: {
         ...annotation.editorial,
-        menuPath: row.menu.map(item => item.trim()),
+        menuPath,
         sourceFileId: candidate.id,
         sourceFileName: candidate.name,
         reconciliationHash,
