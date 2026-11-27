@@ -93,11 +93,11 @@ function showProfile(card, button) {
     heading.textContent = card.name;
     get('placeholder').hidden = true;
     detail.replaceChildren();
-    const identity = element('p');
+    const identity = element('div');
     identity.className = 'expert-profile-identity';
     const fallback = element('span', initials(card.name));
     fallback.setAttribute('aria-hidden', 'true');
-    identity.append(fallback, [card.title, card.employer, card.jurisdiction].filter(Boolean).join(' · '));
+    const bio = element('div'); bio.className = 'expert-identity-copy'; bio.append(element('strong',card.title),element('p',card.employer),element('p',[card.jurisdiction,...(card.regions || [])].filter(Boolean).join(' · ')),element('small','Published profile · Last reviewed '+card.checkedAt)); identity.append(fallback,bio);
     const portrait = safeUrl(card.portrait?.url);
     if (portrait && card.portrait.identityConfirmed && card.portrait.reuseLicense) {
         const image = element('img');
@@ -133,6 +133,7 @@ function showProfile(card, button) {
     back.addEventListener('click', () => selectedButton?.focus());
     detail.append(sources, back);
     heading.focus();
+    heading.scrollIntoView({block:'start'});
 }
 
 function resetProfile() {
@@ -169,7 +170,7 @@ function renderRegionalCards(profiles, jurisdictions) {
         if (!grouped.has(region)) grouped.set(region, []);
         grouped.get(region).push(p);
     }
-    const regionOrder = ['Global', 'Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East', 'Latin America'];
+    const regionOrder = regions;
     const sorted = [...grouped.entries()].sort((a, b) => {
         const ia = regionOrder.indexOf(a[0]);
         const ib = regionOrder.indexOf(b[0]);
@@ -226,6 +227,7 @@ async function load() {
     pending = request;
     const params = new URLSearchParams(filters);
     params.set('catalog', 'experts');
+    get('metrics').hidden = true;
     status.textContent = 'Loading directory…';
     cards.replaceChildren();
     get('pagination').hidden = true;
@@ -244,7 +246,7 @@ async function load() {
         const data = await response.json();
         if (request.signal.aborted) return;
         if (data.access === 'DENY' || data.access === 'UNAUTHENTICATED') {
-            get('browser').hidden = get('domains').hidden = get('views').hidden = true;
+            get('metrics').hidden = get('browser').hidden = get('domains').hidden = get('views').hidden = true;
             const access = get('access');
             const action = access.querySelector('a');
             if (data.access === 'DENY') {
@@ -261,6 +263,10 @@ async function load() {
         if (data.access !== 'ALLOW' || !Array.isArray(data.cards)) throw Error('Unavailable');
         get('access').hidden = true;
         get('views').hidden = false;
+        get('metrics').hidden = false;
+        get('metrics-total').textContent = String(data.total);
+        get('metrics-regions').textContent = String(regions.length);
+        get('metrics-domains').textContent = String((data.topics || []).length);
         showView(activeView);
         renderDomains(data.topics || []);
         options('region', [...new Set([...regions, ...(data.regions || [])])]);
