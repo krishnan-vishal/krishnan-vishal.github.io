@@ -79,3 +79,24 @@ body.expert-directory {background:radial-gradient(ellipse at 75% 0%,#234458,#071
 .expert-tags {display:flex;flex-wrap:wrap;gap:.4rem;}.expert-tags span {background:#ead2a7;color:#102438;padding:.35rem .65rem;border-radius:.4rem;}
 #expert-profile {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;}#expert-profile .expert-profile-identity,#expert-profile .expert-overview {grid-column:1/-1;}#expert-profile details {margin:0;}
 @media(max-width:45rem){#expert-profile {grid-template-columns:minmax(0,1fr);}}
+
+/* Editorial dashboard layout, scoped to expert directory */
+.expert-directory .mast [data-gpir-reader-actions] {color:#f5f0e6;flex-wrap:wrap;min-width:0;}
+.expert-directory .mast {flex-wrap:wrap;}
+.expert-main,.expert-grid,.expert-grid > * {min-width:0;box-sizing:border-box;}
+.expert-metrics {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.75rem;margin:1rem 0;}
+.expert-metrics > div {display:grid;gap:.3rem;padding:1rem;border:1px solid #8a7858;border-radius:.6rem;background:linear-gradient(145deg,#234458,#091d2c);}
+.expert-metrics strong {font: bold 2rem Georgia,serif;color:#f4d49a;}
+#expert-regional-cards .region-card {min-width:0;}
+#expert-regional-cards .region-card button:hover {background:#234458;color:#fff;}
+#expert-regional-cards .region-card button[aria-current=true] {border-color:#f4d49a;}
+#expert-regional-cards .region-card ul {grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));}
+#expert-regional-cards .expert-person-card {grid-template-columns:minmax(0,1fr);height:100%;}
+.expert-person-card img,.expert-person-card .expert-initials {width:100%;height:9rem;object-fit:contain;}
+.expert-profile-identity {display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.25rem;}
+.expert-identity-copy strong {color:#f4d49a;font-size:1.3rem;}
+.expert-identity-copy p {margin:.35rem 0;}
+.expert-detail details p {border-bottom:1px solid #d8bd91;padding-bottom:.65rem;}
+.expert-detail details small {margin-top:.35rem;}
+#expert-pagination {align-items:center;margin-top:1rem;}
+@media(max-width:38rem){.expert-profile-identity {grid-template-columns:minmax(0,1fr);}}
