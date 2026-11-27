@@ -29,6 +29,7 @@ jobs:
       - name: Acquire and reconcile Drive content and create native editorial drafts
         env:
           GPIR_DRIVE_INTAKE_MANIFEST: ${{ secrets.GPIR_DRIVE_INTAKE_MANIFEST }}
+          GPIR_DRIVE_INTAKE_FOLDER_ID: 11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i
           GPIR_DRIVE_CLIENT_ID: ${{ secrets.GPIR_DRIVE_CLIENT_ID }}
           GPIR_DRIVE_CLIENT_SECRET: ${{ secrets.GPIR_DRIVE_CLIENT_SECRET }}
           GPIR_DRIVE_REFRESH_TOKEN: ${{ secrets.GPIR_DRIVE_REFRESH_TOKEN }}

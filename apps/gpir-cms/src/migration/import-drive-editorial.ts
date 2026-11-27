@@ -40,13 +40,10 @@ async function contentfulInventory(collection: 'entries' | 'assets') {
 }
 
 async function main() {
-  const inventory: Intake[] = JSON.parse(value('GPIR_DRIVE_INTAKE_MANIFEST'))
-  if (!Array.isArray(inventory) || inventory.length !== 92 ||
-      new Set(inventory.map(item => item.id)).size !== 92 ||
-      inventory.some(item => !/^[\w-]{10,}$/.test(item.id) || !Number.isInteger(item.size) ||
-        item.size <= 0 || item.size > 20_000_000 || typeof item.mime !== 'string')) {
-    throw new Error('Expected the fixed 92-file Drive inventory with unique IDs, sizes and MIME types')
-  }
+  // Review annotations are optional. The previous 92-row manifest may still be installed:
+  // it is NOT the authoritative inventory for this approved batch.
+  const priorReviews: Intake[] = JSON.parse(process.env.GPIR_DRIVE_INTAKE_MANIFEST || '[]')
+  if (!Array.isArray(priorReviews)) throw new Error('Invalid optional Drive review inventory')
   const origin = new URL(value('PAYLOAD_PUBLIC_SERVER_URL')).origin
   if (origin !== 'https://gpir-payload-cms.krishnanvishal12.workers.dev') throw new Error('Unexpected production Worker origin')
   const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
@@ -59,6 +56,44 @@ async function main() {
   }, 'Drive OAuth')).json()
   if (typeof oauth.access_token !== 'string') throw new Error('Drive OAuth response omitted its access token')
   const headers = { authorization: `Bearer ${oauth.access_token}` }
+  // Acquire the current files from the single owner-approved Drive folder.
+  // Do not reuse an older static 92-file snapshot or count as a publication gate.
+  const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
+  if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i') throw new Error('Unapproved Drive folder')
+  const listed: { id: string; name: string; mimeType: string; size: string }[] = []
+  let pageToken = ''
+  do {
+    const url = new URL('https://www.googleapis.com/drive/v3/files')
+    url.searchParams.set('q', `'${folderId}' in parents and trashed = false`)
+    url.searchParams.set('fields', 'nextPageToken,files(id,name,mimeType,size)')
+    url.searchParams.set('pageSize', '1000')
+    url.searchParams.set('supportsAllDrives', 'true')
+    url.searchParams.set('includeItemsFromAllDrives', 'true')
+    if (pageToken) url.searchParams.set('pageToken', pageToken)
+    const page = await (await request(url.href, { headers }, 'Approved Drive folder inventory')).json()
+    if (!Array.isArray(page.files) || (page.nextPageToken != null && typeof page.nextPageToken !== 'string')) {
+      throw new Error('Invalid approved Drive folder inventory')
+    }
+    listed.push(...page.files)
+    pageToken = page.nextPageToken || ''
+    if (listed.length > 250) throw new Error('Approved Drive folder exceeded intake safety limit')
+  } while (pageToken)
+  const candidateFiles = listed.filter(file => ['image/jpeg', 'image/png'].includes(file.mimeType))
+  const reviewById = new Map(priorReviews.filter(item => item && typeof item.id === 'string').map(item => [item.id, item]))
+  const inventory: Intake[] = candidateFiles.map(file => {
+    const size = Number(file.size)
+    if (!/^[\\w-]{10,}$/.test(file.id) || !Number.isSafeInteger(size) || size < 1 || size > 20_000_000) {
+      throw new Error('Invalid approved Drive image metadata')
+    }
+    const annotation = reviewById.get(file.id)
+    // Never reuse an annotation if Drive size or MIME changed.
+    return { id: file.id, size, mime: file.mimeType,
+      ...(annotation && annotation.size === size && annotation.mime === file.mimeType && annotation.editorial
+        ? { editorial: annotation.editorial } : {}) }
+  })
+  if (!inventory.length || new Set(inventory.map(file => file.id)).size !== inventory.length) {
+    throw new Error('Empty or duplicated approved Drive image inventory')
+  }
   const sources = []
   for (const item of inventory) {
     const response = await request(`https://www.googleapis.com/drive/v3/files/${item.id}?alt=media&supportsAllDrives=true`, { headers }, 'Drive acquisition')
