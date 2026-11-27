@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 
 const nextConfig = {
   turbopack: { root: fileURLToPath(new URL('../../', import.meta.url)) },
-  outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
   output: 'standalone',
   reactStrictMode: true,
   poweredByHeader: false,
