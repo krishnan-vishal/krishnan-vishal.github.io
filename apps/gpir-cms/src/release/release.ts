@@ -1,4 +1,3 @@
-import { createHash, createHmac } from 'node:crypto'
 import { lexicalToContentful } from '../lib/richText'
 
 export type ReleaseDecision = {
@@ -11,23 +10,7 @@ export type ReleaseDecision = {
   policyStatus: string | null
 }
 
-function stable(value: any): any {
-  if (Array.isArray(value)) return value.map(stable)
-  if (!value || typeof value !== 'object') return value
-  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])]))
-}
-
-export function stableJson(value: unknown): string {
-  return JSON.stringify(stable(value))
-}
-
-export function signArtifact(value: unknown, secret: string) {
-  const body = stableJson(value)
-  return {
-    sha256: createHash('sha256').update(body).digest('hex'),
-    signature: createHmac('sha256', secret).update(body).digest('hex'),
-  }
-}
+export { stableJson, signArtifact } from './signing'
 
 export async function releaseDecision(publication: any, env: Record<string, string | undefined>, fetchImpl: typeof fetch = fetch): Promise<ReleaseDecision> {
   const url = String(env.GPIR_CORE_SUPABASE_URL || env.SUPABASE_URL || '').replace(/\/$/, '')
@@ -88,7 +71,23 @@ export function legacyRecord(publication: any) {
       migrationStatus: publication.migrationStatus,
       validationStatus: publication.validationStatus,
     },
-    presentation: { accessClass: publication.accessClass },
+    presentation: {
+      accessClass: publication.accessClass,
+      publicDescription: publication.executiveSummary,
+      topicContext: Array.isArray(publication.sourceLineage?.menuPath) ? publication.sourceLineage.menuPath : [],
+      primaryDashboard: publication.dashboardAsset && typeof publication.dashboardAsset === 'object' &&
+        (publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url)
+        ? {
+          reference: publication.dashboardAsset.sourceFilename || publication.dashboardAsset.filename || publication.publicationTitle,
+          role: 'PRIMARY_PUBLICATION_DASHBOARD',
+          src: publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url,
+          highResolutionHref: publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url,
+          alt: publication.dashboardAsset.alt || publication.publicationTitle,
+          width: publication.dashboardAsset.width || null,
+          height: publication.dashboardAsset.height || null,
+          sha256: publication.dashboardAsset.sourceSha256 || null,
+        } : null,
+    },
   }
 }
 

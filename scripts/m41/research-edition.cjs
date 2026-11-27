@@ -59,11 +59,21 @@ function mergeResearchRoutes(current, records, decisions) {
             route: publication.route,
             canonicalUrl: publication.canonicalUrl,
             publicationType: publication.publicationType,
+            title: publication.title,
+            summary: publication.summary,
+            categoryPath: publication.topicContext.map(item => item.label),
+            accessClass: publication.accessClass,
+            previewPercent: 10,
             authAuthority: 'supabase',
             controlledValidation: false,
         });
         else {
             byId[0].publicationType = publication.publicationType;
+            byId[0].title = publication.title;
+            byId[0].summary = publication.summary;
+            byId[0].categoryPath = publication.topicContext.map(item => item.label);
+            byId[0].accessClass = publication.accessClass;
+            byId[0].previewPercent = 10;
             byId[0].authAuthority = 'supabase';
             byId[0].controlledValidation = false;
         }

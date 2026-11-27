@@ -27,7 +27,10 @@ export function isActiveSubscription(row, now) {
 function requestHeaders(projectKey, bearer) {
   const headers = new Headers();
   headers.set('apikey', projectKey);
-  headers.set('authorization', `Bearer ${bearer}`);
+  // Opaque sb_secret_* keys authenticate through apikey and are not JWTs.
+  // User access tokens and legacy service-role JWTs retain Bearer behavior.
+  if (bearer !== projectKey || !projectKey.startsWith('sb_secret_'))
+    headers.set('authorization', `Bearer ${bearer}`);
   return headers;
 }
 

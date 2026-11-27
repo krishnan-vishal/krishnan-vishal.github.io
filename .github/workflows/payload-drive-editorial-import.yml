@@ -1,35 +1,80 @@
-name: GPIR Drive editorial import
+name: GPIR Drive governed publication
 on:
   workflow_dispatch:
+    inputs:
+      approved_pr_head:
+        description: Exact merged corrective PR head commit SHA
+        required: true
+        type: string
 permissions:
-  contents: read
+  contents: write
+  pull-requests: read
+  actions: read
 concurrency:
   group: gpir-contentful-bcp
   cancel-in-progress: false
 jobs:
-  import:
+  publish:
     if: github.repository == 'krishnan-vishal/krishnan-vishal.github.io' && github.ref == 'refs/heads/main' && github.actor == 'krishnan-vishal'
     runs-on: ubuntu-latest
     environment: payload-production-cutover
-    timeout-minutes: 60
-    defaults:
-      run:
-        working-directory: apps/gpir-cms
+    timeout-minutes: 90
     steps:
+      - name: Validate exact merged corrective PR head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPROVED_SHA: ${{ inputs.approved_pr_head }}
+        run: |
+          [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          gh api --method GET repos/${{ github.repository }}/pulls -f state=closed -f head='krishnan-vishal:fix/gpir-drive-signing-isolation' --jq '.[] | select(.merged_at != null and .draft == false and .base.ref == "main" and .head.repo.full_name == "${{ github.repository }}") | .head.sha' | grep -Fx "$APPROVED_SHA"
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify reviewed correction is included in main
+        env:
+          APPROVED_SHA: ${{ inputs.approved_pr_head }}
+        run: git merge-base --is-ancestor "$APPROVED_SHA" HEAD
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
           cache: npm
           cache-dependency-path: apps/gpir-cms/package-lock.json
-      - run: npm ci
-      - run: npx --no-install tsc --noEmit
-      - name: Acquire and reconcile Drive content and create native editorial drafts
+      - name: Install and validate exact implementation
+        working-directory: apps/gpir-cms
+        run: |
+          npm ci
+          npm test
+          npx --no-install tsc --noEmit
+      - name: Confirm the exact reviewed Payload Worker is deployed
         env:
-          GPIR_DRIVE_INTAKE_MANIFEST: ${{ secrets.GPIR_DRIVE_INTAKE_MANIFEST }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+        run: |
+          for endpoint in drive-draft-intake drive-publication-edition; do
+            status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${PAYLOAD_PUBLIC_SERVER_URL%/}/api/release/$endpoint" -H 'content-type: application/json' -d '{}')
+            test "$status" = 403 || { echo "Reviewed Worker endpoint $endpoint is not deployed (HTTP $status)."; exit 1; }
+          done
+      - name: Install existing Supabase deployment CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Deploy the reviewed reader entitlement bridges only
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.GPIR_SUPABASE_DEPLOY_TOKEN }}
+          PROJECT_REF: qlnvhfapctcpzqyuhhth
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          code=$(curl --silent --show-error --output /tmp/gpir-functions.json --write-out '%{http_code}' --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "https://api.supabase.com/v1/projects/$PROJECT_REF/functions")
+          test "$code" = 200
+          supabase functions deploy gpir-protected-publication --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy gpir-reader-summary --project-ref "$PROJECT_REF" --use-api
+      - name: Acquire, reconcile and publish the approved Drive batch
+        id: intake
+        working-directory: apps/gpir-cms
+        env:
           GPIR_DRIVE_INTAKE_FOLDER_ID: 11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i
+          GPIR_DRIVE_MAPPING_FOLDER_ID: 1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq
           GPIR_DRIVE_CLIENT_ID: ${{ secrets.GPIR_DRIVE_CLIENT_ID }}
           GPIR_DRIVE_CLIENT_SECRET: ${{ secrets.GPIR_DRIVE_CLIENT_SECRET }}
           GPIR_DRIVE_REFRESH_TOKEN: ${{ secrets.GPIR_DRIVE_REFRESH_TOKEN }}
@@ -39,4 +84,72 @@ jobs:
           PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
           GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+          GPIR_PAYLOAD_SITE_SNAPSHOT: f2540980b555942c5807d56bc8370ee2ce48d13dd689bd91a29ca011e84fcfea
         run: npx --no-install tsx src/migration/import-drive-editorial.ts
+      - name: Verify prepared immutable edition and advance the edition source lock
+        env:
+          SNAPSHOT: ${{ steps.intake.outputs.snapshot }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const release = require('./scripts/m41/payload-site.cjs');
+          (async () => {
+            if (!/^[a-f0-9]{64}$/.test(process.env.SNAPSHOT || '')) throw Error('Prepared snapshot missing.');
+            const source = await release.client({ ...process.env, GPIR_PAYLOAD_SITE_SNAPSHOT: process.env.SNAPSHOT });
+            if (source.manifest.nativeResearch?.length !== 43) throw Error('Prepared edition does not contain the approved 43-record batch.');
+            const lock = JSON.parse(fs.readFileSync('gpir-content-source.json', 'utf8'));
+            lock.snapshot = process.env.SNAPSHOT;
+            fs.writeFileSync('gpir-content-source.json', JSON.stringify(lock, null, 2) + '\n');
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE
+      - name: Reconstruct and stage the verified managed edition
+        env:
+          GPIR_CONTENT_SOURCE: payload
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ steps.intake.outputs.snapshot }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+        run: |
+          node scripts/build-cloudflare-preview.js
+          node scripts/m41/stage-pages-edition.cjs
+      - name: Stage verified edition on a fresh production delivery branch
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --pathspec-from-file=.migration-data/m41-cutover/pages-stage-paths.nul --pathspec-file-nul
+          git add -- gpir-content-source.json assets/data/cms-source.json
+          git diff --cached --quiet && { echo 'Verified edition already present.'; exit 0; }
+          git commit -m 'M45: publish approved Drive intelligence batch'
+          DELIVERY_BRANCH="gpir/drive-edition-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git push origin "HEAD:refs/heads/$DELIVERY_BRANCH"
+          echo "Production delivery branch: $DELIVERY_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+          echo "Open and merge the generated edition through the existing protected main release process; this staging step does not deploy it." >> "$GITHUB_STEP_SUMMARY"
+      - name: Synchronize Payload edition to passive Contentful BCP
+        id: bcp
+        env:
+          GPIR_PAYLOAD_SITE_SNAPSHOT: ${{ steps.intake.outputs.snapshot }}
+          PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
+          PAYLOAD_RELEASE_API_KEY: ${{ secrets.PAYLOAD_RELEASE_API_KEY }}
+          GPIR_RELEASE_SIGNING_SECRET: ${{ secrets.GPIR_RELEASE_SIGNING_SECRET }}
+          CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
+          CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
+          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
+          GPIR_CONTENTFUL_BCP_WRITES_AUTHORIZED: 'true'
+        run: node scripts/m41/sync-site-bcp.cjs .migration-data/drive-contentful-bcp-receipt.json
+      - name: Retain publication and BCP receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drive-publication-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .migration-data/drive-publication-report.json
+            .migration-data/drive-contentful-bcp-receipt.json
+            .migration-data/m41-cutover/pages-stage-report.json
+          if-no-files-found: error
+          retention-days: 90

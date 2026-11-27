@@ -35,6 +35,8 @@ function configuration(env) {
     ? env.GPIR_FX_LIVE_ACCEPTANCE_USER_ID.trim() : null;
   return Object.freeze({ ...values, SUPABASE_URL: url.origin,
     PAYMENT_ENVIRONMENT: environment.toUpperCase(), environment,
+    GPIR_ADMIN_READER_ID: UUID.test(env.GPIR_ADMIN_READER_ID?.trim() || '')
+      ? env.GPIR_ADMIN_READER_ID.trim() : null,
     FX_LIVE_ACCEPTANCE_USER_ID: acceptanceUserId });
 }
 
@@ -93,6 +95,7 @@ async function fetchPolicyCandidates(fetchImpl, config, headers) {
   const query = new URLSearchParams({
     select: 'publication_id,supabase_record_id',
     status: 'eq.ACTIVE', access_class: 'eq.ENTITLED',
+    review_state: 'eq.EVIDENCED',
     order: 'publication_id.asc', limit: '500'
   });
   return jsonFetch(fetchImpl,
@@ -478,7 +481,8 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
 
     const serviceHeaders = new Headers();
     serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
-    serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
+    if (!config.GPIR_SUPABASE_SECRET_KEY.startsWith('sb_secret_'))
+      serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
     const offerQuery = new URLSearchParams({
       select: 'supabase_record_id,publication_id',
       environment: `eq.${config.PAYMENT_ENVIRONMENT}`,
@@ -566,6 +570,15 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
     const libraryPass = libraryPassAvailable
       ? libraryPasses.find(pass => pass.status === 'ACTIVE') || libraryPasses[0] || null : null;
     const activeLibraryPass = libraryPass?.status === 'ACTIVE';
+    let planAvailable = Boolean(rawSubscriptions);
+    const subscription = rawSubscriptions?.length ? subscriptionSummary(rawSubscriptions[0]) : null;
+    if (rawSubscriptions?.length && !subscription) {
+      planAvailable = false;
+      reportDependencyFailure(logger, 'gpir_paypal_subscriptions', subscriptionsResult);
+    }
+    const subscriptionActive = planAvailable && subscription?.status === 'ACTIVE';
+    const adminReader = Boolean(user.email_confirmed_at || user.confirmed_at) &&
+      (user.app_metadata?.gpir_admin_reader === true || user.id === config.GPIR_ADMIN_READER_ID);
 
     let entitlementAvailable = Boolean(policyCandidates && offers && purchases);
     const candidates = new Map();
@@ -595,18 +608,14 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       });
       reportDependencyFailure(logger, 'resolve_publication_entitlement', failed || {});
     }
+    const effectiveDecisions = entitlementAvailable ? decisions.map(rows =>
+      rows[0].decision === 'ALLOW' || subscriptionActive || activeLibraryPass || adminReader
+        ? 'ALLOW' : 'DENY') : [];
 
     const purchaseStates = new Map((purchases || []).map(row => [purchaseKey(row), row.status]));
     const hasPlanAccess = entitlementAvailable && !activeLibraryPass && publications.some((publication, index) =>
-      decisions[index][0].decision === 'ALLOW' &&
+      effectiveDecisions[index] === 'ALLOW' &&
       purchaseStates.get(purchaseKey(publication)) !== 'ACTIVE');
-    let planAvailable = Boolean(rawSubscriptions);
-    const subscription = rawSubscriptions?.length ? subscriptionSummary(rawSubscriptions[0]) : null;
-    if (rawSubscriptions?.length && !subscription) {
-      planAvailable = false;
-      reportDependencyFailure(logger, 'gpir_paypal_subscriptions', subscriptionsResult);
-    }
-    const subscriptionActive = planAvailable && subscription?.status === 'ACTIVE';
     const plan = Object.freeze({ status: subscriptionActive || hasPlanAccess ? 'ACTIVE' :
       subscription ? 'INACTIVE' : 'NOT_ENROLLED',
       accessClass: entitlementAvailable && (subscriptionActive || hasPlanAccess) ? 'ENTITLED' : null,
@@ -614,7 +623,7 @@ export function createReaderSummaryHandler({ env, fetchImpl = fetch,
       effectiveUntil: subscription?.effectiveUntil || null,
       billingStatus: subscription?.status || 'NOT_ACTIVE' });
     const library = entitlementAvailable ? publications.flatMap((publication, index) => {
-      if (decisions[index][0].decision !== 'ALLOW') return [];
+      if (effectiveDecisions[index] !== 'ALLOW') return [];
       const purchaseState = purchaseStates.get(purchaseKey(publication));
       const accessSource = purchaseState === 'ACTIVE' ? 'ONE_TIME_PURCHASE' :
         activeLibraryPass ? 'PREMIUM_LIBRARY_PASS' : 'PLAN';
