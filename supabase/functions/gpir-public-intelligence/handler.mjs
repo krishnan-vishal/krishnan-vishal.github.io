@@ -240,7 +240,8 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
       topics: [metadata.topic || config.topic, 'Technical reference'],
       subcategory: recordType, country: 'Global', countryCode: null, region: 'Global',
       referenceDate: day, publicationDate: day, publishedDate: day,
-      publishedAt: published.toISOString(), publicationMonth: day.slice(5, 7),
+      publicationPrecision: row.publication_precision || null,
+      publishedAt: row.publication_precision === 'DATE_ONLY' ? null : published.toISOString(), publicationMonth: day.slice(5, 7),
       publicationYear: day.slice(0, 4), tickerEligible: false,
       canonicalUrl: canonical.toString(), pageUrl: canonical.toString(),
       keywords: [config.product.toLowerCase(), 'technical reference',
@@ -343,7 +344,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       .filter(d => verifiedDevelopmentIds.has(d.id) && typeof d.summary === 'string' && d.summary.trim().length >= 120)
       .sort((a,b) => String(a.effective_date).localeCompare(String(b.effective_date)))
       .map(d => ({date:d.effective_date,eventType:d.event_type,summary:d.summary,outcomeStatus:d.outcome_status}));
-    const live = row.ticker_eligible === true && isWithinLiveWindow(published.toISOString(), now);
+    const live = row.publication_precision !== 'DATE_ONLY' && row.ticker_eligible === true && isWithinLiveWindow(published.toISOString(), now);
     const category = Array.isArray(row.topic_headers) && row.topic_headers[0]
       ? row.topic_headers[0] : 'Payments';
     return [{
@@ -367,7 +368,8 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
         ? source.region_tags[0] : null,
       publicationDate: published.toISOString().slice(0, 10),
       publishedDate: published.toISOString().slice(0, 10),
-      publishedAt: published.toISOString(),
+      publicationPrecision: row.publication_precision || null,
+      publishedAt: row.publication_precision === 'DATE_ONLY' ? null : published.toISOString(),
       publicationMonth: String(published.getUTCMonth() + 1).padStart(2, '0'),
       publicationYear: String(published.getUTCFullYear()),
       tickerEligible: live,
@@ -377,7 +379,7 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       outcomeStatus: topic?.outcome_status || 'PENDING',
       geography: topic?.geography || null,
       eventId: topic?.id || null,
-      sources: [{name:source.source_name,url:row.canonical_url,publishedAt:published.toISOString(),country:typeof source.country==='string'?source.country:null,region:Array.isArray(source.region_tags)&&source.region_tags[0]?source.region_tags[0]:null,segment:source.category||null}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
+      sources: [{name:source.source_name,url:row.canonical_url,publishedAt:row.publication_precision === 'DATE_ONLY' ? null : published.toISOString(),country:typeof source.country==='string'?source.country:null,region:Array.isArray(source.region_tags)&&source.region_tags[0]?source.region_tags[0]:null,segment:source.category||null}, ...verifiedSources].filter((item,index,all)=>all.findIndex(other=>other.url===item.url)===index).slice(0,4),
       source: {
         name: source.source_name,
         publicationTitle: source.source_name,
@@ -576,7 +578,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         headers.set('apikey', config.key);
         headers.set('authorization', `Bearer ${config.key}`);
         const announcementQuery = new URLSearchParams({
-          select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
+          select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status,publication_precision',
           publication_status: 'eq.approved',
           ...(history ? {} : { published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}` }),
           order: 'published_at.desc,id.asc', limit: '1000'
