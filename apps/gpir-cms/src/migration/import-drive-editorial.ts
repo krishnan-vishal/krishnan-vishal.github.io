@@ -82,7 +82,7 @@ async function main() {
   const reviewById = new Map(priorReviews.filter(item => item && typeof item.id === 'string').map(item => [item.id, item]))
   const inventory: Intake[] = candidateFiles.map(file => {
     const size = Number(file.size)
-    if (!/^[\\w-]{10,}$/.test(file.id) || !Number.isSafeInteger(size) || size < 1 || size > 20_000_000) {
+    if (!/^[\w-]{10,}$/.test(file.id) || !Number.isSafeInteger(size) || size < 1 || size > 20_000_000) {
       throw new Error('Invalid approved Drive image metadata')
     }
     const annotation = reviewById.get(file.id)
@@ -119,7 +119,6 @@ async function main() {
       if (doc?.publicationTitle) titles.add(identity(doc.publicationTitle))
       if (doc?.canonicalUrlCandidate) routes.add(identity(doc.canonicalUrlCandidate))
       if (doc?.sourceHash) hashes.add(doc.sourceHash)
-      if (doc?.sourceSha256 && !doc.sourceMetadata?.driveDraft) hashes.add(doc.sourceSha256)
     }
   }
   for (const item of entries) {
@@ -137,7 +136,8 @@ async function main() {
       }
       if (downloaded.has(url.href)) continue
       downloaded.add(url.href)
-      hashes.add(digest(Buffer.from(await (await request(url.href, {}, 'Contentful asset comparison')).arrayBuffer())))
+      // Asset presence alone does not establish a published research record.
+      await (await request(url.href, {}, 'Contentful asset comparison')).body?.cancel()
     }
   }
   const registry = JSON.parse(await readFile('../../assets/data/dashboard-metadata.json', 'utf8'))
