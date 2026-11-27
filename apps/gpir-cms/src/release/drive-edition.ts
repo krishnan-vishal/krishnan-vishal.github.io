@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url)
 // The static publication renderer is the existing M41 delivery contract. It is
 // bundled into the Worker here; no new runtime service or rendering authority is introduced.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const editions = require('../../../../scripts/m41/research-edition.cjs') as {
+const editions = require('./generated-renderer/m41/research-edition.cjs') as {
   applyResearchEdition: (html: string, record: any, decision: any) => { html: string }
   renderFirstResearchEdition: (record: any, decision: any) => { html: string }
   mergeResearchRoutes: (current: any, records: any[], decisions: any[]) => any
