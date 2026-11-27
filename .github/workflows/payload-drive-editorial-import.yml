@@ -3,12 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       approved_pr_head:
-        description: Exact reviewed PR #724 head commit SHA
+        description: Exact merged corrective PR head commit SHA
         required: true
         type: string
 permissions:
   contents: write
   pull-requests: read
+  actions: read
 concurrency:
   group: gpir-contentful-bcp
   cancel-in-progress: false
@@ -19,17 +20,22 @@ jobs:
     environment: payload-production-cutover
     timeout-minutes: 90
     steps:
-      - name: Validate exact PR head
+      - name: Validate exact merged corrective PR head
         env:
           GH_TOKEN: ${{ github.token }}
           APPROVED_SHA: ${{ inputs.approved_pr_head }}
         run: |
           [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]]
-          gh api repos/${{ github.repository }}/pulls/724 --jq 'select(.draft == false and .base.ref == "main" and .head.ref == "gpir/drive-publication-correction-20261127" and .head.repo.full_name == "${{ github.repository }}") | .head.sha' | grep -Fx "$APPROVED_SHA"
+          gh api --method GET repos/${{ github.repository }}/pulls -f state=closed -f head='krishnan-vishal:fix/gpir-drive-signing-isolation' --jq '.[] | select(.merged_at != null and .draft == false and .base.ref == "main" and .head.repo.full_name == "${{ github.repository }}") | .head.sha' | grep -Fx "$APPROVED_SHA"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.approved_pr_head }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: true
+      - name: Verify reviewed correction is included in main
+        env:
+          APPROVED_SHA: ${{ inputs.approved_pr_head }}
+        run: git merge-base --is-ancestor "$APPROVED_SHA" HEAD
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
@@ -80,7 +86,7 @@ jobs:
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
           GPIR_PAYLOAD_SITE_SNAPSHOT: f2540980b555942c5807d56bc8370ee2ce48d13dd689bd91a29ca011e84fcfea
         run: npx --no-install tsx src/migration/import-drive-editorial.ts
-      - name: Verify prepared immutable edition and advance this PR source lock
+      - name: Verify prepared immutable edition and advance the edition source lock
         env:
           SNAPSHOT: ${{ steps.intake.outputs.snapshot }}
           PAYLOAD_PUBLIC_SERVER_URL: ${{ vars.PAYLOAD_PUBLIC_SERVER_URL }}
@@ -109,18 +115,21 @@ jobs:
         run: |
           node scripts/build-cloudflare-preview.js
           node scripts/m41/stage-pages-edition.cjs
-      - name: Commit the verified edition to PR #724 only
+      - name: Stage verified edition on a fresh production delivery branch
         env:
-          EXPECTED_HEAD: ${{ inputs.approved_pr_head }}
+          EXPECTED_HEAD: ${{ github.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add --pathspec-from-file=.migration-data/m41-cutover/pages-stage-paths.nul --pathspec-file-nul
           git add -- gpir-content-source.json assets/data/cms-source.json
-          git diff --cached --quiet && { echo 'Verified edition already committed to PR #724.'; exit 0; }
+          git diff --cached --quiet && { echo 'Verified edition already present.'; exit 0; }
           git commit -m 'M45: publish approved Drive intelligence batch'
-          git push origin HEAD:refs/heads/gpir/drive-publication-correction-20261127
+          DELIVERY_BRANCH="gpir/drive-edition-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git push origin "HEAD:refs/heads/$DELIVERY_BRANCH"
+          echo "Production delivery branch: $DELIVERY_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+          echo "Open and merge the generated edition through the existing protected main release process; this staging step does not deploy it." >> "$GITHUB_STEP_SUMMARY"
       - name: Synchronize Payload edition to passive Contentful BCP
         id: bcp
         env:

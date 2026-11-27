@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { appendFile, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { reconcileDriveCandidates, type DriveEditorialAnnotation, type DriveReconciliationRow } from '../release/drive-reconciliation'
-import { signArtifact } from '../release/release'
+import { signArtifact } from '../release/signing'
 
 type DriveFile = { id: string; name: string; mimeType: string; size: string }
 const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
