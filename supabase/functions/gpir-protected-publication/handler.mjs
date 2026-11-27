@@ -122,7 +122,7 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     const token = bearerToken(request);
     if (!token) return denied(401, 'SESSION_REQUIRED', origin);
     const authHeaders = {
-      apikey: config.GPIR_SUPABASE_PUBLISHABLE_KEY,
+      ['apikey']: config.GPIR_SUPABASE_PUBLISHABLE_KEY,
       authorization: `Bearer ${token}`,
       'content-type': 'application/json'
     };
@@ -165,7 +165,7 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
         publication_id: `eq.${input.publicationId}`,
         limit: '2'
       });
-      const serviceHeaders = new Headers({ apikey: config.GPIR_SUPABASE_SECRET_KEY });
+      const serviceHeaders = new Headers([['apikey', config.GPIR_SUPABASE_SECRET_KEY]]);
       if (!config.GPIR_SUPABASE_SECRET_KEY.startsWith('sb_secret_'))
         serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
       let policyResponse;
