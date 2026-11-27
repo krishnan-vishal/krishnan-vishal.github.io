@@ -88,7 +88,23 @@ export function legacyRecord(publication: any) {
       migrationStatus: publication.migrationStatus,
       validationStatus: publication.validationStatus,
     },
-    presentation: { accessClass: publication.accessClass },
+    presentation: {
+      accessClass: publication.accessClass,
+      publicDescription: publication.executiveSummary,
+      topicContext: Array.isArray(publication.sourceLineage?.menuPath) ? publication.sourceLineage.menuPath : [],
+      primaryDashboard: publication.dashboardAsset && typeof publication.dashboardAsset === 'object' &&
+        (publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url)
+        ? {
+          reference: publication.dashboardAsset.sourceFilename || publication.dashboardAsset.filename || publication.publicationTitle,
+          role: 'PRIMARY_PUBLICATION_DASHBOARD',
+          src: publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url,
+          highResolutionHref: publication.dashboardAsset.sourceUrl || publication.dashboardAsset.url,
+          alt: publication.dashboardAsset.alt || publication.publicationTitle,
+          width: publication.dashboardAsset.width || null,
+          height: publication.dashboardAsset.height || null,
+          sha256: publication.dashboardAsset.sourceSha256 || null,
+        } : null,
+    },
   }
 }
 

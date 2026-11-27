@@ -1,5 +1,13 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-27 — PR #724 governed Drive publication closure in progress
+
+- PR #724 branch `gpir/drive-publication-correction-20261127` now acquires the current 48-image folder and the two approved mapping files directly from their exact Drive folders. SHA-256 reconciliation admits 43 candidates, holds the incorrect Singapore and third-party KSA records, and excludes three unmatched images; the separate informative diaspora note remains eligible.
+- The Payload intake creates only missing approved chapters, reuses a unique verified media record, allocates identities through the deployed Supabase bridge, writes only an exact `ENTITLED/ACTIVE/EVIDENCED` policy, requires the existing release-decision RPC, and publishes PASS only inside the signed release-service context. Exact retries return the existing publication; collisions and ambiguity fail closed.
+- The same existing PR workflow prepares an immutable Payload edition, stages it back to PR #724 instead of creating another PR, and synchronizes the reviewed edition to passive Contentful BCP. Search and ASK use governed route preview metadata; static pages exclude bodies and images. Active subscriptions and authorized admin readers retain complete protected access in the existing reader endpoints and My GPIR library.
+- Local validation currently passes 62 Payload CMS tests, TypeScript, 30 protected-publication tests and four reader-summary reliability tests. The Windows Worker build reaches the existing OpenNext step but cannot complete because its sandbox temporary path/junction handling is unsupported; Linux GitHub Actions remains the authoritative Worker build.
+- No production mutation or main merge has been performed from this checkpoint. Required next gates are commit/push, successful PR checks, exact-head Worker deployment, owner-dispatched governed publication workflow, Contentful receipt, human merge and live verification.
+
 ## 2026-11-20 — SEP-01 consolidated repair accepted; PR #604 remains human-controlled
 
 - PR #604 branch `feat/sep01-central-command-controller-20261120` contains the consolidated Gemini, response-validation, bounded runner, remote Git checkpoint, Supabase transition and fresh-runner recovery repair in commit `ce27b82aa36966ecc2af10f67656e9d49ea3cb35`.

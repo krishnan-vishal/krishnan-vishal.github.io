@@ -98,12 +98,15 @@
                typeof record.route !== "string" || !/^\/[a-z0-9][a-z0-9/_-]*\/$/.test(record.route) ||
                record.canonicalUrl !== "https://fintechoisis.com" + record.route || seen.has(record.identity)) return [];
             seen.add(record.identity);
-            const title = record.route.split("/").filter(Boolean).pop().replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+            const fallbackTitle = record.route.split("/").filter(Boolean).pop().replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+            const title = typeof record.title === "string" && record.title.trim() ? record.title.trim().slice(0, 240) : fallbackTitle;
             const type = String(record.publicationType || "Research Publication").slice(0, 80);
+            const categoryPath = Array.isArray(record.categoryPath) ? record.categoryPath.filter(value => typeof value === "string").slice(0, 3) : [];
+            const summary = typeof record.summary === "string" ? record.summary.slice(0, 400) : "";
             return [{ id: "cms-" + record.identity, pageTitle: title,
                 sectionTitle: type, url: record.route.slice(1), type: "GPIR Publication",
-                category: "Published Research", header: "Verified Research",
-                text: [title, type, "GPIR research publication", "Access conditions apply"].join(" · ") }];
+                category: categoryPath.join(" / ") || "Published Research", header: "Verified Research",
+                text: [title, type, ...categoryPath, summary, "GPIR research publication", "Public 10% discovery preview", "Subscriber access applies"].filter(Boolean).join(" · ") }];
         });
     }
 

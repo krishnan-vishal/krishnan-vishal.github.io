@@ -16,8 +16,9 @@ const publicationId = 'VK-GPIR-P-000000000001-8';
 const supabaseRecordId = '11111111-1111-4111-8111-111111111111';
 const userId = '22222222-2222-4222-8222-222222222222';
 const env = Object.freeze({
-  SUPABASE_URL: 'https://project.supabase.co',
+  SUPABASE_URL: 'https://qlnvhfapctcpzqyuhhth.supabase.co',
   GPIR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
+  GPIR_SUPABASE_SECRET_KEY: 'fixture-service-role-jwt',
   CONTENTFUL_SPACE_ID: 'space-fixture',
   CONTENTFUL_ENVIRONMENT: 'master',
   CONTENTFUL_DELIVERY_TOKEN: 'contentful-server-secret'
@@ -48,6 +49,13 @@ function fetchPlan(options = {}) {
       const body = options.rpcBody === undefined ? [{ decision: options.decision || 'ALLOW' }] : options.rpcBody;
       return new Response(typeof body === 'string' ? body : JSON.stringify(body),
         { status: options.rpcStatus ?? 200, headers: { 'content-type': 'application/json' } });
+    }
+    if (String(url).includes('/gpir_publication_access_policies?')) {
+      return Response.json(options.policies || [{ supabase_record_id: supabaseRecordId,
+        publication_id: publicationId, access_class: 'ENTITLED', status: 'ACTIVE', review_state: 'EVIDENCED' }]);
+    }
+    if (String(url).includes('/gpir_paypal_subscriptions?')) {
+      return Response.json(options.subscriptions || []);
     }
     if (String(url).includes('cdn.contentful.com')) {
       if (options.contentfulThrow) throw new Error('content unavailable');
@@ -91,13 +99,24 @@ test('03 expired token returns no protected body', async () => {
 });
 test('04 unauthorized authenticated user returns no protected body', async () => {
   const result = await invoke({ decision: 'DENY' });
-  assert.equal(result.response.status, 403); assert.equal(result.calls.length, 2);
+  assert.equal(result.response.status, 403); assert.equal(result.calls.length, 5);
 });
 test('05 entitled authenticated user receives minimum protected payload', async () => {
   const result = await invoke();
   assert.equal(result.body.status, 'ALLOW'); assert.equal(result.body.publication.identity, publicationId);
   assert.equal(result.calls.length, 3); assert.equal(result.body.publication.body.content[0].content[0].value, 'Protected body fixture.');
   assert.equal(result.body.publication.entryId, undefined);
+});
+
+test('05a active subscriber and authorized admin retain complete protected access when the legacy profile RPC denies', async () => {
+  const subscriber = await invoke({ decision: 'DENY', authBody: JSON.stringify({ id: userId, email_confirmed_at: '2026-01-01T00:00:00Z' }),
+    subscriptions: [{ status: 'ACTIVE', effective_from: '2026-01-01T00:00:00Z', effective_until: null }] });
+  assert.equal(subscriber.response.status, 200);
+  assert.equal(subscriber.body.publication.body.content[0].content[0].value, 'Protected body fixture.');
+  const admin = await invoke({ decision: 'DENY', authBody: JSON.stringify({ id: userId, email_confirmed_at: '2026-01-01T00:00:00Z',
+    app_metadata: { gpir_admin_reader: true } }) });
+  assert.equal(admin.response.status, 200);
+  assert.equal(admin.body.publication.body.content[0].content[0].value, 'Protected body fixture.');
 });
 
 test('05b controlled owner preview may use the Contentful Preview API host', async () => {

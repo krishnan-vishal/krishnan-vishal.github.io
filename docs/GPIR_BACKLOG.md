@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M45 approved Drive publication closure
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M45-DRIVE-PUBLICATION | 2026-11-27 | Publish the 43 eligible hash-bound dashboards through Payload primary, Supabase identity/entitlement authority, Contentful passive BCP and the existing GitHub Pages release while continuing PR #724 only | CMS, CONTENT, ENTITLEMENT, RELEASE, GOVERNANCE | Critical | IN PROGRESS | PR checks; exact-head Worker and Edge deployment; owner-dispatched batch workflow; human merge; live acceptance | Implementation reconciles 48 images/45 rows/44 annotations into 43 eligible, two held and three unmatched; creates/reuses 24 governed categories; reuses media without treating asset presence as a publication duplicate; prepares/stages one immutable edition on PR #724; and retains individual publication/BCP evidence. Production execution and live receipts remain pending. |
+
 ## SEP-01 central command controller
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
