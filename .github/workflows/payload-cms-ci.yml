@@ -69,7 +69,8 @@ jobs:
           retention-days: 30
       - run: npm run test
       - name: Verify 10:90 discovery and subscriber/admin entitlement
-        run: node --test ../../tests/m35/edge-protected-publication.test.mjs ../../tests/m39/reader-summary-reliability.test.mjs
+        working-directory: .
+        run: node --test tests/m35/edge-protected-publication.test.mjs tests/m39/reader-summary-reliability.test.mjs
       - name: Verify existing-session release access
         run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs ../../tests/m41/payload-reader.test.cjs ../../tests/m41/website-resume.test.mjs ../../tests/m41/pages-staging.test.cjs
       - run: npx tsc --noEmit
