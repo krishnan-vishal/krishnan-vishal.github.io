@@ -55,8 +55,8 @@ export const driveIntakeEndpoint: Endpoint = {
       if (chapter.totalDocs !== 1) return reply({ error: 'INTAKE_CHAPTER_UNRESOLVED' }, 409)
       const assets = await req.payload.find({ ...context, collection: 'media', where: { sourceSha256: { equals: hash } } })
       const existing = assets.docs[0]
-      if (assets.totalDocs && (assets.totalDocs !== 1 || (existing.sourceMetadata as { driveDraft?: boolean } | null)?.driveDraft !== true)) {
-        return reply({ status: 'EXISTING_MEDIA' })
+      if (assets.totalDocs > 1) {
+        return reply({ error: 'INTAKE_MEDIA_AMBIGUOUS' }, 409)
       }
       const origin = String(process.env.GPIR_CORE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/, '')
       const key = process.env.GPIR_CORE_SUPABASE_SECRET_KEY || process.env.GPIR_SUPABASE_SECRET_KEY || ''
