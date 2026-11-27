@@ -47,7 +47,9 @@ jobs:
               if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/706 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/cms-chapter-reconciliation" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
                 if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/707 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/fix-editorial-bcp-export" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
                   if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/720 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "codex/fix-drive-worker-intake" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-                    gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/724 --jq 'select(.draft == false and .base.ref == "main" and .head.ref == "gpir/drive-publication-correction-20261127" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"
+                    if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/724 --jq 'select(.draft == false and .base.ref == "main" and .head.ref == "gpir/drive-publication-correction-20261127" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"; then
+                      gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/726 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "fix/gpir-drive-menu-depth" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"
+                    fi
                   fi
                 fi
               fi
