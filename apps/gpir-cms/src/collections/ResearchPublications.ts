@@ -4,7 +4,7 @@ import { APIError } from 'payload'
 import { adminOnly, editorialWrite, releaseRead, reviewerFieldWrite, roleOf } from '../lib/access'
 import { assertImmutableIdentity, canonicalPath, GPIR_LINEAGE_ID, GPIR_PUBLICATION_ID, UUID } from '../lib/identity'
 
-const enforceGovernance: CollectionBeforeChangeHook = ({ data, originalDoc, operation, req }) => {
+export const enforceGovernance: CollectionBeforeChangeHook = ({ data, originalDoc, operation, req }) => {
   const next = { ...originalDoc, ...data }
   if (next.canonicalUrlCandidate) {
     next.canonicalUrlCandidate = canonicalPath(next.canonicalUrlCandidate)
@@ -12,7 +12,8 @@ const enforceGovernance: CollectionBeforeChangeHook = ({ data, originalDoc, oper
   }
   if (operation === 'update') assertImmutableIdentity(next, originalDoc as Record<string, unknown>)
   if (next._status === 'published') {
-    if (!(req.context?.m41VerifiedRecovery === true && !req.user) && !['admin', 'reviewer'].includes(roleOf(req.user) || '')) {
+    const governedDriveRelease = req.context?.driveGovernedRelease === true && roleOf(req.user) === 'release-service'
+    if (!(req.context?.m41VerifiedRecovery === true && !req.user) && !governedDriveRelease && !['admin', 'reviewer'].includes(roleOf(req.user) || '')) {
       throw new APIError('Only a reviewer can approve a Payload publication version.', 403)
     }
     if (next.validationStatus !== 'PASS') {

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       approved_pr_head:
-        description: 'Exact reviewed PR #585, #705, #706, #707 or #720 commit SHA'
+        description: 'Exact reviewed approved Payload Worker commit SHA'
         required: true
         type: string
 permissions:
@@ -46,7 +46,9 @@ jobs:
             if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/705 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/task1-money-movement-markets" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
               if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/706 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/cms-chapter-reconciliation" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
                 if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/707 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/fix-editorial-bcp-export" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-                  gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/720 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "codex/fix-drive-worker-intake" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA" 
+                  if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/720 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "codex/fix-drive-worker-intake" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
+                    gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/724 --jq 'select(.draft == false and .base.ref == "main" and .head.ref == "gpir/drive-publication-correction-20261127" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"
+                  fi
                 fi
               fi
             fi
@@ -59,8 +61,9 @@ jobs:
              config.hyperdrive[0].id !== '4398c601c5dc4e39bb2b35f76ff72845' ||
              config.hyperdrive[0].remote !== true)
             throw Error('Production Worker/Hyperdrive configuration changed; deployment refused');
-          if (!fs.readFileSync('apps/gpir-cms/src/payload.config.ts','utf8').includes('observatoryEditionEndpoint'))
-            throw Error('Approved edition endpoint absent');
+          const payload = fs.readFileSync('apps/gpir-cms/src/payload.config.ts','utf8');
+          if (!payload.includes('observatoryEditionEndpoint') || !payload.includes('drivePublicationEditionEndpoint'))
+            throw Error('Approved edition endpoints absent');
           NODE
       - uses: actions/setup-node@v4
         with:

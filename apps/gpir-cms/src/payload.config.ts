@@ -15,6 +15,7 @@ import { Users } from './collections/Users'
 import { domainExpertEndpoint } from './release/domain-expert-endpoint'
 import { editorialEndpoint } from './release/editorial-endpoint'
 import { driveIntakeEndpoint } from './release/drive-intake'
+import { drivePublicationEditionEndpoint } from './release/drive-edition'
 import { siteReleaseEndpoint } from './release/site-endpoint'
 import { observatoryEditionEndpoint } from './release/observatory-edition'
 import { releaseEndpoint } from './release/endpoint'
@@ -31,7 +32,7 @@ export default buildConfig({
   admin: { user: Users.slug, meta: { titleSuffix: '— GPIR Editorial' } },
   collections: [Users, Regions, Countries, Chapters, EditorialMetadata, Media, ResearchPublications, ReleaseEvents],
   editor: lexicalEditor(),
-  endpoints: [driveIntakeEndpoint, releaseEndpoint, siteReleaseEndpoint, editorialEndpoint, observatoryEditionEndpoint, domainExpertEndpoint],
+  endpoints: [driveIntakeEndpoint, drivePublicationEditionEndpoint, releaseEndpoint, siteReleaseEndpoint, editorialEndpoint, observatoryEditionEndpoint, domainExpertEndpoint],
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000',
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'],

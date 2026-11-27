@@ -6,6 +6,7 @@ const env = Object.fromEntries([
   'GPIR_SUPABASE_SECRET_KEY',
   'GPIR_ALLOWED_ORIGINS',
   'GPIR_PAYMENT_ENVIRONMENT',
+  'GPIR_ADMIN_READER_ID',
   'GPIR_FX_LIVE_ACCEPTANCE_ENABLED',
   'GPIR_FX_LIVE_ACCEPTANCE_USER_ID'
 ].map(name => [name, Deno.env.get(name)]));

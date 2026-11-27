@@ -94,14 +94,14 @@ function resolverCalls(result) {
     '/rpc/resolve_publication_entitlement'));
 }
 
-test('primary candidate RPC success authorizes each candidate without fallback', async () => {
+test('primary candidate RPC plus an active subscription exposes the complete governed library', async () => {
   const result = await invoke();
   assert.equal(result.response.status, 200);
   assert.equal(result.body.availability.profile, 'AVAILABLE');
   assert.equal(result.body.availability.library, 'AVAILABLE');
   assert.deepEqual(result.body.library.map(item => item.publicationId),
-    [allowedPublicationId]);
-  assert.equal(result.body.summary.libraryCount, 1);
+    [allowedPublicationId, deniedPublicationId]);
+  assert.equal(result.body.summary.libraryCount, 2);
   assert.equal(result.body.payments.length, 1);
   assert.equal(result.body.plan.billingStatus, 'ACTIVE');
   assert.equal(result.body.availability.subscriptionCheckout, 'AVAILABLE');
@@ -114,7 +114,7 @@ test('primary candidate RPC success authorizes each candidate without fallback',
   assert.equal(resolverCalls(result).length, candidates.length);
 });
 
-test('PGRST202 uses the restricted policy fallback and still requires resolver ALLOW', async () => {
+test('PGRST202 uses only active evidenced policies and an active subscription retains complete access', async () => {
   const result = await invoke({ primary: json({ code: 'PGRST202',
     message: 'Function unavailable' }, 404), fallbackExpected: true });
   assert.equal(result.response.status, 200);
@@ -126,13 +126,12 @@ test('PGRST202 uses the restricted policy fallback and still requires resolver A
     'publication_id,supabase_record_id');
   assert.equal(fallbackUrl.searchParams.get('status'), 'eq.ACTIVE');
   assert.equal(fallbackUrl.searchParams.get('access_class'), 'eq.ENTITLED');
+  assert.equal(fallbackUrl.searchParams.get('review_state'), 'eq.EVIDENCED');
   assert.equal(fallbackUrl.searchParams.get('order'), 'publication_id.asc');
   assert.equal(fallbackUrl.searchParams.get('limit'), '500');
   assert.equal(resolverCalls(result).length, candidates.length);
   assert.deepEqual(result.body.library.map(item => item.publicationId),
-    [allowedPublicationId]);
-  assert.equal(result.body.library.some(item =>
-    item.publicationId === deniedPublicationId), false);
+    [allowedPublicationId, deniedPublicationId]);
 });
 
 test('PGRST202 fallback rejects malformed candidate identifiers before resolution', async () => {

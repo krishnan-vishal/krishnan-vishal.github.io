@@ -26,6 +26,15 @@ reliable prompt-level record, that fact is stated rather than inferred.
 - See [DEVELOPMENT_GOVERNANCE.md](DEVELOPMENT_GOVERNANCE.md) and
   [GPIR_BACKLOG.md](GPIR_BACKLOG.md).
 
+## PR #724 automated Drive publication implementation — 2026-11-27
+
+- **Owner objective:** complete the existing PR #724 assignment through actual publication of the 43 eligible dashboards, without a second PR or individual editorial approvals.
+- **Authoritative reconciliation:** current Drive evidence contains 48 images, 45 approved distribution rows and 44 editorial annotations. Two explicit blocking exceptions are held (incorrect Singapore identity and third-party KSA rights); three images are unmatched and excluded. The non-blocking diaspora scope note remains eligible, producing exactly 43 candidates across 24 chapter slugs.
+- **Implementation:** the importer reads the exact Drive folders, binds editorial fields to acquired SHA-256 bytes, performs exact published-record collision checks, calls one signed Payload endpoint per eligible record and writes a per-record receipt. Payload resolves or creates the chapter, reuses only one matching media asset, uses `gpir_drive_draft_identity`, establishes an evidenced ENTITLED policy, requires `gpir_publication_release_decision`, then creates a native PASS/published record in a narrow release-service context.
+- **Delivery:** a new bounded Payload edition endpoint renders only the governed 43-record set into the inherited signed snapshot, updates route/FX discovery metadata, stores immutable blobs/manifest/release evidence and returns a signed snapshot. The owner-dispatched workflow stages that snapshot on `gpir/drive-publication-correction-20261127`, never creates another PR, and runs the existing Contentful incremental BCP sync with retained receipts.
+- **Access:** public static artifacts contain the labeled 10% discovery preview only; protected editorial bodies and dashboard URLs are absent. The existing Supabase publication policy remains mandatory. Existing PayPal subscription/admin authority is now consistently recognized by the protected publication and My GPIR reader-summary functions, while unentitled access stays denied.
+- **Validation checkpoint:** 62 CMS tests, TypeScript, 30 protected-publication tests and four reader-summary reliability tests pass locally. YAML parses for the three changed workflows. The Windows OpenNext build is blocked by its documented sandbox temp-path/junction incompatibility before application bundling; the required Linux CI Worker build is pending. No production deployment, database write, Contentful write, GitHub Pages publication or main merge has occurred at this checkpoint.
+
 ## SEP-01 consolidated repair and live acceptance — 2026-11-20
 
 - **Objective:** Repair the existing PR #604 implementation after repeated configuration, model-selection, syntax, response-handling and availability failures; prove the complete bounded execution and recovery chain without another PR or production activation.

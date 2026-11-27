@@ -11,6 +11,11 @@ on:
       - 'gpir-content-source.json'
       - 'assets/data/cms-source.json'
       - 'supabase/functions/gpir-protected-publication/**'
+      - 'supabase/functions/gpir-reader-summary/**'
+      - 'supabase/functions/_shared/gpir-reader-entitlement.mjs'
+      - 'scripts/m35/contentful-publication-renderer.js'
+      - 'assets/js/content-search.js'
+      - 'tests/m35/**'
       - 'supabase/functions/_shared/gpir-contentful-editorial.mjs'
       - 'supabase/migrations/20261114020220_gpir_payload_schema_isolation.sql'
       - '.github/workflows/payload-*.yml'
@@ -63,6 +68,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - run: npm run test
+      - name: Verify 10:90 discovery and subscriber/admin entitlement
+        run: node --test ../../tests/m35/edge-protected-publication.test.mjs ../../tests/m39/reader-summary-reliability.test.mjs
       - name: Verify existing-session release access
         run: node --test ../../tests/m41/release-access.test.mjs ../../tests/m41/management-session.test.mjs ../../tests/m41/import-checkpoint.test.mjs ../../tests/m41/payload-reader.test.cjs ../../tests/m41/website-resume.test.mjs ../../tests/m41/pages-staging.test.cjs
       - run: npx tsc --noEmit

@@ -28,18 +28,19 @@ function providerError(reason, origin) {
 function configuration(env) {
   if (env.GPIR_EDITORIAL_SOURCE === 'payload') {
     const origin = String(env.PAYLOAD_PUBLIC_SERVER_URL || '').replace(/\/$/, '');
-    if (!/^https:\/\/[^/]+$/.test(origin) || !env.PAYLOAD_RELEASE_API_KEY || !env.SUPABASE_URL || !env.GPIR_SUPABASE_PUBLISHABLE_KEY) return null;
+    if (!/^https:\/\/[^/]+$/.test(origin) || !env.PAYLOAD_RELEASE_API_KEY || !env.SUPABASE_URL || !env.GPIR_SUPABASE_PUBLISHABLE_KEY || !env.GPIR_SUPABASE_SECRET_KEY) return null;
     return { SUPABASE_URL: env.SUPABASE_URL, GPIR_SUPABASE_PUBLISHABLE_KEY: env.GPIR_SUPABASE_PUBLISHABLE_KEY,
+      GPIR_SUPABASE_SECRET_KEY: env.GPIR_SUPABASE_SECRET_KEY, GPIR_ADMIN_READER_ID: env.GPIR_ADMIN_READER_ID,
       GPIR_EDITORIAL_SOURCE: 'payload', PAYLOAD_PUBLIC_SERVER_URL: origin, PAYLOAD_RELEASE_API_KEY: env.PAYLOAD_RELEASE_API_KEY };
   }
   if (env.GPIR_EDITORIAL_SOURCE && env.GPIR_EDITORIAL_SOURCE !== 'contentful') return null;
   const names = ['SUPABASE_URL', 'GPIR_SUPABASE_PUBLISHABLE_KEY',
-    'CONTENTFUL_SPACE_ID', 'CONTENTFUL_ENVIRONMENT', 'CONTENTFUL_DELIVERY_TOKEN'];
+    'GPIR_SUPABASE_SECRET_KEY', 'CONTENTFUL_SPACE_ID', 'CONTENTFUL_ENVIRONMENT', 'CONTENTFUL_DELIVERY_TOKEN'];
   const values = Object.fromEntries(names.map(name => [name, env[name]?.trim()]));
   if (!names.every(name => values[name])) return null;
   const contentfulHost = (env.CONTENTFUL_HOST || 'cdn.contentful.com').trim().toLowerCase();
   if (!['cdn.contentful.com', 'preview.contentful.com'].includes(contentfulHost)) return null;
-  return { ...values, CONTENTFUL_HOST: contentfulHost };
+  return { ...values, GPIR_ADMIN_READER_ID: env.GPIR_ADMIN_READER_ID, CONTENTFUL_HOST: contentfulHost };
 }
 
 function bearerToken(request) {
@@ -153,7 +154,37 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     if (!Array.isArray(entitlement) || entitlement.length !== 1 ||
         !['ALLOW', 'DENY'].includes(entitlement[0]?.decision))
       return denied(403, 'MALFORMED_ENTITLEMENT_RESULT', origin);
-    if (entitlement[0].decision !== 'ALLOW') return denied(403, 'NOT_ENTITLED', origin);
+    if (entitlement[0].decision !== 'ALLOW') {
+      // Preserve the original publication-policy RPC while recognizing the
+      // existing production subscriber/admin authority used by GPIR readers.
+      // The fallback is available only for an exact ACTIVE/EVIDENCED ENTITLED
+      // publication policy and therefore cannot bypass release governance.
+      const policyQuery = new URLSearchParams({
+        select: 'supabase_record_id,publication_id,access_class,status,review_state',
+        supabase_record_id: `eq.${input.supabaseRecordId}`,
+        publication_id: `eq.${input.publicationId}`,
+        limit: '2'
+      });
+      const serviceHeaders = new Headers({ apikey: config.GPIR_SUPABASE_SECRET_KEY });
+      if (!config.GPIR_SUPABASE_SECRET_KEY.startsWith('sb_secret_'))
+        serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
+      let policyResponse;
+      try {
+        policyResponse = await fetchImpl(`${config.SUPABASE_URL}/rest/v1/gpir_publication_access_policies?${policyQuery}`, { headers: serviceHeaders });
+      } catch { return providerError('ENTITLEMENT_PROVIDER_ERROR', origin); }
+      if (!policyResponse.ok) return providerError('ENTITLEMENT_PROVIDER_ERROR', origin);
+      let policies;
+      try { policies = await policyResponse.json(); }
+      catch { return denied(403, 'MALFORMED_ENTITLEMENT_RESULT', origin); }
+      const policy = Array.isArray(policies) && policies.length === 1 ? policies[0] : null;
+      if (!policy || policy.access_class !== 'ENTITLED' || policy.status !== 'ACTIVE' || policy.review_state !== 'EVIDENCED')
+        return denied(403, 'NOT_ENTITLED', origin);
+      const subscriber = await resolveSubscriberAccess({ fetchImpl, supabaseUrl: config.SUPABASE_URL,
+        serviceKey: config.GPIR_SUPABASE_SECRET_KEY, accessToken: token,
+        adminReaderId: config.GPIR_ADMIN_READER_ID });
+      if (subscriber.decision === 'ERROR') return providerError('ENTITLEMENT_PROVIDER_ERROR', origin);
+      if (subscriber.decision !== 'ALLOW') return denied(403, 'NOT_ENTITLED', origin);
+    }
 
     const query = new URLSearchParams({ content_type: 'gpirPublication',
       'fields.gpirPublicationId': input.publicationId, include: '2', limit: '2' });
@@ -185,3 +216,4 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
 }
 
 export { normalizedPayload, validInput };
+import { resolveSubscriberAccess } from '../_shared/gpir-reader-entitlement.mjs';
