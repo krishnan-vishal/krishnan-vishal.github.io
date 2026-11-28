@@ -102,3 +102,10 @@ and delivered six more. The live source marker matched the signed
 snapshot and all 43 canonical publication URLs returned HTTP 200.
 Contentful completion remains a separate receipt. See
 [the verified edition](M44-AGENTIC-INTELLIGENCE.md#live-43-record-payload-edition--28-november-2026).
+
+**PA-008 Smart Intelligence Pages checkpoint | 2026-11-28:** Owner-merged
+PR #748 shipped the active source-tier renderer in Pages run `46144960926`.
+The deployed module matched the reviewed bytes and returned the governed
+source label when exercised with the live PYMNTS record. Signed-in
+browser acceptance remains pending. See
+[the production readback](M44-AGENTIC-INTELLIGENCE.md#pr-748-pages-release-and-matching-edition-recovery--28-november-2026).

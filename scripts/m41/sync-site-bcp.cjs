@@ -20,7 +20,9 @@ async function main() {
     });
     if (source.manifest.nativeResearch?.length) records.push(await source.record(`m41:research-release:${source.manifest.snapshot}`));
     console.log('BCP: exporting editorial references');
-    const editorial = await source.request('/api/release/editorial-entries', { method: 'POST', body: JSON.stringify({ action: 'export' }) });
+    const editorial = await source.request('/api/release/editorial-entries', {
+        method: 'POST', body: JSON.stringify({ action: 'export' })
+    }, { timeoutMs: 120_000 });
     if (!Array.isArray(editorial.records)) throw new Error('Payload editorial backup is incomplete.');
     records.push(...editorial.records);
     for (const record of editorial.records.filter(item => item.sourcePayload?.kind === 'payload-reference' && item.sourcePayload.collection === 'media')) {

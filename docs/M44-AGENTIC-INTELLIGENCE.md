@@ -435,3 +435,29 @@ legacy chapter reuse. The approved two-level Stablecoins mapping keeps
 its exact identity and root URL check. The existing Smart Intelligence
 source-tier label now flows through the in-use timeline, lead card and
 selected-alert rendering. These branch changes await owner release.
+
+## PR #748 Pages release and matching edition recovery — 28 November 2026
+
+Owner-merged PR #748 released through
+[Pages run 46144960926](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46144960926).
+The live Smart Intelligence page requested the new versioned module.
+Both matched the reviewed bytes. The active timeline code rendered a
+real governed record as `PYMNTS · Source tier T3 · Global`. The
+authenticated browser view remains a separate acceptance check.
+
+The existing Atlas and FinTech News Singapore acquisition mechanisms
+covered the next bounded interval after 22 November 03:40:42 UTC
+through 28 November 00:00 UTC. HTTP receipts `10859` and `10860`
+returned 200. They found 1 and 16 links respectively, with zero
+unseen links and zero new raw rows.
+
+The four edition-specific BCP attempts did not complete. Attempt 3
+verified 220 recovery deltas against the immutable baseline before
+Contentful returned HTTP 500. Attempt 4 reached editorial export and
+hit three 60-second read deadlines before Contentful writes.
+The follow-up branch adds recovery mode to the same guarded workflow.
+It verifies the requested snapshot against the reviewed source lock
+and served Pages marker, skips reconstruction and publication, and
+allows up to 120 seconds per existing editorial-export read.
+Content-addressed Contentful objects and the complete recovery
+readback remain required. The recovery change awaits controlled release.

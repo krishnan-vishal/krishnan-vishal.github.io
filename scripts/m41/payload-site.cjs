@@ -13,9 +13,9 @@ function configuration(env) {
 }
 async function client(env, fetchImpl = fetch) {
     const config = configuration(env);
-    async function request(route, options = {}) {
+    async function request(route, options = {}, readOptions) {
         return readJSON(fetchImpl, `${config.origin}${route}`, { ...options, redirect: 'error',
-            headers: { authorization: `users API-Key ${config.key}`, 'content-type': 'application/json' } });
+            headers: { authorization: `users API-Key ${config.key}`, 'content-type': 'application/json' } }, readOptions);
     }
     const result = await request('/api/release/managed-site', { method: 'POST', body: JSON.stringify({ snapshot: config.snapshot }) });
     const expected = crypto.createHmac('sha256', config.secret).update(site.canonical(result.manifest)).digest('hex');

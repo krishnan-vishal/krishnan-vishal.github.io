@@ -1,7 +1,10 @@
 'use strict';
 
 // Read-only CMS transport. Never log response bodies, credentials or headers.
-async function readJSON(fetchImpl, url, options, { delay = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
+async function readJSON(fetchImpl, url, options, {
+    delay = ms => new Promise(resolve => setTimeout(resolve, ms)),
+    timeoutMs = 60_000
+} = {}) {
     const parsed = new URL(url);
     const key = parsed.searchParams.get('where[sourceRecordKey][equals]');
     const label = parsed.pathname + (/^m41:blob:[a-f0-9]{64}$/.test(key || '') ? ` (${key})` : '');
@@ -13,7 +16,7 @@ async function readJSON(fetchImpl, url, options, { delay = ms => new Promise(res
         try {
             const headers = new Headers(options.headers);
             headers.set('accept-encoding', 'identity');
-            const response = await fetchImpl(url, { ...options, headers, signal: AbortSignal.timeout(60000) });
+            const response = await fetchImpl(url, { ...options, headers, signal: AbortSignal.timeout(timeoutMs) });
             status = response.status;
             if (!response.ok) {
                 retryable = [502, 503, 504].includes(status);
