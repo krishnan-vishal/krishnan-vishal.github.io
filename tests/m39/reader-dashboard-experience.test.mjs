@@ -128,11 +128,14 @@ test('markup and styles cover target desktop, tablet and mobile presentation con
 
 test('43 approved catalog routes link only server-authorized reader identities', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../routes.json', import.meta.url), 'utf8'));
-  const records = publicCatalogItems(manifest);
-  assert.ok(records.length >= 43, 'approved route catalog must list the 43 newly published dashboards');
+  const approved = JSON.parse(await readFile(new URL('../../assets/data/approved-dashboard-catalog.json', import.meta.url), 'utf8'));
+  const records = publicCatalogItems(manifest, approved);
+  assert.equal(approved.recordCount, 43);
+  assert.equal(records.length, approved.recordCount);
   const unique = new Set(records.map(item => item.id));
   assert.equal(unique.size, records.length);
   assert.ok(records.every(item => /^\/[a-z0-9-]+\/$/.test(item.route)));
+  assert.equal(publicCatalogItems(manifest, { recordCount: 1, identities: ['unreviewed'] }).length, 0);
   const example = records.find(item => item.id === 'VK-GPIR-P-000000000088-5');
   assert.ok(example);
   const authorized = normalizeReaderSummary(response({ library: [
