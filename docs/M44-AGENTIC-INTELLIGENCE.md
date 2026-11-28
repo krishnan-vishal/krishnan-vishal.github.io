@@ -177,3 +177,191 @@ follow-up migration returns at most two observed dates per pair. A read-only
 production query returned 268 rows, all 134 archive pairs and zero missing
 pairs. The corrective migration requires the governed review and release.
 Account billing and signed-in FX browser performance remain unverified.
+
+## Production acceptance after PR #731
+
+The owner merged PR #731 as `b5334c033a98aa1f2e45c5889d43a89697dc58e3`.
+The PostgreSQL and Security and Integrity checks passed, and Pages run
+46088055991 succeeded. Supabase applied the reviewed SQL as
+`20261128003206 m44_fx_projection_pair_coverage`.
+
+The production RPC returned 268 records, exactly two per pair, for all 134
+configured pairs. The public HTTP response matched the 134-pair universe
+with no missing or extra pair. USD/INR returned 92.520426 for 27 November
+and a previous close of 92.345212 for 26 November. The homepage displayed
+USD/INR at 92.5204 (+0.19%) in its 26-pair featured ticker. Currency Explorer
+also displayed the non-featured USD/NGN pair through the existing selectors.
+
+The archive contained 16,846 rows before and after the migration. A digest
+over all pre-existing rows ordered by ID was unchanged
+(`3a8c397175b30b583fe78199be4c0843`). RPC execution remained service-role
+only and the unauthenticated reader endpoint returned 401. No Smart Card
+assets were changed in PR #731. The signed-in timing requires an authenticated
+reader session.
+
+ASK GPIR and history each returned announcement
+`6b6ffb23-87ba-4dae-9e7a-618797b628eb` as historical and archived with
+the cited source and exact timestamp `2026-11-27T09:00:53Z`. The audit
+records automatic publication at `2026-11-27T09:50:03.235621Z` at
+confidence 100. A live observation of a post-release article is pending.
+
+The production HTTP receipts for the 00:20 and 00:30 UTC scheduled publisher
+calls timed out at the inherited five-second limit despite successful SQL
+queueing. The existing job 4 gained an explicit `timeout_milliseconds :=
+120000`. A reverse-replacement digest comparison confirmed that the
+timeout was the only command change. Its ten-minute cadence, request body
+and Vault authorization were preserved. The original command is recovered
+by removing the exact added timeout argument under the same job and digest
+guards. No new cron job or additional SQL migration was used for this
+configuration correction.
+
+From 06:10 to 11:30 IST on 28 November, while ChatGPT Work was unavailable,
+Supabase matched 33 of 33 ten-minute cron runs to HTTP 200 responses from
+LangGraph OSS 1.7.5 in `deterministic-no-llm` mode. There were zero HTTP
+timeouts and zero new publications. The first and last cron run IDs were
+73716 and 74744, matching response IDs 10702 and 10772. The final receipt
+reported all seven graph stages and a successful read of 62 editorial
+entries. No manual publisher call was used in this interval.
+
+## Agent integration and supplementary FX review
+
+The reviewed branch uses the deployed LangGraph dependency to run the
+existing publisher operations in separate stages. Editorial candidate reads
+are batched in groups of 40. The existing audit and publication RPCs remain
+authoritative. The research graph ranks phrase and keyword matches in one
+ASK GPIR request after the existing entitlement split. Country risk profiles
+can attach up to three cited repository records by explicit country
+geography. A source's domicile alone does not attach a record to a country.
+
+The relay keeps its single-query empty path. A non-empty result includes
+predecessor records within the existing grouping horizon. This allows the
+earliest report to determine retirement when a later report corroborates it.
+
+On 28 November at 06:29–06:32 UTC, production had 16,980 FX archive
+rows, up 134 since the previous receipt, and 392 approved announcement rows.
+Public history returned 6,652 records in 10.16 seconds. In the preceding
+12 hours, 84 successful source runs reported 41 discoveries, including
+repeated discoveries. Four new PYMNTS candidates scored 50, 70, 70 and 85
+and stayed in review. The relay had no qualifying publication during
+the check.
+
+Read-only supplier review on 28 November concluded:
+
+- **Twelve Data.** Basic offers 8 credits per minute and 800 per day, with
+  Forex coverage described for 140 currencies across the product.
+  The free tier is internal and non-display. Public redistribution requires a
+  separate agreement. [Pricing](https://twelvedata.com/pricing-business) ·
+  [Licensing](https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage).
+- **ExchangeRate-API.** GPIR already uses the keyless Open Access feed.
+  Its daily response contained 166 currency codes and covered all 134 GPIR
+  pairs. Keyed Free offers 1,500 calls per month. Standard terms allow
+  attributed end-use and caching but prohibit public redistribution and
+  programmatic re-serving. Account-specific permission for GPIR's public
+  snapshot was not available in the release evidence. [Open Access](https://www.exchangerate-api.com/docs/free) ·
+  [Terms](https://www.exchangerate-api.com/terms).
+- **Alpha Vantage.** The standard free allowance is 25 requests per day.
+  Pair-specific endpoints offer historical FX series, so the standard quota
+  cannot cover all 134 pairs daily by individual lookup. Commercial use
+  requires written agreement. [Allowance](https://www.alphavantage.co/support/) ·
+  [FX endpoints](https://www.alphavantage.co/documentation/#fx) ·
+  [Terms](https://www.alphavantage.co/terms_of_service/).
+- **CurrencyFreaks.** The free keyed plan offers 1,000 requests monthly and
+  daily USD-base updates. The separate keyless fair-use Open Rates endpoint
+  returned 170 quote codes on 28 November. All 134 GPIR pairs are derivable
+  when the USD base is treated as an identity rate. Its standard terms
+  describe restricted end-user reference display. Rights for public API
+  redistribution and an append-only public archive remain unverified.
+  [Pricing](https://currencyfreaks.com/pricing) ·
+  [Open Rates](https://currencyfreaks.com/open-rates-api) ·
+  [Terms](https://currencyfreaks.com/tos).
+
+No proposed provider was enabled or given a credential. Existing
+ECB/Frankfurter coverage, the 134-pair contract and the FX archive were
+preserved. Account billing evidence was unavailable.
+
+## Production release after PR #744 — 28 November 2026
+
+Owner-merged commit `80447b2fbf612dbeae8b6a0a3b043a4f1359f323`
+released through [Pages run 46117397875](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46117397875).
+Both live browser assets matched their approved source. Supabase activated
+publisher v19 at 12:09:44 IST with JWT verification and public intelligence
+v29 at 12:10:03 IST with the existing public gateway setting. Those were
+the only two Edge Function version changes. Guest publisher and reader
+requests returned HTTP 401.
+
+The published bundle digests were
+`12c085fec411fa3d9985766d8facb4bd269dbf14906cdf87a9ae12ed60e77d2c`
+for the publisher and
+`57041f8b49d52cb5a1a16bf802f87313426f1de4e5b0963766fdb37d7c94f8b8`
+for public intelligence.
+
+At 12:10 IST, existing cron job 4 produced run `74872` and HTTP response
+`10780`. The response returned HTTP 200 with `langgraph-oss-1.7.5`,
+`deterministic-no-llm`, all seven stage markers, 62 editorial entries read
+and zero publications. Edge logs tied execution
+`d037d6aa-d7ad-4b1f-b67c-8b9de9f80c52` to publisher v19.
+At 12:20 IST, job 4 run `74905` returned HTTP 200 in response `10783`
+with the same deterministic mode, 62 editorial entries read and zero
+publications. Edge execution `e9e612cf-e8ea-434c-8f8e-d686f206234f`
+confirmed v19 again. Neither invocation timed out.
+
+[Ranked ASK](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=ask&match=ranked&q=AI%20Helps%20Merchants%20Stop%20Holiday%20Fraud&term=merchants&term=fraud&limit=5)
+returned the original PYMNTS citation first in a 4.68-second guest-preview
+request. [Singapore evidence](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=ask&match=ranked&geo=Singapore&geo=SG&limit=3)
+returned three cited results in 2.31 seconds. Australia, Japan, Brazil
+and Nigeria returned zero guest-preview citations. Signed-in display and
+the full-entitlement route were outside this readback.
+
+The genuine PYMNTS item `6b6ffb23-87ba-4dae-9e7a-618797b628eb` had source
+time 14:30:53 IST on 27 November. It was acquired at 15:15:04 IST and
+published at 15:20:03 IST with confidence 100. Its 12-hour cutoff was
+02:30:53 IST on 28 November. Ranked ASK and public history returned it as
+`ARCHIVED`. Public history held 6,652 records, including this item.
+The database held 392 approved announcements. The live relay returned
+zero qualifying items during the release check. The 12:15 and 12:20 IST
+PYMNTS and FinTech News Singapore acquisitions succeeded with zero new
+candidates. The database still had zero eligible live items at 12:20 IST.
+A new live-to-archive observation remains open.
+
+The existing [FX snapshot](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-fx-snapshot)
+returned exactly the configured 134 pairs with zero missing or extra.
+Requests measured 1,489 ms on a cache miss and 59 ms on a cache hit.
+The FX archive held 16,980 observations, including 134 on 28 November.
+The existing Smart Intelligence Cards feed returned three cited records
+in 1.98 seconds. No supplier, subscription, credit,
+or infrastructure purchase accompanied this release. Account billing
+evidence was unavailable.
+
+## Production growth checkpoint — 28 November 2026
+
+The production registry had a blank official authority URL for
+`TEST-RBA-01`. Applied only the reviewed RBA assignment from [PR #518](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/518).
+The readback confirmed `https://www.rba.gov.au` and the existing media
+RSS, GREEN status, T1, acquisition method A and parser profile. Restoring
+the previous value would require changing only this row's authority URL
+back to NULL under the same source and feed guards.
+
+One invocation of the existing authenticated acquisition returned
+HTTP 200 under pg_net ID `10786` at 12:34 IST. It discovered one intake
+link already recorded and inserted zero rows. That prior record remained
+rejected by the existing Gate 2 score. The production readback at 12:44
+IST showed zero new publications and zero live-eligible items.
+
+The existing scheduled [Contentful BCP run 46110186124](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124)
+retained authenticated verification of 1,219 recovery records in
+[artifact 15249462533](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124/artifacts/15249462533).
+This reconciled the existing edition. The separate governed batch
+[retry 46116934360, attempt 2](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46116934360/attempts/2)
+reached the published Payload intake after the reviewed Worker fix, then
+returned HTTP 409 `INTAKE_CHAPTER_CANONICAL_CONFLICT`. It emitted no
+new edition or batch-specific BCP receipt. The existing canonical chapter
+and the approved distribution mapping require reconciliation before retry.
+
+The working branch offers a 30-second cache for underlying historical
+evidence, concurrent bounded queries using existing database filters,
+and five reviewed-source references in the existing country risk
+profile slots. Reader entitlements are evaluated on every request.
+The relay reads its own live projection and evaluates lifecycle time
+independently. The branch also surfaces the separate archive provenance
+inside the FX Card brief and source tier on Smart Intelligence evidence.
+These code changes require controlled release and live measurement.

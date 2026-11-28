@@ -3516,3 +3516,50 @@ response was limited to 42 pairs by the Data API row cap despite the complete
 134-pair archive. The follow-up SQL returned all 134 pairs in a read-only
 production rehearsal. Live acceptance remains partial. See the
 [production checkpoint](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).
+
+## 2026-11-28 — M44 corrective migration and production job timeout
+
+Owner-merged PR #731 ran as Supabase migration `20261128003206`.
+The live endpoint returned the exact 134-pair universe. The featured ticker
+displayed USD/INR and the FX archive digest matched across 16,846 existing
+rows. ASK GPIR and history returned the genuine, expired PYMNTS announcement.
+The existing ten-minute publisher job's HTTP timeout was changed from five
+seconds to 120 seconds after repeated timeouts. See
+[production acceptance](M44-AGENTIC-INTELLIGENCE.md#production-acceptance-after-pr-731).
+
+The unattended publisher produced 33 verified HTTP 200 LangGraph OSS
+receipts from 06:10 to 11:30 IST during the ChatGPT Work interruption,
+with zero timeouts. The first and last response IDs were 10702 and 10772.
+The final response recorded a successful read of 62 editorial entries.
+
+## 2026-11-28 — M44 governed agent integration branch
+
+Production readback found 16,980 FX archive rows, an increase of 134, and
+392 approved announcements. Public history reported 6,652 records and
+the preceding 12 hours had 84 successful source runs. Four new media
+candidates remained in review below the 95% gate. The implementation branch assigns existing
+publisher work to the LangGraph stages, batches editorial reads, restores
+predecessor grouping in the relay, and adds ranked ASK retrieval and
+explicit country references. The supplier review identified public
+redistribution restrictions and no supplier was activated. Deployment
+and live acceptance of the branch changes remain pending.
+
+## 2026-11-28 — M44 PR #744 controlled production release
+
+Pages run `46117397875`, publisher v19 and public intelligence v29 served
+the owner-merged release. Cron run `74872` and HTTP receipt `10780`
+verified unattended deterministic execution against v19. Live ranked ASK
+returned the archived PYMNTS citation and country retrieval returned three
+Singapore citations. Public history held 6,652 records and the FX
+snapshot retained all 134 pairs. See [the release receipts](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-744--28-november-2026).
+
+## 2026-11-28 — M44 authoritative acquisition and content recovery
+
+The reviewed RBA authority URL was restored for production source
+`TEST-RBA-01`. Acquisition receipt `10786` returned HTTP 200 and reported
+one existing discovery and zero new rows. Scheduled BCP run `46110186124`
+retained authenticated proof covering 1,219 existing recovery records.
+The separately owner-approved Payload batch retried in run
+`46116934360` attempt 2 and stopped with HTTP 409
+`INTAKE_CHAPTER_CANONICAL_CONFLICT`.
+See [production growth evidence](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).

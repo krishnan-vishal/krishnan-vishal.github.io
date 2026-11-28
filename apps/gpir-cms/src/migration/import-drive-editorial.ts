@@ -17,11 +17,94 @@ async function request(url: string, init: RequestInit, label: string) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const response = await fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(60000) })
     if (response.ok) return response
+    const finalAttempt = ![429, 500, 502, 503, 504].includes(response.status) || attempt === 4
+    if (finalAttempt && label === 'Payload publication intake') {
+      // The existing Worker publishes only bounded application error codes.
+      // Parse privately; never log headers, uploaded content or arbitrary text.
+      const json: unknown = await response.json().catch(() => null)
+      const code = json && typeof json === 'object' && 'error' in json
+        ? (json as { error?: unknown }).error : null
+      const allowed = new Set([
+        'INTAKE_STORAGE_UNAVAILABLE', 'INTAKE_AUTHORITY_UNAVAILABLE',
+        'INTAKE_IDENTITY_REFUSED', 'INTAKE_FAILED_RETRY_SAFE',
+        'INTAKE_POLICY_UNAVAILABLE', 'INTAKE_POLICY_REFUSED',
+        'INTAKE_POLICY_CONFLICT', 'INTAKE_CHAPTER_CREATE_FAILED',
+        'INTAKE_CHAPTER_CANONICAL_CONFLICT', 'INTAKE_MEDIA_AMBIGUOUS',
+        'INTAKE_RELEASE_REFUSED', 'INTAKE_PUBLICATION_COLLISION',
+        'INTAKE_INPUT_INVALID', 'INTAKE_REVIEW_INVALID',
+        'INTAKE_HASH_MISMATCH', 'INTAKE_FORMAT_HELD',
+        'INTAKE_SIZE_INVALID', 'INTAKE_SIGNATURE_INVALID',
+        'INTAKE_SIGNATURE_REQUIRED', 'SERVICE_ROLE_REQUIRED',
+      ])
+      // Match only the finite, reviewed failure stages emitted by the current
+      // Payload intake handler. Never accept arbitrary server-provided strings.
+      const stages = new Set([
+        'REQUEST_PARSE', 'PUBLICATION_LOOKUP', 'MEDIA_LOOKUP',
+        'CHAPTER_RESOLUTION', 'IDENTITY_REQUEST', 'IDENTITY_RESPONSE',
+        'ACCESS_POLICY', 'RELEASE_DECISION', 'MEDIA_CREATE',
+        'PUBLICATION_CREATE',
+      ])
+      const approvedStage = typeof code === 'string' && code.startsWith('INTAKE_FAILED_') &&
+        stages.has(code.slice('INTAKE_FAILED_'.length))
+      const safe = typeof code === 'string' && (allowed.has(code) || approvedStage)
+        ? code : 'UNRECOGNIZED_RESPONSE'
+      throw new Error(`Payload publication intake returned HTTP ${response.status}: ${safe}`)
+    }
     await response.body?.cancel()
-    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 4) throw new Error(`${label} returned HTTP ${response.status}`)
+    if (finalAttempt) throw new Error(`${label} returned HTTP ${response.status}`)
     await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
   }
   throw new Error('Request retries exhausted')
+}
+
+// Refresh only the existing governed Drive OAuth grant. Google may return 400 for
+// a permanently invalid grant or a mismatched OAuth client; these must not be
+// conflated with retryable transport errors or cause credential disclosure.
+async function refreshDriveAccessToken(): Promise<string> {
+  const form = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: value('GPIR_DRIVE_CLIENT_ID'),
+    client_secret: value('GPIR_DRIVE_CLIENT_SECRET'),
+    refresh_token: value('GPIR_DRIVE_REFRESH_TOKEN'),
+  })
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let response: Response
+    try {
+      response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(20000),
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      })
+    } catch (error: unknown) {
+      // A transport/timeout rejection has no Google HTTP status or OAuth error.
+      // Surface only the error class; never print the URL, request, cause or secrets.
+      const name = error instanceof Error ? error.name : ''
+      const reason = name === 'TimeoutError' || name === 'AbortError' ? 'TIMEOUT' : 'TRANSPORT'
+      if (attempt < 2) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
+        continue
+      }
+      throw new Error('DRIVE_OAUTH_' + reason + '_RETRY_EXHAUSTED')
+    }
+    // Parse privately; never print Google's raw response or token fields.
+    const result: any = await response.json().catch(() => null)
+    if (response.ok) {
+      if (typeof result?.access_token !== 'string' || !result.access_token.trim())
+        throw new Error('DRIVE_OAUTH_TOKEN_MISSING')
+      return result.access_token
+    }
+    if ((response.status === 429 || response.status >= 500) && attempt < 2) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
+      continue
+    }
+    const approved = new Set([
+      'invalid_grant', 'invalid_client', 'unauthorized_client',
+      'invalid_scope', 'invalid_request', 'access_denied', 'temporarily_unavailable',
+    ])
+    const code = typeof result?.error === 'string' && approved.has(result.error)
+      ? result.error.toUpperCase() : 'UNKNOWN'
+    throw new Error('DRIVE_OAUTH_REJECTED_' + code + '_HTTP_' + response.status)
+  }
+  throw new Error('DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED')
 }
 
 async function listDriveFolder(folderId: string, headers: Record<string, string>) {
@@ -70,41 +153,56 @@ async function main() {
   const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
   const signingSecret = value('GPIR_RELEASE_SIGNING_SECRET')
   acquisitionStage = 'DRIVE_OAUTH'
-  const oauth = await (await request('https://oauth2.googleapis.com/token', {
-    method: 'POST', body: new URLSearchParams({
-      grant_type: 'refresh_token', client_id: value('GPIR_DRIVE_CLIENT_ID'),
-      client_secret: value('GPIR_DRIVE_CLIENT_SECRET'), refresh_token: value('GPIR_DRIVE_REFRESH_TOKEN'),
-    }),
-  }, 'Drive OAuth')).json()
-  if (typeof oauth.access_token !== 'string') throw new Error('Drive OAuth response omitted its access token')
-  const headers = { authorization: `Bearer ${oauth.access_token}` }
+  // GitHub WIF grants a short-lived Google service-account Drive token.
+  // Legacy refresh remains available only for non-federated callers.
+  const federated = process.env.GPIR_DRIVE_WIF_ACCESS_TOKEN?.trim()
+  if (process.env.GITHUB_ACTIONS === 'true' && !federated)
+    throw new Error('DRIVE_WIF_TOKEN_MISSING')
+  const serviceAccount = process.env.GPIR_DRIVE_WIF_SERVICE_ACCOUNT?.trim()
+  if (federated && !/^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$/.test(serviceAccount || ''))
+    throw new Error('DRIVE_WIF_SERVICE_ACCOUNT_INVALID')
+  const accessToken = federated || await refreshDriveAccessToken()
+  const headers = { authorization: `Bearer ${accessToken}` }
   // Confirm GitHub's existing refresh-token exchange grants the intended account,
   // approved OAuth client, and full read access before processing any files.
   // Do not log raw tokens, client identifiers, emails, or Google response bodies.
   acquisitionStage = 'DRIVE_OAUTH_CLIENT_AND_SCOPE'
   const tokenInfo = await (await request(
-    'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(oauth.access_token),
+    'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(accessToken),
     {}, 'Drive token inspection')).json() as {
       azp?: string; aud?: string; audience?: string; issued_to?: string; scope?: string
     }
-  const clientId = value('GPIR_DRIVE_CLIENT_ID')
-  // Google's current tokeninfo access-token response identifies the authorizing
-  // OAuth client via azp; retain issued_to for legacy response compatibility.
-  // A token's audience may differ from its authorized presenter.
-  const authorizedClient = tokenInfo.azp || tokenInfo.issued_to || tokenInfo.aud || tokenInfo.audience
-  if (authorizedClient !== clientId)
-    throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
+  if (!federated) {
+    // Legacy user OAuth: validate the exact approved client.
+    const clientId = value('GPIR_DRIVE_CLIENT_ID')
+    const authorizedClient = tokenInfo.azp || tokenInfo.issued_to || tokenInfo.aud || tokenInfo.audience
+    if (authorizedClient !== clientId)
+      throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
+  }
   const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\s+/).filter(Boolean))
-  if (!['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive']
+  // drive.file is a valid narrower grant, but only for explicitly app-authorized
+  // files. The importer still requires authenticated metadata AND full media
+  // download with approved SHA-256 for both mappings and every source image.
+  // A metadata-only token cannot satisfy those downstream checks.
+  if (!['https://www.googleapis.com/auth/drive.readonly',
+         'https://www.googleapis.com/auth/drive',
+         'https://www.googleapis.com/auth/drive.file']
     .some(scope => grantedScopes.has(scope)))
     throw new Error('DRIVE_OAUTH_SCOPE_INSUFFICIENT')
   acquisitionStage = 'DRIVE_OAUTH_ACCOUNT'
-  const driveAbout = await (await request(
-    'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
-    { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
-  if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
-    throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
-  console.log('GPIR Drive OAuth: approved account, client and read scope verified')
+  if (!federated) {
+    const driveAbout = await (await request(
+      'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
+      { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
+    if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
+      throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
+  }
+  // WIF identity is enforced by GitHub OIDC, Google IAM and service-account
+  // impersonation. Drive permissions are still checked by authenticated reads
+  // and the existing pinned parent/file identity and SHA-256 verification.
+  console.log(federated
+    ? 'GPIR Drive WIF scope verified; approved folder, file and hash checks remain mandatory'
+    : 'GPIR Drive OAuth: approved account, client and scope verified; file checks remain mandatory')
   const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
   const mappingFolderId = value('GPIR_DRIVE_MAPPING_FOLDER_ID')
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
@@ -160,23 +258,33 @@ async function main() {
   const byId = new Map(sources.map(source => [source.file.id, source]))
 
   acquisitionStage = 'EXISTING_PUBLICATION_INVENTORY'
-  const [estate, entries] = await Promise.all([
-    (await request(origin + '/api/release/editorial-entries', {
-      method: 'POST', headers: { authorization, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'export' }),
-    }, 'Payload inventory')).json(), contentfulInventory('entries'),
-  ])
-  if (!Array.isArray(estate.records)) throw new Error('Invalid Payload estate')
+  // The full editorial backup is a separate recovery operation, not a
+  // prerequisite for deduplicating the approved 43-dashboard publication.
+  // Inventory failures remain independently identifiable and fail closed.
+  let estate: { records?: any[] }
+  try {
+    estate = await (await request(origin + '/api/release/editorial-entries', {
+      method: 'POST', headers: { authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'identity-inventory' }),
+    }, 'Payload inventory')).json()
+  } catch {
+    throw new Error('PAYLOAD_IDENTITY_INVENTORY_FAILED')
+  }
+  if (!Array.isArray(estate.records)) throw new Error('PAYLOAD_IDENTITY_INVENTORY_INVALID')
+  let entries: any[]
+  try {
+    entries = await contentfulInventory('entries')
+  } catch {
+    throw new Error('CONTENTFUL_IDENTITY_INVENTORY_FAILED')
+  }
   const published: { hash: string | null; title: string | null; route: string | null; source: string }[] = []
-  for (const row of estate.records) {
-    const source = row.sourcePayload
-    for (const doc of [source?.document, source?.publishedDocument, source?.fields]) {
-      if (doc?.publicationTitle || doc?.canonicalUrlCandidate || doc?.sourceHash) published.push({
-        hash: typeof doc.sourceHash === 'string' ? doc.sourceHash : null,
-        title: typeof doc.publicationTitle === 'string' ? identity(doc.publicationTitle) : null,
-        route: typeof doc.canonicalUrlCandidate === 'string' ? identity(doc.canonicalUrlCandidate) : null,
-        source: 'payload',
-      })
-    }
+  for (const doc of estate.records) {
+    if (doc?.publicationTitle || doc?.canonicalUrlCandidate || doc?.sourceHash) published.push({
+      hash: typeof doc.sourceHash === 'string' ? doc.sourceHash : null,
+      title: typeof doc.publicationTitle === 'string' ? identity(doc.publicationTitle) : null,
+      route: typeof doc.canonicalUrlCandidate === 'string' ? identity(doc.canonicalUrlCandidate) : null,
+      source: 'payload',
+    })
   }
   for (const item of entries) {
     const titles = Object.values(item.fields?.publicationTitle || {}).filter(value => typeof value === 'string') as string[]
@@ -256,7 +364,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(PAYLOAD_IDENTITY_INVENTORY_(?:FAILED|INVALID)|CONTENTFUL_IDENTITY_INVENTORY_FAILED|Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)(?:: (?:INTAKE_[A-Z_]+|SERVICE_ROLE_REQUIRED|UNRECOGNIZED_RESPONSE))?|DRIVE_WIF_(?:SERVICE_ACCOUNT_INVALID|TOKEN_MISSING)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1

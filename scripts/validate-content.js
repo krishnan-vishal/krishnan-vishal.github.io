@@ -183,6 +183,36 @@ candidates.forEach((candidate, index) => {
 const countryRecords = Array.isArray(countryData.records) ? countryData.records : [];
 const countryIds = new Set();
 const countryCodes = new Set();
+const countryRegistryData = readJson(path.join(DATA_DIR, "fx", "country-currency-registry.json"));
+const countryNames = new Map((countryRegistryData.countries || []).map(country => [country.countryCode, country.country]));
+const trustedCountrySources = new Map(registry.map(source => [source.id, source]));
+Object.entries(countryData.paymentEvidence || {}).forEach(([code, items]) => {
+    const label = `country-intelligence.paymentEvidence.${code}`;
+    if(!countryNames.has(code) || !Array.isArray(items) || !items.length){
+        errors.push(`${label}: expected references for a registered country`);
+        return;
+    }
+    const seenUrls = new Set();
+    items.forEach((item, index) => {
+        const location = `${label}[${index}]`;
+        if(!item || typeof item !== "object"){
+            errors.push(`${location}: expected a reference`);
+            return;
+        }
+        const source = trustedCountrySources.get(item.sourceId);
+        if(!source || source.country !== countryNames.get(code) ||
+            typeof item.url !== "string" || !item.url.startsWith("https://") || !sourceUrlAllowed(item.url, source)){
+            errors.push(`${location}: reference must use the official source for the recorded country`);
+        }
+        if(seenUrls.has(item.url)) errors.push(`${location}.url: duplicate citation`);
+        seenUrls.add(item.url);
+        requiredString(item.title, `${location}.title`);
+        requiredString(item.summary, `${location}.summary`);
+        dateField(item.publishedDate, `${location}.publishedDate`);
+        requiredString(item.retrievedDate, `${location}.retrievedDate`);
+        dateField(item.retrievedDate, `${location}.retrievedDate`);
+    });
+});
 countryRecords.forEach((country, index) => {
     const label = `country-intelligence.records[${index}]`;
     ["id", "name", "isoAlpha2", "isoAlpha3", "region", "regionId", "subregion", "currency", "lifecycleStatus", "publicationStatus", "page", "pageMode", "intelligenceAvailability", "historicalAvailability"].forEach(field => requiredString(country[field], `${label}.${field}`));

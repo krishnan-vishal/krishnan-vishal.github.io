@@ -1,4 +1,5 @@
 import { createPublicIntelligenceHandler } from './handler.mjs';
+import { createResearchEvidenceRetriever } from '../_shared/gpir-research-graph.ts';
 
 const env = Object.fromEntries([
   'SUPABASE_URL',
@@ -7,4 +8,7 @@ const env = Object.fromEntries([
 ].map(name => [name, Deno.env.get(name)]));
 
 // M40 controlled activation: snapshot reads are eligible only for unfiltered aggregates.
-Deno.serve(createPublicIntelligenceHandler({ env: { ...env, M40_SNAPSHOT_READ_ENABLED: 'true' } }));
+Deno.serve(createPublicIntelligenceHandler({
+  env: { ...env, M40_SNAPSHOT_READ_ENABLED: 'true' },
+  retrieveEvidence: createResearchEvidenceRetriever()
+}));

@@ -1,5 +1,34 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 authoritative source and responsiveness follow-up
+
+Applied the reviewed production RBA authority URL correction from
+PR #518. Response `10786` confirmed the existing acquisition path.
+Scheduled Contentful BCP run `46110186124` verified 1,219 records.
+The follow-up branch carries the historical query cache, five country
+references and in-place Smart Card source details. Live publication
+growth and relay lifecycle evidence remain open. See
+[production growth evidence](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).
+
+## 2026-11-28 — M44 PR #744 production release
+
+Pages run `46117397875`, publisher v19 and public intelligence v29 are
+live. Cron receipt `10780` confirms unattended deterministic execution
+on v19. Ranked ASK citations, Singapore evidence and all 134 FX pairs
+were verified publicly. Fresh relay lifecycle evidence, repository
+growth beyond 6,652 and signed-in validation are pending. See
+[the release receipts](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-744--28-november-2026).
+
+## 2026-11-28 — M44 agent integration and licensing checkpoint
+
+The `codex/m44-intelligence-augmentation` branch makes the existing
+publisher stages operational in LangGraph, batches the editorial candidate
+lookup, protects the relay's earliest-report expiry, and adds single-request
+ASK ranking and explicit country evidence. Follow-up production deployment
+requires the reviewed release. The existing publisher recorded 33 of 33
+successful unattended calls during the Work outage. The FX archive grew to
+16,980 rows. See [the M44 evidence and supplier review](M44-AGENTIC-INTELLIGENCE.md).
+
 ## 2026-11-28 — M44 deployed with FX coverage correction in review
 
 PR #728 and its Pages release succeeded. All four Edge Functions and the first

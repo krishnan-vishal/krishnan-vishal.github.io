@@ -336,6 +336,12 @@ test('subscriber dashboard renders synchronized periods and expandable sourced b
   assert.match(markup, /rel="noopener noreferrer">ECB reference-rate source/);
   assert.match(markup, /2026-10-01 to 2026-10-30/);
   assert.match(markup, /Methodology &amp; archive separation/);
+  const withCapture = buildCardMarkup(history, {
+    rate: 154.12, capturedAt: '2026-11-04T00:00:00.000Z', source: '<archive>'
+  }, 'AVAILABLE', 'Q', 1000);
+  assert.match(withCapture, /GPIR archive capture 154\.120 · 2026-11-04T00:00:00\.000Z · &lt;archive&gt;/);
+  assert.match(withCapture, /152,900\.00 JPY/);
+  assert.doesNotMatch(withCapture, /<archive>/);
 });
 
 test('FX Intelligence page exposes homepage-aligned desktop and mobile navigation', async () => {
@@ -481,7 +487,7 @@ test('FX Smart Card renders contextual ASK GPIR inside the pair card', async () 
   assert.match(source, /data-fx-ask-form/);
   assert.match(source, /data-fx-ask-results/);
   assert.match(source, /this\.bindFxAsk\(pair\)/);
-  assert.match(source, /view:'history-records'/);
+  assert.match(source, /retrieveGovernedEvidence\(origin, query, \{ limit: 10 \}\)/);
   assert.match(source, /GPIRContentSearch/);
 });
 

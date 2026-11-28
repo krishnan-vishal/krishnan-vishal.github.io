@@ -7,6 +7,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const FINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE', 'REVIEW']);
 const CANDIDATE_PAGE_SIZE = 50;
 const MAX_CANDIDATE_PAGES = 20;
+const EDITORIAL_LOOKUP_BATCH_SIZE = 40;
+const CANDIDATE_FIELDS = 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at';
 const PROCESSING_BUDGET_MS = 45000;
 // Transient source or processing failures stay REVIEW but remain retryable while
 // the candidate can still qualify for the 12-hour live window. Every retry runs
@@ -132,7 +134,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       const scan = async ({ status, lower, upper }) => {
         for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
           const query = new URLSearchParams({
-            select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+            select: CANDIDATE_FIELDS,
             candidate_status: status,
             order: 'published_at.asc,id.asc',
             limit: String(CANDIDATE_PAGE_SIZE),
@@ -202,13 +204,29 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
     async candidate(candidateId) {
       if (!UUID.test(candidateId)) return null;
       const query = new URLSearchParams({
-        select: 'id,raw_ingestion_id,source_id,canonical_url,title,published_at,category,event_type,confidence_score,candidate_status,content_fingerprint,created_at',
+        select: CANDIDATE_FIELDS,
         id: `eq.${candidateId}`,
         candidate_status: 'in.(PENDING,REVIEW,VALIDATING)',
         limit: '1'
       });
       const rows = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
       return Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+    },
+
+    async editorialCandidates(candidateIds) {
+      const ids = [...new Set(candidateIds.filter(id => UUID.test(id)))];
+      if (!ids.length) return new Map();
+      if (ids.length > EDITORIAL_LOOKUP_BATCH_SIZE) throw new Error('EDITORIAL_LOOKUP_LIMIT');
+      const query = new URLSearchParams({
+        select: CANDIDATE_FIELDS,
+        id: `in.(${ids.join(',')})`,
+        candidate_status: 'in.(PENDING,REVIEW,VALIDATING)',
+        limit: String(ids.length)
+      });
+      const rows = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
+      if (!Array.isArray(rows)) throw new Error('EDITORIAL_LOOKUP_INVALID');
+      const requested = new Set(ids);
+      return new Map(rows.filter(row => requested.has(row.id)).map(row => [row.id, row]));
     },
 
     async audit(candidateId) {
@@ -370,11 +388,16 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
   summary.entries = entries.length;
   const ambiguous = ambiguousEditorialKeys(entries);
   const started = Date.now();
-  for (const entry of entries) {
+  const candidateIdOf = entry => String(entry.fields.supabaseRecordId || '').trim().toLowerCase();
+  let batch = null;
+  for (const [index, entry] of entries.entries()) {
     if (summary.outcomes.length >= limit || Date.now() - started >= PROCESSING_BUDGET_MS) break;
-    const candidateId = String(entry.fields.supabaseRecordId || '').trim();
+    if (typeof repository.editorialCandidates === 'function' && index % EDITORIAL_LOOKUP_BATCH_SIZE === 0)
+      batch = await repository.editorialCandidates(entries.slice(index, index + EDITORIAL_LOOKUP_BATCH_SIZE).map(candidateIdOf));
+    const candidateId = candidateIdOf(entry);
     try {
-      const candidate = await repository.candidate(candidateId);
+      const candidate = batch ? batch.get(candidateId) : await repository.candidate(candidateId);
+      if (batch) batch.delete(candidateId);
       const source = candidate ? await repository.source(candidate.source_id) : null;
       if (!candidate || source?.trust_tier !== 'T3') { summary.skipped += 1; continue; }
       if (!editorialDue(await repository.audit(candidate.id), candidate, entry, now())) { summary.skipped += 1; continue; }
@@ -393,9 +416,15 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
   return summary;
 }
 
-export function createPublicationHandler({ env, fetchImpl = fetch, repository = null,
+/**
+ * @param {{env: Record<string, string | undefined>, fetchImpl?: typeof fetch,
+ *   repository?: (Pick<ReturnType<typeof createRestPublicationRepository>, 'candidates'> &
+ *     Partial<ReturnType<typeof createRestPublicationRepository>>) | null,
+ *   now?: () => number, logger?: Pick<Console, 'error'>}} options
+ */
+export function createPublicationPipeline({ env, fetchImpl = fetch, repository = null,
   now = () => Date.now(), logger = console }) {
-  return async function handle(request) {
+  async function observe(request) {
     if (request.method !== 'POST') return json(405, { status: 'ERROR', code: 'METHOD_NOT_ALLOWED' });
     const config = configuration(env);
     if (!config) return json(503, { status: 'ERROR', code: 'PUBLICATION_CONFIGURATION_REQUIRED' });
@@ -408,12 +437,18 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       return json(400, { status: 'ERROR', code: 'INVALID_DATE_RANGE' });
     const store = repository || createRestPublicationRepository({ config, fetchImpl,
       contentful: contentfulEditorialConfig(env) });
-    let candidates;
-    try { candidates = await store.candidates({ limit, from, to, now: now() }); }
+    return { store, limit, from, to };
+  }
+
+  async function curate({ store, limit, from, to }) {
+    try { return await store.candidates({ limit, from, to, now: now() }); }
     catch (error) {
       logger.error('gpir publication candidate query failed', error);
       return json(503, { status: 'ERROR', code: 'CANDIDATE_QUERY_FAILED' });
     }
+  }
+
+  async function validateAndPublish({ store }, candidates) {
     const outcomes = [];
     const processingStartedAt = Date.now();
     for (const candidate of candidates) {
@@ -428,6 +463,10 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
         outcomes.push({ candidateId: candidate.id, ...failure });
       }
     }
+    return outcomes;
+  }
+
+  async function interpret({ store, limit }) {
     let editorial = { status: 'NOT_CONFIGURED' };
     if (typeof store.editorialEntries === 'function') {
       try {
@@ -437,6 +476,10 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
         editorial = { status: 'UNAVAILABLE' };
       }
     }
+    return editorial;
+  }
+
+  function evidence(candidates, outcomes, editorial) {
     const count = decision => outcomes.filter(item => item.decision === decision).length;
     return json(200, {
       editorial,
@@ -445,5 +488,20 @@ export function createPublicationHandler({ env, fetchImpl = fetch, repository = 
       published: count('PUBLISHED'), rejected: count('REJECTED'),
       duplicates: count('DUPLICATE'), awaitingReview: count('REVIEW'), outcomes
     });
+  }
+
+  return { observe, curate, validateAndPublish, interpret, evidence };
+}
+
+// Preserve the deterministic handler contract for existing callers and tests.
+export function createPublicationHandler(options) {
+  const pipeline = createPublicationPipeline(options);
+  return async function handle(request) {
+    const context = await pipeline.observe(request);
+    if (context instanceof Response) return context;
+    const candidates = await pipeline.curate(context);
+    if (candidates instanceof Response) return candidates;
+    const outcomes = await pipeline.validateAndPublish(context, candidates);
+    return pipeline.evidence(candidates, outcomes, await pipeline.interpret(context));
   };
 }

@@ -29,10 +29,11 @@ jobs:
           APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
         run: |
           [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Exact 40-character commit SHA required"; exit 1; }
-      - name: Checkout exact reviewed commit
+      - name: Checkout approved merged main
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
+          ref: main
+          fetch-depth: 0
           persist-credentials: false
       - name: Confirm approved PR source and Worker binding
         env:
@@ -40,21 +41,20 @@ jobs:
           APPROVED_SHA: ${{ github.event.pull_request.head.sha || inputs.approved_pr_head }}
         working-directory: .
         run: |
-          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
-          # Preserve the original approved PR route; require merged, non-draft PR #705.
-          if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/585 --jq '.head.sha' | grep -Fx "$APPROVED_SHA"; then
-            if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/705 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/task1-money-movement-markets" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-              if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/706 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/cms-chapter-reconciliation" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-                if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/707 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "gpir/fix-editorial-bcp-export" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-                  if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/720 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "codex/fix-drive-worker-intake" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .merge_commit_sha' | grep -Fx "$APPROVED_SHA"; then
-                    if ! gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/724 --jq 'select(.draft == false and .base.ref == "main" and .head.ref == "gpir/drive-publication-correction-20261127" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"; then
-                      gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/726 --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "fix/gpir-drive-menu-depth" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"
-                    fi
-                  fi
-                fi
-              fi
-            fi
+          # The caller supplies PR #741's reviewed head, not the merge commit.
+          # Deploy main only when it contains that reviewed head. Never deploy a
+          # detached historical PR commit or an arbitrary unapproved revision.
+          if gh api repos/krishnan-vishal/krishnan-vishal.github.io/pulls/741 \
+            --jq 'select(.merged == true and .draft == false and .base.ref == "main" and .head.ref == "fix/gpir-payload-intake-stage-503" and .head.repo.full_name == "krishnan-vishal/krishnan-vishal.github.io") | .head.sha' | grep -Fx "$APPROVED_SHA"; then
+            git merge-base --is-ancestor "$APPROVED_SHA" HEAD || {
+              echo "Approved PR #741 head is not included in checked-out main"; exit 1;
+            }
+            echo "Merged PR #741 confirmed in current main for protected Worker release"
+          else
+            echo "Approved PR #741 head SHA required; refusing unrelated deployment"
+            exit 1
           fi
+          # Preserve all existing production Worker/Hyperdrive, audit and release checks.
           node - <<'NODE'
           const fs = require('fs');
           const config = JSON.parse(fs.readFileSync('apps/gpir-cms/wrangler.jsonc','utf8'));

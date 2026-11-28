@@ -29,17 +29,41 @@ export async function fetchGovernedAskPage(origin, filters, fetchImpl = fetch) {
   return payload;
 }
 
+export async function retrieveGovernedCountryEvidence(origin, country, fetchImpl = fetch) {
+  const keys = [country.countryCode2, country.countryCode, country.countryName]
+    .filter(value => typeof value === 'string' && value.trim() && value.length <= 80);
+  if (!keys.length) return [];
+  const filters = new URLSearchParams({ match: 'ranked', limit: '3' });
+  for (const key of keys) filters.append('geo', key);
+  const payload = await fetchGovernedAskPage(origin, filters, fetchImpl);
+  if (payload.match !== 'ranked') throw Error('GOVERNED_COUNTRY_EVIDENCE_UNAVAILABLE');
+  return payload.records.slice(0, 3);
+}
+
 export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=fetch}={}) {
-  const searches=[String(query||'').trim().slice(0,120),...governedTerms(query)].filter(Boolean);
+  const phrase = String(query || '').trim().slice(0, 120);
+  const terms = governedTerms(query).filter(term => term.length <= 32);
+  const searches=[phrase,...terms].filter(Boolean);
   const unique=[...new Set(searches)].slice(0,4);
   const records=new Map();
-  for(const term of unique){
-    const data = await fetchGovernedAskPage(origin, { q: term, limit: String(Math.min(25, Math.max(1, limit))) }, fetchImpl);
+  const requestLimit = String(Math.min(25, Math.max(1, limit)));
+  const filters = new URLSearchParams({ q: phrase, limit: requestLimit, match: 'ranked' });
+  for (const term of terms) filters.append('term', term);
+  if (!unique.length) return [];
+  const first = await fetchGovernedAskPage(origin, filters, fetchImpl);
+  const consume = data => {
     for(const item of data.records){
       if(!item?.id||records.has(item.id))continue;
       records.set(item.id,item);
     }
-    if(records.size>=limit)break;
+  };
+  consume(first);
+  // A Pages release can reach the browser before its matching Edge revision.
+  if (first.match !== 'ranked') {
+    for (const term of unique.slice(1)) {
+      if (records.size >= limit) break;
+      consume(await fetchGovernedAskPage(origin, { q: term, limit: requestLimit }, fetchImpl));
+    }
   }
   return [...records.values()].slice(0,limit);
 }
