@@ -1,56 +1,6 @@
 {
   "schemaVersion": "1.0",
   "schemaNote": "Canonical GPIR country-intelligence metadata. It is a non-prose identity and availability layer for native country pages and future generated records; it does not replace market-specific research or invent missing content.",
-  "paymentEvidence": {
-    "AU": [
-      {
-        "sourceId": "rba",
-        "title": "New Payments Platform and Fast Settlement Service",
-        "summary": "The New Payments Platform supports Australian retail payments around the clock. The Reserve Bank's Fast Settlement Service settles NPP transactions individually in real time across Exchange Settlement Accounts.",
-        "url": "https://www.rba.gov.au/payments-and-infrastructure/rits/about.html",
-        "publishedDate": null,
-        "retrievedDate": "2026-11-28"
-      },
-      {
-        "sourceId": "rba",
-        "title": "Payments System Board update",
-        "summary": "The board considered the future scope of Australian payments regulation, including account-to-account payments, mobile wallets and agentic commerce. It said further priorities would be published by the end of 2026.",
-        "url": "https://www.rba.gov.au/media-releases/2026/mr-26-32.html",
-        "publishedDate": "2026-11-19",
-        "retrievedDate": "2026-11-28"
-      }
-    ],
-    "JP": [
-      {
-        "sourceId": "boj",
-        "title": "Japan's payment and settlement systems",
-        "summary": "The Bank of Japan operates BOJ-NET for funds and Japanese government securities settlement. Its funds transfer system uses real-time gross settlement, including for large-value payments submitted via the Zengin System and the Foreign Exchange Yen Clearing System.",
-        "url": "https://www.boj.or.jp/en/paym/outline/index.htm",
-        "publishedDate": null,
-        "retrievedDate": "2026-11-28"
-      }
-    ],
-    "BR": [
-      {
-        "sourceId": "bcb-brazil",
-        "title": "Pix and Brazil's instant payment infrastructure",
-        "summary": "Banco Central do Brasil created Pix for near-instant transfers between transaction accounts, including outside business days. The central bank operates the settlement infrastructure and the directory used to route payments by Pix aliases.",
-        "url": "https://www.bcb.gov.br/estabilidadefinanceira/pix",
-        "publishedDate": null,
-        "retrievedDate": "2026-11-28"
-      }
-    ],
-    "NG": [
-      {
-        "sourceId": "cbn-nigeria",
-        "title": "Nigeria's operational guidelines for open banking",
-        "summary": "The Central Bank of Nigeria issued operational guidelines for customer-permissioned data sharing across banks and participating third parties. The circular applies to deposit money banks, mobile money operators and payment service providers.",
-        "url": "https://www.cbn.gov.ng/Out/2023/CCD/Operational%20Guidelines%20for%20Open%20Banking%20in%20Nigeria.pdf",
-        "publishedDate": "2023-03-07",
-        "retrievedDate": "2026-11-28"
-      }
-    ]
-  },
   "records": [
     {"id":"country:united-arab-emirates","name":"United Arab Emirates","isoAlpha2":"AE","isoAlpha3":"ARE","region":"Middle East / GCC","regionId":"middle-east","subregion":"GCC","currency":"AED","lifecycleStatus":"CURRENT","publicationStatus":"PUBLISHED","page":"pages/countries/uae.html","pageMode":"NATIVE","intelligenceAvailability":"CURRENT","historicalAvailability":"SUPPORTED","sections":{"overview":"CURRENT","regulatory":"CURRENT","paymentTechnology":"CURRENT","paymentRails":"CURRENT","dashboards":"CURRENT","publications":"CURRENT"},"sourceReferences":[],"supersedes":null,"supersededBy":null},
     {"id":"country:india","name":"India","isoAlpha2":"IN","isoAlpha3":"IND","region":"APAC","regionId":"apac","subregion":"South Asia","currency":"INR","lifecycleStatus":"CURRENT","publicationStatus":"PUBLISHED","page":"pages/countries/india.html","pageMode":"NATIVE","intelligenceAvailability":"CURRENT","historicalAvailability":"SUPPORTED","sections":{"overview":"CURRENT","moneyMovement":"CURRENT","corridors":"CURRENT","regulatory":"CURRENT","paymentTechnology":"CURRENT","paymentRails":"CURRENT","ecosystem":"CURRENT","dashboards":"CURRENT","publications":"CURRENT"},"sourceReferences":[],"supersedes":null,"supersededBy":null},
