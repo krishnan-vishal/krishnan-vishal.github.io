@@ -1,12 +1,14 @@
 // Presentation-only directory of published route metadata.
 // Supabase's protected-publication endpoint remains the sole body-content authority.
-export function publicCatalogItems(manifest) {
-  if (!manifest || !Array.isArray(manifest.routes)) return [];
+export function publicCatalogItems(manifest, approved) {
+  if (!manifest || !Array.isArray(manifest.routes) || !Array.isArray(approved?.identities)) return [];
+  const permitted = new Set(approved.identities);
+  if (permitted.size !== approved.recordCount || permitted.size === 0) return [];
   const seen = new Set();
   return manifest.routes.flatMap(item => {
     const id = item?.identity;
     const route = item?.route;
-    if (item?.accessClass !== 'ENTITLED' || item?.authAuthority !== 'supabase' ||
+    if (!permitted.has(id) || item?.accessClass !== 'ENTITLED' || item?.authAuthority !== 'supabase' ||
         typeof id !== 'string' || seen.has(id) || typeof route !== 'string' ||
         !/^\/[a-z0-9][a-z0-9-]*\/$/.test(route)) return [];
     seen.add(id);
@@ -44,9 +46,13 @@ export async function initializeCatalog(document = globalThis.document, fetchImp
   const status = document?.querySelector('#catalog-status');
   if (!status || !fetchImpl) return false;
   try {
-    const response = await fetchImpl('/routes.json', { cache: 'no-store' });
-    if (!response.ok) throw Error('CATALOG_UNAVAILABLE');
-    const items = publicCatalogItems(await response.json());
+    const [routesResponse, approvedResponse] = await Promise.all([
+      fetchImpl('/routes.json', { cache: 'no-store' }),
+      fetchImpl('/assets/data/approved-dashboard-catalog.json', { cache: 'no-store' })
+    ]);
+    if (!routesResponse.ok || !approvedResponse.ok) throw Error('CATALOG_UNAVAILABLE');
+    const items = publicCatalogItems(await routesResponse.json(), await approvedResponse.json());
+    if (items.length !== 43) throw Error('CATALOG_INCOMPLETE');
     const filter = document.querySelector('#catalog-region');
     const search = document.querySelector('#catalog-search');
     if (!filter || !search) return false;
