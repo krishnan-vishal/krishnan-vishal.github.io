@@ -1309,3 +1309,29 @@ body.gpir-publication-page {
         flex-direction:column;
     }
 }
+
+/* Reviewed publication shell: prevent inherited global display headlines from
+   swallowing the first viewport or showing raw long IDs outside the page. */
+body.gpir-publication-page .gpir-publication-hero h1 {
+    font-size:clamp(1.8rem, 2.65vw, 2.85rem) !important;
+    line-height:1.18 !important;
+    letter-spacing:-.018em;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    color:#102b4b !important;
+}
+body.gpir-publication-page .gpir-publication-hero .container > p,
+body.gpir-publication-page .gpir-publication-summary p {
+    color:#34475f !important;
+    opacity:1 !important;
+}
+body.gpir-publication-page .header .brand-logo {
+    display:block;
+    width:46px;
+    height:46px;
+}
+@media(max-width:640px) {
+    body.gpir-publication-page .gpir-publication-hero h1 {
+        font-size:clamp(1.6rem, 6vw, 2.15rem) !important;
+    }
+}
