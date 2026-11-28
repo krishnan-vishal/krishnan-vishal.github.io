@@ -43,3 +43,8 @@ PR #672 implementation checks confirm the direct country profiles rank first for
 This entry protects only the tested release-candidate boundary. It does not claim
 deployment, live responsiveness, a completed alert lifecycle, country population,
 ASK citations or verified production expenditure.
+
+**PA-008 CI checkpoint | 2026-11-28:** Draft PR #728 exact head
+`ac9db639fa566ee9ff937d69ccfe92d569457c05` passed all seven triggered workflows,
+including PostgreSQL acceptance and Security and Integrity. Evidence advances to
+`CI_PASS (UNDEPLOYED)`. The production exclusions above remain in force.

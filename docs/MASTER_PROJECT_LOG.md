@@ -3496,3 +3496,12 @@ The owner requested a directory under Repository beside Industry Participants, u
 - The release candidate bounds live-relay database work to qualifying preceding-12-hour identifiers, wraps the unchanged publisher in explicit deterministic LangGraph OSS stages and projects the existing FX archive through a service-only SQL function into a ten-minute public cache. Browser cards retain static last-known-good data and approved designs.
 - No commercial LangGraph hosting, model/LLM call, provider fallback, new database, vector/graph store, scheduler, paid service or infrastructure commitment is introduced. The code paths continue without LLM quota.
 - Six M44 tests and applicable syntax/content/link/FX/announcement checks pass. Two stale broader assertions and 19 failure lines from the unchanged announcement-intent fixtures remain visible and were not weakened. Production migration, Edge/Pages deployment, live lifecycle/performance/ASK/country proof and billing verification remain pending. Full scope, evidence and rollback: [M44 report](M44-AGENTIC-INTELLIGENCE.md).
+
+## 2026-11-28 — M44 PR #728 CI checkpoint
+
+Draft PR #728 exact head `ac9db639fa566ee9ff937d69ccfe92d569457c05`
+passed all seven triggered workflows: PostgreSQL acceptance (46086186274),
+targeted tests (46086186311), Security and Integrity (46086186307), M40 gate
+(46086186279), BIS/GDELT (46086186273), M37 gate (46086186242) and Payload CMS
+(46086186235). This is CI acceptance only; Production is unchanged and owner
+review, merge, deployment and live evidence remain required.

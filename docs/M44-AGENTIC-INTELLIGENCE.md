@@ -102,9 +102,11 @@ accepted as a production fact.
   `validate-links.js` and `git diff --check` pass. The advisory performance
   audit completes with seven existing estate warnings and no blocking error.
 - The high-confidence secret scan passes with zero unapproved findings. The
-  PostgreSQL acceptance fixture now exercises the service-only FX projection;
-  execution is pending the existing Linux/PostgreSQL PR check because no local
-  PostgreSQL runtime is available.
+  PostgreSQL acceptance fixture exercises the service-only FX projection. On
+  exact commit `ac9db639fa566ee9ff937d69ccfe92d569457c05`, PR #728 runs
+  46086186274 (PostgreSQL), 46086186311 (targeted tests), 46086186307
+  (Security and Integrity), 46086186279 (M40 gate), 46086186273 (BIS/GDELT),
+  46086186242 (M37 gate) and 46086186235 (Payload CMS) all passed.
 - Read-only production schema inspection confirmed the migration's referenced
   columns and the 16,846-row/134-pair archive. Current Supabase advisors report
   no health findings; existing security/performance advisories are outside M44
