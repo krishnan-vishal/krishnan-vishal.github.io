@@ -1,4 +1,4 @@
-import { validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
+import { isOfficialUrl, validateCandidateSource } from '../_shared/gpir-intelligence-validation.mjs';
 import { eventIdentity } from '../_shared/gpir-event-identity.mjs';
 import { ambiguousEditorialKeys, contentfulEditorialConfig, fetchEditorialEntriesForCandidate,
   fetchPublishedEditorialEntries, verifyEditorialApproval } from '../_shared/gpir-contentful-editorial.mjs';
@@ -16,6 +16,8 @@ const PROCESSING_BUDGET_MS = 45000;
 const RETRYABLE_REASONS = /^(SOURCE_FETCH_FAILED|SOURCE_HTTP_(429|500|502|503|504)|PROCESSING_ERROR)$/;
 const RETRY_BACKOFF_MS = 30 * 60 * 1000;
 const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
+const ARCHIVE_RETRY_BACKOFF_MS = 6 * 60 * 60 * 1000;
+const RETRY_NOTES = 'in.(SOURCE_FETCH_FAILED,SOURCE_HTTP_429,SOURCE_HTTP_500,SOURCE_HTTP_502,SOURCE_HTTP_503,SOURCE_HTTP_504,PROCESSING_ERROR)';
 
 const TERMINAL_DECISIONS = new Set(['PUBLISHED', 'REJECTED', 'DUPLICATE']);
 
@@ -44,8 +46,8 @@ function auditIsFinal(audit, candidate, now) {
   if (audit.decision !== 'REVIEW' || !RETRYABLE_REASONS.test(audit.reason_code || '')) return true;
   const published = Date.parse(candidate.published_at || '');
   const completed = Date.parse(audit.completed_at || '');
-  return !Number.isFinite(published) || !Number.isFinite(completed) ||
-    now - published > RETRY_WINDOW_MS || now - completed < RETRY_BACKOFF_MS;
+  const delay = now - published > RETRY_WINDOW_MS ? ARCHIVE_RETRY_BACKOFF_MS : RETRY_BACKOFF_MS;
+  return !Number.isFinite(published) || !Number.isFinite(completed) || now - completed < delay;
 }
 
 function json(status, body) {
@@ -131,7 +133,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       const retries = [];
       const seen = new Set();
 
-      const scan = async ({ status, lower, upper }) => {
+      const scan = async ({ status, lower, upper, archiveRetry = false }) => {
         for (let page = 0; page < MAX_CANDIDATE_PAGES && selected.length < limit; page += 1) {
           const query = new URLSearchParams({
             select: CANDIDATE_FIELDS,
@@ -142,6 +144,7 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
           });
           if (lower) query.set('published_at', `gte.${lower}`);
           if (upper) query.append('published_at', `lt.${upper}`);
+          if (archiveRetry) query.set('validation_notes', RETRY_NOTES);
           const candidates = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
           if (!Array.isArray(candidates) || !candidates.length) break;
 
@@ -181,12 +184,12 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       } else {
         // Candidates that can still be live are scanned first, so a backlog of
         // finalized REVIEW rows or older unprocessed items can never starve them.
-        // Older REVIEW rows are final (a retry needs a candidate inside the
-        // 12-hour window) and are excluded from the scan; older PENDING rows are
-        // still processed for the permanent archive.
+        // Retry older transient failures only after fresh and untouched work.
         const liveFrom = new Date(now - RETRY_WINDOW_MS).toISOString();
         await scan({ status: 'in.(PENDING,REVIEW)', lower: liveFrom });
         await scan({ status: 'eq.PENDING', upper: liveFrom });
+        if (!selected.length && !retries.length)
+          await scan({ status: 'eq.REVIEW', upper: liveFrom, archiveRetry: true });
       }
 
       // Never-processed candidates take priority over scheduled retries.
@@ -248,6 +251,32 @@ export function createRestPublicationRepository({ config, fetchImpl = fetch, con
       });
       const rows = await jsonFetch(fetchImpl, `${base}/source_registry?${query}`, { headers });
       return Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+    },
+
+    async corroboration(candidate) {
+      const time = Date.parse(candidate.published_at);
+      if (!Number.isFinite(time) || !candidate.title || !candidate.event_type) return null;
+      const day = 86_400_000;
+      const query = new URLSearchParams({
+        select: 'id,source_id,canonical_url,published_at', title: `eq.${candidate.title}`,
+        event_type: `eq.${candidate.event_type}`, source_id: `neq.${candidate.source_id}`,
+        candidate_status: 'eq.PUBLISHED', published_at: `gte.${new Date(time - day).toISOString()}`,
+        order: 'published_at.asc,id.asc', limit: '4'
+      });
+      query.append('published_at', `lte.${new Date(time + day).toISOString()}`);
+      const matches = await jsonFetch(fetchImpl, `${base}/intelligence_candidates?${query}`, { headers });
+      for (const match of matches || []) {
+        const authority = await this.source(match.source_id);
+        if (authority?.trust_tier !== 'T1' || authority.source_status !== 'GREEN' ||
+            !isOfficialUrl(match.canonical_url, authority.official_url)) continue;
+        const auditQuery = new URLSearchParams({ select: 'announcement_id,canonical_url,validation_payload',
+          candidate_id: `eq.${match.id}`, decision: 'eq.PUBLISHED', limit: '1' });
+        const [audit] = await jsonFetch(fetchImpl, `${base}/intelligence_publication_audits?${auditQuery}`, { headers });
+        if (audit?.announcement_id && audit.canonical_url === match.canonical_url &&
+            audit.validation_payload?.source_verified === true && audit.validation_payload?.timestamp_verified === true)
+          return { announcementId: audit.announcement_id, sourceId: match.source_id, url: match.canonical_url };
+      }
+      return null;
     },
 
     async start(candidate) {
@@ -355,6 +384,14 @@ export async function processCandidate({ candidate, repository, fetchImpl = fetc
   }
   const validation = await validateCandidateSource({ candidate, source, fetchImpl, now, editorialApproval });
   if (validation.decision !== 'PUBLISHED') {
+    if (validation.decision === 'REVIEW' && source?.source_status === 'GREEN' &&
+        ['AUTO_PUBLICATION_THRESHOLD_NOT_MET', 'INSUFFICIENT_SOURCE_EVIDENCE', 'SOURCE_TIMESTAMP_MISSING'].includes(validation.reasonCode) &&
+        typeof repository.corroboration === 'function') {
+      // Exact-subject matches are review evidence. Preserve the primary's
+      // canonical identity and run the original candidate through its own gate.
+      const authority = await repository.corroboration(candidate).catch(() => null);
+      if (authority) validation.validationPayload.related_authority = authority;
+    }
     await repository.record(candidate, validation);
     return validation;
   }
@@ -420,9 +457,10 @@ export async function processEditorialApprovals({ repository, fetchImpl = fetch,
  * @param {{env: Record<string, string | undefined>, fetchImpl?: typeof fetch,
  *   repository?: (Pick<ReturnType<typeof createRestPublicationRepository>, 'candidates'> &
  *     Partial<ReturnType<typeof createRestPublicationRepository>>) | null,
+ *   acquisition?: ((context: {config: {url: string, key: string}, apiKey: string | null}) => Promise<object | null>) | null,
  *   now?: () => number, logger?: Pick<Console, 'error'>}} options
  */
-export function createPublicationPipeline({ env, fetchImpl = fetch, repository = null,
+export function createPublicationPipeline({ env, fetchImpl = fetch, repository = null, acquisition = null,
   now = () => Date.now(), logger = console }) {
   async function observe(request) {
     if (request.method !== 'POST') return json(405, { status: 'ERROR', code: 'METHOD_NOT_ALLOWED' });
@@ -437,7 +475,7 @@ export function createPublicationPipeline({ env, fetchImpl = fetch, repository =
       return json(400, { status: 'ERROR', code: 'INVALID_DATE_RANGE' });
     const store = repository || createRestPublicationRepository({ config, fetchImpl,
       contentful: contentfulEditorialConfig(env) });
-    return { store, limit, from, to };
+    return { store, limit, from, to, config, apiKey: request.headers.get('apikey') };
   }
 
   async function curate({ store, limit, from, to }) {
@@ -479,10 +517,23 @@ export function createPublicationPipeline({ env, fetchImpl = fetch, repository =
     return editorial;
   }
 
-  function evidence(candidates, outcomes, editorial) {
+  async function scout({ from, to, config, apiKey }) {
+    // Manual bounded publication consumes just its requested window. The normal
+    // service-owned graph can stage additional evidence for the next invocation.
+    if (!acquisition || from || to) return null;
+    try { return await acquisition({ config, apiKey }); }
+    catch (error) {
+      logger.error('gpir adaptive acquisition unavailable', error);
+      return { status: 'UNAVAILABLE' };
+    }
+  }
+
+  /** @param {object | null} acquisitionReceipt */
+  function evidence(candidates, outcomes, editorial, acquisitionReceipt = null) {
     const count = decision => outcomes.filter(item => item.decision === decision).length;
     return json(200, {
       editorial,
+      ...(acquisitionReceipt ? { acquisition: acquisitionReceipt } : {}),
       status: 'OK', processor: 'GPIR-G1-PUBLICATION-1', processed: outcomes.length,
       deferred: Math.max(0, candidates.length - outcomes.length),
       published: count('PUBLISHED'), rejected: count('REJECTED'),
@@ -490,7 +541,7 @@ export function createPublicationPipeline({ env, fetchImpl = fetch, repository =
     });
   }
 
-  return { observe, curate, validateAndPublish, interpret, evidence };
+  return { observe, curate, validateAndPublish, interpret, scout, evidence };
 }
 
 // Preserve the deterministic handler contract for existing callers and tests.

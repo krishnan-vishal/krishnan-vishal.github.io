@@ -18,6 +18,14 @@
         "url": "https://www.rba.gov.au/media-releases/2026/mr-26-32.html",
         "publishedDate": "2026-11-19",
         "retrievedDate": "2026-11-28"
+      },
+      {
+        "sourceId": "rba",
+        "title": "Australia's September 2026 retail payments statistics",
+        "summary": "The Reserve Bank reported 182.7 million New Payments Platform transactions in September 2026, up 16.9% from September 2025. The release also reports merchant fees by card network for the September quarter.",
+        "url": "https://www.rba.gov.au/statistics/frequency/retail-payments/2026/retail-payments-0926.html",
+        "publishedDate": "2026-11-09",
+        "retrievedDate": "2026-11-28"
       }
     ],
     "JP": [
@@ -27,6 +35,14 @@
         "summary": "The Bank of Japan operates BOJ-NET for funds and Japanese government securities settlement. Its funds transfer system uses real-time gross settlement, including for large-value payments submitted via the Zengin System and the Foreign Exchange Yen Clearing System.",
         "url": "https://www.boj.or.jp/en/paym/outline/index.htm",
         "publishedDate": null,
+        "retrievedDate": "2026-11-28"
+      },
+      {
+        "sourceId": "boj",
+        "title": "Bank of Japan CBDC pilot progress report",
+        "summary": "The Bank of Japan listed the English release of its June 2026 central bank digital currency pilot progress report on 11 September 2026. The report records an experiment and provides evidence for tracking pilot progress.",
+        "url": "https://www.boj.or.jp/en/paym/digital/index.htm",
+        "publishedDate": "2026-09-11",
         "retrievedDate": "2026-11-28"
       }
     ],
@@ -38,6 +54,14 @@
         "url": "https://www.bcb.gov.br/estabilidadefinanceira/pix",
         "publishedDate": null,
         "retrievedDate": "2026-11-28"
+      },
+      {
+        "sourceId": "bcb-brazil",
+        "title": "Brazil's Pix participation and initiation rules",
+        "summary": "Banco Central do Brasil's Resolution 587 updates Pix participation and fraud-marking rules, establishes hybrid billing, and permits Pix Automático transactions to be initiated from payroll accounts.",
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=587&tipo=Resolu%C3%A7%C3%A3o+BCB",
+        "publishedDate": "2026-09-18",
+        "retrievedDate": "2026-11-28"
       }
     ],
     "NG": [
@@ -47,6 +71,14 @@
         "summary": "The Central Bank of Nigeria issued operational guidelines for customer-permissioned data sharing across banks and participating third parties. The circular applies to deposit money banks, mobile money operators and payment service providers.",
         "url": "https://www.cbn.gov.ng/Out/2023/CCD/Operational%20Guidelines%20for%20Open%20Banking%20in%20Nigeria.pdf",
         "publishedDate": "2023-03-07",
+        "retrievedDate": "2026-11-28"
+      },
+      {
+        "sourceId": "cbn-nigeria",
+        "title": "Nigeria's instant-payment customer controls",
+        "summary": "The Central Bank of Nigeria's 12 March 2026 circular introduced a customer option to disable instant transfers and set lower personal limits. The central bank specifies multi-factor authentication for changing enrolment and real-time fraud monitoring for financial institutions.",
+        "url": "https://www.cbn.gov.ng/AboutCBN/Reforms.html",
+        "publishedDate": "2026-03-12",
         "retrievedDate": "2026-11-28"
       }
     ]

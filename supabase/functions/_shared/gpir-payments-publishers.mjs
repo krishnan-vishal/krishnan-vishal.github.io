@@ -54,7 +54,9 @@ export function isApprovedPaymentsPublisherRegistry(sourceId, source) {
         source.feed_or_index_url === config.indexUrl);
 }
 
-export function buildPaymentsPublisherDiscoveryUrl(sourceId, { start, end, maxRecords = 40 } = {}) {
+/** @param {{start?: string, end?: string, maxRecords?: number}} options */
+export function buildPaymentsPublisherDiscoveryUrl(sourceId, options = {}) {
+    const { start, end, maxRecords = 40 } = options;
     const config = PAYMENTS_PUBLISHERS[sourceId];
     if (!config) throw Error('UNAPPROVED_PAYMENTS_PUBLISHER');
     if (!start && !end) return config.indexUrl;
@@ -107,7 +109,9 @@ export function approvedArticleUrl(sourceId, value) {
     }
 }
 
-export function discoverPaymentsPublisherLinks(sourceId, body, { max = 40, start, end } = {}) {
+/** @param {{max?: number, start?: string, end?: string}} options */
+export function discoverPaymentsPublisherLinks(sourceId, body, options = {}) {
+    const { max = 40, start, end } = options;
     const config = PAYMENTS_PUBLISHERS[sourceId];
     if (!config) throw Error('UNAPPROVED_PAYMENTS_PUBLISHER');
     const results = [];

@@ -114,6 +114,7 @@ function validDimensionValue(value) {
   return /^[A-Z0-9_.-]{1,32}(?:\+[A-Z0-9_.-]{1,32})*$/i.test(String(value || ''));
 }
 
+/** @param {{dataflow?: string, startPeriod?: string, endPeriod?: string, countryCodes?: string[], componentFilters?: Record<string, string>, lastNObservations?: number}} options */
 export function buildBisDataUrl({ dataflow, startPeriod, endPeriod, countryCodes,
   componentFilters = {}, lastNObservations = 4 } = {}) {
   const [flow, config] = approvedFlow(dataflow);
@@ -140,6 +141,7 @@ export function buildBisDataUrl({ dataflow, startPeriod, endPeriod, countryCodes
   return url.toString();
 }
 
+/** @param {{category?: string, releaseType?: string | null, startPeriod?: string, endPeriod?: string}} options */
 export function buildBisReleaseCalendarUrl({ category, releaseType, startPeriod, endPeriod } = {}) {
   if (!/^[A-Z0-9_]{2,32}$/.test(String(category || '')) ||
       (releaseType != null && !/^[A-Z0-9_]{1,16}$/.test(String(releaseType))) ||
@@ -202,8 +204,9 @@ export function observationDate(period) {
   return null;
 }
 
-export function parseBisSdmxCsv(csv, { dataflow, sourceUrl, maxObservations = 2000,
-  releaseDates = {} } = {}) {
+/** @param {{dataflow?: string, sourceUrl?: string, maxObservations?: number, releaseDates?: Record<string, string>}} options */
+export function parseBisSdmxCsv(csv, options = {}) {
+  const { dataflow, sourceUrl, maxObservations = 2000, releaseDates = {} } = options;
   const [flow, config] = approvedFlow(dataflow);
   if (!Number.isInteger(maxObservations) || maxObservations < 1 || maxObservations > 10_000)
     throw new Error('BIS_INVALID_LIMIT');
@@ -249,8 +252,9 @@ export function parseBisSdmxCsv(csv, { dataflow, sourceUrl, maxObservations = 20
   return observations;
 }
 
-export function parseBisReleaseCalendarCsv(csv, { category, releaseType = null,
-  now = Date.now() } = {}) {
+/** @param {{category?: string, releaseType?: string | null, now?: number}} options */
+export function parseBisReleaseCalendarCsv(csv, options = {}) {
+  const { category, releaseType = null, now = Date.now() } = options;
   const { headers, rows } = table(csv, { maxBytes: 1_000_000, maxRows: 5000 });
   for (const required of ['CATEGORY', 'RELEASE_TYPE', 'TIME_PERIOD', 'OBS_VALUE'])
     if (!headers.includes(required)) throw new Error('BIS_RELEASE_CALENDAR_COLUMNS_MISSING');
@@ -270,7 +274,9 @@ export function parseBisReleaseCalendarCsv(csv, { category, releaseType = null,
   return Object.freeze(dates);
 }
 
-export function buildGdeltQueryUrl(topic, { start, end, maxRecords = 20 } = {}) {
+/** @param {{start?: string, end?: string, maxRecords?: number}} options */
+export function buildGdeltQueryUrl(topic, options = {}) {
+  const { start, end, maxRecords = 20 } = options;
   if (!Object.hasOwn(GDELT_TOPICS, topic)) throw new Error('UNAPPROVED_GDELT_TOPIC');
   if (!Number.isInteger(maxRecords) || maxRecords < 1 || maxRecords > 50)
     throw new Error('INVALID_MAX_RECORDS');

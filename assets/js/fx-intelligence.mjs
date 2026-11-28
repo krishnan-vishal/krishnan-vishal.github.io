@@ -14,6 +14,7 @@ const CACHE_TTL_MS = 60 * 1000;
 const AUTO_REFRESH_MS = 30 * 60 * 1000;
 const FX_EDITORIAL_URL = '/assets/data/fx/editorial-public.json';
 let editorialIndexRequest = null;
+let countryContextRequest = null;
 async function loadPublishedFxEditorial() {
   if (!editorialIndexRequest) editorialIndexRequest = fetch(FX_EDITORIAL_URL, {cache:'no-store'})
     .then(response => response.ok ? response.json() : null)
@@ -28,6 +29,35 @@ export function publishedPairEditorial(records, pair) {
     item?.pair === code && typeof item.title === 'string' &&
     typeof item.summary === 'string' && typeof item.url === 'string' && item.url.startsWith('/') && !item.url.startsWith('//') && !item.url.includes('..'))
     .slice(0, 3) : [];
+}
+
+export function countryEvidenceForPair(registry, paymentEvidence, pair) {
+  const currencies = new Set([pair.base, pair.quote]);
+  const evidence = [];
+  const urls = new Set();
+  for (const row of registry?.countries || []) {
+    if (!currencies.has(row.currencyCode) || !Array.isArray(paymentEvidence?.[row.countryCode])) continue;
+    for (const item of paymentEvidence[row.countryCode]) {
+      if (!/^https:\/\/[^\s]+$/.test(item.url || '') || !item.title || urls.has(item.url)) continue;
+      urls.add(item.url);
+      evidence.push({ title: item.title, url: item.url, country: row.country,
+        publishedDate: item.publishedDate, retrievedDate: item.retrievedDate });
+    }
+  }
+  return evidence.sort((left, right) => (right.publishedDate || '').localeCompare(left.publishedDate || '')).slice(0, 4);
+}
+
+async function loadFxCountryEvidence(pair) {
+  const read = async path => {
+    const response = await fetch(path);
+    if (!response.ok) throw Error('FX_COUNTRY_EVIDENCE_UNAVAILABLE');
+    return response.json();
+  };
+  if (!countryContextRequest) countryContextRequest = Promise.all([
+    read('/assets/data/fx/country-currency-registry.json'), read('/assets/data/country-intelligence.json')
+  ]).catch(error => { countryContextRequest = null; throw error; });
+  const [registry, data] = await countryContextRequest;
+  return countryEvidenceForPair(registry, data.paymentEvidence, pair);
 }
 const RESPONSE_CACHE_MAX_ENTRIES = 24;
 const responseCache = new Map();
@@ -494,7 +524,7 @@ export function buildCardMarkup(history, capture, captureStatus, selectedPeriod,
   </section>
   <section class="fxi-brief-grid" aria-label="Currency intelligence briefs">
     <div class="fxi-brief-heading"><h2>Intelligence brief</h2><p>${escapeHtml(periodLabel)} window · figures trace to the displayed source series</p></div>
-    ${briefCards.map(brief => `<article class="fxi-section fxi-brief-card"><div class="fxi-brief-top"><span class="fxi-brief-number">${brief.number}</span><span class="fxi-brief-type">${escapeHtml(brief.type)}</span></div><h3>${escapeHtml(brief.title)}</h3><div class="fxi-reader-takeaway"><strong>Executive takeaway</strong><p>${escapeHtml(brief.takeaway)}</p></div><details class="fxi-brief-details"><summary>Evidence, detail &amp; sources</summary><div class="fxi-expandable-body"><p>${escapeHtml(brief.body)}</p><p><strong>Evidence</strong>${brief.evidence}</p><p><strong>Source</strong>${brief.source}</p></div></details></article>`).join('')}
+    ${briefCards.map(brief => `<article class="fxi-section fxi-brief-card"><div class="fxi-brief-top"><span class="fxi-brief-number">${brief.number}</span><span class="fxi-brief-type">${escapeHtml(brief.type)}</span></div><h3>${escapeHtml(brief.title)}</h3><div class="fxi-reader-takeaway"><strong>Executive takeaway</strong><p>${escapeHtml(brief.takeaway)}</p></div><details class="fxi-brief-details"><summary>Evidence, detail &amp; sources</summary><div class="fxi-expandable-body"><p>${escapeHtml(brief.body)}</p><p><strong>Evidence</strong>${brief.evidence}</p><p><strong>Source</strong>${brief.source}</p>${brief.number === '03' ? '<div data-fx-country-evidence hidden></div>' : ''}</div></details></article>`).join('')}
   </section>
   <footer class="fxi-provenance"><div><p class="fxi-kicker">DATA PROVENANCE &amp; RESEARCH LIMITS</p><p>Source: ${escapeHtml(history.source)} · ${escapeHtml(availableYears)} · ${allPoints.length} source observations. <a href="${escapeHtml(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">source methodology</a> · <a href="${escapeHtml(history.sourceTermsUrl)}" target="_blank" rel="noopener noreferrer">source terms</a> · <a href="${escapeHtml(history.providerUrl)}" target="_blank" rel="noopener noreferrer">source provider</a>.</p></div><details class="fxi-methodology"><summary>Methodology &amp; archive separation</summary><div class="fxi-expandable-body"><p>${supplementarySource ? 'Supplementary cross-rates are preserved from the existing approved daily reference pipeline and dated GPIR archive. Sparse histories are not extended or described as central-bank history.' : 'Non-EUR pairs are ECB euro-pivot cross-rates formed from same-date reference data.'} No missing observations are filled. Observation dates remain separate from retrieval and GPIR capture timestamps.</p></div></details><p class="fxi-disclaimer">${DISCLAIMER}</p></footer>`;
 }
@@ -666,12 +696,38 @@ class GpirFxCard extends HTMLElementBase {
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;
       this.bindControls(pair);
       this.bindFxAsk(pair);
+      void this.populateCountryEvidence(pair, sequence);
     } catch (error) {
       if (sequence !== this.requestNumber || !this.isConnected) return;
       const returnTo = fxIntelligenceReturnTo(pair, period);
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b">${accessMarkup(error, returnTo)}`;
       this.shadowRoot.querySelector('[data-retry]')?.addEventListener('click', () => void this.refresh());
     }
+  }
+
+  async populateCountryEvidence(pair, sequence) {
+    try {
+      const evidence = await loadFxCountryEvidence(pair);
+      if (!evidence.length || sequence !== this.requestNumber || !this.isConnected) return;
+      const target = this.shadowRoot.querySelector('[data-fx-country-evidence]');
+      if (!target) return;
+      const heading = document.createElement('p');
+      heading.textContent = 'Related payments and regulatory evidence by currency jurisdiction';
+      const list = document.createElement('ul');
+      for (const item of evidence) {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = item.title;
+        const details = [item.country, item.publishedDate || (item.retrievedDate && `Verified ${item.retrievedDate}`)].filter(Boolean);
+        li.append(link, document.createTextNode(` · ${details.join(' · ')}`));
+        list.append(li);
+      }
+      target.replaceChildren(heading, list);
+      target.hidden = false;
+    } catch { /* Reference observations remain available when contextual evidence is unavailable. */ }
   }
 
   bindFxAsk(pair) {

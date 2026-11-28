@@ -48,6 +48,18 @@ test('country evidence refuses an Edge revision without explicit geography match
     }), /GOVERNED_COUNTRY_EVIDENCE_UNAVAILABLE/);
 });
 
+test('technical research questions request the canonical technical archive via ranked ASK', async () => {
+  const results = await retrieveGovernedEvidence('https://example.supabase.co', 'Hyperswitch release', {
+    fetchImpl: async url => {
+      const params = new URL(url).searchParams;
+      assert.equal(params.get('match'), 'ranked');
+      assert.equal(params.get('collection'), 'technical');
+      return { ok: true, json: async () => ({ status: 'OK', access: 'preview', match: 'ranked', records: [{ id: 'release' }] }) };
+    }
+  });
+  assert.deepEqual(results, [{ id: 'release' }]);
+});
+
 test('builds bounded context-aware queries for governed ASK retrieval', () => {
   assert.equal(contextualAskQuery('What changed?', { topic: 'FATF', country: 'Nepal' }),
     'What changed? FATF Nepal');

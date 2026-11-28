@@ -109,3 +109,9 @@ The deployed module matched the reviewed bytes and returned the governed
 source label when exercised with the live PYMNTS record. Signed-in
 browser acceptance remains pending. See
 [the production readback](M44-AGENTIC-INTELLIGENCE.md#pr-748-pages-release-and-matching-edition-recovery--28-november-2026).
+
+**PA-008 technical archive growth checkpoint | 2026-11-28:** Production
+receipt `10875` added two deduplicated official Hyperswitch references.
+Both canonical records were returned by the technical archive and the
+full repository total reached 6,654. They retain their technical-only
+classification. See [production receipts](M44-AGENTIC-INTELLIGENCE.md#adaptive-acquisition-and-evidence-reuse--28-november-2026).
