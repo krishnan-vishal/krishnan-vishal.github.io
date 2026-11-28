@@ -3531,3 +3531,13 @@ The unattended publisher produced 33 verified HTTP 200 LangGraph OSS
 receipts from 06:10 to 11:30 IST during the ChatGPT Work interruption,
 with zero timeouts. The first and last response IDs were 10702 and 10772.
 The final response recorded a successful read of 62 editorial entries.
+
+## 2026-11-28 — M44 governed agent integration branch
+
+Production readback found 16,980 FX archive rows, an increase of 134, and
+392 approved announcements. The implementation branch assigns existing
+publisher work to the LangGraph stages, batches editorial reads, restores
+predecessor grouping in the relay, and adds ranked ASK retrieval and
+explicit country references. The supplier review identified public
+redistribution restrictions and no supplier was activated. Deployment
+and live acceptance of the branch changes remain pending.

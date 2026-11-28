@@ -1,5 +1,15 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 agent integration and licensing checkpoint
+
+The `codex/m44-intelligence-augmentation` branch makes the existing
+publisher stages operational in LangGraph, batches the editorial candidate
+lookup, protects the relay's earliest-report expiry, and adds single-request
+ASK ranking and explicit country evidence. Follow-up production deployment
+requires the reviewed release. The existing publisher recorded 33 of 33
+successful unattended calls during the Work outage. The FX archive grew to
+16,980 rows. See [the M44 evidence and supplier review](M44-AGENTIC-INTELLIGENCE.md).
+
 ## 2026-11-28 — M44 deployed with FX coverage correction in review
 
 PR #728 and its Pages release succeeded. All four Edge Functions and the first

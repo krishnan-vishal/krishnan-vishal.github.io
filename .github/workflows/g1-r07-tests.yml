@@ -4,15 +4,23 @@ on:
     paths:
       - 'supabase/functions/_shared/gpir-event-identity.mjs'
       - 'supabase/functions/_shared/gpir-operational-graph.ts'
+      - 'supabase/functions/_shared/gpir-research-graph.ts'
       - 'supabase/functions/gpir-intelligence-publish/index.ts'
       - 'supabase/functions/gpir-intelligence-publish/handler.mjs'
       - 'supabase/functions/gpir-fx-snapshot/**'
       - 'supabase/functions/gpir-public-intelligence/handler.mjs'
+      - 'supabase/functions/gpir-public-intelligence/index.ts'
       - 'supabase/functions/gpir-reader-summary/handler.mjs'
       - 'supabase/migrations/20261101000000_g1_r07_event_consolidation.sql'
       - 'supabase/migrations/20261128120000_m44_fx_snapshot_projection.sql'
       - 'tests/g1-r07-event-consolidation.test.mjs'
       - 'tests/m44-phase1-agentic-intelligence.test.mjs'
+      - 'tests/m44-operational-graph.test.ts'
+      - 'tests/fixtures/m44-langsmith.json'
+      - 'assets/js/gpir-governed-ask.mjs'
+      - 'assets/js/country-risk-monitor.js'
+      - 'tests/m40/gpir-governed-ask.test.mjs'
+      - 'tests/m39-t3-automatic-publication.test.mjs'
       - 'assets/js/fx-intelligence.mjs'
       - 'assets/js/fx-ticker.js'
       - 'assets/js/smart-intelligence.mjs'
@@ -41,4 +49,11 @@ jobs:
           node --check assets/js/fx-ticker.js
           node --check assets/js/smart-intelligence.mjs
       - name: Run G1 R07 tests
-        run: node --test tests/g1-r07-event-consolidation.test.mjs tests/m39/smart-intelligence.test.mjs tests/m40-server-aggregates.test.mjs tests/m44-phase1-agentic-intelligence.test.mjs
+        run: >-
+          node --test tests/g1-r07-event-consolidation.test.mjs tests/m39/smart-intelligence.test.mjs
+          tests/m40-server-aggregates.test.mjs tests/m44-phase1-agentic-intelligence.test.mjs
+          tests/m40/gpir-governed-ask.test.mjs tests/m39-t3-automatic-publication.test.mjs
+      - name: Exercise the publisher graph in Deno
+        run: >-
+          npx --yes deno@2.9.6 test --allow-env --allow-read=tests/fixtures/m44-langsmith.json
+          --no-lock --node-modules-dir=none tests/m44-operational-graph.test.ts

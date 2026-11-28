@@ -3,7 +3,7 @@ import test from 'node:test';
 import { evaluateEditorialEntry } from '../supabase/functions/_shared/gpir-contentful-editorial.mjs';
 import { AUTO_PUBLICATION_THRESHOLDS, T3_AUTOMATIC_PUBLICATION, validateCandidateSource }
   from '../supabase/functions/_shared/gpir-intelligence-validation.mjs';
-import { createRestPublicationRepository, processCandidate }
+import { createRestPublicationRepository, processCandidate, processEditorialApprovals }
   from '../supabase/functions/gpir-intelligence-publish/handler.mjs';
 import { normalizeRepositoryRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
 import { eligibleLiveRecords, normalizeLiveAlerts, normalizeSmartRecords } from '../assets/js/smart-intelligence.mjs';
@@ -15,6 +15,27 @@ const CANDIDATE_ID = '11111111-1111-4111-8111-111111111111';
 const URL_A = 'https://www.pymnts.com/news/payments/2026/instant-payments-network-expands/';
 const T3 = Object.freeze({ source_id: 'PYMNTS-GLOBAL-004', source_name: 'PYMNTS', official_url: 'https://www.pymnts.com',
   trust_tier: 'T3', source_status: 'GREEN', country: 'Global', region_tags: ['Global'], category: 'Payments News' });
+
+test('editorial lookup reads 62 CMS references in two bounded candidate batches', async () => {
+  const entries = Array.from({ length: 62 }, (_, i) => ({
+    entryId: `entry-${i}`, fields: { supabaseRecordId: `11111111-1111-4111-8111-${String(i).padStart(12, '0')}` }
+  }));
+  const reads = [];
+  const store = createRestPublicationRepository({
+    config: { url: 'https://fixture.supabase.co', key: 'test-only' },
+    fetchImpl: async url => {
+      const query = new URL(url).searchParams;
+      assert.equal(query.get('candidate_status'), 'in.(PENDING,REVIEW,VALIDATING)');
+      reads.push(Number(query.get('limit')));
+      return new Response('[]');
+    }
+  });
+  const result = await processEditorialApprovals({
+    repository: { ...store, editorialEntries: async () => entries }
+  });
+  assert.deepEqual(reads, [40, 22]);
+  assert.deepEqual(result, { entries: 62, published: 0, awaitingReview: 0, skipped: 62, outcomes: [] });
+});
 
 function candidate(overrides = {}) {
   return { id: CANDIDATE_ID, source_id: T3.source_id, canonical_url: URL_A,

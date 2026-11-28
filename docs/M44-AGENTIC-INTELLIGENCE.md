@@ -222,3 +222,56 @@ timeouts and zero new publications. The first and last cron run IDs were
 73716 and 74744, matching response IDs 10702 and 10772. The final receipt
 reported all seven graph stages and a successful read of 62 editorial
 entries. No manual publisher call was used in this interval.
+
+## Agent integration and supplementary FX review
+
+The reviewed branch uses the deployed LangGraph dependency to run the
+existing publisher operations in separate stages. Editorial candidate reads
+are batched in groups of 40. The existing audit and publication RPCs remain
+authoritative. The research graph ranks phrase and keyword matches in one
+ASK GPIR request after the existing entitlement split. Country risk profiles
+can attach up to three cited repository records by explicit country
+geography. A source's domicile alone does not attach a record to a country.
+
+The relay keeps its single-query empty path. A non-empty result includes
+predecessor records within the existing grouping horizon. This allows the
+earliest report to determine retirement when a later report corroborates it.
+
+On 28 November a read-only production checkpoint showed 16,980 FX archive
+rows, up 134 since the previous receipt, and 392 approved announcement rows.
+Fourteen successful source runs were recorded in the preceding two hours.
+The relay had no new qualifying publication during the check.
+
+Read-only supplier review on 28 November concluded:
+
+- **Twelve Data.** Basic offers 8 credits per minute and 800 per day, with
+  Forex coverage described for 140 currencies across the product.
+  The free tier is internal and non-display. Public redistribution requires a
+  separate agreement. [Pricing](https://twelvedata.com/pricing-business) ·
+  [Licensing](https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage).
+- **ExchangeRate-API.** GPIR already uses the keyless Open Access feed.
+  Its daily response contained 166 currency codes and covered all 134 GPIR
+  pairs. Keyed Free offers 1,500 calls per month. Standard terms allow
+  attributed end-use and caching but prohibit public redistribution and
+  programmatic re-serving. Account-specific permission for GPIR's public
+  snapshot was not available in the release evidence. [Open Access](https://www.exchangerate-api.com/docs/free) ·
+  [Terms](https://www.exchangerate-api.com/terms).
+- **Alpha Vantage.** The standard free allowance is 25 requests per day.
+  Pair-specific endpoints offer historical FX series, so the standard quota
+  cannot cover all 134 pairs daily by individual lookup. Commercial use
+  requires written agreement. [Allowance](https://www.alphavantage.co/support/) ·
+  [FX endpoints](https://www.alphavantage.co/documentation/#fx) ·
+  [Terms](https://www.alphavantage.co/terms_of_service/).
+- **CurrencyFreaks.** The free keyed plan offers 1,000 requests monthly and
+  daily USD-base updates. The separate keyless fair-use Open Rates endpoint
+  returned 170 quote codes on 28 November. All 134 GPIR pairs are derivable
+  when the USD base is treated as an identity rate. Its standard terms
+  describe restricted end-user reference display. Rights for public API
+  redistribution and an append-only public archive remain unverified.
+  [Pricing](https://currencyfreaks.com/pricing) ·
+  [Open Rates](https://currencyfreaks.com/open-rates-api) ·
+  [Terms](https://currencyfreaks.com/tos).
+
+No proposed provider was enabled or given a credential. Existing
+ECB/Frankfurter coverage, the 134-pair contract and the FX archive were
+preserved. Account billing evidence was unavailable.
