@@ -38,8 +38,9 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
   // chapter's root publication route. The old /pages/chapters/ URL redirects.
   const stablecoinsChapter = review.menuPath.length === 2 && review.chapterSlug === stablecoinsChapterSlug
   const canonicalId = stablecoinsChapter ? stablecoinsChapterIdentity : review.chapterSlug
+  const legacyCanonical = `https://fintechoisis.com/${review.chapterSlug}/`
   const canonicalUrl = stablecoinsChapter
-    ? `https://fintechoisis.com/${stablecoinsChapterSlug}/`
+    ? legacyCanonical
     : `https://fintechoisis.com/pages/chapters/${review.chapterSlug}.html`
   const context = { req, overrideAccess: true, depth: 0 as const, limit: 2 as const }
   const find = () => req.payload.find({ ...context, collection: 'chapters', where: { or: [
@@ -47,8 +48,13 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
     { canonicalUrl: { equals: canonicalUrl } },
   ] } })
   const reuse = (chapter: any) => {
-    if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl ||
-        (stablecoinsChapter && chapter.canonicalId !== stablecoinsChapterIdentity)) {
+    const matchesCanonical = stablecoinsChapter
+      ? chapter.canonicalId === canonicalId && chapter.canonicalUrl === canonicalUrl
+      : chapter.canonicalUrl === canonicalUrl || (
+        chapter.canonicalUrl === legacyCanonical &&
+        /^chapter:VK-GPIR-P-/.test(String(chapter.canonicalId || ''))
+      )
+    if (chapter.slug !== review.chapterSlug || !matchesCanonical) {
       throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
     }
     return { chapter, status: 'REUSED' as const }

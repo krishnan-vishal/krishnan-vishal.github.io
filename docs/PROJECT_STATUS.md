@@ -1,5 +1,15 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 Payload edition live and branch reconciliation
+
+The owner-approved Payload edition from PR #754 is live at all 43
+canonical URLs. The existing Contentful workflow is recovering the
+same signed snapshot after an HTTP 500. PR #748 preserves the general
+chapter reuse already merged in PR #749 and retains the separate
+exact Stablecoins safeguard. The Smart Intelligence source-tier
+label is wired into the dashboard's active renderer on the branch.
+See [live edition receipts](M44-AGENTIC-INTELLIGENCE.md#live-43-record-payload-edition--28-november-2026).
+
 ## 2026-11-28 — M44 PR #746 live and existing chapter reconciliation
 
 Pages run `46121161680` and public intelligence v30 served the reviewed

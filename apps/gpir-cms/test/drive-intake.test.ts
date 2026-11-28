@@ -68,6 +68,36 @@ test('approved category resolution reuses one existing chapter and creates only 
   assert.equal(created.chapter.publicationState, 'CURRENT')
 })
 
+test('existing research canonical identity is preserved and unrelated chapter conflicts still fail closed', async () => {
+  const slug = 'other-approved-legacy-research'
+  const review: any = {
+    hash: 'a'.repeat(64), title: 'Dashboard', summary: 'Summary', body: 'Body',
+    chapterSlug: slug, routeSlug: 'new-dashboard', category: 'C2C',
+    menuPath: ['Money Movement Ecosystem', 'Other legacy research'],
+    sourceFileId: 'approved-drive-id', sourceFileName: 'dashboard.jpg',
+    reconciliationHash: 'b'.repeat(64),
+  }
+  const prior = { id: 'existing-chapter', slug,
+    canonicalId: 'chapter:VK-GPIR-P-000000000018-2',
+    canonicalUrl: `https://fintechoisis.com/${slug}/` }
+  let docs: any[] = [prior]
+  let created = 0
+  const req: any = { payload: {
+    find: async () => ({ totalDocs: docs.length, docs }),
+    create: async () => { created++; throw new Error('Existing chapter must not be overwritten') },
+  } }
+  const result = await resolveDriveChapter(req, review)
+  assert.equal(result.status, 'REUSED')
+  assert.equal(result.chapter, prior)
+  assert.equal(created, 0)
+  docs = [{ ...prior, canonicalId: 'unrelated:identity' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [{ ...prior, canonicalUrl: 'https://fintechoisis.com/unrelated/' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [prior, { ...prior, id: 'second' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_AMBIGUOUS/)
+})
+
 test('verified media is reused only when the source hash resolves to one Payload asset', async () => {
   const asset = { id: 'media-1', sourceSha256: 'a'.repeat(64) }
   const req: any = { payload: { find: async () => ({ totalDocs: 1, docs: [asset] }) } }
@@ -97,6 +127,8 @@ test('approved Stablecoins mapping reuses its canonical root chapter and refuses
     create: async () => assert.fail('Existing chapter mapping cannot create a chapter'),
   } }
   assert.deepEqual(await resolveDriveChapter(req, review), { chapter, status: 'REUSED' })
+  docs = [{ ...chapter, canonicalId: 'chapter:VK-GPIR-P-000000000019-9' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
   docs = [{ ...chapter, canonicalId: 'different-chapter' }]
   await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
   docs = [{ ...chapter, canonicalUrl: `https://fintechoisis.com/pages/chapters/${chapterSlug}.html` }]

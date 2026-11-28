@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { buildDashboardMetrics, buildHeatmap, filterSmartRecords, normalizeEditorial,
-  normalizeLiveAlerts, normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
+import { buildDashboardMetrics, buildHeatmap, developmentMarkup, filterSmartRecords, normalizeEditorial,
+  normalizeLiveAlerts, normalizeM40Records, normalizeSmartRecords, periodBounds, periodStart, SMART_TOPICS }
   from '../../assets/js/smart-intelligence.mjs';
 import { buildTopicContext } from '../../assets/js/gpir-topic-intelligence.mjs';
 import { publicFxResearchRecords } from '../../assets/js/gpir-reader-dashboard.mjs';
@@ -30,6 +30,28 @@ test('Smart Intelligence is a distinct authenticated reader tool', () => {
   assert.match(homepageScript, /askMatch = String\(window\.location\.search/);
   assert.match(homepageScript, /answerQuery\(safeContext\)/);
   assert.doesNotMatch(page, /Subscribe|PayPal/);
+});
+
+test('the executive timeline exposes the governed source tier when supplied', async () => {
+  const [record] = normalizeM40Records({ status: 'OK', records: [{
+    id: 'verified-notice', title: 'Verified payments oversight notice',
+    summary: 'An official verified source records changes to payments oversight and settlement.',
+    published_at: '2026-11-27T09:00:53Z', canonical_url: 'https://example.gov/payments',
+    source_name: 'Research & Oversight Authority', trust_tier: 'T1'
+  }] });
+  assert.match(developmentMarkup(record), /class="smp-dev-meta">Research &amp; Oversight Authority · Source tier T1/);
+  assert.doesNotMatch(developmentMarkup({ ...record, sourceTrustTier: '' }), /Source tier/);
+  const module = await readFile(new URL('assets/js/smart-intelligence.mjs', root), 'utf8');
+  assert.match(module, /shown\.map\(developmentMarkup\)/);
+
+  const [live] = normalizeLiveAlerts({
+    status: 'OK', view: 'relay', windowHours: 12, items: [{
+      id: record.id, title: record.title, summary: record.summary, publishedAt: record.publishedAt,
+      displayLifecycleStatus: 'LIVE', tickerEligible: true,
+      source: { name: record.sourceName, url: record.url, trustTier: 'T1' }
+    }]
+  }, []);
+  assert.equal(live.sourceTrustTier, 'T1');
 });
 
 test('governed Smart Intelligence records retain citations and filter by subject and period', () => {

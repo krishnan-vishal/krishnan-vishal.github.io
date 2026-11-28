@@ -410,3 +410,28 @@ sampled canonical candidate URLs returned HTTP 404. The run stopped
 before producing an immutable edition or paired Contentful receipt.
 The correction requires an owner-approved Worker release before the
 existing authorized batch can resume.
+
+## Live 43-record Payload edition — 28 November 2026
+
+PR #749's Worker release `46122848956` preserved migrated chapter
+canonical URLs. The approved intake brought the batch to 43 published,
+validated, subscriber-entitled Payload records. Exact source-hash and
+creation-time readback confirmed the original 37 and six additional
+records. The signed manifest retained all 43 in snapshot
+`a23e522a6597ce41b1a64b4e29d42a178aaed0c4e3caba08e6ba2214abc37e1c`.
+Owner-merged [PR #754](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/754)
+and [Pages run 46136146634](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46136146634)
+served the matching snapshot. All 43 public routes returned HTTP 200
+with the expected canonical URL and GPIR publication ID.
+
+[Contentful BCP run 46134860271](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46134860271)
+verified at least 40 new or revised recovery records before a Contentful
+HTTP 500 on the first attempt. The exact deployed snapshot was submitted
+again through the existing recovery-safe workflow. Completion requires
+that attempt's verified recovery receipt.
+
+PR #748 resolves against main while retaining PR #749's general
+legacy chapter reuse. The approved two-level Stablecoins mapping keeps
+its exact identity and root URL check. The existing Smart Intelligence
+source-tier label now flows through the in-use timeline, lead card and
+selected-alert rendering. These branch changes await owner release.
