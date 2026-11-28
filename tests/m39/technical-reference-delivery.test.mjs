@@ -40,9 +40,9 @@ const hyperswitch = {
     publication_eligible: false, alert_eligible: false, settlement_telemetry: false }
 };
 
-test('verified technical records enter historical reference views but never Global Alerts', () => {
+test('owner-revoked Hyperswitch references stay out of historical intelligence and Global Alerts', () => {
   const records = normalizeTechnicalReferenceRows({ rows: [mojaloop, hyperswitch], sources });
-  assert.equal(records.length, 2);
+  assert.equal(records.length, 1);
   assert.ok(records.every(record => record.dataClass === 'TECHNICAL_REFERENCE'));
   assert.ok(records.every(record => record.displayLifecycleStatus === 'ARCHIVED'));
   assert.ok(records.every(record => record.tickerEligible === false));
@@ -50,19 +50,19 @@ test('verified technical records enter historical reference views but never Glob
   assert.ok(records.every(record => record.settlementTelemetry === false));
   assert.match(records[0].summary, /not live settlement telemetry/i);
   const cards = normalizeSmartRecords({ status: 'OK', records });
-  assert.equal(cards.length, 2);
+  assert.equal(cards.length, 1);
   assert.ok(cards.some(card => card.topicIds.includes('infrastructure')));
   assert.ok(cards.every(card => !card.topicIds.includes('regulatory')));
   assert.ok(cards.every(card => card.topicIds.length === 1));
   assert.ok(cards.every(card => card.dataClass === 'TECHNICAL_REFERENCE'));
 });
 
-test('technical references share the existing governed history response with announcements', () => {
+test('governed historical intelligence excludes revoked GitHub connector commits', () => {
   const records = normalizeRepositoryRows({ announcements: [], sources,
     statisticalObservations: [mojaloop, hyperswitch], now: Date.parse('2026-11-08T08:00:00Z'),
     windowDays: null });
-  assert.equal(records.length, 2);
-  assert.deepEqual(records.map(record => record.id), [mojaloop.id, hyperswitch.id]);
+  assert.equal(records.length, 1);
+  assert.deepEqual(records.map(record => record.id), [mojaloop.id]);
 });
 
 test('publication-eligible, telemetry-shaped and off-repository lookalikes fail closed', () => {
@@ -74,7 +74,7 @@ test('publication-eligible, telemetry-shaped and off-repository lookalikes fail 
   assert.deepEqual(normalizeTechnicalReferenceRows({ rows: invalid, sources }), []);
 });
 
-test('history query requests all verified reference sources through the existing endpoint', () => {
+test('history query requests approved reference sources through the existing endpoint', () => {
   const handler = fs.readFileSync(new URL('../../supabase/functions/gpir-public-intelligence/handler.mjs', import.meta.url), 'utf8');
   assert.match(handler, /source_id:\s*`in\.\(\$\{REFERENCE_SOURCE_IDS\.join\(','\)\}\)`/);
   assert.doesNotMatch(handler, /TECHNICAL_REFERENCE[\s\S]{0,400}tickerEligible:\s*true/);

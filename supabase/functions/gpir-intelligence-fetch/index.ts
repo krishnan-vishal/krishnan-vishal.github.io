@@ -46,7 +46,8 @@ const ECB_SOURCE_ID = "CB-EUR-001";
 const RBA_SOURCE_ID = "TEST-RBA-01";
 const GDELT_SOURCE_ID = "GDELT-GLOBAL-001";
 const BIS_SOURCE_ID = "BIS-GLOBAL-001";
-const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001", "HYPERSWITCH-OSS-001"] as const;
+// Owner-revoked Hyperswitch cannot be ingested even if a registry entry is re-enabled.
+const TECHNICAL_SOURCE_IDS = ["MOJALOOP-OSS-001"] as const;
 // Official MAS and ECB sources use their own approved publication indexes; all existing governance gates remain unchanged.
 const CONTROLLED_SOURCE_IDS = [TEST_SOURCE_ID, RBI_SOURCE_ID, PYMNTS_SOURCE_ID, FINTECH_FUTURES_SOURCE_ID, RBA_SOURCE_ID, MAS_SOURCE_ID, ECB_SOURCE_ID, GDELT_SOURCE_ID, BIS_SOURCE_ID, ...TECHNICAL_SOURCE_IDS, ...PAYMENTS_PUBLISHER_IDS] as const;
 const RBA_MEDIA_RSS = "https://www.rba.gov.au/rss/rss-cb-media-releases.xml";
