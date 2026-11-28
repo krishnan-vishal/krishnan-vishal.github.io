@@ -242,19 +242,33 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     let resolvedEntry = entry;
     if (config.GPIR_EDITORIAL_SOURCE === 'payload') {
       const mediaId = entry.fields?.dashboardAsset?.sys?.id;
-      if (typeof mediaId === 'string' && UUID.test(mediaId)) {
+      const nativeId = typeof mediaId === 'string' && UUID.test(mediaId);
+      const legacyId = typeof mediaId === 'string' &&
+        /^[A-Za-z0-9]{12,40}$/.test(mediaId) && !nativeId;
+      if (nativeId || legacyId) {
+        // Some approved legacy media records retain their existing Contentful
+        // asset ID as relationship identity; resolve that indexed media field.
+        const mediaUrl = nativeId
+          ? config.PAYLOAD_PUBLIC_SERVER_URL + '/api/media/' + mediaId + '?depth=0'
+          : config.PAYLOAD_PUBLIC_SERVER_URL + '/api/media?' + new URLSearchParams({
+              'where[contentfulAssetId][equals]': mediaId, limit: '2', depth: '0'
+            });
         let mediaResponse;
         try {
-          mediaResponse = await fetchImpl(config.PAYLOAD_PUBLIC_SERVER_URL + '/api/media/' + mediaId + '?depth=0', {
+          mediaResponse = await fetchImpl(mediaUrl, {
             redirect: 'error',
             headers: { authorization: 'users API-Key ' + config.PAYLOAD_RELEASE_API_KEY }
           });
         } catch { return providerError('MEDIA_PROVIDER_ERROR', origin); }
         if (!mediaResponse.ok) return providerError('MEDIA_PROVIDER_ERROR', origin);
-        let media;
-        try { media = await mediaResponse.json(); }
+        let body;
+        try { body = await mediaResponse.json(); }
         catch { return providerError('MEDIA_PROVIDER_ERROR', origin); }
-        if (media?.id !== mediaId || !/^[a-f0-9]{64}$/i.test(media.sourceSha256 || '') ||
+        const media = nativeId ? body :
+          Array.isArray(body?.docs) && body.docs.length === 1 ? body.docs[0] : null;
+        if (!media || !UUID.test(media.id || '') ||
+            (nativeId ? media.id !== mediaId : media.contentfulAssetId !== mediaId) ||
+            !/^[a-f0-9]{64}$/i.test(media.sourceSha256 || '') ||
             !media.sourceUrl || !media.alt) return providerError('MEDIA_INTEGRITY_ERROR', origin);
         resolvedEntry = { ...entry, presentation: { primaryDashboard: {
           role: 'PRIMARY_PUBLICATION_DASHBOARD',
@@ -271,7 +285,9 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     if (!publication) return denied(403, 'CONTENT_IDENTITY_MISMATCH', origin);
     if (config.GPIR_EDITORIAL_SOURCE === 'payload' &&
         typeof entry.fields?.dashboardAsset?.sys?.id === 'string' &&
-        UUID.test(entry.fields.dashboardAsset.sys.id) && !publication.primaryDashboard)
+        (UUID.test(entry.fields.dashboardAsset.sys.id) ||
+          /^[A-Za-z0-9]{12,40}$/.test(entry.fields.dashboardAsset.sys.id)) &&
+        !publication.primaryDashboard)
       return providerError('MEDIA_INTEGRITY_ERROR', origin);
     const delivered = response(200, { status: 'ALLOW', publication }, origin);
     delivered.headers.set('x-gpir-editorial-source', config.GPIR_EDITORIAL_SOURCE === 'payload' ? 'payload' : 'contentful');
