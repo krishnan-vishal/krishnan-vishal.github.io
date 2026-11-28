@@ -50,14 +50,17 @@ test('body stream failure is bounded and reported without the raw exception', as
     assert.equal(reads, 3);
 });
 
-function fixture(t) {
+function fixture(t, { staleObservatory = false } = {}) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'm41-reader-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
     const output = path.join(root, 'dist');
     const routes = ['index.html', '404.html', 'reader/sign-in/index.html', 'pages/intelligence/index.html'];
     for (const route of routes) {
         fs.mkdirSync(path.dirname(path.join(output, route)), { recursive: true });
-        fs.writeFileSync(path.join(output, route), `accepted ${route}`);
+        const bytes = route === 'pages/intelligence/index.html' && !staleObservatory
+            ? fs.readFileSync(path.resolve(__dirname, '../../pages/intelligence/index.html'))
+            : `accepted ${route}`;
+        fs.writeFileSync(path.join(output, route), bytes);
     }
     fs.writeFileSync(path.join(output, 'engine.js'), 'preserved engine');
     const manifest = site.inventory(output, 'a'.repeat(40));
@@ -160,7 +163,7 @@ test('unapproved fifth managed route is still blocked before any Payload edition
 });
 
 test('signed earlier edition retains newer Git-approved Observatory ASK GPIR content', async t => {
-    const f = fixture(t);
+    const f = fixture(t, { staleObservatory: true });
     const approved = fs.readFileSync(path.resolve(__dirname, '../../pages/intelligence/index.html'));
     assert.ok(fs.existsSync(path.resolve(__dirname, '../../.gpir-ask-observatory-required')));
     const obs = path.join(f.output, 'pages/intelligence/index.html');
