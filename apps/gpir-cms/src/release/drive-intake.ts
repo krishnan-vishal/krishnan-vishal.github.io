@@ -22,7 +22,9 @@ export type DriveReview = {
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const hashPattern = /^[a-f0-9]{64}$/
 
-// Cloudflare Workers rejects fetch redirect:'error' before dispatch. Use 'manual'\n// to prevent following redirected authority requests and reject non-2xx responses.\nfunction authorityHeaders(key: string, extra: Record<string, string> = {}) {
+// Cloudflare Workers rejects fetch redirect:'error' before dispatch. Use 'manual'
+// to prevent following redirected authority requests and reject non-2xx responses.
+function authorityHeaders(key: string, extra: Record<string, string> = {}) {
   const headers = new Headers(extra)
   headers.set('apikey', key)
   if (!key.startsWith('sb_secret_')) headers.set('authorization', `Bearer ${key}`)
