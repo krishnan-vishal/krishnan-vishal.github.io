@@ -158,3 +158,17 @@ test('unapproved fifth managed route is still blocked before any Payload edition
     assert.equal(fs.readFileSync(extra, 'utf8'), 'keep unrelated content');
     assert.equal(fs.existsSync(path.join(f.output, 'assets/data/cms-source.json')), false);
 });
+
+test('signed earlier edition retains newer Git-approved Observatory ASK GPIR content', async t => {
+    const f = fixture(t);
+    const approved = fs.readFileSync(path.resolve(__dirname, '../../pages/intelligence/index.html'));
+    assert.ok(fs.existsSync(path.resolve(__dirname, '../../.gpir-ask-observatory-required')));
+    const obs = path.join(f.output, 'pages/intelligence/index.html');
+    fs.writeFileSync(obs, approved);
+    fs.mkdirSync(path.join(f.output, 'assets/data'), { recursive: true });
+    const marker = await materialize(f.output, f.env, f.fetchImpl);
+    assert.equal(marker.snapshot, f.manifest.snapshot);
+    assert.ok(fs.readFileSync(obs).equals(approved));
+    assert.ok(!f.reads.some(key => key === 'm41:blob:' +
+        f.manifest.files.find(item => item.path === 'pages/intelligence/index.html').sha256));
+});
