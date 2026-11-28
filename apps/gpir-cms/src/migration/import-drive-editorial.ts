@@ -36,7 +36,18 @@ async function request(url: string, init: RequestInit, label: string) {
         'INTAKE_SIZE_INVALID', 'INTAKE_SIGNATURE_INVALID',
         'INTAKE_SIGNATURE_REQUIRED', 'SERVICE_ROLE_REQUIRED',
       ])
-      const safe = typeof code === 'string' && allowed.has(code) ? code : 'UNRECOGNIZED_RESPONSE'
+      // Match only the finite, reviewed failure stages emitted by the current
+      // Payload intake handler. Never accept arbitrary server-provided strings.
+      const stages = new Set([
+        'REQUEST_PARSE', 'PUBLICATION_LOOKUP', 'MEDIA_LOOKUP',
+        'CHAPTER_RESOLUTION', 'IDENTITY_REQUEST', 'IDENTITY_RESPONSE',
+        'ACCESS_POLICY', 'RELEASE_DECISION', 'MEDIA_CREATE',
+        'PUBLICATION_CREATE',
+      ])
+      const approvedStage = typeof code === 'string' && code.startsWith('INTAKE_FAILED_') &&
+        stages.has(code.slice('INTAKE_FAILED_'.length))
+      const safe = typeof code === 'string' && (allowed.has(code) || approvedStage)
+        ? code : 'UNRECOGNIZED_RESPONSE'
       throw new Error(`Payload publication intake returned HTTP ${response.status}: ${safe}`)
     }
     await response.body?.cancel()
