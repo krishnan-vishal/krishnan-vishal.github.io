@@ -3516,3 +3516,18 @@ response was limited to 42 pairs by the Data API row cap despite the complete
 134-pair archive. The follow-up SQL returned all 134 pairs in a read-only
 production rehearsal. Live acceptance remains partial. See the
 [production checkpoint](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).
+
+## 2026-11-28 — M44 corrective migration and production job timeout
+
+Owner-merged PR #731 ran as Supabase migration `20261128003206`.
+The live endpoint returned the exact 134-pair universe. The featured ticker
+displayed USD/INR and the FX archive digest matched across 16,846 existing
+rows. ASK GPIR and history returned the genuine, expired PYMNTS announcement.
+The existing ten-minute publisher job's HTTP timeout was changed from five
+seconds to 120 seconds after repeated timeouts. See
+[production acceptance](M44-AGENTIC-INTELLIGENCE.md#production-acceptance-after-pr-731).
+
+The unattended publisher produced 33 verified HTTP 200 LangGraph OSS
+receipts from 06:10 to 11:30 IST during the ChatGPT Work interruption,
+with zero timeouts. The first and last response IDs were 10702 and 10772.
+The final response recorded a successful read of 62 editorial entries.
