@@ -70,10 +70,9 @@ function inFilter(values) {
 }
 
 // The relay is a latency-sensitive 12-hour projection, not a historical query.
-// Read only ticker-eligible rows in the live window and then fetch evidence scoped
-// to those announcement/topic ids. The permanent archive continues through the
-// unchanged history path below. This prevents thousands of historical reference
-// rows from delaying an honestly empty or small live ribbon.
+// An empty relay needs only a recent eligibility probe. A non-empty relay also
+// needs predecessor announcements from the existing grouping horizon, so an
+// expired event cannot start a new window through later corroboration.
 export async function loadLiveRelayRows({ fetchImpl = fetch, config, now }) {
   const headers = new Headers();
   headers.set('apikey', config.key);
@@ -85,10 +84,20 @@ export async function loadLiveRelayRows({ fetchImpl = fetch, config, now }) {
     order: 'published_at.asc,id.asc', limit: '1000'
   });
   announcementsQuery.append('published_at', `lte.${new Date(now).toISOString()}`);
-  const announcements = await jsonFetch(fetchImpl,
+  const liveAnnouncements = await jsonFetch(fetchImpl,
     `${config.url}/rest/v1/global_announcements?${announcementsQuery}`, headers);
-  if (!announcements.length) return { announcements: [], sources: [], topics: [],
+  if (!liveAnnouncements.length) return { announcements: [], sources: [], topics: [],
     developments: [], topicSources: [], statisticalObservations: [], regulatoryDocuments: [] };
+  const predecessorsQuery = new URLSearchParams(announcementsQuery);
+  predecessorsQuery.delete('ticker_eligible');
+  predecessorsQuery.set('published_at', `gte.${new Date(now - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}`);
+  predecessorsQuery.append('published_at', `lt.${new Date(now - LIVE_RELAY_WINDOW_MS).toISOString()}`);
+  const predecessors = await jsonFetch(fetchImpl,
+    `${config.url}/rest/v1/global_announcements?${predecessorsQuery}`, headers);
+  if (liveAnnouncements.length >= 1000 || predecessors.length >= 1000)
+    throw new Error('RELAY_EVIDENCE_LIMIT');
+  const announcements = [...new Map([...predecessors, ...liveAnnouncements]
+    .map(row => [row.id, row])).values()];
 
   const sourceIds = announcements.map(item => item.source_id).filter(Boolean);
   const announcementIds = announcements.map(item => item.id).filter(Boolean);
@@ -454,7 +463,29 @@ export function normalizeRepositoryRows({ announcements, sources, topics = [], d
       String(left.id).localeCompare(String(right.id)));
 }
 
+export function filterResearchGeographies(records, geographies) {
+  if (!geographies.length) return records;
+  const normalize = value => String(value || '').trim().normalize('NFKC').toLowerCase();
+  const keys = new Set(geographies.map(normalize));
+  return records.filter(record => [record.geography, record.countryCode]
+    .some(value => keys.has(normalize(value))));
+}
+
+export function rankResearchEvidence(records, query, terms, hasGeography) {
+  return records.map(record => {
+    const title = String(record.title || '').toLowerCase();
+    const content = [title, record.summary, record.category, record.source?.name, record.geography,
+      ...(Array.isArray(record.keywords) ? record.keywords : [])].filter(Boolean).join(' ').toLowerCase();
+    const score = (!query && !terms.length && hasGeography ? 1 : 0) +
+      (query && content.includes(query) ? 10 : 0) +
+      terms.reduce((sum, term) => sum + (title.includes(term) ? 3 : content.includes(term) ? 1 : 0), 0);
+    return { record, score };
+  }).filter(item => item.score > 0).sort((a, b) => b.score - a.score).map(item => item.record);
+}
+
 export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
+  retrieveEvidence = async ({ records, query, terms, geographies }) =>
+    rankResearchEvidence(filterResearchGeographies(records, geographies), query, terms, geographies.length > 0),
   loadRows = null, now = () => Date.now(), entitlement = null }) {
   return async function handle(request) {
     const origin = request.headers.get('origin');
@@ -474,6 +505,14 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     const topicContext = String(requestUrl.searchParams.get('topicContext') || '').trim();
     const relayView = requestUrl.searchParams.get('view') === 'relay';
     const askView = requestUrl.searchParams.get('view') === 'ask';
+    const rankedAsk = askView && requestUrl.searchParams.get('match') === 'ranked';
+    const askTerms = rankedAsk ? [...new Set(requestUrl.searchParams.getAll('term'))] : [];
+    const askGeographies = rankedAsk ? [...new Set(requestUrl.searchParams.getAll('geo'))] : [];
+    if (rankedAsk && (askTerms.length > 3 ||
+        askTerms.some(term => !/^[a-z0-9]{3,32}$/.test(term)) ||
+        askGeographies.length > 3 || askGeographies.some(value => !value.trim() ||
+          value.length > 80 || /[<>\u0000-\u001f\u007f]/u.test(value))))
+      return response(400, { status: 'ERROR', code: 'INVALID_ASK_TERMS' }, origin, env, { private: true });
     if (askView && topicContext) return response(400, { status: 'ERROR', code: 'INVALID_ASK_CONTEXT' }, origin, env, { private: true });
     const history = askView || requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
     const collection = askView ? 'announcements' : requestUrl.searchParams.get('collection');
@@ -718,13 +757,16 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       if (lifecycle) records = records.filter(record=>record.displayLifecycleStatus===lifecycle);
       if (category) records = records.filter(record=>record.category.toLowerCase()===category);
       if (day) records = records.filter(record=>new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(record.publishedAt || record.publicationDate)).toLowerCase()===day);
-      if (queryText) records = records.filter(record => [
+      if (rankedAsk) {
+        records = await retrieveEvidence({ records, query: queryText, terms: askTerms, geographies: askGeographies });
+      } else if (queryText) records = records.filter(record => [
         record.title, record.summary, record.category, record.source?.name
       ].filter(Boolean).join(' ').toLowerCase().includes(queryText));
       const total = records.length;
       records = records.slice(offset, offset + limit);
       return response(200, {
-        status: 'OK', ...(askView && { access: askFullAccess ? 'full' : 'preview' }), collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
+        status: 'OK', ...(askView && { access: askFullAccess ? 'full' : 'preview' }),
+        ...(rankedAsk && { match: 'ranked' }), collection, source: history && collection !== 'announcements' ? 'global_announcements+verified_reference_history' : 'global_announcements', total, limit, offset,
         windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS,
         scope: history ? 'history' : 'recent',
         records, generatedAt: new Date(requestNow).toISOString()

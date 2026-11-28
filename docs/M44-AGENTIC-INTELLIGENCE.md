@@ -177,3 +177,104 @@ follow-up migration returns at most two observed dates per pair. A read-only
 production query returned 268 rows, all 134 archive pairs and zero missing
 pairs. The corrective migration requires the governed review and release.
 Account billing and signed-in FX browser performance remain unverified.
+
+## Production acceptance after PR #731
+
+The owner merged PR #731 as `b5334c033a98aa1f2e45c5889d43a89697dc58e3`.
+The PostgreSQL and Security and Integrity checks passed, and Pages run
+46088055991 succeeded. Supabase applied the reviewed SQL as
+`20261128003206 m44_fx_projection_pair_coverage`.
+
+The production RPC returned 268 records, exactly two per pair, for all 134
+configured pairs. The public HTTP response matched the 134-pair universe
+with no missing or extra pair. USD/INR returned 92.520426 for 27 November
+and a previous close of 92.345212 for 26 November. The homepage displayed
+USD/INR at 92.5204 (+0.19%) in its 26-pair featured ticker. Currency Explorer
+also displayed the non-featured USD/NGN pair through the existing selectors.
+
+The archive contained 16,846 rows before and after the migration. A digest
+over all pre-existing rows ordered by ID was unchanged
+(`3a8c397175b30b583fe78199be4c0843`). RPC execution remained service-role
+only and the unauthenticated reader endpoint returned 401. No Smart Card
+assets were changed in PR #731. The signed-in timing requires an authenticated
+reader session.
+
+ASK GPIR and history each returned announcement
+`6b6ffb23-87ba-4dae-9e7a-618797b628eb` as historical and archived with
+the cited source and exact timestamp `2026-11-27T09:00:53Z`. The audit
+records automatic publication at `2026-11-27T09:50:03.235621Z` at
+confidence 100. A live observation of a post-release article is pending.
+
+The production HTTP receipts for the 00:20 and 00:30 UTC scheduled publisher
+calls timed out at the inherited five-second limit despite successful SQL
+queueing. The existing job 4 gained an explicit `timeout_milliseconds :=
+120000`. A reverse-replacement digest comparison confirmed that the
+timeout was the only command change. Its ten-minute cadence, request body
+and Vault authorization were preserved. The original command is recovered
+by removing the exact added timeout argument under the same job and digest
+guards. No new cron job or additional SQL migration was used for this
+configuration correction.
+
+From 06:10 to 11:30 IST on 28 November, while ChatGPT Work was unavailable,
+Supabase matched 33 of 33 ten-minute cron runs to HTTP 200 responses from
+LangGraph OSS 1.7.5 in `deterministic-no-llm` mode. There were zero HTTP
+timeouts and zero new publications. The first and last cron run IDs were
+73716 and 74744, matching response IDs 10702 and 10772. The final receipt
+reported all seven graph stages and a successful read of 62 editorial
+entries. No manual publisher call was used in this interval.
+
+## Agent integration and supplementary FX review
+
+The reviewed branch uses the deployed LangGraph dependency to run the
+existing publisher operations in separate stages. Editorial candidate reads
+are batched in groups of 40. The existing audit and publication RPCs remain
+authoritative. The research graph ranks phrase and keyword matches in one
+ASK GPIR request after the existing entitlement split. Country risk profiles
+can attach up to three cited repository records by explicit country
+geography. A source's domicile alone does not attach a record to a country.
+
+The relay keeps its single-query empty path. A non-empty result includes
+predecessor records within the existing grouping horizon. This allows the
+earliest report to determine retirement when a later report corroborates it.
+
+On 28 November at 06:29–06:32 UTC, production had 16,980 FX archive
+rows, up 134 since the previous receipt, and 392 approved announcement rows.
+Public history returned 6,652 records in 10.16 seconds. In the preceding
+12 hours, 84 successful source runs reported 41 discoveries, including
+repeated discoveries. Four new PYMNTS candidates scored 50, 70, 70 and 85
+and stayed in review. The relay had no qualifying publication during
+the check.
+
+Read-only supplier review on 28 November concluded:
+
+- **Twelve Data.** Basic offers 8 credits per minute and 800 per day, with
+  Forex coverage described for 140 currencies across the product.
+  The free tier is internal and non-display. Public redistribution requires a
+  separate agreement. [Pricing](https://twelvedata.com/pricing-business) ·
+  [Licensing](https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage).
+- **ExchangeRate-API.** GPIR already uses the keyless Open Access feed.
+  Its daily response contained 166 currency codes and covered all 134 GPIR
+  pairs. Keyed Free offers 1,500 calls per month. Standard terms allow
+  attributed end-use and caching but prohibit public redistribution and
+  programmatic re-serving. Account-specific permission for GPIR's public
+  snapshot was not available in the release evidence. [Open Access](https://www.exchangerate-api.com/docs/free) ·
+  [Terms](https://www.exchangerate-api.com/terms).
+- **Alpha Vantage.** The standard free allowance is 25 requests per day.
+  Pair-specific endpoints offer historical FX series, so the standard quota
+  cannot cover all 134 pairs daily by individual lookup. Commercial use
+  requires written agreement. [Allowance](https://www.alphavantage.co/support/) ·
+  [FX endpoints](https://www.alphavantage.co/documentation/#fx) ·
+  [Terms](https://www.alphavantage.co/terms_of_service/).
+- **CurrencyFreaks.** The free keyed plan offers 1,000 requests monthly and
+  daily USD-base updates. The separate keyless fair-use Open Rates endpoint
+  returned 170 quote codes on 28 November. All 134 GPIR pairs are derivable
+  when the USD base is treated as an identity rate. Its standard terms
+  describe restricted end-user reference display. Rights for public API
+  redistribution and an append-only public archive remain unverified.
+  [Pricing](https://currencyfreaks.com/pricing) ·
+  [Open Rates](https://currencyfreaks.com/open-rates-api) ·
+  [Terms](https://currencyfreaks.com/tos).
+
+No proposed provider was enabled or given a credential. Existing
+ECB/Frankfurter coverage, the 134-pair contract and the FX archive were
+preserved. Account billing evidence was unavailable.

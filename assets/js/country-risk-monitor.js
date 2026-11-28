@@ -1,4 +1,4 @@
-import { contextualAskQuery, retrieveGovernedEvidence, summarizeGovernedAsk }
+import { contextualAskQuery, retrieveGovernedCountryEvidence, retrieveGovernedEvidence, summarizeGovernedAsk }
     from "./gpir-governed-ask.mjs";
 
 const root = document.querySelector("[data-country-risk-monitor]");
@@ -121,6 +121,7 @@ if (root) {
             "<div><dt>OFAC sanctions-program exposure</dt><dd>Not assessed. Entity connections do not create a country sanction.</dd></div>" +
             "<div><dt>Evidence date</dt><dd>" + escapeHtml(country.publicationDate || dataset.authorityState) + "</dd></div>" +
             "</dl><h3>Status evidence</h3><ul>" + evidenceMarkup(country) + "</ul>" +
+            '<div data-country-repository-evidence aria-live="polite"></div>' +
             '<div class="risk-card__actions"><a href="' + escapeHtml(country.sourceUrl) +
             '" target="_blank" rel="noopener noreferrer">Verify official FATF source</a>' +
             '<a href="/intelligence-repository/?q=' + encodeURIComponent(country.countryName + " OFAC") +
@@ -187,6 +188,37 @@ if (root) {
         });
     }
 
+    async function populateCountryEvidence(country, target) {
+        if (!target) return;
+        const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
+        try {
+            const records = await retrieveGovernedCountryEvidence(origin, country);
+            if (!target.isConnected) return;
+            const { citations } = summarizeGovernedAsk(country.countryName, records);
+            const links = citations.filter(item => item.url);
+            if (!links.length) {
+                target.textContent = "No related GPIR publication is available for this profile.";
+                return;
+            }
+            const heading = document.createElement("h3");
+            heading.textContent = "Related GPIR publications";
+            const list = document.createElement("ul");
+            for (const citation of links) {
+                const li = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = citation.url;
+                link.textContent = citation.title;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                li.append(link);
+                list.append(li);
+            }
+            target.replaceChildren(heading, list);
+        } catch {
+            if (target.isConnected) target.textContent = "Related GPIR publications are temporarily unavailable.";
+        }
+    }
+
     function renderCompactCountry(country) {
         const shortStatus = country.fatfDesignation === "FATF_CALL_FOR_ACTION" ? "High Risk" :
             country.fatfDesignation === "FATF_INCREASED_MONITORING" ? "Grey List" : "Not listed";
@@ -248,7 +280,10 @@ if (root) {
         pageStatus.textContent = "Page " + pageNumber + " of " + pages;
         previous.disabled = pageNumber <= 1;
         next.disabled = pageNumber >= pages;
-        if (selected) bindAsk();
+        if (selected) {
+            bindAsk();
+            void populateCountryEvidence(selected, cards.querySelector("[data-country-repository-evidence]"));
+        }
     }
 
     function renderFatfSnapshot() {

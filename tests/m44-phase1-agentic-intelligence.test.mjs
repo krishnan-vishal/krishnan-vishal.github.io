@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { loadLiveRelayRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
+import { createPublicIntelligenceHandler, loadLiveRelayRows } from '../supabase/functions/gpir-public-intelligence/handler.mjs';
 import { buildFxSnapshot, clearFxSnapshotCache, createFxSnapshotHandler }
   from '../supabase/functions/gpir-fx-snapshot/handler.mjs';
 
@@ -45,13 +45,41 @@ test('live relay scopes evidence reads to the selected announcements and topics'
     calls.push(url);
     return json(fixtures[url.pathname.split('/').at(-1)] || []);
   } });
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 6);
+  assert.deepEqual(calls[1].searchParams.getAll('published_at'), [
+    'gte.2026-11-13T00:00:00.000Z', 'lt.2026-11-27T12:00:00.000Z'
+  ]);
   assert.equal(calls.find(call => call.pathname.endsWith('/source_registry'))
     .searchParams.get('source_id'), 'in.(SOURCE-1)');
   assert.equal(calls.find(call => call.pathname.endsWith('/gpir_intelligence_topics'))
     .searchParams.get('announcement_id'), 'in.(announcement-1)');
   assert.ok(calls.filter(call => call.searchParams.get('topic_id') === 'in.(topic-1)').length === 2);
   assert.equal(rows.announcements.length, 1);
+});
+
+test('live loader keeps older corroborating leads for grouping before retirement', async () => {
+  const lead = { id: 'expired-lead', source_id: 'SOURCE-1',
+    title: 'Central bank accelerates cross-border payments settlement interoperability',
+    summary_narration: 'This is a verified reference with sufficient source evidence.',
+    canonical_url: 'https://authority.example/old', publication_status: 'approved',
+    published_at: '2026-11-27T10:00:00.000Z', ticker_eligible: true };
+  const later = { ...lead, id: 'corroboration', canonical_url: 'https://authority.example/later',
+    published_at: '2026-11-27T20:00:00.000Z' };
+  const handler = createPublicIntelligenceHandler({
+    env: { SUPABASE_URL: CONFIG.url, SUPABASE_SERVICE_ROLE_KEY: CONFIG.key },
+    now: () => NOW, fetchImpl: async input => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/global_announcements'))
+        return json(url.searchParams.has('ticker_eligible') ? [later] : [lead]);
+      if (url.pathname.endsWith('/source_registry'))
+        return json([{ source_id: 'SOURCE-1', source_name: 'Authority',
+          official_url: 'https://authority.example', source_status: 'GREEN', trust_tier: 'T1' }]);
+      return json([]);
+    }
+  });
+  const result = await handler(new Request('https://example.test?view=relay'));
+  assert.equal(result.status, 200);
+  assert.deepEqual((await result.json()).items, []);
 });
 
 function fxRows() {
