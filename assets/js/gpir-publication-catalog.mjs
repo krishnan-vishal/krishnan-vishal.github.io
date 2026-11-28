@@ -51,8 +51,9 @@ export async function initializeCatalog(document = globalThis.document, fetchImp
       fetchImpl('/assets/data/approved-dashboard-catalog.json', { cache: 'no-store' })
     ]);
     if (!routesResponse.ok || !approvedResponse.ok) throw Error('CATALOG_UNAVAILABLE');
-    const items = publicCatalogItems(await routesResponse.json(), await approvedResponse.json());
-    if (items.length !== 43) throw Error('CATALOG_INCOMPLETE');
+    const approved = await approvedResponse.json();
+    const items = publicCatalogItems(await routesResponse.json(), approved);
+    if (items.length !== approved.recordCount) throw Error('CATALOG_INCOMPLETE');
     const filter = document.querySelector('#catalog-region');
     const search = document.querySelector('#catalog-search');
     if (!filter || !search) return false;
