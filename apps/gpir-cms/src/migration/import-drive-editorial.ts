@@ -24,6 +24,43 @@ async function request(url: string, init: RequestInit, label: string) {
   throw new Error('Request retries exhausted')
 }
 
+// Refresh only the existing governed Drive OAuth grant. Google may return 400 for
+// a permanently invalid grant or a mismatched OAuth client; these must not be
+// conflated with retryable transport errors or cause credential disclosure.
+async function refreshDriveAccessToken(): Promise<string> {
+  const form = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: value('GPIR_DRIVE_CLIENT_ID'),
+    client_secret: value('GPIR_DRIVE_CLIENT_SECRET'),
+    refresh_token: value('GPIR_DRIVE_REFRESH_TOKEN'),
+  })
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(20000),
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    })
+    // Parse privately; never print Google's raw response or token fields.
+    const result: any = await response.json().catch(() => null)
+    if (response.ok) {
+      if (typeof result?.access_token !== 'string' || !result.access_token.trim())
+        throw new Error('DRIVE_OAUTH_TOKEN_MISSING')
+      return result.access_token
+    }
+    if ((response.status === 429 || response.status >= 500) && attempt < 2) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
+      continue
+    }
+    const approved = new Set([
+      'invalid_grant', 'invalid_client', 'unauthorized_client',
+      'invalid_scope', 'invalid_request', 'access_denied', 'temporarily_unavailable',
+    ])
+    const code = typeof result?.error === 'string' && approved.has(result.error)
+      ? result.error.toUpperCase() : 'UNKNOWN'
+    throw new Error('DRIVE_OAUTH_REJECTED_' + code + '_HTTP_' + response.status)
+  }
+  throw new Error('DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED')
+}
+
 async function listDriveFolder(folderId: string, headers: Record<string, string>) {
   const listed: DriveFile[] = []
   let pageToken = ''
@@ -70,20 +107,14 @@ async function main() {
   const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
   const signingSecret = value('GPIR_RELEASE_SIGNING_SECRET')
   acquisitionStage = 'DRIVE_OAUTH'
-  const oauth = await (await request('https://oauth2.googleapis.com/token', {
-    method: 'POST', body: new URLSearchParams({
-      grant_type: 'refresh_token', client_id: value('GPIR_DRIVE_CLIENT_ID'),
-      client_secret: value('GPIR_DRIVE_CLIENT_SECRET'), refresh_token: value('GPIR_DRIVE_REFRESH_TOKEN'),
-    }),
-  }, 'Drive OAuth')).json()
-  if (typeof oauth.access_token !== 'string') throw new Error('Drive OAuth response omitted its access token')
-  const headers = { authorization: `Bearer ${oauth.access_token}` }
+  const accessToken = await refreshDriveAccessToken()
+  const headers = { authorization: `Bearer ${accessToken}` }
   // Confirm GitHub's existing refresh-token exchange grants the intended account,
   // approved OAuth client, and full read access before processing any files.
   // Do not log raw tokens, client identifiers, emails, or Google response bodies.
   acquisitionStage = 'DRIVE_OAUTH_CLIENT_AND_SCOPE'
   const tokenInfo = await (await request(
-    'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(oauth.access_token),
+    'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(accessToken),
     {}, 'Drive token inspection')).json() as {
       azp?: string; aud?: string; audience?: string; issued_to?: string; scope?: string
     }
@@ -262,7 +293,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
