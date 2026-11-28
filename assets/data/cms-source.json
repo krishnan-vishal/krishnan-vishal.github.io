@@ -1,7 +1,1 @@
-{
-  "source": "payload",
-  "snapshot": "f2540980b555942c5807d56bc8370ee2ce48d13dd689bd91a29ca011e84fcfea",
-  "sourceCommit": "2ee861ceeb1c11964753662f2c564a3153136be7",
-  "managedFiles": 835,
-  "protectedEngineFiles": 93
-}
+{"source":"payload","snapshot":"a23e522a6597ce41b1a64b4e29d42a178aaed0c4e3caba08e6ba2214abc37e1c","sourceCommit":"2ee861ceeb1c11964753662f2c564a3153136be7","managedFiles":878,"protectedEngineFiles":103}

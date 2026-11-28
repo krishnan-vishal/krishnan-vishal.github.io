@@ -1,13 +1,30 @@
 {
   "schemaVersion": "1.0.0",
   "deploymentEligible": false,
-  "recordCount": 35,
+  "recordCount": 78,
   "routes": [
     {
       "identity": "VK-GPIR-P-000000000026-5",
       "route": "/africa-country-directory-gpir-regional-intelligence-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/africa-country-directory-gpir-regional-intelligence-fintechoisis/",
       "publicationType": "Regional Directory",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000088-5",
+      "route": "/ai-regulation-poweing-the-future-of-global-money-movement-v1-14-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/ai-regulation-poweing-the-future-of-global-money-movement-v1-14-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "AI& regulation Poweing the future of Global Money Movement V1 14 07 2026",
+      "summary": "Approved GPIR research dashboard covering AI & Regulation.",
+      "categoryPath": [
+        "Global Risk &   Regulation Risk & Licensing",
+        "Emerging Tech   Adoption",
+        "Emerging Tech"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -28,10 +45,78 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000092-7",
+      "route": "/australia-p2p-c2c-remittances-overview-fy2025-in-out-flows/",
+      "canonicalUrl": "https://fintechoisis.com/australia-p2p-c2c-remittances-overview-fy2025-in-out-flows/",
+      "publicationType": "Research Publication",
+      "title": "Australia P2P C2C remittances Overview FY2025 In -Out Flows",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000094-3",
+      "route": "/cambodia-p2p-inflows-and-outflows-fy24-25-08-07-2025/",
+      "canonicalUrl": "https://fintechoisis.com/cambodia-p2p-inflows-and-outflows-fy24-25-08-07-2025/",
+      "publicationType": "Research Publication",
+      "title": "Cambodia P2P Inflows and Outflows (FY24 -25) 08 07 2025",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000005-9",
       "route": "/cards-intelligence-gpir-domain-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/cards-intelligence-gpir-domain-fintechoisis/",
       "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000095-0",
+      "route": "/china-peer-to-peer-c2c-remittances-overview-fy2025/",
+      "canonicalUrl": "https://fintechoisis.com/china-peer-to-peer-c2c-remittances-overview-fy2025/",
+      "publicationType": "Research Publication",
+      "title": "China Peer to Peer C2C remittances Overview FY2025",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000093-5",
+      "route": "/corporate-chains-powering-global-money-transfers-c2a-v1-140-7-2026/",
+      "canonicalUrl": "https://fintechoisis.com/corporate-chains-powering-global-money-transfers-c2a-v1-140-7-2026/",
+      "publicationType": "Research Publication",
+      "title": "Corporate Chains Powering Global Money Transfers C2A V1 140 7 2026",
+      "summary": "Approved GPIR research dashboard covering Global Corporate.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Use Cases-Global   Flows",
+        "Corporate Flows"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -52,10 +137,61 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000097-6",
+      "route": "/gcc-regulatory-license-aml-landscape-09-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/gcc-regulatory-license-aml-landscape-09-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "GCC Regulatory License & AML landscape 09 07 2026",
+      "summary": "Approved GPIR research dashboard covering Landsacpe.",
+      "categoryPath": [
+        "Global Risk &   Regulation Risk & Licensing",
+        "Regulatory",
+        "Global Regulatory   Landscape"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000034-9",
       "route": "/global-and-cross-border-payments-market-intelligence-report/",
       "canonicalUrl": "https://fintechoisis.com/global-and-cross-border-payments-market-intelligence-report/",
       "publicationType": "Research Publication",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000089-3",
+      "route": "/global-b2b-cross-border-money-movement-dashboard-10-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-b2b-cross-border-money-movement-dashboard-10-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global B2B Cross -Border Money Movement Dashboard 10 07 2026",
+      "summary": "Approved GPIR research dashboard covering B2B.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Global B2B Payments   (SME & Trade )",
+        "B2B"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000096-8",
+      "route": "/global-c2c-cross-border-remittances-iban-va-wallet-v2/",
+      "canonicalUrl": "https://fintechoisis.com/global-c2c-cross-border-remittances-iban-va-wallet-v2/",
+      "publicationType": "Research Publication",
+      "title": "Global C2C Cross Border Remittances -IBAN VA & Wallet V2",
+      "summary": "Approved GPIR research dashboard covering IBAN vs Wallet.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Use Cases-Global   Flows",
+        "Global"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -68,6 +204,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000090-1",
+      "route": "/global-cross-border-c2c-wallet-remittance-v3-09-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-c2c-wallet-remittance-v3-09-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global Cross Border (C2C) Wallet Remittance V3 09 07 2026",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Paymnet Flows",
+        "Digital wallets &   Interoperable"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000006-7",
       "route": "/global-cross-border-corridor-factbook-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/global-cross-border-corridor-factbook-gpir-research-fintechoisis/",
@@ -76,10 +229,78 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000086-9",
+      "route": "/global-cross-border-money-movement-frauds-scams-intelligence-dashboard-v12-14-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-money-movement-frauds-scams-intelligence-dashboard-v12-14-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global Cross-Border Money Movement Frauds & Scams Intelligence Dashboard-V12 14 07 2026",
+      "summary": "Approved GPIR research dashboard covering Global alerts.",
+      "categoryPath": [
+        "Paymenst Intelligence   Library",
+        "Frauds Update &   Alerts",
+        "Global Paymenst Fraud   Intelligence"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000087-7",
+      "route": "/global-cross-border-payments-overview-vs-diaspora-fy25-08-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-payments-overview-vs-diaspora-fy25-08-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global Peer-to-Peer (C2C) Remittances Overview, FY2025",
+      "summary": "Approved GPIR research dashboard covering Diapsora.",
+      "categoryPath": [
+        "Strategic   Intelligence",
+        "Diaspora",
+        "Global"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000091-9",
+      "route": "/global-cross-border-rtp-corrdiors-dashboard-10-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-cross-border-rtp-corrdiors-dashboard-10-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global Cross-Border RTP Corrdiors Dashboard 10 07 2026",
+      "summary": "Approved GPIR research dashboard covering RTP.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Use Cases-Global   Flows",
+        "Domestic"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000007-5",
       "route": "/global-education-payments-industry-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/global-education-payments-industry-gpir-research-fintechoisis/",
       "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000083-6",
+      "route": "/global-g2g-cross-border-money-movement-fiat-only-v3-14-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-g2g-cross-border-money-movement-fiat-only-v3-14-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global G2G Cross Border Money Movement (Fiat Only ) V3 14 07 2026",
+      "summary": "Approved GPIR research dashboard covering G2G.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Use Cases-Global   Flows",
+        "Inter-Govt"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -124,6 +345,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000080-2",
+      "route": "/global-market-place-payments-cross-border-landscape-p2p-focus-v2-14-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-market-place-payments-cross-border-landscape-p2p-focus-v2-14-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global Market Place Payments -Cross Border Landscape (P2P Focus ) V2 14 07 2026",
+      "summary": "Approved GPIR research dashboard covering Market Place.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Use Cases-Global   Flows",
+        "Market Place"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000014-1",
       "route": "/global-marketplace-e-commerce-seller-payouts-industry-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/global-marketplace-e-commerce-seller-payouts-industry-gpir-research-fintechoisis/",
@@ -164,6 +402,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000085-1",
+      "route": "/global-stable-coin-on-ram-off-ramp-dashboard-cy2025-vs-cy-2026-ytd-09-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/global-stable-coin-on-ram-off-ramp-dashboard-cy2025-vs-cy-2026-ytd-09-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Global stable Coin On -Ram & Off Ramp Dashboard (CY2025 vs CY 2026 YTD) 09 07 2026",
+      "summary": "Approved GPIR research dashboard covering Stable Coins.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Digital Currency",
+        "Global Stable Coins"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000021-6",
       "route": "/global-trade-payments-industry-b2b-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/global-trade-payments-industry-b2b-gpir-research-fintechoisis/",
@@ -196,6 +451,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000081-0",
+      "route": "/indonesia-peer-to-peer-c2c-remittances-overview-fy2025/",
+      "canonicalUrl": "https://fintechoisis.com/indonesia-peer-to-peer-c2c-remittances-overview-fy2025/",
+      "publicationType": "Research Publication",
+      "title": "Indonesia Peer to Peer C2C remittances Overview FY2025",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000012-5",
       "route": "/industry-future-state-2025-2040-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/industry-future-state-2025-2040-gpir-research-fintechoisis/",
@@ -220,6 +492,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000082-8",
+      "route": "/lebanon-diaspora-remittance-intelligent-dashboard-v4-14-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/lebanon-diaspora-remittance-intelligent-dashboard-v4-14-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Lebanon Diaspora & Remittance Intelligent Dashboard-V4 14 07 2026",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Middle east",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000031-5",
       "route": "/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/middle-east-gcc-country-directory-gpir-regional-intelligence-fintechoisis/",
@@ -228,10 +517,44 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000084-4",
+      "route": "/phillipines-peer-to-peer-c2c-remittances-overview-fy2025-ver1/",
+      "canonicalUrl": "https://fintechoisis.com/phillipines-peer-to-peer-c2c-remittances-overview-fy2025-ver1/",
+      "publicationType": "Research Publication",
+      "title": "Phillipines Peer to Peer C2C remittances Overview FY2025 ver1",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000002-6",
       "route": "/singapore-gpir-country-intelligence-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/singapore-gpir-country-intelligence-fintechoisis/",
       "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000078-6",
+      "route": "/stable-coin-global-chain-09-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/stable-coin-global-chain-09-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Stable Coin Global Chain 09 07 2026",
+      "summary": "Approved GPIR research dashboard covering Stable Coins.",
+      "categoryPath": [
+        "Paymenst Intelligence   Library",
+        "Payment &   acceptance",
+        "Stable Coin adoption"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -252,6 +575,23 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000077-8",
+      "route": "/stay-safe-send-safe-protect-your-money-v1-14-07-2027/",
+      "canonicalUrl": "https://fintechoisis.com/stay-safe-send-safe-protect-your-money-v1-14-07-2027/",
+      "publicationType": "Research Publication",
+      "title": "Stay, SAFE, SEND SAFE -Protect your money-V1 14 07 2027",
+      "summary": "Approved GPIR research dashboard covering Global alerts.",
+      "categoryPath": [
+        "Global Risk &   Regulation Risk & Licensing",
+        "Risk",
+        "Global Paymenst Fraud   Intelligence"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000019-0",
       "route": "/strategic-opportunities-industry-scorecards-action-frameworks-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/strategic-opportunities-industry-scorecards-action-frameworks-gpir-research-fintechoisis/",
@@ -260,10 +600,78 @@
       "controlledValidation": false
     },
     {
+      "identity": "VK-GPIR-P-000000000104-0",
+      "route": "/thailand-cpayment-ecosystem-competition-v2-10-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/thailand-cpayment-ecosystem-competition-v2-10-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Thailand CPayment Ecosystem & Competition V2 10 07 2026",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Paymenst Intelligence   Library",
+        "Competitions   Dashboards",
+        "APAC"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000076-0",
+      "route": "/thailand-cross-border-money-movement-ver1-10-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/thailand-cross-border-money-movement-ver1-10-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "Thailand Cross-Border Money Movement Ver1 10 07 2026",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
       "identity": "VK-GPIR-P-000000000020-8",
       "route": "/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/top-global-cross-border-payments-companies-industry-participants-gpir-research-fintechoisis/",
       "publicationType": "Research Chapter",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000079-4",
+      "route": "/uae-p2p-outwards-flows-and-the-fy24-25-trend-captured-08-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/uae-p2p-outwards-flows-and-the-fy24-25-trend-captured-08-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "UAE P2P Outwards Flows and the FY24-25 trend captured 08 07 2026",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Middle east",
+        "Outwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000074-5",
+      "route": "/uae-p2p-remittances-overview-with-digital-asset-in-out-08-07-2026/",
+      "canonicalUrl": "https://fintechoisis.com/uae-p2p-remittances-overview-with-digital-asset-in-out-08-07-2026/",
+      "publicationType": "Research Publication",
+      "title": "UAE P2P Remittances Overview with Digital asset ( in -Out ) 08 07 2026",
+      "summary": "Approved GPIR research dashboard covering Stable Coins.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Payment &   acceptance",
+        "Stable Coin adoption"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     },
@@ -280,6 +688,328 @@
       "route": "/united-kingdom-gpir-country-intelligence-fintechoisis/",
       "canonicalUrl": "https://fintechoisis.com/united-kingdom-gpir-country-intelligence-fintechoisis/",
       "publicationType": "Country Intelligence",
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000073-7",
+      "route": "/vk-gpi-apac-ind-2026-005-v1/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-apac-ind-2026-005-v1/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-APAC-IND-2026-005-v1",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000103-2",
+      "route": "/vk-gpi-apac-tls-2026-007/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-apac-tls-2026-007/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-APAC-TLS-2026-007",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000102-4",
+      "route": "/vk-gpi-chn-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-chn-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-CHN-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000075-2",
+      "route": "/vk-gpi-glb-2026-001-v1/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-glb-2026-001-v1/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-GLB-2026-001 V1",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "SEPA/Europe",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000062-0",
+      "route": "/vk-gpi-glb-bnk-2026-001-global-banking-structure-cross-border-p2p-highres/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-glb-bnk-2026-001-global-banking-structure-cross-border-p2p-highres/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-GLB-BNK-2026-001_Global_Banking_Structure_Cross_Border_P2P_HighRes",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Ecosystem",
+        "Global Corrospent   Banking",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000069-5",
+      "route": "/vk-gpi-mea-ksa-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-mea-ksa-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-MEA-KSA--2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Middle east",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000067-9",
+      "route": "/vk-gpi-mea-qat-2026-004/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-mea-qat-2026-004/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-MEA-QAT-2026-004",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Middle east",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000072-9",
+      "route": "/vk-gpi-mea-uae-2026-002/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpi-mea-uae-2026-002/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPI-MEA-UAE-2026-002",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "Middle east",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000066-1",
+      "route": "/vk-gpir-bloom-stbl-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-bloom-stbl-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-BLOOM-STBL-2026-001",
+      "summary": "Approved GPIR research dashboard covering BLOOM.",
+      "categoryPath": [
+        "Money Movement   Ecosystem",
+        "Digital Finance",
+        "Stable Coin &   CBDC"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000070-3",
+      "route": "/vk-gpir-hkg-inb-c2c-2026-002/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-hkg-inb-c2c-2026-002/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-HKG-INB-C2C-2026-002",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000101-6",
+      "route": "/vk-gpir-intl-apac-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-intl-apac-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-Intl-APAC-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000071-1",
+      "route": "/vk-gpir-jpn-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-jpn-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-JPN-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000100-8",
+      "route": "/vk-gpir-kor-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-kor-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-KOR-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000063-8",
+      "route": "/vk-gpir-mac-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-mac-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-MAC-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000068-7",
+      "route": "/vk-gpir-mng-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-mng-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-MNG-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000065-3",
+      "route": "/vk-gpir-prk-inb-c2c-rmi-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-prk-inb-c2c-rmi-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-PRK-INB-C2C-RMI-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000099-2",
+      "route": "/vk-gpir-stbl-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-stbl-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-STBL-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Ecosystem",
+        "Stable Coin &   CBDC"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000098-4",
+      "route": "/vk-gpir-stbl-nonc2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-stbl-nonc2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-STBL-NONC2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering B2B +B2C+C2B.",
+      "categoryPath": [
+        "Money Movement   Ecosystem",
+        "Stable Coin &   CBDC",
+        "Trade"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
+      "authAuthority": "supabase",
+      "controlledValidation": false
+    },
+    {
+      "identity": "VK-GPIR-P-000000000064-6",
+      "route": "/vk-gpir-twn-inb-c2c-2026-001/",
+      "canonicalUrl": "https://fintechoisis.com/vk-gpir-twn-inb-c2c-2026-001/",
+      "publicationType": "Research Publication",
+      "title": "VK-GPIR-TWN-INB-C2C-2026-001",
+      "summary": "Approved GPIR research dashboard covering C2C.",
+      "categoryPath": [
+        "Money Movement   Markets",
+        "APAC",
+        "Inwards -C2C"
+      ],
+      "accessClass": "ENTITLED",
+      "previewPercent": 10,
       "authAuthority": "supabase",
       "controlledValidation": false
     }
