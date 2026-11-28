@@ -35,10 +35,23 @@ async function refreshDriveAccessToken(): Promise<string> {
     refresh_token: value('GPIR_DRIVE_REFRESH_TOKEN'),
   })
   for (let attempt = 0; attempt < 3; attempt++) {
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(20000),
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    })
+    let response: Response
+    try {
+      response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(20000),
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      })
+    } catch (error: unknown) {
+      // A transport/timeout rejection has no Google HTTP status or OAuth error.
+      // Surface only the error class; never print the URL, request, cause or secrets.
+      const name = error instanceof Error ? error.name : ''
+      const reason = name === 'TimeoutError' || name === 'AbortError' ? 'TIMEOUT' : 'TRANSPORT'
+      if (attempt < 2) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
+        continue
+      }
+      throw new Error('DRIVE_OAUTH_' + reason + '_RETRY_EXHAUSTED')
+    }
     // Parse privately; never print Google's raw response or token fields.
     const result: any = await response.json().catch(() => null)
     if (response.ok) {
@@ -293,7 +306,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
