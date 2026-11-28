@@ -356,6 +356,22 @@ test('approved Payload dashboard media resolves by verified ID only after entitl
     });
     return Response.json({ id: mediaId, sourceSha256: hash, sourceUrl: bcpSrc, alt: 'Bespoke approved dashboard' });
   } })(edgeRequest());
+  // Two previously approved publications use a Contentful asset identity,
+  // not the Payload UUID, so their metadata requires an exact indexed lookup.
+  const contentfulId = '1QWh5s8fkW18vLB5m2ZgyR';
+  const indexed = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    if (url.includes('/api/release/editorial-entries')) return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: contentfulId } } })]
+    });
+    assert.ok(url.includes('/api/media?'), 'use existing indexed Payload media lookup');
+    assert.ok(url.includes('contentfulAssetId'), 'search exact original media identity');
+    return Response.json({ docs: [{ id: mediaId, contentfulAssetId: contentfulId,
+      sourceSha256: hash, sourceUrl: bcpSrc, alt: 'Approved BCP image' }] });
+  } })(edgeRequest());
+  assert.equal(indexed.status, 200);
+  assert.equal((await indexed.json()).publication.primaryDashboard.src, 'https:' + bcpSrc);
   assert.equal(bcp.status, 200);
   assert.equal((await bcp.json()).publication.primaryDashboard.src, 'https:' + bcpSrc);
   for (const badSrc of ['https://drive.google.com/file/d/secret',
