@@ -56,6 +56,28 @@ function fxCurrentSnapshotUrl(){
     return fxDataPrefix() + "current.json?v=" + Date.now();
 }
 
+function fxLiveSnapshotUrl(){
+    try{
+        const origin = new URL(window.GPIR_SUPABASE_PUBLIC_CONFIG && window.GPIR_SUPABASE_PUBLIC_CONFIG.url);
+        if(origin.protocol !== "https:" || !/^[a-z0-9]{20}\.supabase\.co$/.test(origin.hostname)) return null;
+        return origin.origin + "/functions/v1/gpir-fx-snapshot";
+    } catch(e){
+        return null;
+    }
+}
+
+function mergeLiveFxSnapshot(published, live){
+    if(!published || !live || live.status !== "OK" || !Array.isArray(live.pairs) || !live.pairs.length) return published;
+    return Object.assign({}, published, live, {
+        // Curated display configuration stays in the reviewed static edition;
+        // rates and analytics come from the validated Supabase projection.
+        featuredPairs: published.featuredPairs,
+        marketRegions: published.marketRegions,
+        targetRegionalCurrencies: published.targetRegionalCurrencies,
+        staleAfterMinutesByProviderType: published.staleAfterMinutesByProviderType || live.staleAfterMinutesByProviderType
+    });
+}
+
 function fxPairSlug(pair){
     return pair.toLowerCase().replace("/", "-");
 }
@@ -137,6 +159,22 @@ async function loadRates(){
 
     if(!track) return;
 
+    // Start the validated projection beside the static request so the public
+    // card does not add one network round trip. The reviewed static edition is
+    // still rendered first and remains the display/configuration authority.
+    const liveUrl = fxLiveSnapshotUrl();
+    const liveOptions = { cache: "no-store", headers: { accept: "application/json" } };
+    if(window.AbortSignal && typeof window.AbortSignal.timeout === "function")
+        liveOptions.signal = window.AbortSignal.timeout(8000);
+    const liveRequest = liveUrl
+        ? fetch(liveUrl, liveOptions)
+            .then(async response => {
+                if(!response.ok) throw new Error("FX live snapshot fetch failed: HTTP " + response.status);
+                return { live: await response.json() };
+            })
+            .catch(error => ({ error: error }))
+        : Promise.resolve({ live: null });
+
     try{
 
         const response = await fetch(fxCurrentSnapshotUrl(), { cache: "no-store" });
@@ -147,6 +185,22 @@ async function loadRates(){
         fxRefreshFailed = false;
 
         renderTicker();
+
+        // Static last-known-good renders first. The existing card is then
+        // enriched in place from a ten-minute cached, validated Supabase view.
+        if(liveUrl){
+            try{
+                const { live, error } = await liveRequest;
+                if(error) throw error;
+                fxSnapshotCache = mergeLiveFxSnapshot(fxSnapshotCache, live);
+                fxRefreshFailed = false;
+                renderTicker();
+            } catch(liveError){
+                console.error(liveError);
+                fxRefreshFailed = true;
+                renderTicker();
+            }
+        }
 
     } catch(err){
 

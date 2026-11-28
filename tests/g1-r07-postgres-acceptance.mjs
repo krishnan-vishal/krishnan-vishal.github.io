@@ -10,6 +10,8 @@ run(base);
 file('supabase/migrations/20261101000000_g1_r07_event_consolidation.sql');
 file('supabase/migrations/20261108140000_m39_t3_editorial_publication.sql');
 file('supabase/migrations/20261109020000_m39_t3_automatic_publication.sql');
+file('supabase/migrations/20261128120000_m44_fx_snapshot_projection.sql');
+file('supabase/migrations/20261128121000_m44_fx_projection_pair_coverage.sql');
 const ids=['00000000-0000-4000-8000-000000000101','00000000-0000-4000-8000-000000000102','00000000-0000-4000-8000-000000000103','00000000-0000-4000-8000-000000000104'];
 run(`insert into source_registry(source_id,source_name,official_url,trust_tier,source_status) values
 ('A','Source A','https://a.example','T1','GREEN'),
@@ -103,4 +105,19 @@ assert.equal(run("select ticker_eligible||':'||publication_status||':'||(publish
 assert.equal(run("select candidate_status||':'||ticker_eligible from intelligence_candidates where id='00000000-0000-4000-8000-000000000206'").trim(),'APPROVED:false');
 const autoRoles=run("select has_function_privilege('anon','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')||':'||has_function_privilege('authenticated','public.gpir_publish_t3_automatic_candidate(uuid,text,timestamptz,text,jsonb,text,text,text,text,date,text,text[],text)','execute')").trim();
 assert.equal(autoRoles,'false:false','automatic T3 publication must not be executable by anon or authenticated');
-console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 publishes only via the verified editorial route or the verified automatic profile');
+// M44: the public FX response can read only the bounded service-role projection.
+run(`insert into fx_historical_archive(base_currency,target_currency,observation_date,rate,region,source,rate_method,timestamp) values
+('USD','INR',current_date-interval '2 days',91,'SOUTH ASIA / APAC','fixture','provider-native',now()-interval '2 days'),
+('USD','INR',current_date-interval '3 days',90,'SOUTH ASIA / APAC','fixture','provider-native',now()-interval '3 days'),
+('USD','INR',current_date+interval '1 day',999,'SOUTH ASIA / APAC','fixture','provider-native',now()),
+('USD','INR',current_date-interval '1 day',92,'SOUTH ASIA / APAC','fixture','derived-cross',now()-interval '26 hours'),
+('USD','INR',current_date-interval '1 day',93,'SOUTH ASIA / APAC','fixture','derived-cross',now()-interval '25 hours'),
+('EUR','JPY',current_date-interval '1 day',165,'EUROPE / APAC','fixture','derived-cross',now()-interval '1 day'),
+('USD','INR',current_date-interval '100 days',80,'SOUTH ASIA / APAC','fixture','provider-native',now()-interval '100 days');`);
+assert.equal(Number(run('select count(*) from public.gpir_m44_fx_snapshot_v1(30)')),3,
+  'M44 projection keeps at most two distinct valid observation dates per pair and excludes future dates');
+assert.equal(run("select rate from public.gpir_m44_fx_snapshot_v1(30) where base_currency='USD' and target_currency='INR' order by observation_date desc limit 1").trim(),'93',
+  'M44 projection uses the latest capture for a duplicate observation day');
+const fxRoles=run("select has_function_privilege('anon','public.gpir_m44_fx_snapshot_v1(integer)','execute')||':'||has_function_privilege('authenticated','public.gpir_m44_fx_snapshot_v1(integer)','execute')||':'||has_function_privilege('service_role','public.gpir_m44_fx_snapshot_v1(integer)','execute')").trim();
+assert.equal(fxRoles,'false:false:true','M44 FX projection must remain service-role only');
+console.log('G1-R07 PostgreSQL acceptance PASS: concurrent publication, 1 card, 2 sources, T3/ambiguous/duplicate rejected, atomic rollback; T3 verified routes and M44 service-only FX projection accepted');

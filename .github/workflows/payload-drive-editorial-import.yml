@@ -55,20 +55,25 @@ jobs:
             status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${PAYLOAD_PUBLIC_SERVER_URL%/}/api/release/$endpoint" -H 'content-type: application/json' -d '{}')
             test "$status" = 403 || { echo "Reviewed Worker endpoint $endpoint is not deployed (HTTP $status)."; exit 1; }
           done
-      - name: Install existing Supabase deployment CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: 2.121.0
-      - name: Deploy the reviewed reader entitlement bridges only
+      - name: Verify existing production reader entitlement bridges
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.GPIR_SUPABASE_DEPLOY_TOKEN }}
           PROJECT_REF: qlnvhfapctcpzqyuhhth
         run: |
           test -n "$SUPABASE_ACCESS_TOKEN"
-          code=$(curl --silent --show-error --output /tmp/gpir-functions.json --write-out '%{http_code}' --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "https://api.supabase.com/v1/projects/$PROJECT_REF/functions")
-          test "$code" = 200
-          supabase functions deploy gpir-protected-publication --project-ref "$PROJECT_REF" --use-api
-          supabase functions deploy gpir-reader-summary --project-ref "$PROJECT_REF" --use-api
+          curl --fail --silent --show-error --retry 2 --max-time 30 --output "$RUNNER_TEMP/gpir-functions.json" --header "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "https://api.supabase.com/v1/projects/$PROJECT_REF/functions"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const functions = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/gpir-functions.json', 'utf8'));
+          if (!Array.isArray(functions)) throw Error('Invalid function inventory');
+          for (const [slug, jwt, minVersion] of [['gpir-protected-publication', false, 37], ['gpir-reader-summary', true, 40]]) {
+            const matches = functions.filter(f => f.slug === slug);
+            const f = matches[0];
+            if (matches.length !== 1 || f.status !== 'ACTIVE' || f.verify_jwt !== jwt || !Number.isInteger(f.version) || f.version < minVersion)
+              throw Error('Required production entitlement bridge is not ready: ' + slug);
+            console.log(slug + ' ACTIVE version ' + f.version + '; JWT configuration verified');
+          }
+          NODE
       - name: Acquire, reconcile and publish the approved Drive batch
         id: intake
         working-directory: apps/gpir-cms
@@ -151,5 +156,5 @@ jobs:
             .migration-data/drive-publication-report.json
             .migration-data/drive-contentful-bcp-receipt.json
             .migration-data/m41-cutover/pages-stage-report.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 90

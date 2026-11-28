@@ -35,3 +35,24 @@ Owner directive. GPIR dashboard headers must render the approved FINTECHOISIS ma
 ## 2026-11-22 — Homepage and Trusted Source Network release candidate
 
 PR #672 implementation checks confirm the direct country profiles rank first for CBUAE, RBI and the Monetary Authority of Singapore, while the existing publication and directory access contracts pass targeted tests. Governed production deployment and authenticated live directory acceptance remain pending.
+
+## PA-008 — M44 deterministic intelligence orchestration release candidate — 2026-11-28
+
+`PA-008 | 2026-11-28 | M44 owner objective | Existing ten-minute publisher is wrapped by pinned LangGraph OSS deterministic stages; the public relay is bounded to the preceding 12 hours; existing FX archive projects a cached read-only snapshot without an LLM, new database or scheduler | tests/m44-phase1-agentic-intelligence.test.mjs; docs/M44-AGENTIC-INTELLIGENCE.md; branch codex/m44-agentic-intelligence | IMPLEMENTED (UNDEPLOYED) | PA-001 and PA-007; 95% threshold; source evidence; permanent history; Payload/Contentful/release/auth/payment controls | six focused M44 tests plus existing validators | supabase/rollback/m44-agentic-intelligence.rollback.sql, preceding Edge revisions and reviewed Pages revert | none`
+
+This entry protects only the tested release-candidate boundary. It does not claim
+deployment, live responsiveness, a completed alert lifecycle, country population,
+ASK citations or verified production expenditure.
+
+**PA-008 CI checkpoint | 2026-11-28:** Draft PR #728 exact head
+`ac9db639fa566ee9ff937d69ccfe92d569457c05` passed all seven triggered workflows,
+including PostgreSQL acceptance and Security and Integrity. Evidence advances to
+`CI_PASS (UNDEPLOYED)`. The production exclusions above remain in force.
+
+**PA-008 production checkpoint | 2026-11-28:** Owner-approved PR #728
+merged as `252aa000ecb240bbc06c1dcd9e0959a210b33923`. Pages run
+46087144400 passed, and production publisher receipt 10698 returned HTTP 200
+with LangGraph OSS 1.7.5 and all seven recorded stages in deterministic mode.
+This verifies production graph execution. Complete live FX pair coverage,
+a post-release relay-to-history observation, and billing reconciliation
+remain pending. See [the production receipt](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).

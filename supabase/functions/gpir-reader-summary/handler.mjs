@@ -369,6 +369,11 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env,
   serviceHeaders.set('apikey', config.GPIR_SUPABASE_SECRET_KEY);
   serviceHeaders.set('authorization', `Bearer ${config.GPIR_SUPABASE_SECRET_KEY}`);
   const currentTime = now();
+  // The latest GPIR capture is independent of the external historical source.
+  // Start it immediately so a cold Frankfurter request does not add another
+  // sequential network round trip to the Smart Card response.
+  const capturePromise = latestGpirCapture(fetchImpl, config, pair, serviceHeaders)
+    .catch(() => null);
   let history;
   let primarySourceFailed = false;
   try {
@@ -393,7 +398,7 @@ async function authorizedFxResponse({ fetchImpl, config, origin, env,
     return response(404, { status: 'UNAVAILABLE', code: history?.status || 'NO_HISTORICAL_OBSERVATIONS',
       pair: history?.pair || `${pair.base}/${pair.quote}`, source: history?.source || null }, origin, env);
 
-  const gpirCapture = await latestGpirCapture(fetchImpl, config, pair, serviceHeaders);
+  const gpirCapture = await capturePromise;
   return response(200, { status: 'OK', history, gpirCapture,
     gpirCaptureStatus: gpirCapture ? 'AVAILABLE' : 'UNAVAILABLE',
     archiveNotice: history.sourceKind === 'SUPPLEMENTARY_REFERENCE'

@@ -654,8 +654,13 @@ class GpirFxCard extends HTMLElementBase {
     const amount = Number.isFinite(enteredAmount) && enteredAmount >= 0 ? enteredAmount : 1000;
     this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><p class="fxi-loading" role="status">Verifying reader access and loading ${pair.base}/${pair.quote} reference observations…</p>`;
     try {
-      const { history, capture, captureStatus } = await loadHistory(globalThis, pair);
-      const editorialRecords = await loadPublishedFxEditorial();
+      // Editorial research is an independent enrichment. Loading it alongside
+      // the protected history removes a sequential request from the card's
+      // critical path without changing either data contract.
+      const [{ history, capture, captureStatus }, editorialRecords] = await Promise.all([
+        loadHistory(globalThis, pair),
+        loadPublishedFxEditorial()
+      ]);
       if (sequence !== this.requestNumber || !this.isConnected) return;
       this.cardHistory = history;
       this.shadowRoot.innerHTML = `<link rel="stylesheet" href="/assets/css/fx-intelligence.css?v=20261119b"><main class="fxi-card-content" data-card-root data-latest-rate="${escapeHtml(history.points.at(-1)?.rate)}">${buildCardMarkup(history, capture, captureStatus, period, amount, editorialRecords)}</main>`;

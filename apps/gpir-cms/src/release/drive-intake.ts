@@ -43,6 +43,7 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
     if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
     return { chapter, status: 'REUSED' as const }
   }
+  if (review.menuPath.length === 2) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
   try {
     const chapter = await req.payload.create({ ...context, collection: 'chapters', data: {
       canonicalId: review.chapterSlug,
@@ -142,7 +143,7 @@ export const driveIntakeEndpoint: Endpoint = {
           !slugPattern.test(review.routeSlug) || !slugPattern.test(review.chapterSlug) ||
           !hashPattern.test(review.reconciliationHash) || !/^[\w-]{10,}$/.test(review.sourceFileId) ||
           typeof review.sourceFileName !== 'string' || !review.sourceFileName.trim() ||
-          !Array.isArray(review.menuPath) || review.menuPath.length !== 3 ||
+          !Array.isArray(review.menuPath) || ![2, 3].includes(review.menuPath.length) ||
           review.menuPath.some(item => typeof item !== 'string' || !item.trim())) return reply({ error: 'INTAKE_REVIEW_INVALID' }, 400)
       const bytes = Buffer.from(await file.arrayBuffer())
       const hash = createHash('sha256').update(bytes).digest('hex')

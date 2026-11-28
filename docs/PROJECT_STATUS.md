@@ -1,5 +1,24 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 deployed with FX coverage correction in review
+
+PR #728 and its Pages release succeeded. All four Edge Functions and the first
+FX projection migration are active. LangGraph OSS execution was verified by
+production receipt 10698. The FX response truncation correction is on
+`codex/m44-production-fx-coverage`. Live pair coverage, new alert lifecycle
+evidence, growth beyond the baselines, and billing still require acceptance.
+See the [production checkpoint](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).
+
+## 2026-11-28 — M44 Phase 1 release candidate; production evidence pending
+
+- Isolated branch `codex/m44-agentic-intelligence` starts from `origin/main` `b2b2a277` and leaves the dirty primary checkout, M43 archival, Central Command and coding automation untouched.
+- The existing public-intelligence function now has a bounded preceding-12-hour relay path; the ten-minute publisher keeps its 95% and evidence gates and is wrapped by deterministic LangGraph OSS stages without LLM/model calls, hosted LangGraph, a checkpointer, another database or another scheduler.
+- The existing FX archive gains a service-role-only daily projection and ten-minute cached public snapshot. Existing FX and Smart Intelligence cards are enriched in place, retain their reviewed static last-known-good artifact and load independent data concurrently.
+- Live pre-change evidence found a healthy but empty relay at 2,553 ms, 6,652 historical intelligence records, an existing FX archive of 16,846 rows across 134 pairs through 2026-11-27 and a public FX artifact last generated on 2026-11-03. No live post-change result is claimed because this branch is not deployed.
+- Six M44 tests and applicable syntax/content/link/FX/announcement checks pass. Two broader test assertions and the unchanged announcement-intent fixtures retain their base-branch failures; all are recorded in the M44 report rather than weakened.
+- Draft PR #728 at exact head `ac9db639fa566ee9ff937d69ccfe92d569457c05` passed all seven triggered GitHub Actions workflows, including the PostgreSQL projection acceptance and Security and Integrity checks. CI success does not imply deployment or live acceptance.
+- Next gates are commit/push, PR CI, reviewed migration and Edge deployment, human-controlled Pages release, genuine alert lifecycle evidence, live FX accumulation/responsiveness, cited ASK/country acceptance and a zero-increment billing receipt. See [M44 governed report](M44-AGENTIC-INTELLIGENCE.md).
+
 ## 2026-11-27 — PR #724 governed Drive publication closure in progress
 
 - PR #724 branch `gpir/drive-publication-correction-20261127` now acquires the current 48-image folder and the two approved mapping files directly from their exact Drive folders. SHA-256 reconciliation admits 43 candidates, holds the incorrect Singapore and third-party KSA records, and excludes three unmatched images; the separate informative diaspora note remains eligible.
