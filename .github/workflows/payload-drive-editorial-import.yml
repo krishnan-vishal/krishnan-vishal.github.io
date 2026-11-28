@@ -10,6 +10,7 @@ permissions:
   contents: write
   pull-requests: read
   actions: read
+  id-token: write
 concurrency:
   group: gpir-contentful-bcp
   cancel-in-progress: false
@@ -74,15 +75,24 @@ jobs:
             console.log(slug + ' ACTIVE version ' + f.version + '; JWT configuration verified');
           }
           NODE
+      - name: Authenticate approved GPIR GitHub runner to Google Drive using keyless WIF
+        id: drive_auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GPIR_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GPIR_GCP_DRIVE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/drive.readonly
+          create_credentials_file: false
+          export_environment_variables: false
       - name: Acquire, reconcile and publish the approved Drive batch
         id: intake
         working-directory: apps/gpir-cms
         env:
           GPIR_DRIVE_INTAKE_FOLDER_ID: 11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i
           GPIR_DRIVE_MAPPING_FOLDER_ID: 1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq
-          GPIR_DRIVE_CLIENT_ID: ${{ secrets.GPIR_DRIVE_CLIENT_ID }}
-          GPIR_DRIVE_CLIENT_SECRET: ${{ secrets.GPIR_DRIVE_CLIENT_SECRET }}
-          GPIR_DRIVE_REFRESH_TOKEN: ${{ secrets.GPIR_DRIVE_REFRESH_TOKEN }}
+          GPIR_DRIVE_WIF_ACCESS_TOKEN: ${{ steps.drive_auth.outputs.access_token }}
+          GPIR_DRIVE_WIF_SERVICE_ACCOUNT: ${{ vars.GPIR_GCP_DRIVE_SERVICE_ACCOUNT }}
           CONTENTFUL_SPACE_ID: ${{ vars.CONTENTFUL_SPACE_ID || secrets.CONTENTFUL_SPACE_ID }}
           CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT || secrets.CONTENTFUL_ENVIRONMENT }}
           CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN }}
