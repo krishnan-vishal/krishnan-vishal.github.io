@@ -92,7 +92,7 @@ function payloadDashboard(value, mediaOrigin) {
   if (!value || value.role !== 'PRIMARY_PUBLICATION_DASHBOARD' ||
       typeof mediaOrigin !== 'string' || !/^https:\/\/[^/]+$/.test(mediaOrigin)) return null;
   let url;
-  try { url = new URL(value.src, 'https:'); } catch { return null; }
+  try { url = new URL(value.src, 'https://fintechoisis.com/'); } catch { return null; }
   if (!/^[a-f0-9]{64}$/i.test(value.sha256 || '') || url.search || url.hash) return null;
   const payloadMedia = url.origin === mediaOrigin &&
     /^\/api\/media\/file\/[a-f0-9]{64}\.(?:png|jpe?g|webp)$/i.test(url.pathname) &&
