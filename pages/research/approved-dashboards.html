@@ -7,6 +7,19 @@
 <link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css">
 <link rel="stylesheet" href="/assets/css/reader-auth.css">
 <style>
+/* Scope catalog typography: legacy global GPIR CSS has light-on-dark heading
+   rules that otherwise make this white research directory unreadable. */
+body:has(.gpir-catalog){background:#f3f6fa!important;color:#172c48!important}
+body .gpir-catalog,body .gpir-catalog h1,body .gpir-catalog h2,
+body .gpir-catalog .gpir-catalog-intro,body .gpir-catalog .gpir-catalog-status,
+body .gpir-catalog .gpir-catalog-grid p:not(.gpir-catalog-kicker){
+  color:#152d4a!important;opacity:1!important;visibility:visible!important;
+  text-shadow:none!important;filter:none!important
+}
+body .gpir-catalog .gpir-catalog-kicker{color:#7d5109!important;opacity:1!important}
+body .gpir-catalog .gpir-catalog-grid a{color:#005c98!important;opacity:1!important}
+body .gpir-catalog label{color:#152d4a!important}
+body .gpir-catalog-grid li{background:#fff!important;opacity:1!important}
 .gpir-catalog{max-width:1100px;margin:0 auto;padding:36px 20px 70px;color:#142c4a;font:inherit}
 .gpir-catalog h1{font-size:clamp(1.8rem,3.2vw,2.8rem);line-height:1.2;margin:12px 0}
 .gpir-catalog-intro{max-width:750px;line-height:1.6}
@@ -22,7 +35,7 @@
 .gpir-catalog-status{min-height:1.5em}
 </style></head>
 <body><header class="header"><div class="container header-container">
-<a href="/" aria-label="FINTECHOISIS GPIR homepage"><strong>FINTECHOISIS · GPIR</strong></a>
+<a href="/" aria-label="FINTECHOISIS GPIR homepage" style="display:flex;align-items:center;gap:12px;color:#112c4a;text-decoration:none"><img src="/assets/branding/logos/fo-mark.svg" alt="" width="42" height="42"><span><strong style="display:block">FINTECHOISIS</strong><small>Global Payments Intelligence Repository</small></span></a>
 <nav aria-label="GPIR navigation"><a href="/">Home</a> · <a href="/#repository">Repository</a> · <a href="/reader/my-gpir/#library">My GPIR Library</a></nav>
 <div data-gpir-reader-actions aria-label="Reader account"></div></div></header>
 <main class="gpir-catalog"><p class="gpir-catalog-kicker">GPIR Research Repository</p>

@@ -311,3 +311,80 @@ test('unconfirmed users cannot gain admin access from metadata alone', async () 
   });
   assert.equal(result.decision, 'DENY');
 });
+
+
+test('approved Payload dashboard media resolves by verified ID only after entitlement ALLOW', async () => {
+  const hash = 'a'.repeat(64);
+  const mediaId = '44444444-4444-4444-8444-444444444444';
+  const worker = 'https://cms.example';
+  const src = worker + '/api/media/file/' + hash + '.png';
+  const selected = { ...env, GPIR_EDITORIAL_SOURCE: 'payload',
+    PAYLOAD_PUBLIC_SERVER_URL: worker, PAYLOAD_RELEASE_API_KEY: 'fixture-api-key' };
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    calls.push(String(url));
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    assert.equal(init.headers.authorization, 'users API-Key fixture-api-key');
+    if (url === worker + '/api/release/editorial-entries') return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: mediaId } } })]
+    });
+    assert.equal(url, worker + '/api/media/' + mediaId + '?depth=0');
+    return Response.json({ id: mediaId, sourceSha256: hash, sourceUrl: src,
+      sourceFilename: 'approved-dashboard.png', alt: 'Approved intelligence dashboard',
+      width: 1200, height: 800 });
+  };
+  const result = await createProtectedPublicationHandler({ env: selected, fetchImpl })(edgeRequest());
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.publication.primaryDashboard.src, src);
+  assert.equal(body.publication.primaryDashboard.width, 1200);
+  assert.equal(calls.length, 4);
+  const denied = await createProtectedPublicationHandler({ env: selected,
+    fetchImpl: async url => {
+      assert.ok(!String(url).includes('/api/media/'), 'no media before entitlement ALLOW');
+      return String(url).includes('/auth/v1/user') ? Response.json({ id: userId }) :
+        Response.json([{ decision: 'DENY' }]);
+    } })(edgeRequest());
+  assert.equal(denied.status, 403);
+  const bcpSrc = '//images.ctfassets.net/zym0dk277ju5/1QWh5s8fkW18vLB5m2ZgyR/ad902f4cd0d04323a635c7d8235b0fed/approved.jpeg';
+  const bcp = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    if (url.includes('/api/release/editorial-entries')) return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: mediaId } } })]
+    });
+    return Response.json({ id: mediaId, sourceSha256: hash, sourceUrl: bcpSrc, alt: 'Bespoke approved dashboard' });
+  } })(edgeRequest());
+  // Two previously approved publications use a Contentful asset identity,
+  // not the Payload UUID, so their metadata requires an exact indexed lookup.
+  const contentfulId = '1QWh5s8fkW18vLB5m2ZgyR';
+  const indexed = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    if (url.includes('/api/release/editorial-entries')) return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: contentfulId } } })]
+    });
+    assert.ok(url.includes('/api/media?'), 'use existing indexed Payload media lookup');
+    assert.ok(url.includes('contentfulAssetId'), 'search exact original media identity');
+    return Response.json({ docs: [{ id: mediaId, contentfulAssetId: contentfulId,
+      sourceSha256: hash, sourceUrl: bcpSrc, alt: 'Approved BCP image' }] });
+  } })(edgeRequest());
+  assert.equal(indexed.status, 200);
+  assert.equal((await indexed.json()).publication.primaryDashboard.src, 'https:' + bcpSrc);
+  assert.equal(bcp.status, 200);
+  assert.equal((await bcp.json()).publication.primaryDashboard.src, 'https:' + bcpSrc);
+  for (const badSrc of ['https://drive.google.com/file/d/secret',
+    worker + '/api/media/file/' + 'b'.repeat(64) + '.png']) {
+    const bad = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+      if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+      if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+      if (url.includes('/api/release/editorial-entries')) return Response.json({
+        items: [contentfulEntry({ dashboardAsset: { sys: { id: mediaId } } })]
+      });
+      return Response.json({ id: mediaId, sourceSha256: hash, sourceUrl: badSrc, alt: 'Dashboard' });
+    } })(edgeRequest());
+    assert.equal(bad.status, 503);
+    assert.equal((await bad.json()).reason, 'MEDIA_INTEGRITY_ERROR');
+  }
+});

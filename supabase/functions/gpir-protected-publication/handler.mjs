@@ -86,7 +86,35 @@ function resolvedDashboard(fields, collection) {
     height: Number.isInteger(file.details?.image?.height) ? file.details.image.height : null });
 }
 
-function normalizedPayload(entry, publicationId, supabaseRecordId, collection = null) {
+// Payload has already resolved its approved native media record. Never accept
+// Google Drive links, arbitrary remote hosts, or an unverified editor URL.
+function payloadDashboard(value, mediaOrigin) {
+  if (!value || value.role !== 'PRIMARY_PUBLICATION_DASHBOARD' ||
+      typeof mediaOrigin !== 'string' || !/^https:\/\/[^/]+$/.test(mediaOrigin)) return null;
+  let url;
+  try { url = new URL(value.src, 'https://fintechoisis.com/'); } catch { return null; }
+  if (!/^[a-f0-9]{64}$/i.test(value.sha256 || '') || url.search || url.hash) return null;
+  const payloadMedia = url.origin === mediaOrigin &&
+    /^\/api\/media\/file\/[a-f0-9]{64}\.(?:png|jpe?g|webp)$/i.test(url.pathname) &&
+    url.pathname.split('/').pop().toLowerCase().startsWith(value.sha256.toLowerCase() + '.');
+  // Two previously approved images have immutable Contentful asset references.
+  // Allow only GPIR's existing Contentful delivery space, never arbitrary CDN
+  // domains, editor-upload URLs, redirects, or Google Drive.
+  const contentfulMedia = url.origin === 'https://images.ctfassets.net' &&
+    /^\/zym0dk277ju5\/[A-Za-z0-9]{10,}\/[a-f0-9]{32}\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp)$/i.test(url.pathname);
+  if (!payloadMedia && !contentfulMedia) return null;
+  const alt = typeof value.alt === 'string' ? value.alt.trim().slice(0,280) : '';
+  if (!alt) return null;
+  return Object.freeze({
+    reference: typeof value.reference === 'string' ? value.reference.slice(0,200) : '',
+    role: 'PRIMARY_PUBLICATION_DASHBOARD', src: url.href,
+    highResolutionHref: url.href, alt,
+    width: Number.isSafeInteger(value.width) && value.width > 0 ? value.width : null,
+    height: Number.isSafeInteger(value.height) && value.height > 0 ? value.height : null
+  });
+}
+
+function normalizedPayload(entry, publicationId, supabaseRecordId, collection = null, mediaOrigin = null) {
   const fields = entry?.fields;
   if (!fields || scalar(fields.gpirPublicationId) !== publicationId ||
       scalar(fields.supabaseRecordId) !== supabaseRecordId) return null;
@@ -97,7 +125,7 @@ function normalizedPayload(entry, publicationId, supabaseRecordId, collection = 
     publicationType: scalar(fields.publicationType),
     summary: scalar(fields.executiveSummary),
     body: fields.editorialBody ?? null,
-    primaryDashboard: resolvedDashboard(fields, collection),
+    primaryDashboard: payloadDashboard(entry.presentation?.primaryDashboard, mediaOrigin) || resolvedDashboard(fields, collection),
     provenance: Object.freeze({
       validationSummary: scalar(fields.sourceValidationSummary),
       legacySourceUrl: scalar(fields.legacySourceUrl)
@@ -206,9 +234,61 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     catch { return providerError('CONTENT_PROVIDER_ERROR', origin); }
     if (!Array.isArray(collection?.items) || collection.items.length !== 1)
       return denied(403, collection?.items?.length > 1 ? 'DUPLICATE_PUBLICATION' : 'UNKNOWN_PUBLICATION', origin);
-    const publication = normalizedPayload(collection.items[0], input.publicationId,
-      input.supabaseRecordId, collection);
+    // The native editorial response deliberately keeps the media relationship
+    // as an ID. Resolve it from the existing authenticated Payload media REST
+    // endpoint *after* both identity and Supabase entitlement have been checked.
+    // Never load an image directly from Google Drive or accept an editor URL.
+    const entry = collection.items[0];
+    let resolvedEntry = entry;
+    if (config.GPIR_EDITORIAL_SOURCE === 'payload') {
+      const mediaId = entry.fields?.dashboardAsset?.sys?.id;
+      const nativeId = typeof mediaId === 'string' && UUID.test(mediaId);
+      const legacyId = typeof mediaId === 'string' &&
+        /^[A-Za-z0-9]{12,40}$/.test(mediaId) && !nativeId;
+      if (nativeId || legacyId) {
+        // Some approved legacy media records retain their existing Contentful
+        // asset ID as relationship identity; resolve that indexed media field.
+        const mediaUrl = nativeId
+          ? config.PAYLOAD_PUBLIC_SERVER_URL + '/api/media/' + mediaId + '?depth=0'
+          : config.PAYLOAD_PUBLIC_SERVER_URL + '/api/media?' + new URLSearchParams({
+              'where[contentfulAssetId][equals]': mediaId, limit: '2', depth: '0'
+            });
+        let mediaResponse;
+        try {
+          mediaResponse = await fetchImpl(mediaUrl, {
+            redirect: 'error',
+            headers: { authorization: 'users API-Key ' + config.PAYLOAD_RELEASE_API_KEY }
+          });
+        } catch { return providerError('MEDIA_PROVIDER_ERROR', origin); }
+        if (!mediaResponse.ok) return providerError('MEDIA_PROVIDER_ERROR', origin);
+        let body;
+        try { body = await mediaResponse.json(); }
+        catch { return providerError('MEDIA_PROVIDER_ERROR', origin); }
+        const media = nativeId ? body :
+          Array.isArray(body?.docs) && body.docs.length === 1 ? body.docs[0] : null;
+        if (!media || !UUID.test(media.id || '') ||
+            (nativeId ? media.id !== mediaId : media.contentfulAssetId !== mediaId) ||
+            !/^[a-f0-9]{64}$/i.test(media.sourceSha256 || '') ||
+            !media.sourceUrl || !media.alt) return providerError('MEDIA_INTEGRITY_ERROR', origin);
+        resolvedEntry = { ...entry, presentation: { primaryDashboard: {
+          role: 'PRIMARY_PUBLICATION_DASHBOARD',
+          reference: media.sourceFilename || media.filename || entry.fields.publicationTitle,
+          src: media.sourceUrl, highResolutionHref: media.sourceUrl,
+          alt: media.alt, sha256: media.sourceSha256,
+          width: media.width, height: media.height
+        } } };
+      }
+    }
+    const publication = normalizedPayload(resolvedEntry, input.publicationId,
+      input.supabaseRecordId, collection, config.GPIR_EDITORIAL_SOURCE === 'payload'
+        ? config.PAYLOAD_PUBLIC_SERVER_URL : null);
     if (!publication) return denied(403, 'CONTENT_IDENTITY_MISMATCH', origin);
+    if (config.GPIR_EDITORIAL_SOURCE === 'payload' &&
+        typeof entry.fields?.dashboardAsset?.sys?.id === 'string' &&
+        (UUID.test(entry.fields.dashboardAsset.sys.id) ||
+          /^[A-Za-z0-9]{12,40}$/.test(entry.fields.dashboardAsset.sys.id)) &&
+        !publication.primaryDashboard)
+      return providerError('MEDIA_INTEGRITY_ERROR', origin);
     const delivered = response(200, { status: 'ALLOW', publication }, origin);
     delivered.headers.set('x-gpir-editorial-source', config.GPIR_EDITORIAL_SOURCE === 'payload' ? 'payload' : 'contentful');
     return delivered;
