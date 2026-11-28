@@ -22,6 +22,8 @@ export type DriveReview = {
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const hashPattern = /^[a-f0-9]{64}$/
 
+// Cloudflare Workers rejects fetch redirect:'error' before dispatch. Use 'manual'
+// to prevent following redirected authority requests and reject non-2xx responses.
 function authorityHeaders(key: string, extra: Record<string, string> = {}) {
   const headers = new Headers(extra)
   headers.set('apikey', key)
@@ -90,7 +92,7 @@ export async function ensureDriveAccessPolicy(
   })
   const url = `${origin}/rest/v1/gpir_publication_access_policies?${query}`
   const read = async () => {
-    const response = await fetchImpl(url, { headers: authorityHeaders(key), redirect: 'error', signal: AbortSignal.timeout(20000) })
+    const response = await fetchImpl(url, { headers: authorityHeaders(key), redirect: 'manual', signal: AbortSignal.timeout(20000) })
     if (!response.ok) throw new Error('INTAKE_POLICY_UNAVAILABLE')
     const rows = await response.json() as any[]
     if (!Array.isArray(rows) || rows.length > 1) throw new Error('INTAKE_POLICY_AMBIGUOUS')
@@ -99,7 +101,7 @@ export async function ensureDriveAccessPolicy(
   const existing = await read()
   if (!existing) {
     const response = await fetchImpl(`${origin}/rest/v1/gpir_publication_access_policies`, {
-      method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
+      method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(20000),
       headers: authorityHeaders(key, { 'content-type': 'application/json', prefer: 'return=minimal' }),
       body: JSON.stringify({
         supabase_record_id: identity.id,
@@ -177,7 +179,7 @@ export const driveIntakeEndpoint: Endpoint = {
       if (!/^https:\/\/[^/]+$/.test(origin) || !key) return reply({ error: 'INTAKE_AUTHORITY_UNAVAILABLE' }, 503)
       failureStage = 'IDENTITY_REQUEST'
       const response = await fetch(`${origin}/rest/v1/rpc/gpir_drive_draft_identity`, {
-        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
+        method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(20000),
         headers: authorityHeaders(key, { 'content-type': 'application/json' }),
         body: JSON.stringify({ p_sha256: hash }),
       })
