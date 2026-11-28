@@ -311,3 +311,39 @@ test('unconfirmed users cannot gain admin access from metadata alone', async () 
   });
   assert.equal(result.decision, 'DENY');
 });
+
+test('approved Payload media is included only after authorization and must match Worker and SHA', async () => {
+  const hash = 'a'.repeat(64);
+  const worker = 'https://cms.example';
+  const src = worker + '/api/media/file/' + hash + '.png';
+  const selected = { ...env, GPIR_EDITORIAL_SOURCE: 'payload',
+    PAYLOAD_PUBLIC_SERVER_URL: worker, PAYLOAD_RELEASE_API_KEY: 'fixture-api-key' };
+  const allowed = async (url) => {
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    assert.equal(url, worker + '/api/release/editorial-entries');
+    return Response.json({ items: [{ ...contentfulEntry(), presentation: { primaryDashboard: {
+      role: 'PRIMARY_PUBLICATION_DASHBOARD', reference: 'approved-visual', alt: 'Approved intelligence dashboard',
+      src, highResolutionHref: src, sha256: hash, width: 1200, height: 800 } } }] });
+  };
+  const result = await createProtectedPublicationHandler({ env: selected, fetchImpl: allowed })(edgeRequest());
+  assert.equal(result.status, 200);
+  const body = await result.json();
+  assert.equal(body.publication.primaryDashboard.src, src);
+  assert.equal(body.publication.primaryDashboard.width, 1200);
+  const denied = await createProtectedPublicationHandler({ env: selected,
+    fetchImpl: async url => url.includes('/auth/v1/user') ? Response.json({ id: userId }) :
+      Response.json([{ decision: 'DENY' }]) })(edgeRequest());
+  assert.equal(denied.status, 403);
+  for (const badSrc of ['https://drive.google.com/file/d/secret', worker + '/api/media/file/' + 'b'.repeat(64) + '.png']) {
+    const bad = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+      if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+      if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+      return Response.json({items:[{ ...contentfulEntry(), presentation:{ primaryDashboard:{
+        role:'PRIMARY_PUBLICATION_DASHBOARD', alt:'dashboard', src:badSrc, sha256:hash
+      }}}]});
+    } })(edgeRequest());
+    assert.equal(bad.status, 200);
+    assert.equal((await bad.json()).publication.primaryDashboard, null);
+  }
+});
