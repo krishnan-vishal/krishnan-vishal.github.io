@@ -51,7 +51,7 @@ export function publicationRouteIndex(catalog) {
     if (row?.accessClass !== 'ENTITLED' || row?.authAuthority !== 'supabase' ||
         typeof row.identity !== 'string' || map.has(row.identity)) continue;
     const destination = safePublicationDestination(row.route);
-    if (!destination || !/^\\/[a-z0-9][a-z0-9-]*\\/$/.test(destination)) continue;
+    if (!destination || !/^\/[a-z0-9][a-z0-9-]*\/$/.test(destination)) continue;
     map.set(row.identity, Object.freeze({
       destination, title: safeText(row.title, 180),
       summary: safeText(row.summary, 280)
