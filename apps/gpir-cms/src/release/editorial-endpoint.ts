@@ -97,7 +97,7 @@ export const editorialEndpoint: Endpoint = {
       }
       return Response.json({ matched, missing, managed, status: 'PAYLOAD_CLASSIFICATION_VERIFIED' })
     }
-    if (!['published', 'publication', 'export', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
+    if (!['published', 'publication', 'export', 'identity-inventory', 'entry', 'search', 'create', 'update'].includes(action)) return Response.json({ error: 'INVALID_ACTION' }, { status: 400 })
     const client: any = req.payload
     const namespace = { sourceRecordKey: { contains: 'm41:editorial:' } }
     // Payload JSON fields are not portable nested-query targets in SQL adapters.
@@ -111,6 +111,33 @@ export const editorialEndpoint: Endpoint = {
       if (++page > 100) return Response.json({ error: 'EDITORIAL_LIMIT_EXCEEDED' }, { status: 503 })
     }
     const values = docs.filter(doc => doc.sourcePayload?.kind === 'editorial-entry')
+    if (action === 'identity-inventory') {
+      // The governed Drive import needs only duplicate identities. Never run the
+      // heavyweight full backup/export or enumerate reference/asset records.
+      const records: { sourceHash: string | null; publicationTitle: string | null; canonicalUrlCandidate: string | null }[] = []
+      const add = (doc: any) => {
+        if (!doc || typeof doc !== 'object') return
+        const sourceHash = typeof doc.sourceHash === 'string' ? doc.sourceHash : null
+        const publicationTitle = typeof doc.publicationTitle === 'string' ? doc.publicationTitle : null
+        const canonicalUrlCandidate = typeof doc.canonicalUrlCandidate === 'string' ? doc.canonicalUrlCandidate : null
+        if (sourceHash || publicationTitle || canonicalUrlCandidate) records.push({ sourceHash, publicationTitle, canonicalUrlCandidate })
+      }
+      for (const doc of values) add(doc.sourcePayload?.fields)
+      // Include both published and latest native versions to preserve the
+      // existing conservative duplicate protection on drafts and published work.
+      for (const draft of [false, true]) {
+        for (let page = 1; page <= 100; page++) {
+          const result = await client.find({
+            collection: 'research-publications', page, limit: 100, depth: 0, draft,
+            req, overrideAccess: true, sort: 'id',
+          })
+          for (const doc of result.docs) add(doc)
+          if (!result.hasNextPage) break
+          if (page === 100) return Response.json({ error: 'IDENTITY_INVENTORY_INCOMPLETE' }, { status: 503 })
+        }
+      }
+      return Response.json({ records }, { headers: { 'cache-control': 'no-store' } })
+    }
     if (['published', 'publication', 'export'].includes(action)) {
       const native = await allNative(client, req)
       const adoption: any = await client.find({ collection: 'editorial-metadata', where: { sourceRecordKey: { contains: 'm41:adopted:' } }, limit: 10000, depth: 0, req, overrideAccess: false })
