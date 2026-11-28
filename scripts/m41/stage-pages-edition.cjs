@@ -15,8 +15,14 @@ function stageEdition(root, output, manifest) {
     if (lock.source !== 'payload' || lock.snapshot !== manifest.snapshot) throw Error('Reviewed source lock differs from the selected edition.');
     const markerPath = 'assets/data/cms-source.json';
     const marker = JSON.parse(fs.readFileSync(path.join(output, markerPath), 'utf8'));
+    // The signed snapshot describes the engine estate at its parent commit,
+    // while the builder records the current protected Git engine inventory.
+    // Check the marker against the actual validated build, not the historical
+    // snapshot engine count. All manifest engines remain byte-checked below.
+    const builtEngineCount = site.inventory(output, manifest.sourceCommit).protectedFiles.length;
     if (marker.source !== 'payload' || marker.snapshot !== manifest.snapshot || marker.sourceCommit !== manifest.sourceCommit ||
-        marker.managedFiles !== manifest.files.length || marker.protectedEngineFiles !== manifest.protectedFiles.length) throw Error('Build completion marker differs from the selected edition.');
+        marker.managedFiles !== manifest.files.length || marker.protectedEngineFiles !== builtEngineCount)
+        throw Error('Build completion marker differs from the selected edition.');
     // The newer Git-reviewed ASK/Observatory page is retained unchanged for
     // this phased dashboard release; never stage its older inherited CMS blob.
     const observatoryPath = 'pages/intelligence/index.html';
