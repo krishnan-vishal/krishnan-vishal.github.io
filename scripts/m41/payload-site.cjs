@@ -46,7 +46,28 @@ async function materialize(outputRoot, env = process.env, fetchImpl = fetch) {
     // This migration switches an exact, already-public edition. Content changes
     // require a new manifest/release; it never overwrites a newly changed engine.
     const covered = new Set(source.manifest.files.map(file => file.path));
-    if (current.files.some(file => !covered.has(file.path))) throw new Error('Payload does not cover every existing managed public path.');
+    const missing = current.files.filter(file => !covered.has(file.path));
+    // Owner-approved staged delivery: four already-linked, Git-owned pages are
+    // deferred from this immutable 43-dashboard edition. Their exact bytes remain
+    // untouched in the checkout and copied preview. Nothing else may be omitted.
+    // Remove this narrow exception after these pages join a signed CMS successor.
+    const deferred = new Set([
+        'pages/intelligence/domain-experts.html',
+        'pages/intelligence/trusted-source-network.html',
+        'pages/risk/global-central-banks.html',
+        'pages/risk/global-country-risk-monitor.html',
+    ]);
+    if (missing.some(file => !deferred.has(file.path))) {
+        throw new Error('Payload does not cover every existing managed public path.');
+    }
+    for (const item of missing) {
+        const local = path.join(outputRoot, item.path);
+        if (!fs.existsSync(local) || !fs.lstatSync(local).isFile() || fs.lstatSync(local).isSymbolicLink() ||
+            site.sha256(fs.readFileSync(local)) !== item.sha256) {
+            throw new Error('Deferred Git-owned public page differs from verified checkout: ' + item.path);
+        }
+        console.log('M41: protected deferred Git page retained unchanged: ' + item.path);
+    }
     // Current Git engine bytes are authoritative and are never overwritten by
     // CMS content. New editorial editions may differ from obsolete Git copies.
     const engineBefore = site.canonical(current.protectedFiles);
