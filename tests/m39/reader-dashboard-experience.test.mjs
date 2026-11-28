@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { normalizeReaderSummary, overviewValues, publicationPresentation,
-  readerProfileEntries } from '../../assets/js/gpir-reader-dashboard.mjs';
+  readerProfileEntries, publicationRouteIndex, attachAuthorizedPublicationRoutes } from '../../assets/js/gpir-reader-dashboard.mjs';
+import { publicCatalogItems } from '../../assets/js/gpir-publication-catalog.mjs';
 import { activeSection, navigationKeyIndex, syncMyGpirNavigation }
   from '../../assets/js/my-gpir-navigation.mjs';
 
@@ -123,4 +124,25 @@ test('markup and styles cover target desktop, tablet and mobile presentation con
   assert.match(css, /\.my-gpir-publication__metadata\{display:grid/);
   assert.match(css, /\.my-gpir-publication__action:focus-visible\{outline:3px solid var\(--gpir-gold\)/);
   assert.match(css, /body\.my-gpir\{[^}]*font:15px\/1\.55 Arial,sans-serif/);
+});
+
+test('43 approved catalog routes link only server-authorized reader identities', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../../routes.json', import.meta.url), 'utf8'));
+  const records = publicCatalogItems(manifest);
+  assert.ok(records.length >= 43, 'approved route catalog must list the 43 newly published dashboards');
+  const unique = new Set(records.map(item => item.id));
+  assert.equal(unique.size, records.length);
+  assert.ok(records.every(item => /^\\/[a-z0-9-]+\\/$/.test(item.route)));
+  const example = records.find(item => item.id === 'VK-GPIR-P-000000000088-5');
+  assert.ok(example);
+  const authorized = normalizeReaderSummary(response({ library: [
+    { publicationId: example.id, supabaseRecordId: recordId, accessClass: 'ENTITLED', accessSource: 'PLAN' },
+    { publicationId: 'VK-GPIR-P-UNAPPROVED-1', supabaseRecordId: recordId, accessClass: 'ENTITLED', accessSource: 'PLAN' }
+  ] }));
+  const enriched = attachAuthorizedPublicationRoutes(authorized, manifest);
+  assert.equal(enriched.library[0].destination, example.route);
+  assert.equal(enriched.library[0].title, example.title);
+  assert.equal(enriched.library[1].destination, null);
+  assert.equal(publicationRouteIndex({routes:[{identity:example.id,route:'//attacker.example/',accessClass:'ENTITLED',authAuthority:'supabase'}]}).size, 0);
+  assert.equal(attachAuthorizedPublicationRoutes(response({library:[]}), manifest).library?.length, 0);
 });
