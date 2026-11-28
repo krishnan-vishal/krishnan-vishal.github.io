@@ -83,18 +83,33 @@ async function main() {
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
   acquisitionStage = 'DRIVE_FOLDER_INVENTORY'
   const [listed, mappingFiles] = await Promise.all([listDriveFolder(folderId, headers), listDriveFolder(mappingFolderId, headers)])
-  const requiredMappings = new Map([
-    ['GPIR-approved-dashboard-editorial-draft.json', 'editorial'],
-    ['GPIR-approved-dashboard-reconciliation.json', 'reconciliation'],
-  ])
-  const selected = mappingFiles.filter(file => requiredMappings.has(file.name))
-  if (selected.length !== 2 || new Set(selected.map(file => file.name)).size !== 2 || selected.some(file => file.mimeType !== 'application/json')) throw new Error('Approved Drive mappings are missing or ambiguous')
-  acquisitionStage = 'DRIVE_MAPPING_ACQUISITION'
+  // The two immutable owner-reviewed mapping identities are the release authority.
+  // Do not depend on Drive's optional/custom MIME classification or a complete folder listing.
+  const requiredMappings = [
+    { name: 'GPIR-approved-dashboard-editorial-draft.json', label: 'editorial', id: '17PHvVrDmExMjdOf5qJkQkud0BRixMSev', sha256: '8e5f9bf128dced29f67569e83b53ef6f572593ed696bb4389d52aa9e0f57bed7' },
+    { name: 'GPIR-approved-dashboard-reconciliation.json', label: 'reconciliation', id: '1SFbiVNi87_OLTNFoxciZ6QXI1xZayz3c', sha256: '0f9c604f5cba2f4f3e96cd020ae79dfa8371564091ba5fb8cf5774521dee2f98' },
+  ] as const
   const mappingValues = new Map<string, any>()
-  for (const file of selected) {
-    const bytes = await driveBytes(file.id, headers, 'Drive mapping acquisition')
-    if (bytes.length !== Number(file.size) || bytes.length > 100_000) throw new Error('Drive mapping changed during acquisition')
-    mappingValues.set(requiredMappings.get(file.name)!, JSON.parse(bytes.toString('utf8')))
+  for (const mapping of requiredMappings) {
+    // When listed entries are present, refuse shadow/duplicate files rather than guessing.
+    const sameName = mappingFiles.filter(file => file.name === mapping.name)
+    if (sameName.some(file => file.id !== mapping.id) || sameName.length > 1)
+      throw new Error('Approved Drive mapping identity is ambiguous')
+    const metadata = await (await request(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(mapping.id)}?fields=id,name,mimeType,size,parents,trashed&supportsAllDrives=true`,
+      { headers }, 'Drive mapping metadata')).json()
+    const size = Number(metadata.size)
+    if (metadata.id !== mapping.id || metadata.name !== mapping.name ||
+        metadata.trashed === true || !Array.isArray(metadata.parents) ||
+        !metadata.parents.includes(mappingFolderId) ||
+        !Number.isSafeInteger(size) || size < 1 || size > 100_000)
+      throw new Error('Approved Drive mapping identity or parent mismatch')
+    const bytes = await driveBytes(mapping.id, headers, 'Drive mapping acquisition')
+    if (bytes.length !== size || digest(bytes) !== mapping.sha256)
+      throw new Error('Approved Drive mapping content changed')
+    const document = JSON.parse(bytes.toString('utf8'))
+    if (!Array.isArray(document)) throw new Error('Invalid approved Drive mapping documents')
+    mappingValues.set(mapping.label, document)
   }
   const annotations = mappingValues.get('editorial') as DriveEditorialAnnotation[]
   const reconciliation = mappingValues.get('reconciliation') as DriveReconciliationRow[]
@@ -214,7 +229,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
