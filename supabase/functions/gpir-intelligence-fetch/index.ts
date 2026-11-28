@@ -677,7 +677,7 @@ function extractMeta(
 
 
   return {
-    title: cleanText(title),
+    title: title ? cleanText(title) : "",
     description: description ? cleanText(description) : null,
     canonicalUrl,
     sourcePublishedAt,
@@ -713,6 +713,7 @@ export default {
       let pendingCandidateCount = 0;
       let gate1RejectedCount = 0;
       let gate2RejectedCount = 0;
+      let windowCheckpoint: Record<string, unknown> = {};
 
       try {
         // ----------------------------------------------------
@@ -725,6 +726,9 @@ export default {
           gdelt_topic?: string;
           start_datetime?: string;
           end_datetime?: string;
+          start_date?: string;
+          end_date?: string;
+          max_pages?: number;
           max_records?: number;
           bis_dataflow?: string;
           start_period?: string;
@@ -812,6 +816,9 @@ const source = sourceRows[0] as SourceRecord;
         if (technicalSource) {
           const config = GITHUB_TECHNICAL_SOURCES[requestedSource as keyof typeof GITHUB_TECHNICAL_SOURCES];
           if (source.official_url !== `https://github.com/${config.repository}` || source.feed_or_index_url !== `https://api.github.com/repos/${config.repository}/releases`) throw new Error("TECHNICAL_SOURCE_REGISTRY_MISMATCH");
+          if (typeof payload.start_date !== "string" || typeof payload.end_date !== "string")
+            throw new Error("GITHUB_CHANGE_WINDOW_INVALID");
+          windowCheckpoint = { technical_start_date: payload.start_date, technical_end_date: payload.end_date };
         }
         if (requestedSource === MAS_SOURCE_ID && (source.parser_profile !== "mas-rss" || !source.official_url?.startsWith("https://www.mas.gov.sg"))) throw new Error("MAS_SOURCE_REGISTRY_MISMATCH");
         if (requestedSource === ECB_SOURCE_ID && (source.parser_profile !== "ecb-rss" || !source.official_url?.startsWith("https://www.ecb.europa.eu"))) throw new Error("ECB_SOURCE_REGISTRY_MISMATCH");
@@ -831,6 +838,9 @@ const source = sourceRows[0] as SourceRecord;
         if ((PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource) &&
           !isApprovedPaymentsPublisherRegistry(requestedSource, source)) {
           throw new Error("PAYMENTS_PUBLISHER_REGISTRY_MISMATCH");
+        }
+        if ((PAYMENTS_PUBLISHER_IDS as string[]).includes(requestedSource) && payload.start_datetime && payload.end_datetime) {
+          windowCheckpoint = { start_datetime: payload.start_datetime, end_datetime: payload.end_datetime };
         }
 
         if (requestedSource === GDELT_SOURCE_ID) {
@@ -893,7 +903,7 @@ const source = sourceRows[0] as SourceRecord;
           sourceClaimHeld = true;
           const { data: run, error: runError } = await ctx.supabaseAdmin
             .from("intelligence_ingestion_runs")
-            .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: source.source_id, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES } })
+            .insert({ source_id: source.source_id, run_status: "RUNNING", metadata: { milestone: "M33-G1-6E", canary: true, source_id: source.source_id, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, ...windowCheckpoint } })
             .select("id")
             .single();
           if (runError || !run) throw new Error(`RUN_CREATE_ERROR: ${runError?.message || "no run returned"}`);
@@ -901,7 +911,7 @@ const source = sourceRows[0] as SourceRecord;
           runSourceId = source.source_id;
         }
 
-        if (technicalSource) {
+        if (technicalSource && payload.start_date && payload.end_date) {
           const result = await fetchTechnicalHistory({ sourceId: requestedSource, since: payload.start_date, until: payload.end_date, maxPages: payload.max_pages ?? 3 });
           if (!dryRun) {
             for (let offset = 0; offset < result.records.length; offset += 100) {
@@ -920,7 +930,7 @@ const source = sourceRows[0] as SourceRecord;
             const { error: completionError } = await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
               completed_at: new Date().toISOString(), run_status: "SUCCESS", records_discovered: result.records.length,
               records_candidate: 0, records_rejected: 0, records_published: 0, error_message: null,
-              metadata: { milestone: "M39-GATE2-GITHUB-V1", source_id: source.source_id, statistics: result.statistics,
+              metadata: { milestone: "M39-GATE2-GITHUB-V1", source_id: source.source_id, statistics: result.statistics, ...windowCheckpoint,
                 raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, publication_attempted: false },
             }).eq("id", runId);
             if (completionError) throw new Error(`RUN_COMPLETE_ERROR: ${completionError.message}`);
@@ -1151,6 +1161,13 @@ const source = sourceRows[0] as SourceRecord;
         }
 
         const indexHtml = await indexResponse.text();
+        let windowTruncated = false;
+        if (paymentsHistoryWindow) {
+          const posts = JSON.parse(indexHtml);
+          if (!Array.isArray(posts)) throw new Error("INVALID_WORDPRESS_HISTORY_RESPONSE");
+          const declaredPages = Number(indexResponse.headers.get("x-wp-totalpages"));
+          windowTruncated = declaredPages > 1 || (!declaredPages && posts.length >= paymentsDiscoveryLimit);
+        }
 
         // ----------------------------------------------------
         // 5. Discover likely intelligence links
@@ -1581,6 +1598,7 @@ if (gate1Decision === "PASS") {
                 milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false,
                 max_page_fetches: paymentsHistoryWindow ? MAX_BACKFILL_PAGE_FETCHES : MAX_PAGE_FETCHES,
                 start_datetime: payload.start_datetime || null, end_datetime: payload.end_datetime || null,
+                ...(paymentsHistoryWindow ? { window_truncated: windowTruncated } : {}),
                 links_discovered: routedDiscoveries.length,
                 unseen_remaining: Math.max(0, unseenDiscoveryCount - selected.length),
                 fetched_count: selected.length - fetchErrors, raw_inserted_count: inserted,
@@ -1630,6 +1648,7 @@ if (gate1Decision === "PASS") {
               selected.length,
             unseen_remaining:
               Math.max(0, unseenDiscoveryCount - selected.length),
+            ...(paymentsHistoryWindow ? { window_truncated: windowTruncated } : {}),
             raw_records_inserted:
               inserted,
             duplicates_skipped:
@@ -1662,7 +1681,7 @@ if (gate1Decision === "PASS") {
           await ctx.supabaseAdmin.from("intelligence_ingestion_runs").update({
             completed_at: new Date().toISOString(), run_status: "FAILED",
             records_published: 0, error_message: errorMessage,
-            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors, ...(gdeltRetryAfterAt ? { gdelt_retry_after_at: gdeltRetryAfterAt } : {}) },
+            metadata: { milestone: "M33-G1-6E", canary: true, source_id: runSourceId, dry_run: false, max_page_fetches: MAX_PAGE_FETCHES, raw_inserted_count: inserted, duplicate_skipped_count: skippedExisting, fetch_error_count: fetchErrors, processing_error_count: processingErrors, ...windowCheckpoint, ...(gdeltRetryAfterAt ? { gdelt_retry_after_at: gdeltRetryAfterAt } : {}) },
           }).eq("id", runId);
         }
         console.error("GPIR M33-F5 failure:", error);

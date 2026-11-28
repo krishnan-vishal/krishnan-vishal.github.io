@@ -6,6 +6,7 @@ type Context = Exclude<Awaited<ReturnType<Pipeline["observe"]>>, Response>;
 type Candidates = Exclude<Awaited<ReturnType<Pipeline["curate"]>>, Response>;
 type Outcomes = Awaited<ReturnType<Pipeline["validateAndPublish"]>>;
 type Editorial = Awaited<ReturnType<Pipeline["interpret"]>>;
+type Scout = Awaited<ReturnType<Pipeline["scout"]>>;
 
 const OperationalState = Annotation.Root({
   request: Annotation<Request>(),
@@ -13,6 +14,7 @@ const OperationalState = Annotation.Root({
   candidates: Annotation<Candidates | null>(),
   outcomes: Annotation<Outcomes | null>(),
   editorial: Annotation<Editorial | null>(),
+  scout: Annotation<Scout>(),
   response: Annotation<Response | null>(),
   stages: Annotation<string[]>({
     reducer: (current, update) => [...current, ...update],
@@ -53,13 +55,16 @@ export function createOperationalPublicationGraph(pipeline: Pipeline) {
     })
     .addNode("interpret", async state => {
       if (state.response || !state.context) return {};
-      return { editorial: await pipeline.interpret(state.context), stages: ["INTERPRET_NO_LLM"] };
+      // Neither path waits for the other's dependency. This also keeps the
+      // publication lane within its existing scheduled request budget.
+      const [editorial, scout] = await Promise.all([pipeline.interpret(state.context), pipeline.scout(state.context)]);
+      return { editorial, scout, stages: scout ? ["INTERPRET_NO_LLM", "SCOUT"] : ["INTERPRET_NO_LLM"] };
     })
     .addNode("indexAndEvidence", async state => {
       if (state.response) return { response: receipt(state.response, state.stages) };
       if (!state.candidates || !state.outcomes || !state.editorial)
         throw new Error("GPIR_GRAPH_EVIDENCE_REQUIRED");
-      const response = pipeline.evidence(state.candidates, state.outcomes, state.editorial);
+      const response = pipeline.evidence(state.candidates, state.outcomes, state.editorial, state.scout);
       return { response: receipt(response, [...state.stages, "INDEX", "EVIDENCE"]),
         stages: ["INDEX", "EVIDENCE"] };
     })
@@ -76,7 +81,7 @@ export function createOperationalPublicationHandler(pipeline: Pipeline) {
   const graph = createOperationalPublicationGraph(pipeline);
   return async (request: Request) => {
     const result = await graph.invoke({ request, response: null, context: null, candidates: null,
-      outcomes: null, editorial: null, stages: [] });
+      outcomes: null, editorial: null, scout: null, stages: [] });
     if (!(result.response instanceof Response))
       return new Response(JSON.stringify({ status: "ERROR", code: "ORCHESTRATION_RESPONSE_MISSING" }), {
         status: 503,

@@ -1,5 +1,14 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 adaptive acquisition and evidence reuse
+
+Production history reached 6,654 records after two verified technical
+additions. The adaptive acquisition release candidate extends the existing
+LangGraph publisher using persistent ingestion-run checkpoints. Four new
+country citations, FX context and technical ASK retrieval await governed
+release. Contentful recovery proceeds independently.
+See [evidence and release scope](M44-AGENTIC-INTELLIGENCE.md#adaptive-acquisition-and-evidence-reuse--28-november-2026).
+
 ## 2026-11-28 — M44 source-tier release and exact-snapshot BCP recovery
 
 PR #748's Pages release is live. The active module formats the

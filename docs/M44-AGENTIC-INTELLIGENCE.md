@@ -461,3 +461,40 @@ and served Pages marker, skips reconstruction and publication, and
 allows up to 120 seconds per existing editorial-export read.
 Content-addressed Contentful objects and the complete recovery
 readback remain required. The recovery change awaits controlled release.
+
+## Adaptive acquisition and evidence reuse — 28 November 2026
+
+Existing production acquisition receipt `10875` added two official
+Hyperswitch records from the 9–28 November window, [release v1.131.0](https://github.com/juspay/hyperswitch/releases/tag/v1.131.0)
+and [connector change 35ed24332854](https://github.com/juspay/hyperswitch/commit/35ed24332854f3473249aef7074b516b14198850).
+The [public technical archive](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&collection=technical&limit=3)
+returned both canonical IDs, 163 total technical references and a sampled
+1,746 ms response. The [full historical repository](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&limit=1)
+returned 6,654 records, up from 6,652, with a sampled 7,096 ms response.
+Neither record entered the announcement or Global Alerts classes.
+
+MAS `10871` failed DNS resolution for its registered feed and FinTech
+Futures `10872` received upstream HTTP 403. FinTech News Singapore `10873`
+found 59 known links in September 2026 and no unseen articles. Mojaloop
+`10874` had zero additions. BIS `10877` returned no matching policy-rate
+data for the requested window and country filter. These runs added zero
+announcement publications. They used existing project resources and made
+no purchases or new service commitments. Account billing was unavailable.
+
+The release candidate uses the existing LangGraph invocation and ingestion
+claims, runs and canonical deduplication. It selects due registry-approved
+sources by oldest attempt, observes a source backoff and continues after an
+empty result or failure. It resumes uncovered historical intervals and
+subdivides capped intervals. Independent T1 matches become review evidence
+only. The existing publication gates, precise timestamps and alert window
+remain authoritative, and transient archive failures can be retried.
+
+Four verified citations for Australia, Japan, Brazil and Nigeria extend
+the existing country evidence dataset. The FX brief reuses those references
+for the selected currency jurisdictions after rendering rates and history.
+ASK requests for technical releases and changes can use the canonical
+technical archive under the existing entitlement check. Payload edition
+distribution and Contentful recovery remain on their governed paths.
+The code and country citations await owner-approved Pages and Edge release.
+Rollback uses the preceding three Edge bundles and a reviewed Pages revert.
+The production technical records retain their canonical archive identities.

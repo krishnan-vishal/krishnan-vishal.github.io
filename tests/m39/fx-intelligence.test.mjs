@@ -4,7 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { calculateMetrics, comparableRateObservation, normalizeFxPair,
   pointsForPeriod, previousPeriodPoints, selectionFromSearch,
-  fxIntelligenceReturnTo, accessMarkup, answerFxQuestion, buildCardMarkup, referenceConversion }
+  fxIntelligenceReturnTo, accessMarkup, answerFxQuestion, buildCardMarkup, countryEvidenceForPair, referenceConversion }
   from '../../assets/js/fx-intelligence.mjs';
 import { rememberFxIntelligenceReturn, consumeFxIntelligenceReturn, subscriptionConfig,
   validSubscriptionConfig, verifySubscription }
@@ -40,6 +40,16 @@ const activeSubscription = Object.freeze({ id: subscriptionId, status: 'ACTIVE',
   effective_from: '2026-10-01T00:00:00.000Z',
   effective_until: '2026-12-01T00:00:00.000Z',
   payment_confirmed_at: '2026-10-01T00:00:01.000Z' });
+
+test('FX briefs reuse evidence only from the selected currency jurisdictions', async () => {
+  const read = async path => JSON.parse(await readFile(new URL('../../assets/data/' + path, import.meta.url), 'utf8'));
+  const [registry, countries] = await Promise.all([read('fx/country-currency-registry.json'), read('country-intelligence.json')]);
+  const evidence = countryEvidenceForPair(registry, countries.paymentEvidence, { base: 'AUD', quote: 'JPY' });
+  assert.equal(evidence.length, 4);
+  assert.deepEqual([...new Set(evidence.map(item => item.country))].sort(), ['Australia', 'Japan']);
+  assert.ok(evidence.some(item => item.title === 'Bank of Japan CBDC pilot progress report'));
+  assert.deepEqual(countryEvidenceForPair(registry, countries.paymentEvidence, { base: 'USD', quote: 'EUR' }), []);
+});
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status,

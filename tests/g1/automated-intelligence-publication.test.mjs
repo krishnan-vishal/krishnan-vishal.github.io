@@ -286,20 +286,23 @@ test('transient source failures are retried inside the live window after backoff
   assert.deepEqual(selected.map(item => item.id), [rows[4].id, rows[5].id, rows[0].id]);
 });
 
-test('transient failures are final once the candidate can no longer be live', async () => {
+test('transient archive failures recover only after their longer backoff', async () => {
   const stale = candidate({ published_at: new Date(NOW - 13 * 60 * 60 * 1000).toISOString() });
   const audits = [{ candidate_id: stale.id, decision: 'REVIEW', reason_code: 'SOURCE_FETCH_FAILED',
     completed_at: new Date(NOW - 60 * 60 * 1000).toISOString() }];
   assert.deepEqual(await retryStore([stale], audits).candidates({ limit: 5, now: NOW }), []);
+  assert.deepEqual(await retryStore([stale], audits).candidates({ limit: 5, now: NOW + 5 * 60 * 60 * 1000 }), [stale]);
 });
 
 test('a retried transient failure still requires full validation and cannot bypass the threshold', async () => {
   const item = candidate({ confidence_score: 40 });
   const store = repository();
+  store.corroboration = async () => ({ sourceId: 'other-authority', url: 'https://authority.example/verified' });
   const outcome = await processCandidate({ candidate: item, repository: store,
     fetchImpl: sourceFetch(item), now: () => NOW });
   assert.equal(outcome.decision, 'REVIEW');
   assert.equal(outcome.reasonCode, 'AUTO_PUBLICATION_THRESHOLD_NOT_MET');
+  assert.equal(outcome.validationPayload.related_authority.sourceId, 'other-authority');
 });
 
 test('topic geography and corroborating-source region and segment are retained', async () => {

@@ -48,6 +48,9 @@ export async function retrieveGovernedEvidence(origin,query,{limit=10,fetchImpl=
   const records=new Map();
   const requestLimit = String(Math.min(25, Math.max(1, limit)));
   const filters = new URLSearchParams({ q: phrase, limit: requestLimit, match: 'ranked' });
+  if (/\b(mojaloop|hyperswitch)\b/i.test(phrase) &&
+      /\b(releases?|versions?|connectors?|technical|specifications?|changes?)\b/i.test(phrase))
+    filters.set('collection', 'technical');
   for (const term of terms) filters.append('term', term);
   if (!unique.length) return [];
   const first = await fetchGovernedAskPage(origin, filters, fetchImpl);

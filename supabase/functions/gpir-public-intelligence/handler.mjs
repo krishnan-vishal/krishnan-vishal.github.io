@@ -529,7 +529,7 @@ async function loadRepositoryEvidence({ fetchImpl, config, requestNow, history, 
         source_id: `in.(${(technical ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`,
         ingestion_status: 'eq.PROCESSED', order: 'discovered_at.desc,id.asc'
       }) : [],
-      history && (askView || !collection) ? allRows('gpir_regulatory_documents', {
+      history && !technical && (askView || !collection) ? allRows('gpir_regulatory_documents', {
         select: 'id,source_id,canonical_url,document_kind,publication_date,published_at,publication_precision,content_sha256,validation_state,metadata',
         validation_state: 'eq.VALIDATED', 'metadata->>reader_reference': 'eq.true',
         publication_precision: 'eq.DATE_ONLY', order: 'publication_date.desc,id.asc'
@@ -584,7 +584,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       return response(400, { status: 'ERROR', code: 'INVALID_ASK_TERMS' }, origin, env, { private: true });
     if (askView && topicContext) return response(400, { status: 'ERROR', code: 'INVALID_ASK_CONTEXT' }, origin, env, { private: true });
     const history = askView || requestUrl.searchParams.get('scope') === 'history' || Boolean(topicContext);
-    const collection = askView ? 'announcements' : requestUrl.searchParams.get('collection');
+    const requestedCollection = requestUrl.searchParams.get('collection');
+    const collection = askView && requestedCollection !== 'technical' ? 'announcements' : requestedCollection;
     if (collection && (!history || !['announcements', 'technical'].includes(collection)))
       return response(400, { status: 'ERROR', code: 'INVALID_COLLECTION' }, origin, env);
     const date = requestUrl.searchParams.get('date');
@@ -739,7 +740,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         const load = () => loadRepositoryEvidence({ fetchImpl, config, requestNow, history, collection, askView });
         const knownCollection = ['', 'announcements', 'technical'].includes(collection || '');
         rows = history && knownCollection
-          ? await coalesceHistory(askView ? 'ask' : collection || 'archive', load)
+          ? await coalesceHistory(askView && collection === 'announcements' ? 'ask' : collection || 'archive', load)
           : await load();
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });

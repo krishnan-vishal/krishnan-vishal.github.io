@@ -3591,3 +3591,14 @@ approved historical interval and found zero unseen records.
 The Contentful recovery remained incomplete after an HTTP 500 and
 three Payload editorial-export deadlines on successive attempts.
 See [release and recovery evidence](M44-AGENTIC-INTELLIGENCE.md#pr-748-pages-release-and-matching-edition-recovery--28-november-2026).
+
+## 2026-11-28 — M44 adaptive acquisition and verified archive growth
+
+The existing production acquisition path added an official Hyperswitch
+release and connector change. Receipt `10875` and public readback confirm
+both canonical reference IDs and repository growth to 6,654. The governed
+release candidate extends adaptive selection, history recovery and
+authoritative review evidence within the deployed LangGraph architecture.
+Four country citations and their FX reuse have been prepared within the
+existing surfaces. Owner review, release and live verification remain open.
+See [production receipts and rollback](M44-AGENTIC-INTELLIGENCE.md#adaptive-acquisition-and-evidence-reuse--28-november-2026).
