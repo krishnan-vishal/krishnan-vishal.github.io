@@ -62,11 +62,14 @@ async function contentfulInventory(collection: 'entries') {
   }
 }
 
+let acquisitionStage = 'CONFIGURATION'
+
 async function main() {
   const origin = new URL(value('PAYLOAD_PUBLIC_SERVER_URL')).origin
   if (origin !== 'https://gpir-payload-cms.krishnanvishal12.workers.dev') throw new Error('Unexpected production Worker origin')
   const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
   const signingSecret = value('GPIR_RELEASE_SIGNING_SECRET')
+  acquisitionStage = 'DRIVE_OAUTH'
   const oauth = await (await request('https://oauth2.googleapis.com/token', {
     method: 'POST', body: new URLSearchParams({
       grant_type: 'refresh_token', client_id: value('GPIR_DRIVE_CLIENT_ID'),
@@ -78,6 +81,7 @@ async function main() {
   const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
   const mappingFolderId = value('GPIR_DRIVE_MAPPING_FOLDER_ID')
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
+  acquisitionStage = 'DRIVE_FOLDER_INVENTORY'
   const [listed, mappingFiles] = await Promise.all([listDriveFolder(folderId, headers), listDriveFolder(mappingFolderId, headers)])
   const requiredMappings = new Map([
     ['GPIR-approved-dashboard-editorial-draft.json', 'editorial'],
@@ -85,6 +89,7 @@ async function main() {
   ])
   const selected = mappingFiles.filter(file => requiredMappings.has(file.name))
   if (selected.length !== 2 || new Set(selected.map(file => file.name)).size !== 2 || selected.some(file => file.mimeType !== 'application/json')) throw new Error('Approved Drive mappings are missing or ambiguous')
+  acquisitionStage = 'DRIVE_MAPPING_ACQUISITION'
   const mappingValues = new Map<string, any>()
   for (const file of selected) {
     const bytes = await driveBytes(file.id, headers, 'Drive mapping acquisition')
@@ -95,6 +100,7 @@ async function main() {
   const reconciliation = mappingValues.get('reconciliation') as DriveReconciliationRow[]
   if (!Array.isArray(annotations) || !Array.isArray(reconciliation)) throw new Error('Invalid approved Drive mapping documents')
 
+  acquisitionStage = 'DRIVE_IMAGE_ACQUISITION'
   const candidateFiles = listed.filter(file => ['image/jpeg', 'image/png'].includes(file.mimeType))
   const sources = []
   for (const file of candidateFiles) {
@@ -105,11 +111,13 @@ async function main() {
     sources.push({ file, bytes, hash: digest(bytes), size })
   }
   if (!sources.length || new Set(sources.map(source => source.file.id)).size !== sources.length) throw new Error('Empty or duplicated approved Drive image inventory')
+  acquisitionStage = 'DRIVE_RECONCILIATION'
   const reconciled = reconcileDriveCandidates(sources.map(source => ({
     id: source.file.id, name: source.file.name, mimeType: source.file.mimeType, size: source.size, hash: source.hash,
   })), annotations, reconciliation)
   const byId = new Map(sources.map(source => [source.file.id, source]))
 
+  acquisitionStage = 'EXISTING_PUBLICATION_INVENTORY'
   const [estate, entries] = await Promise.all([
     (await request(origin + '/api/release/editorial-entries', {
       method: 'POST', headers: { authorization, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'export' }),
@@ -141,6 +149,7 @@ async function main() {
       categoriesCreated: 0, categoriesReused: 0, mediaCreated: 0, mediaReused: 0 }, records: [] as any[],
   }
   const categoryOutcomes = new Map<string, 'CREATED' | 'REUSED'>()
+  acquisitionStage = 'PAYLOAD_PUBLICATION'
   for (const item of reconciled) {
     if (item.disposition !== 'ELIGIBLE') {
       if (item.disposition === 'HELD_EXCEPTION') evidence.counts.held++
@@ -187,6 +196,7 @@ async function main() {
   evidence.categories = [...categoryOutcomes].sort(([a], [b]) => a.localeCompare(b)).map(([slug, status]) => ({ slug, status }))
   if (evidence.counts.eligible !== 43 || evidence.counts.held !== 2 || evidence.counts.unmatched !== 3 ||
       evidence.counts.published + evidence.counts.existing + evidence.counts.duplicate !== 43) throw new Error('Approved Drive batch count contract failed')
+  acquisitionStage = 'EDITION_PREPARATION'
   const edition = await (await request(origin + '/api/release/drive-publication-edition', {
     method: 'POST', headers: { authorization, 'content-type': 'application/json' },
     body: JSON.stringify({ action: 'prepare', parentSnapshot: value('GPIR_PAYLOAD_SITE_SNAPSHOT') }),
@@ -202,7 +212,10 @@ async function main() {
 
 main().catch(error => {
   const message = String(error?.message || '')
-  console.error(/^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Drive acquisition|Drive mapping acquisition|Contentful inventory|Contentful asset comparison|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP \d{3})$/.test(message)
-    ? message : 'Drive editorial publication failed.')
+  // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
+  // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
+    (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
 })
