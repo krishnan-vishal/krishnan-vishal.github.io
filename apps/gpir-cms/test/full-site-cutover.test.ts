@@ -47,6 +47,11 @@ test('Contentful recovery preserves WARN drafts, IDs, locales and binary bytes; 
 test('Payload build reads all content and preserves the engine', async () => {
   const root = fixture()
   try {
+    // The production Observatory guard requires the exact approved Git page.
+    // Use those reviewed bytes in this synthetic full-site fixture instead of
+    // inventing an outdated Observatory page that production correctly rejects.
+    const approvedObservatory = readFileSync(path.resolve(__dirname, '../../../pages/intelligence/index.html'))
+    writeFileSync(path.join(root, 'pages/intelligence/index.html'), approvedObservatory)
     const manifest = site.inventory(root, commit)
     const env = { PAYLOAD_PUBLIC_SERVER_URL: 'https://cms.example', PAYLOAD_RELEASE_API_KEY: 'test-key', GPIR_RELEASE_SIGNING_SECRET: 'test-signing-material-for-manifest-check', GPIR_PAYLOAD_SITE_SNAPSHOT: manifest.snapshot }
     const fetchImpl = async (url: string, options: any) => {
