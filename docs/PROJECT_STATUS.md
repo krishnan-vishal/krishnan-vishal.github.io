@@ -1,5 +1,15 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 authoritative source and responsiveness follow-up
+
+Applied the reviewed production RBA authority URL correction from
+PR #518. Response `10786` confirmed the existing acquisition path.
+Scheduled Contentful BCP run `46110186124` verified 1,219 records.
+The follow-up branch carries the historical query cache, five country
+references and in-place Smart Card source details. Live publication
+growth and relay lifecycle evidence remain open. See
+[production growth evidence](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).
+
 ## 2026-11-28 — M44 PR #744 production release
 
 Pages run `46117397875`, publisher v19 and public intelligence v29 are

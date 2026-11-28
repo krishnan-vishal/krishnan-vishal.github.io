@@ -25,6 +25,7 @@ on:
       - 'assets/js/fx-ticker.js'
       - 'assets/js/smart-intelligence.mjs'
       - 'tests/m39/smart-intelligence.test.mjs'
+      - 'tests/m39/fx-intelligence.test.mjs'
       - 'tests/m40-server-aggregates.test.mjs'
       - '.github/workflows/g1-r07-tests.yml'
   workflow_dispatch:
@@ -50,7 +51,7 @@ jobs:
           node --check assets/js/smart-intelligence.mjs
       - name: Run G1 R07 tests
         run: >-
-          node --test tests/g1-r07-event-consolidation.test.mjs tests/m39/smart-intelligence.test.mjs
+          node --test tests/g1-r07-event-consolidation.test.mjs tests/m39/smart-intelligence.test.mjs tests/m39/fx-intelligence.test.mjs
           tests/m40-server-aggregates.test.mjs tests/m44-phase1-agentic-intelligence.test.mjs
           tests/m40/gpir-governed-ask.test.mjs tests/m39-t3-automatic-publication.test.mjs
       - name: Exercise the publisher graph in Deno

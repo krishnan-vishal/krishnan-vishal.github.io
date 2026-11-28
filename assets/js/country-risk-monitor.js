@@ -31,6 +31,7 @@ if (root) {
     let countries = [];
     let pageNumber = 1;
     let askRequest = 0;
+    let countryReferenceRequest;
 
     function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -191,13 +192,44 @@ if (root) {
     async function populateCountryEvidence(country, target) {
         if (!target) return;
         const origin = globalThis.GPIR_SUPABASE_PUBLIC_CONFIG?.url;
+        countryReferenceRequest ||= fetch("/assets/data/country-intelligence.json")
+            .then(response => response.ok ? response.json() : null)
+            .then(data => data?.paymentEvidence || {})
+            .catch(() => ({}));
+        const repository = document.createElement("div");
+        target.append(repository);
+        void countryReferenceRequest.then(evidence => {
+            const records = evidence[country.countryCode2];
+            if (!target.isConnected || !Array.isArray(records) || !records.length) return;
+            const heading = document.createElement("h3");
+            heading.textContent = "Official payments evidence";
+            const list = document.createElement("ul");
+            for (const record of records) {
+                let url;
+                try { url = new URL(record.url); } catch { continue; }
+                if (url.protocol !== "https:" || url.username || url.password) continue;
+                const item = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = url.href;
+                link.textContent = record.title;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                const detail = document.createElement("p");
+                detail.textContent = record.summary;
+                const date = document.createElement("small");
+                date.textContent = [record.publishedDate, `Verified ${record.retrievedDate}`].filter(Boolean).join(" · ");
+                item.append(link, detail, date);
+                list.append(item);
+            }
+            if (list.childElementCount) target.prepend(heading, list);
+        });
         try {
             const records = await retrieveGovernedCountryEvidence(origin, country);
             if (!target.isConnected) return;
             const { citations } = summarizeGovernedAsk(country.countryName, records);
             const links = citations.filter(item => item.url);
             if (!links.length) {
-                target.textContent = "No related GPIR publication is available for this profile.";
+                repository.textContent = "No related GPIR publication is available for this profile.";
                 return;
             }
             const heading = document.createElement("h3");
@@ -213,9 +245,9 @@ if (root) {
                 li.append(link);
                 list.append(li);
             }
-            target.replaceChildren(heading, list);
+            repository.replaceChildren(heading, list);
         } catch {
-            if (target.isConnected) target.textContent = "Related GPIR publications are temporarily unavailable.";
+            if (target.isConnected) repository.textContent = "Related GPIR publications are temporarily unavailable.";
         }
     }
 

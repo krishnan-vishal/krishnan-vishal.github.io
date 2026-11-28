@@ -81,3 +81,10 @@ mode on v19. Live ranked ASK returned the archived citation and the country
 endpoint returned three Singapore citations within the guest preview.
 The public FX snapshot matched the complete 134-pair contract. See
 [the release receipts](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-744--28-november-2026).
+
+**PA-008 authority registry checkpoint | 2026-11-28:** Applied the
+reviewed RBA URL assignment from PR #518 to existing source `TEST-RBA-01`.
+Production readback verified the official authority URL and existing feed,
+tier, method and parser. Acquisition receipt `10786` returned HTTP 200
+and produced zero new entries. See
+[source evidence and recovery guard](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).

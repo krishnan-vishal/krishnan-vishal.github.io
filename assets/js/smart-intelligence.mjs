@@ -490,7 +490,9 @@ function recordMarkup(record) {
   const recordClass = kind ? kind.label : record.lifecycle;
   const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
     record.referenceDate ? `${kind?.id === 'technical' ? describeTechnicalChange(record).type : 'Verified change'} dated ${record.referenceDate}` : isoDay(record.publishedAt);
-  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(record.sourceName)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read authoritative source</a>`}</article>`;
+  const source = record.sourceTrustTier
+    ? `${record.sourceName} · Source tier ${record.sourceTrustTier}` : record.sourceName;
+  return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(source)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read cited source</a>`}</article>`;
 }
 
 function evidenceTag(record) {

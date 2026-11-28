@@ -331,3 +331,34 @@ The existing Smart Intelligence Cards feed returned three cited records
 in 1.98 seconds. No supplier, subscription, credit,
 or infrastructure purchase accompanied this release. Account billing
 evidence was unavailable.
+
+## Production growth checkpoint — 28 November 2026
+
+The production registry had a blank official authority URL for
+`TEST-RBA-01`. Applied only the reviewed RBA assignment from [PR #518](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/518).
+The readback confirmed `https://www.rba.gov.au` and the existing media
+RSS, GREEN status, T1, acquisition method A and parser profile. Restoring
+the previous value would require changing only this row's authority URL
+back to NULL under the same source and feed guards.
+
+One invocation of the existing authenticated acquisition returned
+HTTP 200 under pg_net ID `10786` at 12:34 IST. It discovered one intake
+link already recorded and inserted zero rows. That prior record remained
+rejected by the existing Gate 2 score. The production readback at 12:44
+IST showed zero new publications and zero live-eligible items.
+
+The existing scheduled [Contentful BCP run 46110186124](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124)
+retained authenticated verification of 1,219 recovery records in
+[artifact 15249462533](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124/artifacts/15249462533).
+This reconciled the existing edition. The separate governed batch resumed
+as attempt 2 of run `46116934360` after the reviewed Payload Worker fix
+deployed. A new edition and its own recovery proof require separate receipts.
+
+The working branch offers a 30-second cache for underlying historical
+evidence, concurrent bounded queries using existing database filters,
+and five reviewed-source references in the existing country risk
+profile slots. Reader entitlements are evaluated on every request.
+The relay reads its own live projection and evaluates lifecycle time
+independently. The branch also surfaces the separate archive provenance
+inside the FX Card brief and source tier on Smart Intelligence evidence.
+These code changes require controlled release and live measurement.
