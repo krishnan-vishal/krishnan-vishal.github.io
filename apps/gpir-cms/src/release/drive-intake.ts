@@ -131,6 +131,7 @@ export const driveIntakeEndpoint: Endpoint = {
     const total = Number(req.headers.get('content-length'))
     if (secret.length < 32 || !/^[a-f0-9]{64}$/.test(signature)) return reply({ error: 'INTAKE_SIGNATURE_REQUIRED' }, 403)
     if (!Number.isSafeInteger(total) || total < 1 || total > 20_100_000) return reply({ error: 'INTAKE_SIZE_INVALID' }, 413)
+    let failureStage = 'REQUEST_PARSE'
     try {
       const data = await req.formData!()
       const file = data.get('file')
@@ -159,6 +160,7 @@ export const driveIntakeEndpoint: Endpoint = {
       const lookup = () => req.payload.find({ ...context, collection: 'research-publications', draft: true,
         where: { or: [{ sourceHash: { equals: hash } }, { canonicalUrlCandidate: { equals: route } },
           { slug: { equals: review.routeSlug } }, { publicationTitle: { equals: review.title } }] } })
+      failureStage = 'PUBLICATION_LOOKUP'
       const matched = await lookup()
       if (matched.totalDocs) {
         const exact = matched.docs.filter((doc: any) => doc.sourceHash === hash && doc.canonicalUrlCandidate === route &&
@@ -166,23 +168,29 @@ export const driveIntakeEndpoint: Endpoint = {
         if (matched.totalDocs !== 1 || exact.length !== 1) return reply({ error: 'INTAKE_PUBLICATION_COLLISION' }, 409)
         return reply({ status: 'EXISTING_RECORD', publicationId: exact[0].gpirPublicationId, route, categorySlug: review.chapterSlug })
       }
+      failureStage = 'MEDIA_LOOKUP'
       const existing = await resolveDriveMedia(req, hash)
+      failureStage = 'CHAPTER_RESOLUTION'
       const resolvedChapter = await resolveDriveChapter(req, review)
       const origin = String(process.env.GPIR_CORE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/, '')
       const key = process.env.GPIR_CORE_SUPABASE_SECRET_KEY || process.env.GPIR_SUPABASE_SECRET_KEY || ''
       if (!/^https:\/\/[^/]+$/.test(origin) || !key) return reply({ error: 'INTAKE_AUTHORITY_UNAVAILABLE' }, 503)
+      failureStage = 'IDENTITY_REQUEST'
       const response = await fetch(`${origin}/rest/v1/rpc/gpir_drive_draft_identity`, {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
         headers: authorityHeaders(key, { 'content-type': 'application/json' }),
         body: JSON.stringify({ p_sha256: hash }),
       })
       if (!response.ok) return reply({ error: 'INTAKE_IDENTITY_REFUSED' }, 503)
+      failureStage = 'IDENTITY_RESPONSE'
       const rows = await response.json() as { id: string; publication_id: string; lineage_id: string }[]
       const identity = Array.isArray(rows) && rows.length === 1 ? rows[0] : null
       if (!identity || !UUID.test(identity.id) || !GPIR_PUBLICATION_ID.test(identity.publication_id) || !GPIR_LINEAGE_ID.test(identity.lineage_id)) {
         return reply({ error: 'INTAKE_IDENTITY_INVALID' }, 409)
       }
+      failureStage = 'ACCESS_POLICY'
       await ensureDriveAccessPolicy(origin, key, identity)
+      failureStage = 'RELEASE_DECISION'
       const decision = await releaseDecision({
         gpirPublicationId: identity.publication_id,
         supabaseRecordId: identity.id,
@@ -192,6 +200,7 @@ export const driveIntakeEndpoint: Endpoint = {
       if (!decision.releaseEligible || decision.reviewState !== 'EVIDENCED' || decision.policyStatus !== 'ACTIVE') {
         return reply({ error: 'INTAKE_RELEASE_REFUSED' }, 409)
       }
+      failureStage = 'MEDIA_CREATE'
       const asset = existing || await req.payload.create({
         ...context, collection: 'media',
         file: { name: `${hash}.${jpg ? 'jpg' : 'png'}`, data: bytes, mimetype: file.type, size: bytes.length },
@@ -202,6 +211,7 @@ export const driveIntakeEndpoint: Endpoint = {
           reconciliationHash: review.reconciliationHash,
         } },
       })
+      failureStage = 'PUBLICATION_CREATE'
       const publication = await req.payload.create({ ...context, collection: 'research-publications', draft: false,
         context: { driveGovernedRelease: true }, data: {
         _status: 'published', validationStatus: 'PASS', accessClass: 'ENTITLED', migrationStatus: 'RECONCILED',
@@ -224,8 +234,10 @@ export const driveIntakeEndpoint: Endpoint = {
     } catch (error) {
       const approved = new Set(['INTAKE_CHAPTER_AMBIGUOUS', 'INTAKE_CHAPTER_CREATE_FAILED', 'INTAKE_CHAPTER_CANONICAL_CONFLICT', 'INTAKE_POLICY_UNAVAILABLE',
         'INTAKE_POLICY_AMBIGUOUS', 'INTAKE_POLICY_REFUSED', 'INTAKE_POLICY_CONFLICT', 'INTAKE_MEDIA_AMBIGUOUS'])
-      const reason = error instanceof Error && approved.has(error.message) ? error.message : 'INTAKE_FAILED_RETRY_SAFE'
-      return reply({ error: reason }, reason === 'INTAKE_FAILED_RETRY_SAFE' ? 503 : 409)
+      // Never expose exception messages, SQL, credentials, provider response bodies or file content.
+      // One of these fixed codes identifies only the existing failing intake operation.
+      const reason = error instanceof Error && approved.has(error.message) ? error.message : `INTAKE_FAILED_${failureStage}`
+      return reply({ error: reason }, reason.startsWith('INTAKE_FAILED_') ? 503 : 409)
     }
   },
 }
