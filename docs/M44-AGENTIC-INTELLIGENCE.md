@@ -177,3 +177,48 @@ follow-up migration returns at most two observed dates per pair. A read-only
 production query returned 268 rows, all 134 archive pairs and zero missing
 pairs. The corrective migration requires the governed review and release.
 Account billing and signed-in FX browser performance remain unverified.
+
+## Production acceptance after PR #731
+
+The owner merged PR #731 as `b5334c033a98aa1f2e45c5889d43a89697dc58e3`.
+The PostgreSQL and Security and Integrity checks passed, and Pages run
+46088055991 succeeded. Supabase applied the reviewed SQL as
+`20261128003206 m44_fx_projection_pair_coverage`.
+
+The production RPC returned 268 records, exactly two per pair, for all 134
+configured pairs. The public HTTP response matched the 134-pair universe
+with no missing or extra pair. USD/INR returned 92.520426 for 27 November
+and a previous close of 92.345212 for 26 November. The homepage displayed
+USD/INR at 92.5204 (+0.19%) in its 26-pair featured ticker. Currency Explorer
+also displayed the non-featured USD/NGN pair through the existing selectors.
+
+The archive contained 16,846 rows before and after the migration. A digest
+over all pre-existing rows ordered by ID was unchanged
+(`3a8c397175b30b583fe78199be4c0843`). RPC execution remained service-role
+only and the unauthenticated reader endpoint returned 401. No Smart Card
+assets were changed in PR #731. The signed-in timing requires an authenticated
+reader session.
+
+ASK GPIR and history each returned announcement
+`6b6ffb23-87ba-4dae-9e7a-618797b628eb` as historical and archived with
+the cited source and exact timestamp `2026-11-27T09:00:53Z`. The audit
+records automatic publication at `2026-11-27T09:50:03.235621Z` at
+confidence 100. A live observation of a post-release article is pending.
+
+The production HTTP receipts for the 00:20 and 00:30 UTC scheduled publisher
+calls timed out at the inherited five-second limit despite successful SQL
+queueing. The existing job 4 gained an explicit `timeout_milliseconds :=
+120000`. A reverse-replacement digest comparison confirmed that the
+timeout was the only command change. Its ten-minute cadence, request body
+and Vault authorization were preserved. The original command is recovered
+by removing the exact added timeout argument under the same job and digest
+guards. No new cron job or additional SQL migration was used for this
+configuration correction.
+
+From 06:10 to 11:30 IST on 28 November, while ChatGPT Work was unavailable,
+Supabase matched 33 of 33 ten-minute cron runs to HTTP 200 responses from
+LangGraph OSS 1.7.5 in `deterministic-no-llm` mode. There were zero HTTP
+timeouts and zero new publications. The first and last cron run IDs were
+73716 and 74744, matching response IDs 10702 and 10772. The final receipt
+reported all seven graph stages and a successful read of 62 editorial
+entries. No manual publisher call was used in this interval.
