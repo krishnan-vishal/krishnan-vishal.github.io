@@ -92,11 +92,17 @@ function payloadDashboard(value, mediaOrigin) {
   if (!value || value.role !== 'PRIMARY_PUBLICATION_DASHBOARD' ||
       typeof mediaOrigin !== 'string' || !/^https:\/\/[^/]+$/.test(mediaOrigin)) return null;
   let url;
-  try { url = new URL(value.src); } catch { return null; }
-  if (url.origin !== mediaOrigin || url.search || url.hash ||
-      !/^\/api\/media\/file\/[a-f0-9]{64}\.(?:png|jpe?g|webp)$/i.test(url.pathname) ||
-      !/^[a-f0-9]{64}$/i.test(value.sha256 || '') ||
-      !url.pathname.split('/').pop().toLowerCase().startsWith(value.sha256.toLowerCase() + '.')) return null;
+  try { url = new URL(value.src, 'https:'); } catch { return null; }
+  if (!/^[a-f0-9]{64}$/i.test(value.sha256 || '') || url.search || url.hash) return null;
+  const payloadMedia = url.origin === mediaOrigin &&
+    /^\/api\/media\/file\/[a-f0-9]{64}\.(?:png|jpe?g|webp)$/i.test(url.pathname) &&
+    url.pathname.split('/').pop().toLowerCase().startsWith(value.sha256.toLowerCase() + '.');
+  // Two previously approved images have immutable Contentful asset references.
+  // Allow only GPIR's existing Contentful delivery space, never arbitrary CDN
+  // domains, editor-upload URLs, redirects, or Google Drive.
+  const contentfulMedia = url.origin === 'https://images.ctfassets.net' &&
+    /^\/zym0dk277ju5\/[A-Za-z0-9]{10,}\/[a-f0-9]{32}\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp)$/i.test(url.pathname);
+  if (!payloadMedia && !contentfulMedia) return null;
   const alt = typeof value.alt === 'string' ? value.alt.trim().slice(0,280) : '';
   if (!alt) return null;
   return Object.freeze({
