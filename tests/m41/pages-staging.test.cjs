@@ -84,3 +84,28 @@ test('phased staging rejects any changed Observatory preview even with guard', t
     assert.throws(() => stageEdition(f.root, f.output, f.manifest), /Newer approved Observatory ASK GPIR page was not retained/);
     assert.equal(fs.readFileSync(path.join(f.root, 'index.html'), 'utf8'), 'old index.html');
 });
+
+test('stage accepts newer unchanged Git engine files outside the historical signed engine count', t => {
+    const f = fixture(t);
+    // The manifest contains one historical engine; newer Git work has added
+    // another engine to the current website without changing CMS-managed bytes.
+    for (const base of [f.root, f.output])
+        fs.writeFileSync(path.join(base, 'new-engine.js'), 'current protected engine');
+    const markerPath = path.join(f.output, 'assets/data/cms-source.json');
+    const marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
+    marker.protectedEngineFiles = site.inventory(f.output, f.manifest.sourceCommit).protectedFiles.length;
+    assert.ok(marker.protectedEngineFiles > f.manifest.protectedFiles.length);
+    fs.writeFileSync(markerPath, JSON.stringify(marker));
+    const result = stageEdition(f.root, f.output, f.manifest);
+    assert.equal(result.snapshot, f.manifest.snapshot);
+    assert.equal(fs.readFileSync(path.join(f.root, 'new-engine.js'), 'utf8'), 'current protected engine');
+});
+test('stage still rejects a forged current-engine count marker', t => {
+    const f = fixture(t);
+    const markerPath = path.join(f.output, 'assets/data/cms-source.json');
+    const marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
+    marker.protectedEngineFiles += 10;
+    fs.writeFileSync(markerPath, JSON.stringify(marker));
+    assert.throws(() => stageEdition(f.root, f.output, f.manifest), /Build completion marker differs/);
+    assert.equal(fs.readFileSync(path.join(f.root, 'index.html'), 'utf8'), 'old index.html');
+});
