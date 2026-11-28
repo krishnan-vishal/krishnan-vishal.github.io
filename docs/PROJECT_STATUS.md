@@ -1,5 +1,13 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 PR #759 live
+
+Pages run `46151053871` and production Edge revisions `72/20/31` shipped
+the reviewed adaptive acquisition release. Hyperswitch receipt `10884`
+added six archived references and the public repository reached 6,660.
+Technical ranked ASK and the four source citations are live.
+See [release and verification](M44-AGENTIC-INTELLIGENCE.md#pr-759-production-release--28-november-2026).
+
 ## 2026-11-28 — M44 adaptive acquisition and evidence reuse
 
 Production history reached 6,654 records after two verified technical

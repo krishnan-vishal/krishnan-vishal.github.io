@@ -498,3 +498,54 @@ distribution and Contentful recovery remain on their governed paths.
 The code and country citations await owner-approved Pages and Edge release.
 Rollback uses the preceding three Edge bundles and a reviewed Pages revert.
 The production technical records retain their canonical archive identities.
+
+## PR #759 production release — 28 November 2026
+
+Owner-merged commit `59248668c6c36a6f44413390f4e4eb41344ef9c6`
+went live in [Pages run 46151053871](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46151053871).
+The served FX entry point, versioned FX module, ASK module and country data
+matched the approved bytes. The four country citations are in the live
+dataset. The deployed FX evidence selector mapped them to AUD/JPY,
+USD/BRL and USD/NGN using live registry data. Both the FX and country
+browser routes required reader sign-in, so signed-in display remains open.
+
+| Supabase Edge Function | Active version | Bundle digest | Recovery version |
+| --- | ---: | --- | ---: |
+| `gpir-intelligence-fetch` | 72 | `794515bce72f7acb2a2d91b79330b1bed996e19f6523088685670b430ec273b2` | 71 |
+| `gpir-intelligence-publish` | 20 | `d75c9ca93e57a8f5e2f5ca6197c86254da96dcd568be9e2448742e4af430cd76` | 19 |
+| `gpir-public-intelligence` | 31 | `1c5c26debe38e054ec2d52072d30127f99b1219ebddf4fc36bc929bc42067196` | 30 |
+
+Production bundle readback matched the submitted sources. Acquisition and
+publisher JWT settings stayed enabled. The public-intelligence bundle
+retained the preceding live reader-entitlement helper's email confirmation
+requirement. Unauthenticated acquisition, publisher and reader-summary
+requests returned 401. The [FX snapshot](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-fx-snapshot)
+matched all 134 configured pair identities, including USD/INR.
+
+Hyperswitch acquisition receipt `10884` wrote six previously unseen
+official connector changes. Durable run `c53ffe2e-e1aa-41ed-8abb-be90862fe5f9`
+recorded the complete 1–7 November 2024 period, with no truncation or
+duplicates. The [2024 technical archive](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&collection=technical&year=2024&limit=400)
+returned the six canonical rows as archived. The [full repository](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?scope=history&limit=2)
+grew from 6,654 to 6,660. [Technical ASK](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=ask&collection=technical&match=ranked&term=hyperswitch&term=release&limit=5)
+returned 16 preview results and ranked the official Hyperswitch v1.131.0
+citation first in a 5,434 ms sample.
+
+The completed technical backfill is a retrospective operator run. The source
+stores its exact range in the existing ingestion log. Following this first
+explicit saved technical range, the adaptive selector can resume from that
+historical end because the preceding current-range version did not persist
+its date boundaries. Canonical deduplication remains active.
+
+The existing Atlas acquisition at 19:25 IST found zero unseen articles.
+Unattended publisher run `76286` at 19:30 IST returned receipt `10886`,
+HTTP 200, LangGraph OSS 1.7.5 and `deterministic-no-llm`, with no timeout.
+All eligible adaptive sources were still in their cooldowns. MAS was the
+next source due, at the 22:00 IST slot following its failed feed lookup.
+FinTech Futures remained in access-error backoff. There were zero new
+announcement publications, zero live-eligible relay items and zero new
+linked authorities. The candidate query found zero pending or review
+items that matched published Tier 1 evidence under the exact join rules.
+Automatic rotation, retry recovery and a live corroboration event remain
+open. This release made no purchases or spending commitments. Account
+billing readback was unavailable. Contentful recovery is independent.

@@ -3602,3 +3602,12 @@ authoritative review evidence within the deployed LangGraph architecture.
 Four country citations and their FX reuse have been prepared within the
 existing surfaces. Owner review, release and live verification remain open.
 See [production receipts and rollback](M44-AGENTIC-INTELLIGENCE.md#adaptive-acquisition-and-evidence-reuse--28-november-2026).
+
+## 2026-11-28 — M44 PR #759 production release and repository growth
+
+The owner-merged release reached Pages and the three reviewed Supabase
+functions. Production receipt `10884` stored six Hyperswitch references
+with a completed historical checkpoint. All six were returned by the
+live 2024 technical archive and the overall repository reached 6,660.
+Ranked technical ASK returned the primary Hyperswitch release citation.
+See [production receipts and recovery versions](M44-AGENTIC-INTELLIGENCE.md#pr-759-production-release--28-november-2026).

@@ -115,3 +115,10 @@ receipt `10875` added two deduplicated official Hyperswitch references.
 Both canonical records were returned by the technical archive and the
 full repository total reached 6,654. They retain their technical-only
 classification. See [production receipts](M44-AGENTIC-INTELLIGENCE.md#adaptive-acquisition-and-evidence-reuse--28-november-2026).
+
+**PA-008 adaptive acquisition production checkpoint | 2026-11-28:**
+PR #759 released through Pages run `46151053871` and Edge revisions
+`72/20/31`. Receipt `10884` added six verified technical references under
+the existing ingestion contract. The live archive returned all six and
+the full repository reached 6,660. Ranked technical ASK returned the
+official release citation. See [the release receipts and recovery versions](M44-AGENTIC-INTELLIGENCE.md#pr-759-production-release--28-november-2026).
