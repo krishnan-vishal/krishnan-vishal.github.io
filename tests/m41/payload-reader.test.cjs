@@ -140,6 +140,7 @@ test('owner-deferred four Git-managed routes survive a signed Payload edition un
         fs.mkdirSync(path.dirname(target), { recursive: true });
         fs.writeFileSync(target, 'existing Git page: ' + page);
     }
+    fs.mkdirSync(path.join(f.output, 'assets/data'), { recursive: true });
     const marker = await materialize(f.output, f.env, f.fetchImpl);
     assert.equal(marker.snapshot, f.manifest.snapshot);
     for (const page of pages) {
