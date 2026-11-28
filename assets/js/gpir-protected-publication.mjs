@@ -202,6 +202,12 @@ export async function hydrateProtectedPublication({ document = globalThis.docume
   const main = document?.querySelector?.('[data-gpir-entitlement="gpir-publication"]');
   const container = document?.querySelector?.('#gpir-protected-content');
   if (!main || !container) return false;
+  // Reader auth initializes the shared Supabase client asynchronously. Wait
+  // for the existing session handoff before deciding a signed-in reader is
+  // unauthorized; never manufacture an ALLOW decision in the browser.
+  if (!config && globalThis.GPIRReaderAuth?.sessionReady) {
+    try { await globalThis.GPIRReaderAuth.sessionReady; } catch {}
+  }
   const runtime = config || { supabase: globalThis.GPIR_SUPABASE_CLIENT,
     endpoint: main.dataset.gpirEdgeEndpoint };
   const publication = await requestProtectedPublication({ supabase: runtime.supabase,
