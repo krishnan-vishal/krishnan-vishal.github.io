@@ -88,7 +88,7 @@ async function main() {
   const clientId = value('GPIR_DRIVE_CLIENT_ID')
   if (tokenInfo.audience !== clientId && tokenInfo.issued_to !== clientId)
     throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
-  const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\\s+/).filter(Boolean))
+  const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\s+/).filter(Boolean))
   if (!['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive']
     .some(scope => grantedScopes.has(scope)))
     throw new Error('DRIVE_OAUTH_SCOPE_INSUFFICIENT')
