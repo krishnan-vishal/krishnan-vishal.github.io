@@ -48,3 +48,11 @@ ASK citations or verified production expenditure.
 `ac9db639fa566ee9ff937d69ccfe92d569457c05` passed all seven triggered workflows,
 including PostgreSQL acceptance and Security and Integrity. Evidence advances to
 `CI_PASS (UNDEPLOYED)`. The production exclusions above remain in force.
+
+**PA-008 production checkpoint | 2026-11-28:** Owner-approved PR #728
+merged as `252aa000ecb240bbc06c1dcd9e0959a210b33923`. Pages run
+46087144400 passed, and production publisher receipt 10698 returned HTTP 200
+with LangGraph OSS 1.7.5 and all seven recorded stages in deterministic mode.
+This verifies production graph execution. Complete live FX pair coverage,
+a post-release relay-to-history observation, and billing reconciliation
+remain pending. See [the production receipt](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).

@@ -1,5 +1,14 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 deployed with FX coverage correction in review
+
+PR #728 and its Pages release succeeded. All four Edge Functions and the first
+FX projection migration are active. LangGraph OSS execution was verified by
+production receipt 10698. The FX response truncation correction is on
+`codex/m44-production-fx-coverage`. Live pair coverage, new alert lifecycle
+evidence, growth beyond the baselines, and billing still require acceptance.
+See the [production checkpoint](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).
+
 ## 2026-11-28 — M44 Phase 1 release candidate; production evidence pending
 
 - Isolated branch `codex/m44-agentic-intelligence` starts from `origin/main` `b2b2a277` and leaves the dirty primary checkout, M43 archival, Central Command and coding automation untouched.

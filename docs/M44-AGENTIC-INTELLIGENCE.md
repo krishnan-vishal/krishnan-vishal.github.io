@@ -141,3 +141,39 @@ accepted. Database recovery is
 `supabase/rollback/m44-agentic-intelligence.rollback.sql`; Edge recovery is a
 redeploy of the preceding reviewed revisions; Pages recovery is a reviewed
 revert through the existing release chain.
+
+## Production checkpoint
+
+On 2026-11-28, the owner authorized the release of merged PR #728 at
+`252aa000ecb240bbc06c1dcd9e0959a210b33923`. GitHub Pages run
+[46087144400](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46087144400)
+succeeded and the released ticker and FX Intelligence assets were fetched on
+the production domain. The Payload source marker also returned HTTP 200.
+
+Supabase recorded `m44_fx_snapshot_projection` as migration `20261128001856`.
+Readback confirmed execute access for `service_role` only. Production function
+receipts were `gpir-public-intelligence` v28, `gpir-fx-snapshot` v1,
+`gpir-intelligence-publish` v18 and `gpir-reader-summary` v41. A guest call
+to the reader summary returned HTTP 401.
+
+Publisher response 10698 at 00:22:14 UTC returned HTTP 200, with all seven
+LangGraph OSS 1.7.5 stages, the `deterministic-no-llm` header and a successful
+editorial read of 62 entries. A cold scheduled invocation reached the existing
+five-second pg_net response timeout before that successful controlled invocation.
+
+The relay returned HTTP 200 in 1,526 ms, compared with the 2,553 ms baseline
+single probe. History still reported 6,652 records. The last qualifying source
+item, `6b6ffb23-87ba-4dae-9e7a-618797b628eb`, was automatically published
+at 09:50:03 UTC on 2026-11-27 with confidence 100 and the exact source
+timestamp of 09:00:53 UTC. It was past its 21:00:53 UTC expiry at the production
+check and remained approved in the archive. This is audit and retirement
+evidence for a pre-release article. A new article observed through the deployed
+relay remains pending.
+
+The public FX endpoint served observations through 27 November, but returned
+only 42 pairs because the REST gateway capped the 3,248-row projection.
+The archive retained 16,846 rows (15,908 dated) and all 134 pairs. The
+follow-up migration returns at most two observed dates per pair. A read-only
+production query returned 268 rows, all 134 archive pairs and zero missing
+pairs. The corrective migration requires the governed review and release.
+Account billing and signed-in FX browser performance remain unverified.

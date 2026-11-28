@@ -3505,3 +3505,14 @@ targeted tests (46086186311), Security and Integrity (46086186307), M40 gate
 (46086186279), BIS/GDELT (46086186273), M37 gate (46086186242) and Payload CMS
 (46086186235). This is CI acceptance only; Production is unchanged and owner
 review, merge, deployment and live evidence remain required.
+
+## 2026-11-28 — M44 Phase 1 production release and FX coverage correction
+
+Owner-approved PR #728 merged as `252aa000ecb240bbc06c1dcd9e0959a210b33923`.
+Pages run 46087144400 passed. The reviewed Supabase migration and four Edge
+functions are deployed. Publisher receipt 10698 verified LangGraph OSS 1.7.5,
+deterministic execution, and a successful editorial read. The public FX
+response was limited to 42 pairs by the Data API row cap despite the complete
+134-pair archive. The follow-up SQL returned all 134 pairs in a read-only
+production rehearsal. Live acceptance remains partial. See the
+[production checkpoint](M44-AGENTIC-INTELLIGENCE.md#production-checkpoint).
