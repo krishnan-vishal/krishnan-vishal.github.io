@@ -76,6 +76,37 @@ test('verified media is reused only when the source hash resolves to one Payload
   await assert.rejects(resolveDriveMedia(req, asset.sourceSha256), /INTAKE_MEDIA_AMBIGUOUS/)
 })
 
+test('approved Stablecoins mapping reuses its canonical root chapter and refuses alternatives', async () => {
+  const chapterSlug = 'stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis'
+  const canonicalUrl = `https://fintechoisis.com/${chapterSlug}/`
+  const chapter = { id: 'existing', slug: chapterSlug, canonicalId: 'chapter:VK-GPIR-P-000000000018-2', canonicalUrl }
+  const review = {
+    hash: 'a'.repeat(64), title: 'Title', summary: 'Summary', body: 'Body', chapterSlug,
+    routeSlug: 'example', category: 'C2C', menuPath: ['Money Movement Ecosystem', 'Stable Coin & CBDC'],
+    sourceFileId: 'drive-file-fixture', sourceFileName: 'fixture.jpg', reconciliationHash: 'b'.repeat(64),
+  }
+  let docs = [chapter]
+  const req = { payload: {
+    find: async ({ where }: any) => {
+      assert.deepEqual(where.or, [
+        { slug: { equals: chapterSlug } }, { canonicalId: { equals: chapter.canonicalId } },
+        { canonicalUrl: { equals: canonicalUrl } },
+      ])
+      return { docs, totalDocs: docs.length }
+    },
+    create: async () => assert.fail('Existing chapter mapping cannot create a chapter'),
+  } }
+  assert.deepEqual(await resolveDriveChapter(req, review), { chapter, status: 'REUSED' })
+  docs = [{ ...chapter, canonicalId: 'different-chapter' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [{ ...chapter, canonicalUrl: `https://fintechoisis.com/pages/chapters/${chapterSlug}.html` }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [chapter, { ...chapter, id: 'duplicate' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_AMBIGUOUS/)
+  docs = []
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+})
+
 test('idempotent retry returns the exact existing publication before allocating another identity or media record', async () => {
   const bytes = Buffer.from('ffd8ff', 'hex')
   const hash = (await import('node:crypto')).createHash('sha256').update(bytes).digest('hex')

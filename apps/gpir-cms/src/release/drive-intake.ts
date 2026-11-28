@@ -21,6 +21,8 @@ export type DriveReview = {
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const hashPattern = /^[a-f0-9]{64}$/
+const stablecoinsChapterSlug = 'stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis'
+const stablecoinsChapterIdentity = 'chapter:VK-GPIR-P-000000000018-2'
 
 // Cloudflare Workers rejects fetch redirect:'error' before dispatch. Use 'manual'
 // to prevent following redirected authority requests and reject non-2xx responses.
@@ -32,19 +34,28 @@ function authorityHeaders(key: string, extra: Record<string, string> = {}) {
 }
 
 export async function resolveDriveChapter(req: any, review: DriveReview) {
-  const canonicalUrl = `https://fintechoisis.com/pages/chapters/${review.chapterSlug}.html`
+  // The approved two-level Stablecoins mapping refers to the migrated
+  // chapter's root publication route. The old /pages/chapters/ URL redirects.
+  const stablecoinsChapter = review.menuPath.length === 2 && review.chapterSlug === stablecoinsChapterSlug
+  const canonicalId = stablecoinsChapter ? stablecoinsChapterIdentity : review.chapterSlug
+  const canonicalUrl = stablecoinsChapter
+    ? `https://fintechoisis.com/${stablecoinsChapterSlug}/`
+    : `https://fintechoisis.com/pages/chapters/${review.chapterSlug}.html`
   const context = { req, overrideAccess: true, depth: 0 as const, limit: 2 as const }
   const find = () => req.payload.find({ ...context, collection: 'chapters', where: { or: [
-    { slug: { equals: review.chapterSlug } }, { canonicalId: { equals: review.chapterSlug } },
+    { slug: { equals: review.chapterSlug } }, { canonicalId: { equals: canonicalId } },
     { canonicalUrl: { equals: canonicalUrl } },
   ] } })
-  let result = await find()
-  if (result.totalDocs > 1) throw new Error('INTAKE_CHAPTER_AMBIGUOUS')
-  if (result.totalDocs === 1) {
-    const chapter = result.docs[0]
-    if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+  const reuse = (chapter: any) => {
+    if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl ||
+        (stablecoinsChapter && chapter.canonicalId !== stablecoinsChapterIdentity)) {
+      throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+    }
     return { chapter, status: 'REUSED' as const }
   }
+  let result = await find()
+  if (result.totalDocs > 1) throw new Error('INTAKE_CHAPTER_AMBIGUOUS')
+  if (result.totalDocs === 1) return reuse(result.docs[0])
   if (review.menuPath.length === 2) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
   try {
     const chapter = await req.payload.create({ ...context, collection: 'chapters', data: {
@@ -64,11 +75,7 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
     return { chapter, status: 'CREATED' as const }
   } catch {
     result = await find()
-    if (result.totalDocs === 1) {
-      const chapter = result.docs[0]
-      if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
-      return { chapter, status: 'REUSED' as const }
-    }
+    if (result.totalDocs === 1) return reuse(result.docs[0])
     throw new Error(result.totalDocs > 1 ? 'INTAKE_CHAPTER_AMBIGUOUS' : 'INTAKE_CHAPTER_CREATE_FAILED')
   }
 }

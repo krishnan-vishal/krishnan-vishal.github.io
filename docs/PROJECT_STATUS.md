@@ -1,5 +1,16 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 PR #746 live and existing chapter reconciliation
+
+Pages run `46121161680` and public intelligence v30 served the reviewed
+release. Repeat request samples measured 69–71 ms for ASK and
+120–1,145 ms for history. The first responses were slower. Five official
+country citations and both Smart Card assets were verified on Pages.
+The approved Stablecoins mapping points to the existing root canonical
+chapter. The corrective PR is required before the signed Payload batch can
+finish and emit its own Contentful recovery receipt. See
+[production evidence](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-746--28-november-2026).
+
 ## 2026-11-28 — M44 authoritative source and responsiveness follow-up
 
 Applied the reviewed production RBA authority URL correction from
