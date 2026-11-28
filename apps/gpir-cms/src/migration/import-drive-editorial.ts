@@ -84,9 +84,15 @@ async function main() {
   acquisitionStage = 'DRIVE_OAUTH_CLIENT_AND_SCOPE'
   const tokenInfo = await (await request(
     'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(oauth.access_token),
-    {}, 'Drive token inspection')).json() as { audience?: string; issued_to?: string; scope?: string }
+    {}, 'Drive token inspection')).json() as {
+      azp?: string; aud?: string; audience?: string; issued_to?: string; scope?: string
+    }
   const clientId = value('GPIR_DRIVE_CLIENT_ID')
-  if (tokenInfo.audience !== clientId && tokenInfo.issued_to !== clientId)
+  // Google's current tokeninfo access-token response identifies the authorizing
+  // OAuth client via azp; retain issued_to for legacy response compatibility.
+  // A token's audience may differ from its authorized presenter.
+  const authorizedClient = tokenInfo.azp || tokenInfo.issued_to || tokenInfo.aud || tokenInfo.audience
+  if (authorizedClient !== clientId)
     throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
   const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\s+/).filter(Boolean))
   if (!['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive']
