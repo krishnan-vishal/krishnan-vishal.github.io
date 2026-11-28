@@ -120,7 +120,13 @@ async function main() {
   const authorization = 'users API-Key ' + value('PAYLOAD_RELEASE_API_KEY')
   const signingSecret = value('GPIR_RELEASE_SIGNING_SECRET')
   acquisitionStage = 'DRIVE_OAUTH'
-  const accessToken = await refreshDriveAccessToken()
+  // GitHub WIF grants a short-lived Google service-account Drive token.
+  // Legacy refresh remains available only for non-federated callers.
+  const federated = process.env.GPIR_DRIVE_WIF_ACCESS_TOKEN?.trim()
+  const serviceAccount = process.env.GPIR_DRIVE_WIF_SERVICE_ACCOUNT?.trim()
+  if (federated && !/^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9.-]+\.iam\.gserviceaccount\.com$/.test(serviceAccount || ''))
+    throw new Error('DRIVE_WIF_SERVICE_ACCOUNT_INVALID')
+  const accessToken = federated || await refreshDriveAccessToken()
   const headers = { authorization: `Bearer ${accessToken}` }
   // Confirm GitHub's existing refresh-token exchange grants the intended account,
   // approved OAuth client, and full read access before processing any files.
@@ -131,13 +137,13 @@ async function main() {
     {}, 'Drive token inspection')).json() as {
       azp?: string; aud?: string; audience?: string; issued_to?: string; scope?: string
     }
-  const clientId = value('GPIR_DRIVE_CLIENT_ID')
-  // Google's current tokeninfo access-token response identifies the authorizing
-  // OAuth client via azp; retain issued_to for legacy response compatibility.
-  // A token's audience may differ from its authorized presenter.
-  const authorizedClient = tokenInfo.azp || tokenInfo.issued_to || tokenInfo.aud || tokenInfo.audience
-  if (authorizedClient !== clientId)
-    throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
+  if (!federated) {
+    // Legacy user OAuth: validate the exact approved client.
+    const clientId = value('GPIR_DRIVE_CLIENT_ID')
+    const authorizedClient = tokenInfo.azp || tokenInfo.issued_to || tokenInfo.aud || tokenInfo.audience
+    if (authorizedClient !== clientId)
+      throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
+  }
   const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\s+/).filter(Boolean))
   // drive.file is a valid narrower grant, but only for explicitly app-authorized
   // files. The importer still requires authenticated metadata AND full media
@@ -149,12 +155,19 @@ async function main() {
     .some(scope => grantedScopes.has(scope)))
     throw new Error('DRIVE_OAUTH_SCOPE_INSUFFICIENT')
   acquisitionStage = 'DRIVE_OAUTH_ACCOUNT'
-  const driveAbout = await (await request(
-    'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
-    { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
-  if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
-    throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
-  console.log('GPIR Drive OAuth: approved account, client and usable Drive scope verified; per-file access and SHA-256 checks remain mandatory')
+  if (!federated) {
+    const driveAbout = await (await request(
+      'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
+      { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
+    if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
+      throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
+  }
+  // WIF identity is enforced by GitHub OIDC, Google IAM and service-account
+  // impersonation. Drive permissions are still checked by authenticated reads
+  // and the existing pinned parent/file identity and SHA-256 verification.
+  console.log(federated
+    ? 'GPIR Drive WIF scope verified; approved folder, file and hash checks remain mandatory'
+    : 'GPIR Drive OAuth: approved account, client and scope verified; file checks remain mandatory')
   const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
   const mappingFolderId = value('GPIR_DRIVE_MAPPING_FOLDER_ID')
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
@@ -306,7 +319,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_WIF_SERVICE_ACCOUNT_INVALID|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
