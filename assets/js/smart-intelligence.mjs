@@ -236,6 +236,7 @@ export function normalizeLiveAlerts(value, historical) {
       eventId: item.eventId, memberIds: item.memberIds, supportingSources: item.supportingSources,
       country: clean(item.country, 100), region: clean(item.region, 100), geography: clean(item.geography, 180),
       sourceName: clean(item?.source?.name || item?.sourceName, 140) || 'Authoritative source',
+      sourceTrustTier: clean(item?.source?.trustTier || item?.sourceTrustTier, 20),
       lifecycle: 'LIVE', outcomeStatus: clean(item.outcomeStatus, 40)
     };
     record.regionKey = inferRegion(record);
@@ -484,14 +485,17 @@ function evidenceMarkup(record, kind) {
   </div>`;
 }
 
+function sourceProvenanceLabel(record) {
+  return record.sourceTrustTier ? `${record.sourceName} · Source tier ${record.sourceTrustTier}` : record.sourceName;
+}
+
 function recordMarkup(record) {
   const geography = [...new Set([record.country, record.region, record.geography].filter(Boolean))].join(' · ') || 'Geography not classified';
   const kind = evidenceKind(record);
   const recordClass = kind ? kind.label : record.lifecycle;
   const dateLabel = record.observationPeriod ? `Observation ${record.observationPeriod}` :
     record.referenceDate ? `${kind?.id === 'technical' ? describeTechnicalChange(record).type : 'Verified change'} dated ${record.referenceDate}` : isoDay(record.publishedAt);
-  const source = record.sourceTrustTier
-    ? `${record.sourceName} · Source tier ${record.sourceTrustTier}` : record.sourceName;
+  const source = sourceProvenanceLabel(record);
   return `<article class="smi-record"${kind ? ` data-evidence="${kind.id}"` : ''}><div class="smi-record-meta"><span class="smi-pill"${kind ? ` data-evidence="${kind.id}"` : ''}>${escapeHtml(recordClass)}</span><span class="smi-pill">${escapeHtml(record.category)}</span></div><h3>${escapeHtml(record.title)}</h3><p>${escapeHtml(record.summary)}</p>${evidenceMarkup(record, kind)}<div class="smi-record-meta"><span>${escapeHtml(dateLabel)}</span><span>· ${escapeHtml(geography)}</span><span>· ${escapeHtml(source)}</span></div>${kind ? '' : `<a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Read cited source</a>`}</article>`;
 }
 
@@ -516,7 +520,7 @@ function themeTags(record, limit = 3) {
     .map(theme => `<span class="smp-tag" style="--theme-color:${theme.color}">${escapeHtml(theme.short)}</span>`).join('');
 }
 
-function developmentMarkup(record) {
+export function developmentMarkup(record) {
   const primary = themeById(primaryThemeId(record));
   const geography = recordGeography(record) || 'Geography not classified';
   const themes = (record.themeIds || []).map(id => themeById(id)?.label).filter(Boolean);
@@ -524,7 +528,7 @@ function developmentMarkup(record) {
     ['Record status', record.lifecycle], ['Geography', geography], ['Category', record.category], ['Themes', themes.join(' · ')]]
     .filter(([, value]) => value).map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
   const ask = askHref(buildAskQuery({}, { record }));
-  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(record.sourceName)} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
+  return `<li class="smp-dev" style="--theme-color:${primary.color}" data-theme="${primary.id}" data-record-id="${escapeHtml(record.id)}"><time datetime="${escapeHtml(isoDay(record.publishedAt))}">${escapeHtml(LONG_DATE.format(new Date(record.publishedAt)))}</time><span class="smp-dev-dot" aria-hidden="true"></span><div class="smp-dev-body"><div class="smp-dev-tags">${themeTags(record)}</div><h3>${escapeHtml(record.title)}</h3><p class="smp-dev-meta">${escapeHtml(sourceProvenanceLabel(record))} · ${escapeHtml(geography)}</p><p class="smp-dev-summary">${escapeHtml(record.summary)}</p><div class="smp-dev-actions"><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Verify source</a><a href="${escapeHtml(ask)}" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR</a><button type="button" data-smart-share-item="${escapeHtml(record.id)}">Share</button></div><details class="smp-dev-more"><summary>Source &amp; methodology</summary><p>${escapeHtml(record.summary)}</p><dl class="smp-facts">${facts}</dl><p class="smp-method-note">Dated, validated record from the governed GPIR repository. Themes are classified from the record's own metadata and text; counts imply no market impact.</p></details></div></li>`;
 }
 
 function renderTopSignal(root, records) {
@@ -539,7 +543,7 @@ function renderTopSignal(root, records) {
   const primary = themeById(primaryThemeId(record));
   top.style.setProperty('--theme-color', primary.color);
   const geography = recordGeography(record);
-  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(record.sourceName)}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#gpir-ask-panel" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR about this</a>`;
+  top.innerHTML = `<p class="smi-kicker">TOP SIGNAL NOW</p><h2>${escapeHtml(record.title)}</h2><p>${escapeHtml(record.summary)}</p><div class="smi-signal-meta">${themeTags(record)}<span class="smi-pill">${escapeHtml(isoDay(record.publishedAt))}</span><span class="smi-pill">${escapeHtml(sourceProvenanceLabel(record))}</span>${geography ? `<span class="smi-pill">${escapeHtml(geography)}</span>` : ''}</div><a href="${escapeHtml(record.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#gpir-ask-panel" data-smart-item-ask data-smart-ask-query="${escapeHtml(buildAskQuery({}, { record }))}">Ask GPIR about this</a>`;
   const extras = records.slice(1, 4);
   supporting.innerHTML = `<p class="smi-kicker">SUPPORTING DEVELOPMENTS</p>${extras.length ? `<ol>${extras.map(item => `<li style="--theme-color:${themeById(primaryThemeId(item)).color}"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a><small>${escapeHtml(isoDay(item.publishedAt))} · ${escapeHtml(item.sourceName)}</small></li>`).join('')}</ol>` : '<p>No additional eligible developments match this context.</p>'}`;
 }
@@ -739,7 +743,7 @@ function renderAlertFocus(root, liveRecords, records, state, now, intel) {
   const live = eligibleLiveRecords([alert], now).length > 0;
   const topics = SMART_TOPICS.filter(topic => (alert.topicIds || []).includes(topic.id))
     .map(topic => `<span class="smi-pill">${escapeHtml(topic.label)}</span>`).join('');
-  target.innerHTML = `<p class="smi-kicker">SELECTED ALERT · ${live ? 'LIVE · LATEST 12H' : 'ARCHIVED · RETAINED IN THE GPIR REPOSITORY'}</p><h2>${escapeHtml(alert.title)}</h2><p>${escapeHtml(alert.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(alert.publishedAt.slice(0, 16).replace('T', ' '))} UTC</span><span class="smi-pill">${escapeHtml(alert.category)}</span><span class="smi-pill">${escapeHtml(alert.sourceName)}</span>${topics}</div><a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#" data-smart-alert-clear>Clear selected alert</a>${topicIntelligenceMarkup(intel, alert)}`;
+  target.innerHTML = `<p class="smi-kicker">SELECTED ALERT · ${live ? 'LIVE · LATEST 12H' : 'ARCHIVED · RETAINED IN THE GPIR REPOSITORY'}</p><h2>${escapeHtml(alert.title)}</h2><p>${escapeHtml(alert.summary)}</p><div class="smi-signal-meta"><span class="smi-pill">${escapeHtml(alert.publishedAt.slice(0, 16).replace('T', ' '))} UTC</span><span class="smi-pill">${escapeHtml(alert.category)}</span><span class="smi-pill">${escapeHtml(sourceProvenanceLabel(alert))}</span>${topics}</div><a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener noreferrer">Open verified source</a> · <a href="#" data-smart-alert-clear>Clear selected alert</a>${topicIntelligenceMarkup(intel, alert)}`;
 }
 
 function renderLive(root, liveRecords, state, now) {

@@ -3563,3 +3563,22 @@ The separately owner-approved Payload batch retried in run
 `46116934360` attempt 2 and stopped with HTTP 409
 `INTAKE_CHAPTER_CANONICAL_CONFLICT`.
 See [production growth evidence](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).
+
+## 2026-11-28 — M44 production evidence and chapter conflict
+
+PR #746 Pages run `46121161680` and public intelligence v30 deployed.
+Repeat ASK and history requests improved in the matched live sample,
+while first responses were slower. The live country and Smart Card
+assets matched the release. The chapter conflict was traced to the
+existing Stablecoins canonical root route. Exact approved source hashes
+matched 37 published CMS rows from the earlier partial retry. No immutable
+batch edition or corresponding Contentful receipt was produced by that run.
+
+## 2026-11-28 — M44 approved Payload edition reached production
+
+PR #754 and Pages run `46136146634` served the signed 43-record Payload
+edition. All 43 canonical routes and their publication identities were
+verified, including the original 37. Six records were added by the
+approved intake. The corresponding BCP run verified at least 40 new
+or revised records and hit a Contentful HTTP 500 on its first attempt.
+See [live edition receipts](M44-AGENTIC-INTELLIGENCE.md#live-43-record-payload-edition--28-november-2026).

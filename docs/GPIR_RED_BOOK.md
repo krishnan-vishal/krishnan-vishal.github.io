@@ -88,3 +88,17 @@ Production readback verified the official authority URL and existing feed,
 tier, method and parser. Acquisition receipt `10786` returned HTTP 200
 and produced zero new entries. See
 [source evidence and recovery guard](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).
+
+**PA-008 history response checkpoint | 2026-11-28:** Owner-merged PR
+#746 served via Pages run `46121161680` and public intelligence v30.
+Matched two-request repeat samples fell to 69–71 ms for ranked ASK and
+120–1,145 ms for history with equal result counts. First response
+measurements were slower. The existing guest preview and reader 401
+were verified. See [production measurements](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-746--28-november-2026).
+
+**PA-008 Payload public edition checkpoint | 2026-11-28:** PR #754 and
+Pages run `46136146634` retained the original 37 approved Payload records
+and delivered six more. The live source marker matched the signed
+snapshot and all 43 canonical publication URLs returned HTTP 200.
+Contentful completion remains a separate receipt. See
+[the verified edition](M44-AGENTIC-INTELLIGENCE.md#live-43-record-payload-edition--28-november-2026).

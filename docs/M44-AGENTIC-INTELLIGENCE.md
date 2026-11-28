@@ -365,3 +365,73 @@ The relay reads its own live projection and evaluates lifecycle time
 independently. The branch also surfaces the separate archive provenance
 inside the FX Card brief and source tier on Smart Intelligence evidence.
 These code changes require controlled release and live measurement.
+
+## Production release after PR #746 — 28 November 2026
+
+Owner-merged PR #746 commit `503076c07465440c09e38e32a3cf6554d9ec73b4`
+released through [Pages run 46121161680](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46121161680).
+Supabase activated public intelligence v30 at 13:00:23 IST with its existing
+gateway setting. Bundle digest
+`e969f978bd90a3e6bb9e55e1b31972c1b8af65d641e3910acdb16c634c96ec43`.
+The preceding v29 bundle is the Edge recovery point.
+
+Matched direct requests from the same client on either side of the Edge
+release returned the same ASK result count (16), leading citation and
+history total (6,652). The first ASK response took 4,363 ms before and
+5,219 ms after. The next two took 1,324–1,486 ms before and 69–71 ms
+after. The first history call took 9,821 ms before and 11,034 ms after.
+The next two took 5,336–5,502 ms before and 120–1,145 ms after. These are
+three requests per route per version. They verify repeat-response gains
+in this sample. The first responses were slower.
+
+The live Pages assets matched the approved country dataset and country,
+FX and Smart Intelligence browser modules. Five citations were served for
+Australia, Japan, Brazil and Nigeria. Ranked ASK retained the guest preview
+and private response header. The signed-out browser reached the reader
+gate. The protected reader endpoint returned 401, and unsigned Payload
+intake returned 403. Authenticated card rendering remains unverified.
+
+## Payload Stablecoins chapter reconciliation — 28 November 2026
+
+The approved two-level Stablecoins mapping names the slug used by the
+existing CMS chapter `chapter:VK-GPIR-P-000000000018-2`. The CMS row and
+[public canonical route](https://fintechoisis.com/stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis/)
+use the root publication URL. The legacy short chapter page points to
+that root URL. Intake had derived a different `/pages/chapters/…html`
+URL for the approved slug. The narrowly scoped correction requires the
+existing chapter's exact canonical identity, slug and root URL. Missing
+or ambiguous results retain the existing rejection path. Media reuse and
+publication signing stay on their existing paths.
+
+Exact approved source-hash readback found 37 CMS research rows marked
+published, CURRENT, PASS and ENTITLED, each with a media relationship.
+Creation times place them inside the previously failed retry. Four
+sampled canonical candidate URLs returned HTTP 404. The run stopped
+before producing an immutable edition or paired Contentful receipt.
+The correction requires an owner-approved Worker release before the
+existing authorized batch can resume.
+
+## Live 43-record Payload edition — 28 November 2026
+
+PR #749's Worker release `46122848956` preserved migrated chapter
+canonical URLs. The approved intake brought the batch to 43 published,
+validated, subscriber-entitled Payload records. Exact source-hash and
+creation-time readback confirmed the original 37 and six additional
+records. The signed manifest retained all 43 in snapshot
+`a23e522a6597ce41b1a64b4e29d42a178aaed0c4e3caba08e6ba2214abc37e1c`.
+Owner-merged [PR #754](https://github.com/krishnan-vishal/krishnan-vishal.github.io/pull/754)
+and [Pages run 46136146634](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46136146634)
+served the matching snapshot. All 43 public routes returned HTTP 200
+with the expected canonical URL and GPIR publication ID.
+
+[Contentful BCP run 46134860271](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46134860271)
+verified at least 40 new or revised recovery records before a Contentful
+HTTP 500 on the first attempt. The exact deployed snapshot was submitted
+again through the existing recovery-safe workflow. Completion requires
+that attempt's verified recovery receipt.
+
+PR #748 resolves against main while retaining PR #749's general
+legacy chapter reuse. The approved two-level Stablecoins mapping keeps
+its exact identity and root URL check. The existing Smart Intelligence
+source-tier label now flows through the in-use timeline, lead card and
+selected-alert rendering. These branch changes await owner release.

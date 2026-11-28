@@ -69,11 +69,11 @@ test('approved category resolution reuses one existing chapter and creates only 
 })
 
 test('existing research canonical identity is preserved and unrelated chapter conflicts still fail closed', async () => {
-  const slug = 'stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis'
+  const slug = 'other-approved-legacy-research'
   const review: any = {
     hash: 'a'.repeat(64), title: 'Dashboard', summary: 'Summary', body: 'Body',
     chapterSlug: slug, routeSlug: 'new-dashboard', category: 'C2C',
-    menuPath: ['Money Movement Ecosystem', 'Stable Coin & CBDC'],
+    menuPath: ['Money Movement Ecosystem', 'Other legacy research'],
     sourceFileId: 'approved-drive-id', sourceFileName: 'dashboard.jpg',
     reconciliationHash: 'b'.repeat(64),
   }
@@ -104,6 +104,39 @@ test('verified media is reused only when the source hash resolves to one Payload
   assert.equal(await resolveDriveMedia(req, asset.sourceSha256), asset)
   req.payload.find = async () => ({ totalDocs: 2, docs: [asset, { ...asset, id: 'media-2' }] })
   await assert.rejects(resolveDriveMedia(req, asset.sourceSha256), /INTAKE_MEDIA_AMBIGUOUS/)
+})
+
+test('approved Stablecoins mapping reuses its canonical root chapter and refuses alternatives', async () => {
+  const chapterSlug = 'stablecoins-cbdcs-tokenized-money-digital-asset-payments-gpir-research-fintechoisis'
+  const canonicalUrl = `https://fintechoisis.com/${chapterSlug}/`
+  const chapter = { id: 'existing', slug: chapterSlug, canonicalId: 'chapter:VK-GPIR-P-000000000018-2', canonicalUrl }
+  const review = {
+    hash: 'a'.repeat(64), title: 'Title', summary: 'Summary', body: 'Body', chapterSlug,
+    routeSlug: 'example', category: 'C2C', menuPath: ['Money Movement Ecosystem', 'Stable Coin & CBDC'],
+    sourceFileId: 'drive-file-fixture', sourceFileName: 'fixture.jpg', reconciliationHash: 'b'.repeat(64),
+  }
+  let docs = [chapter]
+  const req = { payload: {
+    find: async ({ where }: any) => {
+      assert.deepEqual(where.or, [
+        { slug: { equals: chapterSlug } }, { canonicalId: { equals: chapter.canonicalId } },
+        { canonicalUrl: { equals: canonicalUrl } },
+      ])
+      return { docs, totalDocs: docs.length }
+    },
+    create: async () => assert.fail('Existing chapter mapping cannot create a chapter'),
+  } }
+  assert.deepEqual(await resolveDriveChapter(req, review), { chapter, status: 'REUSED' })
+  docs = [{ ...chapter, canonicalId: 'chapter:VK-GPIR-P-000000000019-9' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [{ ...chapter, canonicalId: 'different-chapter' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [{ ...chapter, canonicalUrl: `https://fintechoisis.com/pages/chapters/${chapterSlug}.html` }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
+  docs = [chapter, { ...chapter, id: 'duplicate' }]
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_AMBIGUOUS/)
+  docs = []
+  await assert.rejects(resolveDriveChapter(req, review), /INTAKE_CHAPTER_CANONICAL_CONFLICT/)
 })
 
 test('idempotent retry returns the exact existing publication before allocating another identity or media record', async () => {
