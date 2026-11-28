@@ -52,7 +52,7 @@ export async function resolveSubscriberAccess({ fetchImpl = fetch, supabaseUrl, 
   if (!user.ok || !UUID.test(user.data?.id || '')) return { decision: 'ERROR', reason: 'SESSION_VERIFICATION_FAILED' };
   const configuredAdmin = UUID.test(adminReaderId || '') && user.data.id === adminReaderId;
   const productionAdmin = environment === 'PRODUCTION' && user.data.app_metadata?.gpir_admin_reader === true;
-  if (user.data.email_confirmed_at && (configuredAdmin || productionAdmin)) {
+  if ((user.data.email_confirmed_at || user.data.confirmed_at) && (configuredAdmin || productionAdmin)) {
     return { decision: 'ALLOW', userId: user.data.id };
   }
   const qaIdMatches = directoryQaReaderId && user.data.id === directoryQaReaderId;
