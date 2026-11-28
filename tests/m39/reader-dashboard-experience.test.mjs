@@ -132,7 +132,7 @@ test('43 approved catalog routes link only server-authorized reader identities',
   assert.ok(records.length >= 43, 'approved route catalog must list the 43 newly published dashboards');
   const unique = new Set(records.map(item => item.id));
   assert.equal(unique.size, records.length);
-  assert.ok(records.every(item => /^\\/[a-z0-9-]+\\/$/.test(item.route)));
+  assert.ok(records.every(item => /^\/[a-z0-9-]+\/$/.test(item.route)));
   const example = records.find(item => item.id === 'VK-GPIR-P-000000000088-5');
   assert.ok(example);
   const authorized = normalizeReaderSummary(response({ library: [
