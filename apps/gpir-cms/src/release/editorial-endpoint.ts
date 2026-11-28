@@ -149,7 +149,7 @@ export const editorialEndpoint: Endpoint = {
       const matched = items.filter(item => item.fields.gpirPublicationId === input.publicationId)
       if (matched.some(item => item.fields.supabaseRecordId !== input.supabaseRecordId)) return Response.json({ error: 'CONTENT_IDENTITY_MISMATCH' }, { status: 409 })
       const assets = matched.flatMap(item => item.includes?.Asset || [])
-      return Response.json({ items: matched.map(item => ({ sys: { id: item.entryId }, fields: item.fields,\n        // Native Payload media is already resolved into the governed, hash-bound\n        // release presentation. Pass it only through this authenticated service API.\n        presentation: item.presentation?.primaryDashboard ? { primaryDashboard: item.presentation.primaryDashboard } : undefined })), includes: { Asset: assets } })
+      return Response.json({ items: matched.map(item => ({ sys: { id: item.entryId }, fields: item.fields })), includes: { Asset: assets } })
     }
     const own = values.find(doc => doc.sourcePayload.entryId === input.id)
     const legacy = (doc: any) => doc ? { sys: { id: doc.sourcePayload.entryId, version: doc.sourcePayload.sourceVersion || 1,
