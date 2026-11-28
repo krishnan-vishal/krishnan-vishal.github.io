@@ -17,8 +17,30 @@ async function request(url: string, init: RequestInit, label: string) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const response = await fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(60000) })
     if (response.ok) return response
+    const finalAttempt = ![429, 500, 502, 503, 504].includes(response.status) || attempt === 4
+    if (finalAttempt && label === 'Payload publication intake') {
+      // The existing Worker publishes only bounded application error codes.
+      // Parse privately; never log headers, uploaded content or arbitrary text.
+      const json: unknown = await response.json().catch(() => null)
+      const code = json && typeof json === 'object' && 'error' in json
+        ? (json as { error?: unknown }).error : null
+      const allowed = new Set([
+        'INTAKE_STORAGE_UNAVAILABLE', 'INTAKE_AUTHORITY_UNAVAILABLE',
+        'INTAKE_IDENTITY_REFUSED', 'INTAKE_FAILED_RETRY_SAFE',
+        'INTAKE_POLICY_UNAVAILABLE', 'INTAKE_POLICY_REFUSED',
+        'INTAKE_POLICY_CONFLICT', 'INTAKE_CHAPTER_CREATE_FAILED',
+        'INTAKE_CHAPTER_CANONICAL_CONFLICT', 'INTAKE_MEDIA_AMBIGUOUS',
+        'INTAKE_RELEASE_REFUSED', 'INTAKE_PUBLICATION_COLLISION',
+        'INTAKE_INPUT_INVALID', 'INTAKE_REVIEW_INVALID',
+        'INTAKE_HASH_MISMATCH', 'INTAKE_FORMAT_HELD',
+        'INTAKE_SIZE_INVALID', 'INTAKE_SIGNATURE_INVALID',
+        'INTAKE_SIGNATURE_REQUIRED', 'SERVICE_ROLE_REQUIRED',
+      ])
+      const safe = typeof code === 'string' && allowed.has(code) ? code : 'UNRECOGNIZED_RESPONSE'
+      throw new Error(`Payload publication intake returned HTTP ${response.status}: ${safe}`)
+    }
     await response.body?.cancel()
-    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 4) throw new Error(`${label} returned HTTP ${response.status}`)
+    if (finalAttempt) throw new Error(`${label} returned HTTP ${response.status}`)
     await new Promise(resolve => setTimeout(resolve, 1000 * 2 ** attempt))
   }
   throw new Error('Request retries exhausted')
@@ -321,7 +343,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|DRIVE_WIF_(?:SERVICE_ACCOUNT_INVALID|TOKEN_MISSING)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)(?:: (?:INTAKE_[A-Z_]+|SERVICE_ROLE_REQUIRED|UNRECOGNIZED_RESPONSE))?|DRIVE_WIF_(?:SERVICE_ACCOUNT_INVALID|TOKEN_MISSING)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
