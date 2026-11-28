@@ -237,10 +237,13 @@ The relay keeps its single-query empty path. A non-empty result includes
 predecessor records within the existing grouping horizon. This allows the
 earliest report to determine retirement when a later report corroborates it.
 
-On 28 November a read-only production checkpoint showed 16,980 FX archive
+On 28 November at 06:29–06:32 UTC, production had 16,980 FX archive
 rows, up 134 since the previous receipt, and 392 approved announcement rows.
-Fourteen successful source runs were recorded in the preceding two hours.
-The relay had no new qualifying publication during the check.
+Public history returned 6,652 records in 10.16 seconds. In the preceding
+12 hours, 84 successful source runs reported 41 discoveries, including
+repeated discoveries. Four new PYMNTS candidates scored 50, 70, 70 and 85
+and stayed in review. The relay had no qualifying publication during
+the check.
 
 Read-only supplier review on 28 November concluded:
 

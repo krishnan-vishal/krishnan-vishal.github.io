@@ -68,3 +68,8 @@ ChatGPT Work outage, existing Supabase job 4 returned 33 HTTP 200 LangGraph
 OSS responses for 33 ten-minute runs between 06:10 and 11:30 IST.
 Response IDs 10702 through 10772 bound the window. All 33 responses reported
 deterministic mode and zero timeouts were observed.
+
+**PA-008 archive accumulation checkpoint | 2026-11-28:** The production FX
+archive contained 16,980 observations at 06:29 UTC, an increase of 134 over
+the 16,846-row acceptance baseline. Public repository history separately
+reported 6,652 records. See [M44 production readback](M44-AGENTIC-INTELLIGENCE.md#agent-integration-and-supplementary-fx-review).

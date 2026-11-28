@@ -3535,7 +3535,9 @@ The final response recorded a successful read of 62 editorial entries.
 ## 2026-11-28 — M44 governed agent integration branch
 
 Production readback found 16,980 FX archive rows, an increase of 134, and
-392 approved announcements. The implementation branch assigns existing
+392 approved announcements. Public history reported 6,652 records and
+the preceding 12 hours had 84 successful source runs. Four new media
+candidates remained in review below the 95% gate. The implementation branch assigns existing
 publisher work to the LangGraph stages, batches editorial reads, restores
 predecessor grouping in the relay, and adds ranked ASK retrieval and
 explicit country references. The supplier review identified public
