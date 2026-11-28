@@ -3543,3 +3543,12 @@ predecessor grouping in the relay, and adds ranked ASK retrieval and
 explicit country references. The supplier review identified public
 redistribution restrictions and no supplier was activated. Deployment
 and live acceptance of the branch changes remain pending.
+
+## 2026-11-28 — M44 PR #744 controlled production release
+
+Pages run `46117397875`, publisher v19 and public intelligence v29 served
+the owner-merged release. Cron run `74872` and HTTP receipt `10780`
+verified unattended deterministic execution against v19. Live ranked ASK
+returned the archived PYMNTS citation and country retrieval returned three
+Singapore citations. Public history held 6,652 records and the FX
+snapshot retained all 134 pairs. See [the release receipts](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-744--28-november-2026).

@@ -278,3 +278,56 @@ Read-only supplier review on 28 November concluded:
 No proposed provider was enabled or given a credential. Existing
 ECB/Frankfurter coverage, the 134-pair contract and the FX archive were
 preserved. Account billing evidence was unavailable.
+
+## Production release after PR #744 — 28 November 2026
+
+Owner-merged commit `80447b2fbf612dbeae8b6a0a3b043a4f1359f323`
+released through [Pages run 46117397875](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46117397875).
+Both live browser assets matched their approved source. Supabase activated
+publisher v19 at 12:09:44 IST with JWT verification and public intelligence
+v29 at 12:10:03 IST with the existing public gateway setting. Those were
+the only two Edge Function version changes. Guest publisher and reader
+requests returned HTTP 401.
+
+The published bundle digests were
+`12c085fec411fa3d9985766d8facb4bd269dbf14906cdf87a9ae12ed60e77d2c`
+for the publisher and
+`57041f8b49d52cb5a1a16bf802f87313426f1de4e5b0963766fdb37d7c94f8b8`
+for public intelligence.
+
+At 12:10 IST, existing cron job 4 produced run `74872` and HTTP response
+`10780`. The response returned HTTP 200 with `langgraph-oss-1.7.5`,
+`deterministic-no-llm`, all seven stage markers, 62 editorial entries read
+and zero publications. Edge logs tied execution
+`d037d6aa-d7ad-4b1f-b67c-8b9de9f80c52` to publisher v19.
+At 12:20 IST, job 4 run `74905` returned HTTP 200 in response `10783`
+with the same deterministic mode, 62 editorial entries read and zero
+publications. Edge execution `e9e612cf-e8ea-434c-8f8e-d686f206234f`
+confirmed v19 again. Neither invocation timed out.
+
+[Ranked ASK](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=ask&match=ranked&q=AI%20Helps%20Merchants%20Stop%20Holiday%20Fraud&term=merchants&term=fraud&limit=5)
+returned the original PYMNTS citation first in a 4.68-second guest-preview
+request. [Singapore evidence](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-public-intelligence?view=ask&match=ranked&geo=Singapore&geo=SG&limit=3)
+returned three cited results in 2.31 seconds. Australia, Japan, Brazil
+and Nigeria returned zero guest-preview citations. Signed-in display and
+the full-entitlement route were outside this readback.
+
+The genuine PYMNTS item `6b6ffb23-87ba-4dae-9e7a-618797b628eb` had source
+time 14:30:53 IST on 27 November. It was acquired at 15:15:04 IST and
+published at 15:20:03 IST with confidence 100. Its 12-hour cutoff was
+02:30:53 IST on 28 November. Ranked ASK and public history returned it as
+`ARCHIVED`. Public history held 6,652 records, including this item.
+The database held 392 approved announcements. The live relay returned
+zero qualifying items during the release check. The 12:15 and 12:20 IST
+PYMNTS and FinTech News Singapore acquisitions succeeded with zero new
+candidates. The database still had zero eligible live items at 12:20 IST.
+A new live-to-archive observation remains open.
+
+The existing [FX snapshot](https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-fx-snapshot)
+returned exactly the configured 134 pairs with zero missing or extra.
+Requests measured 1,489 ms on a cache miss and 59 ms on a cache hit.
+The FX archive held 16,980 observations, including 134 on 28 November.
+The existing Smart Intelligence Cards feed returned three cited records
+in 1.98 seconds. No supplier, subscription, credit,
+or infrastructure purchase accompanied this release. Account billing
+evidence was unavailable.
