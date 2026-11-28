@@ -3543,3 +3543,23 @@ predecessor grouping in the relay, and adds ranked ASK retrieval and
 explicit country references. The supplier review identified public
 redistribution restrictions and no supplier was activated. Deployment
 and live acceptance of the branch changes remain pending.
+
+## 2026-11-28 — M44 PR #744 controlled production release
+
+Pages run `46117397875`, publisher v19 and public intelligence v29 served
+the owner-merged release. Cron run `74872` and HTTP receipt `10780`
+verified unattended deterministic execution against v19. Live ranked ASK
+returned the archived PYMNTS citation and country retrieval returned three
+Singapore citations. Public history held 6,652 records and the FX
+snapshot retained all 134 pairs. See [the release receipts](M44-AGENTIC-INTELLIGENCE.md#production-release-after-pr-744--28-november-2026).
+
+## 2026-11-28 — M44 authoritative acquisition and content recovery
+
+The reviewed RBA authority URL was restored for production source
+`TEST-RBA-01`. Acquisition receipt `10786` returned HTTP 200 and reported
+one existing discovery and zero new rows. Scheduled BCP run `46110186124`
+retained authenticated proof covering 1,219 existing recovery records.
+The separately owner-approved Payload batch retried in run
+`46116934360` attempt 2 and stopped with HTTP 409
+`INTAKE_CHAPTER_CANONICAL_CONFLICT`.
+See [production growth evidence](M44-AGENTIC-INTELLIGENCE.md#production-growth-checkpoint--28-november-2026).

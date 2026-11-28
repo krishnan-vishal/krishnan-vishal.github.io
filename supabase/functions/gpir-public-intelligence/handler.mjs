@@ -22,6 +22,7 @@ export const M40_REGION_IDS = Object.freeze([
 export const M40_TOPIC_IDS = Object.freeze(TOPIC_TAXONOMY.map(topic => topic.id));
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 const LIVE_RELAY_WINDOW_MS = 12 * 60 * 60 * 1000;
+const HISTORY_EVIDENCE_TTL_MS = 30_000;
 
 const DEFAULT_ORIGINS = Object.freeze([
   'https://fintechoisis.com',
@@ -57,8 +58,8 @@ function response(status, body, requestOrigin, env, { private: personalized = fa
   return new Response(status === 204 ? null : JSON.stringify(body), { status, headers });
 }
 
-async function jsonFetch(fetchImpl, url, headers) {
-  const result = await fetchImpl(url, { headers });
+async function jsonFetch(fetchImpl, url, headers, signal) {
+  const result = await fetchImpl(url, { headers, signal });
   if (!result.ok) throw new Error(`HTTP_${result.status}`);
   const data = await result.json();
   if (!Array.isArray(data)) throw new Error('INVALID_REPOSITORY_RESPONSE');
@@ -483,10 +484,78 @@ export function rankResearchEvidence(records, query, terms, hasGeography) {
   }).filter(item => item.score > 0).sort((a, b) => b.score - a.score).map(item => item.record);
 }
 
+async function loadRepositoryEvidence({ fetchImpl, config, requestNow, history, collection, askView }) {
+  const headers = new Headers();
+  headers.set('apikey', config.key);
+  headers.set('authorization', `Bearer ${config.key}`);
+  const signal = AbortSignal.timeout(25_000);
+  // Read each projection in stable, bounded PostgREST pages. A failed page fails
+  // the load instead of turning a partial archive into an authoritative result.
+  async function allRows(table, query) {
+    const results = [];
+    for (let page = 0; page < 100; page++) {
+      const params = new URLSearchParams({ ...query, limit: '1000', offset: String(page * 1000) });
+      const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/${table}?${params}`, headers, signal);
+      results.push(...batch);
+      if (batch.length < 1000) return results;
+    }
+    throw new Error('EVIDENCE_PAGE_LIMIT');
+  }
+  const technical = collection === 'technical';
+  const [announcements, sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments] =
+    await Promise.all([
+      technical ? [] : allRows('global_announcements', {
+        select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
+        publication_status: 'eq.approved',
+        ...(history ? {} : { published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}` }),
+        order: 'published_at.desc,id.asc'
+      }),
+      allRows('source_registry', {
+        select: 'source_id,source_name,official_url,source_status,country,region_tags,category,trust_tier',
+        source_status: 'eq.GREEN', order: 'source_id.asc'
+      }),
+      technical ? [] : allRows('gpir_intelligence_topics', {
+        select: 'id,announcement_id,keywords,outcome_status,geography', order: 'id.asc'
+      }),
+      technical ? [] : allRows('gpir_intelligence_developments', {
+        select: 'id,topic_id,event_type,effective_date,summary,outcome_status', order: 'id.asc'
+      }),
+      technical ? [] : allRows('gpir_intelligence_topic_sources', {
+        select: 'topic_id,development_id,source_id,canonical_url,source_published_at',
+        order: 'topic_id.asc,development_id.asc,source_id.asc,canonical_url.asc'
+      }),
+      history && collection !== 'announcements' ? allRows('intelligence_raw_ingestion', {
+        select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
+        source_id: `in.(${(technical ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`,
+        ingestion_status: 'eq.PROCESSED', order: 'discovered_at.desc,id.asc'
+      }) : [],
+      history && (askView || !collection) ? allRows('gpir_regulatory_documents', {
+        select: 'id,source_id,canonical_url,document_kind,publication_date,published_at,publication_precision,content_sha256,validation_state,metadata',
+        validation_state: 'eq.VALIDATED', 'metadata->>reader_reference': 'eq.true',
+        publication_precision: 'eq.DATE_ONLY', order: 'publication_date.desc,id.asc'
+      }) : []
+    ]);
+  return { announcements, sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments };
+}
+
 export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
   retrieveEvidence = async ({ records, query, terms, geographies }) =>
     rankResearchEvidence(filterResearchGeographies(records, geographies), query, terms, geographies.length > 0),
   loadRows = null, now = () => Date.now(), entitlement = null }) {
+  // Cache evidence before entitlement, query filtering and time-dependent
+  // lifecycle projection. Keep the live relay on its independent fresh read.
+  const historicalEvidence = new Map();
+  function coalesceHistory(key, load) {
+    const cached = historicalEvidence.get(key);
+    if (cached && cached.expiresAt > now()) return cached.promise;
+    const entry = { expiresAt: Infinity, promise: load() };
+    historicalEvidence.set(key, entry);
+    entry.promise.then(
+      () => { entry.expiresAt = now() + HISTORY_EVIDENCE_TTL_MS; },
+      () => { if (historicalEvidence.get(key) === entry) historicalEvidence.delete(key); }
+    );
+    return entry.promise;
+  }
   return async function handle(request) {
     const origin = request.headers.get('origin');
     if (origin && !allowedOrigins().has(origin))
@@ -667,64 +736,11 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
       if (loadRows) rows = await loadRows();
       else if (relayView) rows = await loadLiveRelayRows({ fetchImpl, config, now: requestNow });
       else {
-        const headers = new Headers();
-        headers.set('apikey', config.key);
-        headers.set('authorization', `Bearer ${config.key}`);
-        const announcementQuery = new URLSearchParams({
-          select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
-          publication_status: 'eq.approved',
-          ...(history ? {} : { published_at: `gte.${new Date(requestNow - PUBLIC_REPOSITORY_WINDOW_MS).toISOString()}` }),
-          order: 'published_at.desc,id.asc', limit: '1000'
-        });
-        const sourceQuery = new URLSearchParams({
-          select: 'source_id,source_name,official_url,source_status,country,region_tags,category,trust_tier',
-          limit: '500'
-        });
-        const topicQuery = new URLSearchParams({select:'id,announcement_id,keywords,outcome_status,geography',limit:'1000'});
-        const developmentsQuery = new URLSearchParams({select:'id,topic_id,event_type,effective_date,summary,outcome_status',limit:'5000'});
-        const linksQuery = new URLSearchParams({select:'topic_id,development_id,source_id,canonical_url,source_published_at',limit:'5000'});
-        // Fetch all approved announcements in bounded PostgREST pages, not just the first 1,000.
-        // Fail closed if a page cannot be retrieved; never report a truncated archive as complete.
-        const announcements = [];
-        for (let page = 0; collection !== 'technical'; page++) {
-          const pageQuery = new URLSearchParams(announcementQuery);
-          pageQuery.set('offset', String(page * 1000));
-          const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/global_announcements?${pageQuery}`, headers);
-          announcements.push(...batch);
-          if (batch.length < 1000) break;
-          if (page >= 99) throw new Error('REPOSITORY_PAGE_LIMIT');
-        }
-        // Page related evidence too: a complete archive cannot silently lose its sources.
-        async function allRows(table, query, pageSize = 1000) {
-          const results = [];
-          for (let page = 0; ; page++) {
-            const params = new URLSearchParams(query);
-            params.set('limit', String(pageSize));
-            params.set('offset', String(page * pageSize));
-            const batch = await jsonFetch(fetchImpl, `${config.url}/rest/v1/${table}?${params}`, headers);
-            results.push(...batch);
-            if (batch.length < pageSize) return results;
-            if (page >= 99) throw new Error('EVIDENCE_PAGE_LIMIT');
-          }
-        }
-        const [sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments] = await Promise.all([
-          allRows('source_registry', sourceQuery),
-          collection === 'technical' ? [] : allRows('gpir_intelligence_topics', topicQuery),
-          collection === 'technical' ? [] : allRows('gpir_intelligence_developments', developmentsQuery),
-          collection === 'technical' ? [] : allRows('gpir_intelligence_topic_sources', linksQuery),
-          history && collection !== 'announcements' ? allRows('intelligence_raw_ingestion', new URLSearchParams({
-            select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
-            source_id: `in.(${(collection === 'technical' ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`, ingestion_status: 'eq.PROCESSED',
-            order: 'discovered_at.desc,id.asc'
-          })) : Promise.resolve([]),
-          history && !relayView && (askView || !collection) ?
-            allRows('gpir_regulatory_documents', new URLSearchParams({
-              select: 'id,source_id,canonical_url,document_kind,publication_date,published_at,publication_precision,content_sha256,validation_state,metadata',
-              validation_state: 'eq.VALIDATED', 'metadata->>reader_reference': 'eq.true',
-              publication_precision: 'eq.DATE_ONLY', order: 'publication_date.desc,id.asc'
-            })) : []
-        ]);
-        rows = { announcements, sources, topics, developments, topicSources, statisticalObservations, regulatoryDocuments };
+        const load = () => loadRepositoryEvidence({ fetchImpl, config, requestNow, history, collection, askView });
+        const knownCollection = ['', 'announcements', 'technical'].includes(collection || '');
+        rows = history && knownCollection
+          ? await coalesceHistory(askView ? 'ask' : collection || 'archive', load)
+          : await load();
       }
       let records = normalizeRepositoryRows({ ...rows, now: requestNow, windowDays: history ? null : PUBLIC_REPOSITORY_WINDOW_DAYS });
       if (topicContext) {
@@ -772,7 +788,8 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
         records, generatedAt: new Date(requestNow).toISOString()
       }, origin, env, { private: askView });
     } catch {
-      return response(503, { status: 'ERROR', code: 'REPOSITORY_UNAVAILABLE' }, origin, env);
+      return response(503, { status: 'ERROR', code: 'REPOSITORY_UNAVAILABLE' }, origin, env,
+        { private: askView || Boolean(topicContext) });
     }
   };
 }
