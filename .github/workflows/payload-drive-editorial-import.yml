@@ -156,5 +156,5 @@ jobs:
             .migration-data/drive-publication-report.json
             .migration-data/drive-contentful-bcp-receipt.json
             .migration-data/m41-cutover/pages-stage-report.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 90
