@@ -6,6 +6,7 @@ import test from 'node:test';
 import { createRequire } from 'node:module';
 import { createProtectedPublicationHandler } from '../../supabase/functions/gpir-protected-publication/handler.mjs';
 import { requestProtectedPublication } from '../../assets/js/gpir-protected-publication.mjs';
+import { resolveSubscriberAccess } from '../../supabase/functions/_shared/gpir-reader-entitlement.mjs';
 
 const require = createRequire(import.meta.url);
 const { adaptPublication } = require('../../scripts/m35/contentful-publication-adapter');
@@ -281,4 +282,32 @@ test('Payload primary content is fetched only after the existing Supabase entitl
     return url.includes('/auth/v1/user') ? Response.json({ id: userId }) : Response.json([{ decision: 'DENY' }]);
   };
   assert.equal((await createProtectedPublicationHandler({ env: selected, fetchImpl: deniedFetch })(edgeRequest())).status, 403);
+});
+
+test('server admin confirmation accepts confirmed_at in both protected and reader authorization paths', async () => {
+  const requested = [];
+  const fetchImpl = async (url) => {
+    requested.push(String(url));
+    if (String(url).includes('/auth/v1/user'))
+      return Response.json({ id: userId, confirmed_at: '2026-11-28T00:00:00Z',
+        app_metadata: { gpir_admin_reader: true } });
+    throw Error('confirmed admin must not need a paid subscription lookup');
+  };
+  const result = await resolveSubscriberAccess({
+    fetchImpl, supabaseUrl: env.SUPABASE_URL, serviceKey: env.GPIR_SUPABASE_SECRET_KEY,
+    accessToken: 'signed-session', adminReaderId: userId
+  });
+  assert.equal(result.decision, 'ALLOW');
+  assert.equal(requested.length, 1);
+});
+
+test('unconfirmed users cannot gain admin access from metadata alone', async () => {
+  const fetchImpl = async url => String(url).includes('/auth/v1/user')
+    ? Response.json({ id: userId, app_metadata: { gpir_admin_reader: true } })
+    : Response.json([]);
+  const result = await resolveSubscriberAccess({
+    fetchImpl, supabaseUrl: env.SUPABASE_URL, serviceKey: env.GPIR_SUPABASE_SECRET_KEY,
+    accessToken: 'signed-session', adminReaderId: userId
+  });
+  assert.equal(result.decision, 'DENY');
 });
