@@ -347,6 +347,17 @@ test('approved Payload dashboard media resolves by verified ID only after entitl
         Response.json([{ decision: 'DENY' }]);
     } })(edgeRequest());
   assert.equal(denied.status, 403);
+  const bcpSrc = '//images.ctfassets.net/zym0dk277ju5/1QWh5s8fkW18vLB5m2ZgyR/ad902f4cd0d04323a635c7d8235b0fed/approved.jpeg';
+  const bcp = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
+    if (url.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (url.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    if (url.includes('/api/release/editorial-entries')) return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: mediaId } } })]
+    });
+    return Response.json({ id: mediaId, sourceSha256: hash, sourceUrl: bcpSrc, alt: 'Bespoke approved dashboard' });
+  } })(edgeRequest());
+  assert.equal(bcp.status, 200);
+  assert.equal((await bcp.json()).publication.primaryDashboard.src, 'https:' + bcpSrc);
   for (const badSrc of ['https://drive.google.com/file/d/secret',
     worker + '/api/media/file/' + 'b'.repeat(64) + '.png']) {
     const bad = await createProtectedPublicationHandler({ env: selected, fetchImpl: async url => {
