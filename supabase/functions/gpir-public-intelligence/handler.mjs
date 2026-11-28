@@ -485,9 +485,9 @@ export function rankResearchEvidence(records, query, terms, hasGeography) {
 }
 
 async function loadRepositoryEvidence({ fetchImpl, config, requestNow, history, collection, askView }) {
-  const headers = new Headers({
-    apikey: config.key, authorization: `Bearer ${config.key}`
-  });
+  const headers = new Headers();
+  headers.set('apikey', config.key);
+  headers.set('authorization', `Bearer ${config.key}`);
   const signal = AbortSignal.timeout(25_000);
   // Read each projection in stable, bounded PostgREST pages. A failed page fails
   // the load instead of turning a partial archive into an authoritative result.

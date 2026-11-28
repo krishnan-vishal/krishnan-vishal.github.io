@@ -350,9 +350,12 @@ IST showed zero new publications and zero live-eligible items.
 The existing scheduled [Contentful BCP run 46110186124](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124)
 retained authenticated verification of 1,219 recovery records in
 [artifact 15249462533](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46110186124/artifacts/15249462533).
-This reconciled the existing edition. The separate governed batch resumed
-as attempt 2 of run `46116934360` after the reviewed Payload Worker fix
-deployed. A new edition and its own recovery proof require separate receipts.
+This reconciled the existing edition. The separate governed batch
+[retry 46116934360, attempt 2](https://github.com/krishnan-vishal/krishnan-vishal.github.io/actions/runs/46116934360/attempts/2)
+reached the published Payload intake after the reviewed Worker fix, then
+returned HTTP 409 `INTAKE_CHAPTER_CANONICAL_CONFLICT`. It emitted no
+new edition or batch-specific BCP receipt. The existing canonical chapter
+and the approved distribution mapping require reconciliation before retry.
 
 The working branch offers a 30-second cache for underlying historical
 evidence, concurrent bounded queries using existing database filters,
