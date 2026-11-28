@@ -1,5 +1,14 @@
 # FINTECHOISIS / GPIR Project Status
 
+## 2026-11-28 — M44 source-tier release and exact-snapshot BCP recovery
+
+PR #748's Pages release is live. The active module formats the
+governed tier and keeps the existing reader access boundary.
+The Contentful recovery receipt for the live 43-record edition is
+pending. The follow-up retains the same workflow and adds a guarded
+recovery mode that skips the already published Pages edition.
+See [production receipts](M44-AGENTIC-INTELLIGENCE.md#pr-748-pages-release-and-matching-edition-recovery--28-november-2026).
+
 ## 2026-11-28 — M44 Payload edition live and branch reconciliation
 
 The owner-approved Payload edition from PR #754 is live at all 43

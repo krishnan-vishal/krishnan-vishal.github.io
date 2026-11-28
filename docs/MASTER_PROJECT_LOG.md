@@ -3582,3 +3582,12 @@ verified, including the original 37. Six records were added by the
 approved intake. The corresponding BCP run verified at least 40 new
 or revised records and hit a Contentful HTTP 500 on its first attempt.
 See [live edition receipts](M44-AGENTIC-INTELLIGENCE.md#live-43-record-payload-edition--28-november-2026).
+
+## 2026-11-28 — M44 Smart Intelligence source tier and production recovery
+
+Pages run `46144960926` served the reviewed source-tier renderer.
+Production acquisition receipts `10859` and `10860` covered the next
+approved historical interval and found zero unseen records.
+The Contentful recovery remained incomplete after an HTTP 500 and
+three Payload editorial-export deadlines on successive attempts.
+See [release and recovery evidence](M44-AGENTIC-INTELLIGENCE.md#pr-748-pages-release-and-matching-edition-recovery--28-november-2026).

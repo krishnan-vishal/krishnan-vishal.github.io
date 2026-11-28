@@ -11,6 +11,19 @@ const site = require('../../scripts/m41/site-content.cjs');
 const endpoint = 'https://cms.example/api/editorial-metadata';
 const noDelay = { delay: async () => {} };
 
+test('the extended Payload export deadline leaves ordinary request deadlines unchanged', async t => {
+    const deadlines = [];
+    t.mock.method(AbortSignal, 'timeout', ms => {
+        deadlines.push(ms);
+        return new AbortController().signal;
+    });
+    const read = async () => Response.json({ records: [] });
+    await readJSON(read, endpoint, {});
+    await readJSON(read, 'https://cms.example/api/release/editorial-entries',
+        { method: 'POST' }, { timeoutMs: 120_000 });
+    assert.deepEqual(deadlines, [60_000, 120_000]);
+});
+
 test('HTTP 200 with incomplete JSON is not accepted; retries only that read', async () => {
     let reads = 0;
     const value = await readJSON(async (url, options) => {
