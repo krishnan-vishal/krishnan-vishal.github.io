@@ -78,6 +78,27 @@ async function main() {
   }, 'Drive OAuth')).json()
   if (typeof oauth.access_token !== 'string') throw new Error('Drive OAuth response omitted its access token')
   const headers = { authorization: `Bearer ${oauth.access_token}` }
+  // Confirm GitHub's existing refresh-token exchange grants the intended account,
+  // approved OAuth client, and full read access before processing any files.
+  // Do not log raw tokens, client identifiers, emails, or Google response bodies.
+  acquisitionStage = 'DRIVE_OAUTH_CLIENT_AND_SCOPE'
+  const tokenInfo = await (await request(
+    'https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(oauth.access_token),
+    {}, 'Drive token inspection')).json() as { audience?: string; issued_to?: string; scope?: string }
+  const clientId = value('GPIR_DRIVE_CLIENT_ID')
+  if (tokenInfo.audience !== clientId && tokenInfo.issued_to !== clientId)
+    throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
+  const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\\s+/).filter(Boolean))
+  if (!['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive']
+    .some(scope => grantedScopes.has(scope)))
+    throw new Error('DRIVE_OAUTH_SCOPE_INSUFFICIENT')
+  acquisitionStage = 'DRIVE_OAUTH_ACCOUNT'
+  const driveAbout = await (await request(
+    'https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)',
+    { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
+  if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
+    throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
+  console.log('GPIR Drive OAuth: approved account, client and read scope verified')
   const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
   const mappingFolderId = value('GPIR_DRIVE_MAPPING_FOLDER_ID')
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
@@ -229,7 +250,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)|Drive OAuth response omitted its access token|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
