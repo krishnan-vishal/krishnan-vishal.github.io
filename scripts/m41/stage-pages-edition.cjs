@@ -17,7 +17,18 @@ function stageEdition(root, output, manifest) {
     const marker = JSON.parse(fs.readFileSync(path.join(output, markerPath), 'utf8'));
     if (marker.source !== 'payload' || marker.snapshot !== manifest.snapshot || marker.sourceCommit !== manifest.sourceCommit ||
         marker.managedFiles !== manifest.files.length || marker.protectedEngineFiles !== manifest.protectedFiles.length) throw Error('Build completion marker differs from the selected edition.');
-    const files = [...manifest.files.map(item => item.path), markerPath];
+    // The newer Git-reviewed ASK/Observatory page is retained unchanged for
+    // this phased dashboard release; never stage its older inherited CMS blob.
+    const observatoryPath = 'pages/intelligence/index.html';
+    const guarded = fs.existsSync(path.join(root, '.gpir-ask-observatory-required'));
+    const olderObservatory = guarded && manifest.files.find(item => item.path === observatoryPath &&
+        item.sha256 !== site.sha256(fs.readFileSync(path.join(root, observatoryPath))));
+    if (olderObservatory && !fs.readFileSync(path.join(output, observatoryPath)).equals(
+        fs.readFileSync(path.join(root, observatoryPath)))) {
+        throw Error('Newer approved Observatory ASK GPIR page was not retained.');
+    }
+    const stagedItems = manifest.files.filter(item => !(olderObservatory && item.path === observatoryPath));
+    const files = [...stagedItems.map(item => item.path), markerPath];
     function safeDestination(base, file) {
         site.safePath(file);
         if (file.split('/').some(part => part.startsWith('.')) || /^(?:apps|node_modules|docs|tests|scripts)\//.test(file)) throw Error('Internal path cannot be staged as managed content.');
@@ -33,7 +44,7 @@ function stageEdition(root, output, manifest) {
     if (dirty.length) throw Error('Managed paths already contain local work; all existing changes preserved.');
     try { execFileSync('git', ['diff', '--cached', '--quiet'], { cwd: root }); }
     catch { throw Error('Existing staged changes are preserved; publication staging requires a clean index.'); }
-    for (const item of manifest.files) site.verifyBytes(item, fs.readFileSync(path.join(output, item.path)));
+    for (const item of stagedItems) site.verifyBytes(item, fs.readFileSync(path.join(output, item.path)));
     for (const item of manifest.protectedFiles) {
         site.safePath(item.path);
         if (!fs.readFileSync(path.join(root, item.path)).equals(fs.readFileSync(path.join(output, item.path)))) throw Error('Build differs from the existing Git engine: ' + item.path);
