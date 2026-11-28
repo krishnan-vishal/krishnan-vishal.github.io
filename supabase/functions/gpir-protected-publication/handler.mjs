@@ -86,7 +86,29 @@ function resolvedDashboard(fields, collection) {
     height: Number.isInteger(file.details?.image?.height) ? file.details.image.height : null });
 }
 
-function normalizedPayload(entry, publicationId, supabaseRecordId, collection = null) {
+// Payload has already resolved its approved native media record. Never accept
+// Google Drive links, arbitrary remote hosts, or an unverified editor URL.
+function payloadDashboard(value, mediaOrigin) {
+  if (!value || value.role !== 'PRIMARY_PUBLICATION_DASHBOARD' ||
+      typeof mediaOrigin !== 'string' || !/^https:\/\/[^/]+$/.test(mediaOrigin)) return null;
+  let url;
+  try { url = new URL(value.src); } catch { return null; }
+  if (url.origin !== mediaOrigin || url.search || url.hash ||
+      !/^\/api\/media\/file\/[a-f0-9]{64}\.(?:png|jpe?g|webp)$/i.test(url.pathname) ||
+      !/^[a-f0-9]{64}$/i.test(value.sha256 || '') ||
+      !url.pathname.split('/').pop().toLowerCase().startsWith(value.sha256.toLowerCase() + '.')) return null;
+  const alt = typeof value.alt === 'string' ? value.alt.trim().slice(0,280) : '';
+  if (!alt) return null;
+  return Object.freeze({
+    reference: typeof value.reference === 'string' ? value.reference.slice(0,200) : '',
+    role: 'PRIMARY_PUBLICATION_DASHBOARD', src: url.href,
+    highResolutionHref: url.href, alt,
+    width: Number.isSafeInteger(value.width) && value.width > 0 ? value.width : null,
+    height: Number.isSafeInteger(value.height) && value.height > 0 ? value.height : null
+  });
+}
+
+function normalizedPayload(entry, publicationId, supabaseRecordId, collection = null, mediaOrigin = null) {
   const fields = entry?.fields;
   if (!fields || scalar(fields.gpirPublicationId) !== publicationId ||
       scalar(fields.supabaseRecordId) !== supabaseRecordId) return null;
@@ -97,7 +119,7 @@ function normalizedPayload(entry, publicationId, supabaseRecordId, collection = 
     publicationType: scalar(fields.publicationType),
     summary: scalar(fields.executiveSummary),
     body: fields.editorialBody ?? null,
-    primaryDashboard: resolvedDashboard(fields, collection),
+    primaryDashboard: payloadDashboard(entry.presentation?.primaryDashboard, mediaOrigin) || resolvedDashboard(fields, collection),
     provenance: Object.freeze({
       validationSummary: scalar(fields.sourceValidationSummary),
       legacySourceUrl: scalar(fields.legacySourceUrl)
@@ -207,7 +229,8 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     if (!Array.isArray(collection?.items) || collection.items.length !== 1)
       return denied(403, collection?.items?.length > 1 ? 'DUPLICATE_PUBLICATION' : 'UNKNOWN_PUBLICATION', origin);
     const publication = normalizedPayload(collection.items[0], input.publicationId,
-      input.supabaseRecordId, collection);
+      input.supabaseRecordId, collection, config.GPIR_EDITORIAL_SOURCE === 'payload'
+        ? config.PAYLOAD_PUBLIC_SERVER_URL : null);
     if (!publication) return denied(403, 'CONTENT_IDENTITY_MISMATCH', origin);
     const delivered = response(200, { status: 'ALLOW', publication }, origin);
     delivered.headers.set('x-gpir-editorial-source', config.GPIR_EDITORIAL_SOURCE === 'payload' ? 'payload' : 'contentful');
