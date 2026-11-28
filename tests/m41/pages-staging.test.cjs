@@ -66,3 +66,21 @@ test('an unrelated staged change is preserved and blocks publication staging', t
     assert.equal(fs.readFileSync(path.join(f.root, 'index.html'), 'utf8'), 'old index.html');
     assert.equal(execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: f.root, encoding: 'utf8' }).trim(), 'owner.txt');
 });
+
+test('phased release stages 43-edition files but never replaces newer approved Observatory', t => {
+    const f = fixture(t);
+    fs.writeFileSync(path.join(f.root, '.gpir-ask-observatory-required'), 'retain newest ASK page');
+    const obs = 'pages/intelligence/index.html';
+    const approved = fs.readFileSync(path.join(f.root, obs));
+    fs.writeFileSync(path.join(f.output, obs), approved);
+    const staged = stageEdition(f.root, f.output, f.manifest);
+    assert.ok(!staged.paths.includes(obs));
+    assert.equal(fs.readFileSync(path.join(f.root, obs), 'utf8'), approved.toString('utf8'));
+    assert.equal(fs.readFileSync(path.join(f.root, 'index.html'), 'utf8'), 'approved index.html');
+});
+test('phased staging rejects any changed Observatory preview even with guard', t => {
+    const f = fixture(t);
+    fs.writeFileSync(path.join(f.root, '.gpir-ask-observatory-required'), 'retain newest ASK page');
+    assert.throws(() => stageEdition(f.root, f.output, f.manifest), /Newer approved Observatory ASK GPIR page was not retained/);
+    assert.equal(fs.readFileSync(path.join(f.root, 'index.html'), 'utf8'), 'old index.html');
+});
