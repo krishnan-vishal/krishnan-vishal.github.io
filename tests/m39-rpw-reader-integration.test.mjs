@@ -106,15 +106,15 @@ test('announcement pagination excludes verified reference classes and keeps tech
   const sourceDate = '2026-11-10T15:30:00.000Z';
   const bank = { source_id: 'bank-fixture', source_status: 'GREEN', source_name: 'Bank Fixture',
     official_url: 'https://bank.example' };
-  const { HYPERSWITCH_SOURCE_ID } = await import('../supabase/functions/gpir-public-intelligence/handler.mjs');
-  const repository = 'juspay/hyperswitch';
-  const technicalSource = { source_id: HYPERSWITCH_SOURCE_ID, source_status: 'GREEN',
-    source_name: 'Hyperswitch', official_url: 'https://github.com/' + repository };
+  const { MOJALOOP_SOURCE_ID } = await import('../supabase/functions/gpir-public-intelligence/handler.mjs');
+  const repository = 'mojaloop/helm';
+  const technicalSource = { source_id: MOJALOOP_SOURCE_ID, source_status: 'GREEN',
+    source_name: 'Mojaloop', official_url: 'https://github.com/' + repository };
   const technical = {
-    id: 'release-test', source_id: HYPERSWITCH_SOURCE_ID, raw_title: 'Hyperswitch test release',
+    id: 'release-test', source_id: MOJALOOP_SOURCE_ID, raw_title: 'Mojaloop test release',
     canonical_url: technicalSource.official_url + '/releases/tag/test',
     source_published_at: '2026-11-11T01:00:00.000Z', ingestion_status: 'PROCESSED',
-    metadata: { provider: 'HYPERSWITCH', data_class: 'TECHNICAL_REFERENCE', record_type: 'SOFTWARE_RELEASE',
+    metadata: { provider: 'MOJALOOP', data_class: 'TECHNICAL_REFERENCE', record_type: 'SOFTWARE_RELEASE',
       repository, publication_eligible: false, alert_eligible: false, settlement_telemetry: false }
   };
   const handler = createPublicIntelligenceHandler({

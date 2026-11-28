@@ -498,3 +498,8 @@ distribution and Contentful recovery remain on their governed paths.
 The code and country citations await owner-approved Pages and Edge release.
 Rollback uses the preceding three Edge bundles and a reviewed Pages revert.
 The production technical records retain their canonical archive identities.
+
+
+## Owner revocation of Hyperswitch as an intelligence source — 28 November 2026
+
+The owner rejected `HYPERSWITCH-OSS-001` because GitHub repository commits and software discussions are not validated GPIR global payments intelligence. The existing Supabase production source registry was changed from `GREEN` to `DISABLED`; historical raw ingestion rows (165 at the review checkpoint) remain intact for audit and deduplication, not editorial readership. The public archive must no longer count them as qualifying intelligence. The M44 corrective release removes the source from autonomous rotation, denies direct intake, prevents public historical projection even if a registry entry is re-enabled, and removes new registration and technical ASK prioritization. Mojaloop, other approved sources, the 95% alert threshold, 12-hour lifecycle, 134 FX pairs, M43 and CMS controls remain unchanged. The Hyperswitch open-source *software* may still be independently evaluated later for a separate M45 payment-orchestration product, but not treated as an intelligence authority. No historical audit rows are deleted. Live readback and CI are required after deployment.

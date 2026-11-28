@@ -49,7 +49,7 @@ test('country evidence refuses an Edge revision without explicit geography match
 });
 
 test('technical research questions request the canonical technical archive via ranked ASK', async () => {
-  const results = await retrieveGovernedEvidence('https://example.supabase.co', 'Hyperswitch release', {
+  const results = await retrieveGovernedEvidence('https://example.supabase.co', 'Mojaloop release', {
     fetchImpl: async url => {
       const params = new URL(url).searchParams;
       assert.equal(params.get('match'), 'ranked');
@@ -58,6 +58,15 @@ test('technical research questions request the canonical technical archive via r
     }
   });
   assert.deepEqual(results, [{ id: 'release' }]);
+});
+
+test('revoked Hyperswitch requests are not auto-promoted to technical intelligence', async () => {
+  await retrieveGovernedEvidence('https://example.supabase.co', 'Hyperswitch release', {
+    fetchImpl: async url => {
+      assert.equal(new URL(url).searchParams.get('collection'), null);
+      return { ok: true, json: async () => ({ status: 'OK', access: 'preview', match: 'ranked', records: [] }) };
+    }
+  });
 });
 
 test('builds bounded context-aware queries for governed ASK retrieval', () => {

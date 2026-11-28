@@ -10,7 +10,7 @@ export const RPW_WORKBOOK_URL = 'https://datacatalogfiles.worldbank.org/ddh-publ
 export const MOJALOOP_SOURCE_ID = 'MOJALOOP-OSS-001';
 export const HYPERSWITCH_SOURCE_ID = 'HYPERSWITCH-OSS-001';
 export const REFERENCE_SOURCE_IDS = Object.freeze([
-  BIS_SOURCE_ID, RPW_SOURCE_ID, MOJALOOP_SOURCE_ID, HYPERSWITCH_SOURCE_ID
+  BIS_SOURCE_ID, RPW_SOURCE_ID, MOJALOOP_SOURCE_ID
 ]);
 export const M40_THEME_IDS = Object.freeze([
   'cross-border', 'real-time', 'infrastructure', 'ai', 'agentic', 'web3',
@@ -272,6 +272,8 @@ export function normalizeTechnicalReferenceRows({ rows = [], sources = [] }) {
       ? [[source.source_id, source]] : [];
   }));
   return rows.flatMap(row => {
+    // Retain legacy raw audit rows, but never project the revoked source into reader intelligence.
+    if (row?.source_id === HYPERSWITCH_SOURCE_ID) return [];
     const config = TECHNICAL_SOURCES[row?.source_id];
     const source = sourceMap.get(row?.source_id);
     const metadata = row?.metadata;
@@ -526,7 +528,7 @@ async function loadRepositoryEvidence({ fetchImpl, config, requestNow, history, 
       }),
       history && collection !== 'announcements' ? allRows('intelligence_raw_ingestion', {
         select: 'id,source_id,raw_title,canonical_url,source_published_at,ingestion_status,metadata',
-        source_id: `in.(${(technical ? Object.keys(TECHNICAL_SOURCES) : REFERENCE_SOURCE_IDS).join(',')})`,
+        source_id: `in.(${(technical ? Object.keys(TECHNICAL_SOURCES).filter(id => id !== HYPERSWITCH_SOURCE_ID) : REFERENCE_SOURCE_IDS).join(',')})`,
         ingestion_status: 'eq.PROCESSED', order: 'discovered_at.desc,id.asc'
       }) : [],
       history && !technical && (askView || !collection) ? allRows('gpir_regulatory_documents', {

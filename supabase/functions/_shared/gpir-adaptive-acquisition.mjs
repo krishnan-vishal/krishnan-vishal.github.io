@@ -8,7 +8,8 @@ const LIVE_SOURCES = [
     ['FINEXTRA-PAY-006', 'trade-rss-v1'],
     ['FS-GLOBAL-003', 'universal-finance']
 ];
-const TECHNICAL_SOURCES = ['MOJALOOP-OSS-001', 'HYPERSWITCH-OSS-001'];
+// Owner-revoked Hyperswitch: GitHub code commits are not GPIR intelligence.
+const TECHNICAL_SOURCES = ['MOJALOOP-OSS-001'];
 const HISTORY_SOURCES = ['FINTECHNEWS-SG-008', 'ATLAS-APAC-009'];
 const PROFILES = new Map([...LIVE_SOURCES,
     ...TECHNICAL_SOURCES.map(id => [id, 'github-technical-history-v1']),
