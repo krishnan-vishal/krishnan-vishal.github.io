@@ -95,7 +95,13 @@ async function main() {
   if (authorizedClient !== clientId)
     throw new Error('DRIVE_OAUTH_CLIENT_MISMATCH')
   const grantedScopes = new Set(String(tokenInfo.scope || '').split(/\s+/).filter(Boolean))
-  if (!['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive']
+  // drive.file is a valid narrower grant, but only for explicitly app-authorized
+  // files. The importer still requires authenticated metadata AND full media
+  // download with approved SHA-256 for both mappings and every source image.
+  // A metadata-only token cannot satisfy those downstream checks.
+  if (!['https://www.googleapis.com/auth/drive.readonly',
+         'https://www.googleapis.com/auth/drive',
+         'https://www.googleapis.com/auth/drive.file']
     .some(scope => grantedScopes.has(scope)))
     throw new Error('DRIVE_OAUTH_SCOPE_INSUFFICIENT')
   acquisitionStage = 'DRIVE_OAUTH_ACCOUNT'
@@ -104,7 +110,7 @@ async function main() {
     { headers }, 'Drive account lookup')).json() as { user?: { emailAddress?: string } }
   if (driveAbout.user?.emailAddress?.toLowerCase() !== 'krishnanvishal12@gmail.com')
     throw new Error('DRIVE_OAUTH_ACCOUNT_MISMATCH')
-  console.log('GPIR Drive OAuth: approved account, client and read scope verified')
+  console.log('GPIR Drive OAuth: approved account, client and usable Drive scope verified; per-file access and SHA-256 checks remain mandatory')
   const folderId = value('GPIR_DRIVE_INTAKE_FOLDER_ID')
   const mappingFolderId = value('GPIR_DRIVE_MAPPING_FOLDER_ID')
   if (folderId !== '11eN-u0tg56eiSCiomPHhKFtutJdkOQ2i' || mappingFolderId !== '1l8fcr5-L7GSZ-4z9IGuO5XD9PPccn0mq') throw new Error('Unapproved Drive folder')
