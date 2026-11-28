@@ -45,6 +45,29 @@ jobs:
         run: |
           test "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH"
           test "$PAYLOAD_RELEASE_CUTOVER_ENABLED" = "true"
+      - name: Verify signed edition before advancing the protected source lock
+        if: inputs.mode == 'RELEASE'
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { client } = require('./scripts/m41/payload-site.cjs');
+          (async () => {
+            const snapshot = process.env.GPIR_PAYLOAD_SITE_SNAPSHOT;
+            if (!/^[a-f0-9]{64}$/.test(snapshot || '')) throw Error('Invalid reviewed snapshot.');
+            const current = JSON.parse(fs.readFileSync('gpir-content-source.json', 'utf8'));
+            if (current.source !== 'payload' || !/^[a-f0-9]{64}$/.test(current.snapshot || ''))
+              throw Error('Existing Payload source lock is invalid.');
+            const source = await client(process.env);
+            if (source.manifest.snapshot !== snapshot || source.manifest.parentSnapshot !== current.snapshot ||
+                source.manifest.nativeResearch?.length !== 43)
+              throw Error('Edition is not the reviewed 43-record successor to the current source lock.');
+            // This changes only the ephemeral runner checkout. Production moves
+            // after the generated edition PR is reviewed and merged.
+            current.snapshot = snapshot;
+            fs.writeFileSync('gpir-content-source.json', JSON.stringify(current, null, 2) + '\n');
+            console.log('Signed 43-record edition verified; protected source lock staged for review.');
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          NODE
       - name: Reconstruct full public content from the signed Payload snapshot
         run: node scripts/build-cloudflare-preview.js
       - name: Validate and stage only the managed public edition
@@ -63,6 +86,7 @@ jobs:
           fi
           git switch -c "$edition_branch"
           git add --pathspec-from-file=.migration-data/m41-cutover/pages-stage-paths.nul --pathspec-file-nul
+          git add -- gpir-content-source.json
           if git diff --cached --quiet; then
             echo "No managed publication change."
             exit 0
