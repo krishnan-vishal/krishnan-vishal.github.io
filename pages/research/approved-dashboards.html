@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow"><title>Published Intelligence Dashboards | GPIR</title>
+<meta name="description" content="Explore verified GPIR research dashboard titles by region and payment topic. Premium report bodies require reader authorization.">
+<link rel="stylesheet" href="/assets/css/variables.css"><link rel="stylesheet" href="/assets/css/typography.css">
+<link rel="stylesheet" href="/assets/css/layout.css"><link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/responsive.css"><link rel="stylesheet" href="/assets/css/header.css">
+<link rel="stylesheet" href="/assets/css/reader-auth.css">
+<style>
+.gpir-catalog{max-width:1100px;margin:0 auto;padding:36px 20px 70px;color:#142c4a;font:inherit}
+.gpir-catalog h1{font-size:clamp(1.8rem,3.2vw,2.8rem);line-height:1.2;margin:12px 0}
+.gpir-catalog-intro{max-width:750px;line-height:1.6}
+.gpir-catalog-controls{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+.gpir-catalog-controls label{font-weight:700}
+.gpir-catalog-controls input,.gpir-catalog-controls select{border:1px solid #b6c4d6;border-radius:8px;padding:10px;min-width:220px;max-width:100%;background:#fff;color:#102744}
+.gpir-catalog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:16px;list-style:none;padding:0}
+.gpir-catalog-grid li{background:#fff;border:1px solid #d3deeb;border-radius:12px;padding:20px;box-shadow:0 2px 10px #11274410}
+.gpir-catalog-grid h2{font-size:1.09rem;line-height:1.4;margin:8px 0 12px}
+.gpir-catalog-grid p{font-size:.92rem;line-height:1.5;margin:8px 0}
+.gpir-catalog-grid a{color:#095b91;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.gpir-catalog-kicker{font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#866019}
+.gpir-catalog-status{min-height:1.5em}
+</style></head>
+<body><header class="header"><div class="container header-container">
+<a href="/" aria-label="FINTECHOISIS GPIR homepage"><strong>FINTECHOISIS · GPIR</strong></a>
+<nav aria-label="GPIR navigation"><a href="/">Home</a> · <a href="/#repository">Repository</a> · <a href="/reader/my-gpir/#library">My GPIR Library</a></nav>
+<div data-gpir-reader-actions aria-label="Reader account"></div></div></header>
+<main class="gpir-catalog"><p class="gpir-catalog-kicker">GPIR Research Repository</p>
+<h1>Published intelligence dashboards</h1>
+<p class="gpir-catalog-intro">Find approved research by region and topic. Publication titles and summaries are visible to everyone; premium intelligence remains protected by GPIR's server-side Supabase entitlement rules. An authorized reader can open each publication to view the complete dashboard.</p>
+<div class="gpir-catalog-controls">
+<label for="catalog-search">Search dashboards <input id="catalog-search" type="search" placeholder="Country, corridor or payment topic"></label>
+<label for="catalog-region">Category <select id="catalog-region"><option value="">All categories</option></select></label>
+</div>
+<p id="catalog-status" class="gpir-catalog-status" role="status" aria-live="polite">Loading published dashboards…</p>
+<ul id="catalog-list" class="gpir-catalog-grid" aria-label="Approved dashboard directory"></ul>
+</main>
+<script src="/assets/js/gpir-supabase-public-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js"></script>
+<script src="/scripts/m34/supabase-browser-client.js"></script>
+<script src="/assets/js/gpir-reader-auth.js" defer></script>
+<script type="module" src="/assets/js/gpir-publication-catalog.mjs"></script>
+</body></html>
