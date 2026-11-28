@@ -42,7 +42,17 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
   if (result.totalDocs > 1) throw new Error('INTAKE_CHAPTER_AMBIGUOUS')
   if (result.totalDocs === 1) {
     const chapter = result.docs[0]
-    if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+    // Preserve pre-existing GPIR research chapters: their canonical URL is
+    // /<slug>/ and their immutable chapter identity uses the legacy publication
+    // namespace. Do not overwrite it or accept unrelated URL/slug conflicts.
+    const legacyCanonical = `https://fintechoisis.com/${review.chapterSlug}/`
+    const originalResearch = chapter.slug === review.chapterSlug &&
+      chapter.canonicalUrl === legacyCanonical &&
+      /^chapter:VK-GPIR-P-/.test(String(chapter.canonicalId || ''))
+    if (chapter.slug !== review.chapterSlug ||
+        (chapter.canonicalUrl !== canonicalUrl && !originalResearch)) {
+      throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+    }
     return { chapter, status: 'REUSED' as const }
   }
   if (review.menuPath.length === 2) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
@@ -66,7 +76,17 @@ export async function resolveDriveChapter(req: any, review: DriveReview) {
     result = await find()
     if (result.totalDocs === 1) {
       const chapter = result.docs[0]
-      if (chapter.slug !== review.chapterSlug || chapter.canonicalUrl !== canonicalUrl) throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+      // Preserve pre-existing GPIR research chapters: their canonical URL is
+    // /<slug>/ and their immutable chapter identity uses the legacy publication
+    // namespace. Do not overwrite it or accept unrelated URL/slug conflicts.
+    const legacyCanonical = `https://fintechoisis.com/${review.chapterSlug}/`
+    const originalResearch = chapter.slug === review.chapterSlug &&
+      chapter.canonicalUrl === legacyCanonical &&
+      /^chapter:VK-GPIR-P-/.test(String(chapter.canonicalId || ''))
+    if (chapter.slug !== review.chapterSlug ||
+        (chapter.canonicalUrl !== canonicalUrl && !originalResearch)) {
+      throw new Error('INTAKE_CHAPTER_CANONICAL_CONFLICT')
+    }
       return { chapter, status: 'REUSED' as const }
     }
     throw new Error(result.totalDocs > 1 ? 'INTAKE_CHAPTER_AMBIGUOUS' : 'INTAKE_CHAPTER_CREATE_FAILED')
