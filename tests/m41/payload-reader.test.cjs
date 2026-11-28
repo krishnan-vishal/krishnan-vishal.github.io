@@ -50,14 +50,17 @@ test('body stream failure is bounded and reported without the raw exception', as
     assert.equal(reads, 3);
 });
 
-function fixture(t) {
+function fixture(t, { staleObservatory = false } = {}) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'm41-reader-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
     const output = path.join(root, 'dist');
     const routes = ['index.html', '404.html', 'reader/sign-in/index.html', 'pages/intelligence/index.html'];
     for (const route of routes) {
         fs.mkdirSync(path.dirname(path.join(output, route)), { recursive: true });
-        fs.writeFileSync(path.join(output, route), `accepted ${route}`);
+        const bytes = route === 'pages/intelligence/index.html' && !staleObservatory
+            ? fs.readFileSync(path.resolve(__dirname, '../../pages/intelligence/index.html'))
+            : `accepted ${route}`;
+        fs.writeFileSync(path.join(output, route), bytes);
     }
     fs.writeFileSync(path.join(output, 'engine.js'), 'preserved engine');
     const manifest = site.inventory(output, 'a'.repeat(40));
@@ -157,4 +160,18 @@ test('unapproved fifth managed route is still blocked before any Payload edition
         /Payload does not cover every existing managed public path/);
     assert.equal(fs.readFileSync(extra, 'utf8'), 'keep unrelated content');
     assert.equal(fs.existsSync(path.join(f.output, 'assets/data/cms-source.json')), false);
+});
+
+test('signed earlier edition retains newer Git-approved Observatory ASK GPIR content', async t => {
+    const f = fixture(t, { staleObservatory: true });
+    const approved = fs.readFileSync(path.resolve(__dirname, '../../pages/intelligence/index.html'));
+    assert.ok(fs.existsSync(path.resolve(__dirname, '../../.gpir-ask-observatory-required')));
+    const obs = path.join(f.output, 'pages/intelligence/index.html');
+    fs.writeFileSync(obs, approved);
+    fs.mkdirSync(path.join(f.output, 'assets/data'), { recursive: true });
+    const marker = await materialize(f.output, f.env, f.fetchImpl);
+    assert.equal(marker.snapshot, f.manifest.snapshot);
+    assert.ok(fs.readFileSync(obs).equals(approved));
+    assert.ok(!f.reads.some(key => key === 'm41:blob:' +
+        f.manifest.files.find(item => item.path === 'pages/intelligence/index.html').sha256));
 });
