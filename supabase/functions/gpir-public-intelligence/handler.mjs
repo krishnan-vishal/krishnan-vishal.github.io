@@ -21,6 +21,7 @@ export const M40_REGION_IDS = Object.freeze([
 ]);
 export const M40_TOPIC_IDS = Object.freeze(TOPIC_TAXONOMY.map(topic => topic.id));
 const PUBLIC_REPOSITORY_WINDOW_MS = PUBLIC_REPOSITORY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+const LIVE_RELAY_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 const DEFAULT_ORIGINS = Object.freeze([
   'https://fintechoisis.com',
@@ -62,6 +63,60 @@ async function jsonFetch(fetchImpl, url, headers) {
   const data = await result.json();
   if (!Array.isArray(data)) throw new Error('INVALID_REPOSITORY_RESPONSE');
   return data;
+}
+
+function inFilter(values) {
+  return `in.(${[...new Set(values)].join(',')})`;
+}
+
+// The relay is a latency-sensitive 12-hour projection, not a historical query.
+// Read only ticker-eligible rows in the live window and then fetch evidence scoped
+// to those announcement/topic ids. The permanent archive continues through the
+// unchanged history path below. This prevents thousands of historical reference
+// rows from delaying an honestly empty or small live ribbon.
+export async function loadLiveRelayRows({ fetchImpl = fetch, config, now }) {
+  const headers = new Headers();
+  headers.set('apikey', config.key);
+  headers.set('authorization', `Bearer ${config.key}`);
+  const announcementsQuery = new URLSearchParams({
+    select: 'id,source_id,title,summary_narration,canonical_url,published_at,ticker_eligible,topic_headers,publication_status',
+    publication_status: 'eq.approved', ticker_eligible: 'eq.true',
+    published_at: `gte.${new Date(now - LIVE_RELAY_WINDOW_MS).toISOString()}`,
+    order: 'published_at.asc,id.asc', limit: '1000'
+  });
+  announcementsQuery.append('published_at', `lte.${new Date(now).toISOString()}`);
+  const announcements = await jsonFetch(fetchImpl,
+    `${config.url}/rest/v1/global_announcements?${announcementsQuery}`, headers);
+  if (!announcements.length) return { announcements: [], sources: [], topics: [],
+    developments: [], topicSources: [], statisticalObservations: [], regulatoryDocuments: [] };
+
+  const sourceIds = announcements.map(item => item.source_id).filter(Boolean);
+  const announcementIds = announcements.map(item => item.id).filter(Boolean);
+  const [sources, topics] = await Promise.all([
+    sourceIds.length ? jsonFetch(fetchImpl, `${config.url}/rest/v1/source_registry?${new URLSearchParams({
+      select: 'source_id,source_name,official_url,source_status,country,region_tags,category,trust_tier',
+      source_id: inFilter(sourceIds), limit: '500'
+    })}`, headers) : Promise.resolve([]),
+    jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topics?${new URLSearchParams({
+      select: 'id,announcement_id,keywords,outcome_status,geography',
+      announcement_id: inFilter(announcementIds), limit: '1000'
+    })}`, headers)
+  ]);
+  const topicIds = topics.map(item => item.id).filter(Boolean);
+  if (!topicIds.length) return { announcements, sources, topics, developments: [],
+    topicSources: [], statisticalObservations: [], regulatoryDocuments: [] };
+  const [developments, topicSources] = await Promise.all([
+    jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_developments?${new URLSearchParams({
+      select: 'id,topic_id,event_type,effective_date,summary,outcome_status',
+      topic_id: inFilter(topicIds), limit: '5000'
+    })}`, headers),
+    jsonFetch(fetchImpl, `${config.url}/rest/v1/gpir_intelligence_topic_sources?${new URLSearchParams({
+      select: 'topic_id,development_id,source_id,canonical_url,source_published_at',
+      topic_id: inFilter(topicIds), limit: '5000'
+    })}`, headers)
+  ]);
+  return { announcements, sources, topics, developments, topicSources,
+    statisticalObservations: [], regulatoryDocuments: [] };
 }
 
 export function normalizeBisReferenceRows({ rows = [], sources = [] }) {
@@ -571,6 +626,7 @@ export function createPublicIntelligenceHandler({ env, fetchImpl = fetch,
     try {
       let rows;
       if (loadRows) rows = await loadRows();
+      else if (relayView) rows = await loadLiveRelayRows({ fetchImpl, config, now: requestNow });
       else {
         const headers = new Headers();
         headers.set('apikey', config.key);

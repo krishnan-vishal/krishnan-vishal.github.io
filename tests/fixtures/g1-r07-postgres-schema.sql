@@ -12,3 +12,7 @@ create table public.global_announcements(
  id uuid primary key default gen_random_uuid(),source_id text,title text,summary_narration text,
  canonical_url text unique,published_at timestamptz,ticker_eligible boolean,
  topic_headers text[],archive_month_year text,url text,publication_status text);
+create table public.fx_historical_archive(
+ id bigint generated always as identity primary key,
+ base_currency text not null,target_currency text not null,observation_date date,
+ rate numeric not null,region text,source text,rate_method text,timestamp timestamptz not null);
