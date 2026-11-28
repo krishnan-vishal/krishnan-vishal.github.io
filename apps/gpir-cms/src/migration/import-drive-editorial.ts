@@ -258,23 +258,33 @@ async function main() {
   const byId = new Map(sources.map(source => [source.file.id, source]))
 
   acquisitionStage = 'EXISTING_PUBLICATION_INVENTORY'
-  const [estate, entries] = await Promise.all([
-    (await request(origin + '/api/release/editorial-entries', {
-      method: 'POST', headers: { authorization, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'export' }),
-    }, 'Payload inventory')).json(), contentfulInventory('entries'),
-  ])
-  if (!Array.isArray(estate.records)) throw new Error('Invalid Payload estate')
+  // The full editorial backup is a separate recovery operation, not a
+  // prerequisite for deduplicating the approved 43-dashboard publication.
+  // Inventory failures remain independently identifiable and fail closed.
+  let estate: { records?: any[] }
+  try {
+    estate = await (await request(origin + '/api/release/editorial-entries', {
+      method: 'POST', headers: { authorization, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'identity-inventory' }),
+    }, 'Payload inventory')).json()
+  } catch {
+    throw new Error('PAYLOAD_IDENTITY_INVENTORY_FAILED')
+  }
+  if (!Array.isArray(estate.records)) throw new Error('PAYLOAD_IDENTITY_INVENTORY_INVALID')
+  let entries: any[]
+  try {
+    entries = await contentfulInventory('entries')
+  } catch {
+    throw new Error('CONTENTFUL_IDENTITY_INVENTORY_FAILED')
+  }
   const published: { hash: string | null; title: string | null; route: string | null; source: string }[] = []
-  for (const row of estate.records) {
-    const source = row.sourcePayload
-    for (const doc of [source?.document, source?.publishedDocument, source?.fields]) {
-      if (doc?.publicationTitle || doc?.canonicalUrlCandidate || doc?.sourceHash) published.push({
-        hash: typeof doc.sourceHash === 'string' ? doc.sourceHash : null,
-        title: typeof doc.publicationTitle === 'string' ? identity(doc.publicationTitle) : null,
-        route: typeof doc.canonicalUrlCandidate === 'string' ? identity(doc.canonicalUrlCandidate) : null,
-        source: 'payload',
-      })
-    }
+  for (const doc of estate.records) {
+    if (doc?.publicationTitle || doc?.canonicalUrlCandidate || doc?.sourceHash) published.push({
+      hash: typeof doc.sourceHash === 'string' ? doc.sourceHash : null,
+      title: typeof doc.publicationTitle === 'string' ? identity(doc.publicationTitle) : null,
+      route: typeof doc.canonicalUrlCandidate === 'string' ? identity(doc.canonicalUrlCandidate) : null,
+      source: 'payload',
+    })
   }
   for (const item of entries) {
     const titles = Object.values(item.fields?.publicationTitle || {}).filter(value => typeof value === 'string') as string[]
@@ -354,7 +364,7 @@ main().catch(error => {
   const message = String(error?.message || '')
   // Emit a bounded release stage and a safe, allowlisted reason; never log OAuth,
   // access tokens, API keys, request bodies, folder contents or arbitrary exceptions.
-  const approved = /^(Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)(?:: (?:INTAKE_[A-Z_]+|SERVICE_ROLE_REQUIRED|UNRECOGNIZED_RESPONSE))?|DRIVE_WIF_(?:SERVICE_ACCOUNT_INVALID|TOKEN_MISSING)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
+  const approved = /^(PAYLOAD_IDENTITY_INVENTORY_(?:FAILED|INVALID)|CONTENTFUL_IDENTITY_INVENTORY_FAILED|Missing configuration reference: [A-Z_]+|(?:Drive OAuth|Approved Drive folder inventory|Drive acquisition|Drive mapping acquisition|Drive mapping metadata|Drive token inspection|Drive account lookup|Contentful inventory|Payload publication intake|Payload inventory|Payload edition preparation) returned HTTP (?:400|401|403|404|409|413|415|429|500|502|503|504)(?:: (?:INTAKE_[A-Z_]+|SERVICE_ROLE_REQUIRED|UNRECOGNIZED_RESPONSE))?|DRIVE_WIF_(?:SERVICE_ACCOUNT_INVALID|TOKEN_MISSING)|DRIVE_OAUTH_TOKEN_MISSING|DRIVE_OAUTH_REFRESH_RETRY_EXHAUSTED|DRIVE_OAUTH_(?:TIMEOUT|TRANSPORT)_RETRY_EXHAUSTED|DRIVE_OAUTH_REJECTED_(?:INVALID_GRANT|INVALID_CLIENT|UNAUTHORIZED_CLIENT|INVALID_SCOPE|INVALID_REQUEST|ACCESS_DENIED|TEMPORARILY_UNAVAILABLE|UNKNOWN)_HTTP_\d{3}|DRIVE_OAUTH_(?:CLIENT_MISMATCH|SCOPE_INSUFFICIENT|ACCOUNT_MISMATCH)|Invalid approved Drive folder inventory|Approved Drive folder exceeded intake safety limit|Approved Drive mappings are missing or ambiguous|Drive mapping changed during acquisition|Approved Drive mapping identity is ambiguous|Approved Drive mapping identity or parent mismatch|Approved Drive mapping content changed|Invalid approved Drive mapping documents|DRIVE_RECONCILIATION_(?:INVALID|DUPLICATED|ROW_MISMATCH)|DRIVE_EDITORIAL_ANNOTATION_MISMATCH|Published identity collision in approved Drive batch|Approved Drive batch count contract failed)$/
   console.error('Drive editorial publication failed at ' + acquisitionStage + ': ' +
     (approved.test(message) ? message : 'UNCLASSIFIED_FAILURE'))
   process.exitCode = 1
