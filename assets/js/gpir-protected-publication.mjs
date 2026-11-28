@@ -32,6 +32,37 @@ export async function requestProtectedPublication({ supabase, endpoint, publicat
   return result.publication;
 }
 
+// Media bytes never use an anonymous browser request to the private CMS.
+export async function requestProtectedMedia({ supabase, endpoint, publicationId,
+  supabaseRecordId, fetchImpl = fetch, createObjectURL = URL.createObjectURL,
+  nowSeconds } = {}) {
+  if (!supabase?.auth?.getSession || typeof endpoint !== 'string' || !endpoint.startsWith('https://'))
+    return null;
+  let session;
+  try {
+    const result = await supabase.auth.getSession();
+    if (result.error) return null;
+    session = result.data?.session;
+  } catch { return null; }
+  if (!validSession(session, nowSeconds)) return null;
+  let result;
+  try {
+    result = await fetchImpl(endpoint, {
+      method: 'POST', credentials: 'omit', cache: 'no-store',
+      headers: { authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'media', publicationId, supabaseRecordId })
+    });
+  } catch { return null; }
+  if (!result.ok) return null;
+  const type = (result.headers?.get('content-type') || '').split(';')[0].toLowerCase();
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(type)) return null;
+  let image;
+  try { image = await result.blob(); }
+  catch { return null; }
+  if (!image.size || image.size > 16 * 1024 * 1024 || image.type !== type) return null;
+  try { return createObjectURL(image); } catch { return null; }
+}
+
 function appendRichText(document, parent, node) {
   if (!node || typeof node !== 'object') return;
   if (node.nodeType === 'text') { parent.append(document.createTextNode(node.value || '')); return; }
@@ -94,7 +125,8 @@ export function modulesFromRichText(body) {
 }
 
 function safeMediaUrl(value) {
-  return typeof value === 'string' && (value.startsWith('/') || /^https:\/\//i.test(value))
+  return typeof value === 'string' && (value.startsWith('/') || /^https:\/\//i.test(value) ||
+    /^blob:https:\/\/fintechoisis\.com\/[0-9a-f-]+$/i.test(value))
     ? value : null;
 }
 
@@ -213,7 +245,24 @@ export async function hydrateProtectedPublication({ document = globalThis.docume
   const publication = await requestProtectedPublication({ supabase: runtime.supabase,
     endpoint: runtime.endpoint, publicationId: main.dataset.gpirPublicationId,
     supabaseRecordId: main.dataset.gpirSupabaseRecordId });
-  return publication ? renderProtectedPublication({ document, container, publication }) : false;
+  if (!publication) return false;
+  let verified = publication;
+  if (publication.primaryDashboard) {
+    const objectUrl = await requestProtectedMedia({
+      supabase: runtime.supabase, endpoint: runtime.endpoint,
+      publicationId: main.dataset.gpirPublicationId,
+      supabaseRecordId: main.dataset.gpirSupabaseRecordId
+    });
+    if (objectUrl) {
+      verified = { ...publication, primaryDashboard: {
+        ...publication.primaryDashboard, src: objectUrl, highResolutionHref: objectUrl
+      } };
+      globalThis.addEventListener?.('pagehide', () => URL.revokeObjectURL(objectUrl), { once: true });
+    } else {
+      verified = { ...publication, primaryDashboard: null };
+    }
+  }
+  return renderProtectedPublication({ document, container, publication: verified });
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {

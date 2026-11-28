@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { createRequire } from 'node:module';
 import { createProtectedPublicationHandler } from '../../supabase/functions/gpir-protected-publication/handler.mjs';
-import { requestProtectedPublication } from '../../assets/js/gpir-protected-publication.mjs';
+import { requestProtectedPublication, requestProtectedMedia } from '../../assets/js/gpir-protected-publication.mjs';
 import { resolveSubscriberAccess } from '../../supabase/functions/_shared/gpir-reader-entitlement.mjs';
 
 const require = createRequire(import.meta.url);
@@ -387,4 +387,68 @@ test('approved Payload dashboard media resolves by verified ID only after entitl
     assert.equal(bad.status, 503);
     assert.equal((await bad.json()).reason, 'MEDIA_INTEGRITY_ERROR');
   }
+});
+
+test('authorized image bytes stream only after full GPIR policy and content identity checks', async () => {
+  const bytes = new TextEncoder().encode('approved-test-image-bytes');
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+    .map(value => value.toString(16).padStart(2, '0')).join('');
+  const mediaId = '44444444-4444-4444-8444-444444444444';
+  const worker = 'https://cms.example';
+  const url = worker + '/api/media/file/' + hash + '.png';
+  const selected = { ...env, GPIR_EDITORIAL_SOURCE: 'payload',
+    PAYLOAD_PUBLIC_SERVER_URL: worker, PAYLOAD_RELEASE_API_KEY: 'fixture-api-key' };
+  const requests = [];
+  const provider = async (target) => {
+    requests.push(String(target));
+    if (target.includes('/auth/v1/user')) return Response.json({ id: userId });
+    if (target.includes('resolve_publication_entitlement')) return Response.json([{ decision: 'ALLOW' }]);
+    if (target.includes('/api/release/editorial-entries')) return Response.json({
+      items: [contentfulEntry({ dashboardAsset: { sys: { id: mediaId } } })]
+    });
+    if (target.includes('/api/media/' + mediaId)) return Response.json({
+      id: mediaId, sourceSha256: hash, sourceUrl: url, alt: 'Approved media'
+    });
+    assert.equal(target, url);
+    return new Response(bytes, { headers: { 'content-type': 'image/png' } });
+  };
+  const allowed = await createProtectedPublicationHandler({ env: selected, fetchImpl: provider })(
+    edgeRequest({ body: { action: 'media', publicationId, supabaseRecordId } }));
+  assert.equal(allowed.status, 200);
+  assert.equal(allowed.headers.get('content-type'), 'image/png');
+  assert.equal(allowed.headers.get('cache-control').includes('no-store'), true);
+  assert.deepEqual(new Uint8Array(await allowed.arrayBuffer()), bytes);
+  assert.equal(requests.length, 5);
+  const denied = await createProtectedPublicationHandler({ env: selected, fetchImpl: async target => {
+    assert.ok(!String(target).includes('/api/media'), 'a denied session cannot request source media');
+    return target.includes('/auth/v1/user') ? Response.json({ id: userId }) : Response.json([{ decision: 'DENY' }]);
+  } })(edgeRequest({body: {action:'media', publicationId, supabaseRecordId}}));
+  assert.equal(denied.status, 403);
+  const tampered = await createProtectedPublicationHandler({ env: selected, fetchImpl: async target => {
+    const result = await provider(target);
+    if (target === url) return new Response('altered', {headers: {'content-type':'image/png'}});
+    return result;
+  } })(edgeRequest({body: {action:'media', publicationId, supabaseRecordId}}));
+  assert.equal(tampered.status, 503);
+  assert.equal((await tampered.json()).reason, 'MEDIA_INTEGRITY_ERROR');
+});
+
+test('browser obtains protected dashboard blob with session bearer, not public media URL', async () => {
+  const session = { user: {id:userId}, expires_at: 2000000000, access_token: 'session-secret' };
+  const supabase = {auth:{getSession: async () => ({data:{session},error:null})}};
+  const body = new Blob([new Uint8Array([1,2,3])], {type:'image/png'});
+  let received;
+  const url = await requestProtectedMedia({supabase,
+    endpoint:'https://qlnvhfapctcpzqyuhhth.supabase.co/functions/v1/gpir-protected-publication',
+    publicationId, supabaseRecordId, nowSeconds: 1000000000,
+    fetchImpl:async (endpoint, init) => {
+      received = {endpoint,init};
+      return new Response(body, {headers:{'content-type':'image/png'}});
+    },
+    createObjectURL: blob => blob.size === 3 ? 'blob:https://fintechoisis.com/test-guid' : null
+  });
+  assert.equal(url,'blob:https://fintechoisis.com/test-guid');
+  assert.equal(received.init.headers.authorization,'Bearer session-secret');
+  assert.deepEqual(JSON.parse(received.init.body),
+    {action:'media',publicationId,supabaseRecordId});
 });

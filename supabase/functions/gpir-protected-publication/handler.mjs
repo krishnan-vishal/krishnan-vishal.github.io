@@ -145,7 +145,8 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
     let input;
     try { input = await request.json(); }
     catch { return denied(400, 'MALFORMED_REQUEST', origin); }
-    if (!validInput(input)) return denied(400, 'MALFORMED_PUBLICATION_IDENTITY', origin);
+    if (!validInput(input) || (input.action !== undefined && input.action !== 'media'))
+      return denied(400, 'MALFORMED_PUBLICATION_IDENTITY', origin);
 
     const token = bearerToken(request);
     if (!token) return denied(401, 'SESSION_REQUIRED', origin);
@@ -289,6 +290,52 @@ export function createProtectedPublicationHandler({ env, fetchImpl = fetch }) {
           /^[A-Za-z0-9]{12,40}$/.test(entry.fields.dashboardAsset.sys.id)) &&
         !publication.primaryDashboard)
       return providerError('MEDIA_INTEGRITY_ERROR', origin);
+    if (input.action === 'media') {
+      const dashboard = publication.primaryDashboard;
+      if (!dashboard || !dashboard.src) return providerError('MEDIA_NOT_AVAILABLE', origin);
+      let mediaResponse;
+      try {
+        const mediaUrl = new URL(dashboard.src);
+        const isCms = mediaUrl.origin === config.PAYLOAD_PUBLIC_SERVER_URL;
+        mediaResponse = await fetchImpl(mediaUrl.href, {
+          redirect: 'error',
+          headers: isCms
+            ? { authorization: 'users API-Key ' + config.PAYLOAD_RELEASE_API_KEY }
+            : {},
+        });
+      } catch { return providerError('MEDIA_BYTES_UNAVAILABLE', origin); }
+      if (!mediaResponse.ok) return providerError('MEDIA_BYTES_UNAVAILABLE', origin);
+      const type = (mediaResponse.headers.get('content-type') || '').split(';')[0].toLowerCase();
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(type))
+        return providerError('MEDIA_MIME_UNEXPECTED', origin);
+      const length = Number(mediaResponse.headers.get('content-length'));
+      if (Number.isFinite(length) && length > 16 * 1024 * 1024)
+        return providerError('MEDIA_TOO_LARGE', origin);
+      let bytes;
+      try { bytes = await mediaResponse.arrayBuffer(); }
+      catch { return providerError('MEDIA_BYTES_UNAVAILABLE', origin); }
+      if (bytes.byteLength === 0 || bytes.byteLength > 16 * 1024 * 1024)
+        return providerError('MEDIA_SIZE_INVALID', origin);
+      const expectedSha = resolvedEntry.presentation?.primaryDashboard?.sha256;
+      if (!/^[a-f0-9]{64}$/i.test(expectedSha || ''))
+        return providerError('MEDIA_HASH_MISSING', origin);
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      const actualSha = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+      if (actualSha.toLowerCase() !== expectedSha.toLowerCase())
+        return providerError('MEDIA_INTEGRITY_ERROR', origin);
+      const headers = {
+        'content-type': type,
+        'cache-control': 'private, no-store, max-age=0',
+        pragma: 'no-cache', vary: 'Origin',
+        'x-content-type-options': 'nosniff'
+      };
+      if (origin === PRODUCTION_ORIGIN) {
+        headers['access-control-allow-origin'] = origin;
+        headers['access-control-allow-headers'] = 'authorization, content-type';
+        headers['access-control-allow-methods'] = 'POST, OPTIONS';
+      }
+      return new Response(bytes, { status: 200, headers });
+    }
     const delivered = response(200, { status: 'ALLOW', publication }, origin);
     delivered.headers.set('x-gpir-editorial-source', config.GPIR_EDITORIAL_SOURCE === 'payload' ? 'payload' : 'contentful');
     return delivered;
