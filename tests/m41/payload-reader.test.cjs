@@ -126,3 +126,34 @@ test('manifest signature failure prevents all cached or remote content reads', a
         integrity: { signature: 'invalid', sha256: site.sha256(site.canonical(f.manifest)) } })), /signature mismatch/);
     assert.equal(f.reads.length, 0);
 });
+
+test('owner-deferred four Git-managed routes survive a signed Payload edition unchanged', async t => {
+    const f = fixture(t);
+    const pages = [
+        'pages/intelligence/domain-experts.html',
+        'pages/intelligence/trusted-source-network.html',
+        'pages/risk/global-central-banks.html',
+        'pages/risk/global-country-risk-monitor.html',
+    ];
+    for (const page of pages) {
+        const target = path.join(f.output, page);
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, 'existing Git page: ' + page);
+    }
+    const marker = await materialize(f.output, f.env, f.fetchImpl);
+    assert.equal(marker.snapshot, f.manifest.snapshot);
+    for (const page of pages) {
+        assert.equal(fs.readFileSync(path.join(f.output, page), 'utf8'), 'existing Git page: ' + page);
+    }
+});
+
+test('unapproved fifth managed route is still blocked before any Payload edition mutation', async t => {
+    const f = fixture(t);
+    const extra = path.join(f.output, 'pages/intelligence/unapproved-fifth.html');
+    fs.mkdirSync(path.dirname(extra), { recursive: true });
+    fs.writeFileSync(extra, 'keep unrelated content');
+    await assert.rejects(materialize(f.output, f.env, f.fetchImpl),
+        /Payload does not cover every existing managed public path/);
+    assert.equal(fs.readFileSync(extra, 'utf8'), 'keep unrelated content');
+    assert.equal(fs.existsSync(path.join(f.output, 'assets/data/cms-source.json')), false);
+});
