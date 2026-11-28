@@ -7,6 +7,12 @@ used.
 Status values: `ACTIONABLE`, `IN PROGRESS`, `PARKED`, `BLOCKED`, `COMPLETED`,
 `SUPERSEDED`.
 
+## M44 open-source agentic intelligence enhancement
+
+| ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |
+|---|---|---|---|---|---|---|---|
+| M44-AGENTIC-INTELLIGENCE | 2026-11-28 | Use LangGraph OSS within the existing GPIR architecture to stabilize Global Alerts and FX first, then extend governed editorial, ASK and country intelligence without added cost or an LLM runtime dependency | INTELLIGENCE, FX, AUTOMATION, READER EXPERIENCE, GOVERNANCE | Critical | IN PROGRESS | PR CI; owner-reviewed Supabase/Edge/Pages release; genuine alert lifecycle; live FX/ASK/country/billing acceptance | Phase 1 release candidate adds a bounded 12-hour relay, deterministic LangGraph wrapper, service-only FX archive projection, cached public FX response and in-place card enrichment. No new service, database or scheduler. Production remains unchanged; Phases 2–4 and live acceptance are not classified complete. See `docs/M44-AGENTIC-INTELLIGENCE.md`. |
+
 ## M45 approved Drive publication closure
 
 | ID | Date Raised | Requirement | Category | Priority | Status | Dependency | Outcome |

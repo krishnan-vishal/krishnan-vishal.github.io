@@ -1,4 +1,5 @@
 import { createPublicationHandler } from './handler.mjs';
+import { createOperationalPublicationHandler } from '../_shared/gpir-operational-graph.ts';
 
 const env = Object.fromEntries([
   'GPIR_EDITORIAL_SOURCE',
@@ -11,4 +12,6 @@ const env = Object.fromEntries([
   'CONTENTFUL_DELIVERY_TOKEN'
 ].map(name => [name, Deno.env.get(name)]));
 
-Deno.serve(createPublicationHandler({ env }));
+const publicationHandler = createPublicationHandler({ env });
+
+Deno.serve(createOperationalPublicationHandler(publicationHandler));

@@ -3488,3 +3488,11 @@ The reviewed release candidate addresses homepage ASK GPIR and Reader contrast, 
 ## 2026-11-23 — Repository Domain Experts and Global Leaders release candidate
 
 The owner requested a directory under Repository beside Industry Participants, using the approved Who’s Who brief and existing reader rules. The feature branch provides accessible navigation and a paginated expert Smart Card, a private Payload REVIEW importer and an owner-controlled release projection into GPIR Core. The 13-record import dry run and focused editorial/entitlement tests passed. Production changes, candidate evidence clearance, live accessibility acceptance and release remain pending. See [release evidence and rollout](GPIR_DOMAIN_EXPERT_DIRECTORY.md).
+
+## 2026-11-28 — M44 Phase 1 deterministic orchestration release candidate
+
+- Work began in isolated worktree branch `codex/m44-agentic-intelligence` at remote main `b2b2a277`; unrelated local work and M43 archival were not modified.
+- Read-only production baseline returned an empty governed relay in 2,553 ms, 6,652 historical intelligence records, 16,846 existing FX archive rows across 134 pairs through 2026-11-27 and a public FX artifact generated on 2026-11-03. No candidate was promoted to manufacture lifecycle evidence.
+- The release candidate bounds live-relay database work to qualifying preceding-12-hour identifiers, wraps the unchanged publisher in explicit deterministic LangGraph OSS stages and projects the existing FX archive through a service-only SQL function into a ten-minute public cache. Browser cards retain static last-known-good data and approved designs.
+- No commercial LangGraph hosting, model/LLM call, provider fallback, new database, vector/graph store, scheduler, paid service or infrastructure commitment is introduced. The code paths continue without LLM quota.
+- Six M44 tests and applicable syntax/content/link/FX/announcement checks pass. Two stale broader assertions and 19 failure lines from the unchanged announcement-intent fixtures remain visible and were not weakened. Production migration, Edge/Pages deployment, live lifecycle/performance/ASK/country proof and billing verification remain pending. Full scope, evidence and rollback: [M44 report](M44-AGENTIC-INTELLIGENCE.md).
