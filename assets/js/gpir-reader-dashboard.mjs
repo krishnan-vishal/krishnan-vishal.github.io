@@ -42,6 +42,44 @@ function normalizedPaymentStatus(value) {
     typeof value === 'string' && PAYMENT_STATUS_PATTERN.test(value) ? 'UNCONFIRMED' : null;
 }
 
+// Match a server-authorized reader identity to its already published public
+// route metadata. Route metadata never authorizes access to protected bodies.
+export function publicationRouteIndex(catalog) {
+  const map = new Map();
+  if (!catalog || !Array.isArray(catalog.routes)) return map;
+  for (const row of catalog.routes) {
+    if (row?.accessClass !== 'ENTITLED' || row?.authAuthority !== 'supabase' ||
+        typeof row.identity !== 'string' || map.has(row.identity)) continue;
+    const destination = safePublicationDestination(row.route);
+    if (!destination || !/^\\/[a-z0-9][a-z0-9-]*\\/$/.test(destination)) continue;
+    map.set(row.identity, Object.freeze({
+      destination, title: safeText(row.title, 180),
+      summary: safeText(row.summary, 280)
+    }));
+  }
+  return map;
+}
+
+export function attachAuthorizedPublicationRoutes(summary, catalog) {
+  const routes = publicationRouteIndex(catalog);
+  if (!summary?.library || !routes.size) return summary;
+  return Object.freeze({ ...summary, library: Object.freeze(summary.library.map(item => {
+    const match = routes.get(item.publicationId);
+    if (!match || !UUID.test(item.supabaseRecordId || '')) return item;
+    return Object.freeze({ ...item, destination: match.destination,
+      title: match.title || item.title, summary: match.summary || item.summary });
+  })) });
+}
+
+export async function enrichAuthorizedLibrary(summary, fetchImpl) {
+  if (!summary?.library?.length || typeof fetchImpl !== 'function') return summary;
+  try {
+    const response = await fetchImpl('/routes.json', { cache: 'no-store' });
+    if (!response?.ok) return summary;
+    return attachAuthorizedPublicationRoutes(summary, await response.json());
+  } catch { return summary; }
+}
+
 export function normalizeReaderSummary(value) {
   if (!value || value.status !== 'OK' || !value.profile || !Array.isArray(value.library) ||
       !Array.isArray(value.payments) || !value.plan) return null;
@@ -610,7 +648,8 @@ async function setupReaderDashboard({ global, document, fetchImpl, root }) {
       }
       return false;
     }
-    renderReaderDashboard(document, result.summary);
+    const resolvedSummary = await enrichAuthorizedLibrary(result.summary, fetchImpl);
+    renderReaderDashboard(document, resolvedSummary);
     await renderPublicFxResearch(document, fetchImpl);
     await Promise.allSettled([
       initializePayPalOnetimeCheckout({ global, document, fetchImpl }),
